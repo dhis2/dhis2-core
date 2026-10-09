@@ -55,20 +55,22 @@ import org.junit.jupiter.api.condition.EnabledIf;
 
 /**
  * Checks that a continuous analytics table update ({@code lastYears=0}) picks up aggregate data
- * values and tracker events that are added, updated and deleted after the full analytics export.
+ * values, tracker events and single events that are added, updated and deleted after the full
+ * analytics export.
  *
  * <p>Unlike the other analytics tests, this test changes data and runs the analytics table export
  * again. It is ordered last, so no other test sees the change. It writes an aggregate data value
  * for a data element, org unit and period that have no data value in the database and that no other
- * test queries, and an event with its own UID in an existing enrollment.
+ * test queries, and events with their own UIDs: one in an existing enrollment of a tracker program,
+ * and one in a single event program.
  *
  * <p>The test uses existing metadata and runs no analytics table update other than continuous ones.
  * A continuous update does not regenerate the resource tables, so new metadata would be missing
  * from them, and an update that does regenerate them would also pick up the metadata other tests
  * import after the full export, giving the tables columns that the existing ones lack. These are
  * known limitations of continuous updates, not what this test checks. For the same reason, each
- * continuous update covers only the table type under test, and uses the outlier setting of the full
- * export, so the tables keep the same columns.
+ * continuous update covers only the aggregate and event tables, and uses the outlier setting of the
+ * full export, so the tables keep the same columns.
  *
  * @author Jason P. Pickering <jason@dhis2.org>
  */
@@ -88,28 +90,28 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
 
   private static final String PERIOD = "202201";
 
-  /** TB program. */
-  private static final String PROGRAM = "ur1Edk5Oe2n";
+  /**
+   * In an existing active enrollment of the TB program, at Mogbongisseh MCHP. Sputum smear
+   * microscopy test is a repeatable stage, and the data element is TB smear microscopy number of
+   * specimen.
+   */
+  private static final TestEvent TRACKER_EVENT =
+      new TestEvent(
+          "caE2eEvt001", "ur1Edk5Oe2n", "jdRD35YwbRH", "yLIPuJHRgey", "GwALejH6kxb", "DJr17K6RWzO");
 
-  /** Sputum smear microscopy test, a repeatable stage. */
-  private static final String PROGRAM_STAGE = "jdRD35YwbRH";
+  /**
+   * In the Antenatal care visit single event program, at Ngelehun CHC. The data element is WHOMCH
+   * Hemoglobin value. The stage has no compulsory data elements.
+   */
+  private static final TestEvent SINGLE_EVENT =
+      new TestEvent("caE2eSev001", "lxAQ7Zs9VYR", "dBwrot7S420", "vANAXwtLwcT", null, ORG_UNIT);
 
-  /** TB smear microscopy number of specimen. */
-  private static final String EVENT_DATA_ELEMENT = "yLIPuJHRgey";
-
-  /** An active enrollment in the TB program, at Mogbongisseh MCHP. */
-  private static final String ENROLLMENT = "GwALejH6kxb";
-
-  private static final String EVENT_ORG_UNIT = "DJr17K6RWzO";
-
-  private static final String EVENT = "caE2eEvt001";
-
-  private static final String SKIP_ALL_BUT_AGGREGATE =
-      "skipEvents=true&skipEnrollment=true&skipTrackedEntities=true&skipOrgUnitOwnership=true"
-          + "&skipValidationResult=true";
-
-  private static final String SKIP_ALL_BUT_EVENTS =
-      "skipAggregate=true&skipEnrollment=true&skipTrackedEntities=true&skipOrgUnitOwnership=true"
+  /**
+   * The table types a continuous update skips, so it only covers the aggregate and event tables,
+   * see the class comment.
+   */
+  private static final String SKIP_TABLE_TYPES =
+      "skipEnrollment=true&skipTrackedEntities=true&skipOrgUnitOwnership=true"
           + "&skipValidationResult=true";
 
   private static final long ANALYTICS_TIMEOUT_SECONDS = TimeUnit.MINUTES.toSeconds(10);
@@ -134,46 +136,37 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
-  void continuousUpdatePicksUpAddedUpdatedAndDeletedDataValues() {
+  void continuousUpdatePicksUpAddedUpdatedAndDeletedData() {
     getAnalytics().validate().statusCode(200).body("rows", empty());
+    getEventAnalytics(TRACKER_EVENT).validate().statusCode(200).body("rows", empty());
+    getEventAnalytics(SINGLE_EVENT).validate().statusCode(200).body("rows", empty());
 
     // Added after the full export
     importDataValue("11", "CREATE_AND_UPDATE");
-    runContinuousUpdate(SKIP_ALL_BUT_AGGREGATE);
-    validateRow(getAnalytics(), List.of(DATA_ELEMENT, PERIOD, "11"));
+    importEvent(TRACKER_EVENT, "11", "CREATE_AND_UPDATE");
+    importEvent(SINGLE_EVENT, "11", "CREATE_AND_UPDATE");
+    runContinuousUpdate();
+    validateDataValueRow("11");
+    validateEventRow(TRACKER_EVENT, "11");
+    validateEventRow(SINGLE_EVENT, "11");
 
     // Updated after the previous continuous update
     importDataValue("17", "CREATE_AND_UPDATE");
-    runContinuousUpdate(SKIP_ALL_BUT_AGGREGATE);
-    ApiResponse updated = getAnalytics();
-    updated.validate().statusCode(200).body("rows", hasSize(equalTo(1)));
-    validateRow(updated, List.of(DATA_ELEMENT, PERIOD, "17"));
+    importEvent(TRACKER_EVENT, "17", "CREATE_AND_UPDATE");
+    importEvent(SINGLE_EVENT, "17", "CREATE_AND_UPDATE");
+    runContinuousUpdate();
+    validateDataValueRow("17");
+    validateEventRow(TRACKER_EVENT, "17");
+    validateEventRow(SINGLE_EVENT, "17");
 
     // Deleted after the previous continuous update
     importDataValue("17", "DELETE");
-    runContinuousUpdate(SKIP_ALL_BUT_AGGREGATE);
+    importEvent(TRACKER_EVENT, "17", "DELETE");
+    importEvent(SINGLE_EVENT, "17", "DELETE");
+    runContinuousUpdate();
     getAnalytics().validate().statusCode(200).body("rows", empty());
-  }
-
-  @Test
-  @Timeout(value = 15, unit = TimeUnit.MINUTES)
-  void continuousUpdatePicksUpAddedUpdatedAndDeletedEvents() {
-    getEventAnalytics().validate().statusCode(200).body("rows", empty());
-
-    // Added after the full export
-    importEvent("11", "CREATE_AND_UPDATE");
-    runContinuousUpdate(SKIP_ALL_BUT_EVENTS);
-    validateEventRow("11");
-
-    // Updated after the previous continuous update
-    importEvent("17", "CREATE_AND_UPDATE");
-    runContinuousUpdate(SKIP_ALL_BUT_EVENTS);
-    validateEventRow("17");
-
-    // Deleted after the previous continuous update
-    importEvent("17", "DELETE");
-    runContinuousUpdate(SKIP_ALL_BUT_EVENTS);
-    getEventAnalytics().validate().statusCode(200).body("rows", empty());
+    getEventAnalytics(TRACKER_EVENT).validate().statusCode(200).body("rows", empty());
+    getEventAnalytics(SINGLE_EVENT).validate().statusCode(200).body("rows", empty());
   }
 
   private void importDataValue(String value, String importStrategy) {
@@ -199,20 +192,20 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
         .body("status", equalTo("OK"));
   }
 
-  private void importEvent(String value, String importStrategy) {
+  private void importEvent(TestEvent testEvent, String value, String importStrategy) {
     JsonObject dataValue = new JsonObject();
-    dataValue.addProperty("dataElement", EVENT_DATA_ELEMENT);
+    dataValue.addProperty("dataElement", testEvent.dataElement());
     dataValue.addProperty("value", value);
 
     JsonArray dataValues = new JsonArray();
     dataValues.add(dataValue);
 
     JsonObject event = new JsonObject();
-    event.addProperty("event", EVENT);
-    event.addProperty("program", PROGRAM);
-    event.addProperty("programStage", PROGRAM_STAGE);
-    event.addProperty("enrollment", ENROLLMENT);
-    event.addProperty("orgUnit", EVENT_ORG_UNIT);
+    event.addProperty("event", testEvent.uid());
+    event.addProperty("program", testEvent.program());
+    event.addProperty("programStage", testEvent.programStage());
+    event.addProperty("enrollment", testEvent.enrollment());
+    event.addProperty("orgUnit", testEvent.orgUnit());
     event.addProperty("occurredAt", "2022-01-15");
     event.addProperty("status", "ACTIVE");
     event.add("dataValues", dataValues);
@@ -232,14 +225,11 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
         .body("status", equalTo("OK"));
   }
 
-  /**
-   * Runs a continuous analytics table update, skipping the given table types, and checks that no
-   * stage of it failed.
-   */
-  private void runContinuousUpdate(String skipTableTypes) {
+  /** Runs a continuous analytics table update and checks that no stage of it failed. */
+  private void runContinuousUpdate() {
     String taskId =
         new ResourceTableActions()
-            .post("/analytics?" + continuousUpdateParams(skipTableTypes), new JsonObject())
+            .post("/analytics?" + continuousUpdateParams(), new JsonObject())
             .validateStatus(200)
             .extractString("response.id");
 
@@ -252,35 +242,42 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
   }
 
   /**
-   * Returns the parameters of a continuous update that skips the given table types, with the
+   * Returns the parameters of a continuous update of the aggregate and event tables, with the
    * outlier setting of the full export, see the class comment.
    */
-  private static String continuousUpdateParams(String skipTableTypes) {
+  private static String continuousUpdateParams() {
     String exportParams = System.getProperty("analytics.api.query.params", "");
     boolean skipOutliers = exportParams.contains("skipOutliers=true");
 
-    return "lastYears=0&" + skipTableTypes + "&skipOutliers=" + skipOutliers;
+    return "lastYears=0&" + SKIP_TABLE_TYPES + "&skipOutliers=" + skipOutliers;
   }
 
-  private ApiResponse getEventAnalytics() {
+  private ApiResponse getEventAnalytics(TestEvent event) {
     return analyticsActions.get(
-        "/events/query/" + PROGRAM,
+        "/events/query/" + event.program(),
         new QueryParamsBuilder()
-            .add("stage", PROGRAM_STAGE)
+            .add("stage", event.programStage())
             .add("dimension", "pe:" + PERIOD)
-            .add("dimension", "ou:" + EVENT_ORG_UNIT)
-            .add("dimension", PROGRAM_STAGE + "." + EVENT_DATA_ELEMENT)
+            .add("dimension", "ou:" + event.orgUnit())
+            .add("dimension", event.programStage() + "." + event.dataElement())
             .add("skipMeta", "true"));
   }
 
   /** Checks that the event is the only row, with the given value, which is the last column. */
-  private void validateEventRow(String value) {
-    getEventAnalytics()
+  private void validateEventRow(TestEvent event, String value) {
+    getEventAnalytics(event)
         .validate()
         .statusCode(200)
         .body("rows", hasSize(equalTo(1)))
-        .body("rows[0][0]", equalTo(EVENT))
+        .body("rows[0][0]", equalTo(event.uid()))
         .body("rows[0][-1]", equalTo(value));
+  }
+
+  /** Checks that the data value is the only row, with the given value. */
+  private void validateDataValueRow(String value) {
+    ApiResponse response = getAnalytics();
+    response.validate().statusCode(200).body("rows", hasSize(equalTo(1)));
+    validateRow(response, List.of(DATA_ELEMENT, PERIOD, value));
   }
 
   private ApiResponse getAnalytics() {
@@ -291,4 +288,17 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
             .add("filter", "ou:" + ORG_UNIT)
             .add("skipMeta", "true"));
   }
+
+  /**
+   * An event the test writes, with the data element it sets.
+   *
+   * @param enrollment the enrollment, or null for a single event.
+   */
+  private record TestEvent(
+      String uid,
+      String program,
+      String programStage,
+      String dataElement,
+      String enrollment,
+      String orgUnit) {}
 }
