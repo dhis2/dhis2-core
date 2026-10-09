@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -70,12 +69,11 @@ class AttributeValidator
     TrackedEntityType trackedEntityType =
         bundle.getPreheat().getTrackedEntityType(trackedEntity.getTrackedEntityType());
 
-    TrackedEntity te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
     OrganisationUnit organisationUnit =
         bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
     validateMandatoryAttributes(reporter, bundle, trackedEntity, trackedEntityType);
-    validateAttributes(reporter, bundle, trackedEntity, te, organisationUnit, trackedEntityType);
+    validateAttributes(reporter, bundle, trackedEntity, organisationUnit, trackedEntityType);
   }
 
   private void validateMandatoryAttributes(
@@ -105,7 +103,6 @@ class AttributeValidator
       Reporter reporter,
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
-      TrackedEntity te,
       OrganisationUnit orgUnit,
       TrackedEntityType trackedEntityType) {
     TrackerPreheat preheat = bundle.getPreheat();
@@ -136,7 +133,13 @@ class AttributeValidator
       validateOptionSet(reporter, preheat, trackedEntity, tea, attribute.getValue());
 
       validateAttributeUniqueness(
-          reporter, preheat, trackedEntity, attribute.getValue(), tea, te, orgUnit);
+          reporter,
+          preheat,
+          trackedEntity,
+          attribute.getValue(),
+          tea,
+          trackedEntity.getUID(),
+          orgUnit);
     }
   }
 }
