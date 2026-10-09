@@ -175,7 +175,7 @@ public class DataElement extends BaseMetadataObject
 
   /** Data element value type (int, boolean, etc) */
   @Enumerated(EnumType.STRING)
-  @Column(name = "valueType", length = 50, nullable = false)
+  @Column(name = "valuetype", length = 50, nullable = false)
   private ValueType valueType;
 
   /** Abstract class representing options for value types. */
@@ -187,7 +187,7 @@ public class DataElement extends BaseMetadataObject
    * DataElementDomainType.TRACKER.
    */
   @Enumerated(EnumType.STRING)
-  @Column(name = "domainType", nullable = false)
+  @Column(name = "domaintype", nullable = false)
   private DataElementDomain domainType;
 
   @Enumerated(EnumType.STRING)

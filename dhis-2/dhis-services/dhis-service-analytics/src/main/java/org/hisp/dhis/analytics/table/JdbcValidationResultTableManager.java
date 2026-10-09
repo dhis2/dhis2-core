@@ -144,7 +144,8 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
         params.isLatestUpdate()
             ? new AnalyticsTable(
                 AnalyticsTableType.VALIDATION_RESULT, getColumns(), List.of(), Logged.LOGGED)
-            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(), SORT_KEY);
+            : getRegularAnalyticsTable(
+                params, getDataYears(params), getColumns(), SORT_KEY, List.of());
 
     return table.hasTablePartitions() ? List.of(table) : List.of();
   }
