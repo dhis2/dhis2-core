@@ -31,21 +31,26 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.time.DateUtils.addDays;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -99,13 +104,24 @@ public class FirstOrLastValueSubqueryRenderer {
             + ","
             + getFirstOrLastValueSubqueryQuotedColumns(params);
     String timeTest = buildTenYearWindowTimeTest(params);
-    String nullTest = " and " + valueItem + " is not null";
+    String nullTest = " and " + valueItem + " is not null" + getStageTest(params);
     return assembleSubquery(params, columns, timeTest, nullTest);
   }
 
   private String buildTenYearWindowTimeTest(EventQueryParams params) {
-    String timeCol = sqlBuilder.quoteAx(params.getTimeFieldAsFieldFallback());
-    Date latest = params.getLatestEndDate();
+    String timeCol = sqlBuilder.quoteAx(getTimeColumn(params));
+    if (params.hasFirstOrLastStagePeriod()) {
+      Date end = params.getFirstOrLastStagePeriod().endDate();
+      return timeCol
+          + " >= '"
+          + toMediumDate(addYears(end, LAST_VALUE_YEARS_OFFSET))
+          + "' and "
+          + timeCol
+          + " < '"
+          + toMediumDate(addDays(end, 1))
+          + "'";
+    }
+    Date latest = params.getLatestEndDateIncludingStageDates();
     Date earliest = addYears(latest, LAST_VALUE_YEARS_OFFSET);
     return timeCol
         + " >= '"
@@ -120,7 +136,7 @@ public class FirstOrLastValueSubqueryRenderer {
 
   private String assembleSubquery(
       EventQueryParams params, String columns, String timeTest, String nullTest) {
-    String timeCol = sqlBuilder.quoteAx(params.getTimeFieldAsFieldFallback());
+    String timeCol = sqlBuilder.quoteAx(getTimeColumn(params));
     String createdCol = sqlBuilder.quoteAx(TimeField.CREATED.getEventColumnName());
     String order =
         params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
@@ -193,9 +209,44 @@ public class FirstOrLastValueSubqueryRenderer {
    * @param params the {@link EventQueryParams}.
    */
   private String getFirstOrLastValueSubqueryQuotedColumns(EventQueryParams params) {
-    return params.getDimensionsAndFilters().stream()
-        .map(dim -> sqlBuilder.quote(dim.getDimensionName()))
-        .collect(joining(","));
+    Set<String> columns = new LinkedHashSet<>();
+    params.getDimensionsAndFilters().stream()
+        .map(DimensionalObject::getDimensionName)
+        .forEach(columns::add);
+    params.getItemsAndItemFilters().stream()
+        .filter(item -> !item.isProgramIndicator())
+        .map(QueryItem::getItemId)
+        .forEach(columns::add);
+    if (params.hasProgramStage()
+        || params.hasFirstOrLastStagePeriod()
+        || params.getItemsAndItemFilters().stream().anyMatch(QueryItem::hasProgramStage)) {
+      columns.add("ps");
+    }
+    if (params.hasTimeField() || params.hasFirstOrLastStagePeriod()) {
+      columns.add(getTimeColumn(params));
+    }
+    if (params.hasTimeField()) {
+      columns.add(params.getTimeFieldAsFieldFallback());
+    }
+    columns.remove(params.getValue().getDimensionItem());
+    columns.remove("event");
+    return columns.stream().map(sqlBuilder::quote).collect(joining(","));
+  }
+
+  private String getTimeColumn(EventQueryParams params) {
+    return params.hasFirstOrLastStagePeriod()
+        ? params.getFirstOrLastStagePeriod().dateColumn()
+        : params.getTimeFieldAsFieldFallback();
+  }
+
+  private String getStageTest(EventQueryParams params) {
+    ProgramStage stage =
+        params.hasProgramStage()
+            ? params.getProgramStage()
+            : params.hasFirstOrLastStagePeriod()
+                ? params.getFirstOrLastStagePeriod().programStage()
+                : null;
+    return stage == null ? "" : " and " + sqlBuilder.quoteAx("ps") + " = '" + stage.getUid() + "'";
   }
 
   /** Returns the program indicator SQL from the query parameters. */

@@ -145,6 +145,31 @@ public class EventQueryParams extends DataQueryParams {
 
   public record GeometrySource(String coordinateField, String source) {}
 
+  /** The stage date and reporting period for one planned first/last value query. */
+  public record FirstOrLastStagePeriod(QueryItem dateItem, PeriodDimension period) {
+    /** The analytics column of the stage date, such as occurreddate or scheduleddate. */
+    public String dateColumn() {
+      return dateItem.getItemId();
+    }
+
+    /** The program stage whose events are ranked. */
+    public ProgramStage programStage() {
+      return dateItem.getProgramStage();
+    }
+
+    /** The last day of the reporting period, used as the selection cutoff. */
+    public Date endDate() {
+      return period.getEndDate();
+    }
+
+    /** The ISO identifier of the reporting period, used as the row label. */
+    public String isoPeriod() {
+      return period.getIsoDate();
+    }
+  }
+
+  @Getter private FirstOrLastStagePeriod firstOrLastStagePeriod;
+
   /** The query items. */
   private List<QueryItem> items = new ArrayList<>();
 
@@ -342,6 +367,7 @@ public class EventQueryParams extends DataQueryParams {
     params.value = this.value;
     params.requestValue = this.requestValue;
     params.valueProgramStage = this.valueProgramStage;
+    params.firstOrLastStagePeriod = this.firstOrLastStagePeriod;
     params.itemProgramIndicators = new ArrayList<>(this.itemProgramIndicators);
     params.programIndicator = this.programIndicator;
     params.option = this.option;
@@ -743,7 +769,7 @@ public class EventQueryParams extends DataQueryParams {
    * operator filters (GE, GT, LE, LT, EQ). This is needed for partition selection.
    */
   private void extractDatesFromStageDateItems() {
-    for (QueryItem item : items) {
+    for (QueryItem item : getItemsAndItemFilters()) {
       if (item.hasProgramStage() && isStageDateItem(item)) {
         Date start = null;
         Date end = null;
@@ -768,6 +794,16 @@ public class EventQueryParams extends DataQueryParams {
         }
       }
     }
+  }
+
+  /**
+   * Returns the latest end date, including the end dates of stage date item filters. The dates are
+   * resolved on a copy, so this object is left unchanged.
+   */
+  public Date getLatestEndDateIncludingStageDates() {
+    EventQueryParams copy = new Builder(this).build();
+    copy.extractDatesFromStageDateItems();
+    return copy.getLatestEndDate();
   }
 
   /**
@@ -1069,6 +1105,10 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean hasPiDisagInfo() {
     return piDisagInfo != null;
+  }
+
+  public boolean hasFirstOrLastStagePeriod() {
+    return firstOrLastStagePeriod != null;
   }
 
   public boolean isPiDisagDimension(String dimension) {
@@ -1951,6 +1991,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withStartEndDatesForPeriods() {
       this.params.replacePeriodsWithDates();
+      return this;
+    }
+
+    public Builder withFirstOrLastStagePeriod(QueryItem dateItem, PeriodDimension period) {
+      this.params.firstOrLastStagePeriod = new FirstOrLastStagePeriod(dateItem, period);
       return this;
     }
 

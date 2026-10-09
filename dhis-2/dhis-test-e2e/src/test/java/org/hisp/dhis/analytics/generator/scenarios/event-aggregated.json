@@ -211,9 +211,9 @@
       }
     },
     {
-       "name": "stageValueWithBooleanDataElement",
-       "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?displayProperty=NAME&totalPages=false&dimension=A03MvHHogjR.EVENT_DATE:LAST_6_MONTHS&value=A03MvHHogjR.bx6fsa0t90x&relativePeriodDate=2021-07-01",
-       "version": {
+      "name": "stageValueWithBooleanDataElement",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?displayProperty=NAME&totalPages=false&dimension=A03MvHHogjR.EVENT_DATE:LAST_6_MONTHS&value=A03MvHHogjR.bx6fsa0t90x&relativePeriodDate=2021-07-01",
+      "version": {
         "min": 43
       }
     },
@@ -397,6 +397,111 @@
       "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,ENROLLMENT_DATE:LAST_12_MONTHS&skipMeta=false&skipData=false&relativePeriodDate=2026-10-08",
       "version": {
         "min": 43
+      }
+    },
+    {
+      "name": "firstBirthValueAtStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202202&aggregationType=FIRST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstAverageBirthValueAtStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202202&aggregationType=FIRST_AVERAGE_ORG_UNIT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstFirstBirthValueAtStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202202&aggregationType=FIRST_FIRST_ORG_UNIT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueAtStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202202&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastAverageBirthValueAtStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202202&aggregationType=LAST_AVERAGE_ORG_UNIT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastLastBirthValueAtStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202202&aggregationType=LAST_LAST_ORG_UNIT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstBirthValueWithStagePeriodFilter",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202202&aggregationType=FIRST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueWithStagePeriodFilter",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202202&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstBirthValueWithScheduledPeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.SCHEDULED_DATE:202202&aggregationType=FIRST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueWithScheduledPeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.SCHEDULED_DATE:202202&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueForEachStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202201;202202&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "sumBirthValuesWithinStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202201&aggregationType=SUM",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueWithStagePeriodFilters",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202201;202202&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueWithNonConsecutiveStagePeriodFilters",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202201;202204&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstBirthValueWithStagePeriodFilters",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202201;202202&aggregationType=FIRST",
+      "version": {
+        "min": 44
       }
     }
   ]

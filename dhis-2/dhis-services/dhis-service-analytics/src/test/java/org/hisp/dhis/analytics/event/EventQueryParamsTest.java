@@ -217,6 +217,47 @@ class EventQueryParamsTest extends TestBase {
   }
 
   @Test
+  void testHasFirstOrLastStagePeriod() {
+    EventQueryParams withoutStagePeriod = new EventQueryParams.Builder().build();
+    EventQueryParams withStagePeriod =
+        new EventQueryParams.Builder()
+            .withFirstOrLastStagePeriod(
+                new QueryItem(createDataElement('A')), PeriodDimension.of("202602"))
+            .build();
+
+    assertFalse(withoutStagePeriod.hasFirstOrLastStagePeriod());
+    assertTrue(withStagePeriod.hasFirstOrLastStagePeriod());
+  }
+
+  @Test
+  void testFirstOrLastStagePeriodExposesDateColumnStageAndPeriod() {
+    QueryItem dateItem = new QueryItem(new BaseDimensionalItemObject("occurreddate"));
+    dateItem.setProgramStage(psA);
+    PeriodDimension period = PeriodDimension.of("202602");
+
+    EventQueryParams.FirstOrLastStagePeriod stagePeriod =
+        new EventQueryParams.FirstOrLastStagePeriod(dateItem, period);
+
+    assertEquals("occurreddate", stagePeriod.dateColumn());
+    assertEquals(psA, stagePeriod.programStage());
+    assertEquals(period.getEndDate(), stagePeriod.endDate());
+    assertEquals("202602", stagePeriod.isoPeriod());
+  }
+
+  @Test
+  void testGetLatestEndDateIncludingStageDatesReadsStageDateItemFilters() {
+    QueryItem dateItem = new QueryItem(new BaseDimensionalItemObject("occurreddate"));
+    dateItem.setProgramStage(psA);
+    dateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-02-01"));
+    dateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-02-28"));
+    EventQueryParams params = new EventQueryParams.Builder().addItem(dateItem).build();
+
+    assertEquals(getDate(2026, 2, 28), params.getLatestEndDateIncludingStageDates());
+    assertNull(params.getStartDate());
+    assertNull(params.getEndDate());
+  }
+
+  @Test
   void testHasDimensionValue() {
     EventQueryParams paramsA =
         new EventQueryParams.Builder()
