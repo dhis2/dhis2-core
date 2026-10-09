@@ -31,8 +31,6 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
-import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
-import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.EVENT;
 
 import com.google.common.collect.ImmutableList;
@@ -51,6 +49,7 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
+import org.hisp.dhis.analytics.event.data.stage.StageQueryItemClassifier;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
@@ -73,6 +72,8 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
   private final QueryPlanner queryPlanner;
 
   private final PartitionManager partitionManager;
+
+  private final StageQueryItemClassifier stageQueryItemClassifier;
 
   // -------------------------------------------------------------------------
   // EventQueryPlanner implementation
@@ -343,11 +344,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
     Optional<QueryItem> stageDateItem =
         params.getItemsAndItemFilters().stream()
-            .filter(QueryItem::hasProgramStage)
-            .filter(
-                item ->
-                    OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId())
-                        || SCHEDULED_DATE_COLUMN_NAME.equals(item.getItemId()))
+            .filter(stageQueryItemClassifier::isStageDate)
             .filter(item -> !item.getDimensionValues().isEmpty())
             .filter(
                 item ->

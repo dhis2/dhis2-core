@@ -52,6 +52,8 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
+import org.hisp.dhis.analytics.event.data.stage.StageQueryItemClassifier;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.category.CategoryCombo;
@@ -81,6 +83,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -89,6 +92,9 @@ class DefaultEventQueryPlannerTest extends TestBase {
   @Mock private QueryPlanner queryPlanner;
 
   @Mock private PartitionManager partitionManager;
+
+  @Spy
+  private StageQueryItemClassifier stageQueryItemClassifier = new DefaultStageQueryItemClassifier();
 
   @InjectMocks private DefaultEventQueryPlanner eventQueryPlanner;
 
@@ -462,29 +468,10 @@ class DefaultEventQueryPlannerTest extends TestBase {
       })
   void shouldPlanEachStageDatePeriodWithoutChangingTheRequest(AggregationType aggregationType) {
     ProgramStage stage = createProgramStage('A', program);
-    QueryItem dateItem =
-        new QueryItem(
-            new BaseDimensionalItemObject("occurreddate"),
-            program,
-            null,
-            ValueType.DATE,
-            AggregationType.NONE,
-            null);
-    dateItem.setProgramStage(stage);
-    dateItem.addDimensionValue("202601");
-    dateItem.addDimensionValue("202602");
+    QueryItem dateItem = createStageEventDateItem(stage, "202601", "202602");
     dateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
     dateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-02-28"));
-    EventQueryParams params =
-        new EventQueryParams.Builder()
-            .withProgram(program)
-            .withProgramStage(stage)
-            .withValue(dataElementA)
-            .withEndpointItem(EndpointItem.EVENT)
-            .addItem(dateItem)
-            .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
-            .withOrganisationUnits(List.of(orgUnitA))
-            .build();
+    EventQueryParams params = createStageDateAggregateParams(stage, dateItem, aggregationType);
     mockQueryPlannerToReturnSameEventParams();
 
     List<EventQueryParams> queries = eventQueryPlanner.planAggregateQuery(params);
@@ -508,27 +495,8 @@ class DefaultEventQueryPlannerTest extends TestBase {
       names = {"SUM", "AVERAGE", "COUNT", "LAST_IN_PERIOD", "LAST_IN_PERIOD_AVERAGE_ORG_UNIT"})
   void shouldKeepStagePeriodFilteringForOtherAggregations(AggregationType aggregationType) {
     ProgramStage stage = createProgramStage('A', program);
-    QueryItem item =
-        new QueryItem(
-            new BaseDimensionalItemObject("occurreddate"),
-            program,
-            null,
-            ValueType.DATE,
-            AggregationType.NONE,
-            null);
-    item.setProgramStage(stage);
-    item.addDimensionValue("202601");
-    item.addDimensionValue("202602");
-    EventQueryParams params =
-        new EventQueryParams.Builder()
-            .withProgram(program)
-            .withProgramStage(stage)
-            .withValue(dataElementA)
-            .withEndpointItem(EndpointItem.EVENT)
-            .addItem(item)
-            .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
-            .withOrganisationUnits(List.of(orgUnitA))
-            .build();
+    QueryItem item = createStageEventDateItem(stage, "202601", "202602");
+    EventQueryParams params = createStageDateAggregateParams(stage, item, aggregationType);
     mockQueryPlannerToReturnSameEventParams();
 
     List<EventQueryParams> queries = eventQueryPlanner.planAggregateQuery(params);
@@ -542,6 +510,35 @@ class DefaultEventQueryPlannerTest extends TestBase {
   // -------------------------------------------------------------------------
   // Helper methods
   // -------------------------------------------------------------------------
+
+  private QueryItem createStageEventDateItem(ProgramStage stage, String... periods) {
+    QueryItem item =
+        new QueryItem(
+            new BaseDimensionalItemObject("occurreddate"),
+            program,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    item.setProgramStage(stage);
+    for (String period : periods) {
+      item.addDimensionValue(period);
+    }
+    return item;
+  }
+
+  private EventQueryParams createStageDateAggregateParams(
+      ProgramStage stage, QueryItem stageDateItem, AggregationType aggregationType) {
+    return new EventQueryParams.Builder()
+        .withProgram(program)
+        .withProgramStage(stage)
+        .withValue(dataElementA)
+        .withEndpointItem(EndpointItem.EVENT)
+        .addItem(stageDateItem)
+        .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
+        .withOrganisationUnits(List.of(orgUnitA))
+        .build();
+  }
 
   private EventQueryParams createBasicEventQueryParams() {
     return new EventQueryParams.Builder()

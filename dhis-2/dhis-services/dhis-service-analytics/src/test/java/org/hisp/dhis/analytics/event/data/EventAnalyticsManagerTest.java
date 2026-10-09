@@ -900,36 +900,11 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
 
-    QueryItem stageDateItem =
-        new QueryItem(
-            new BaseDimensionalItemObject(dateColumn),
-            programA,
-            null,
-            ValueType.DATE,
-            AggregationType.NONE,
-            null);
-    stageDateItem.setProgramStage(programStage);
-    stageDateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-02-01"));
-    stageDateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-02-28"));
-    stageDateItem.addDimensionValue("202602");
-
-    EventQueryParams.Builder builder =
-        new EventQueryParams.Builder()
-            .withProgram(programA)
-            .withProgramStage(programStage)
-            .withOrganisationUnits(List.of(createOrganisationUnit('A')))
-            .withValue(createDataElement('U'))
-            .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
+    QueryItem stageDateItem = createFebruaryStageDateItem(dateColumn);
+    EventQueryParams params =
+        createStageDateAggregateQuery(aggregationType, stageDateItem, dateAsFilter)
             .withAggregateData(true)
-            .withEndpointItem(EndpointItem.EVENT)
-            .withEndpointAction(AGGREGATE)
-            .withTableName(getTable(programA.getUid()));
-    if (dateAsFilter) {
-      builder.addItemFilter(stageDateItem);
-    } else {
-      builder.addItem(stageDateItem);
-    }
-    EventQueryParams params = builder.build();
+            .build();
 
     subject.getAggregatedEventData(params, createGrid(), 200000);
 
@@ -965,35 +940,11 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
 
-    QueryItem dateItem =
-        new QueryItem(
-            new BaseDimensionalItemObject(dateColumn),
-            programA,
-            null,
-            ValueType.DATE,
-            AggregationType.NONE,
-            null);
-    dateItem.setProgramStage(programStage);
-    dateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-02-01"));
-    dateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-02-28"));
-    dateItem.addDimensionValue("202602");
-    EventQueryParams.Builder builder =
-        new EventQueryParams.Builder()
-            .withProgram(programA)
-            .withProgramStage(programStage)
-            .withOrganisationUnits(List.of(createOrganisationUnit('A')))
-            .withValue(createDataElement('U'))
-            .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
-            .withEndpointItem(EndpointItem.EVENT)
-            .withEndpointAction(AGGREGATE)
-            .withTableName(getTable(programA.getUid()))
-            .withFirstOrLastStagePeriod(dateItem, PeriodDimension.of("202602"));
-    if (dateAsFilter) {
-      builder.addItemFilter(dateItem);
-    } else {
-      builder.addItem(dateItem);
-    }
-    EventQueryParams params = builder.build();
+    QueryItem dateItem = createFebruaryStageDateItem(dateColumn);
+    EventQueryParams params =
+        createStageDateAggregateQuery(aggregationType, dateItem, dateAsFilter)
+            .withFirstOrLastStagePeriod(dateItem, PeriodDimension.of("202602"))
+            .build();
 
     subject.getAggregatedEventData(params, createGrid(), 200000);
     verify(jdbcTemplate).queryForRowSet(sql.capture());
@@ -2030,6 +1981,42 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     queryItem.addFilter(new QueryFilter(QueryOperator.GT, "10"));
 
     return params.build();
+  }
+
+  private QueryItem createFebruaryStageDateItem(String dateColumn) {
+    QueryItem item =
+        new QueryItem(
+            new BaseDimensionalItemObject(dateColumn),
+            programA,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    item.setProgramStage(programStage);
+    item.addFilter(new QueryFilter(QueryOperator.GE, "2026-02-01"));
+    item.addFilter(new QueryFilter(QueryOperator.LE, "2026-02-28"));
+    item.addDimensionValue("202602");
+    return item;
+  }
+
+  private EventQueryParams.Builder createStageDateAggregateQuery(
+      AggregationType aggregationType, QueryItem stageDateItem, boolean dateAsFilter) {
+    EventQueryParams.Builder builder =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withProgramStage(programStage)
+            .withOrganisationUnits(List.of(createOrganisationUnit('A')))
+            .withValue(createDataElement('U'))
+            .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(AGGREGATE)
+            .withTableName(getTable(programA.getUid()));
+    if (dateAsFilter) {
+      builder.addItemFilter(stageDateItem);
+    } else {
+      builder.addItem(stageDateItem);
+    }
+    return builder;
   }
 
   private Grid createGrid() {
