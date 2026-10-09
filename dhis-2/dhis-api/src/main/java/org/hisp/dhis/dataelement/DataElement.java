@@ -518,6 +518,7 @@ public class DataElement extends BaseMetadataObject
   // TODO can also be dimension
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.DATA_ELEMENT;
   }
