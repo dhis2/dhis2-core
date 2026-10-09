@@ -31,12 +31,16 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.EVENT;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
@@ -84,6 +88,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             .add(this::groupByOrgUnitLevel)
             .add(this::groupByPeriodType)
             .add(this::groupByPeriod)
+            .add(this::groupByStageDatePeriod)
             .build();
 
     for (Function<EventQueryParams, List<EventQueryParams>> grouper : groupers) {
@@ -326,5 +331,45 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
     }
 
     return queries;
+  }
+
+  /** Plans a separate first/last value query for each requested stage date period. */
+  private List<EventQueryParams> groupByStageDatePeriod(EventQueryParams params) {
+    if (params.getEndpointItem() != EVENT
+        || !params.hasValueDimension()
+        || !params.isFirstOrLastPeriodAggregationType()) {
+      return List.of(params);
+    }
+
+    Optional<QueryItem> stageDateItem =
+        params.getItemsAndItemFilters().stream()
+            .filter(QueryItem::hasProgramStage)
+            .filter(
+                item ->
+                    OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId())
+                        || SCHEDULED_DATE_COLUMN_NAME.equals(item.getItemId()))
+            .filter(item -> !item.getDimensionValues().isEmpty())
+            .filter(
+                item ->
+                    !params.hasProgramStage()
+                        || params.getProgramStage().equals(item.getProgramStage()))
+            .findFirst();
+
+    if (stageDateItem.isEmpty()) {
+      return List.of(params);
+    }
+
+    QueryItem item = stageDateItem.get();
+    return item.getDimensionValues().stream()
+        .distinct()
+        .map(PeriodDimension::of)
+        .map(
+            period -> {
+              EventQueryParams.Builder builder =
+                  new EventQueryParams.Builder(params).withFirstOrLastStagePeriod(item, period);
+              builder.withSkipPartitioning(true);
+              return builder.build();
+            })
+        .toList();
   }
 }
