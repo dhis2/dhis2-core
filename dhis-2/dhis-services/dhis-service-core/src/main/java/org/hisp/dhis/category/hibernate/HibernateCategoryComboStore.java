@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ package org.hisp.dhis.category.hibernate;
 import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.List;
@@ -166,9 +167,16 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
         categoryCombos);
   }
 
-  /** Runs a query only for its side effect of initialising the collections it fetch-joins. */
+  /**
+   * Runs a query only for its side effect of initialising the collections it fetch-joins. It does
+   * not flush first: these queries only read, and an auto flush would dirty check every entity
+   * already in the session, which includes everything the previous preload query loaded.
+   */
   private <C> void preload(
       String hql, Class<C> resultType, Collection<CategoryCombo> categoryCombos) {
-    getQuery(hql, resultType).setParameter("categoryCombos", categoryCombos).list();
+    getQuery(hql, resultType)
+        .setParameter("categoryCombos", categoryCombos)
+        .setFlushMode(FlushModeType.COMMIT)
+        .list();
   }
 }
