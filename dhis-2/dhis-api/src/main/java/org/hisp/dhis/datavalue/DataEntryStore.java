@@ -38,6 +38,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UIDConnection;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.Period;
@@ -240,15 +241,16 @@ public interface DataEntryStore {
   List<String> getOrgUnitsNotInUserHierarchy(UID user, Stream<UID> orgUnits);
 
   /**
-   * Checks that all the provided OUs are valid to use with the AOC.
+   * Checks that all the provided OUs (values) are valid to use with the AOC (key).
    *
    * <p>For an OU to be valid it must be identical or a descended of at least one of the OUs linked
    * to each CO that is linked to the provided AOC.
    *
-   * @return the OUs of the provided set that are not in the AOC hierarchy and thus illegal to use.
-   *     Meaning in a successful check the result is empty.
+   * @return the first pair of AOC-OU that is invalid. Meaning in a successful check the result is
+   *     null.
    */
-  List<String> getOrgUnitsNotInAocHierarchy(UID attrOptionCombo, Stream<UID> orgUnits);
+  @CheckForNull
+  UIDConnection getOrgUnitsNotInAocHierarchy(Map<UID, Stream<UID>> orgUnitsByAoc);
 
   /**
    * Checks that all provided OUs are explicitly linked to the given DS and thus a valid target for
@@ -262,16 +264,16 @@ public interface DataEntryStore {
   List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits);
 
   /**
-   * Checks that all given COCs belong to the CC used by the DE. This CC might be overridden by the
-   * DE-DS connection.
+   * Checks that all given COCs belong to the CC used by the DEs (CC might be overridden by the
+   * DE-DS connection) and returns the first that can NOT be used.
    *
    * @param dataSet DS to check (scope)
-   * @param dataElement DE to check (scope)
-   * @param optionCombos COCs to check
-   * @return all COCs that are not connected to the CC for the given DS-DE combination and thus
-   *     illegal to use. Meaning in a successful check the result is empty.
+   * @param cocsByDataElement COCs by DE to check (scope)
+   * @return the first DE-COC combination that is not valid to use in the context of the given DS.
+   *     Meaning in a successful check the result null.
    */
-  List<String> getCocNotInDataSet(UID dataSet, UID dataElement, Stream<UID> optionCombos);
+  @CheckForNull
+  UIDConnection getCocNotInDataSet(UID dataSet, Map<UID, Stream<UID>> cocsByDataElement);
 
   /**
    * Checks that all given AOCs belong to the CC defined by the given DS.
