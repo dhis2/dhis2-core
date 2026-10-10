@@ -81,6 +81,16 @@ public interface ObjectBundleHook<T> {
   }
 
   /**
+   * Hook to normalize an object (e.g. trim its name) before the bundle is created. Runs before
+   * preheat, so persisted objects are matched, validated and committed using the normalized values.
+   * Runs for every import, including those with skip validation enabled.
+   *
+   * @param object the object to normalize, not null.
+   * @param params the params the bundle is created from, not null.
+   */
+  default void normalize(T object, ObjectBundleParams params) {}
+
+  /**
    * Hook to run custom validation code. Run before any other validation.
    *
    * @param object the object to validate, not null.

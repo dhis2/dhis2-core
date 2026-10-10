@@ -37,6 +37,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.SortableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.Property;
@@ -57,6 +58,11 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   private final AclService aclService;
 
   @Override
+  public void normalize(IdentifiableObject object, ObjectBundleParams params) {
+    trimName(object);
+  }
+
+  @Override
   public void preCreate(IdentifiableObject identifiableObject, ObjectBundle bundle) {
     identifiableObject.setAutoFields();
     identifiableObject.setLastUpdatedBy(
@@ -72,6 +78,21 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     handleSkipSharing(identifiableObject, bundle);
     handleSkipTranslation(identifiableObject, bundle);
     handleSortOrder(identifiableObject, bundle, schema);
+  }
+
+  /**
+   * Trims leading and trailing whitespace from {@code name}, so that names differing only by
+   * whitespace (e.g. {@code "Name"} vs {@code "Name "}) do not appear as near-duplicate metadata. A
+   * name made up entirely of whitespace is trimmed down to an empty string.
+   *
+   * @param identifiableObject object to trim the name of
+   */
+  private void trimName(IdentifiableObject identifiableObject) {
+    String name = identifiableObject.getName();
+
+    if (name != null) {
+      identifiableObject.setName(name.strip());
+    }
   }
 
   /**
