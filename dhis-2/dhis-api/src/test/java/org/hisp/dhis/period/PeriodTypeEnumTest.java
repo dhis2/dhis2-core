@@ -30,6 +30,7 @@
 package org.hisp.dhis.period;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,13 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class PeriodTypeEnumTest {
+
+  @Test
+  void testOf() {
+    assertSame(PeriodTypeEnum.BI_MONTHLY, PeriodTypeEnum.of("BI_MONTHLY"));
+    assertSame(PeriodTypeEnum.BI_MONTHLY, PeriodTypeEnum.of("bi_monthly"));
+    assertSame(PeriodTypeEnum.BI_MONTHLY, PeriodTypeEnum.of("BiMonthly"));
+  }
 
   @Test
   void testOfIsoPeriod() {

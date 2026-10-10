@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
 /**
@@ -173,11 +174,13 @@ public class TwoYearlyPeriodType extends CalendarPeriodType {
     return null; // TODO
   }
 
+  @Nonnull
   @Override
   public String getIsoFormat() {
     return null; // TODO
   }
 
+  @Nonnull
   @Override
   public String getIso8601Duration() {
     return ISO8601_DURATION;

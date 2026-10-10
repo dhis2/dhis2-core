@@ -32,6 +32,7 @@ package org.hisp.dhis.period;
 import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
@@ -128,11 +129,13 @@ public class DailyPeriodType extends CalendarPeriodType {
         "%d%02d%02d", dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay());
   }
 
+  @Nonnull
   @Override
   public String getIsoFormat() {
     return ISO_FORMAT;
   }
 
+  @Nonnull
   @Override
   public String getIso8601Duration() {
     return ISO8601_DURATION;

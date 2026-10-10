@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,47 +27,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.webapi.controller;
 
-import java.util.Calendar;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.calendar.DateTimeUnit;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpStatus.OK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Chau Thu Tran
- */
-public class FinancialOctoberPeriodType extends FinancialPeriodType {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = -1623576547899897811L;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonPeriodType;
+import org.junit.jupiter.api.Test;
 
-  private static final String ISO_FORMAT = "yyyyOct";
+class RelativePeriodControllerTest extends PostgresControllerIntegrationTestBase {
 
-  private static final String ISO8601_DURATION = "P1Y";
+  @Test
+  void putLabel_Body() {
+    String body =
+        """
+          {
+            "name": "TODAY",
+            "locale": "de",
+            "label": "Heute"
+          }
+        """;
 
-  @Override
-  public int getBaseMonth() {
-    return Calendar.OCTOBER;
+    assertStatus(OK, PUT("/relativePeriods/", body));
+
+    JsonPeriodType daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
+
+    assertEquals(
+        "Heute", daily.getRelativePeriods().get("TODAY").getString("displayName").string());
   }
 
-  @Override
-  public PeriodTypeEnum getPeriodTypeEnum() {
-    return PeriodTypeEnum.FINANCIAL_OCT;
-  }
+  @Test
+  void putLabel_URL() {
+    assertStatus(OK, PUT("/relativePeriods/YESTERDAY?locale=de&value=Gestern"));
 
-  @Override
-  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
-    return String.format("%dOct", dateTimeUnit.getYear());
-  }
+    JsonPeriodType daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
 
-  @Nonnull
-  @Override
-  public String getIsoFormat() {
-    return ISO_FORMAT;
-  }
-
-  @Nonnull
-  @Override
-  public String getIso8601Duration() {
-    return ISO8601_DURATION;
+    assertEquals(
+        "Gestern", daily.getRelativePeriods().get("YESTERDAY").getString("displayName").string());
   }
 }
