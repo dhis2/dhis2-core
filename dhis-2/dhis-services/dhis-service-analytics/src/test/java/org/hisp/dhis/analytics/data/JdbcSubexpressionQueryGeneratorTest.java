@@ -61,6 +61,7 @@ import org.hisp.dhis.db.sql.DorisSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.junit.jupiter.api.Test;
@@ -85,6 +86,8 @@ class JdbcSubexpressionQueryGeneratorTest {
   @Mock private ExecutionPlanStore executionPlanStore;
 
   @Mock private QueryPlanner queryPlanner;
+
+  @Mock private OrganisationUnitService organisationUnitService;
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
@@ -326,7 +329,12 @@ class JdbcSubexpressionQueryGeneratorTest {
   void testGetSqlWithDoris() {
     SqlBuilder dorisSqlBuilder = new DorisSqlBuilder("dhis2", "driver");
     JdbcAnalyticsManager dorisManager =
-        new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore, dorisSqlBuilder);
+        new JdbcAnalyticsManager(
+            queryPlanner,
+            jdbcTemplate,
+            executionPlanStore,
+            dorisSqlBuilder,
+            organisationUnitService);
 
     OrganisationUnit ouA = createOrganisationUnit('A');
     PeriodDimension peA = PeriodDimension.of(createPeriod("202305"));

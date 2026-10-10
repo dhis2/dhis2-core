@@ -31,6 +31,11 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hisp.dhis.analytics.AggregationType.COUNT;
+import static org.hisp.dhis.analytics.AggregationType.MAX;
+import static org.hisp.dhis.analytics.AggregationType.MIN;
+import static org.hisp.dhis.analytics.AggregationType.STDDEV;
+import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
@@ -40,7 +45,9 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -56,6 +63,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.Test;
@@ -85,6 +94,8 @@ class JdbcAnalyticsManagerTest {
   @Mock private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
 
   @Mock private QueryPlanner queryPlanner;
+
+  @Mock private OrganisationUnitService organisationUnitService;
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
@@ -159,6 +170,7 @@ class JdbcAnalyticsManagerTest {
   @Test
   void verifyQueryGeneratedWhenDataElementHasMaxSumOrgUnitAggregationType() {
     mockRowSet();
+    mockOrgUnitLevels(3);
 
     DataQueryParams params = createParams(AggregationType.MAX_SUM_ORG_UNIT);
 
@@ -170,6 +182,7 @@ class JdbcAnalyticsManagerTest {
   @Test
   void verifyQueryGeneratedWhenDataElementHasMinSumOrgUnitAggregationType() {
     mockRowSet();
+    mockOrgUnitLevels(3);
 
     DataQueryParams params = createParams(AggregationType.MIN_SUM_ORG_UNIT);
 
@@ -197,6 +210,91 @@ class JdbcAnalyticsManagerTest {
 
     assertEquals(
         List.of("\"ab\"", "\"cd\"", "\"ef\""), subject.toQuotedList(List.of("ab", "cd", "ef")));
+  }
+
+  @Test
+  void testGetAggregateValueColumnWhenSumAggregationAndAveragePeriodAggregationAndNumericData() {
+    PeriodDimension peA = PeriodDimension.of("201501");
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withAggregationType(
+                new AnalyticsAggregationType(
+                    AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, false))
+            .addDimension(
+                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, getList(peA)))
+            .build();
+
+    assertEquals("sum(daysxvalue) / 31", subject.getAggregateValueColumn(params));
+  }
+
+  @Test
+  void testGetAggregateValueColumnWhenAverageAggregationAndNumericData() {
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withAggregationType(
+                new AnalyticsAggregationType(
+                    AggregationType.AVERAGE, AggregationType.AVERAGE, DataType.NUMERIC, false))
+            .build();
+
+    assertEquals("avg(value)", subject.getAggregateValueColumn(params));
+  }
+
+  @Test
+  void testGetAggregateValueColumnWhenAverageAggregationAndBooleanData() {
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withAggregationType(
+                new AnalyticsAggregationType(
+                    AggregationType.AVERAGE, AggregationType.AVERAGE, DataType.BOOLEAN, false))
+            .build();
+
+    assertEquals("sum(daysxvalue) / sum(daysno) * 100", subject.getAggregateValueColumn(params));
+  }
+
+  @Test
+  void testGetAggregateValueColumnWhenSimpleAggregationTypes() {
+    Map<AggregationType, String> expectedSqlByAggregationType =
+        Map.of(
+            COUNT, "count(value)",
+            MIN, "min(value)",
+            MAX, "max(value)",
+            STDDEV, "stddev(value)",
+            VARIANCE, "variance(value)");
+
+    expectedSqlByAggregationType.forEach(
+        (aggregationType, expectedSql) -> {
+          DataQueryParams params =
+              DataQueryParams.newBuilder()
+                  .withAggregationType(
+                      AnalyticsAggregationType.of(aggregationType, aggregationType))
+                  .build();
+
+          assertEquals(expectedSql, subject.getAggregateValueColumn(params));
+        });
+  }
+
+  @Test
+  void testGetAggregateValueColumnWhenSumAggregationAndNoDataDimension() {
+    DataQueryParams params =
+        DataQueryParams.newBuilder().withAggregationType(AnalyticsAggregationType.SUM).build();
+
+    assertEquals("sum(value)", subject.getAggregateValueColumn(params));
+  }
+
+  @Test
+  void testGetAggregateValueColumnWhenSumAggregationAndDataElementHasNoAggregationType() {
+    DataElement deA = createDataElement('A');
+    deA.setAggregationType(null);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, getList(deA)))
+            .build();
+
+    assertEquals("sum(value)", subject.getAggregateValueColumn(params));
   }
 
   // -------------------------------------------------------------------------
@@ -255,9 +353,31 @@ class JdbcAnalyticsManagerTest {
     assertThat(sql.getValue(), containsString(lastAggregationTypeSql));
   }
 
+  /**
+   * Stubs the organisation unit levels used to build the parent organisation unit expression.
+   *
+   * @param levels the number of filled organisation unit levels.
+   */
+  private void mockOrgUnitLevels(int levels) {
+    List<OrganisationUnitLevel> orgUnitLevels = new ArrayList<>();
+
+    for (int level = 1; level <= levels; level++) {
+      OrganisationUnitLevel orgUnitLevel = new OrganisationUnitLevel();
+      orgUnitLevel.setLevel(level);
+      orgUnitLevels.add(orgUnitLevel);
+    }
+
+    when(organisationUnitService.getFilledOrganisationUnitLevels()).thenReturn(orgUnitLevels);
+  }
+
   private void assertExpectedMaxMinSumOrgUnitSql(String maxOrMin) {
+    String parent =
+        "case when ax.\"uidlevel3\" = ax.\"ou\" then ax.\"uidlevel2\""
+            + " when ax.\"uidlevel2\" = ax.\"ou\" then ax.\"uidlevel1\""
+            + " else ax.\"ou\" end";
+
     String maxMinTypeSql =
-        "(select ax.\"ou\",ax.\"dx\",ax.\"pe\","
+        "(select ax.\"parentou\",ax.\"dx\",ax.\"pe\","
             + maxOrMin
             + "(\"daysxvalue\") as \"daysxvalue\","
             + maxOrMin
@@ -266,9 +386,17 @@ class JdbcAnalyticsManagerTest {
             + "(\"value\") as \"value\","
             + maxOrMin
             + "(\"textvalue\") as \"textvalue\" "
+            + "from (select "
+            + parent
+            + " as \"parentou\",ax.\"ou\",ax.\"dx\",ax.\"pe\","
+            + "sum(\"daysxvalue\") as \"daysxvalue\",sum(\"daysno\") as \"daysno\","
+            + "sum(\"value\") as \"value\",max(\"textvalue\") as \"textvalue\" "
             + "from analytics as ax "
             + "where ax.\"dx\" in ('deabcdefghA') and ax.\"pe\" in ('201501') and ( ax.\"ou\" in ('ouabcdefghA') ) "
-            + "group by ax.\"ou\",ax.\"dx\",ax.\"pe\")";
+            + "group by "
+            + parent
+            + ",ax.\"ou\",ax.\"dx\",ax.\"pe\") as ax "
+            + "group by ax.\"parentou\",ax.\"dx\",ax.\"pe\")";
 
     assertThat(sql.getValue(), containsString(maxMinTypeSql));
   }
