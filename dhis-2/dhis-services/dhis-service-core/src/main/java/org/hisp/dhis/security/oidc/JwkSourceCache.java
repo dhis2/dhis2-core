@@ -33,10 +33,15 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.JWKSourceBuilder;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.util.DefaultResourceRetriever;
+import jakarta.annotation.PreDestroy;
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,10 +49,13 @@ import org.springframework.stereotype.Component;
  * triggers an HTTPS fetch of the IdP's JWKS document; reusing the source preserves Nimbus's
  * built-in remote-key cache and refresh policy across logins.
  *
- * <p>Sources are constructed lazily on first call to {@link #get(String, String)}.
+ * <p>Sources are constructed lazily on first call to {@link #get(String, String)}. Nimbus's default
+ * refresh-ahead cache runs on its own executor that is only shut down when the source is closed, so
+ * {@link #close()} closes every cached source when the Spring context shuts down.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 @Component
 public class JwkSourceCache {
 
@@ -76,5 +84,24 @@ public class JwkSourceCache {
     } catch (MalformedURLException | IllegalArgumentException ex) {
       throw new IllegalArgumentException("Invalid JWKS URL: " + jwkSetUri, ex);
     }
+  }
+
+  /**
+   * Closes every cached source that implements {@link Closeable}, which shuts down the Nimbus
+   * refresh-ahead executors, and empties the cache. A source that fails to close is logged and
+   * skipped so the remaining sources are still closed.
+   */
+  @PreDestroy
+  public void close() {
+    for (Map.Entry<String, JWKSource<SecurityContext>> entry : sources.entrySet()) {
+      if (entry.getValue() instanceof Closeable closeable) {
+        try {
+          closeable.close();
+        } catch (IOException ex) {
+          log.warn("Failed to close JWK source for OIDC registration '{}'", entry.getKey(), ex);
+        }
+      }
+    }
+    sources.clear();
   }
 }
