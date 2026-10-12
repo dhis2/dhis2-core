@@ -65,6 +65,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -178,40 +180,98 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   @Override
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     AnalyticsTablePartition partition = getLatestTablePartition(tables);
+
+    if (sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
+      removeUpdatedDataViaStagingKeys(partition);
+    } else {
+      removeUpdatedDataViaSubquery(partition);
+    }
+  }
+
+  /**
+   * Removes updated and deleted data on databases which require a unique key for analytics tables
+   * (Doris). The equivalent single {@code delete ... using <federated table>} statement is avoided
+   * here because it joins a live federated table (the operational database's {@code
+   * completedatasetregistration}) against local tables inside a {@code delete}, which is
+   * dramatically slower than the same join shape used as a plain {@code select} (as {@link
+   * #populateTable} already does). Instead, the matching rows' {@code id} values are first
+   * materialized into a small native staging table via that proven-fast federated {@code select},
+   * and the actual delete runs entirely locally against that staging table. Unlike {@link
+   * JdbcAnalyticsTableManager}'s equivalent fix, only {@code id} is staged (no {@code year}) —
+   * {@code analytics_completeness} has no literal {@code pe}/{@code ou}/{@code ao} columns to match
+   * on naturally, and {@code id} alone (it embeds the period, which encodes the year) is confirmed
+   * sufficient to uniquely locate and delete the row regardless of which Doris partition it lives
+   * in.
+   */
+  private void removeUpdatedDataViaStagingKeys(AnalyticsTablePartition partition) {
+    String keysTableName = getAnalyticsTableType().getTableName() + "_delete_keys";
+    Table keysTable = new Table(keysTableName, List.of(new Column("id", VARCHAR_255)), List.of());
+
+    invokeTimeAndLog(
+        sqlBuilder.dropTableIfExistsCascade(keysTableName), "Drop delete-keys staging table (pre)");
+
+    invokeTimeAndLog(sqlBuilder.createTable(keysTable), "Create delete-keys staging table");
+
+    String insertSql =
+        replaceQualify(
+            sqlBuilder,
+            """
+            insert into ${keysTableName} (id) \
+            select concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) \
+            from ${completedatasetregistration} cdr \
+            inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
+            inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
+            inner join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid \
+            inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
+            where cdr.lastupdated >= '${startDate}' and cdr.lastupdated < '${endDate}';""",
+            Map.of(
+                "keysTableName", quote(keysTableName),
+                "startDate", toLongDate(partition.getStartDate()),
+                "endDate", toLongDate(partition.getEndDate())));
+
+    invokeTimeAndLog(insertSql, "Populate delete-keys staging table");
+
+    String deleteSql =
+        replace(
+            """
+            delete from ${tableName} ax \
+            using ${keysTableName} k \
+            where ax.id=k.id;""",
+            Map.of(
+                "tableName", quote(getAnalyticsTableType().getTableName()),
+                "keysTableName", quote(keysTableName)));
+
+    invokeTimeAndLog(deleteSql, "Remove updated data values");
+
+    invokeTimeAndLog(
+        sqlBuilder.dropTableIfExistsCascade(keysTableName),
+        "Drop delete-keys staging table (post)");
+  }
+
+  /**
+   * Removes updated and deleted data on databases which do not require a unique key for analytics
+   * tables (Postgres, ClickHouse). Runs entirely against local tables, so the federated-join
+   * problem {@link #removeUpdatedDataViaStagingKeys} works around does not apply here.
+   */
+  private void removeUpdatedDataViaSubquery(AnalyticsTablePartition partition) {
     String sql =
-        sqlBuilder.requiresUniqueKeyAnalyticsTables()
-            ? replaceQualify(
-                sqlBuilder,
-                """
-                delete from ${tableName} ax \
-                using ${completedatasetregistration} cdr \
-                inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
-                inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
-                inner join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid \
-                inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
-                where ax.id = concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) \
-                and cdr.lastupdated >= '${startDate}' and cdr.lastupdated < '${endDate}';""",
-                Map.of(
-                    "tableName", quote(getAnalyticsTableType().getTableName()),
-                    "startDate", toLongDate(partition.getStartDate()),
-                    "endDate", toLongDate(partition.getEndDate())))
-            : replaceQualify(
-                sqlBuilder,
-                """
-                delete from ${tableName} ax \
-                where ax.id in ( \
-                select concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) as id \
-                from ${completedatasetregistration} cdr \
-                inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
-                inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
-                inner join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid \
-                inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
-                where cdr.lastupdated >= '${startDate}' \
-                and cdr.lastupdated < '${endDate}');""",
-                Map.of(
-                    "tableName", quote(getAnalyticsTableType().getTableName()),
-                    "startDate", toLongDate(partition.getStartDate()),
-                    "endDate", toLongDate(partition.getEndDate())));
+        replaceQualify(
+            sqlBuilder,
+            """
+            delete from ${tableName} ax \
+            where ax.id in ( \
+            select concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) as id \
+            from ${completedatasetregistration} cdr \
+            inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
+            inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
+            inner join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid \
+            inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
+            where cdr.lastupdated >= '${startDate}' \
+            and cdr.lastupdated < '${endDate}');""",
+            Map.of(
+                "tableName", quote(getAnalyticsTableType().getTableName()),
+                "startDate", toLongDate(partition.getStartDate()),
+                "endDate", toLongDate(partition.getEndDate())));
 
     invokeTimeAndLog(sql, "Remove updated data values");
   }

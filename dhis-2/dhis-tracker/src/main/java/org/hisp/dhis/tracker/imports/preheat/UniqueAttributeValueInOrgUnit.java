@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2026, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.ou;
+package org.hisp.dhis.tracker.imports.preheat;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
-/** Column names used when reading ENROLLMENT_OU values from result rows. */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class OrgUnitRowAccess {
-
-  /**
-   * Returns the result-set column alias used for ENROLLMENT_OU values in aggregated event rows.
-   *
-   * @return enrollment OU result column alias
-   */
-  public static String enrollmentOuResultColumn() {
-    return OrgUnitSqlConstants.ENROLLMENT_OU_RESULT_ALIAS;
-  }
-}
+/**
+ * A value of an attribute unique within an org unit, either stored in the DB or sent for more than
+ * one tracked entity in the payload. A value of the attribute equal to it, ignoring case, is a
+ * duplicate if it is in the same org unit, unless it belongs to the same tracked entity. A value
+ * whose org unit is unknown (e.g. of an enrollment of a tracked entity that does not exist) can't
+ * conflict with any other, so it has no entry.
+ *
+ * @param te the tracked entity owning the value
+ * @param attribute the attribute, in the id scheme of the import
+ * @param value the value
+ * @param orgUnit the org unit of the tracked entity owning the value
+ */
+public record UniqueAttributeValueInOrgUnit(
+    @Nonnull UID te,
+    @Nonnull MetadataIdentifier attribute,
+    @Nonnull String value,
+    @Nonnull MetadataIdentifier orgUnit) {}
