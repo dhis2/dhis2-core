@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -574,7 +574,7 @@ public class CategoryOptionCombo
 
       for (CategoryOption option : categoryOptions) {
         if (options.contains(option)) {
-          builder.append(option.getDisplayName()).append(", ");
+          builder.append(option.getName()).append(", ");
         }
       }
     }
