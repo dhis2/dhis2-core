@@ -185,9 +185,9 @@ public class DataElementGroup extends BaseMetadataObject
   @Override
   public boolean equals(Object obj) {
     return this == obj
-        || obj instanceof IdentifiableObject
+        || obj instanceof IdentifiableObject other
             && getRealClass(this) == getRealClass(obj)
-            && typedEquals((IdentifiableObject) obj);
+            && typedEquals(other);
   }
 
   /**

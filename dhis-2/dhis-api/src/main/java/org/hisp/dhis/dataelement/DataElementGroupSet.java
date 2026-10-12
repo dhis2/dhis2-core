@@ -63,7 +63,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Cache;
@@ -451,6 +450,7 @@ public class DataElementGroupSet extends BaseMetadataObject
    */
   @Override
   @JsonIgnore
+  @SuppressWarnings("java:S1168") // null means "no IN filter", callers rely on it
   public List<String> getFilterItemsAsList() {
     final String inOp = QueryOperator.IN.getValue().toLowerCase();
     final int opLen = inOp.length() + 1;
@@ -692,7 +692,7 @@ public class DataElementGroupSet extends BaseMetadataObject
                         .add("uid", item.getUid())
                         .add("name", item.getName())
                         .toString())
-            .collect(Collectors.toList());
+            .toList();
 
     return MoreObjects.toStringHelper(this)
         .add("dimension", uid)
