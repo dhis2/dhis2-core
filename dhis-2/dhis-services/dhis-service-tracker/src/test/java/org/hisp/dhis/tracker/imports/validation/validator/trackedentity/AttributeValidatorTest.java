@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -408,7 +407,7 @@ class AttributeValidatorTest {
     withStoredValues(
         List.of(
             new UniqueAttributeValueSystemWide(
-                UID.of(CodeGenerator.generateUid()), MetadataIdentifier.ofUid("uid"), "ABC")),
+                CodeGenerator.generateUid(), MetadataIdentifier.ofUid("uid"), "ABC")),
         List.of());
 
     TrackedEntity trackedEntity =
@@ -438,10 +437,7 @@ class AttributeValidatorTest {
         withStoredScopedValue(
             trackedEntity,
             new UniqueAttributeValueInOrgUnit(
-                UID.of(CodeGenerator.generateUid()),
-                MetadataIdentifier.ofUid("uid"),
-                "ABC",
-                ORG_UNIT_ID)));
+                CodeGenerator.generateUid(), MetadataIdentifier.ofUid("uid"), "ABC", ORG_UNIT_ID)));
 
     assertHasError(reporter, trackedEntity, ValidationCode.E1064);
   }
@@ -456,7 +452,7 @@ class AttributeValidatorTest {
         withStoredScopedValue(
             trackedEntity,
             new UniqueAttributeValueInOrgUnit(
-                UID.of(CodeGenerator.generateUid()),
+                CodeGenerator.generateUid(),
                 MetadataIdentifier.ofUid("uid"),
                 "abc",
                 MetadataIdentifier.ofUid("otherOrgUni"))));
@@ -475,10 +471,7 @@ class AttributeValidatorTest {
         withStoredScopedValue(
             trackedEntity,
             new UniqueAttributeValueInOrgUnit(
-                UID.of(trackedEntity.getUid()),
-                MetadataIdentifier.ofUid("uid"),
-                "abc",
-                ORG_UNIT_ID)));
+                trackedEntity.getUid(), MetadataIdentifier.ofUid("uid"), "abc", ORG_UNIT_ID)));
 
     assertIsEmpty(reporter.getErrors());
   }
@@ -493,7 +486,7 @@ class AttributeValidatorTest {
         withStoredScopedValue(
             trackedEntity,
             new UniqueAttributeValueInOrgUnit(
-                UID.of(CodeGenerator.generateUid()),
+                CodeGenerator.generateUid(),
                 MetadataIdentifier.ofUid("otherUid"),
                 "abc",
                 ORG_UNIT_ID)));
@@ -508,7 +501,7 @@ class AttributeValidatorTest {
     withStoredValues(
         List.of(
             new UniqueAttributeValueSystemWide(
-                UID.of(CodeGenerator.generateUid()), MetadataIdentifier.ofUid("globalUid"), "abc")),
+                CodeGenerator.generateUid(), MetadataIdentifier.ofUid("globalUid"), "abc")),
         List.of());
 
     validator.validate(reporter, bundle, trackedEntity);

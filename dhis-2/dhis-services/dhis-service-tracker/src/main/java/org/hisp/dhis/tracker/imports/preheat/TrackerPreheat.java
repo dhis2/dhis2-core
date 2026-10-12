@@ -673,7 +673,7 @@ public class TrackerPreheat {
   public boolean hasSystemWideDuplicate(
       @Nonnull TrackedEntityAttribute attribute,
       @Nonnull String value,
-      @CheckForNull UID trackedEntity) {
+      @CheckForNull String trackedEntity) {
     return systemWideUniqueAttributeValuesByValue
         .getOrDefault(caseInsensitiveKey(value), List.of())
         .stream()
@@ -691,7 +691,7 @@ public class TrackerPreheat {
       @Nonnull TrackedEntityAttribute attribute,
       @Nonnull String value,
       @CheckForNull OrganisationUnit orgUnit,
-      @CheckForNull UID trackedEntity) {
+      @CheckForNull String trackedEntity) {
     return uniqueAttributeValuesInOrgUnitByValue
         .getOrDefault(caseInsensitiveKey(value), List.of())
         .stream()

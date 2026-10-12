@@ -37,7 +37,6 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -149,7 +148,7 @@ public class HibernateTrackedEntityAttributeValueStore
               row ->
                   matches.add(
                       new UniqueAttributeValueMatch(
-                          UID.of((String) row[0]), (String) row[1], (Long) row[2])));
+                          (String) row[0], (String) row[1], (Long) row[2])));
     }
     return matches;
   }
@@ -195,7 +194,7 @@ public class HibernateTrackedEntityAttributeValueStore
               row ->
                   matches.add(
                       new UniqueAttributeValueMatch(
-                          UID.of((String) row[0]), (String) row[1], (Long) row[2])));
+                          (String) row[0], (String) row[1], (Long) row[2])));
     }
     return matches;
   }

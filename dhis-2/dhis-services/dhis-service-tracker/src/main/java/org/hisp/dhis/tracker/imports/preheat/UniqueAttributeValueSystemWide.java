@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.preheat;
 
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
 /**
@@ -41,4 +40,4 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
  * @param value the value
  */
 public record UniqueAttributeValueSystemWide(
-    @Nonnull UID te, @Nonnull MetadataIdentifier attribute, @Nonnull String value) {}
+    @Nonnull String te, @Nonnull MetadataIdentifier attribute, @Nonnull String value) {}

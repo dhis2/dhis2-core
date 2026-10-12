@@ -44,7 +44,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -629,7 +628,7 @@ class AttributeValidatorTest {
         "abc",
         orgUnit,
         new UniqueAttributeValueInOrgUnit(
-            UID.of(CodeGenerator.generateUid()),
+            CodeGenerator.generateUid(),
             MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE),
             "ABC",
             MetadataIdentifier.ofUid(orgUnit)));
@@ -648,7 +647,7 @@ class AttributeValidatorTest {
         "abc",
         orgUnit,
         new UniqueAttributeValueInOrgUnit(
-            UID.of(CodeGenerator.generateUid()),
+            CodeGenerator.generateUid(),
             MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE),
             "abc",
             MetadataIdentifier.ofUid("otherOrgUni")));

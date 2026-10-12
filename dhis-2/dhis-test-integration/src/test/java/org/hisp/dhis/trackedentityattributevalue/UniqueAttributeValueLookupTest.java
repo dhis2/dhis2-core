@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.config.QueryCountDataSourceProxy;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -103,8 +102,8 @@ class UniqueAttributeValueLookupTest extends TransactionalIntegrationTest {
 
     assertContainsOnly(
         List.of(
-            new UniqueAttributeValueMatch(UID.of(trackedEntityA), "Value1", orgUnitA.getId()),
-            new UniqueAttributeValueMatch(UID.of(trackedEntityB), "value2", orgUnitB.getId())),
+            new UniqueAttributeValueMatch(trackedEntityA.getUid(), "Value1", orgUnitA.getId()),
+            new UniqueAttributeValueMatch(trackedEntityB.getUid(), "value2", orgUnitB.getId())),
         matches);
   }
 
@@ -124,8 +123,8 @@ class UniqueAttributeValueLookupTest extends TransactionalIntegrationTest {
 
     assertContainsOnly(
         List.of(
-            new UniqueAttributeValueMatch(UID.of(trackedEntityA1), "Value1", orgUnitA.getId()),
-            new UniqueAttributeValueMatch(UID.of(trackedEntityB2), "value2", orgUnitB.getId())),
+            new UniqueAttributeValueMatch(trackedEntityA1.getUid(), "Value1", orgUnitA.getId()),
+            new UniqueAttributeValueMatch(trackedEntityB2.getUid(), "value2", orgUnitB.getId())),
         matches);
   }
 
@@ -163,10 +162,10 @@ class UniqueAttributeValueLookupTest extends TransactionalIntegrationTest {
     valuesByOrgUnitId.put(orgUnitB.getId(), orgUnitBValues);
 
     assertContainsOnly(
-        List.of(new UniqueAttributeValueMatch(UID.of(globalMatch), "value1", orgUnitA.getId())),
+        List.of(new UniqueAttributeValueMatch(globalMatch.getUid(), "value1", orgUnitA.getId())),
         attributeValueService.getUniqueAttributeValues(globalAttribute, values));
     assertContainsOnly(
-        List.of(new UniqueAttributeValueMatch(UID.of(scopedMatch), "value1", orgUnitB.getId())),
+        List.of(new UniqueAttributeValueMatch(scopedMatch.getUid(), "value1", orgUnitB.getId())),
         attributeValueService.getUniqueAttributeValues(scopedAttribute, valuesByOrgUnitId));
   }
 

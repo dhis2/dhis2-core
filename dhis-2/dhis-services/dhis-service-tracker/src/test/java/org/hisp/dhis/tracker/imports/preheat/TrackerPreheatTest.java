@@ -52,7 +52,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -104,13 +103,11 @@ class TrackerPreheatTest extends DhisConvenienceTest {
     TrackedEntityAttribute attribute = trackedEntityAttribute();
     preheat.setSystemWideUniqueAttributeValues(List.of(systemWideValue(attribute, "ABC")));
 
-    assertTrue(
-        preheat.hasSystemWideDuplicate(attribute, "aBc", UID.of(CodeGenerator.generateUid())));
-    assertFalse(
-        preheat.hasSystemWideDuplicate(attribute, "abd", UID.of(CodeGenerator.generateUid())));
+    assertTrue(preheat.hasSystemWideDuplicate(attribute, "aBc", CodeGenerator.generateUid()));
+    assertFalse(preheat.hasSystemWideDuplicate(attribute, "abd", CodeGenerator.generateUid()));
     assertFalse(
         preheat.hasSystemWideDuplicate(
-            trackedEntityAttribute(), "abc", UID.of(CodeGenerator.generateUid())));
+            trackedEntityAttribute(), "abc", CodeGenerator.generateUid()));
   }
 
   @Test
@@ -120,8 +117,7 @@ class TrackerPreheatTest extends DhisConvenienceTest {
     preheat.setSystemWideUniqueAttributeValues(List.of(systemWideValue(attribute, "σας")));
 
     assertTrue("σασ".equalsIgnoreCase("σας"));
-    assertTrue(
-        preheat.hasSystemWideDuplicate(attribute, "σασ", UID.of(CodeGenerator.generateUid())));
+    assertTrue(preheat.hasSystemWideDuplicate(attribute, "σασ", CodeGenerator.generateUid()));
   }
 
   @Test
@@ -140,16 +136,13 @@ class TrackerPreheatTest extends DhisConvenienceTest {
     preheat.setUniqueAttributeValuesInOrgUnit(List.of(inOrgUnitValue(attribute, "abc", orgUnit)));
 
     assertTrue(
-        preheat.hasDuplicateInOrgUnit(
-            attribute, "ABC", orgUnit, UID.of(CodeGenerator.generateUid())));
+        preheat.hasDuplicateInOrgUnit(attribute, "ABC", orgUnit, CodeGenerator.generateUid()));
+    assertFalse(
+        preheat.hasDuplicateInOrgUnit(attribute, "abc", orgUnit(), CodeGenerator.generateUid()));
+    assertFalse(preheat.hasDuplicateInOrgUnit(attribute, "abc", null, CodeGenerator.generateUid()));
     assertFalse(
         preheat.hasDuplicateInOrgUnit(
-            attribute, "abc", orgUnit(), UID.of(CodeGenerator.generateUid())));
-    assertFalse(
-        preheat.hasDuplicateInOrgUnit(attribute, "abc", null, UID.of(CodeGenerator.generateUid())));
-    assertFalse(
-        preheat.hasDuplicateInOrgUnit(
-            trackedEntityAttribute(), "abc", orgUnit, UID.of(CodeGenerator.generateUid())));
+            trackedEntityAttribute(), "abc", orgUnit, CodeGenerator.generateUid()));
   }
 
   @Test
@@ -166,11 +159,9 @@ class TrackerPreheatTest extends DhisConvenienceTest {
   void shouldNotFindDuplicatesWhenNoValueWasSet() {
     TrackedEntityAttribute attribute = trackedEntityAttribute();
 
+    assertFalse(preheat.hasSystemWideDuplicate(attribute, "abc", CodeGenerator.generateUid()));
     assertFalse(
-        preheat.hasSystemWideDuplicate(attribute, "abc", UID.of(CodeGenerator.generateUid())));
-    assertFalse(
-        preheat.hasDuplicateInOrgUnit(
-            attribute, "abc", orgUnit(), UID.of(CodeGenerator.generateUid())));
+        preheat.hasDuplicateInOrgUnit(attribute, "abc", orgUnit(), CodeGenerator.generateUid()));
   }
 
   @Test
@@ -180,8 +171,7 @@ class TrackerPreheatTest extends DhisConvenienceTest {
     preheat.setSystemWideUniqueAttributeValues(List.of(systemWideValue(attribute, "abc")));
 
     assertFalse(
-        preheat.hasDuplicateInOrgUnit(
-            attribute, "abc", orgUnit, UID.of(CodeGenerator.generateUid())));
+        preheat.hasDuplicateInOrgUnit(attribute, "abc", orgUnit, CodeGenerator.generateUid()));
   }
 
   private static TrackedEntityAttribute trackedEntityAttribute() {
@@ -199,13 +189,13 @@ class TrackerPreheatTest extends DhisConvenienceTest {
   private static UniqueAttributeValueSystemWide systemWideValue(
       TrackedEntityAttribute attribute, String value) {
     return new UniqueAttributeValueSystemWide(
-        UID.of(CodeGenerator.generateUid()), MetadataIdentifier.ofUid(attribute), value);
+        CodeGenerator.generateUid(), MetadataIdentifier.ofUid(attribute), value);
   }
 
   private static UniqueAttributeValueInOrgUnit inOrgUnitValue(
       TrackedEntityAttribute attribute, String value, OrganisationUnit orgUnit) {
     return new UniqueAttributeValueInOrgUnit(
-        UID.of(CodeGenerator.generateUid()),
+        CodeGenerator.generateUid(),
         MetadataIdentifier.ofUid(attribute),
         value,
         MetadataIdentifier.ofUid(orgUnit));
