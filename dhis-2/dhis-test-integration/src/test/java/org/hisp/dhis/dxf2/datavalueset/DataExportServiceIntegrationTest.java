@@ -500,7 +500,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   /**
-   * Import 12 data values where 4 are marked as deleted. Deleted values should count as imports
+   * Import 12 data values where 4 are marked as deleted. Deleted values should count as ignored
    * when there are no existing non-deleted matching values.
    */
   @Test
@@ -532,8 +532,8 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   /**
-   * Import 12 data values where 4 are marked as deleted. Then import 12 data values which reverse
-   * deletion of the 4 values, ignore 4 unchanged values and add 4 values.
+   * Import 12 data values where 4 are marked as deleted (so they are ignored). Then import 12 data
+   * values which reverse deletion of the ignored 4 values (8 updates + 4 inserts).
    */
   @Test
   void testImportAddAndReverseDeletedValuesXml() {
