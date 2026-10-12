@@ -237,6 +237,48 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "customValueStageDataElementAverage",
+      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?dimension=ou:ImspTQPwCqd,pe:2022;2023&totalPages=false&value=edqlbukwRfQ.vANAXwtLwcT&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "customValueStageDataElementOwnAggregationType",
+      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?dimension=ou:ImspTQPwCqd,pe:2022;2023&totalPages=false&value=edqlbukwRfQ.vANAXwtLwcT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "customValueBlankLatestEventDropsEnrollmentCount",
+      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?dimension=ou:ImspTQPwCqd,pe:2022;2023&totalPages=false&value=edqlbukwRfQ.EyfTU3ibMmJ&aggregationType=COUNT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "customValueBooleanAverage",
+      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?dimension=ou:ImspTQPwCqd,pe:2022;2023&totalPages=false&value=edqlbukwRfQ.EyfTU3ibMmJ&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "customValueAttributeAverageSkipsEmptyCells",
+      "query": "/api/analytics/enrollments/aggregate/ur1Edk5Oe2n.json?dimension=ou:ImspTQPwCqd,pe:2021;2022;2023&totalPages=false&value=lw1SqmMlnfh&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "customValueAbsentCountsEnrollments",
+      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?dimension=ou:ImspTQPwCqd,pe:2022;2023&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

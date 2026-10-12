@@ -214,6 +214,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
     if (!StringUtils.isEmpty(preUpdateUser.getPassword())) {
       userService.encodeAndSetPassword(persistedUser, preUpdateUser.getPassword());
+      if (persistedUser.isInvitation()) {
+        persistedUser.clearInvitation();
+      }
       getSession().update(persistedUser);
     }
 

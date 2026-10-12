@@ -163,6 +163,9 @@ public class EventQueryParams extends DataQueryParams {
   /** The incoming "value" param from the request. */
   private String requestValue;
 
+  /** The program stage the "value" data element is read from in enrollment aggregate queries. */
+  private ProgramStage valueProgramStage;
+
   /** Program indicators specified as dimensional items of the data dimension. */
   private List<ProgramIndicator> itemProgramIndicators = new ArrayList<>();
 
@@ -338,6 +341,7 @@ public class EventQueryParams extends DataQueryParams {
     params.itemFilters = new ArrayList<>(this.itemFilters);
     params.value = this.value;
     params.requestValue = this.requestValue;
+    params.valueProgramStage = this.valueProgramStage;
     params.itemProgramIndicators = new ArrayList<>(this.itemProgramIndicators);
     params.programIndicator = this.programIndicator;
     params.option = this.option;
@@ -649,6 +653,7 @@ public class EventQueryParams extends DataQueryParams {
 
     return key.addIgnoreNull("value", value, () -> value.getUid())
         .addIgnoreNull("requestValue", requestValue)
+        .addIgnoreNull("valueProgramStage", valueProgramStage, () -> valueProgramStage.getUid())
         .addIgnoreNull("programIndicator", programIndicator, () -> programIndicator.getUid())
         .addIgnoreNull("programStage", programStage, () -> programStage.getUid())
         .addIgnoreNull("organisationUnitMode", organisationUnitMode)
@@ -1489,6 +1494,14 @@ public class EventQueryParams extends DataQueryParams {
     return requestValue;
   }
 
+  public ProgramStage getValueProgramStage() {
+    return valueProgramStage;
+  }
+
+  public boolean hasValueProgramStage() {
+    return valueProgramStage != null;
+  }
+
   public List<ProgramIndicator> getItemProgramIndicators() {
     return itemProgramIndicators;
   }
@@ -1740,6 +1753,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withRequestValue(String requestValue) {
       this.params.requestValue = requestValue;
+      return this;
+    }
+
+    public Builder withValueProgramStage(ProgramStage valueProgramStage) {
+      this.params.valueProgramStage = valueProgramStage;
       return this;
     }
 

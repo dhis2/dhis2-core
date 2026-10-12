@@ -217,7 +217,9 @@ public class EventAggregateService {
 
       params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
-      if ((!params.isSkipData() || params.analyzeOnly()) && !periods.isEmpty()) {
+      // Re-add period items, needed for data and for metadata generation (items + dimensions
+      // sections, e.g. "enrollmentdate"), regardless of skipData.
+      if (!periods.isEmpty()) {
         params =
             new EventQueryParams.Builder(params)
                 .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), EMPTY)

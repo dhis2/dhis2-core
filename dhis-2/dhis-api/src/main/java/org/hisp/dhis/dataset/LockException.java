@@ -39,6 +39,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.adapter.JacksonExtendedPeriodSerializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
@@ -106,7 +107,7 @@ public class LockException implements PrimaryKeyObject {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataSet getDataSet() {
     return dataSet;
