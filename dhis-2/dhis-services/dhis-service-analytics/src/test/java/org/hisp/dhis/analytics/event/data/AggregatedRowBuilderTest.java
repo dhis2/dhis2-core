@@ -48,7 +48,6 @@ import java.util.function.Function;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.ou.OrgUnitRowAccess;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.IdScheme;
@@ -466,14 +465,14 @@ class AggregatedRowBuilderTest {
             .withEnrollmentOuDimension(List.of(createOrganisationUnit('A')))
             .build();
 
-    when(rowSet.getString(OrgUnitRowAccess.enrollmentOuResultColumn())).thenReturn("ouUid");
+    when(rowSet.getString(ColumnHeader.ENROLLMENT_OU.getItem())).thenReturn("ouUid");
     when(rowSet.getInt("value")).thenReturn(5);
 
     List<Object> row =
         AggregatedRowBuilder.create(params, rowSet, sqlBuilder, columnAliasResolver, itemIdProvider)
             .build();
 
-    verify(rowSet).getString(OrgUnitRowAccess.enrollmentOuResultColumn());
+    verify(rowSet).getString(ColumnHeader.ENROLLMENT_OU.getItem());
     assertThat(row, hasSize(2));
     assertThat(row.get(0), is("ouUid"));
     assertThat(row.get(1), is(5));

@@ -27,21 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.ou;
+package org.hisp.dhis.common;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import static java.util.Objects.requireNonNull;
 
-/** Column names used when reading ENROLLMENT_OU values from result rows. */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class OrgUnitRowAccess {
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
-  /**
-   * Returns the result-set column alias used for ENROLLMENT_OU values in aggregated event rows.
-   *
-   * @return enrollment OU result column alias
-   */
-  public static String enrollmentOuResultColumn() {
-    return OrgUnitSqlConstants.ENROLLMENT_OU_RESULT_ALIAS;
+/**
+ * Generic pair of {@link UID}s that model some form of reference or connection between two
+ * different types of objects.
+ *
+ * @param from one object
+ * @param to another object
+ */
+public record UIDConnection(@Nonnull UID from, @CheckForNull UID to) {
+
+  public UIDConnection {
+    requireNonNull(from);
   }
 }

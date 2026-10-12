@@ -62,6 +62,7 @@ import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DbName;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UIDConnection;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.DataEntryGroup;
@@ -363,39 +364,52 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public List<String> getOrgUnitsNotInAocHierarchy(UID attrOptionCombo, Stream<UID> orgUnits) {
-    // WITH part builds lists of paths for each CO connected to the AOC
-    // the main SELECT then checks that any OU in parameter list
-    // that does not have an exact or descendant match in each path list
-    // is included in the result
+  public UIDConnection getOrgUnitsNotInAocHierarchy(Stream<UIDConnection> ouAocPairs) {
+    List<String> ouFlat = new ArrayList<>();
+    List<String> aocFlat = new ArrayList<>();
+    ouAocPairs
+        .distinct()
+        .forEach(
+            pair -> {
+              ouFlat.add(pair.from().getValue());
+              aocFlat.add(pair.to().getValue());
+            });
+
     String sql =
         """
-        WITH aoc_orgs AS (
-          SELECT aoc_co.categoryoptionid, array_agg(DISTINCT ou.path) AS paths
-          FROM categoryoptioncombo aoc
-          JOIN categoryoptioncombos_categoryoptions aoc_co ON aoc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
-          JOIN categoryoption_organisationunits co_ou ON aoc_co.categoryoptionid = co_ou.categoryoptionid
-          JOIN organisationunit ou ON co_ou.organisationunitid = ou.organisationunitid
-          WHERE aoc.uid = :aoc
-          GROUP BY aoc_co.categoryoptionid
+        WITH input(aoc_uid, ou_uid) AS (
+          SELECT *
+          FROM unnest(CAST(:aoc AS varchar(11)[]),
+                      CAST(:ou  AS varchar(11)[]))
         )
-        SELECT DISTINCT ou.uid
-        FROM organisationunit ou
-        JOIN unnest(:ou) AS oux(uid) ON ou.uid = oux.uid
+        SELECT i.ou_uid, i.aoc_uid
+        FROM input i
+        JOIN organisationunit ou ON ou.uid = i.ou_uid
+        JOIN categoryoptioncombo aoc ON aoc.uid = i.aoc_uid
+        JOIN categoryoptioncombos_categoryoptions aoc_co ON aoc_co.categoryoptioncomboid = aoc.categoryoptioncomboid
+        -- is there any OU restriction?
         WHERE EXISTS (
           SELECT 1
-          FROM aoc_orgs
-          WHERE NOT EXISTS (
-            SELECT 1
-            FROM unnest(aoc_orgs.paths) AS org_path(path)
-            WHERE
-              ou.path = org_path.path OR         -- Exact match
-              ou.path LIKE org_path.path || '/%'  -- Descendant match
-          )
-        )""";
-    String aoc = attrOptionCombo.getValue();
-    String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
-    return listAsStrings(sql, q -> q.setParameter("aoc", aoc).setParameter("ou", ou));
+          FROM categoryoption_organisationunits co_ou
+          WHERE co_ou.categoryoptionid = aoc_co.categoryoptionid
+        )
+        -- and we cannot find one where the imported OU is in the subtree of the restriction
+        AND NOT EXISTS (
+          SELECT 1
+          FROM categoryoption_organisationunits co_ou
+          JOIN organisationunit root ON root.organisationunitid = co_ou.organisationunitid
+          WHERE co_ou.categoryoptionid = aoc_co.categoryoptionid
+            AND root.uid = ANY(ou.patharray)
+        )
+        LIMIT 1""";
+
+    List<Object[]> ouAoc =
+        createNativeRawQuery(sql)
+            .setParameter("aoc", aocFlat.toArray(String[]::new))
+            .setParameter("ou", ouFlat.toArray(String[]::new))
+            .list();
+    if (ouAoc == null || ouAoc.isEmpty()) return null;
+    return new UIDConnection(UID.of((String) ouAoc.get(0)[0]), UID.of((String) ouAoc.get(0)[1]));
   }
 
   @Override
@@ -418,38 +432,54 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public List<String> getCocNotInDataSet(UID dataSet, UID dataElement, Stream<UID> optionCombos) {
+  public UIDConnection getCocNotInDataSet(UID dataSet, Stream<UIDConnection> deCocPairs) {
+    // the core idea is that we unfold the mapping into a list of DE-COC pairs and use that a bulk
+    // input we test with
+    UID defaultCoc = getDefaultCategoryOptionComboUid();
+    List<String> deFlat = new ArrayList<>();
+    List<String> cocFlat = new ArrayList<>();
+    deCocPairs
+        .distinct()
+        .forEach(
+            pair -> {
+              deFlat.add(pair.from().getValue());
+              UID coc = pair.to();
+              cocFlat.add(coc == null ? defaultCoc.getValue() : coc.getValue());
+            });
+
     String sql =
         """
-      WITH coc_list(uid) AS ( SELECT DISTINCT UNNEST(:coc) AS uid ),
-      dsde_coc AS (
-          SELECT coc_cc.categoryoptioncomboid
-          FROM categorycombos_optioncombos coc_cc
-          WHERE coc_cc.categorycomboid = (
-              SELECT COALESCE(dse.categorycomboid, de.categorycomboid)
-              FROM datasetelement dse
-              JOIN dataelement de ON de.dataelementid = dse.dataelementid
-              JOIN dataset ds ON ds.datasetid = dse.datasetid
-              WHERE ds.uid = :ds
-                AND de.uid = :de
-          )
-      )
-      SELECT coc_list.uid
-      FROM coc_list
-      LEFT JOIN categoryoptioncombo coc ON coc_list.uid = coc.uid
-      LEFT JOIN dsde_coc excluded ON coc.categoryoptioncomboid = excluded.categoryoptioncomboid
-      WHERE excluded.categoryoptioncomboid IS NULL""";
+        WITH input(de_uid, coc_uid) AS (
+            SELECT * FROM unnest(CAST(:de  AS varchar(11)[]),
+                                 CAST(:coc AS varchar(11)[]))
+        )
+        SELECT i.de_uid, i.coc_uid
+        FROM input i
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM dataelement de
+                     JOIN datasetelement dse ON dse.dataelementid = de.dataelementid
+                     JOIN dataset ds ON ds.datasetid = dse.datasetid
+                     JOIN categorycombos_optioncombos coc_cc
+                          ON coc_cc.categorycomboid = COALESCE(dse.categorycomboid, de.categorycomboid)
+                     JOIN categoryoptioncombo coc
+                          ON coc.categoryoptioncomboid = coc_cc.categoryoptioncomboid
+            WHERE ds.uid  = :ds
+              AND de.uid  = i.de_uid
+              AND coc.uid = i.coc_uid
+        )
+        LIMIT 1""";
     String ds = dataSet.getValue();
-    String de = dataElement.getValue();
-    UID defaultCoc = getDefaultCategoryOptionComboUid();
-    String[] coc =
-        optionCombos
-            .map(id -> id == null ? defaultCoc : id)
-            .map(UID::getValue)
-            .distinct()
-            .toArray(String[]::new);
-    return listAsStrings(
-        sql, q -> q.setParameter("coc", coc).setParameter("ds", ds).setParameter("de", de));
+    String[] de = deFlat.toArray(String[]::new);
+    String[] coc = cocFlat.toArray(String[]::new);
+    List<Object[]> deCoc =
+        createNativeRawQuery(sql)
+            .setParameter("coc", coc)
+            .setParameter("ds", ds)
+            .setParameter("de", de)
+            .list();
+    if (deCoc == null || deCoc.isEmpty()) return null;
+    return new UIDConnection(UID.of((String) deCoc.get(0)[0]), UID.of((String) deCoc.get(0)[1]));
   }
 
   @Override
