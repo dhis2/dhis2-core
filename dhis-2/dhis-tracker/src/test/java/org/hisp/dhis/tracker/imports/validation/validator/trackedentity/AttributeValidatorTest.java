@@ -59,7 +59,8 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValueInOrgUnit;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValueSystemWide;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -401,14 +402,11 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
-    when(preheat.getUniqueAttributeValues("abc"))
-        .thenReturn(
-            List.of(
-                new UniqueAttributeValue(
-                    UID.generate(),
-                    MetadataIdentifier.ofUid("uid"),
-                    "ABC",
-                    MetadataIdentifier.ofUid("orgUnit"))));
+    withStoredValues(
+        List.of(
+            new UniqueAttributeValueSystemWide(
+                UID.generate(), MetadataIdentifier.ofUid("uid"), "ABC")),
+        List.of());
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
@@ -436,7 +434,7 @@ class AttributeValidatorTest {
         bundle,
         withStoredScopedValue(
             trackedEntity,
-            new UniqueAttributeValue(
+            new UniqueAttributeValueInOrgUnit(
                 UID.generate(), MetadataIdentifier.ofUid("uid"), "ABC", ORG_UNIT_ID)));
 
     assertHasError(reporter, trackedEntity, ValidationCode.E1064);
@@ -451,7 +449,7 @@ class AttributeValidatorTest {
         bundle,
         withStoredScopedValue(
             trackedEntity,
-            new UniqueAttributeValue(
+            new UniqueAttributeValueInOrgUnit(
                 UID.generate(),
                 MetadataIdentifier.ofUid("uid"),
                 "abc",
@@ -462,18 +460,15 @@ class AttributeValidatorTest {
 
   @Test
   void shouldPassValidationWhenOrgUnitScopedValueIsStoredForTheSameTrackedEntity() {
+    // also covers a new tracked entity, whose own value is in the payload duplicates
     TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
-    org.hisp.dhis.tracker.model.TrackedEntity storedTrackedEntity =
-        new org.hisp.dhis.tracker.model.TrackedEntity();
-    storedTrackedEntity.setUid(trackedEntity.getUID().getValue());
-    when(preheat.getTrackedEntity(trackedEntity.getUID())).thenReturn(storedTrackedEntity);
 
     validator.validate(
         reporter,
         bundle,
         withStoredScopedValue(
             trackedEntity,
-            new UniqueAttributeValue(
+            new UniqueAttributeValueInOrgUnit(
                 trackedEntity.getUID(), MetadataIdentifier.ofUid("uid"), "abc", ORG_UNIT_ID)));
 
     assertIsEmpty(reporter.getErrors());
@@ -488,7 +483,7 @@ class AttributeValidatorTest {
         bundle,
         withStoredScopedValue(
             trackedEntity,
-            new UniqueAttributeValue(
+            new UniqueAttributeValueInOrgUnit(
                 UID.generate(), MetadataIdentifier.ofUid("otherUid"), "abc", ORG_UNIT_ID)));
 
     assertIsEmpty(reporter.getErrors());
@@ -498,14 +493,13 @@ class AttributeValidatorTest {
   void shouldPassValidationWhenSameValueIsStoredForAnAttributeUniqueInTheSystem() {
     TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
 
-    // values from the DB of an attribute unique in the whole system have no org unit
-    validator.validate(
-        reporter,
-        bundle,
-        withStoredScopedValue(
-            trackedEntity,
-            new UniqueAttributeValue(
-                UID.generate(), MetadataIdentifier.ofUid("globalUid"), "abc", null)));
+    withStoredValues(
+        List.of(
+            new UniqueAttributeValueSystemWide(
+                UID.generate(), MetadataIdentifier.ofUid("globalUid"), "abc")),
+        List.of());
+
+    validator.validate(reporter, bundle, trackedEntity);
 
     assertIsEmpty(reporter.getErrors());
   }
@@ -540,10 +534,28 @@ class AttributeValidatorTest {
   }
 
   private TrackedEntity withStoredScopedValue(
-      TrackedEntity trackedEntity, UniqueAttributeValue uniqueAttributeValue) {
-    when(preheat.getUniqueAttributeValues(trackedEntity.getAttributes().get(0).getValue()))
-        .thenReturn(List.of(uniqueAttributeValue));
+      TrackedEntity trackedEntity, UniqueAttributeValueInOrgUnit uniqueAttributeValue) {
+    withStoredValues(List.of(), List.of(uniqueAttributeValue));
     return trackedEntity;
+  }
+
+  /** Answers the lookups of unique values with the ones of a preheat holding the given values. */
+  private void withStoredValues(
+      List<UniqueAttributeValueSystemWide> systemWide,
+      List<UniqueAttributeValueInOrgUnit> inOrgUnit) {
+    TrackerPreheat stored = new TrackerPreheat();
+    stored.setSystemWideUniqueAttributeValues(systemWide);
+    stored.setUniqueAttributeValuesInOrgUnit(inOrgUnit);
+    when(preheat.hasSystemWideDuplicate(any(), any(), any()))
+        .thenAnswer(
+            i ->
+                stored.hasSystemWideDuplicate(
+                    i.getArgument(0), i.getArgument(1), i.getArgument(2)));
+    when(preheat.hasDuplicateInOrgUnit(any(), any(), any(), any()))
+        .thenAnswer(
+            i ->
+                stored.hasDuplicateInOrgUnit(
+                    i.getArgument(0), i.getArgument(1), i.getArgument(2), i.getArgument(3)));
   }
 
   @Test

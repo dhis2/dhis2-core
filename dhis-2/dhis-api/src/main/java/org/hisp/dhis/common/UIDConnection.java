@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import static java.util.Objects.requireNonNull;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 /**
- * Simple record used to store the data for {@link TrackedEntityAttributeValue} that are needed in
- * the Validation phase
+ * Generic pair of {@link UID}s that model some form of reference or connection between two
+ * different types of objects.
  *
- * @param orgUnit org unit of the tracked entity owning the value. Null when it is unknown (e.g. an
- *     enrollment of a tracked entity that does not exist) and for values from the DB of an
- *     attribute unique in the whole system, where the validation does not use it
- * @author Enrico Colasante
+ * @param from one object
+ * @param to another object
  */
-public record UniqueAttributeValue(
-    UID te, MetadataIdentifier attribute, String value, MetadataIdentifier orgUnit) {}
+public record UIDConnection(@Nonnull UID from, @CheckForNull UID to) {
+
+  public UIDConnection {
+    requireNonNull(from);
+  }
+}

@@ -3602,7 +3602,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param params the {@link EventQueryParams} for resolving org unit filters
    * @return the aggregated CTE SQL
    */
-  private String buildAggregatedCteSql(
+  String buildAggregatedCteSql(
       String eventTableName, String colName, QueryItem item, EventQueryParams params) {
     String template =
         """

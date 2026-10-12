@@ -60,6 +60,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -2046,6 +2047,206 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(ErrorCode.E7223, textException.getErrorCode());
     assertEquals(ErrorCode.E7223, dateException.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestKeepsEnrollmentValueStageOffProgramStage() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+    ProgramStage programStage = program.getProgramStages().iterator().next();
+    lenient()
+        .when(programStageService.getProgramStage(programStage.getUid()))
+        .thenReturn(programStage);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .value(programStage.getUid() + "." + element.getUid())
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertNull(params.getProgramStage());
+    assertEquals(programStage, params.getValueProgramStage());
+    assertEquals(element.getUid(), params.getValue().getUid());
+  }
+
+  @Test
+  void getFromRequestKeepsEventValueStageOnProgramStage() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+    ProgramStage programStage = program.getProgramStages().iterator().next();
+    lenient()
+        .when(programStageService.getProgramStage(programStage.getUid()))
+        .thenReturn(programStage);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(programStage.getUid() + "." + element.getUid())
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(programStage, params.getProgramStage());
+    assertNull(params.getValueProgramStage());
+  }
+
+  @Test
+  void getFromRequestRejectsEnrollmentValueDataElementWithoutStage() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT).value(element.getUid()).build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7266, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsEnrollmentValueDataElementOfAnotherStage() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+    ProgramStage otherStage = createProgramStage('T', program);
+    program.getProgramStages().add(otherStage);
+    lenient().when(programStageService.getProgramStage(otherStage.getUid())).thenReturn(otherStage);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .value(otherStage.getUid() + "." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7266, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsEnrollmentValueAttributeWithStage() {
+    TrackedEntityAttribute attribute = attributeInProgram('H', ValueType.NUMBER);
+    ProgramStage programStage = createProgramStage('S', program);
+    program.getProgramStages().add(programStage);
+    lenient()
+        .when(programStageService.getProgramStage(programStage.getUid()))
+        .thenReturn(programStage);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .value(programStage.getUid() + "." + attribute.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7266, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestAcceptsEnrollmentValueAttributeWithoutStage() {
+    TrackedEntityAttribute attribute = attributeInProgram('H', ValueType.NUMBER);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT).value(attribute.getUid()).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertNull(params.getValueProgramStage());
+  }
+
+  @Test
+  void getFromRequestRejectsUnsupportedEnrollmentAggregationType() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+    ProgramStage programStage = program.getProgramStages().iterator().next();
+    lenient()
+        .when(programStageService.getProgramStage(programStage.getUid()))
+        .thenReturn(programStage);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .value(programStage.getUid() + "." + element.getUid())
+            .aggregationType(AggregationType.LAST)
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7267, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsEnrollmentAggregationTypeWithOrgUnitDisaggregation() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+    ProgramStage programStage = program.getProgramStages().iterator().next();
+    lenient()
+        .when(programStageService.getProgramStage(programStage.getUid()))
+        .thenReturn(programStage);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .value(programStage.getUid() + "." + element.getUid())
+            .aggregationType(AggregationType.AVERAGE_SUM_ORG_UNIT)
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7267, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsEnrollmentValueWhoseOwnTypeIsUnsupported() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.LAST);
+    ProgramStage programStage = program.getProgramStages().iterator().next();
+    lenient()
+        .when(programStageService.getProgramStage(programStage.getUid()))
+        .thenReturn(programStage);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .value(programStage.getUid() + "." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7267, ex.getErrorCode());
+    // The type came from the element, not the request: the message must say how to override it.
+    assertTrue(ex.getMessage().contains("LAST"), ex.getMessage());
+    assertTrue(ex.getMessage().contains("`aggregationType`"), ex.getMessage());
+  }
+
+  @Test
+  void getFromRequestRejectsEnrollmentValueOfTypeNoneWithE7265() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+    ProgramStage programStage = program.getProgramStages().iterator().next();
+    lenient()
+        .when(programStageService.getProgramStage(programStage.getUid()))
+        .thenReturn(programStage);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .value(programStage.getUid() + "." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7265, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestKeepsEventAggregationTypesUnrestricted() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.LAST)
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    // LAST maps to (SUM, LAST): the aggregation type is SUM, the period type LAST.
+    assertEquals(AnalyticsAggregationType.LAST, params.getAggregationTypeFallback());
   }
 
   /** Creates a data element and attaches it to a stage of the test program. */
