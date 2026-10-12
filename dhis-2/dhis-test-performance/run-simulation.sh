@@ -37,6 +37,10 @@ show_usage() {
   echo "  COMPOSE_EXTRA_FILE    Additional docker compose override file appended to every compose"
   echo "                        invocation (e.g. to pin a network subnet on hosts with exhausted"
   echo "                        docker address pools)"
+  echo "  POPULATE_SCRIPT       Script run once after the containers start, before any simulation run,"
+  echo "                        to populate the database (default: not set)"
+  echo "                        e.g. scripts/populate-unique-attribute.sh, configured by POPULATE_* variables"
+  echo "                        (see the script header). POPULATE_* variables are saved in run-simulation.env"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo "  CAPTURE_DHIS2_LOGS    Capture DHIS2 application logs from the web container"
@@ -63,6 +67,14 @@ show_usage() {
   echo "  REPORT_SUFFIX=\"baseline\" \\"
   echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
+  echo ""
+  echo "  # Tracker import against the worst case for the unique attribute check"
+  echo "  POPULATE_SCRIPT=scripts/populate-unique-attribute.sh \\"
+  echo "  POPULATE_PROFILE=worst-case \\"
+  echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
+  echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest \\"
+  echo "  MVN_ARGS=\"-Dprofile=smoke -DtestMode=import -DuniqueAttribute=PerfUniqOu1\" \\"
+  echo "  $0"
   echo ""
   echo "  # With analytics table generation (required for analytics endpoints)"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest \\"
@@ -107,6 +119,7 @@ ANALYTICS_GENERATE=${ANALYTICS_GENERATE:-"false"}
 ANALYTICS_TIMEOUT=${ANALYTICS_TIMEOUT:-900} # default of 15min
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 WARMUP=${WARMUP:-1}
+POPULATE_SCRIPT=${POPULATE_SCRIPT:-""}
 REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 CAPTURE_DHIS2_LOGS=${CAPTURE_DHIS2_LOGS:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
@@ -116,6 +129,11 @@ DHIS_CONF_FILE=${DHIS_CONF_FILE:-"dhis.conf"}
 COMPOSE_EXTRA_FILE=${COMPOSE_EXTRA_FILE:-""}
 # docker compose interpolates ${DHIS_CONF_FILE} in the volume mount
 export DHIS_CONF_FILE
+
+if [ -n "$POPULATE_SCRIPT" ] && [ ! -x "$POPULATE_SCRIPT" ]; then
+  echo "Error: POPULATE_SCRIPT=$POPULATE_SCRIPT is not an executable file"
+  exit 1
+fi
 
 if [ ! -f "docker/$DHIS_CONF_FILE" ]; then
   echo "Error: DHIS_CONF_FILE=$DHIS_CONF_FILE does not exist in ./docker/"
@@ -693,6 +711,8 @@ generate_metadata() {
     echo "ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
+    echo "POPULATE_SCRIPT=$POPULATE_SCRIPT"
+    env | grep '^POPULATE_' | grep -v '^POPULATE_SCRIPT=' | sort || true
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
     echo "CAPTURE_DHIS2_LOGS=$CAPTURE_DHIS2_LOGS"
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
@@ -850,6 +870,15 @@ echo "========================================"
 echo "PHASE: Container Startup"
 echo "========================================"
 start_containers
+
+if [ -n "$POPULATE_SCRIPT" ]; then
+  echo ""
+  echo "========================================"
+  echo "PHASE: Database Population"
+  echo "========================================"
+  DHIS2_USERNAME="$DHIS2_USERNAME" DHIS2_PASSWORD="$DHIS2_PASSWORD" "$POPULATE_SCRIPT"
+fi
+
 prepare_database
 
 if [ "$WARMUP" -gt 0 ]; then

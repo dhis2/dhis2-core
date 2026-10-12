@@ -33,12 +33,14 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import org.hisp.dhis.analytics.AggregationType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -221,5 +223,39 @@ public class EventDataQueryRequestTest {
 
     assertEquals(
         EventDataQueryRequest.builder().fromCriteria(criteria).build().isTotalPages(), totalPages);
+  }
+
+  @Test
+  void aggregateEnrollmentMapsValueAndAggregationType() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setValue("edqlbukwRfQ.vANAXwtLwcT");
+    criteria.setAggregationType(AggregationType.AVERAGE);
+
+    EventDataQueryRequest request =
+        EventDataQueryRequest.builder()
+            .fromCriteria(
+                (EnrollmentAnalyticsQueryCriteria)
+                    criteria.withEndpointAction(AGGREGATE).withEndpointItem(ENROLLMENT))
+            .build();
+
+    assertEquals("edqlbukwRfQ.vANAXwtLwcT", request.getValue());
+    assertEquals(AggregationType.AVERAGE, request.getAggregationType());
+  }
+
+  @Test
+  void enrollmentQueryDoesNotMapValueOrAggregationType() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setValue("edqlbukwRfQ.vANAXwtLwcT");
+    criteria.setAggregationType(AggregationType.AVERAGE);
+
+    EventDataQueryRequest request =
+        EventDataQueryRequest.builder()
+            .fromCriteria(
+                (EnrollmentAnalyticsQueryCriteria)
+                    criteria.withEndpointAction(QUERY).withEndpointItem(ENROLLMENT))
+            .build();
+
+    assertNull(request.getValue());
+    assertNull(request.getAggregationType());
   }
 }
