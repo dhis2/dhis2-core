@@ -29,7 +29,6 @@ package org.hisp.dhis.trackedentityattributevalue;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.UID;
 
 /**
  * A stored value of a unique tracked entity attribute that matches a value being imported.
@@ -40,4 +39,4 @@ import org.hisp.dhis.common.UID;
  *     attribute unique within an org unit
  */
 public record UniqueAttributeValueMatch(
-    @Nonnull UID trackedEntity, @Nonnull String value, @CheckForNull Long orgUnitId) {}
+    @Nonnull String trackedEntity, @Nonnull String value, @CheckForNull Long orgUnitId) {}

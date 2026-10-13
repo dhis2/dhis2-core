@@ -35,7 +35,6 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateValueType;
 
 import java.util.Set;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -137,7 +136,7 @@ class AttributeValidator
           trackedEntity,
           attribute.getValue(),
           tea,
-          UID.of(trackedEntity.getUid()),
+          trackedEntity.getUid(),
           orgUnit);
     }
   }

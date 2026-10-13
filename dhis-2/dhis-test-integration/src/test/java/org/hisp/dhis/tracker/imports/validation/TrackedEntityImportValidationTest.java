@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
+import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
@@ -139,6 +140,38 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasErrors(importReport, 2, ValidationCode.E1064);
+  }
+
+  @Test
+  void shouldValidateUniquenessWhenPayloadContainsTrackedEntityWithInvalidUid() throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/validations/te-with_unique_attributes.json");
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity duplicate =
+        trackerObjects.getTrackedEntities().get(0);
+    String invalidUid = "invalid";
+    trackerObjects
+        .getTrackedEntities()
+        .add(
+            org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+                .trackedEntity(invalidUid)
+                .trackedEntityType(duplicate.getTrackedEntityType())
+                .orgUnit(duplicate.getOrgUnit())
+                .attributes(
+                    List.of(
+                        Attribute.builder()
+                            .attribute(duplicate.getAttributes().get(0).getAttribute())
+                            .value("anotherUniqueName")
+                            .build()))
+                .build());
+    TrackerImportParams params = new TrackerImportParams();
+    params.setAtomicMode(AtomicMode.OBJECT);
+
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    assertHasErrors(
+        importReport.getValidationReport(), 3, ValidationCode.E1048, ValidationCode.E1064);
+    assertHasError(importReport.getValidationReport(), ValidationCode.E1048, invalidUid);
+    assertHasError(importReport.getValidationReport(), ValidationCode.E1064, "bPJ0FMtcnER");
+    assertHasError(importReport.getValidationReport(), ValidationCode.E1064, "bPJ0FMtcnEL");
   }
 
   @Test

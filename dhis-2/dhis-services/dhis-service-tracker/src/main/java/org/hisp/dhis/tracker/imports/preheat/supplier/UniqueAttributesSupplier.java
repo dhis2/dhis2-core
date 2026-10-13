@@ -42,7 +42,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -227,12 +226,11 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
       for (org.hisp.dhis.tracker.imports.domain.TrackedEntity te : entry.getValue()) {
         if (!orgUnitScoped) {
           systemWide.add(
-              new UniqueAttributeValueSystemWide(
-                  UID.of(te.getUid()), key.attribute(), key.value()));
+              new UniqueAttributeValueSystemWide(te.getUid(), key.attribute(), key.value()));
         } else if (te.getOrgUnit() != null) {
           inOrgUnit.add(
               new UniqueAttributeValueInOrgUnit(
-                  UID.of(te.getUid()), key.attribute(), key.value(), te.getOrgUnit()));
+                  te.getUid(), key.attribute(), key.value(), te.getOrgUnit()));
         }
       }
     }

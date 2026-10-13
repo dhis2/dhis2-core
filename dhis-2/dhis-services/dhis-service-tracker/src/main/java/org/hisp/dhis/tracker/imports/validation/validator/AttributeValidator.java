@@ -33,7 +33,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1112;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -85,7 +84,7 @@ public abstract class AttributeValidator {
       TrackerDto dto,
       String value,
       TrackedEntityAttribute trackedEntityAttribute,
-      UID trackedEntity,
+      String trackedEntity,
       OrganisationUnit organisationUnit) {
     checkNotNull(trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL);
 

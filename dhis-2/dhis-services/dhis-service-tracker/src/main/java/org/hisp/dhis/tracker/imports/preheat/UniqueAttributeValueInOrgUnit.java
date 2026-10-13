@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.preheat;
 
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
 /**
@@ -44,7 +43,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
  * @param orgUnit the org unit of the tracked entity owning the value
  */
 public record UniqueAttributeValueInOrgUnit(
-    @Nonnull UID te,
+    @Nonnull String te,
     @Nonnull MetadataIdentifier attribute,
     @Nonnull String value,
     @Nonnull MetadataIdentifier orgUnit) {}

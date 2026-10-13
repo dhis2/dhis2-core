@@ -41,7 +41,6 @@ import com.google.common.collect.Streams;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -103,7 +102,7 @@ class AttributeValidator
             enrollment,
             attribute.getValue(),
             teAttribute,
-            UID.of(enrollment.getTrackedEntity()),
+            enrollment.getTrackedEntity(),
             orgUnit);
       }
     }

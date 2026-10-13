@@ -43,7 +43,6 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -73,9 +72,9 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
 
   private static final String UNIQUE_VALUE = "unique value";
 
-  private static final UID TE_UID = UID.of(CodeGenerator.generateUid());
+  private static final String TE_UID = CodeGenerator.generateUid();
 
-  private static final UID ANOTHER_TE_UID = UID.of(CodeGenerator.generateUid());
+  private static final String ANOTHER_TE_UID = CodeGenerator.generateUid();
 
   @InjectMocks private UniqueAttributesSupplier supplier;
 
@@ -105,7 +104,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     Attribute attribute = createAttribute('A');
     AttributeValue attributeValue = createAttributeValue(attribute, UNIQUE_VALUE);
     trackedEntity = createTrackedEntity('A', orgUnit);
-    trackedEntity.setUid(TE_UID.getValue());
+    trackedEntity.setUid(TE_UID);
     trackedEntity.setAttributeValues(Collections.singleton(attributeValue));
     enrollment = createEnrollment(program, trackedEntity, orgUnit);
     enrollment.setAttributeValues(Collections.singleton(attributeValue));
@@ -119,8 +118,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     this.supplier.preheatAdd(params, preheat);
 
     assertFalse(
-        preheat.hasSystemWideDuplicate(
-            uniqueAttribute, UNIQUE_VALUE, UID.of(CodeGenerator.generateUid())));
+        preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, CodeGenerator.generateUid()));
   }
 
   @Test
@@ -136,8 +134,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     this.supplier.preheatAdd(importParams, preheat);
 
     assertFalse(
-        preheat.hasSystemWideDuplicate(
-            uniqueAttribute, UNIQUE_VALUE, UID.of(CodeGenerator.generateUid())));
+        preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, CodeGenerator.generateUid()));
   }
 
   @Test
@@ -181,8 +178,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     this.supplier.preheatAdd(importParams, preheat);
 
     assertFalse(
-        preheat.hasSystemWideDuplicate(
-            uniqueAttribute, UNIQUE_VALUE, UID.of(CodeGenerator.generateUid())));
+        preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, CodeGenerator.generateUid()));
   }
 
   @Test
@@ -211,7 +207,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
         new ArrayList<>(sameUniqueAttributeTrackedEntities(UNIQUE_VALUE));
     for (int i = 0; i < 20; i++) {
       trackedEntities.add(
-          trackedEntityWithAttributeValue(UID.of(CodeGenerator.generateUid()), "value " + i));
+          trackedEntityWithAttributeValue(CodeGenerator.generateUid(), "value " + i));
     }
     TrackerObjects importParams = TrackerObjects.builder().trackedEntities(trackedEntities).build();
 
@@ -220,8 +216,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, TE_UID));
     assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, ANOTHER_TE_UID));
     assertFalse(
-        preheat.hasSystemWideDuplicate(
-            uniqueAttribute, "value 0", UID.of(CodeGenerator.generateUid())));
+        preheat.hasSystemWideDuplicate(uniqueAttribute, "value 0", CodeGenerator.generateUid()));
   }
 
   @Test
@@ -238,8 +233,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     this.supplier.preheatAdd(importParams, preheat);
 
     assertFalse(
-        preheat.hasSystemWideDuplicate(
-            uniqueAttribute, UNIQUE_VALUE, UID.of(CodeGenerator.generateUid())));
+        preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, CodeGenerator.generateUid()));
   }
 
   @Test
@@ -259,8 +253,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     // the value in the DB is the one of the tracked entity itself
     assertFalse(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, TE_UID));
     assertTrue(
-        preheat.hasSystemWideDuplicate(
-            uniqueAttribute, UNIQUE_VALUE, UID.of(CodeGenerator.generateUid())));
+        preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, CodeGenerator.generateUid()));
   }
 
   @Test
@@ -299,7 +292,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
             .trackedEntities(
                 List.of(
                     org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-                        .trackedEntity(ANOTHER_TE_UID.getValue())
+                        .trackedEntity(ANOTHER_TE_UID)
                         .orgUnit(MetadataIdentifier.ofCode("OU_CODE"))
                         .attributes(List.of(value(scopedAttribute, UNIQUE_VALUE)))
                         .build()))
@@ -360,7 +353,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
                 List.of(
                     org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
                         .enrollment(CodeGenerator.generateUid())
-                        .trackedEntity(TE_UID.getValue())
+                        .trackedEntity(TE_UID)
                         .attributes(List.of(value(scopedAttribute, "s1")))
                         .build()))
             .build();
@@ -391,7 +384,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
                 List.of(
                     org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
                         .enrollment(CodeGenerator.generateUid())
-                        .trackedEntity(TE_UID.getValue())
+                        .trackedEntity(TE_UID)
                         .attributes(List.of(value(scopedAttribute, "s1")))
                         .build()))
             .build();
@@ -417,7 +410,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     verifyNoInteractions(trackedEntityAttributeValueService);
     assertFalse(
         preheat.hasDuplicateInOrgUnit(
-            scopedAttribute, "s1", notInPreheat, UID.of(CodeGenerator.generateUid())));
+            scopedAttribute, "s1", notInPreheat, CodeGenerator.generateUid()));
   }
 
   @Test
@@ -438,19 +431,16 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
 
     // each value is only a duplicate in the org unit of its tracked entity
     assertFalse(
-        preheat.hasDuplicateInOrgUnit(
-            scopedAttribute, "s1", orgUnit1, UID.of(trackedEntity1.getUid())));
+        preheat.hasDuplicateInOrgUnit(scopedAttribute, "s1", orgUnit1, trackedEntity1.getUid()));
     assertTrue(
         preheat.hasDuplicateInOrgUnit(
-            scopedAttribute, "s1", orgUnit1, UID.of(CodeGenerator.generateUid())));
+            scopedAttribute, "s1", orgUnit1, CodeGenerator.generateUid()));
     assertFalse(
-        preheat.hasDuplicateInOrgUnit(
-            scopedAttribute, "s1", orgUnit2, UID.of(trackedEntity2.getUid())));
+        preheat.hasDuplicateInOrgUnit(scopedAttribute, "s1", orgUnit2, trackedEntity2.getUid()));
     assertTrue(
         preheat.hasDuplicateInOrgUnit(
-            scopedAttribute, "s1", orgUnit2, UID.of(CodeGenerator.generateUid())));
-    assertFalse(
-        preheat.hasSystemWideDuplicate(scopedAttribute, "s1", UID.of(CodeGenerator.generateUid())));
+            scopedAttribute, "s1", orgUnit2, CodeGenerator.generateUid()));
+    assertFalse(preheat.hasSystemWideDuplicate(scopedAttribute, "s1", CodeGenerator.generateUid()));
   }
 
   @Test
@@ -479,8 +469,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     // the tracked entity of the enrollment is in neither the payload nor the DB, so its org unit
     // is unknown and its value can't conflict with any other
     assertFalse(
-        preheat.hasDuplicateInOrgUnit(
-            scopedAttribute, "s1", orgUnit1, UID.of(trackedEntity.getUid())));
+        preheat.hasDuplicateInOrgUnit(scopedAttribute, "s1", orgUnit1, trackedEntity.getUid()));
   }
 
   @Test
@@ -539,9 +528,9 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   }
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityWithAttributeValue(
-      UID teUid, String value) {
+      String teUid, String value) {
     return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-        .trackedEntity(teUid.getValue())
+        .trackedEntity(teUid)
         .attributes(Collections.singletonList(attributeWithValue(value)))
         .build();
   }
@@ -556,7 +545,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity() {
 
     return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-        .trackedEntity(TE_UID.getValue())
+        .trackedEntity(TE_UID)
         .attributes(Collections.singletonList(uniqueAttribute()))
         .build();
   }
@@ -564,14 +553,14 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity anotherTrackedEntity() {
 
     return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-        .trackedEntity(ANOTHER_TE_UID.getValue())
+        .trackedEntity(ANOTHER_TE_UID)
         .attributes(Collections.singletonList(uniqueAttribute()))
         .build();
   }
 
-  private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment(UID teUid) {
+  private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment(String teUid) {
     return org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-        .trackedEntity(teUid.getValue())
+        .trackedEntity(teUid)
         .enrollment("ENROLLMENT")
         .attributes(Collections.singletonList(uniqueAttribute()))
         .build();
