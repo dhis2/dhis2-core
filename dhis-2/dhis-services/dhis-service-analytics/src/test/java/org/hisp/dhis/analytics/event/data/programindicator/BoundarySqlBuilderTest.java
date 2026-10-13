@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.event.data.programindicator;
 
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_OCCURRED_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.EVENT_DATE;
@@ -46,6 +47,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -167,6 +169,66 @@ class BoundarySqlBuilderTest {
             sqlBuilder);
 
     assertEquals(" and \"" + DB_INCIDENT_DATE + "\" >= '2023-01-01'", result);
+  }
+
+  @Test
+  void shouldHandleIncidentDateBoundaryOnEventTable() {
+    Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
+    boundaries.add(
+        createIncidentDateBoundary(AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD));
+
+    String result =
+        BoundarySqlBuilder.buildSql(
+            boundaries,
+            "occurreddate",
+            programIndicator,
+            reportingStartDate,
+            reportingEndDate,
+            sqlBuilder,
+            AnalyticsType.EVENT);
+
+    // In the event analytics table "occurreddate" is the event date, the incident date of the
+    // owning enrollment is stored in "enrollmentoccurreddate".
+    assertEquals(" and \"" + DB_ENROLLMENT_OCCURRED_DATE + "\" >= '2023-01-01'", result);
+  }
+
+  @Test
+  void shouldHandleIncidentDateBoundaryOnEnrollmentTable() {
+    Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
+    boundaries.add(
+        createIncidentDateBoundary(AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD));
+
+    String result =
+        BoundarySqlBuilder.buildSql(
+            boundaries,
+            "occurreddate",
+            programIndicator,
+            reportingStartDate,
+            reportingEndDate,
+            sqlBuilder,
+            AnalyticsType.ENROLLMENT);
+
+    assertEquals(" and \"" + DB_INCIDENT_DATE + "\" >= '2023-01-01'", result);
+  }
+
+  @Test
+  void shouldHandleEnrollmentDateBoundaryOnEventTable() {
+    Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
+    boundaries.add(
+        createEnrollmentDateBoundary(AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD));
+
+    String result =
+        BoundarySqlBuilder.buildSql(
+            boundaries,
+            "occurreddate",
+            programIndicator,
+            reportingStartDate,
+            reportingEndDate,
+            sqlBuilder,
+            AnalyticsType.EVENT);
+
+    // "enrollmentdate" is named identically in both analytics tables
+    assertEquals(" and \"" + DB_ENROLLMENT_DATE + "\" >= '2023-01-01'", result);
   }
 
   @Test

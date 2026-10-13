@@ -188,13 +188,10 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
   public void setRelatives(RelativePeriods relatives) {
     if (relatives != null) {
       List<RelativePeriodEnum> enums = relatives.getRelativePeriodEnums();
+      this.rawPeriods = new ArrayList<>(enums.size());
 
       for (RelativePeriodEnum periodEnum : enums) {
-        String relativePeriod = periodEnum.name();
-
-        if (RelativePeriodEnum.contains(relativePeriod)) {
-          this.rawPeriods.add(relativePeriod);
-        }
+        this.rawPeriods.add(periodEnum.name());
       }
 
       this.relatives = relatives;

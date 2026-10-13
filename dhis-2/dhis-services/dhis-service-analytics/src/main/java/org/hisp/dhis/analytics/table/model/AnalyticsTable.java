@@ -96,6 +96,34 @@ public class AnalyticsTable extends Table {
   }
 
   /**
+   * Constructor. Sets the name to represent a staging table. Use when the table requires both a
+   * sort key and a real primary key (e.g. Doris continuous analytics, which needs a unique key
+   * column for deduplication and DELETE support).
+   *
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param columns the list of {@link Column}.
+   * @param sortKey the sort key.
+   * @param primaryKey the primary key.
+   * @param logged the {@link Logged} property.
+   */
+  public AnalyticsTable(
+      AnalyticsTableType tableType,
+      List<AnalyticsTableColumn> columns,
+      List<String> sortKey,
+      List<String> primaryKey,
+      Logged logged) {
+    super(
+        toStaging(tableType.getTableName()),
+        toColumns(columns),
+        primaryKey,
+        sortKey,
+        List.of(),
+        logged);
+    this.tableType = tableType;
+    this.analyticsTableColumns = columns;
+  }
+
+  /**
    * Constructor. Sets the name to represent a staging table.
    *
    * @param tableType the {@link AnalyticsTableType}.
@@ -109,6 +137,28 @@ public class AnalyticsTable extends Table {
       Logged logged,
       Program program) {
     super(toStaging(getTableName(tableType, program)), toColumns(columns), List.of(), logged);
+    this.tableType = tableType;
+    this.analyticsTableColumns = columns;
+    this.program = program;
+  }
+
+  /**
+   * Constructor. Sets the name to represent a staging table. Use when the table requires a real
+   * primary key (e.g. Doris continuous analytics).
+   *
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param logged the {@link Logged} property.
+   * @param program the {@link Program}.
+   */
+  public AnalyticsTable(
+      AnalyticsTableType tableType,
+      List<AnalyticsTableColumn> columns,
+      List<String> primaryKey,
+      Logged logged,
+      Program program) {
+    super(toStaging(getTableName(tableType, program)), toColumns(columns), primaryKey, logged);
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
     this.program = program;

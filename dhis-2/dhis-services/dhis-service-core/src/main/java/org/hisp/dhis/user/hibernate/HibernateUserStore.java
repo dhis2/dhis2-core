@@ -308,6 +308,10 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       hql += hlp.whereAnd() + " u.lastLogin < :inactiveSince ";
     }
 
+    if (params.isNeverLoggedIn()) {
+      hql += hlp.whereAnd() + " u.lastLogin is null ";
+    }
+
     if (params.getPasswordLastUpdated() != null) {
       hql += hlp.whereAnd() + " u.passwordLastUpdated < :passwordLastUpdated ";
     }

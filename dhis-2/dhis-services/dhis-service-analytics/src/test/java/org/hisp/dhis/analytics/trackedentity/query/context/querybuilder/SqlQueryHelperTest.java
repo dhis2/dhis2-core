@@ -413,6 +413,45 @@ class SqlQueryHelperTest {
   }
 
   @Test
+  void test_collapsedEventSubQuery() {
+    TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
+    when(trackedEntityType.getUid()).thenReturn("trackedEntityType");
+
+    ElementWithOffset<Program> program =
+        mockElementWithOffset(
+            Program.class,
+            "programUid",
+            p -> when(p.getTrackedEntityType()).thenReturn(trackedEntityType));
+
+    ElementWithOffset<ProgramStage> programStage =
+        mockElementWithOffset(ProgramStage.class, "programStageUid");
+
+    when(testedDimension.getProgram()).thenReturn(program);
+    when(testedDimension.getProgramStage()).thenReturn(programStage);
+    when(testedDimension.isEventDimension()).thenReturn(true);
+
+    assertEquals(
+        """
+        (select ev."ou"
+         from (select *, row_number() over (partition by trackedentity order by occurreddate desc) as rn
+               from analytics_te_event_trackedentitytype
+               where programstage = 'programStageUid'
+                 and status != 'SCHEDULE') ev
+         where ev.rn = 1
+           and ev.trackedentity = t_1.trackedentity)""",
+        SqlQueryHelper.buildCollapsedEventSubquery(testedDimension, "ou").render());
+  }
+
+  @Test
+  void test_collapsedEventSubQuery_throws_for_nonEvent() {
+    when(testedDimension.isEventDimension()).thenReturn(false);
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> SqlQueryHelper.buildCollapsedEventSubquery(testedDimension, "ou"));
+  }
+
+  @Test
   void test_selectSubQuery_throws_for_nonEvent() {
     when(testedDimension.isEventDimension()).thenReturn(false);
 

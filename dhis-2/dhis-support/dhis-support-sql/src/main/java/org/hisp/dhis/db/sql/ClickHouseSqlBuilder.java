@@ -220,6 +220,16 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsContinuousAnalytics() {
+    return false;
+  }
+
+  @Override
+  public boolean requiresUniqueKeyAnalyticsTables() {
+    return false;
+  }
+
+  @Override
   public boolean supportsPercentileCont() {
     return false;
   }
@@ -512,6 +522,15 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String decimalLiteral(String literal, int precision, int scale) {
     return String.format("cast('%s' AS decimal(%d,%d))", escape(literal), precision, scale);
+  }
+
+  /**
+   * ClickHouse analytics tables hold empty strings where Postgres and Doris hold NULL for an absent
+   * text value, because {@code JSONExtractString} yields {@code ''} for a missing key.
+   */
+  @Override
+  public String nullIfEmpty(String column) {
+    return "nullif(" + column + ", '')";
   }
 
   /**

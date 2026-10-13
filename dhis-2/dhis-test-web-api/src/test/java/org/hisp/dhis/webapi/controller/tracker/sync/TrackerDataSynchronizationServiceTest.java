@@ -84,10 +84,9 @@ import org.springframework.web.client.RestTemplate;
  * TrackerDataSynchronizationServiceTest} (dhis-web-api module) cover the decision logic, and this
  * class is kept simple on purpose rather than trying to cover everything.
  *
- * <p>Deliberately NOT {@code @Transactional}: {@code TrackedEntityFields.all()} makes {@link
- * TrackerDataSynchronizationService} fetch enrollments via {@code EnrollmentAggregate}, which runs
- * on a separate thread with its own DB connection. A per-test uncommitted transaction would be
- * invisible to that thread, so fixtures must actually commit.
+ * <p>Deliberately NOT {@code @Transactional}: the fixtures are imported through the real tracker
+ * importer and must be committed for the sync service to see them. A per-test uncommitted
+ * transaction would leave the export finding nothing.
  */
 class TrackerDataSynchronizationServiceTest extends PostgresControllerIntegrationTestBase {
 

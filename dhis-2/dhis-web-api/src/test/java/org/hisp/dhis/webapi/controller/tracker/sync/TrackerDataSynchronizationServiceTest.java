@@ -330,6 +330,28 @@ class TrackerDataSynchronizationServiceTest {
   }
 
   @Test
+  void shouldExplainExclusionWhenEntityItselfSucceededButChildFailed() {
+    UID teUid = UID.of("TrackedEnt1");
+    UID relationshipUid = UID.of("Rel00000001");
+    ImportReport report =
+        reportWith(
+            successEntity(TrackerType.TRACKED_ENTITY, teUid),
+            failedEntity(TrackerType.RELATIONSHIP, relationshipUid, "E4009", "validation failed"));
+
+    // teUid succeeded at its own type (present in succeededTopLevelUids) but is absent from
+    // syncedUids, i.e. filterByFailedChildren actually excluded it over the failed relationship —
+    // a verified child failure, not a guess.
+    List<TrackerSyncReportUtils.FailedItem> failures =
+        service.explainUnsyncedEntities(Set.of(teUid), Set.of(), report);
+
+    assertEquals(
+        List.of(
+            new TrackerSyncReportUtils.FailedItem(
+                teUid, BaseDataSynchronizationWithPaging.CHILD_FAILED_ERROR_CODE)),
+        failures);
+  }
+
+  @Test
   void shouldNotStampSyncTimestampWhenDeletedRelationshipFailedForRealReason() throws Exception {
     UID teUid = UID.of("TrackedEnt1");
     UID relationshipUid = UID.of("Rel00000001");

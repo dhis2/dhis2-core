@@ -7,6 +7,7 @@ services:
   db:
     command: >
       postgres -c max_locks_per_transaction=100
+      -c shared_preload_libraries=postgis-3
       -c logging_collector=on
       -c log_destination=csvlog
       -c log_directory=log

@@ -37,7 +37,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -114,7 +113,7 @@ public class OptionGroup extends BaseMetadataObject
 
   // HBM had `cascade="all"` on this many-to-many collection - preserved as-is even though
   // cascading REMOVE from a many-to-many is unusual; not "fixed" during a structural migration.
-  @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+  @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "optiongroupmembers",
       joinColumns =

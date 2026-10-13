@@ -64,8 +64,6 @@ public abstract class DeliveryChannelStrategy {
 
   protected abstract void validate(ProgramMessage message);
 
-  protected abstract String getOrganisationUnitRecipient(OrganisationUnit orgUnit);
-
   // -------------------------------------------------------------------------
   // Public methods
   // -------------------------------------------------------------------------

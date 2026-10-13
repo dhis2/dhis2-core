@@ -88,7 +88,7 @@ public class FileSystemBlobStoreService implements BlobStoreService {
   }
 
   @Override
-  public boolean blobExists(BlobKey key) {
+  public boolean blobExists(BlobKey key, BlobReadOptions options) {
     if (key == null) return false;
     Path p = resolve(key);
     return Files.isRegularFile(p);
@@ -96,7 +96,7 @@ public class FileSystemBlobStoreService implements BlobStoreService {
 
   @Override
   @CheckForNull
-  public InputStream openStream(BlobKey key) {
+  public InputStream openStream(BlobKey key, BlobReadOptions options) {
     Path p = resolve(key);
     if (!Files.isRegularFile(p)) return null;
     try {
@@ -108,7 +108,7 @@ public class FileSystemBlobStoreService implements BlobStoreService {
   }
 
   @Override
-  public long contentLength(BlobKey key) {
+  public long contentLength(BlobKey key, BlobReadOptions options) {
     Path p = resolve(key);
     if (!Files.isRegularFile(p)) return 0L;
     try {

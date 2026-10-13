@@ -50,6 +50,7 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -1343,5 +1344,69 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
             Map.entry("factor", ""),
             Map.entry("multiplier", ""),
             Map.entry("divisor", "")));
+  }
+
+  @Test
+  @DependsOn(
+      files = {"pi-has-value-in-filter.json"},
+      delete = true)
+  public void enrollmentProgramIndicatorWithHasValueFilter(@NonNull List<Resource> resource)
+      throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+    String piUid = resource.get(0).uid();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:%s,pe:202211;202212;202301;202302;202303".formatted(piUid));
+
+    // When
+    ApiResponse response = actions.get(params);
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        5,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // metaData not found or is empty in response, skipping assertion.
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Only the enrollment carrying an Apgar comment passes the d2:hasValue filter.
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202211", "value", "0.0"));
+
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202212", "value", "0.0"));
+
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202301", "value", "1.0"));
+
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202302", "value", "0.0"));
+
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202303", "value", "0.0"));
   }
 }

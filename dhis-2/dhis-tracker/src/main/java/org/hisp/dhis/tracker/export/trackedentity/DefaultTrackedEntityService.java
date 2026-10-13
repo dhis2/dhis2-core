@@ -236,9 +236,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throws ForbiddenException, BadRequestException {
     UserDetails user = getCurrentUserDetails();
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
-    final List<TrackedEntityIdentifiers> ids = trackedEntityStore.getTrackedEntityIds(queryParams);
+    final List<TrackedEntity> trackedEntities = trackedEntityStore.getTrackedEntities(queryParams);
 
-    return findTrackedEntities(ids, operationParams, queryParams, user);
+    return findTrackedEntities(trackedEntities, operationParams, queryParams, user);
   }
 
   @Nonnull
@@ -249,24 +249,23 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throws BadRequestException, ForbiddenException {
     UserDetails user = getCurrentUserDetails();
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user, pageParams);
-    final Page<TrackedEntityIdentifiers> ids =
-        trackedEntityStore.getTrackedEntityIds(queryParams, pageParams);
+    final Page<TrackedEntity> page = trackedEntityStore.getTrackedEntities(queryParams, pageParams);
 
     List<TrackedEntity> trackedEntities =
-        findTrackedEntities(ids.getItems(), operationParams, queryParams, user);
+        findTrackedEntities(page.getItems(), operationParams, queryParams, user);
 
-    return ids.withFilteredItems(trackedEntities);
+    return page.withFilteredItems(trackedEntities);
   }
 
   private List<TrackedEntity> findTrackedEntities(
-      List<TrackedEntityIdentifiers> ids,
+      List<TrackedEntity> trackedEntities,
       TrackedEntityOperationParams operationParams,
       TrackedEntityQueryParams queryParams,
       UserDetails user) {
 
-    List<TrackedEntity> trackedEntities =
-        this.trackedEntityAggregate.find(ids, operationParams.getFields(), queryParams);
-    for (TrackedEntity trackedEntity : trackedEntities) {
+    List<TrackedEntity> result =
+        this.trackedEntityAggregate.find(trackedEntities, operationParams.getFields(), queryParams);
+    for (TrackedEntity trackedEntity : result) {
       if (operationParams.getFields().isIncludesRelationships()) {
         trackedEntity.setRelationshipItems(
             relationshipService.findRelationshipItems(
@@ -275,8 +274,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
                 operationParams.getFields().getRelationshipFields(),
                 queryParams.isIncludeDeleted()));
       }
-    }
-    for (TrackedEntity trackedEntity : trackedEntities) {
       if (operationParams.getFields().isIncludesProgramOwners()) {
         trackedEntity.setProgramOwners(
             getTrackedEntityProgramOwners(
@@ -284,11 +281,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
     if (operationParams.getFields().isIncludesAttributes()) {
-      filterReadableAttributeValues(trackedEntities, queryParams);
+      filterReadableAttributeValues(result, queryParams);
     }
-    trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
+    trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), result);
 
-    return trackedEntities;
+    return result;
   }
 
   /**

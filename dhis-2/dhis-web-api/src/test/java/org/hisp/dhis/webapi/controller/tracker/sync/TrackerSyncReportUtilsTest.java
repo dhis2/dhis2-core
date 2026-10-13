@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.tracker.sync;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.alreadyDeletedOrSucceededUids;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.blockingFailedUids;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.failedUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.formatFailedUids;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.successfullyProcessedUids;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -46,6 +47,7 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
+import org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.FailedItem;
 import org.junit.jupiter.api.Test;
 
 class TrackerSyncReportUtilsTest {
@@ -124,5 +126,60 @@ class TrackerSyncReportUtilsTest {
                     : new PersistenceReport(empty, empty, empty, empty, typeReport);
 
     return ImportReport.builder().status(Status.ERROR).persistenceReport(persistenceReport).build();
+  }
+
+  @Test
+  void shouldReturnEmptyStringWhenNoFailures() {
+    assertEquals("", formatFailedUids(List.of()));
+  }
+
+  @Test
+  void shouldListAllUidsWhenFailuresAreAtOrBelowTheCap() {
+    List<FailedItem> failed = List.of(item("Uid00000001", "E1032"), item("Uid00000002", "E1032"));
+
+    assertEquals(" (failed: E1032 x2 [Uid00000001, Uid00000002])", formatFailedUids(failed));
+  }
+
+  @Test
+  void shouldCapUidsPerReasonAndReportHowManyMoreThereAre() {
+    List<FailedItem> failed =
+        List.of(
+            item("Uid00000001", "E1032"),
+            item("Uid00000002", "E1032"),
+            item("Uid00000003", "E1032"),
+            item("Uid00000004", "E1032"),
+            item("Uid00000005", "E1032"),
+            item("Uid00000006", "E1032"),
+            item("Uid00000007", "E1032"));
+
+    assertEquals(
+        " (failed: E1032 x7 [Uid00000001, Uid00000002, Uid00000003, Uid00000004, Uid00000005,"
+            + " +2 more])",
+        formatFailedUids(failed));
+  }
+
+  @Test
+  void shouldGroupByErrorCodeAndOrderReasonsByDescendingFailureCount() {
+    List<FailedItem> failed =
+        List.of(
+            item("Uid00000001", "E1082"),
+            item("Uid00000002", "E1032"),
+            item("Uid00000003", "E1032"),
+            item("Uid00000004", "E1032"));
+
+    assertEquals(
+        " (failed: E1032 x3 [Uid00000002, Uid00000003, Uid00000004], E1082 x1 [Uid00000001])",
+        formatFailedUids(failed));
+  }
+
+  @Test
+  void shouldCountAFailedEntityOnceEvenWhenItHasMultipleErrorsUnderTheSameCode() {
+    List<FailedItem> failed = List.of(item("Uid00000001", "E5000"), item("Uid00000001", "E5000"));
+
+    assertEquals(" (failed: E5000 x1 [Uid00000001])", formatFailedUids(failed));
+  }
+
+  private static FailedItem item(String uid, String errorCode) {
+    return new FailedItem(UID.of(uid), errorCode);
   }
 }

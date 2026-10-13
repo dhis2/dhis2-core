@@ -21,9 +21,15 @@
 
     <property name="legendSetUrl" column="legendseturl" type="text" />
 
+    <property name="description" column="description" length="1024" />
+
+    <property name="descriptionUrl" column="descriptionurl" length="255"/>
+
     <property name="mapLayerPosition" column="maplayerposition" type="org.hisp.dhis.mapping.MapLayerPosition" not-null="true" />
 
     <property name="layers" column="layers" type="text" />
+
+    <property name="image" column="image" length="2097152" />
 
     <property name="imageFormat" column="imageformat" type="org.hisp.dhis.mapping.ImageFormat" not-null="true" />
 

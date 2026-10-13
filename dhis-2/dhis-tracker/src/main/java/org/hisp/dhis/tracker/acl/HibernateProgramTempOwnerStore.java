@@ -32,9 +32,11 @@ package org.hisp.dhis.tracker.acl;
 import jakarta.persistence.EntityManager;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,14 +47,26 @@ import org.springframework.stereotype.Component;
 @Component("org.hisp.dhis.tracker.acl.ProgramTempOwnerStore")
 public class HibernateProgramTempOwnerStore extends HibernateGenericStore<ProgramTempOwner> {
   public HibernateProgramTempOwnerStore(
-      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, ProgramTempOwner.class, false);
+      EntityManager entityManager,
+      @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
+          NamedParameterJdbcTemplate trackerExportJdbcTemplate,
+      ApplicationEventPublisher publisher) {
+    super(
+        entityManager,
+        trackerExportJdbcTemplate.getJdbcTemplate(),
+        publisher,
+        ProgramTempOwner.class,
+        false);
   }
 
   public void addProgramTempOwner(ProgramTempOwner programTempOwner) {
     getSession().save(programTempOwner);
   }
 
+  /**
+   * Reached by the relationship export, which checks ownership per result row on a temp ownership
+   * cache miss, so it runs on the deadline aware template rather than the primary one.
+   */
   public int getValidTempOwnerCount(Program program, String trackedEntity, UserDetails user) {
     final String sql =
         """

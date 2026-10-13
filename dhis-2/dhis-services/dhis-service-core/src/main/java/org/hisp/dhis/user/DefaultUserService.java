@@ -246,6 +246,17 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional
+  public boolean deleteUser(@Nonnull UID uid) {
+    User user = userStore.getByUidNoAcl(uid.getValue());
+    if (user == null) {
+      return false;
+    }
+    deleteUser(user);
+    return true;
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public List<User> getAllUsers() {
     return userStore.getAll();

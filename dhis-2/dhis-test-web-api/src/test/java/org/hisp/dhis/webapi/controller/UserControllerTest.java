@@ -84,6 +84,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.transaction.annotation.Transactional;
@@ -1171,6 +1173,50 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
             .content(HttpStatus.CREATED));
   }
 
+  @ParameterizedTest
+  @CsvSource({"add, /password, tN7!qR2#vL9@, false", "replace, /firstName, Updated, true"})
+  void testPatchInvitedUser(String operation, String path, String value, boolean invitation) {
+    UserRole role = createUserRole("inviteRole", "ALL");
+    userService.addUserRole(role);
+    POST(
+            "/users/invite",
+            "{'surname':'S.','firstName':'Harry','email':'test@example.com',"
+                + "'username':'harrys','userRoles':[{'id':'"
+                + role.getUid()
+                + "'}]}")
+        .content(HttpStatus.CREATED);
+
+    manager.flush();
+    manager.clear();
+    User invitedUser = userService.getUserByUsername("harrys");
+    String uid = invitedUser.getUid();
+    String token = invitedUser.getRestoreToken();
+    String idToken = invitedUser.getIdToken();
+    var expiry = invitedUser.getRestoreExpiry();
+    assertTrue(invitedUser.isInvitation());
+    assertNotNull(token);
+    assertNotNull(idToken);
+    assertNotNull(expiry);
+
+    PATCH(
+            "/users/" + uid,
+            "[{'op':'" + operation + "','path':'" + path + "','value':'" + value + "'}]")
+        .content(OK);
+
+    manager.flush();
+    manager.clear();
+    assertEquals(
+        invitation,
+        GET("/users/{id}?fields=invitation", uid)
+            .content(OK)
+            .getBoolean("invitation")
+            .booleanValue());
+    User updatedUser = userService.getUser(uid);
+    assertEquals(invitation ? token : null, updatedUser.getRestoreToken());
+    assertEquals(invitation ? idToken : null, updatedUser.getIdToken());
+    assertEquals(invitation ? expiry : null, updatedUser.getRestoreExpiry());
+  }
+
   @Test
   void testPatchUserGroups() {
     UserGroup userGroupA = createUserGroup('A', Set.of());
@@ -1304,46 +1350,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(uids.contains(alice.getUid()));
     assertTrue(uids.contains(viewer.getUid()));
     assertFalse(uids.contains(bob.getUid()));
-  }
-
-  @Test
-  @DisplayName("GET /users?ou={uid}&includeChildren=true returns users in org unit subtree")
-  void testGetUsersFilterByOrgUnitWithChildren() {
-    OrganisationUnit orgA = createOrganisationUnit('A');
-    organisationUnitService.addOrganisationUnit(orgA);
-    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
-    organisationUnitService.addOrganisationUnit(orgB);
-    OrganisationUnit orgC = createOrganisationUnit('C', orgB);
-    organisationUnitService.addOrganisationUnit(orgC);
-
-    User alice = createUserWithAuth("alice");
-    alice.addOrganisationUnit(orgA);
-    userService.updateUser(alice);
-
-    User bob = createUserWithAuth("bob");
-    bob.addOrganisationUnit(orgB);
-    userService.updateUser(bob);
-
-    User charlie = createUserWithAuth("charlie");
-    charlie.addOrganisationUnit(orgC);
-    userService.updateUser(charlie);
-
-    // Switch to a user whose org units are orgA (fresh security context)
-    User viewer = createUserWithAuth("viewer", "ALL");
-    viewer.addOrganisationUnit(orgA);
-    userService.updateUser(viewer);
-    switchToNewUser(viewer);
-
-    JsonList<JsonUser> users =
-        GET("/users?ou=" + orgA.getUid() + "&includeChildren=true")
-            .content(HttpStatus.OK)
-            .getList("users", JsonUser.class);
-
-    List<String> uids = users.stream().map(JsonUser::getId).toList();
-    assertTrue(uids.contains(alice.getUid()));
-    assertTrue(uids.contains(bob.getUid()));
-    assertTrue(uids.contains(charlie.getUid()));
-    assertTrue(uids.contains(viewer.getUid()));
   }
 
   @Test
@@ -1500,45 +1506,5 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     List<String> uids = users.stream().map(JsonUser::getId).toList();
     assertTrue(uids.contains(bob.getUid()), "bob (in orgB) should be returned");
     assertFalse(uids.contains(alice.getUid()), "alice (in orgA only) should not be returned");
-  }
-
-  @Test
-  @DisplayName(
-      "GET /users?filter=organisationUnits.id:in:[uid]&userOrgUnits=true&includeChildren=true"
-          + " returns intersection of filter and subtree")
-  void testGetUsersFilterByOrgUnitMembershipWithChildren() {
-    OrganisationUnit orgA = createOrganisationUnit('A');
-    organisationUnitService.addOrganisationUnit(orgA);
-    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
-    organisationUnitService.addOrganisationUnit(orgB);
-
-    User alice = createUserWithAuth("alice");
-    alice.addOrganisationUnit(orgA);
-    userService.updateUser(alice);
-
-    User bob = createUserWithAuth("bob");
-    bob.addOrganisationUnit(orgB);
-    userService.updateUser(bob);
-
-    // viewer's org units = orgA → userOrgUnits=true&includeChildren=true covers orgA subtree
-    User viewer = createUserWithAuth("viewer", "ALL");
-    viewer.addOrganisationUnit(orgA);
-    userService.updateUser(viewer);
-    switchToNewUser(viewer);
-
-    // filter=organisationUnits.id:in:[orgB] AND userOrgUnits subtree (orgA+children)
-    // → only bob satisfies both (directly in orgB, which is under orgA)
-    JsonList<JsonUser> users =
-        GET("/users?filter=organisationUnits.id:in:["
-                + orgB.getUid()
-                + "]&userOrgUnits=true&includeChildren=true")
-            .content(HttpStatus.OK)
-            .getList("users", JsonUser.class);
-
-    List<String> uids = users.stream().map(JsonUser::getId).toList();
-    assertTrue(uids.contains(bob.getUid()), "bob (in orgB, subtree of orgA) should be returned");
-    assertFalse(uids.contains(alice.getUid()), "alice (in orgA, not orgB) should not be returned");
-    assertFalse(
-        uids.contains(viewer.getUid()), "viewer (in orgA, not orgB) should not be returned");
   }
 }

@@ -175,7 +175,9 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   @MethodSource("getEnrollment")
   void shouldGetEnrollmentWithNotes(BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
-    assertNotEmpty(enrollment.getNotes(), "test expects an enrollment with notes");
+    assertNotEmpty(
+        trackerObjects.findEnrollment(UID.of(enrollment)).orElseThrow().getNotes(),
+        "test expects an enrollment with notes");
 
     JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "notes");
 

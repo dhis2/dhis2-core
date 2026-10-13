@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,10 @@
  */
 package org.hisp.dhis.hibernate.jsonb.type;
 
+import java.util.Map;
+import java.util.Objects;
 import org.hisp.dhis.common.collection.CollectionUtils;
+import org.hisp.dhis.sharing.AccessObject;
 import org.hisp.dhis.user.sharing.Sharing;
 
 public class SharingJsonBinaryType extends JsonBinaryType {
@@ -39,5 +42,52 @@ public class SharingJsonBinaryType extends JsonBinaryType {
     sharing.setUsers(CollectionUtils.emptyIfNull(sharing.getUsers()));
     sharing.setUserGroups(CollectionUtils.emptyIfNull(sharing.getUserGroups()));
     return sharing;
+  }
+
+  /**
+   * {@link Sharing} does not implement {@code equals}, and the snapshot Hibernate keeps for dirty
+   * checking is a deep copy, so the inherited check would serialise and parse both values on every
+   * flush of every entity with sharing. Compare the fields that make up the persisted JSON directly
+   * first, and only fall back to the content based comparison when they differ (or a value could
+   * not be serialised, such as an access map with a null key).
+   */
+  @Override
+  public boolean equals(Object x, Object y) {
+    if (x instanceof Sharing a && y instanceof Sharing b && sameFields(a, b)) {
+      return true;
+    }
+    return super.equals(x, y);
+  }
+
+  private static boolean sameFields(Sharing a, Sharing b) {
+    return Objects.equals(a.getOwner(), b.getOwner())
+        && Objects.equals(a.getPublicAccess(), b.getPublicAccess())
+        && sameAccess(a.getUsers(), b.getUsers())
+        && sameAccess(a.getUserGroups(), b.getUserGroups());
+  }
+
+  private static boolean sameAccess(
+      Map<String, ? extends AccessObject> a, Map<String, ? extends AccessObject> b) {
+    if (a == null || b == null) {
+      return a == b;
+    }
+    if (a.size() != b.size()) {
+      return false;
+    }
+    for (Map.Entry<String, ? extends AccessObject> e : a.entrySet()) {
+      if (e.getKey() == null) {
+        return false; // cannot be serialised, leave it to the content based comparison
+      }
+      AccessObject other = b.get(e.getKey());
+      AccessObject access = e.getValue();
+      if (access == null
+          || other == null
+          || !Objects.equals(access.getId(), other.getId())
+          || !Objects.equals(access.getAccess(), other.getAccess())
+          || !Objects.equals(access.getDisplayName(), other.getDisplayName())) {
+        return false;
+      }
+    }
+    return true;
   }
 }
