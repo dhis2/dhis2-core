@@ -564,14 +564,14 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support dimension name. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   public void setDimensionName(String dimensionName) {
     // Not supported
   }
 
   /** DataElementGroupSet does not support data dimension type. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataDimensionType getDataDimensionType() {
@@ -580,14 +580,14 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support dimension display name. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   public String getDimensionDisplayName() {
     return null;
   }
 
   /** DataElementGroupSet does not support value type. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ValueType getValueType() {
@@ -596,7 +596,7 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support option set. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public OptionSet getOptionSet() {
@@ -605,7 +605,7 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support all items. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isAllItems() {
@@ -614,7 +614,7 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support legend set. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -624,7 +624,7 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support program stage. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -634,7 +634,7 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support program. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -644,7 +644,7 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support aggregation type. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public AggregationType getAggregationType() {
@@ -653,7 +653,7 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support filter. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getFilter() {
@@ -662,7 +662,7 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support filter. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonIgnore
   @SuppressWarnings("java:S1168") // null means "no IN filter", callers rely on it
   public List<String> getFilterItemsAsList() {
@@ -671,7 +671,7 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support event repetition. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonProperty("repetition")
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public EventRepetition getEventRepetition() {
@@ -680,14 +680,14 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support event repetition. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   public void setEventRepetition(EventRepetition eventRepetition) {
     // Not supported
   }
 
   /** DataElementGroupSet does not support fixed dimensions. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonIgnore
   public boolean isFixed() {
     return false;
@@ -695,14 +695,14 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   /** DataElementGroupSet does not support fixed dimensions. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   public void setFixed(boolean fixed) {
     // Not supported
   }
 
   /** DataElementGroupSet does not support dimension item keywords. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DimensionItemKeywords getDimensionItemKeywords() {
