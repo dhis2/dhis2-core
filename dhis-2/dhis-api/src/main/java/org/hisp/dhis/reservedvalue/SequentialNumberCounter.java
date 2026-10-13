@@ -29,16 +29,34 @@
  */
 package org.hisp.dhis.reservedvalue;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
 /**
  * @author Stian Sandvold
  */
+@Entity
+@Table(
+    name = "sequentialnumbercounter",
+    uniqueConstraints = @UniqueConstraint(columnNames = {"owneruid", "key"}))
 public class SequentialNumberCounter {
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "id")
   private int id;
 
+  @Column(name = "owneruid", nullable = false)
   private String ownerUid;
 
+  @Column(name = "key", nullable = false)
   private String key;
 
+  @Column(name = "counter")
   private int counter;
 
   public SequentialNumberCounter() {
