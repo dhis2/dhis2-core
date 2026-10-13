@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.http.HttpStatus;
@@ -46,9 +47,12 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 class DataStatisticsControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private DashboardService dashboardService;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private static final ZoneId ZONE = ZoneId.systemDefault();
 
@@ -149,5 +153,33 @@ class DataStatisticsControllerTest extends PostgresControllerIntegrationTestBase
     } catch (NumberFormatException nfe) {
       fail("Active users is not a number: " + finalActiveUsers.toString());
     }
+  }
+
+  @Test
+  void testPostEventChartViewStoresChartAndVisualizationEvents() {
+    String favorite = "chartFav001";
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/dataStatistics?eventType=EVENT_CHART_VIEW&favorite=" + favorite));
+    doInTransaction(dbmsManager::clearSession);
+
+    String username = getAdminUser().getUsername();
+    assertEquals(
+        List.of(
+            List.of("EVENT_CHART_VIEW", username, true),
+            List.of("EVENT_VISUALIZATION_VIEW", username, true)),
+        jdbcTemplate.query(
+            """
+            select eventtype, username, timestamp
+            from datastatisticsevent where favoriteuid = ? order by eventtype""",
+            (rs, row) ->
+                List.of(
+                    rs.getString("eventtype"),
+                    rs.getString("username"),
+                    rs.getTimestamp("timestamp") != null),
+            favorite));
+    assertEquals(
+        2, GET("/dataStatistics/favorites/" + favorite).content().getNumber("views").intValue());
   }
 }
