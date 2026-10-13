@@ -155,29 +155,37 @@ class DataStatisticsControllerTest extends PostgresControllerIntegrationTestBase
     }
   }
 
+  /**
+   * One {@code EVENT_CHART_VIEW} POST also writes an {@code EVENT_VISUALIZATION_VIEW} event, see
+   * {@code DataStatisticsController.addStatisticsForEventChartOrReport}. Each {@code addEvent} call
+   * commits in its own transaction and both reads below are native SQL, so no session flush is
+   * needed before reading back.
+   */
   @Test
-  void testPostEventChartViewStoresChartAndVisualizationEvents() {
+  void postEventChartViewStoresChartAndVisualizationEventsTest() {
     String favorite = "chartFav001";
 
     assertStatus(
         HttpStatus.CREATED,
         POST("/dataStatistics?eventType=EVENT_CHART_VIEW&favorite=" + favorite));
-    doInTransaction(dbmsManager::clearSession);
 
-    String username = getAdminUser().getUsername();
     assertEquals(
-        List.of(
-            List.of("EVENT_CHART_VIEW", username, true),
-            List.of("EVENT_VISUALIZATION_VIEW", username, true)),
-        jdbcTemplate.query(
-            """
-            select eventtype, username, timestamp
-            from datastatisticsevent where favoriteuid = ? order by eventtype""",
-            (rs, row) ->
-                List.of(
-                    rs.getString("eventtype"),
-                    rs.getString("username"),
-                    rs.getTimestamp("timestamp") != null),
+        List.of("EVENT_CHART_VIEW", "EVENT_VISUALIZATION_VIEW"),
+        jdbcTemplate.queryForList(
+            "select eventtype from datastatisticsevent where favoriteuid = ? order by eventtype",
+            String.class,
+            favorite));
+    assertEquals(
+        List.of(getAdminUser().getUsername()),
+        jdbcTemplate.queryForList(
+            "select distinct username from datastatisticsevent where favoriteuid = ?",
+            String.class,
+            favorite));
+    assertEquals(
+        0,
+        jdbcTemplate.queryForObject(
+            "select count(*) from datastatisticsevent where favoriteuid = ? and timestamp is null",
+            Integer.class,
             favorite));
     assertEquals(
         2, GET("/dataStatistics/favorites/" + favorite).content().getNumber("views").intValue());
