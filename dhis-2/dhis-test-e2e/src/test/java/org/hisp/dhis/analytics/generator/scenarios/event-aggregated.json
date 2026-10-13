@@ -580,6 +580,41 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "lastValueWithStageOrgUnitAtStagePeriods",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=A03MvHHogjR.EVENT_DATE:202210;202211;202212&dimension=A03MvHHogjR.ou:USER_ORGUNIT&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastValueWithEnrollmentOrgUnit",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=pe:202210;202211;202212&dimension=ENROLLMENT_OU:USER_ORGUNIT&value=ZzYYXq4fJie.HLmTEmupdX0&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastValueWithRegistrationOrgUnit",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=pe:202210;202211;202212&dimension=REGISTRATION_OU:USER_ORGUNIT&value=ZzYYXq4fJie.HLmTEmupdX0&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastValueAtEnrollmentDatePeriods",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ENROLLMENT_DATE:202201;202202;202203&dimension=ENROLLMENT_OU:USER_ORGUNIT&value=ZzYYXq4fJie.HLmTEmupdX0&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstValueAtEnrollmentDatePeriods",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ENROLLMENT_DATE:202201;202202;202203&dimension=ENROLLMENT_OU:USER_ORGUNIT&value=ZzYYXq4fJie.HLmTEmupdX0&aggregationType=FIRST",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

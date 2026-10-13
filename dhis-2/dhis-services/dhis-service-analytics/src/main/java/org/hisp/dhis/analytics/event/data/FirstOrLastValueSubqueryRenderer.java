@@ -37,18 +37,25 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryParams.FirstOrLastStagePeriod;
+import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
+import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Component;
@@ -71,6 +78,8 @@ public class FirstOrLastValueSubqueryRenderer {
   private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
   private final ProgramIndicatorService programIndicatorService;
+
+  private final OrganisationUnitResolver organisationUnitResolver;
 
   /**
    * Generates a sub query which provides a view of the data where each row is ranked by the
@@ -110,8 +119,9 @@ public class FirstOrLastValueSubqueryRenderer {
 
   private String buildTenYearWindowTimeTest(EventQueryParams params) {
     String timeCol = sqlBuilder.quoteAx(getTimeColumn(params));
-    if (params.hasFirstOrLastStagePeriod()) {
-      Date end = params.getFirstOrLastStagePeriod().endDate();
+    Optional<PeriodCutoff> cutoff = getPeriodCutoff(params);
+    if (cutoff.isPresent()) {
+      Date end = cutoff.get().endDate();
       return timeCol
           + " >= '"
           + toMediumDate(addYears(end, LAST_VALUE_YEARS_OFFSET))
@@ -217,6 +227,14 @@ public class FirstOrLastValueSubqueryRenderer {
         .filter(item -> !item.isProgramIndicator())
         .map(QueryItem::getItemId)
         .forEach(columns::add);
+    params.getItemsAndItemFilters().stream()
+        .filter(OrganisationUnitResolver::isStageOuDimension)
+        .flatMap(item -> getStageOrgUnitLevelColumns(params, item))
+        .forEach(columns::add);
+    Arrays.stream(TrackerOrgUnitDimension.values())
+        .filter(dimension -> dimension.isRequested(params))
+        .map(TrackerOrgUnitDimension::getAnalyticsColumn)
+        .forEach(columns::add);
     if (params.hasProgramStage()
         || params.hasFirstOrLastStagePeriod()
         || params.getItemsAndItemFilters().stream().anyMatch(QueryItem::hasProgramStage)) {
@@ -233,11 +251,44 @@ public class FirstOrLastValueSubqueryRenderer {
     return columns.stream().map(sqlBuilder::quote).collect(joining(","));
   }
 
-  private String getTimeColumn(EventQueryParams params) {
-    return params.hasFirstOrLastStagePeriod()
-        ? params.getFirstOrLastStagePeriod().dateColumn()
-        : params.getTimeFieldAsFieldFallback();
+  /**
+   * Returns the org unit level columns a stage org unit item filters on, one per level of its
+   * resolved org units.
+   */
+  private Stream<String> getStageOrgUnitLevelColumns(EventQueryParams params, QueryItem item) {
+    return organisationUnitResolver.resolveOrgUnitsGroupedByLevel(params, item).keySet().stream()
+        .sorted()
+        .map(level -> "uidlevel" + level);
   }
+
+  private String getTimeColumn(EventQueryParams params) {
+    return getPeriodCutoff(params)
+        .map(PeriodCutoff::dateColumn)
+        .orElseGet(params::getTimeFieldAsFieldFallback);
+  }
+
+  /**
+   * Returns the date column and end date of the single period a query ranks events in, when that
+   * period has its own date: a stage date period, such as {@code stageUid.EVENT_DATE:202203}, or a
+   * period with a date field, such as {@code ENROLLMENT_DATE:202203}.
+   */
+  private Optional<PeriodCutoff> getPeriodCutoff(EventQueryParams params) {
+    if (params.hasFirstOrLastStagePeriod()) {
+      FirstOrLastStagePeriod period = params.getFirstOrLastStagePeriod();
+      return Optional.of(new PeriodCutoff(period.dateColumn(), period.endDate()));
+    }
+    if (params.getPeriods().size() != 1) {
+      return Optional.empty();
+    }
+    PeriodDimension period = (PeriodDimension) params.getPeriods().get(0);
+    return AnalyticsDateFilter.of(period.getDateField())
+        .map(
+            filter ->
+                new PeriodCutoff(filter.getTimeField().getEventColumnName(), period.getEndDate()));
+  }
+
+  /** The date column events are ranked on and the last day of the period they must fall in. */
+  private record PeriodCutoff(String dateColumn, Date endDate) {}
 
   private String getStageTest(EventQueryParams params) {
     ProgramStage stage =
