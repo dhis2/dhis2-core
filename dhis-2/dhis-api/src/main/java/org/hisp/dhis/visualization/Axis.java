@@ -35,17 +35,33 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hisp.dhis.common.EmbeddedObject;
 
 /** This class represents the axis number associated with any given element. */
+@Entity
+@Table(name = "axis")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "axis", namespace = DXF_2_0)
 public class Axis implements EmbeddedObject {
   /** The primary key. */
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "axisid")
   private long id;
 
   /** The uid of the dimensional item. */
+  @Column(name = "dimensionalitem", nullable = false)
   private String dimensionalItem;
 
+  @Column(name = "axis", nullable = false)
   private Integer axis;
 
   public Axis() {}
