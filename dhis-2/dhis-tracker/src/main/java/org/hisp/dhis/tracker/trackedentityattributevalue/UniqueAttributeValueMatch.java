@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2026, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.ou;
+package org.hisp.dhis.tracker.trackedentityattributevalue;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
-/** Column names used when reading ENROLLMENT_OU values from result rows. */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class OrgUnitRowAccess {
-
-  /**
-   * Returns the result-set column alias used for ENROLLMENT_OU values in aggregated event rows.
-   *
-   * @return enrollment OU result column alias
-   */
-  public static String enrollmentOuResultColumn() {
-    return OrgUnitSqlConstants.ENROLLMENT_OU_RESULT_ALIAS;
-  }
-}
+/**
+ * A stored value of a unique tracked entity attribute that matches a value being imported.
+ *
+ * @param trackedEntity the tracked entity owning the value
+ * @param value the stored value, as persisted (not normalized to lower case)
+ * @param orgUnitId the id of the org unit of the tracked entity owning the value, only set for an
+ *     attribute unique within an org unit
+ */
+public record UniqueAttributeValueMatch(
+    @Nonnull UID trackedEntity, @Nonnull String value, @CheckForNull Long orgUnitId) {}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,7 +83,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   }
 
   @Override
-  public void create(AnalyticsTableUpdateParams params, JobProgress progress) {
+  public boolean create(AnalyticsTableUpdateParams params, JobProgress progress) {
     final int parallelJobs = getParallelJobs();
     int tableUpdates = 0;
 
@@ -102,8 +102,12 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     boolean validState = tableManager.validState();
     progress.completedStage("Validated analytics tables with outcome: {}", validState);
 
-    if (!validState || progress.isCancelled()) {
-      return;
+    if (progress.isCancelled()) {
+      return false;
+    }
+
+    if (!validState) {
+      return true;
     }
 
     List<AnalyticsTable> tables = tableManager.getAnalyticsTables(params);
@@ -112,7 +116,15 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       clock.logTime("Table update aborted, nothing to update: '{}'", tableType.getTableName());
       progress.startingStage("Table update of type: '{}'", tableType);
       progress.completedStage("Table updated aborted, no table or partitions to be updated");
-      return;
+      return true;
+    }
+
+    boolean continuousUpdate = params.isLatestUpdate() && sqlBuilder.supportsContinuousAnalytics();
+
+    // Checked before any staging work: a table type that is not ready would otherwise populate
+    // its staging tables in full on every scheduled run, only to throw them away.
+    if (continuousUpdate && !checkContinuousUpdateReadiness(tables, tableType, progress, clock)) {
+      return false;
     }
 
     clock.logTime(
@@ -132,7 +144,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     createTables(tables, progress);
     clock.logTime("Created analytics tables");
 
-    List<AnalyticsTablePartition> partitions = getTablePartitions(tables);
+    List<AnalyticsTablePartition> partitions = getTablePartitions(tables, params.isLatestUpdate());
     int partitionSize = partitions.size();
 
     progress.startingStage(
@@ -169,14 +181,15 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       clock.logTime("Analyzed tables");
     }
 
-    if (params.isLatestUpdate()) {
-      progress.startingStage(
-          format("Removing updated and deleted data: '{}'", tableType), SKIP_STAGE);
-      progress.runStage(() -> tableManager.removeUpdatedData(tables));
-      clock.logTime("Removed updated and deleted data");
+    List<AnalyticsTable> publishedTables = tables;
+
+    if (continuousUpdate) {
+      publishedTables = removeUpdatedData(tables, tableType, progress, clock);
     }
 
-    swapTables(params, tables, progress);
+    if (!publishedTables.isEmpty()) {
+      swapTables(params, publishedTables, progress);
+    }
 
     if (params.isPartialUpdate() && !params.isLatestUpdate()) {
       progress.startingStage("Removing latest partition overlap: '{}'", tableType);
@@ -185,6 +198,9 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     }
 
     clock.logTime("Table update done: '{}'", tableType.getTableName());
+    // Not complete if a table's staged data could not be published, so the update window is not
+    // advanced and the next continuous run covers its changes again
+    return publishedTables.size() == tables.size();
   }
 
   @Override
@@ -322,6 +338,115 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   }
 
   /**
+   * Checks that the main analytics tables can take a continuous update. The check is cheap, so it
+   * runs before any staging tables are created and populated.
+   *
+   * @param tables the list of {@link AnalyticsTable}.
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param progress the {@link JobProgress}.
+   * @param clock the {@link Clock}.
+   * @return true if the continuous update can proceed, false if it must be aborted.
+   */
+  private boolean checkContinuousUpdateReadiness(
+      List<AnalyticsTable> tables,
+      AnalyticsTableType tableType,
+      JobProgress progress,
+      Clock clock) {
+    progress.startingStage(
+        format("Validating continuous update readiness: '{}'", tableType), SKIP_STAGE);
+
+    if (!tableManager.isReadyForContinuousUpdate(tables)) {
+      // A main table predating unique-key analytics tables (or otherwise not in a state that
+      // supports a continuous update) must not have the delete step attempted against it, see
+      // isReadyForContinuousUpdate() for detail. The stage is reported as failed so the reason
+      // shows in the job log, while the remaining table types still get updated.
+      progress.failedStage(
+          format(
+              "Continuous update skipped for '{}': the analytics table was created before "
+                  + "continuous updates were supported on this database. Run a full analytics "
+                  + "table rebuild before running a continuous (lastYears=0) update",
+              tableType));
+      clock.logTime("Continuous analytics update aborted, not ready: '{}'", tableType);
+      return false;
+    }
+
+    progress.completedStage("Validated continuous update readiness: '{}'", tableType);
+    return true;
+  }
+
+  /**
+   * Removes the rows which the staged data replaces from the main analytics tables.
+   *
+   * <p>On databases which require unique-key analytics tables (Doris), each table is handled on its
+   * own: a table whose delete fails keeps its staged data unpublished, while the other tables are
+   * published. Merging a window again is idempotent there, so the next run, which covers the same
+   * window again, publishes the failed table's changes once its delete succeeds.
+   *
+   * <p>On other databases the tables are swapped in after the delete whatever its outcome, as
+   * before continuous updates were supported on unique-key databases.
+   *
+   * @param tables the list of {@link AnalyticsTable}.
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param progress the {@link JobProgress}.
+   * @param clock the {@link Clock}.
+   * @return the tables whose staged data can be published.
+   */
+  private List<AnalyticsTable> removeUpdatedData(
+      List<AnalyticsTable> tables,
+      AnalyticsTableType tableType,
+      JobProgress progress,
+      Clock clock) {
+    progress.startingStage(
+        format("Removing updated and deleted data: '{}'", tableType), SKIP_STAGE);
+
+    if (!sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
+      progress.runStage(() -> tableManager.removeUpdatedData(tables));
+      clock.logTime("Removed updated and deleted data");
+      return tables;
+    }
+
+    List<AnalyticsTable> publishedTables = new ArrayList<>();
+    List<String> failedTables = new ArrayList<>();
+
+    for (AnalyticsTable table : tables) {
+      // A table without a main table yet (e.g. the event table of a program created after the
+      // last full rebuild) has no stale rows to remove. Its staging table becomes the main table.
+      if (!tableManager.mainTableExists(table)) {
+        publishedTables.add(table);
+        continue;
+      }
+
+      try {
+        tableManager.removeUpdatedData(List.of(table));
+        publishedTables.add(table);
+      } catch (RuntimeException ex) {
+        // Swapping in the staged data without having removed the rows it replaces would leave
+        // duplicate or orphaned rows, so this table's staged data is not published
+        log.error(
+            "Failed to remove updated and deleted data from '{}', its staged data is not published",
+            table.getMainName(),
+            ex);
+        failedTables.add(table.getMainName());
+      }
+    }
+
+    clock.logTime("Removed updated and deleted data");
+
+    if (failedTables.isEmpty()) {
+      progress.completedStage("Removed updated and deleted data: '{}'", tableType);
+    } else {
+      progress.failedStage(
+          format(
+              "Failed to remove updated and deleted data from {}. Their staged data was not "
+                  + "published and the next continuous update covers it again. If this keeps "
+                  + "failing, a full analytics table rebuild may be required",
+              failedTables));
+    }
+
+    return publishedTables;
+  }
+
+  /**
    * Swaps the given analytics tables.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
@@ -347,12 +472,27 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    * @param tables the list of {@link AnalyticsTable}.
    * @return a list of {@link AnalyticsTablePartition}.
    */
-  List<AnalyticsTablePartition> getTablePartitions(List<AnalyticsTable> tables) {
+  List<AnalyticsTablePartition> getTablePartitions(
+      List<AnalyticsTable> tables, boolean isLatestUpdate) {
     List<AnalyticsTablePartition> partitions = new ArrayList<>();
 
     for (AnalyticsTable table : tables) {
       if (table.hasTablePartitions() && !sqlBuilder.supportsDeclarativePartitioning()) {
+        // Each partition is its own physical table, so its own real date range and name apply.
         partitions.addAll(table.getTablePartitions());
+      } else if (table.hasTablePartitions()
+          && isLatestUpdate
+          && sqlBuilder.supportsContinuousAnalytics()) {
+        // A single physical table serves every logical partition on this engine (CREATE only
+        // ever builds the master table's name), so the continuous/latest-update partition must
+        // target that name - while still carrying its own real date range, needed to correctly
+        // scope the populate window. Engines without continuous analytics support (ClickHouse)
+        // fall through to the fake partition below, so the staging table holds all data and can
+        // replace the whole main table.
+        AnalyticsTablePartition latest = table.getTablePartitions().get(0);
+        partitions.add(
+            new AnalyticsTablePartition(
+                table, latest.getYear(), latest.getStartDate(), latest.getEndDate()));
       } else {
         // Fake partition representing the master table
         partitions.add(new AnalyticsTablePartition(table));

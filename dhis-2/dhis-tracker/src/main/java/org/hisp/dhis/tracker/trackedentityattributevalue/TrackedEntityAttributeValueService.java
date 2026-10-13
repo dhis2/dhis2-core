@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
@@ -62,12 +64,29 @@ public interface TrackedEntityAttributeValueService {
   List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(TrackedEntity instance);
 
   /**
-   * Retrieve a list of {@link TrackedEntityAttributeValue} that matches the values and the tea
-   * present in uniqueAttributes
+   * Finds the stored values of a unique attribute that match any of the given values, in any org
+   * unit. Values are compared case-insensitively. Use it for attributes unique across the whole
+   * system.
    *
-   * @param uniqueAttributes A map that links a list of values to a TEA
-   * @return TrackedEntityAttributeValue list
+   * @param attribute the unique attribute
+   * @param values the values to look for
+   * @return the matching values, empty if none
    */
-  List<TrackedEntityAttributeValue> getUniqueAttributeByValues(
-      Map<TrackedEntityAttribute, List<String>> uniqueAttributes);
+  @Nonnull
+  List<UniqueAttributeValueMatch> getUniqueAttributeValues(
+      @Nonnull TrackedEntityAttribute attribute, @Nonnull Set<String> values);
+
+  /**
+   * Finds the stored values of an org unit scoped unique attribute that match one of the given (org
+   * unit, value) pairs exactly: a value only matches when stored for a tracked entity in the org
+   * unit it is paired with. Values are compared case-insensitively.
+   *
+   * @param attribute the unique attribute, unique within an org unit
+   * @param valuesByOrgUnitId the values to look for, keyed by the id of the org unit they are
+   *     unique in
+   * @return the matching values, empty if none
+   */
+  @Nonnull
+  List<UniqueAttributeValueMatch> getUniqueAttributeValues(
+      @Nonnull TrackedEntityAttribute attribute, @Nonnull Map<Long, Set<String>> valuesByOrgUnitId);
 }
