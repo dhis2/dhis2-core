@@ -56,7 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
  * element of {@link MessageConversation#getUserMessages()} (messageconversation_usermessages).
  */
 @Transactional
-class UserMessageStoreTest extends PostgresIntegrationTestBase {
+class UserMessageMappingTest extends PostgresIntegrationTestBase {
 
   @Autowired private MessageConversationStore messageConversationStore;
 

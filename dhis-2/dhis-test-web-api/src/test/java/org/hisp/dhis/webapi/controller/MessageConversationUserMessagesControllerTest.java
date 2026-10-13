@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import jakarta.persistence.EntityManagerFactory;
@@ -97,7 +98,7 @@ class MessageConversationUserMessagesControllerTest extends PostgresControllerIn
     assertEquals(Map.of(getAdminUid(), "read", recipientUid, "unread"), userMessageStates());
   }
 
-  /** The JSON properties of a user message and of its user, as on play/dev. */
+  /** The JSON properties of a user message and of its user. */
   @Test
   void testUserMessageJsonProperties() {
     JsonObject userMessage =
@@ -111,7 +112,7 @@ class MessageConversationUserMessagesControllerTest extends PostgresControllerIn
     assertEquals(
         Set.of("id", "code", "name", "displayName", "username"),
         Set.copyOf(userMessage.getObject("user").names()));
-    UUID.fromString(userMessage.getString("key").string());
+    assertDoesNotThrow(() -> UUID.fromString(userMessage.getString("key").string()));
   }
 
   /**

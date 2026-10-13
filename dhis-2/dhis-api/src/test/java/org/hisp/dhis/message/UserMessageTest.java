@@ -31,6 +31,7 @@ package org.hisp.dhis.message;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
@@ -68,5 +69,14 @@ class UserMessageTest {
 
     assertTrue(userMessages.contains(userMessage));
     assertTrue(userMessages.remove(userMessage));
+  }
+
+  /** A null key (the usermessagekey column is nullable) is not supported by hashCode. */
+  @Test
+  void testHashCodeThrowsOnNullKey() {
+    UserMessage userMessage = new UserMessage(new User());
+    userMessage.setKey(null);
+
+    assertThrows(NullPointerException.class, userMessage::hashCode);
   }
 }
