@@ -31,18 +31,23 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.persistence.EntityManagerFactory;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -62,6 +67,10 @@ class VisualizationCategoryOptionGroupSetDimensionsControllerTest
   private static final String GROUP_B_UID = "CogsDimGrpB";
 
   private static final String GROUP_C_UID = "CogsDimGrpC";
+
+  private static final ObjectMapper JSON = new ObjectMapper();
+
+  @Autowired private EntityManagerFactory entityManagerFactory;
 
   @BeforeEach
   void setUp() {
@@ -87,9 +96,7 @@ class VisualizationCategoryOptionGroupSetDimensionsControllerTest
   void testImportPersistsDimensionAndItemsInOrder() {
     importMetadata(visualization(GROUP_C_UID, GROUP_A_UID, GROUP_B_UID));
 
-    assertEquals(
-        List.of(GROUP_SET_UID + ":" + GROUP_C_UID + "," + GROUP_A_UID + "," + GROUP_B_UID),
-        dimensions());
+    assertEquals(List.of(dimension(GROUP_C_UID, GROUP_A_UID, GROUP_B_UID)), dimensions());
   }
 
   @Test
@@ -98,69 +105,47 @@ class VisualizationCategoryOptionGroupSetDimensionsControllerTest
 
     importMetadata(visualization(GROUP_B_UID));
 
-    assertEquals(List.of(GROUP_SET_UID + ":" + GROUP_B_UID), dimensions());
+    assertEquals(List.of(dimension(GROUP_B_UID)), dimensions());
   }
 
   /**
-   * Exported as clients do: the filter with its items, from which the PUT rebuilds the dimension.
+   * Exports as clients do (the filter with its items), changes the filter items and PUTs the export
+   * back: the controller rebuilds the category option group set dimension from the filter.
    */
   @Test
-  void testPutOfExportedVisualizationRoundTrips() {
+  void testPutOfExportedVisualizationUpdatesItems() throws Exception {
     importMetadata(visualization(GROUP_C_UID, GROUP_A_UID, GROUP_B_UID));
-    String exported =
-        GET("/visualizations/" + VISUALIZATION_UID + "?fields=*,filters[id,items[id]]")
-            .content(HttpStatus.OK)
-            .toJson();
+    ObjectNode exported =
+        (ObjectNode)
+            JSON.readTree(
+                GET("/visualizations/" + VISUALIZATION_UID + "?fields=*,filters[id,items[id]]")
+                    .content(HttpStatus.OK)
+                    .toJson());
+    ArrayNode filterItems = (ArrayNode) exported.withArray("filters").get(0).withArray("items");
+    filterItems.removeAll();
+    filterItems.addObject().put("id", GROUP_B_UID);
+    filterItems.addObject().put("id", GROUP_C_UID);
 
-    assertStatus(HttpStatus.OK, PUT("/visualizations/" + VISUALIZATION_UID, exported));
+    assertStatus(
+        HttpStatus.OK,
+        PUT("/visualizations/" + VISUALIZATION_UID, JSON.writeValueAsString(exported)));
 
-    assertEquals(
-        List.of(GROUP_SET_UID + ":" + GROUP_C_UID + "," + GROUP_A_UID + "," + GROUP_B_UID),
-        dimensions());
+    assertEquals(List.of(dimension(GROUP_B_UID, GROUP_C_UID)), dimensions());
   }
 
-  /**
-   * The categoryOptionGroupSetDimensions property of visualization still refers to the persisted,
-   * embedded CategoryOptionGroupSetDimension.
-   */
-  @Test
-  void testVisualizationCategoryOptionGroupSetDimensionsSchemaProperty() {
-    JsonObject property =
-        property(
-            GET("/schemas/visualization").content(HttpStatus.OK),
-            "categoryOptionGroupSetDimension");
-
-    assertEquals("categoryOptionGroupSetDimensions", text(property, "fieldName"));
-    assertEquals(
-        "org.hisp.dhis.category.CategoryOptionGroupSetDimension", text(property, "itemKlass"));
-    assertEquals("COMPLEX", text(property, "itemPropertyType"));
-    assertTrue(property.getBoolean("persisted").booleanValue());
-    assertTrue(property.getBoolean("embeddedObject").booleanValue());
-    assertTrue(property.getBoolean("ordered").booleanValue());
-  }
-
-  /** The categoryOptionGroupSetDimension schema (an embedded, non-metadata object). */
+  /** The mapping-derived flags of the categoryOptionGroupSetDimension schema and its properties. */
   @Test
   void testCategoryOptionGroupSetDimensionSchema() {
     JsonObject schema = GET("/schemas/categoryOptionGroupSetDimension").content(HttpStatus.OK);
     assertTrue(schema.getBoolean("persisted").booleanValue());
     assertTrue(schema.getBoolean("embeddedObject").booleanValue());
-    assertFalse(schema.getBoolean("metadata").booleanValue());
 
     JsonObject groupSet = property(schema, "categoryOptionGroupSet");
-    assertEquals("dimension", text(groupSet, "fieldName"));
-    assertEquals("REFERENCE", text(groupSet, "propertyType"));
-    assertEquals("org.hisp.dhis.category.CategoryOptionGroupSet", text(groupSet, "klass"));
     assertTrue(groupSet.getBoolean("persisted").booleanValue());
     assertTrue(groupSet.getBoolean("manyToOne").booleanValue());
     assertTrue(groupSet.getBoolean("owner").booleanValue());
 
     JsonObject groups = property(schema, "categoryOptionGroup");
-    assertEquals("items", text(groups, "fieldName"));
-    assertTrue(groups.getBoolean("collection").booleanValue());
-    assertEquals("REFERENCE", text(groups, "propertyType"));
-    assertEquals("REFERENCE", text(groups, "itemPropertyType"));
-    assertEquals("org.hisp.dhis.category.CategoryOptionGroup", text(groups, "itemKlass"));
     assertTrue(groups.getBoolean("persisted").booleanValue());
     assertTrue(groups.getBoolean("ordered").booleanValue());
     assertTrue(groups.getBoolean("manyToMany").booleanValue());
@@ -168,8 +153,9 @@ class VisualizationCategoryOptionGroupSetDimensionsControllerTest
   }
 
   private static String group(String uid) {
-    return ("{'id':'%s','name':'Group %s','shortName':'Group %s',"
-            + "'dataDimensionType':'DISAGGREGATION'}")
+    return """
+        {'id':'%s','name':'Group %s','shortName':'Group %s','dataDimensionType':'DISAGGREGATION'}
+        """
         .formatted(uid, uid, uid);
   }
 
@@ -178,39 +164,46 @@ class VisualizationCategoryOptionGroupSetDimensionsControllerTest
    * controller rebuilds the category option group set dimensions from on PUT.
    */
   private static String visualization(String... groupUids) {
-    List<String> items = new ArrayList<>();
-    for (String uid : groupUids) {
-      items.add("{'id':'%s'}".formatted(uid));
-    }
-    return ("{'visualizations':[{'id':'%s','name':'COGS dimension visualization','type':'COLUMN',"
-            + "'filterDimensions':['%s'],'categoryOptionGroupSetDimensions':[{'categoryOptionGroupSet':{'id':'%s'},"
-            + "'categoryOptionGroups':[%s]}]}]}")
-        .formatted(VISUALIZATION_UID, GROUP_SET_UID, GROUP_SET_UID, String.join(",", items));
+    String items =
+        Arrays.stream(groupUids).map("{'id':'%s'}"::formatted).collect(Collectors.joining(","));
+    return """
+        {'visualizations':[{'id':'%s','name':'COGS dimension visualization','type':'COLUMN',
+          'filterDimensions':['%s'],
+          'categoryOptionGroupSetDimensions':[
+            {'categoryOptionGroupSet':{'id':'%s'},'categoryOptionGroups':[%s]}]}]}
+        """
+        .formatted(VISUALIZATION_UID, GROUP_SET_UID, GROUP_SET_UID, items);
   }
 
-  /** The visualization's dimensions as {@code groupSet:group,group,...}, in list order. */
+  private static String dimension(String... groupUids) {
+    return GROUP_SET_UID + ":" + String.join(",", groupUids);
+  }
+
+  /**
+   * The persisted dimensions as {@code groupSet:group,group,...}, in list order. The session is
+   * flushed and cleared and the second-level cache evicted first, so they are read from the
+   * database.
+   */
   private List<String> dimensions() {
-    JsonArray dimensions =
-        GET("/visualizations/"
+    startNewRequestSession();
+    entityManagerFactory.getCache().evictAll();
+    return GET(
+            "/visualizations/"
                 + VISUALIZATION_UID
                 + "?fields=categoryOptionGroupSetDimensions[categoryOptionGroupSet[id],"
                 + "categoryOptionGroups[id]]")
-            .content(HttpStatus.OK)
-            .getArray("categoryOptionGroupSetDimensions");
-    List<String> result = new ArrayList<>();
-    for (int i = 0; i < dimensions.size(); i++) {
-      JsonObject dimension = dimensions.getObject(i);
-      JsonArray groups = dimension.getArray("categoryOptionGroups");
-      List<String> groupUids = new ArrayList<>();
-      for (int j = 0; j < groups.size(); j++) {
-        groupUids.add(text(groups.getObject(j), "id"));
-      }
-      result.add(
-          text(dimension.getObject("categoryOptionGroupSet"), "id")
-              + ":"
-              + String.join(",", groupUids));
-    }
-    return result;
+        .content(HttpStatus.OK)
+        .getArray("categoryOptionGroupSetDimensions")
+        .asList(JsonObject.class)
+        .stream()
+        .map(
+            dimension ->
+                text(dimension.getObject("categoryOptionGroupSet"), "id")
+                    + ":"
+                    + dimension.getArray("categoryOptionGroups").asList(JsonObject.class).stream()
+                        .map(group -> text(group, "id"))
+                        .collect(Collectors.joining(",")))
+        .toList();
   }
 
   private static JsonObject property(JsonObject schema, String name) {

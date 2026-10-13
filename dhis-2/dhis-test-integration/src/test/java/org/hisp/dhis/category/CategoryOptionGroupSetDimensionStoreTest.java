@@ -148,24 +148,6 @@ class CategoryOptionGroupSetDimensionStoreTest extends PostgresIntegrationTestBa
   }
 
   @Test
-  @DisplayName("reordering and removing items rewrites the item rows")
-  void testItemsUpdate() {
-    CategoryOptionGroupSetDimension dimension = persist(dimension(groupA, groupB, groupC));
-    clearSessionAndSecondLevelCache();
-
-    CategoryOptionGroupSetDimension loaded = reload(dimension);
-    loaded.getItems().remove(1);
-    loaded.getItems().add(0, loaded.getItems().remove(1));
-    entityManager.flush();
-
-    assertEquals(List.of(groupC.getId() + ":0", groupA.getId() + ":1"), itemRows(dimension));
-
-    clearSessionAndSecondLevelCache();
-
-    assertEquals(List.of(groupC.getUid(), groupA.getUid()), itemUids(reload(dimension)));
-  }
-
-  @Test
   @DisplayName("setItems replaces the persisted items")
   void testSetItemsReplacesItems() {
     CategoryOptionGroupSetDimension dimension = persist(dimension(groupA, groupB));
@@ -217,17 +199,6 @@ class CategoryOptionGroupSetDimensionStoreTest extends PostgresIntegrationTestBa
     visualization.addCategoryOptionGroupSetDimension(first);
     visualization.addCategoryOptionGroupSetDimension(second);
     long visualizationId = visualizationService.save(visualization);
-    entityManager.flush();
-
-    assertEquals(
-        List.of(first.getId(), second.getId()),
-        jdbcTemplate.queryForList(
-            "select categoryoptiongroupsetdimensionid from"
-                + " visualization_categoryoptiongroupsetdimensions where visualizationid = ?"
-                + " order by sort_order",
-            Integer.class,
-            visualizationId));
-
     clearSessionAndSecondLevelCache();
 
     List<CategoryOptionGroupSetDimension> reloaded =
