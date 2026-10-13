@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.dataelement;
 
-import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -54,16 +53,12 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
-import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -86,7 +81,6 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.ValueType;
@@ -169,26 +163,6 @@ public class DataElementGroupSet extends BaseMetadataObject
   @Type(type = "jsbObjectSharing")
   @Column(name = "sharing")
   private Sharing sharing = new Sharing();
-
-  // -------------------------------------------------------------------------
-  // DimensionalObject state (not persisted for this entity)
-  // -------------------------------------------------------------------------
-
-  @Transient private transient String dimensionName;
-  @Transient private transient String dimensionDisplayName;
-  @Transient private transient DataDimensionType dataDimensionType;
-  @Transient private transient ValueType valueType;
-  @Transient private transient OptionSet optionSet;
-  @Transient private transient boolean allItems;
-  @Transient private transient LegendSet legendSet;
-  @Transient private transient ProgramStage programStage;
-  @Transient private transient Program program;
-  @Transient private transient AggregationType aggregationType;
-  @Transient private transient String filter;
-  @Transient private transient EventRepetition eventRepetition;
-  @Transient private transient DimensionItemKeywords dimensionItemKeywords;
-  @Transient private transient boolean fixed;
-  @Getter @Transient private transient UUID groupUUID;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -326,34 +300,8 @@ public class DataElementGroupSet extends BaseMetadataObject
   }
 
   @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DataDimensionType getDataDimensionType() {
-    return dataDimensionType;
-  }
-
-  @Override
   public String getDimensionName() {
-    return dimensionName != null ? dimensionName : getUid();
-  }
-
-  @Override
-  public String getDimensionDisplayName() {
-    return dimensionDisplayName;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ValueType getValueType() {
-    return valueType;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OptionSet getOptionSet() {
-    return optionSet;
+    return getUid();
   }
 
   @Override
@@ -373,58 +321,6 @@ public class DataElementGroupSet extends BaseMetadataObject
   }
 
   @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isAllItems() {
-    return allItems;
-  }
-
-  @Override
-  @JsonProperty
-  @JsonSerialize(as = IdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public LegendSet getLegendSet() {
-    return legendSet;
-  }
-
-  @Override
-  @JsonProperty
-  @JsonSerialize(as = IdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ProgramStage getProgramStage() {
-    return programStage;
-  }
-
-  @Override
-  @JsonProperty
-  @JsonSerialize(as = IdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Program getProgram() {
-    return program;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public AggregationType getAggregationType() {
-    return aggregationType;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getFilter() {
-    return filter;
-  }
-
-  @Override
-  @JsonProperty("repetition")
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public EventRepetition getEventRepetition() {
-    return eventRepetition;
-  }
-
-  @Override
   @JsonIgnore
   public AnalyticsType getAnalyticsType() {
     return AnalyticsType.AGGREGATE;
@@ -439,50 +335,12 @@ public class DataElementGroupSet extends BaseMetadataObject
 
   @Override
   @JsonIgnore
-  public boolean isFixed() {
-    return fixed;
-  }
-
-  /**
-   * Returns the items in the filter as a list. Order of items are preserved. Requires that the
-   * filter has the IN operator and that at least one item is specified in the filter, returns null
-   * if not.
-   */
-  @Override
-  @JsonIgnore
-  @SuppressWarnings("java:S1168") // null means "no IN filter", callers rely on it
-  public List<String> getFilterItemsAsList() {
-    final String inOp = QueryOperator.IN.getValue().toLowerCase();
-    final int opLen = inOp.length() + 1;
-
-    if (filter == null || !filter.toLowerCase().startsWith(inOp) || filter.length() < opLen) {
-      return null;
-    }
-
-    String filterItems = filter.substring(opLen);
-
-    return new ArrayList<>(Arrays.asList(filterItems.split(OPTION_SEP)));
-  }
-
-  @Override
-  @JsonIgnore
   public String getKey() {
     QueryKey key = new QueryKey();
     key.add("dimension", getDimension());
     getItems().forEach(item -> key.add("item", item.getDimensionItem()));
 
-    return key.add("allItems", allItems)
-        .addIgnoreNull("legendSet", legendSet)
-        .addIgnoreNull("aggregationType", aggregationType)
-        .addIgnoreNull("filter", filter)
-        .asPlainKey();
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DimensionItemKeywords getDimensionItemKeywords() {
-    return dimensionItemKeywords;
+    return key.add("allItems", false).asPlainKey();
   }
 
   // -------------------------------------------------------------------------
@@ -589,8 +447,7 @@ public class DataElementGroupSet extends BaseMetadataObject
       return getDisplayShortName();
     }
 
-    String displayName = getDimensionDisplayName();
-    return displayName == null || displayName.isBlank() ? getDisplayName() : displayName;
+    return getDisplayName();
   }
 
   @Override
@@ -697,8 +554,158 @@ public class DataElementGroupSet extends BaseMetadataObject
     return MoreObjects.toStringHelper(this)
         .add("dimension", uid)
         .add("type", DimensionType.DATA_ELEMENT_GROUP_SET)
-        .add("dimension display name", dimensionDisplayName)
         .add("items", itemStr)
         .toString();
+  }
+
+  // -------------------------------------------------------------------------
+  // Unsupported DimensionalObject methods
+  // -------------------------------------------------------------------------
+
+  /** DataElementGroupSet does not support dimension name. */
+  @Override
+  @Deprecated
+  public void setDimensionName(String dimensionName) {
+    // Not supported
+  }
+
+  /** DataElementGroupSet does not support data dimension type. */
+  @Override
+  @Deprecated
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public DataDimensionType getDataDimensionType() {
+    return null;
+  }
+
+  /** DataElementGroupSet does not support dimension display name. */
+  @Override
+  @Deprecated
+  public String getDimensionDisplayName() {
+    return null;
+  }
+
+  /** DataElementGroupSet does not support value type. */
+  @Override
+  @Deprecated
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ValueType getValueType() {
+    return null;
+  }
+
+  /** DataElementGroupSet does not support option set. */
+  @Override
+  @Deprecated
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public OptionSet getOptionSet() {
+    return null;
+  }
+
+  /** DataElementGroupSet does not support all items. */
+  @Override
+  @Deprecated
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isAllItems() {
+    return false;
+  }
+
+  /** DataElementGroupSet does not support legend set. */
+  @Override
+  @Deprecated
+  @JsonProperty
+  @JsonSerialize(as = IdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public LegendSet getLegendSet() {
+    return null;
+  }
+
+  /** DataElementGroupSet does not support program stage. */
+  @Override
+  @Deprecated
+  @JsonProperty
+  @JsonSerialize(as = IdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ProgramStage getProgramStage() {
+    return null;
+  }
+
+  /** DataElementGroupSet does not support program. */
+  @Override
+  @Deprecated
+  @JsonProperty
+  @JsonSerialize(as = IdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Program getProgram() {
+    return null;
+  }
+
+  /** DataElementGroupSet does not support aggregation type. */
+  @Override
+  @Deprecated
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AggregationType getAggregationType() {
+    return null;
+  }
+
+  /** DataElementGroupSet does not support filter. */
+  @Override
+  @Deprecated
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getFilter() {
+    return null;
+  }
+
+  /** DataElementGroupSet does not support filter. */
+  @Override
+  @Deprecated
+  @JsonIgnore
+  @SuppressWarnings("java:S1168") // null means "no IN filter", callers rely on it
+  public List<String> getFilterItemsAsList() {
+    return null;
+  }
+
+  /** DataElementGroupSet does not support event repetition. */
+  @Override
+  @Deprecated
+  @JsonProperty("repetition")
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public EventRepetition getEventRepetition() {
+    return null;
+  }
+
+  /** DataElementGroupSet does not support event repetition. */
+  @Override
+  @Deprecated
+  public void setEventRepetition(EventRepetition eventRepetition) {
+    // Not supported
+  }
+
+  /** DataElementGroupSet does not support fixed dimensions. */
+  @Override
+  @Deprecated
+  @JsonIgnore
+  public boolean isFixed() {
+    return false;
+  }
+
+  /** DataElementGroupSet does not support fixed dimensions. */
+  @Override
+  @Deprecated
+  public void setFixed(boolean fixed) {
+    // Not supported
+  }
+
+  /** DataElementGroupSet does not support dimension item keywords. */
+  @Override
+  @Deprecated
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public DimensionItemKeywords getDimensionItemKeywords() {
+    return null;
   }
 }
