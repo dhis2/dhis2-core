@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -177,6 +177,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   public void removeUpdatedData(List<AnalyticsTable> tables) {}
 
   @Override
+  public boolean mainTableExists(AnalyticsTable table) {
+    return tableExists(table.getMainName());
+  }
+
+  @Override
   public void createTable(AnalyticsTable table) {
     createAnalyticsTable(table);
 
@@ -222,33 +227,120 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     jdbcTemplate.execute(sql);
   }
 
+  /** How staged data for a table update is published to the main table. */
+  private enum TableUpdateAction {
+    REPLACE_TABLE,
+    REPLACE_PARTITIONS,
+    MERGE_ROWS
+  }
+
   @Override
   public void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table) {
-    boolean tableExists = tableExists(table.getMainName());
-    boolean skipMasterTable =
-        params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
+    TableUpdateAction action = resolveUpdateAction(params, table);
 
-    log.info("Swapping table: '{}'", table.getMainName());
-    log.info("Master table exists: '{}', skip master table: '{}'", tableExists, skipMasterTable);
+    log.info("Swapping table: '{}', action: '{}'", table.getMainName(), action);
 
-    List<Table> swappedPartitions = new UniqueArrayList<>();
+    switch (action) {
+      case REPLACE_TABLE -> replaceMainTable(table);
+      case REPLACE_PARTITIONS -> replaceAndAttachPartitions(table);
+      case MERGE_ROWS -> mergeIntoMainTable(table);
+    }
+  }
 
+  /**
+   * Determines how staged data for the given table should be published to the main table, based on
+   * the update type, whether the table type supports a "latest partition", whether a main table
+   * already exists, and how the target database manages partitions.
+   */
+  private TableUpdateAction resolveUpdateAction(
+      AnalyticsTableUpdateParams params, AnalyticsTable table) {
+    boolean supportsLatestPartition = table.getTableType().isLatestPartition();
+
+    // Full updates, and table types with no "latest partition" concept, always replace the table.
+    if (!params.isPartialUpdate() || !supportsLatestPartition) {
+      return TableUpdateAction.REPLACE_TABLE;
+    }
+
+    // Without continuous analytics support (e.g. ClickHouse) there is no step removing updated and
+    // deleted rows, so a continuous update cannot be merged. The staging table holds all data on
+    // such engines (see DefaultAnalyticsTableService.getTablePartitions()), so replacing the whole
+    // main table gives correct results, as a full rebuild would.
+    if (params.isLatestUpdate() && !sqlBuilder.supportsContinuousAnalytics()) {
+      log.warn(
+          "Continuous (lastYears=0) update of table '{}' rebuilds the whole table on this "
+              + "database, which does not support incremental updates",
+          table.getMainName());
+      return TableUpdateAction.REPLACE_TABLE;
+    }
+
+    // No existing table to preserve; treat as the initial build.
+    if (!tableExists(table.getMainName())) {
+      return TableUpdateAction.REPLACE_TABLE;
+    }
+
+    // Postgres publishes partial updates by replacing physical (inheritance-based) partitions.
     if (!sqlBuilder.supportsDeclarativePartitioning()) {
-      table.getTablePartitions().forEach(part -> swapTable(part, part.getMainName()));
-      table.getTablePartitions().forEach(part -> swappedPartitions.add(part.fromStaging()));
+      return TableUpdateAction.REPLACE_PARTITIONS;
     }
 
-    if (!skipMasterTable) {
-      // Full replace update and main table exist, swap main table
-      swapTable(table, table.getMainName());
-    } else {
-      // Incremental append update, update parent of partitions to existing main table
-      if (!sqlBuilder.supportsDeclarativePartitioning()) {
-        swappedPartitions.forEach(
-            partition -> swapParentTable(partition, table.getName(), table.getMainName()));
-      }
-      dropTable(table);
+    // Declarative-partitioning engines with no inheritance-based partition attachment (e.g.
+    // Doris) publish a continuous update by merging staged rows into the persistent main table.
+    if (params.isLatestUpdate()) {
+      return TableUpdateAction.MERGE_ROWS;
     }
+
+    // A bounded lastYears update against a main table that already exists. Merging is not an option
+    // here, since removeUpdatedData() only runs for the latest-partition case and merging would
+    // leave stale/deleted rows behind. On declarative-partitioning engines the populate step does
+    // not filter by year, so the staging table holds every year and replacing the whole main table
+    // gives correct results.
+    log.warn(
+        "Bounded lastYears update of table '{}' rebuilds the whole table with all years on this "
+            + "database, use a continuous (lastYears=0) update for incremental updates",
+        table.getMainName());
+    return TableUpdateAction.REPLACE_TABLE;
+  }
+
+  private void replaceMainTable(AnalyticsTable table) {
+    replacePhysicalPartitions(table);
+    swapTable(table, table.getMainName());
+  }
+
+  private void replaceAndAttachPartitions(AnalyticsTable table) {
+    List<Table> partitions = replacePhysicalPartitions(table);
+
+    partitions.forEach(
+        partition -> swapParentTable(partition, table.getName(), table.getMainName()));
+
+    dropTable(table);
+  }
+
+  private void mergeIntoMainTable(AnalyticsTable table) {
+    String fromTable = sqlBuilder.quote(table.getName());
+    jdbcTemplate.execute(sqlBuilder.insertIntoSelectFrom(table.fromStaging(), fromTable));
+    dropTable(table);
+  }
+
+  /**
+   * Swaps each of the table's physical (inheritance-based) partitions from staging to main. A no-op
+   * for declarative-partitioning engines, which have no separate physical partition tables.
+   *
+   * @return the swapped partitions, for a caller that needs to reparent them onto an existing main
+   *     table.
+   */
+  private List<Table> replacePhysicalPartitions(AnalyticsTable table) {
+    if (sqlBuilder.supportsDeclarativePartitioning()) {
+      return List.of();
+    }
+
+    List<Table> partitions = new UniqueArrayList<>();
+
+    for (AnalyticsTablePartition partition : table.getTablePartitions()) {
+      swapTable(partition, partition.getMainName());
+      partitions.add(partition.fromStaging());
+    }
+
+    return partitions;
   }
 
   @Override
@@ -363,8 +455,57 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param name the table name.
    * @return true if a table with the given name exists.
    */
-  private boolean tableExists(String name) {
+  protected boolean tableExists(String name) {
     return !jdbcTemplate.queryForList(sqlBuilder.tableExists(name)).isEmpty();
+  }
+
+  @Override
+  public boolean isReadyForContinuousUpdate(List<AnalyticsTable> tables) {
+    if (!sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
+      return true;
+    }
+
+    return tables.stream().allMatch(this::isReadyForContinuousUpdate);
+  }
+
+  /**
+   * A main table created before unique-key analytics tables were introduced remains on its original
+   * key model until a full rebuild recreates it. A continuous update's delete step requires the
+   * unique key model, so it must not be attempted against such a table.
+   */
+  private boolean isReadyForContinuousUpdate(AnalyticsTable table) {
+    String tableName = table.getMainName();
+
+    if (!tableExists(tableName)) {
+      // No main table yet; the initial create uses the required key model.
+      return true;
+    }
+
+    if (hasUniqueKeyModel(tableName)) {
+      return true;
+    }
+
+    log.error(
+        "Table '{}' does not use the unique key model required for continuous analytics "
+            + "updates on this database; run a full analytics table rebuild to recreate it with "
+            + "the required key model before running a continuous (lastYears=0) update",
+        tableName);
+
+    return false;
+  }
+
+  private boolean hasUniqueKeyModel(String tableName) {
+    List<Map<String, Object>> rows =
+        jdbcTemplate.queryForList(sqlBuilder.showCreateTable(tableName));
+
+    if (rows.isEmpty()) {
+      return false;
+    }
+
+    String createTableSql =
+        rows.get(0).values().stream().map(String::valueOf).collect(Collectors.joining(" "));
+
+    return createTableSql.toLowerCase().contains("unique key");
   }
 
   // -------------------------------------------------------------------------
@@ -413,14 +554,16 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       AnalyticsTableUpdateParams params,
       List<Integer> dataYears,
       List<AnalyticsTableColumn> columns,
-      List<String> sortKey) {
+      List<String> sortKey,
+      List<String> primaryKey) {
     Calendar calendar = PeriodType.getCalendar();
     List<Integer> years = ListUtils.mutableCopy(dataYears);
     Logged logged = analyticsTableSettings.getTableLogged();
 
     Collections.sort(years);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, sortKey, logged);
+    AnalyticsTable table =
+        new AnalyticsTable(getAnalyticsTableType(), columns, sortKey, primaryKey, logged);
 
     for (Integer year : years) {
       List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
@@ -441,11 +584,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param columns the list of {@link AnalyticsTableColumn}.
    */
   protected AnalyticsTable getLatestAnalyticsTable(
-      AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> columns) {
+      AnalyticsTableUpdateParams params,
+      List<AnalyticsTableColumn> columns,
+      List<String> primaryKey) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     Date lastFullTableUpdate = settings.getLastSuccessfulAnalyticsTablesUpdate();
-    Date lastLatestPartitionUpdate = settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
-    Date lastAnyTableUpdate = DateUtils.getLatest(lastLatestPartitionUpdate, lastFullTableUpdate);
+    Date lastAnyTableUpdate = getLastAnyTableUpdate(settings);
 
     Assert.isTrue(
         lastFullTableUpdate.getTime() > 0L,
@@ -455,14 +599,24 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, List.of(), logged);
+    // Engines without a unique key on analytics tables (Postgres) wholesale-replace the latest
+    // partition on every run, so its window must always span back to the last full rebuild, or
+    // data captured by an earlier continuous run would be discarded rather than carried forward.
+    // Engines with a unique key (Doris) instead merge into the persistent main table with
+    // natural-key deduplication, so it's safe and correct to only (re)process what changed since
+    // the last continuous run.
+    Date partitionStartDate =
+        sqlBuilder.requiresUniqueKeyAnalyticsTables() ? lastAnyTableUpdate : lastFullTableUpdate;
+
+    AnalyticsTable table =
+        new AnalyticsTable(getAnalyticsTableType(), columns, List.of(), primaryKey, logged);
 
     if (hasUpdatedData) {
       table.addTablePartition(
-          List.of(), AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
+          List.of(), AnalyticsTablePartition.LATEST_PARTITION, partitionStartDate, endDate);
       log.info(
           "Added latest analytics partition with start: '{}' and end: '{}'",
-          toLongDate(lastFullTableUpdate),
+          toLongDate(partitionStartDate),
           toLongDate(endDate));
     } else {
       log.info(
@@ -472,6 +626,28 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     }
 
     return table;
+  }
+
+  /**
+   * Returns the time of the last successful analytics table update of any kind, full or continuous.
+   * Engines with a unique key on analytics tables (Doris) start the continuous update window at
+   * this time, so it is read from the settings of this table type: the shared settings are also
+   * written when this table type was skipped or its update was aborted, and a window starting there
+   * would never pick up the changes that update did not publish.
+   *
+   * @param settings the current {@link SystemSettings}.
+   */
+  protected Date getLastAnyTableUpdate(SystemSettings settings) {
+    if (sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
+      AnalyticsTableType tableType = getAnalyticsTableType();
+      return DateUtils.getLatest(
+          settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(tableType),
+          settings.getLastSuccessfulAnalyticsTablesUpdate(tableType));
+    }
+
+    return DateUtils.getLatest(
+        settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(),
+        settings.getLastSuccessfulAnalyticsTablesUpdate());
   }
 
   /**

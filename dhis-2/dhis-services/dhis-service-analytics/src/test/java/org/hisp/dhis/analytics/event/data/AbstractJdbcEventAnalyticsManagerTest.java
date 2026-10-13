@@ -356,7 +356,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void verifyGetColumnAndAliasQualifiesStageOuColumnForAggregateWhenEnrollmentOuJoined() {
+  void verifyGetColumnAndAliasKeepsStageOuColumnOnEventTableWhenEnrollmentOuJoined() {
     OrganisationUnit ouA = createOrganisationUnit('A');
 
     QueryItem stageOuItem =
@@ -375,13 +375,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEnrollmentOuDimension(List.of(ouA))
             .build();
 
-    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
-        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "ax"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("ax.\"uidlevel1\"", "", ""));
 
     ColumnAndAlias columnAndAlias =
         eventSubject.getColumnAndAlias(stageOuItem, params, false, true);
 
-    assertThat(columnAndAlias.asSql(), is("enrl.\"uidlevel1\" as \"ou\""));
+    assertThat(columnAndAlias.asSql(), is("ax.\"uidlevel1\" as \"ou\""));
   }
 
   @Test
@@ -1416,7 +1416,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     List<String> columns = eventSubject.getSelectColumns(params, true);
 
-    assertTrue(columns.stream().anyMatch(c -> c.contains("as enrollmentou")));
+    assertTrue(columns.contains("enrous.\"uidlevel1\" as enrollmentou"), columns.toString());
   }
 
   @Test
@@ -1433,7 +1433,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     List<String> columns = eventSubject.getGroupByColumnNames(params, true);
 
-    assertTrue(columns.stream().anyMatch(c -> c.contains("enrl.\"ou\"")));
+    assertTrue(columns.contains("enrous.\"uidlevel1\""), columns.toString());
   }
 
   @Test
@@ -1558,8 +1558,68 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     String fromClause = eventSubject.getFromClause(params);
 
-    assertThat(fromClause, containsString("as regous"));
-    assertThat(fromClause, containsString("as enrl"));
+    assertThat(
+        fromClause,
+        containsString(
+            "inner join analytics_rs_orgunitstructure as enrous "
+                + "on enrous.\"organisationunituid\" = ax.\"enrollmentou\" "
+                + "inner join analytics_rs_orgunitstructure as regous "
+                + "on regous.\"organisationunituid\" = ax.\"registrationou\""));
+  }
+
+  /** Both dimensions restrict on their own alias, and the restrictions are AND-ed. */
+  @Test
+  void testRegistrationOuAndEnrollmentOuAreAndedInWhereClause() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .withEnrollmentOuDimension(List.of(ouB))
+            .build();
+
+    String whereClause = eventSubject.getWhereClause(params);
+
+    assertThat(
+        whereClause,
+        containsString(
+            "and (enrous.\"uidlevel1\" in ('"
+                + ouB.getUid()
+                + "')) and (regous.\"uidlevel1\" in ('"
+                + ouA.getUid()
+                + "'))"));
+  }
+
+  /**
+   * Query rows are mapped to headers by position, and the headers list ENROLLMENT_OU before
+   * REGISTRATION_OU, so the select columns must follow the same order.
+   */
+  @Test
+  void testQuerySelectClauseListsEnrollmentOuBeforeRegistrationOu() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('A')))
+            .withEnrollmentOuDimension(List.of(createOrganisationUnit('B')))
+            .build();
+
+    SelectBuilder sb = new SelectBuilder();
+    eventSubject.addSelectClause(
+        sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
+
+    assertThat(
+        sb.build(),
+        containsString(
+            "enrous.\"organisationunituid\" as enrollmentou, "
+                + "enrous.\"name\" as enrollmentouname, "
+                + "regous.\"organisationunituid\" as registrationou, "
+                + "regous.\"name\" as registrationouname"));
   }
 
   @Test
@@ -1577,9 +1637,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     String whereClause = eventSubject.getWhereClause(params);
 
-    assertThat(whereClause, containsString("enrl.\"uidlevel1\""));
-    assertThat(whereClause, containsString(ouA.getUid()));
-    assertThat(whereClause, containsString(ouB.getUid()));
+    assertThat(
+        whereClause,
+        containsString(
+            "(enrous.\"uidlevel1\" in ('" + ouA.getUid() + "','" + ouB.getUid() + "'))"));
+    assertThat(whereClause, not(containsString("enrl")));
   }
 
   @Test
@@ -1597,8 +1659,12 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     String fromClause = eventSubject.getFromClause(params);
 
-    assertThat(fromClause, containsString("inner join analytics_enrollment_"));
-    assertThat(fromClause, containsString("enrl on ax.\"enrollment\" = enrl.\"enrollment\""));
+    assertThat(
+        fromClause,
+        containsString(
+            "inner join analytics_rs_orgunitstructure as enrous "
+                + "on enrous.\"organisationunituid\" = ax.\"enrollmentou\""));
+    assertThat(fromClause, not(containsString("analytics_enrollment_")));
   }
 
   @Test
@@ -1618,9 +1684,12 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     eventSubject.addFromClause(sb, params);
     String fromClause = sb.build();
 
-    assertThat(fromClause, containsString("analytics_enrollment_"));
-    assertThat(fromClause, containsString("enrl"));
-    assertThat(fromClause, containsString("ax.\"enrollment\""));
+    assertThat(
+        fromClause,
+        containsString(
+            "analytics_rs_orgunitstructure enrous "
+                + "on enrous.\"organisationunituid\" = ax.\"enrollmentou\""));
+    assertThat(fromClause, not(containsString("analytics_enrollment_")));
   }
 
   @Test
@@ -1640,12 +1709,12 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
     String selectClause = sb.build();
 
-    assertThat(selectClause, containsString("enrl.\"ou\" as enrollmentou"));
-    assertThat(selectClause, containsString("enrl.\"ouname\" as enrollmentouname"));
+    assertThat(selectClause, containsString("enrous.\"organisationunituid\" as enrollmentou"));
+    assertThat(selectClause, containsString("enrous.\"name\" as enrollmentouname"));
   }
 
   @Test
-  void testSortClauseReadsEnrollmentOuNameFromEnrollmentTable() {
+  void testSortClauseReadsEnrollmentOuNameFromOrgUnitStructure() {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
@@ -1662,11 +1731,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         eventSubject.getCteAwareSortClause(
             new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT), params);
 
-    assertThat(sortClause, containsString("enrl.\"ouname\" asc nulls last"));
+    assertThat(sortClause, containsString("enrous.\"name\" asc nulls last"));
   }
 
   @Test
-  void testSortClauseReadsEnrollmentOuFromEnrollmentTable() {
+  void testSortClauseReadsEnrollmentOuFromOrgUnitStructure() {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
@@ -1682,11 +1751,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         eventSubject.getCteAwareSortClause(
             new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT), params);
 
-    assertThat(sortClause, containsString("enrl.\"ou\" desc nulls last"));
+    assertThat(sortClause, containsString("enrous.\"organisationunituid\" desc nulls last"));
   }
 
   @Test
-  void testExperimentalSelectClauseQualifiesStageOuLevelWhenEnrollmentOuJoinIsUsed() {
+  void testExperimentalSelectClauseKeepsStageOuLevelOnEventTableWhenEnrollmentOuJoinIsUsed() {
     OrganisationUnit ouA = createOrganisationUnit('A');
     ProgramStage stage = createProgramStage('B', programA);
     stage.setUid("ZkbAXlQUYJG");
@@ -1710,20 +1779,20 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .addItem(stageOuItem)
             .build();
 
-    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
-        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "ax"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("ax.\"uidlevel1\"", "", ""));
 
     SelectBuilder sb = new SelectBuilder();
     eventSubject.addSelectClause(
         sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
     String selectClause = sb.build();
 
-    assertThat(selectClause, containsString("enrl.\"uidlevel1\" as \"ZkbAXlQUYJG.ou\""));
+    assertThat(selectClause, containsString("ax.\"uidlevel1\" as \"ZkbAXlQUYJG.ou\""));
     assertTrue(!selectClause.contains(", \"uidlevel1\" as \"ZkbAXlQUYJG.ou\""));
   }
 
   @Test
-  void testExperimentalSelectClauseQualifiesStageOuHeadersWhenEnrollmentOuJoinIsUsed() {
+  void testExperimentalSelectClauseKeepsStageOuHeadersOnEventTableWhenEnrollmentOuJoinIsUsed() {
     OrganisationUnit ouA = createOrganisationUnit('A');
     ProgramStage stage = createProgramStage('B', programA);
     stage.setUid("ZkbAXlQUYJG");
@@ -1748,55 +1817,70 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withHeaders(Set.of("enrollmentouname", "ZkbAXlQUYJG.ouname"))
             .build();
 
-    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
-        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "ax"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("ax.\"uidlevel1\"", "", ""));
 
     SelectBuilder sb = new SelectBuilder();
     eventSubject.addSelectClause(
         sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
     String selectClause = sb.build();
 
-    assertThat(selectClause, containsString("enrl.\"ouname\" as \"ZkbAXlQUYJG.ouname\""));
+    assertThat(selectClause, containsString("ax.\"ouname\" as \"ZkbAXlQUYJG.ouname\""));
     assertTrue(!selectClause.contains(", \"ouname\" as \"ZkbAXlQUYJG.ouname\""));
   }
 
+  /** A level filter arrives expanded to the org units at that level, matched at or below each. */
   @Test
-  void testEnrollmentOuLevelConstraintUsesOrgUnitLevelColumn() {
-    EventQueryParams params =
-        new EventQueryParams.Builder()
-            .withProgram(programA)
-            .withStartDate(from)
-            .withEndDate(to)
-            .withEnrollmentOuFilterLevels(Set.of(4))
-            .build();
-
-    String whereClause = eventSubject.getWhereClause(params);
-
-    assertThat(whereClause, containsString("enrl.\"oulevel\" in (4)"));
-  }
-
-  @Test
-  void testEnrollmentOuAndExplicitOuBothAppearInWhereClause() {
-    OrganisationUnit ouA = createOrganisationUnit('A');
+  void testEnrollmentOuFilterAtLevelMatchesSubtrees() {
+    OrganisationUnit district = createOrganisationUnit('A', createOrganisationUnit('B'));
 
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
             .withStartDate(from)
             .withEndDate(to)
-            .withOrganisationUnits(List.of(ouA))
-            .withEnrollmentOuFilterLevels(Set.of(4))
+            .withEnrollmentOuFilter(List.of(district))
             .build();
 
     String whereClause = eventSubject.getWhereClause(params);
 
-    assertThat(whereClause, containsString("uidlevel1"));
-    assertThat(whereClause, containsString("enrl.\"oulevel\" in (4)"));
+    assertThat(
+        whereClause, containsString("(enrous.\"uidlevel2\" in ('" + district.getUid() + "'))"));
+    assertThat(whereClause, not(containsString("oulevel")));
+  }
+
+  /**
+   * The ou dimension and ENROLLMENT_OU both read uidlevel columns, from the event table and the
+   * joined org unit structure table, so each must stay qualified.
+   */
+  @Test
+  void testEnrollmentOuAndOuLevelAreQualifiedSeparately() {
+    OrganisationUnit country = createOrganisationUnit('A');
+    OrganisationUnit district = createOrganisationUnit('B', country);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withOrganisationUnits(List.of(district))
+            .withEnrollmentOuDimension(List.of(district))
+            .build();
+
+    String whereClause = eventSubject.getWhereClause(params);
+    List<String> groupBy = eventSubject.getGroupByColumnNames(params, true);
+
+    assertThat(whereClause, containsString("ax.\"uidlevel2\" in ('" + district.getUid() + "')"));
+    assertThat(
+        whereClause, containsString("(enrous.\"uidlevel2\" in ('" + district.getUid() + "'))"));
+    assertTrue(groupBy.contains("enrous.\"uidlevel2\""), groupBy.toString());
+    assertTrue(groupBy.stream().noneMatch("\"uidlevel2\""::equals), groupBy.toString());
   }
 
   @Test
-  void testGetEventCountIncludesEnrollmentOuJoinForLevelFilter() {
+  void testGetEventCountIncludesEnrollmentOuJoin() {
     when(jdbcTemplate.queryForObject(any(String.class), eq(Long.class))).thenReturn(1L);
+    OrganisationUnit ouA = createOrganisationUnit('A');
 
     EventQueryParams params =
         new EventQueryParams.Builder()
@@ -1804,7 +1888,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withTableName("analytics_event_test")
             .withStartDate(from)
             .withEndDate(to)
-            .withEnrollmentOuFilterLevels(Set.of(4))
+            .withEnrollmentOuFilter(List.of(ouA))
             .build();
 
     eventSubject.getEventCount(params);
@@ -1813,8 +1897,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForObject(sqlCaptor.capture(), eq(Long.class));
 
     String sql = sqlCaptor.getValue();
-    assertThat(sql, containsString("inner join analytics_enrollment_"));
-    assertThat(sql, containsString("enrl.\"oulevel\" in (4)"));
+    assertThat(sql, containsString("inner join analytics_rs_orgunitstructure as enrous"));
+    assertThat(sql, containsString("(enrous.\"uidlevel1\" in ('" + ouA.getUid() + "'))"));
   }
 
   @Test

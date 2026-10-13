@@ -49,8 +49,9 @@ public interface StageQuerySqlFacade {
    * @param params query parameters
    * @param isGroupByClause true when expression is for GROUP BY
    * @param isAggregated true when query is aggregated
-   * @param stageOuValueColumnTableAlias table alias used to qualify a stage-OU value column when an
-   *     enrollment-OU join is present in the same query; {@code null} for an unqualified column
+   * @param stageOuValueColumnTableAlias table alias used to qualify a stage-OU value column, which
+   *     keeps it unambiguous when an org unit structure table is joined in the same query; {@code
+   *     null} for an unqualified column
    * @return stage-specific column and alias, empty when generic manager logic should be used
    */
   Optional<ColumnAndAlias> resolveSelectColumn(

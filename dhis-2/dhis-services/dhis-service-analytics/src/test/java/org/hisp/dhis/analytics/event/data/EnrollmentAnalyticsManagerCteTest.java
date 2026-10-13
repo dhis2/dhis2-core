@@ -1862,6 +1862,103 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertions.forEach(consumer -> consumer.accept(sql.getValue()));
   }
 
+  @Test
+  void verifyAggregateEnrollmentStageValueAddsValueCteAndAggregatesIt() {
+    String stageUid = repeatableProgramStage.getUid();
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withEndpointAction(AGGREGATE);
+    params.withValue(dataElementA);
+    params.withValueProgramStage(repeatableProgramStage);
+    params.withAggregationType(AnalyticsAggregationType.AVERAGE);
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+
+    subject.getEnrollments(params.build(), grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String baseCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("enrollment_aggr_base as ("),
+            generatedSql.indexOf("enrollment_value as ("));
+
+    assertThat(generatedSql, containsString("enrollment_value as ("));
+    assertThat(generatedSql, containsString("evt.\"fWIAEtYVEGk\""));
+    assertThat(generatedSql, containsString("evt.ps = '" + stageUid + "'"));
+    assertThat(generatedSql, containsString("where evt.rn = 1"));
+    assertThat(generatedSql, containsString("avg(enrollment_value.value) as value"));
+    assertThat(generatedSql, containsString("left join enrollment_value"));
+    assertThat(generatedSql, containsString("enrollment_value.value is not null"));
+    assertThat(generatedSql, not(containsString("count(eb.enrollment)")));
+    assertThat(baseCteSql, not(containsString("enrollment_value")));
+    assertThat(baseCteSql, not(containsString("ps = '")));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentValueCteCoexistsWithSameStageDimension() {
+    QueryItem dimensionItem =
+        new QueryItem(dataElementA, programA, null, ValueType.INTEGER, AggregationType.SUM, null);
+    dimensionItem.setProgram(programA);
+    dimensionItem.setProgramStage(repeatableProgramStage);
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withEndpointAction(AGGREGATE);
+    params.addItem(dimensionItem);
+    params.withValue(dataElementA);
+    params.withValueProgramStage(repeatableProgramStage);
+    params.withAggregationType(AnalyticsAggregationType.SUM);
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(
+        new GridHeader(
+            repeatableProgramStage.getUid() + "." + dataElementA.getUid(),
+            "A",
+            ValueType.INTEGER,
+            false,
+            true));
+
+    subject.getEnrollments(params.build(), grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+
+    assertThat(generatedSql, containsString("enrollment_value as ("));
+    assertThat(
+        generatedSql,
+        containsString(repeatableProgramStage.getUid() + "_" + dataElementA.getUid() + "_0"));
+    assertThat(generatedSql, containsString("sum(enrollment_value.value) as value"));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentAttributeValueIsProjectedAndAggregated() {
+    TrackedEntityAttribute attribute =
+        org.hisp.dhis.test.TestBase.createTrackedEntityAttribute('A', ValueType.NUMBER);
+    attribute.setUid("lw1SqmMlnfh");
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withEndpointAction(AGGREGATE);
+    params.withValue(attribute);
+    params.withAggregationType(AnalyticsAggregationType.AVERAGE);
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+
+    subject.getEnrollments(params.build(), grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String baseCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("enrollment_aggr_base as ("), generatedSql.indexOf("select avg("));
+
+    assertThat(baseCteSql, containsString("\"lw1SqmMlnfh\""));
+    assertThat(generatedSql, containsString("avg(eb.\"lw1SqmMlnfh\") as value"));
+    assertThat(generatedSql, containsString("eb.\"lw1SqmMlnfh\" is not null"));
+    assertThat(generatedSql, not(containsString("enrollment_value")));
+  }
+
   private String noEof(String sql) {
     return sql.replaceAll("\\s+", " ").trim();
   }
