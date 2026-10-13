@@ -1574,7 +1574,7 @@ class PredictionServiceTest extends IntegrationTestBase {
     // combo from the database, as it does when the API or a scheduled job runs a predictor.
     entityManager.clear();
 
-    PredictionSummary summary =
+    summary =
         predictionService.predictTask(
             monthStart(2001, 7),
             monthStart(2001, 8),
