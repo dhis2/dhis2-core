@@ -31,6 +31,7 @@ package org.hisp.dhis.option;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -81,17 +82,11 @@ class OptionGroupSetStoreTest extends PostgresIntegrationTestBase {
     OptionGroupSet reloaded = store.get(id);
     assertEquals(List.of(ogC.getUid(), ogA.getUid(), ogB.getUid()), memberUids(reloaded));
 
-    List<Integer> sortOrders =
-        jdbcTemplate.queryForList(
-            "select sort_order from optiongroupsetmembers"
-                + " where optiongroupsetid = ? order by sort_order",
-            Integer.class,
-            id);
-    assertEquals(List.of(1, 2, 3), sortOrders);
+    assertEquals(List.of(1, 2, 3), sortOrders(id));
   }
 
   @Test
-  @DisplayName("members can be reordered and removed")
+  @DisplayName("[A, B, C] updated to [C, B]: A removed, order swapped, sort_order renumbered")
   void testMembersUpdate() {
     OptionGroup ogA = saveGroup("D");
     OptionGroup ogB = saveGroup("E");
@@ -107,14 +102,18 @@ class OptionGroupSetStoreTest extends PostgresIntegrationTestBase {
     clearSession();
 
     OptionGroupSet loaded = store.get(id);
-    loaded.getMembers().remove(0);
-    loaded.getMembers().add(loaded.getMembers().remove(0));
+    OptionGroup loadedB = loaded.getMembers().get(1);
+    OptionGroup loadedC = loaded.getMembers().get(2);
+    loaded.getMembers().clear();
+    loaded.getMembers().add(loadedC);
+    loaded.getMembers().add(loadedB);
     store.update(loaded);
 
     clearSession();
 
     OptionGroupSet reloaded = store.get(id);
     assertEquals(List.of(ogC.getUid(), ogB.getUid()), memberUids(reloaded));
+    assertEquals(List.of(1, 2), sortOrders(id));
   }
 
   @Test
@@ -265,8 +264,12 @@ class OptionGroupSetStoreTest extends PostgresIntegrationTestBase {
     clearSession();
 
     OptionGroupSet reloaded = store.get(id);
+    reloaded.getMembers().add(saveGroup("R"));
     assertEquals(ogs, reloaded);
     assertEquals(ogs.hashCode(), reloaded.hashCode());
+
+    reloaded.setDescription("changed");
+    assertNotEquals(ogs, reloaded);
   }
 
   private OptionGroup saveGroup(String suffix) {
@@ -274,6 +277,14 @@ class OptionGroupSetStoreTest extends PostgresIntegrationTestBase {
     og.setShortName("OgsMember" + suffix);
     groupStore.save(og);
     return og;
+  }
+
+  private List<Integer> sortOrders(long id) {
+    return jdbcTemplate.queryForList(
+        "select sort_order from optiongroupsetmembers"
+            + " where optiongroupsetid = ? order by sort_order",
+        Integer.class,
+        id);
   }
 
   private static List<String> memberUids(OptionGroupSet ogs) {

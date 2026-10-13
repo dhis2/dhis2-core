@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -152,7 +153,20 @@ class OptionGroupSetControllerTest extends PostgresControllerIntegrationTestBase
                 "user",
                 "valueType"));
     assertEquals(expected, names);
+    assertNotNull(description);
     assertEquals(Integer.MAX_VALUE, description.getNumber("length").intValue());
+  }
+
+  /** shortName has no column; ordering by it must not fail. */
+  @Test
+  void testOrderByShortNameDoesNotFail() {
+    importMetadata(groupSet("OptGroupU01"));
+
+    JsonArray groupSets =
+        GET("/optionGroupSets?order=shortName:asc&fields=id")
+            .content(HttpStatus.OK)
+            .getArray("optionGroupSets");
+    assertEquals(GROUP_SET_UID, groupSets.getObject(0).getString("id").string());
   }
 
   private static String groupSet(String... memberUids) {

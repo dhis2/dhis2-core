@@ -50,7 +50,6 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -111,8 +110,7 @@ public class OptionGroup extends BaseMetadataObject
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
-  // HBM had `cascade="all"` on this many-to-many collection - preserved as-is even though
-  // cascading REMOVE from a many-to-many is unusual; not "fixed" during a structural migration.
+  // No cascade: deleting a group must not delete its options (DHIS2-22154)
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "optiongroupmembers",
@@ -138,21 +136,6 @@ public class OptionGroup extends BaseMetadataObject
   private Sharing sharing = new Sharing();
 
   // -------------------------------------------------------------------------
-  // DimensionalItemObject / NameableObject / IdentifiableObject state
-  // (not persisted for this entity - no backing columns in `optiongroup`)
-  // -------------------------------------------------------------------------
-
-  @Transient private AttributeValues attributeValues = AttributeValues.empty();
-
-  @Transient private List<LegendSet> legendSets = new ArrayList<>();
-
-  @Transient private AggregationType aggregationType;
-
-  @Transient private transient QueryModifiers queryMods;
-
-  @Transient private String formName;
-
-  // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
 
@@ -171,30 +154,21 @@ public class OptionGroup extends BaseMetadataObject
     int result = getUid() != null ? getUid().hashCode() : 0;
     result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
     result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-
+    result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0);
+    result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
     return result;
   }
 
-  /** Class check uses isAssignableFrom and get-methods to handle proxied objects. */
   @Override
   public boolean equals(Object obj) {
     return this == obj
-        || obj instanceof IdentifiableObject
+        || obj instanceof OptionGroup other
             && getRealClass(this) == getRealClass(obj)
-            && typedEquals((IdentifiableObject) obj);
-  }
-
-  /**
-   * Equality check against typed identifiable object. This method is not vulnerable to proxy
-   * issues, where an uninitialized object class type fails comparison to a real class.
-   */
-  public final boolean typedEquals(IdentifiableObject other) {
-    if (other == null) {
-      return false;
-    }
-    return Objects.equals(getUid(), other.getUid())
-        && Objects.equals(getCode(), other.getCode())
-        && Objects.equals(getName(), other.getName());
+            && Objects.equals(getUid(), other.getUid())
+            && Objects.equals(getCode(), other.getCode())
+            && Objects.equals(getName(), other.getName())
+            && Objects.equals(getShortName(), other.getShortName())
+            && Objects.equals(getDescription(), other.getDescription());
   }
 
   // -------------------------------------------------------------------------
@@ -274,27 +248,6 @@ public class OptionGroup extends BaseMetadataObject
 
   public void setOptionSet(OptionSet optionSet) {
     this.optionSet = optionSet;
-  }
-
-  @Override
-  @JsonProperty("attributeValues")
-  public AttributeValues getAttributeValues() {
-    return attributeValues;
-  }
-
-  @Override
-  public void setAttributeValues(AttributeValues attributeValues) {
-    this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
-  }
-
-  @Override
-  public void addAttributeValue(String attributeUid, String value) {
-    this.attributeValues = this.attributeValues.added(attributeUid, value);
-  }
-
-  @Override
-  public void removeAttributeValue(String attributeId) {
-    this.attributeValues = this.attributeValues.removed(attributeId);
   }
 
   @Gist(included = Include.FALSE)
@@ -410,29 +363,6 @@ public class OptionGroup extends BaseMetadataObject
     }
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getFormName() {
-    return formName;
-  }
-
-  public void setFormName(String formName) {
-    this.formName = formName;
-  }
-
-  /** Returns the form name, or the display name if it does not exist. */
-  public String getFormNameFallback() {
-    return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
-  }
-
-  @JsonProperty
-  @Sortable(whenPersisted = false)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "formName", key = "FORM_NAME")
-  public String getDisplayFormName() {
-    return translations.getTranslation("FORM_NAME", getFormNameFallback());
-  }
-
   // --------------------------------------------------
   // DimensionalItemObject implementation
   // --------------------------------------------------
@@ -450,63 +380,114 @@ public class OptionGroup extends BaseMetadataObject
   }
 
   @Override
+  public TotalAggregationType getTotalAggregationType() {
+    return TotalAggregationType.SUM;
+  }
+
+  // -------------------------------------------------------------------------
+  // Unsupported IdentifiableObject methods
+  // -------------------------------------------------------------------------
+
+  /** OptionGroup does not support attribute values. */
+  @Override
+  @Deprecated(since = "2.44")
+  @JsonProperty("attributeValues")
+  public AttributeValues getAttributeValues() {
+    return AttributeValues.empty();
+  }
+
+  /** OptionGroup does not support attribute values. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void setAttributeValues(AttributeValues attributeValues) {
+    // Not supported
+  }
+
+  /** OptionGroup does not support attribute values. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void addAttributeValue(String attributeUid, String value) {
+    // Not supported
+  }
+
+  /** OptionGroup does not support attribute values. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void removeAttributeValue(String attributeId) {
+    // Not supported
+  }
+
+  // -------------------------------------------------------------------------
+  // Unsupported DimensionalItemObject methods
+  // -------------------------------------------------------------------------
+
+  /** OptionGroup does not support legend sets. */
+  @Override
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "legendSets", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "legendSets", namespace = DxfNamespaces.DXF_2_0)
   public List<LegendSet> getLegendSets() {
-    return legendSets;
+    return new ArrayList<>();
   }
 
+  /** OptionGroup does not support legend sets. */
+  @Deprecated(since = "2.44")
   public void setLegendSets(List<LegendSet> legendSets) {
-    this.legendSets = legendSets;
+    // Not supported
   }
 
+  /** OptionGroup does not support legend sets. */
   @Override
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public LegendSet getLegendSet() {
-    return legendSets.isEmpty() ? null : legendSets.get(0);
+    return null;
   }
 
+  /** OptionGroup does not support legend sets. */
   @Override
+  @Deprecated(since = "2.44")
   public boolean hasLegendSet() {
-    return legendSets != null && !legendSets.isEmpty();
+    return false;
   }
 
+  /** OptionGroup does not support aggregation type. */
   @Override
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public AggregationType getAggregationType() {
-    return (queryMods != null && queryMods.getAggregationType() != null)
-        ? queryMods.getAggregationType()
-        : aggregationType;
+    return null;
   }
 
+  /** OptionGroup does not support aggregation type. */
+  @Deprecated(since = "2.44")
   public void setAggregationType(AggregationType aggregationType) {
-    this.aggregationType = aggregationType;
+    // Not supported
   }
 
+  /** OptionGroup does not support aggregation type. */
   @Override
+  @Deprecated(since = "2.44")
   public boolean hasAggregationType() {
-    return getAggregationType() != null;
+    return false;
   }
 
+  /** OptionGroup does not support query modifiers. */
   @Override
-  public TotalAggregationType getTotalAggregationType() {
-    return getAggregationType() == AggregationType.NONE
-        ? TotalAggregationType.NONE
-        : TotalAggregationType.SUM;
-  }
-
-  @Override
+  @Deprecated(since = "2.44")
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public QueryModifiers getQueryMods() {
-    return queryMods;
+    return null;
   }
 
+  /** OptionGroup does not support query modifiers. */
   @Override
+  @Deprecated(since = "2.44")
   public void setQueryMods(QueryModifiers queryMods) {
-    this.queryMods = queryMods;
+    // Not supported
   }
 }
