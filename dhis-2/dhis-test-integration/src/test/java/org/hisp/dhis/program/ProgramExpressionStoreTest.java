@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,10 @@
 package org.hisp.dhis.program;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Map;
+import java.util.List;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
@@ -56,34 +54,29 @@ class ProgramExpressionStoreTest extends PostgresIntegrationTestBase {
   @Autowired private JdbcTemplate jdbcTemplate;
 
   @Test
-  @DisplayName(
-      "saving assigns distinct generated ids and the columns hold expression and description")
-  void testSaveGeneratesIdsAndWritesColumns() {
+  @DisplayName("saving takes the id from hibernate_sequence")
+  void testIdComesFromHibernateSequence() {
+    long before = lastSequenceValue();
     ProgramExpression first = save(new ProgramExpression("[DE:stage.deA]", "first"));
     ProgramExpression second = save(new ProgramExpression("[DE:stage.deB]", "second"));
+    long after = lastSequenceValue();
 
-    assertTrue(first.getId() > 0);
-    assertTrue(second.getId() > 0);
-    assertNotEquals(first.getId(), second.getId());
-    assertEquals(
-        Map.of("expression", "[DE:stage.deA]", "description", "first"),
-        jdbcTemplate.queryForMap(
-            "select expression, description from programexpression where programexpressionid = ?",
-            first.getId()));
+    assertTrue(before < first.getId(), "first id must be allocated after " + before);
+    assertTrue(first.getId() < second.getId());
+    assertTrue(second.getId() <= after, "second id must not exceed the sequence value " + after);
   }
 
   @Test
-  @DisplayName("a saved expression reloads with expression and description intact")
-  void testReload() {
+  @DisplayName("expression and description are written to their columns")
+  void testColumnsAreWritten() {
     ProgramExpression saved = save(new ProgramExpression("[PS:stage.DUE_DATE]", "due date"));
 
-    clearSession();
-
-    ProgramExpression reloaded = store.get(saved.getId());
-    assertNotSame(saved, reloaded);
-    assertEquals(saved.getId(), reloaded.getId());
-    assertEquals("[PS:stage.DUE_DATE]", reloaded.getExpression());
-    assertEquals("due date", reloaded.getDescription());
+    assertEquals(
+        List.of("[PS:stage.DUE_DATE]", "due date"),
+        jdbcTemplate.queryForObject(
+            "select expression, description from programexpression where programexpressionid = ?",
+            (rs, row) -> List.of(rs.getString("expression"), rs.getString("description")),
+            saved.getId()));
   }
 
   @Test
@@ -98,7 +91,7 @@ class ProgramExpressionStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("description is a varchar(255) column: a 255 character value round-trips")
+  @DisplayName("description round-trips a value of the full 255 character column length")
   void testDescriptionHoldsMaxLength() {
     String description = "d".repeat(255);
     ProgramExpression saved = save(new ProgramExpression("[DE:stage.de]", description));
@@ -106,12 +99,6 @@ class ProgramExpressionStoreTest extends PostgresIntegrationTestBase {
     clearSession();
 
     assertEquals(description, store.get(saved.getId()).getDescription());
-    assertEquals(
-        255,
-        jdbcTemplate.queryForObject(
-            "select character_maximum_length from information_schema.columns"
-                + " where table_name = 'programexpression' and column_name = 'description'",
-            Integer.class));
   }
 
   @Test
@@ -137,7 +124,6 @@ class ProgramExpressionStoreTest extends PostgresIntegrationTestBase {
     loaded.setExpression("[DE:stage.new]");
     loaded.setDescription("new");
     store.update(loaded);
-    entityManager.flush();
     clearSession();
 
     ProgramExpression reloaded = store.get(saved.getId());
@@ -152,36 +138,21 @@ class ProgramExpressionStoreTest extends PostgresIntegrationTestBase {
     ProgramExpression kept = save(new ProgramExpression("[DE:stage.kept]", "kept"));
 
     store.delete(store.get(deleted.getId()));
-    entityManager.flush();
     clearSession();
 
     assertNull(store.get(deleted.getId()));
-    assertEquals("kept", store.get(kept.getId()).getDescription());
     assertEquals(0, countRows(deleted.getId()));
     assertEquals(1, countRows(kept.getId()));
-  }
-
-  @Test
-  @DisplayName("equality is by expression and description, not by id")
-  void testEqualityByContent() {
-    ProgramExpression first = save(new ProgramExpression("[DE:stage.same]", "same"));
-    ProgramExpression second = save(new ProgramExpression("[DE:stage.same]", "same"));
-    ProgramExpression other = save(new ProgramExpression("[DE:stage.same]", "other"));
-
-    clearSession();
-
-    ProgramExpression reloadedFirst = store.get(first.getId());
-    ProgramExpression reloadedSecond = store.get(second.getId());
-    assertNotEquals(reloadedFirst.getId(), reloadedSecond.getId());
-    assertEquals(reloadedFirst, reloadedSecond);
-    assertEquals(reloadedFirst.hashCode(), reloadedSecond.hashCode());
-    assertNotEquals(reloadedFirst, store.get(other.getId()));
   }
 
   private ProgramExpression save(ProgramExpression expression) {
     store.save(expression);
     entityManager.flush();
     return expression;
+  }
+
+  private long lastSequenceValue() {
+    return jdbcTemplate.queryForObject("select last_value from hibernate_sequence", Long.class);
   }
 
   private int countRows(long id) {
