@@ -38,6 +38,12 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 /**
+ * Counter for a SEQUENTIAL text pattern segment, one row per owner and key.
+ *
+ * <p>Rows are written only by the {@code incrementSequentialCounter()} database function, which
+ * upserts and increments the counter atomically. Do not persist or update counters through this
+ * entity.
+ *
  * @author Stian Sandvold
  */
 @Entity
