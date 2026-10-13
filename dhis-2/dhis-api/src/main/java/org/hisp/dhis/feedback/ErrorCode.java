@@ -93,7 +93,7 @@ public enum ErrorCode {
   E1133("CategoryCombo must be provided for Category option combo {0}"),
   E1134(
       "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
-  E1135("Locale ${locale:{0}} is not configured for usage; available are: ${locales:{1}}"),
+  E1135("Locale `${locale:{0}}` is not configured for usage; available are: ${locales:{1}}"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),

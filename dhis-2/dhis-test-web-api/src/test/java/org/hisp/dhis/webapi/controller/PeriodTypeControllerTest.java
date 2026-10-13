@@ -31,6 +31,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
+import static org.hisp.dhis.http.HttpStatus.NO_CONTENT;
 import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -44,6 +46,8 @@ import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonPeriodType;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +58,16 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class PeriodTypeControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @BeforeEach
+  void setUp() {
+    assertStatus(CREATED, POST("/locales/dbLocales?language=de"));
+  }
+
+  @AfterEach
+  void tearDown() {
+    assertStatus(NO_CONTENT, DELETE("/locales/dbLocales?language=de"));
+  }
 
   @Test
   void testGetPeriodTypes() {
