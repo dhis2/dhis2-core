@@ -29,8 +29,11 @@ package org.hisp.dhis.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import org.hisp.dhis.common.DateRange;
@@ -136,6 +139,33 @@ class CategoryOptionComboTest {
     dataSetB.setOpenPeriodsAfterCoEndDate(1);
     dataSetC.setOpenPeriodsAfterCoEndDate(2);
     program = new Program();
+  }
+
+  /**
+   * A Hibernate proxy's own fields are never set; only its (intercepted) getters return the real
+   * object's values. A Mockito mock has the same shape: it is created without running a
+   * constructor, so its fields are null, and its getters are stubbed. So equals() must read the
+   * other object through its getters, not its fields, or a real object will not equal its own proxy
+   * (DHIS2-17719).
+   */
+  @Test
+  // A category option combo equals a proxy of itself
+  void testEqualsProxy() {
+    CategoryOptionCombo proxy = mock(CategoryOptionCombo.class);
+    when(proxy.getCategoryCombo()).thenReturn(optionComboA.getCategoryCombo());
+    when(proxy.getCategoryOptions()).thenReturn(optionComboA.getCategoryOptions());
+
+    assertEquals(optionComboA, proxy);
+  }
+
+  @Test
+  // A category option combo does not equal a proxy of a different combo
+  void testNotEqualsProxyOfDifferentCombo() {
+    CategoryOptionCombo proxy = mock(CategoryOptionCombo.class);
+    when(proxy.getCategoryCombo()).thenReturn(optionComboB.getCategoryCombo());
+    when(proxy.getCategoryOptions()).thenReturn(optionComboB.getCategoryOptions());
+
+    assertNotEquals(optionComboA, proxy);
   }
 
   @Test

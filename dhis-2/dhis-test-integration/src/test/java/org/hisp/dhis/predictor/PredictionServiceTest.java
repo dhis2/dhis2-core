@@ -339,8 +339,28 @@ class PredictionServiceTest extends IntegrationTestBase {
 
   private void useDataValue(
       DataElement e,
+      CategoryOptionCombo categoryOptionCombo,
       Period p,
       OrganisationUnit s,
+      Object value) {
+    useDataValue(e, p, s, categoryOptionCombo, defaultCombo, value.toString(), false);
+  }
+
+  private void useDataValue(
+      DataElement e,
+      Period p,
+      OrganisationUnit s,
+      CategoryOptionCombo attributeOptionCombo,
+      Object value,
+      boolean deleted) {
+    useDataValue(e, p, s, defaultCombo, attributeOptionCombo, value, deleted);
+  }
+
+  private void useDataValue(
+      DataElement e,
+      Period p,
+      OrganisationUnit s,
+      CategoryOptionCombo categoryOptionCombo,
       CategoryOptionCombo attributeOptionCombo,
       Object value,
       boolean deleted) {
@@ -349,7 +369,7 @@ class PredictionServiceTest extends IntegrationTestBase {
             e,
             periodService.reloadPeriod(p),
             s,
-            defaultCombo,
+            categoryOptionCombo,
             attributeOptionCombo,
             value == null ? null : value.toString(),
             deleted));
@@ -1493,6 +1513,77 @@ class PredictionServiceTest extends IntegrationTestBase {
         predictionService.predictTask(
             monthStart(2001, 7), monthStart(2001, 8), predictors, null, progress);
     assertEquals("Pred 2 Ins 0 Upd 0 Del 0 Unch 2", shortSummary(summary));
+  }
+
+  /**
+   * Tests a stock-balance predictor whose generator references the predictor's own output data
+   * element and category option combo (DHIS2-17719). The balance at the start of a period is the
+   * previous period's starting balance plus stock received, minus stock issued and lost.
+   *
+   * <p>The predictor is saved and then run by UID with a cleared session, as the API and scheduled
+   * jobs run it, so the prediction uses the predictor as loaded from the database rather than the
+   * objects created here.
+   */
+  @Test
+  void testPredictTaskReferencingOutputCombo() {
+    CategoryOption balance = new CategoryOption("Balance start of period");
+    CategoryOption received = new CategoryOption("Received");
+    CategoryOption issued = new CategoryOption("Issued");
+    CategoryOption lost = new CategoryOption("Lost");
+    categoryService.addCategoryOption(balance);
+    categoryService.addCategoryOption(received);
+    categoryService.addCategoryOption(issued);
+    categoryService.addCategoryOption(lost);
+    Category stockCategory = createCategory('S', balance, received, issued, lost);
+    categoryService.addCategory(stockCategory);
+    CategoryCombo stockCategoryCombo = createCategoryCombo('S', stockCategory);
+    categoryService.addCategoryCombo(stockCategoryCombo);
+    CategoryOptionCombo balanceCoc = createCategoryOptionCombo(stockCategoryCombo, balance);
+    CategoryOptionCombo receivedCoc = createCategoryOptionCombo(stockCategoryCombo, received);
+    CategoryOptionCombo issuedCoc = createCategoryOptionCombo(stockCategoryCombo, issued);
+    CategoryOptionCombo lostCoc = createCategoryOptionCombo(stockCategoryCombo, lost);
+    categoryService.addCategoryOptionCombo(balanceCoc);
+    categoryService.addCategoryOptionCombo(receivedCoc);
+    categoryService.addCategoryOptionCombo(issuedCoc);
+    categoryService.addCategoryOptionCombo(lostCoc);
+
+    DataElement stock = createDataElement('S', stockCategoryCombo);
+    stock.setValueType(ValueType.NUMBER);
+    dataElementService.addDataElement(stock);
+
+    useDataValue(stock, balanceCoc, makeMonth(2001, 6), sourceA, 500);
+    useDataValue(stock, receivedCoc, makeMonth(2001, 6), sourceA, 20);
+    useDataValue(stock, issuedCoc, makeMonth(2001, 6), sourceA, 1);
+    useDataValue(stock, lostCoc, makeMonth(2001, 6), sourceA, 2);
+    dataValueBatchHandler.flush();
+
+    String balanceId = "#{" + stock.getUid() + "." + balanceCoc.getUid() + "}";
+    String receivedId = "#{" + stock.getUid() + "." + receivedCoc.getUid() + "}";
+    String issuedId = "#{" + stock.getUid() + "." + issuedCoc.getUid() + "}";
+    String lostId = "#{" + stock.getUid() + "." + lostCoc.getUid() + "}";
+    Expression generator =
+        new Expression(
+            "sum((" + balanceId + " + " + receivedId + ") - (" + issuedId + " + " + lostId + "))",
+            "Balance start of period");
+    Predictor predictor =
+        createPredictor(
+            stock, balanceCoc, "S", generator, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0);
+    predictorService.addPredictor(predictor);
+
+    // Detach the objects created above so that predictTask loads the predictor and its output
+    // combo from the database, as it does when the API or a scheduled job runs a predictor.
+    entityManager.clear();
+
+    PredictionSummary summary =
+        predictionService.predictTask(
+            monthStart(2001, 7),
+            monthStart(2001, 8),
+            Lists.newArrayList(predictor.getUid()),
+            null,
+            progress);
+
+    assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
+    assertEquals("517.0", getDataValue(stock, balanceCoc, sourceA, makeMonth(2001, 7)));
   }
 
   @Test
