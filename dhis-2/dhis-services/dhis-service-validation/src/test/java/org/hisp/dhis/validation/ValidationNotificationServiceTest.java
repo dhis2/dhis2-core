@@ -50,6 +50,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.expression.Operator;
+import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageService;
@@ -109,6 +110,8 @@ class ValidationNotificationServiceTest extends TestBase {
 
   @Mock private ConfigurationService configurationService;
 
+  @Mock private I18nLocaleService localeService;
+
   private DefaultPeriodService periodService;
 
   private DefaultValidationNotificationService subject;
@@ -144,7 +147,8 @@ class ValidationNotificationServiceTest extends TestBase {
             periodperiodTypeStore,
             relativePeriodStore,
             i18nManager,
-            configurationService);
+            configurationService,
+            localeService);
     sentMessages = new ArrayList<>();
     when(messageService.sendValidationMessage(
             anySet(), anyString(), anyString(), any(MessageConversationPriority.class)))
