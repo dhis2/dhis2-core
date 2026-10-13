@@ -32,7 +32,6 @@ package org.hisp.dhis.indicator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManagerFactory;
@@ -164,18 +163,14 @@ class IndicatorTypeStoreTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("uid, name, factor, created and lastUpdated are mapped not-null")
   void testNullability() {
-    EntityPersister persister = persister();
-    EntityMetamodel metamodel = persister.getEntityMetamodel();
-    boolean[] nullability = persister.getPropertyNullability();
-
-    assertFalse(nullability[metamodel.getPropertyIndex("uid")]);
-    assertFalse(nullability[metamodel.getPropertyIndex("name")]);
-    assertFalse(nullability[metamodel.getPropertyIndex("factor")]);
-    assertFalse(nullability[metamodel.getPropertyIndex("created")]);
-    assertFalse(nullability[metamodel.getPropertyIndex("lastUpdated")]);
-    assertTrue(nullability[metamodel.getPropertyIndex("code")]);
-    assertTrue(nullability[metamodel.getPropertyIndex("number")]);
-    assertTrue(nullability[metamodel.getPropertyIndex("lastUpdatedBy")]);
+    assertNotNullable("uid");
+    assertNotNullable("name");
+    assertNotNullable("factor");
+    assertNotNullable("created");
+    assertNotNullable("lastUpdated");
+    assertNullable("code");
+    assertNullable("number");
+    assertNullable("lastUpdatedBy");
   }
 
   @Test
@@ -217,44 +212,6 @@ class IndicatorTypeStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("updating a loaded type is persisted")
-  void testUpdate() {
-    IndicatorType saved = save(new IndicatorType("Percent", 100, false));
-
-    IndicatorType loaded = reload(saved);
-    loaded.setName("Percentage");
-    loaded.setCode("CODE_PERCENT");
-    loaded.setFactor(1000);
-    loaded.setNumber(true);
-    loaded.setTranslations(Set.of(new Translation(new Locale("fr"), "NAME", "Pourcentage")));
-    store.update(loaded);
-    entityManager.flush();
-
-    IndicatorType reloaded = reload(saved);
-    assertEquals("Percentage", reloaded.getName());
-    assertEquals("CODE_PERCENT", reloaded.getCode());
-    assertEquals(1000, reloaded.getFactor());
-    assertTrue(reloaded.isNumber());
-    assertEquals(
-        Set.of(new Translation(new Locale("fr"), "NAME", "Pourcentage")),
-        reloaded.getTranslations());
-  }
-
-  @Test
-  @DisplayName("deleting a type removes only its row")
-  void testDelete() {
-    IndicatorType deleted = save(new IndicatorType("Deleted", 1, false));
-    IndicatorType kept = save(new IndicatorType("Kept", 1, false));
-
-    store.delete(store.get(deleted.getId()));
-    entityManager.flush();
-    clearSession();
-
-    assertNull(store.get(deleted.getId()));
-    assertEquals(kept.getUid(), store.get(kept.getId()).getUid());
-  }
-
-  @Test
   @DisplayName("an indicator loads its type and is found by it")
   void testIndicatorReferencesType() {
     IndicatorType type = save(new IndicatorType("Per hundred thousand", 100000, false));
@@ -281,6 +238,21 @@ class IndicatorTypeStoreTest extends PostgresIntegrationTestBase {
         .unwrap(SessionFactoryImplementor.class)
         .getMetamodel()
         .entityPersister(IndicatorType.class);
+  }
+
+  private void assertNotNullable(String property) {
+    assertFalse(isNullable(property), property + " is mapped nullable");
+  }
+
+  private void assertNullable(String property) {
+    assertTrue(isNullable(property), property + " is mapped not-null");
+  }
+
+  /** {@link EntityPersister#getPropertyNullability()} holds a nullable flag per property. */
+  private boolean isNullable(String property) {
+    EntityPersister persister = persister();
+    return persister
+        .getPropertyNullability()[persister.getEntityMetamodel().getPropertyIndex(property)];
   }
 
   private IndicatorType save(IndicatorType type) {

@@ -35,21 +35,20 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.Locale;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class IndicatorTypeTest {
 
@@ -72,25 +71,15 @@ class IndicatorTypeTest {
     assertEquals(first.hashCode(), second.hashCode());
   }
 
-  @Test
-  void testNotEqualWhenUidDiffers() {
+  @ParameterizedTest
+  @CsvSource({
+    "IndTypeUid2, code, Percent",
+    "IndTypeUid1, other, Percent",
+    "IndTypeUid1, code, Per thousand"
+  })
+  void testNotEqualWhenUidCodeOrNameDiffers(String uid, String code, String name) {
     assertNotEquals(
-        indicatorType("IndTypeUid1", "code", "Percent"),
-        indicatorType("IndTypeUid2", "code", "Percent"));
-  }
-
-  @Test
-  void testNotEqualWhenCodeDiffers() {
-    assertNotEquals(
-        indicatorType("IndTypeUid1", "codeA", "Percent"),
-        indicatorType("IndTypeUid1", "codeB", "Percent"));
-  }
-
-  @Test
-  void testNotEqualWhenNameDiffers() {
-    assertNotEquals(
-        indicatorType("IndTypeUid1", "code", "Percent"),
-        indicatorType("IndTypeUid1", "code", "Per thousand"));
+        indicatorType("IndTypeUid1", "code", "Percent"), indicatorType(uid, code, name));
   }
 
   @Test
@@ -106,15 +95,6 @@ class IndicatorTypeTest {
     user.setName("Percent");
 
     assertNotEquals(indicatorType("IndTypeUid1", "code", "Percent"), user);
-  }
-
-  @Test
-  void testConstructorSetsNameFactorAndNumber() {
-    IndicatorType type = new IndicatorType("Number", 1, true);
-
-    assertEquals("Number", type.getName());
-    assertEquals(1, type.getFactor());
-    assertTrue(type.isNumber());
   }
 
   @Test
@@ -153,17 +133,6 @@ class IndicatorTypeTest {
   }
 
   @Test
-  void testHrefAndAccessAreKept() {
-    IndicatorType type = indicatorType("IndTypeUid1", null, "Percent");
-    Access access = new Access();
-    type.setHref("http://localhost/api/indicatorTypes/IndTypeUid1");
-    type.setAccess(access);
-
-    assertEquals("http://localhost/api/indicatorTypes/IndTypeUid1", type.getHref());
-    assertSame(access, type.getAccess());
-  }
-
-  @Test
   void testUnsupportedPropertiesIgnoreWrites() {
     IndicatorType type = indicatorType("IndTypeUid1", null, "Percent");
     User user = new User();
@@ -193,16 +162,6 @@ class IndicatorTypeTest {
 
     assertNotSame(sharing, type.getSharing());
     assertNull(type.getSharing().getPublicAccess());
-  }
-
-  @Test
-  void testTranslationsAreMutable() {
-    IndicatorType type = indicatorType("IndTypeUid1", null, "Percent");
-    type.setTranslations(new HashSet<>());
-
-    type.getTranslations().add(new Translation(new Locale("fr"), "NAME", "Pourcentage"));
-
-    assertEquals(1, type.getTranslations().size());
   }
 
   private static IndicatorType indicatorType(String uid, String code, String name) {

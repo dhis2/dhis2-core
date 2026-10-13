@@ -134,7 +134,7 @@ class IndicatorTypeControllerTest extends PostgresControllerIntegrationTestBase 
     assertEquals("Per hundred", indicatorType.getString("name").string());
   }
 
-  /** The keys of an exported type, as on a pre-migration instance. */
+  /** The keys of an exported type, as on a pre-migration instance, with href and access set. */
   @Test
   void testExportedProperties() {
     importMetadata(
@@ -160,6 +160,10 @@ class IndicatorTypeControllerTest extends PostgresControllerIntegrationTestBase 
             "translations"),
         Set.copyOf(type.names()));
     assertEquals(Set.of("users", "userGroups"), Set.copyOf(type.getObject("sharing").names()));
+    assertTrue(
+        type.getString("href").string().endsWith("/indicatorTypes/" + TYPE_UID),
+        type.getString("href").string());
+    assertTrue(type.getObject("access").getBoolean("read").booleanValue());
   }
 
   /** Same property set and persisted properties as before the migration. */
