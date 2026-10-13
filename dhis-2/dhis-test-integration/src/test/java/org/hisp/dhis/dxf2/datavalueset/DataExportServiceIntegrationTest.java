@@ -285,8 +285,12 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private ImportSummary importXml(InputStream json) {
+    return importXml(json, new ImportOptions());
+  }
+
+  private ImportSummary importXml(InputStream json, ImportOptions options) {
     try {
-      return dataEntryPipeline.importXml(json, new ImportOptions(), transitory());
+      return dataEntryPipeline.importXml(json, options, transitory());
     } catch (BadRequestException ex) {
       fail("Bad input", ex);
       return null;
@@ -994,6 +998,28 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(ErrorCode.E8022, conflict.getErrorCode());
     assertEquals(
         "Data set pBOMPrpg1QX not usable with org unit(s): `[j7Hg26FpoIa]`", conflict.getValue());
+  }
+
+  @Test
+  void testImportForceDeleteDataValuesWithOrgUnitOutsideHierarchy() {
+    assertDataValuesCount(0);
+
+    ImportOptions options = new ImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetE.xml"), options);
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+
+    // now with force (tests runs as superuser)
+    options = new ImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+    options.setForce(true);
+    summary = importXml(readFile("dxf2/datavalueset/dataValueSetE.xml"), options);
+
+    assertEquals(ImportStatus.SUCCESS, summary.getStatus());
+    assertEquals(3, summary.getImportCount().getIgnored());
+    assertEquals(0, summary.getImportCount().getDeleted());
+    assertDataValuesCount(0);
   }
 
   @Test

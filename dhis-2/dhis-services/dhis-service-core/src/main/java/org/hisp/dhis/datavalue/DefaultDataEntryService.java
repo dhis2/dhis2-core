@@ -457,8 +457,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public DataEntrySummary upsertGroup(
       @Nonnull Options options, @Nonnull DataEntryGroup group, @Nonnull JobProgress progress)
       throws ConflictException {
-    boolean deletionsOnly = group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE);
-
     List<DataEntryError> errors = new ArrayList<>();
     DataEntryGroup.Scope deletion = group.deletion();
     if (deletion != null) {
@@ -466,15 +464,16 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       progress.startingStage("Validating deletion scope " + deletion);
       progress.runStageAndRethrow(
           ConflictException.class,
-          () -> validate(options.force(), deletionsOnly, group.dataSet(), source, errors));
+          () -> validate(options.force(), true, group.dataSet(), source, errors));
     }
 
     DataEntryGroup valid = null;
     List<DataEntryValue> values = group.values();
     int entered = values.size();
     int attempted = entered;
+    boolean deletionsOnly = group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE);
     if (!values.isEmpty()) {
-      ValidationSource source = new ValuesValidationSource(values);
+      ValidationSource source = ValidationSource.of(values);
       progress.startingStage("Validating group " + group.describe());
       valid =
           progress.runStageAndRethrow(
@@ -534,7 +533,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       throws ConflictException, BadRequestException {
     DataEntryValue value = key.toDeletedValue();
     List<DataEntryError> errors = new ArrayList<>(1);
-    ValidationSource source = new ValuesValidationSource(List.of(value));
+    ValidationSource source = ValidationSource.of(List.of(value));
     DataEntryGroup valid = validate(force, true, dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     boolean deleted = store.deleteByKeys(List.of(key)) > 0;
@@ -548,7 +547,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public LockStatus getEntryStatus(UID dataSet, @Nonnull DataValueKey key)
       throws ConflictException {
     DataEntryValue e = key.toDeletedValue();
-    ValidationSource source = new ValuesValidationSource(List.of(e));
+    ValidationSource source = ValidationSource.of(List.of(e));
     UID ds = dataSet != null ? dataSet : autoTargetDataSet(source);
     try {
       validateEntryTimeliness(ds, source);
