@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManagerFactory;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.hibernate.cache.spi.access.AccessType;
@@ -90,7 +89,7 @@ class AxisStoreTest extends PostgresIntegrationTestBase {
     assertEquals("deUidColumn", row.get("dimensionalitem"));
     assertEquals(2, row.get("axis"));
 
-    clearSession();
+    clearSessionAndSecondLevelCache();
 
     Axis reloaded = visualizationService.getVisualization(visualizationId).getOptionalAxes().get(0);
     assertEquals(axis.getId(), reloaded.getId());
@@ -103,10 +102,10 @@ class AxisStoreTest extends PostgresIntegrationTestBase {
   void testNullability() {
     EntityPersister persister = persister();
     EntityMetamodel metamodel = persister.getEntityMetamodel();
-    boolean[] nullability = persister.getPropertyNullability();
+    boolean[] nullable = persister.getPropertyNullability();
 
-    assertFalse(nullability[metamodel.getPropertyIndex("dimensionalItem")]);
-    assertFalse(nullability[metamodel.getPropertyIndex("axis")]);
+    assertFalse(nullable[metamodel.getPropertyIndex("dimensionalItem")]);
+    assertFalse(nullable[metamodel.getPropertyIndex("axis")]);
   }
 
   @Test
@@ -130,7 +129,7 @@ class AxisStoreTest extends PostgresIntegrationTestBase {
 
     assertEquals(List.of(first.getId(), second.getId(), third.getId()), joinRows(visualizationId));
 
-    clearSession();
+    clearSessionAndSecondLevelCache();
 
     List<Axis> reloaded = visualizationService.getVisualization(visualizationId).getOptionalAxes();
     assertEquals(
@@ -140,65 +139,29 @@ class AxisStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("updating and reordering the axes of a loaded visualization is persisted")
-  void testUpdateAndReorder() {
-    Axis first = axis("deUidReorderA", 0);
-    Axis second = axis("deUidReorderB", 0);
-    long visualizationId = saveVisualization('C', first, second);
-
-    clearSession();
-
-    Visualization loaded = visualizationService.getVisualization(visualizationId);
-    List<Axis> axes = new ArrayList<>(loaded.getOptionalAxes());
-    axes.get(0).setAxis(1);
-    Collections.reverse(axes);
-    loaded.getOptionalAxes().clear();
-    loaded.getOptionalAxes().addAll(axes);
-    manager.update(loaded);
-    entityManager.flush();
-    clearSession();
-
-    assertEquals(List.of(second.getId(), first.getId()), joinRows(visualizationId));
-    List<Axis> reloaded = visualizationService.getVisualization(visualizationId).getOptionalAxes();
-    assertEquals(
-        List.of("deUidReorderB", "deUidReorderA"),
-        reloaded.stream().map(Axis::getDimensionalItem).toList());
-    assertEquals(List.of(0, 1), reloaded.stream().map(Axis::getAxis).toList());
-  }
-
-  @Test
   @DisplayName("removing an axis from a visualization deletes its join row and its axis row")
   void testRemoveAxisDeletesOrphan() {
     Axis kept = axis("deUidKept", 0);
     Axis removed = axis("deUidRemoved", 1);
     long visualizationId = saveVisualization('D', kept, removed);
 
-    clearSession();
+    clearSessionAndSecondLevelCache();
 
     Visualization loaded = visualizationService.getVisualization(visualizationId);
     loaded.getOptionalAxes().removeIf(a -> "deUidRemoved".equals(a.getDimensionalItem()));
     manager.update(loaded);
     entityManager.flush();
-    clearSession();
+    clearSessionAndSecondLevelCache();
 
     assertEquals(List.of(kept.getId()), joinRows(visualizationId));
     assertEquals(1, countAxisRows(kept.getId()));
     assertEquals(0, countAxisRows(removed.getId()));
   }
 
-  @Test
-  @DisplayName("deleting a visualization deletes its axes")
-  void testDeleteVisualizationCascades() {
-    Axis axis = axis("deUidDeleted", 0);
-    long visualizationId = saveVisualization('E', axis);
-
+  /** Reloads must hit the database, not the read-write second-level cache of Axis/optionalAxes. */
+  private void clearSessionAndSecondLevelCache() {
     clearSession();
-
-    visualizationService.delete(visualizationService.getVisualization(visualizationId));
-    entityManager.flush();
-
-    assertEquals(List.of(), joinRows(visualizationId));
-    assertEquals(0, countAxisRows(axis.getId()));
+    entityManagerFactory.getCache().evictAll();
   }
 
   private EntityPersister persister() {

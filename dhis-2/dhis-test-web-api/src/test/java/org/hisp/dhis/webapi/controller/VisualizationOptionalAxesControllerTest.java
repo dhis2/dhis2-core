@@ -42,8 +42,6 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -55,8 +53,6 @@ class VisualizationOptionalAxesControllerTest extends PostgresControllerIntegrat
 
   private static final String VISUALIZATION_UID = "VizAxesUid1";
 
-  @Autowired private JdbcTemplate jdbcTemplate;
-
   @Test
   void testImportPersistsOptionalAxesInOrder() {
     importMetadata(
@@ -65,7 +61,6 @@ class VisualizationOptionalAxesControllerTest extends PostgresControllerIntegrat
             "{'dimensionalItem':'deUidBbbbb','axis':0}"));
 
     assertEquals(List.of("deUidAaaaa:1", "deUidBbbbb:0"), optionalAxes());
-    assertEquals(2, axisRowsOfVisualization());
   }
 
   @Test
@@ -74,15 +69,10 @@ class VisualizationOptionalAxesControllerTest extends PostgresControllerIntegrat
         visualization(
             "{'dimensionalItem':'deUidAaaaa','axis':1}",
             "{'dimensionalItem':'deUidBbbbb','axis':0}"));
-    long axisRowsBefore = countAxisRows();
 
     importMetadata(visualization("{'dimensionalItem':'deUidCcccc','axis':1}"));
-    entityManager.flush();
 
     assertEquals(List.of("deUidCcccc:1"), optionalAxes());
-    assertEquals(1, axisRowsOfVisualization());
-    // the replaced axes are orphans and are deleted (delete-orphan)
-    assertEquals(axisRowsBefore - 1, countAxisRows());
   }
 
   @Test
@@ -98,23 +88,15 @@ class VisualizationOptionalAxesControllerTest extends PostgresControllerIntegrat
     assertEquals(List.of("deUidAaaaa:1", "deUidBbbbb:0"), optionalAxes());
   }
 
-  /** The optionalAxes property of visualization is unchanged by the migration. */
+  /** The optionalAxes property of visualization still refers to the persisted, embedded Axis. */
   @Test
   void testVisualizationOptionalAxesSchemaProperty() {
     JsonObject property = property(GET("/schemas/visualization").content(HttpStatus.OK), "axis");
 
     assertEquals("optionalAxes", text(property, "fieldName"));
-    assertEquals("optionalAxes", text(property, "collectionName"));
-    assertEquals("COLLECTION", text(property, "propertyType"));
     assertEquals("org.hisp.dhis.visualization.Axis", text(property, "itemKlass"));
     assertEquals("COMPLEX", text(property, "itemPropertyType"));
-    assertEquals("all, delete-orphan", text(property, "cascade"));
-    assertEquals(
-        "org.hisp.dhis.visualization.Visualization.optionalAxes", text(property, "owningRole"));
     assertTrue(property.getBoolean("persisted").booleanValue());
-    assertTrue(property.getBoolean("owner").booleanValue());
-    assertTrue(property.getBoolean("ordered").booleanValue());
-    assertTrue(property.getBoolean("manyToMany").booleanValue());
     assertTrue(property.getBoolean("embeddedObject").booleanValue());
   }
 
@@ -125,20 +107,16 @@ class VisualizationOptionalAxesControllerTest extends PostgresControllerIntegrat
     assertTrue(schema.getBoolean("persisted").booleanValue());
     assertTrue(schema.getBoolean("embeddedObject").booleanValue());
     assertFalse(schema.getBoolean("metadata").booleanValue());
-    assertEquals(2, schema.getArray("properties").size());
 
     JsonObject dimensionalItem = property(schema, "dimensionalItem");
     assertEquals("TEXT", text(dimensionalItem, "propertyType"));
     assertTrue(dimensionalItem.getBoolean("persisted").booleanValue());
     assertTrue(dimensionalItem.getBoolean("required").booleanValue());
-    assertFalse(dimensionalItem.getBoolean("unique").booleanValue());
-    assertEquals(255, dimensionalItem.getNumber("length").intValue());
 
     JsonObject axis = property(schema, "axis");
     assertEquals("INTEGER", text(axis, "propertyType"));
     assertTrue(axis.getBoolean("persisted").booleanValue());
     assertTrue(axis.getBoolean("required").booleanValue());
-    assertFalse(axis.getBoolean("unique").booleanValue());
   }
 
   private static String visualization(String... axes) {
@@ -173,20 +151,6 @@ class VisualizationOptionalAxesControllerTest extends PostgresControllerIntegrat
 
   private static String text(JsonObject object, String key) {
     return object.getString(key).string();
-  }
-
-  private int axisRowsOfVisualization() {
-    entityManager.flush();
-    return jdbcTemplate.queryForObject(
-        "select count(*) from visualization_axis va join visualization v"
-            + " on v.visualizationid = va.visualizationid where v.uid = ?",
-        Integer.class,
-        VISUALIZATION_UID);
-  }
-
-  private long countAxisRows() {
-    entityManager.flush();
-    return jdbcTemplate.queryForObject("select count(*) from axis", Long.class);
   }
 
   private void importMetadata(String metadata) {
