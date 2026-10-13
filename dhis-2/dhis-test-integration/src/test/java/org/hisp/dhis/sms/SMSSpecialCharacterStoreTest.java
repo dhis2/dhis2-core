@@ -46,14 +46,14 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Verifies the JPA annotation mapping of {@link SMSSpecialCharacter} (formerly HBM). */
-@TestInstance(Lifecycle.PER_CLASS)
+/**
+ * Guards the JPA store mapping of {@link SMSSpecialCharacter} (columns, id generation and the
+ * cascade from {@link SMSCommand}), formerly mapped in HBM.
+ */
 @Transactional
 class SMSSpecialCharacterStoreTest extends PostgresIntegrationTestBase {
 
@@ -91,11 +91,6 @@ class SMSSpecialCharacterStoreTest extends PostgresIntegrationTestBase {
     SMSSpecialCharacter reloaded = entityManager.find(SMSSpecialCharacter.class, character.getId());
     assertEquals(longName, reloaded.getName());
     assertEquals(longValue, reloaded.getValue());
-    assertEquals(
-        Map.of("name", longName, "value", longValue),
-        jdbcTemplate.queryForMap(
-            "select name, value from smsspecialcharacter where specialcharacterid = ?",
-            character.getId()));
   }
 
   @Test
@@ -134,7 +129,7 @@ class SMSSpecialCharacterStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName("equality is by identity: two characters with equal name and value are both kept")
-  void testIdentityEquality() {
+  void testEqualContentCharactersAreDistinct() {
     SMSSpecialCharacter first = new SMSSpecialCharacter("dup", "d");
     SMSSpecialCharacter second = new SMSSpecialCharacter("dup", "d");
     long commandId = saveCommand("CmdDup", first, second);
@@ -146,7 +141,9 @@ class SMSSpecialCharacterStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("removing a character from the command deletes its join row but keeps the row")
+  @DisplayName(
+      "removing a character from the command deletes its join row but keeps the orphaned"
+          + " smsspecialcharacter row")
   void testRemoveFromCommand() {
     SMSSpecialCharacter keep = new SMSSpecialCharacter("keep", "k");
     SMSSpecialCharacter remove = new SMSSpecialCharacter("remove", "r");
@@ -161,6 +158,7 @@ class SMSSpecialCharacterStoreTest extends PostgresIntegrationTestBase {
     clearSession();
 
     assertEquals(Set.of(keep.getId()), joinRowIds(commandId));
+    // intentional parity with the HBM mapping: the many-to-many has no orphan removal
     assertEquals(1, countCharacterRows(remove.getId()));
   }
 

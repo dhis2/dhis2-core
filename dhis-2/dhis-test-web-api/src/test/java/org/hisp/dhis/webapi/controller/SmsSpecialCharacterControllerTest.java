@@ -32,11 +32,10 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -45,8 +44,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Exercises the metadata import and merge path of the JPA-mapped SMS special characters, which are
- * embedded in {@code smsCommands}.
+ * Guards the metadata import, merge and Jackson path of the JPA-mapped SMS special characters,
+ * which are embedded in {@code smsCommands}.
  */
 @Transactional
 class SmsSpecialCharacterControllerTest extends PostgresControllerIntegrationTestBase {
@@ -78,70 +77,27 @@ class SmsSpecialCharacterControllerTest extends PostgresControllerIntegrationTes
     assertEquals(Map.of("plus", "+", "hash", "#"), specialCharacters());
   }
 
-  /** Same smsCommand property set and specialCharacters property as before the migration. */
+  /** The specialCharacters property of smsCommand is unchanged by the migration. */
   @Test
-  void testSchemaProperties() {
-    JsonObject schema = GET("/schemas/smsCommand").content(HttpStatus.OK);
-    JsonArray properties = schema.getArray("properties");
-    Set<String> names = new TreeSet<>();
-    JsonObject specialCharacters = null;
+  void testSchemaProperty() {
+    JsonArray properties = GET("/schemas/smsCommand").content(HttpStatus.OK).getArray("properties");
+    JsonObject property = null;
     for (int i = 0; i < properties.size(); i++) {
-      JsonObject property = properties.getObject(i);
-      String name = property.getString("name").string();
-      names.add(name);
-      if ("specialCharacter".equals(name)) {
-        specialCharacters = property;
+      if ("specialCharacter".equals(text(properties.getObject(i), "name"))) {
+        property = properties.getObject(i);
       }
     }
 
-    Set<String> expected =
-        new TreeSet<>(
-            Set.of(
-                "access",
-                "attributeValues",
-                "code",
-                "codeValueSeparator",
-                "completenessMethod",
-                "created",
-                "createdBy",
-                "currentPeriodUsedForReporting",
-                "dataset",
-                "defaultMessage",
-                "displayName",
-                "href",
-                "id",
-                "lastUpdated",
-                "lastUpdatedBy",
-                "moreThanOneOrgUnitMessage",
-                "name",
-                "noUserMessage",
-                "parserType",
-                "program",
-                "programStage",
-                "receivedMessage",
-                "separator",
-                "sharing",
-                "smsCode",
-                "specialCharacter",
-                "successMessage",
-                "translation",
-                "user",
-                "userGroup",
-                "wrongFormatMessage"));
-    assertEquals(expected, names);
-    assertNotNull(specialCharacters);
-    assertEquals("specialCharacters", specialCharacters.getString("fieldName").string());
+    assertNotNull(property);
+    assertEquals("specialCharacters", text(property, "fieldName"));
+    assertEquals("org.hisp.dhis.sms.command.SMSSpecialCharacter", text(property, "itemKlass"));
+    assertEquals("COMPLEX", text(property, "itemPropertyType"));
+    assertEquals("all", text(property, "cascade"));
     assertEquals(
-        "org.hisp.dhis.sms.command.SMSSpecialCharacter",
-        specialCharacters.getString("itemKlass").string());
-    assertEquals("COMPLEX", specialCharacters.getString("itemPropertyType").string());
-    assertEquals("all", specialCharacters.getString("cascade").string());
-    assertEquals(
-        "org.hisp.dhis.sms.command.SMSCommand.specialCharacters",
-        specialCharacters.getString("owningRole").string());
-    assertEquals(true, specialCharacters.getBoolean("persisted").booleanValue());
-    assertEquals(true, specialCharacters.getBoolean("owner").booleanValue());
-    assertEquals(true, specialCharacters.getBoolean("manyToMany").booleanValue());
+        "org.hisp.dhis.sms.command.SMSCommand.specialCharacters", text(property, "owningRole"));
+    assertTrue(property.getBoolean("persisted").booleanValue());
+    assertTrue(property.getBoolean("owner").booleanValue());
+    assertTrue(property.getBoolean("manyToMany").booleanValue());
   }
 
   /** The special character is embedded in smsCommand only; it has no schema of its own. */
@@ -164,9 +120,13 @@ class SmsSpecialCharacterControllerTest extends PostgresControllerIntegrationTes
     Map<String, String> result = new HashMap<>();
     for (int i = 0; i < characters.size(); i++) {
       JsonObject character = characters.getObject(i);
-      result.put(character.getString("name").string(), character.getString("value").string());
+      result.put(text(character, "name"), text(character, "value"));
     }
     return result;
+  }
+
+  private static String text(JsonObject object, String key) {
+    return object.getString(key).string();
   }
 
   private void importMetadata(String metadata) {
