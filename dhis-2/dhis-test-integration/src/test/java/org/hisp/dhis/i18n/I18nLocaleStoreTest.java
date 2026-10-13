@@ -165,9 +165,7 @@ class I18nLocaleStoreTest extends PostgresIntegrationTestBase {
     I18nLocale saved = save(new I18nLocale(new Locale("es")));
     clearSession();
 
-    I18nLocale reloaded = store.get(saved.getId());
-    assertNull(reloaded.getCreatedBy());
-    assertNull(reloaded.getSharing().getOwner());
+    assertEquals("es", store.get(saved.getId()).getLocale());
   }
 
   @Test

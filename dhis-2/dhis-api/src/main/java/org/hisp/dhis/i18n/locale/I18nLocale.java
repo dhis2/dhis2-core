@@ -397,7 +397,10 @@ public class I18nLocale implements IdentifiableObject {
     // Not supported
   }
 
-  /** I18nLocale does not support sharing. */
+  /**
+   * I18nLocale does not support sharing: there is no sharing column, so writes through the returned
+   * object are discarded.
+   */
   @Override
   @Deprecated(since = "2.44")
   @Sortable(value = false)
