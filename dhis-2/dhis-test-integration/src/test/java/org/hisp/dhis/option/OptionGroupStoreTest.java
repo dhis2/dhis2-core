@@ -255,9 +255,8 @@ class OptionGroupStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName(
-      "JPA: OptionGroup round-trips as a member of the still-HBM-mapped OptionGroupSet ordered list")
-  void testJpaOptionGroupAsHbmOptionGroupSetMember() {
+  @DisplayName("JPA: OptionGroup round-trips as a member of the OptionGroupSet ordered list")
+  void testJpaOptionGroupAsOptionGroupSetMember() {
     OptionGroup groupA = new OptionGroup("JpaGroupSetMemberA");
     groupA.setShortName("JpaGroupSetMemberA");
     OptionGroup groupB = new OptionGroup("JpaGroupSetMemberB");
@@ -271,20 +270,19 @@ class OptionGroupStoreTest extends PostgresIntegrationTestBase {
     optionGroupSetStore.save(groupSet);
     long groupSetId = groupSet.getId();
 
-    clearSession(); // force reload from DB - exercises the HBM <list> -> JPA entity edge
+    clearSession(); // force reload from DB
 
     OptionGroupSet reloaded = optionGroupSetStore.get(groupSetId);
     assertNotNull(reloaded);
-    // Order must be preserved (HBM <list-index column="sort_order" base="1">).
+    // Order must be preserved (sort_order, 1-based).
     assertEquals(
         List.of(groupA.getUid(), groupB.getUid()),
         reloaded.getMembers().stream().map(OptionGroup::getUid).toList());
   }
 
   @Test
-  @DisplayName(
-      "JPA: preserved HBM cascade=\"all\" on members - deleting the group also deletes its member Option")
-  void testJpaMembersCascadeAllDeletesOptions() {
+  @DisplayName("JPA: deleting the group keeps its member Option (no cascade, DHIS2-22154)")
+  void testJpaDeleteGroupKeepsOptions() {
     OptionSet optionSet = createOptionSet('L');
     optionSet.setValueType(ValueType.TEXT);
     optionSetStore.save(optionSet);
@@ -301,8 +299,6 @@ class OptionGroupStoreTest extends PostgresIntegrationTestBase {
 
     clearSession();
 
-    assertNull(
-        optionStore.get(optionId),
-        "cascade=\"all\" carried over from the HBM <set> must delete the member Option too");
+    assertNotNull(optionStore.get(optionId), "deleting a group must not delete its member Option");
   }
 }
