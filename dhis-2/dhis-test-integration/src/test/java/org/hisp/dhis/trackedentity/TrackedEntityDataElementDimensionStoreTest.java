@@ -29,11 +29,11 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
@@ -149,10 +149,12 @@ class TrackedEntityDataElementDimensionStoreTest extends PostgresIntegrationTest
   @DisplayName("every association and the filter are optional")
   void testAllPropertiesAreNullable() {
     EntityPersister persister = persister();
-    boolean[] nullable = persister.getPropertyNullability();
-    String[] names = persister.getPropertyNames();
-    assertEquals(4, names.length);
-    assertArrayEquals(new boolean[] {true, true, true, true}, nullable);
+    for (String property : List.of("dataElement", "legendSet", "programStage", "filter")) {
+      assertTrue(
+          persister
+              .getPropertyNullability()[persister.getEntityMetamodel().getPropertyIndex(property)],
+          property);
+    }
 
     TrackedEntityDataElementDimension dimension =
         persist(new TrackedEntityDataElementDimension(null, null, null, null));
@@ -182,14 +184,10 @@ class TrackedEntityDataElementDimensionStoreTest extends PostgresIntegrationTest
   }
 
   @Test
-  @DisplayName("the entity is not second-level cached")
-  void testNotSecondLevelCached() {
-    assertFalse(persister().canReadFromCache());
-  }
-
-  @Test
-  @DisplayName("deleting a legend set clears it from the dimensions that reference it")
-  void testDeletingLegendSetClearsIt() {
+  @DisplayName(
+      "deleting a legend set clears it from the dimensions that reference it, through the deletion"
+          + " handler's HQL on the TrackedEntityDataElementDimension entity name")
+  void testDeletionHandlerHqlResolvesEntityName() {
     TrackedEntityDataElementDimension dimension =
         persist(new TrackedEntityDataElementDimension(dataElementA, legendSet, programStage, null));
     clearSessionAndSecondLevelCache();

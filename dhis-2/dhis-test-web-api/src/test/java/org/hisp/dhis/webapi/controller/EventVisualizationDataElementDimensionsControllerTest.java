@@ -33,7 +33,6 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -42,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,21 +95,18 @@ class EventVisualizationDataElementDimensionsControllerTest
                 DATA_ELEMENT_UID));
   }
 
-  @Test
-  void testImportPersistsDataElementDimension() {
-    importMetadata(eventVisualization(LEGEND_SET_A_UID, "GT:5"));
-
-    assertEquals(List.of(dimension(LEGEND_SET_A_UID, "GT:5")), dimensions());
-  }
-
   /**
-   * Exports as clients do (the column with its legend set, program stage and filter), changes the
-   * legend set and filter and PUTs the export back: the controller rebuilds the data element
-   * dimension from the column.
+   * Imports a dimension through /api/metadata, then exports as clients do (the column with its
+   * legend set, program stage and filter), changes the legend set and filter and PUTs the export
+   * back: the controller rebuilds the data element dimension from the column.
    */
   @Test
   void testPutOfExportedEventVisualizationUpdatesDimension() throws Exception {
     importMetadata(eventVisualization(LEGEND_SET_A_UID, "GT:5"));
+    assertEquals(List.of(dimension(LEGEND_SET_A_UID, "GT:5")), dimensions());
+    // a fresh session, as per request in production: populating the columns of the same managed
+    // instance twice skips a data element dimension already added (addedElementsProgramStages)
+    startNewRequestSession();
     ObjectNode exported =
         (ObjectNode)
             JSON.readTree(
@@ -140,10 +135,9 @@ class EventVisualizationDataElementDimensionsControllerTest
     assertTrue(schema.getBoolean("persisted").booleanValue());
     assertFalse(schema.getBoolean("embeddedObject").booleanValue());
 
-    JsonArray properties = schema.getArray("properties");
     assertEquals(
         Set.of("dataElement", "legendSet", "programStage", "filter"),
-        properties.asList(JsonObject.class).stream()
+        schema.getList("properties", JsonObject.class).stream()
             .map(property -> text(property, "name"))
             .collect(Collectors.toSet()));
 
@@ -218,13 +212,9 @@ class EventVisualizationDataElementDimensionsControllerTest
   }
 
   private static JsonObject property(JsonObject schema, String name) {
-    JsonArray properties = schema.getArray("properties");
-    for (int i = 0; i < properties.size(); i++) {
-      if (name.equals(text(properties.getObject(i), "name"))) {
-        return properties.getObject(i);
-      }
-    }
-    return fail("no schema property " + name);
+    return schema
+        .getList("properties", JsonObject.class)
+        .first(property -> name.equals(text(property, "name")));
   }
 
   private static String text(JsonObject object, String key) {
