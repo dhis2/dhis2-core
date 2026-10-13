@@ -33,7 +33,6 @@ import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -59,6 +58,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -68,7 +68,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.AnalyticsType;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionItemKeywords;
@@ -305,19 +304,21 @@ public class DataElementGroupSet extends BaseMetadataObject
   }
 
   @Override
-  @JsonProperty
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JsonSerialize(contentAs = DimensionalItemObject.class)
-  @JsonDeserialize(contentAs = BaseDimensionalItemObject.class)
   @JacksonXmlElementWrapper(localName = "items", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "item", namespace = DxfNamespaces.DXF_2_0)
   public List<DimensionalItemObject> getItems() {
     return Lists.newArrayList(members);
   }
 
-  /** Items are derived from {@link #members}; setting them directly has no effect. */
+  /** Replaces {@link #members} with the given items, which must be data element groups. */
   @Override
   public void setItems(List<DimensionalItemObject> items) {
-    // Not supported
+    this.members =
+        items.stream()
+            .map(DataElementGroup.class::cast)
+            .collect(Collectors.toCollection(ArrayList::new));
   }
 
   @Override
@@ -556,6 +557,33 @@ public class DataElementGroupSet extends BaseMetadataObject
         .add("type", DimensionType.DATA_ELEMENT_GROUP_SET)
         .add("items", itemStr)
         .toString();
+  }
+
+  /** The form name falls back to the display name; it can be translated with the FORM_NAME key. */
+  @JsonProperty
+  @Sortable(whenPersisted = false)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "formName", key = "FORM_NAME")
+  public String getDisplayFormName() {
+    return translations.getTranslation("FORM_NAME", getDisplayName());
+  }
+
+  // -------------------------------------------------------------------------
+  // Unsupported NameableObject methods
+  // -------------------------------------------------------------------------
+
+  /** DataElementGroupSet does not support form name. */
+  @Deprecated(since = "2.44")
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getFormName() {
+    return null;
+  }
+
+  /** DataElementGroupSet does not support form name. */
+  @Deprecated(since = "2.44")
+  public void setFormName(String formName) {
+    // Not supported
   }
 
   // -------------------------------------------------------------------------

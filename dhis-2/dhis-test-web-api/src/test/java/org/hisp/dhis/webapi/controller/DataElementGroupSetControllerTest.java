@@ -97,10 +97,7 @@ class DataElementGroupSetControllerTest extends PostgresControllerIntegrationTes
     assertEquals(GROUP_SET_UID, groupSets.getObject(0).getString("id").string());
   }
 
-  /**
-   * Same property set as before the migration, minus {@code formName}/{@code displayFormName} which
-   * have no column in {@code dataelementgroupset}.
-   */
+  /** Same property set as before the migration. */
   @Test
   void testSchemaProperties() {
     JsonObject schema = GET("/schemas/dataElementGroupSet").content(HttpStatus.OK);
@@ -135,9 +132,11 @@ class DataElementGroupSetControllerTest extends PostgresControllerIntegrationTes
                 "dimensionItemKeywords",
                 "dimensionType",
                 "displayDescription",
+                "displayFormName",
                 "displayName",
                 "displayShortName",
                 "filter",
+                "formName",
                 "href",
                 "id",
                 "item",
@@ -156,6 +155,39 @@ class DataElementGroupSetControllerTest extends PostgresControllerIntegrationTes
                 "valueType"));
     assertEquals(expected, names);
     assertEquals(Integer.MAX_VALUE, description.getNumber("length").intValue());
+  }
+
+  @Test
+  void testDisplayFormNameFallsBackToDisplayName() {
+    importMetadata(groupSet("DeGroupUi01"));
+
+    JsonObject groupSet =
+        GET("/dataElementGroupSets/" + GROUP_SET_UID + "?fields=displayName,displayFormName")
+            .content(HttpStatus.OK);
+    assertEquals(
+        groupSet.getString("displayName").string(), groupSet.getString("displayFormName").string());
+  }
+
+  @Test
+  void testDimensionHidesMemberGroupsTheUserCannotRead() {
+    importMetadata(groupSet("DeGroupUi01", "DeGroupUi02", "DeGroupUi03"));
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/dataElementGroups/DeGroupUi02",
+            "[{'op':'replace','path':'/sharing/public','value':'--------'}]"));
+
+    switchToNewUser("dimensionReader");
+
+    JsonArray items =
+        GET("/dimensions/" + GROUP_SET_UID + "?fields=items[id]")
+            .content(HttpStatus.OK)
+            .getArray("items");
+    List<String> uids = new ArrayList<>();
+    for (int i = 0; i < items.size(); i++) {
+      uids.add(items.getObject(i).getString("id").string());
+    }
+    assertEquals(List.of("DeGroupUi01", "DeGroupUi03"), uids);
   }
 
   private static String groupSet(String... memberUids) {
