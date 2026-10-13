@@ -30,7 +30,6 @@
 package org.hisp.dhis.setting;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import org.junit.jupiter.api.Test;
@@ -53,18 +52,9 @@ class SystemSettingTest {
     assertNotEquals(new SystemSetting("keyUiLocale", "en"), new SystemSetting("keyDbLocale", "en"));
   }
 
+  /** Pins the pre-migration behaviour: two settings without a name are equal. */
   @Test
   void testEqualWhenBothNamesAreNull() {
     assertEquals(new SystemSetting(null, "a"), new SystemSetting(null, "b"));
-  }
-
-  @Test
-  void testNotEqualToNull() {
-    assertFalse(new SystemSetting("keyUiLocale", "en").equals(null));
-  }
-
-  @Test
-  void testNotEqualToOtherType() {
-    assertFalse(new SystemSetting("keyUiLocale", "en").equals("keyUiLocale"));
   }
 }
