@@ -866,6 +866,88 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyAggregatedEventQueryRestrictsStageForStageEventStatusWithoutItems() {
+    mockEmptyRowSet();
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(AGGREGATE)
+            .withOutputType(EventOutputType.EVENT)
+            .withAggregateData(true)
+            .addItem(
+                createStageItem(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME, ValueType.TEXT))
+            .build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void verifyAggregatedEventQueryRestrictsStageOnceForStageEventStatusWithItems() {
+    mockEmptyRowSet();
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    QueryItem stageEventStatusItem =
+        createStageItem(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME, ValueType.TEXT);
+    stageEventStatusItem.addFilter(new QueryFilter(QueryOperator.IN, "ACTIVE;COMPLETED"));
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(AGGREGATE)
+            .withOutputType(EventOutputType.EVENT)
+            .withAggregateData(true)
+            .addItem(stageEventStatusItem)
+            .build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void verifyEventQueryRestrictsStageForStageEventDateWithoutItems() {
+    mockEmptyRowSet();
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(QUERY)
+            .withOutputType(EventOutputType.EVENT)
+            .addItem(
+                createStageItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, ValueType.DATE))
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  private QueryItem createStageItem(String columnName, ValueType valueType) {
+    QueryItem item =
+        new QueryItem(
+            new BaseDimensionalItemObject(columnName),
+            programA,
+            null,
+            valueType,
+            AggregationType.NONE,
+            null);
+    item.setProgramStage(programStage);
+    return item;
+  }
+
+  @Test
   void verifyFirstAggregationTypeSubquery() {
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);

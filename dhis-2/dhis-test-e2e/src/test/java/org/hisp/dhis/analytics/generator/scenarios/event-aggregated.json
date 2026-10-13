@@ -475,6 +475,20 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "stageEventStatusWithoutItems",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=A03MvHHogjR.EVENT_STATUS,pe:2022&filter=ou:ImspTQPwCqd&displayProperty=NAME&outputType=EVENT&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageEventDateWithoutItems",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=A03MvHHogjR.EVENT_DATE&filter=pe:202201,ou:KIUCimTXf8Q&displayProperty=NAME&outputType=EVENT&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
