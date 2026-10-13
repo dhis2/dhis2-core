@@ -44,6 +44,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.input.ReplaceTranslationsParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.period.PeriodService;
@@ -94,7 +95,7 @@ public class RelativePeriodController {
   @RequiresAuthority(anyOf = ALL)
   @PutMapping
   public WebMessage putLabel(@RequestBody RelativePeriodPutLabelParams params)
-      throws NotFoundException {
+      throws NotFoundException, ConflictException {
     // kept for API backwards compatibility with 43
     return putLabel(params.name(), params.locale(), params.label());
   }
@@ -105,7 +106,7 @@ public class RelativePeriodController {
       @PathVariable("name") RelativePeriodEnum name,
       @RequestParam(required = false) Locale locale,
       @RequestParam(required = false) String value)
-      throws NotFoundException {
+      throws NotFoundException, ConflictException {
     if (periodService.updateRelativePeriodLabel(name, value, locale))
       return ok(name + " updated successfully.");
     throw new NotFoundException(RelativePeriodEnum.class, name.name());
@@ -117,7 +118,7 @@ public class RelativePeriodController {
   @ResponseBody
   public WebMessage replaceTranslations(
       @PathVariable("name") RelativePeriodEnum name, @RequestBody ReplaceTranslationsParams params)
-      throws NotFoundException {
+      throws NotFoundException, ConflictException {
 
     List<Translation> translations = params.translations();
     if (translations == null) translations = List.of();

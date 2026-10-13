@@ -52,7 +52,10 @@ import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;
@@ -72,6 +75,7 @@ public class DefaultPeriodService implements PeriodService {
   private final RelativePeriodStore relativePeriodStore;
   private final I18nManager i18nManager;
   private final ConfigurationService configurationService;
+  private final I18nLocaleService localeService;
 
   // -------------------------------------------------------------------------
   // Period
@@ -252,7 +256,9 @@ public class DefaultPeriodService implements PeriodService {
   @Override
   @IndirectTransactional
   public boolean updatePeriodTypeLabel(
-      @Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations) {
+      @Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations)
+      throws ConflictException {
+    validateLocales(translations.stream().map(Translation::getLocale));
     PERIOD_TYPES_CACHE.clear();
     return periodTypeStore.updateLabel(name, translations);
   }
@@ -260,7 +266,9 @@ public class DefaultPeriodService implements PeriodService {
   @Override
   @IndirectTransactional
   public boolean updatePeriodTypeLabel(
-      @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
+      @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale)
+      throws ConflictException {
+    if (locale != null) validateLocales(Stream.of(locale));
     PERIOD_TYPES_CACHE.clear();
     return periodTypeStore.updateLabel(name, label, locale);
   }
@@ -268,7 +276,9 @@ public class DefaultPeriodService implements PeriodService {
   @Override
   @IndirectTransactional
   public boolean updateRelativePeriodLabel(
-      @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations) {
+      @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations)
+      throws ConflictException {
+    validateLocales(translations.stream().map(Translation::getLocale));
     PERIOD_TYPES_CACHE.clear();
     return relativePeriodStore.updateLabel(name, translations);
   }
@@ -276,7 +286,9 @@ public class DefaultPeriodService implements PeriodService {
   @Override
   @IndirectTransactional
   public boolean updateRelativePeriodLabel(
-      @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
+      @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale)
+      throws ConflictException {
+    if (locale != null) validateLocales(Stream.of(locale));
     PERIOD_TYPES_CACHE.clear();
     return relativePeriodStore.updateLabel(name, label, locale);
   }
@@ -346,7 +358,7 @@ public class DefaultPeriodService implements PeriodService {
       Map<RelativePeriodEnum, PeriodTypes.Labels> relativePeriods =
           new EnumMap<>(RelativePeriodEnum.class);
       Stream.of(RelativePeriodEnum.values())
-          .filter(rp -> name == rp.value())
+          .filter(rp -> rp.appliesTo(name))
           .forEach(rp -> relativePeriods.put(rp, allRelativeLabels.get(rp)));
 
       PeriodTypes.PeriodTypeEntry e =
@@ -360,6 +372,16 @@ public class DefaultPeriodService implements PeriodService {
       entries.add(e);
     }
     return new PeriodTypes(locale, entries);
+  }
+
+  private void validateLocales(Stream<Locale> locales) throws ConflictException {
+    List<Locale> available = localeService.getAllLocales();
+    Iterator<Locale> iter = locales.iterator();
+    while (iter.hasNext()) {
+      Locale locale = iter.next();
+      if (!available.contains(locale))
+        throw new ConflictException(ErrorCode.E1135, locale, available);
+    }
   }
 
   // -------------------------------------------------------------------------

@@ -35,6 +35,7 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.translation.Translation;
 
 /**
@@ -242,7 +243,8 @@ public interface PeriodService {
    *     otherwise it is a translation for the given locale
    */
   boolean updatePeriodTypeLabel(
-      @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale);
+      @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale)
+      throws ConflictException;
 
   /**
    * Replaces the period type's translation labels with the given ones
@@ -252,7 +254,8 @@ public interface PeriodService {
    * @return true, if a change occurred, false if no row was affected
    */
   boolean updatePeriodTypeLabel(
-      @Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations);
+      @Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations)
+      throws ConflictException;
 
   /**
    * Updates the label of the given relative period.
@@ -263,7 +266,8 @@ public interface PeriodService {
    *     otherwise it is a translation for the given locale
    */
   boolean updateRelativePeriodLabel(
-      @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale);
+      @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale)
+      throws ConflictException;
 
   /**
    * Replaces the relative period's translation labels with the given ones
@@ -273,5 +277,6 @@ public interface PeriodService {
    * @return true, if a change occurred, false if no row was affected
    */
   boolean updateRelativePeriodLabel(
-      @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations);
+      @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations)
+      throws ConflictException;
 }
