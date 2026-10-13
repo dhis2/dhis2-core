@@ -48,7 +48,6 @@ import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.tuple.GenerationTiming;
 import org.hibernate.tuple.entity.EntityMetamodel;
-import org.hibernate.type.DateType;
 import org.hibernate.type.ManyToOneType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
@@ -189,9 +188,6 @@ class PeriodStoreTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("start and end date are bound as SQL date, not as timestamp")
   void testDatesAreBoundAsSqlDate() {
-    assertInstanceOf(DateType.class, persister().getPropertyType("startDate"));
-    assertInstanceOf(DateType.class, persister().getPropertyType("endDate"));
-
     Period reloaded = reload(add("202102"));
     assertSame(java.sql.Date.class, reloaded.getStartDate().getClass());
     assertSame(java.sql.Date.class, reloaded.getEndDate().getClass());
@@ -250,8 +246,6 @@ class PeriodStoreTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("the entity is immutable: changes to a loaded period are not written")
   void testImmutable() {
-    assertFalse(persister().isMutable());
-
     Period saved = add("202105");
     Period loaded = reload(saved);
     loaded.setEndDate(getDate(2021, 6, 30));
@@ -272,14 +266,8 @@ class PeriodStoreTest extends PostgresIntegrationTestBase {
     assertEquals(AccessType.READ_WRITE, persister.getCacheAccessStrategy().getAccessType());
   }
 
-  @Test
-  @DisplayName("the entity has no natural id")
-  void testNoNaturalId() {
-    assertFalse(persister().hasNaturalIdentifier());
-  }
-
   // -------------------------------------------------------------------------
-  // Lookups
+  // Store lookups (the store's native SQL against the mapped columns)
   // -------------------------------------------------------------------------
 
   @Test

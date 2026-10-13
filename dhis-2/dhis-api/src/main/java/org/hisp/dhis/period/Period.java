@@ -229,6 +229,11 @@ public class Period implements Serializable {
   /**
    * Returns an ISO8601 formatted string version of the period.
    *
+   * <p>The read-only {@code iso} mapping only mirrors the former HBM mapping: rows are written
+   * solely by the native SQL in {@code HibernatePeriodStore#save}, which sets {@code iso}. A
+   * Hibernate {@code persist()} would leave out the NOT NULL {@code iso} column and fail, so do not
+   * persist periods through the entity manager.
+   *
    * @return the period string
    */
   @Nonnull
