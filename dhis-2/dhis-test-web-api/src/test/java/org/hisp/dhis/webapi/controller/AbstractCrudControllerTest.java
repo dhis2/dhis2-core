@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -914,6 +915,95 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(1, stats.getUpdated());
     assertEquals(1, stats.getDeleted());
     assertUserGroupHasOnlyUser(groupId, peterUserId);
+  }
+
+  @Test
+  void testReplaceCollectionItemsJson_NonOwned_OnlyDifferenceIsApplied() {
+    String ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'OU A', 'shortName':'OUA', 'openingDate':'2020-01-01'}"));
+    String dsA = postMonthlyDataSet("Apple Data", "AD");
+    String dsB = postMonthlyDataSet("Banana Data", "BD");
+    String dsC = postMonthlyDataSet("Cherry Data", "CD");
+    String path = "/organisationUnits/" + ouId + "/dataSets";
+
+    assertReplaceStats(path, 2, 0, dsA, dsB);
+    assertCollectionIds("/organisationUnits/" + ouId, "dataSets", dsA, dsB);
+
+    // unchanged: nothing is removed and re-added
+    assertReplaceStats(path, 0, 0, dsA, dsB);
+    assertCollectionIds("/organisationUnits/" + ouId, "dataSets", dsA, dsB);
+
+    // one swapped: only dsA is removed and only dsC is added
+    assertReplaceStats(path, 1, 1, dsB, dsC);
+    assertCollectionIds("/organisationUnits/" + ouId, "dataSets", dsB, dsC);
+
+    assertReplaceStats(path, 0, 2);
+    assertCollectionIds("/organisationUnits/" + ouId, "dataSets");
+  }
+
+  @Test
+  void testReplaceCollectionItemsJson_Owned_OnlyDifferenceIsApplied() {
+    String ouA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'OU A', 'shortName':'OUA', 'openingDate':'2020-01-01'}"));
+    String ouB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'OU B', 'shortName':'OUB', 'openingDate':'2020-01-01'}"));
+    String dsId = postMonthlyDataSet("Apple Data", "AD");
+    String path = "/dataSets/" + dsId + "/organisationUnits";
+
+    assertReplaceStats(path, 1, 0, ouA);
+    assertReplaceStats(path, 0, 0, ouA);
+    assertReplaceStats(path, 1, 1, ouB);
+    assertCollectionIds("/dataSets/" + dsId, "organisationUnits", ouB);
+  }
+
+  private String postMonthlyDataSet(String name, String shortName) {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataSets/",
+            "{'name':'" + name + "', 'shortName':'" + shortName + "', 'periodType':'Monthly'}"));
+  }
+
+  private void assertReplaceStats(String path, int updated, int deleted, String... ids) {
+    // each HTTP request normally gets its own session, so do not let a stale inverse collection
+    // from the previous request leak into this one
+    manager.flush();
+    manager.clear();
+    String items = String.join(",", Arrays.stream(ids).map(id -> "{'id':'" + id + "'}").toList());
+    JsonStats stats =
+        PUT(path, "{'identifiableObjects':[" + items + "]}")
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class)
+            .getResponse()
+            .as(JsonTypeReport.class)
+            .getStats();
+    assertEquals(updated, stats.getUpdated(), "updated");
+    assertEquals(deleted, stats.getDeleted(), "deleted");
+  }
+
+  private void assertCollectionIds(String objectPath, String property, String... expected) {
+    manager.flush();
+    manager.clear();
+    JsonList<JsonIdentifiableObject> items =
+        GET(objectPath + "?fields=" + property + "[id]")
+            .content(HttpStatus.OK)
+            .getList(property, JsonIdentifiableObject.class);
+    assertEquals(
+        Set.of(expected),
+        Set.copyOf(items.toList(JsonIdentifiableObject::getId)),
+        property + " of " + objectPath);
   }
 
   @Test

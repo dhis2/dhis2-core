@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.security.oauth2.dcr;
 
+import static org.hisp.dhis.security.oauth2.OAuth2Constants.IAT_REDIRECT_URL_CLAIM;
 import static org.hisp.dhis.security.oauth2.OAuth2Constants.SCOPE_CLIENT_CREATE;
 import static org.hisp.dhis.security.oauth2.OAuth2Constants.SYSTEM_REGISTRAR_CLIENTID;
 
@@ -192,7 +193,7 @@ public class OAuth2DcrService {
             .subject(username)
             .id(UUID.randomUUID().toString()) // (jti) Unique token ID
             .claim("scope", SCOPE_CLIENT_CREATE)
-            .claim("redirect_url", redirectUri)
+            .claim(IAT_REDIRECT_URL_CLAIM, redirectUri)
             .build();
 
     JwsHeader jwsHeader = JwsHeader.with(SignatureAlgorithm.RS256).build();
@@ -258,9 +259,9 @@ public class OAuth2DcrService {
               .collect(java.util.stream.Collectors.toCollection(ArrayList::new)));
     }
 
-    Object redirectUrl = safe.get("redirect_url");
+    Object redirectUrl = safe.get(IAT_REDIRECT_URL_CLAIM);
     if (redirectUrl instanceof String s && !s.isBlank()) {
-      safe.put("redirect_url", s);
+      safe.put(IAT_REDIRECT_URL_CLAIM, s);
     }
 
     metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, safe);

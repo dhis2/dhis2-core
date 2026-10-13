@@ -161,7 +161,7 @@ public class Log4JLogConfigInitializer implements LogConfigInitializer {
         RollingFileAppender.newBuilder()
             .withFileName(file)
             .setName("appender_" + file)
-            .withFilePattern(file + ".%i")
+            .withFilePattern(file + ".%i.gz")
             .setLayout(PATTERN_LAYOUT)
             .withPolicy(
                 CronTriggeringPolicy.createPolicy(getLogConfiguration(), "true", "0 0 0 * * ?"))

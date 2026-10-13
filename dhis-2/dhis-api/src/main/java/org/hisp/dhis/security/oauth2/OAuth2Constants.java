@@ -70,6 +70,12 @@ public final class OAuth2Constants {
   /** Prefix shared by all reserved client-management scopes. */
   public static final String RESERVED_SCOPE_PREFIX = "client.";
 
+  /**
+   * Claim of a DCR Initial Access Token (IAT) that holds the redirect URI the enrolling device was
+   * sent to. A client registered with the IAT may only use this redirect URI.
+   */
+  public static final String IAT_REDIRECT_URL_CLAIM = "redirect_url";
+
   /** Scopes admin/metadata/DCR-assigned clients may carry. */
   public static final Set<String> ALLOWED_CLIENT_SCOPES =
       Set.of(SCOPE_OPENID, SCOPE_PROFILE, SCOPE_USERNAME, SCOPE_EMAIL);
