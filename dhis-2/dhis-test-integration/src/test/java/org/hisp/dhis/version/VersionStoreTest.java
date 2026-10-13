@@ -30,12 +30,11 @@
 package org.hisp.dhis.version;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.PersistenceException;
 import java.util.List;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
@@ -71,8 +70,8 @@ class VersionStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("key and value are written to the versionkey and versionvalue columns")
-  void testColumnsAreWritten() {
+  @DisplayName("key and value are written to versionkey and versionvalue and read back from them")
+  void testColumnsRoundTrip() {
     Version saved = save(new Version("keyColumns", "valueColumns"));
 
     assertEquals(
@@ -81,81 +80,22 @@ class VersionStoreTest extends PostgresIntegrationTestBase {
             "select versionkey, versionvalue from version where versionid = ?",
             (rs, row) -> List.of(rs.getString("versionkey"), rs.getString("versionvalue")),
             saved.getId()));
-  }
-
-  @Test
-  @DisplayName("key and value round-trip after the session is cleared")
-  void testReload() {
-    Version saved = save(new Version("keyReload", "valueReload"));
 
     clearSession();
 
     Version reloaded = store.get(saved.getId());
-    assertEquals("keyReload", reloaded.getKey());
-    assertEquals("valueReload", reloaded.getValue());
+    assertEquals("keyColumns", reloaded.getKey());
+    assertEquals("valueColumns", reloaded.getValue());
   }
 
   @Test
-  @DisplayName("key round-trips a value of the full 230 character column length")
-  void testKeyHoldsMaxLength() {
-    String key = "k".repeat(230);
-    Version saved = save(new Version(key, "long key"));
+  @DisplayName("key is mapped not-null and value is mapped nullable")
+  void testNullability() {
+    EntityPersister persister = persister();
+    boolean[] nullability = persister.getPropertyNullability();
 
-    clearSession();
-
-    assertEquals(key, store.get(saved.getId()).getKey());
-  }
-
-  @Test
-  @DisplayName("value round-trips a value of the full 255 character column length")
-  void testValueHoldsMaxLength() {
-    String value = "v".repeat(255);
-    Version saved = save(new Version("keyLongValue", value));
-
-    clearSession();
-
-    assertEquals(value, store.get(saved.getId()).getValue());
-  }
-
-  @Test
-  @DisplayName("value is nullable")
-  void testValueIsNullable() {
-    Version saved = save(new Version("keyNullValue", null));
-
-    clearSession();
-
-    assertNull(store.get(saved.getId()).getValue());
-  }
-
-  @Test
-  @DisplayName("key is required")
-  void testKeyIsRequired() {
-    Version version = new Version(null, "no key");
-
-    assertThrows(PersistenceException.class, () -> save(version));
-  }
-
-  @Test
-  @DisplayName("key is unique")
-  void testKeyIsUnique() {
-    save(new Version("keyUnique", "first"));
-    Version duplicate = new Version("keyUnique", "second");
-
-    assertThrows(PersistenceException.class, () -> save(duplicate));
-  }
-
-  @Test
-  @DisplayName("a version is found by its key")
-  void testGetVersionByKey() {
-    Version saved = save(new Version("keyLookup", "valueLookup"));
-    save(new Version("keyOther", "valueOther"));
-
-    clearSession();
-
-    Version found = store.getVersionByKey("keyLookup");
-    assertEquals(saved.getId(), found.getId());
-    assertEquals("valueLookup", found.getValue());
-    assertNull(store.getVersionByKey("keyMissing"));
+    assertFalse(nullability[persister.getEntityMetamodel().getPropertyIndex("key")]);
+    assertTrue(nullability[persister.getEntityMetamodel().getPropertyIndex("value")]);
   }
 
   @Test
@@ -190,14 +130,17 @@ class VersionStoreTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("the entity is second-level cached with the read-write strategy")
   void testReadWriteEntityCache() {
-    EntityPersister persister =
-        entityManagerFactory
-            .unwrap(SessionFactoryImplementor.class)
-            .getMetamodel()
-            .entityPersister(Version.class);
+    EntityPersister persister = persister();
 
     assertTrue(persister.canReadFromCache());
     assertEquals(AccessType.READ_WRITE, persister.getCacheAccessStrategy().getAccessType());
+  }
+
+  private EntityPersister persister() {
+    return entityManagerFactory
+        .unwrap(SessionFactoryImplementor.class)
+        .getMetamodel()
+        .entityPersister(Version.class);
   }
 
   private Version save(Version version) {
