@@ -214,8 +214,7 @@ class MetadataVersionControllerTest extends PostgresControllerIntegrationTestBas
   }
 
   @Test
-  @DisplayName(
-      "The version endpoint returns the keys of a persisted version as on a pre-migration instance")
+  @DisplayName("The version endpoint returns the pre-migration key set of a persisted version")
   void getPersistedMetadataVersionKeysTest() {
     POST("/systemSettings/keyVersionEnabled?value=true").success();
     String uid =
@@ -224,7 +223,7 @@ class MetadataVersionControllerTest extends PostgresControllerIntegrationTestBas
 
     JsonObject version = GET("/metadata/version?versionName=Version_1").content();
 
-    // play/dev has the same keys; its versions have no lastUpdatedBy
+    // lastUpdatedBy is omitted when null
     assertEquals(
         Set.of(
             "attributeValues",
@@ -248,8 +247,7 @@ class MetadataVersionControllerTest extends PostgresControllerIntegrationTestBas
   }
 
   @Test
-  @DisplayName(
-      "The create endpoint returns the creator, owner and public access set on save as before")
+  @DisplayName("The create endpoint returns the creator, owner and public access set on save")
   void createMetadataVersionKeysTest() {
     POST("/systemSettings/keyVersionEnabled?value=true").success();
 
@@ -280,7 +278,7 @@ class MetadataVersionControllerTest extends PostgresControllerIntegrationTestBas
   }
 
   @Test
-  @DisplayName("The versions endpoint returns the keys of a persisted version as on play/dev")
+  @DisplayName("The versions endpoint returns the pre-migration key set of a persisted version")
   void getPersistedMetadataVersionsKeysTest() {
     POST("/systemSettings/keyVersionEnabled?value=true").success();
     POST("/metadata/version/create?type=ATOMIC").success();
@@ -293,7 +291,7 @@ class MetadataVersionControllerTest extends PostgresControllerIntegrationTestBas
   }
 
   @Test
-  @DisplayName("The schema has the same properties and persisted properties as on play/dev")
+  @DisplayName("The schema returns the pre-migration property and persisted property sets")
   void getMetadataVersionSchemaPropertiesTest() {
     JsonObject schema = GET("/schemas/metadataVersion").content();
     JsonArray properties = schema.getArray("properties");

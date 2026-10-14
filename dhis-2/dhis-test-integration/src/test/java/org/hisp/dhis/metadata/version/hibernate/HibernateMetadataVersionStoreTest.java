@@ -61,7 +61,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
@@ -224,54 +223,34 @@ class HibernateMetadataVersionStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testTypeIsMappedAsNamedVarcharEnum() {
-    CustomType customType = assertInstanceOf(CustomType.class, persister().getPropertyType("type"));
-    EnumType<?> enumType = assertInstanceOf(EnumType.class, customType.getUserType());
+  void testPersisterMetadata() {
+    EntityPersister persister = persister();
+    EntityMetamodel metamodel = persister.getEntityMetamodel();
 
+    CustomType customType = assertInstanceOf(CustomType.class, persister.getPropertyType("type"));
+    EnumType<?> enumType = assertInstanceOf(EnumType.class, customType.getUserType());
     assertEquals(VersionType.class, enumType.returnedClass());
     assertFalse(enumType.isOrdinal());
     assertEquals(Types.VARCHAR, enumType.sqlTypes()[0]);
-  }
 
-  @ParameterizedTest
-  @ValueSource(strings = {"created", "lastUpdated", "importDate"})
-  void testDatesAreMappedAsTimestamps(String property) {
-    assertInstanceOf(TimestampType.class, persister().getPropertyType(property));
-  }
+    for (String property : List.of("created", "lastUpdated", "importDate")) {
+      assertInstanceOf(TimestampType.class, persister.getPropertyType(property), property);
+    }
 
-  @Test
-  void testLastUpdatedByIsLazy() {
-    ManyToOneType type =
-        assertInstanceOf(ManyToOneType.class, persister().getPropertyType("lastUpdatedBy"));
+    ManyToOneType lastUpdatedBy =
+        assertInstanceOf(ManyToOneType.class, persister.getPropertyType("lastUpdatedBy"));
+    assertFalse(lastUpdatedBy.isEager(null));
 
-    assertFalse(type.isEager(null));
-  }
+    for (String property : List.of("uid", "name", "hashCode", "created", "lastUpdated")) {
+      assertFalse(isNullable(property), property + " is mapped nullable");
+    }
+    for (String property : List.of("code", "type", "importDate", "lastUpdatedBy")) {
+      assertTrue(isNullable(property), property + " is mapped not-null");
+    }
 
-  @ParameterizedTest
-  @ValueSource(strings = {"uid", "name", "hashCode", "created", "lastUpdated"})
-  void testRequiredPropertiesAreMappedNotNull(String property) {
-    assertFalse(isNullable(property), property + " is mapped nullable");
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"code", "type", "importDate", "lastUpdatedBy"})
-  void testOptionalPropertiesAreMappedNullable(String property) {
-    assertTrue(isNullable(property), property + " is mapped not-null");
-  }
-
-  @Test
-  void testCreatedIsNotUpdatable() {
-    EntityPersister persister = persister();
-    EntityMetamodel metamodel = persister.getEntityMetamodel();
     boolean[] updateability = persister.getPropertyUpdateability();
-
     assertFalse(updateability[metamodel.getPropertyIndex("created")]);
     assertTrue(updateability[metamodel.getPropertyIndex("lastUpdated")]);
-  }
-
-  @Test
-  void testIsNotSecondLevelCached() {
-    EntityPersister persister = persister();
 
     assertFalse(persister.canWriteToCache());
     assertNull(persister.getCacheAccessStrategy());
