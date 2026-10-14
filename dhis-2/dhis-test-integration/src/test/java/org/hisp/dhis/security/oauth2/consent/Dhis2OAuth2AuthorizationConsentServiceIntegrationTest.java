@@ -314,47 +314,64 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
   }
 
   @Test
-  void testConsentFlowReadsPersistedRows() {
-    String principal = "flow-user";
-    authorizationConsentService.save(
-        OAuth2AuthorizationConsent.withId(registeredClient.getId(), principal)
-            .authority(new SimpleGrantedAuthority("SCOPE_profile"))
-            .authority(new SimpleGrantedAuthority("SCOPE_email"))
-            .build());
+  void testSavedConsentIsFoundFromPersistedRow() {
+    saveConsent("flow-save-user", "SCOPE_profile", "SCOPE_email");
+    clearSessionAndCache();
+
+    assertEquals(
+        Set.of("SCOPE_profile", "SCOPE_email"),
+        authorityNames(
+            authorizationConsentService.findById(registeredClient.getId(), "flow-save-user")));
+    assertEquals(Set.of("SCOPE_profile", "SCOPE_email"), storedAuthorities("flow-save-user"));
+  }
+
+  @Test
+  void testSavingAgainUpdatesAuthoritiesAndKeepsIdentity() {
+    saveConsent("flow-upsert-user", "SCOPE_profile", "SCOPE_email");
     clearSessionAndCache();
     Dhis2OAuth2AuthorizationConsent created =
         authorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
-            registeredClient.getId(), principal);
-    assertEquals(
-        Set.of("SCOPE_profile", "SCOPE_email"),
-        authorityNames(authorizationConsentService.findById(registeredClient.getId(), principal)));
-    assertEquals(Set.of("SCOPE_profile", "SCOPE_email"), storedAuthorities(principal));
+            registeredClient.getId(), "flow-upsert-user");
 
-    authorizationConsentService.save(
-        OAuth2AuthorizationConsent.withId(registeredClient.getId(), principal)
-            .authority(new SimpleGrantedAuthority("SCOPE_profile"))
-            .authority(new SimpleGrantedAuthority("SCOPE_address"))
-            .build());
+    saveConsent("flow-upsert-user", "SCOPE_profile", "SCOPE_address");
     clearSessionAndCache();
     Dhis2OAuth2AuthorizationConsent updated =
         authorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
-            registeredClient.getId(), principal);
+            registeredClient.getId(), "flow-upsert-user");
+
     assertEquals(created.getId(), updated.getId());
     assertEquals(created.getUid(), updated.getUid());
     assertEquals(created.getCreated(), updated.getCreated());
     assertEquals(
         Set.of("SCOPE_profile", "SCOPE_address"),
-        authorityNames(authorizationConsentService.findById(registeredClient.getId(), principal)));
-    assertEquals(Set.of("SCOPE_profile", "SCOPE_address"), storedAuthorities(principal));
-    assertEquals(1, countRows(principal));
+        authorityNames(
+            authorizationConsentService.findById(registeredClient.getId(), "flow-upsert-user")));
+    assertEquals(Set.of("SCOPE_profile", "SCOPE_address"), storedAuthorities("flow-upsert-user"));
+    assertEquals(1, countRows("flow-upsert-user"));
+  }
+
+  @Test
+  void testRemoveDeletesPersistedRow() {
+    saveConsent("flow-remove-user", "SCOPE_profile");
+    clearSessionAndCache();
 
     authorizationConsentService.remove(
-        OAuth2AuthorizationConsent.withId(registeredClient.getId(), principal)
+        OAuth2AuthorizationConsent.withId(registeredClient.getId(), "flow-remove-user")
             .authority(new SimpleGrantedAuthority("SCOPE_profile"))
             .build());
     clearSessionAndCache();
-    assertNull(authorizationConsentService.findById(registeredClient.getId(), principal));
-    assertEquals(0, countRows(principal));
+
+    assertNull(authorizationConsentService.findById(registeredClient.getId(), "flow-remove-user"));
+    assertEquals(0, countRows("flow-remove-user"));
+  }
+
+  private void saveConsent(String principal, String... authorities) {
+    OAuth2AuthorizationConsent.Builder builder =
+        OAuth2AuthorizationConsent.withId(registeredClient.getId(), principal);
+    for (String authority : authorities) {
+      builder.authority(new SimpleGrantedAuthority(authority));
+    }
+    authorizationConsentService.save(builder.build());
   }
 
   private static Set<String> authorityNames(OAuth2AuthorizationConsent consent) {

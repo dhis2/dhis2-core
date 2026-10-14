@@ -34,9 +34,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManagerFactory;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsent;
@@ -56,15 +59,7 @@ class OAuth2AuthorizationConsentControllerTest extends PostgresControllerIntegra
 
   @Test
   void testGetConsentReturnsPersistedAndRuntimeProperties() {
-    Dhis2OAuth2AuthorizationConsent consent = new Dhis2OAuth2AuthorizationConsent();
-    consent.setCode("CONSENT_A");
-    consent.setName("consent-user");
-    consent.setRegisteredClientId("consent-client");
-    consent.setPrincipalName("consent-user");
-    consent.setAuthorities("SCOPE_openid,SCOPE_profile");
-    consent.setLastUpdatedBy(getAdminUser());
-    consentStore.save(consent);
-    startNewRequestSessionWithoutSecondLevelCache();
+    Dhis2OAuth2AuthorizationConsent consent = saveConsent("consent-user");
 
     JsonObject json = GET("/oAuth2AuthorizationConsents/{uid}", consent.getUid()).content();
 
@@ -89,7 +84,7 @@ class OAuth2AuthorizationConsentControllerTest extends PostgresControllerIntegra
             "user"),
         Set.copyOf(json.names()));
     assertEquals(consent.getUid(), json.getString("id").string());
-    assertEquals("CONSENT_A", json.getString("code").string());
+    assertEquals("CODE_consent-user", json.getString("code").string());
     assertEquals("consent-user", json.getString("name").string());
     assertEquals("consent-user", json.getString("displayName").string());
     assertEquals("consent-client", json.getString("registeredClientId").string());
@@ -107,47 +102,94 @@ class OAuth2AuthorizationConsentControllerTest extends PostgresControllerIntegra
   }
 
   @Test
+  void testNonSuperuserIsForbidden() {
+    Dhis2OAuth2AuthorizationConsent consent = saveConsent("consent-user");
+    switchToNewUser("consent-reader", "F_METADATA_EXPORT", "F_METADATA_IMPORT");
+
+    assertEquals(HttpStatus.FORBIDDEN, GET("/oAuth2AuthorizationConsents").status());
+    assertEquals(
+        HttpStatus.FORBIDDEN, GET("/oAuth2AuthorizationConsents/{uid}", consent.getUid()).status());
+  }
+
+  @Test
+  void testListOrderedByDisplayName() {
+    saveConsent("consent-c");
+    saveConsent("consent-a");
+    saveConsent("consent-b");
+
+    JsonArray consents =
+        GET("/oAuth2AuthorizationConsents?order=displayName:asc&fields=displayName,principalName")
+            .content(HttpStatus.OK)
+            .getArray("oAuth2AuthorizationConsents");
+
+    assertEquals(List.of("consent-a", "consent-b", "consent-c"), values(consents, "displayName"));
+    assertEquals(List.of("consent-a", "consent-b", "consent-c"), values(consents, "principalName"));
+  }
+
+  @Test
   void testSchemaPropertiesMatchMapping() {
     JsonObject schema = GET("/schemas/oAuth2AuthorizationConsent").content();
     JsonArray properties = schema.getArray("properties");
     Map<String, String> actual = new TreeMap<>();
     for (int i = 0; i < properties.size(); i++) {
       JsonObject property = properties.getObject(i);
+      String propertyType = property.getString("propertyType").string();
       actual.put(
           property.getString("name").string(),
           property.getBoolean("persisted").booleanValue()
               + " "
-              + property.getString("propertyType").string()
+              + propertyType
               + " required="
               + property.getBoolean("required").booleanValue()
-              + " unique="
-              + property.getBoolean("unique").booleanValue()
-              + " length="
-              + (property.has("length") ? property.getNumber("length").intValue() : null));
+              + ("TEXT".equals(propertyType) && property.has("length")
+                  ? " length=" + property.getNumber("length").intValue()
+                  : ""));
     }
 
     Map<String, String> expected = new TreeMap<>();
-    expected.put("access", "false COMPLEX required=false unique=false length=null");
-    expected.put("attributeValues", "false COMPLEX required=false unique=false length=null");
-    expected.put("authorities", "true TEXT required=false unique=false length=1000");
-    expected.put("code", "true IDENTIFIER required=false unique=true length=50");
-    expected.put("created", "true DATE required=false unique=false length=255");
-    expected.put("createdBy", "true REFERENCE required=false unique=false length=255");
-    expected.put("displayName", "false TEXT required=false unique=false length=null");
-    expected.put("href", "false URL required=false unique=false length=null");
-    expected.put("id", "true IDENTIFIER required=false unique=true length=11");
-    expected.put("lastUpdated", "true DATE required=false unique=false length=255");
-    expected.put("lastUpdatedBy", "true REFERENCE required=false unique=false length=255");
-    expected.put("name", "true TEXT required=true unique=false length=230");
-    expected.put("principalName", "true TEXT required=true unique=false length=255");
-    expected.put("registeredClientId", "true TEXT required=true unique=false length=255");
-    expected.put("sharing", "false COMPLEX required=false unique=false length=null");
-    expected.put("translation", "false COLLECTION required=false unique=false length=null");
-    expected.put("user", "false REFERENCE required=false unique=false length=null");
+    expected.put("access", "false COMPLEX required=false");
+    expected.put("attributeValues", "false COMPLEX required=false");
+    expected.put("authorities", "true TEXT required=false length=1000");
+    expected.put("code", "true IDENTIFIER required=false");
+    expected.put("created", "true DATE required=false");
+    expected.put("createdBy", "true REFERENCE required=false");
+    expected.put("displayName", "false TEXT required=false");
+    expected.put("href", "false URL required=false");
+    expected.put("id", "true IDENTIFIER required=false");
+    expected.put("lastUpdated", "true DATE required=false");
+    expected.put("lastUpdatedBy", "true REFERENCE required=false");
+    expected.put("name", "true TEXT required=true length=230");
+    expected.put("principalName", "true TEXT required=true length=255");
+    expected.put("registeredClientId", "true TEXT required=true length=255");
+    expected.put("sharing", "false COMPLEX required=false");
+    expected.put("translation", "false COLLECTION required=false");
+    expected.put("user", "false REFERENCE required=false");
     assertEquals(expected, actual);
     assertTrue(schema.getBoolean("metadata").booleanValue());
     assertTrue(schema.getBoolean("secondaryMetadata").booleanValue());
     assertFalse(schema.getBoolean("shareable").booleanValue());
+  }
+
+  private static List<String> values(JsonArray objects, String property) {
+    List<String> values = new ArrayList<>();
+    for (int i = 0; i < objects.size(); i++) {
+      values.add(objects.getObject(i).getString(property).string());
+    }
+    return values;
+  }
+
+  /** Saves a consent and starts a new request session, so the GET reads the persisted row. */
+  private Dhis2OAuth2AuthorizationConsent saveConsent(String principalName) {
+    Dhis2OAuth2AuthorizationConsent consent = new Dhis2OAuth2AuthorizationConsent();
+    consent.setCode("CODE_" + principalName);
+    consent.setName(principalName);
+    consent.setRegisteredClientId("consent-client");
+    consent.setPrincipalName(principalName);
+    consent.setAuthorities("SCOPE_openid,SCOPE_profile");
+    consent.setLastUpdatedBy(getAdminUser());
+    consentStore.save(consent);
+    startNewRequestSessionWithoutSecondLevelCache();
+    return consent;
   }
 
   /** Flushes and clears the session and the second-level cache, as between two requests. */

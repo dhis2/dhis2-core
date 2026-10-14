@@ -60,8 +60,12 @@ class Dhis2OAuth2AuthorizationConsentTest {
     assertNotEquals(base, consent(c -> c.setPrincipalName("other-user")));
   }
 
+  /**
+   * Pins the pre-migration formula: {@code BaseIdentifiableObject}'s uid/code/name hash combined
+   * with the consent key through {@link Objects#hash}.
+   */
   @Test
-  void testHashCodeCombinesIdentityAndKey() {
+  void testHashCodeKeepsLegacyFormula() {
     Dhis2OAuth2AuthorizationConsent consent = consent(c -> {});
     int identity = "consentUid1".hashCode();
     identity = 31 * identity + "CODE_1".hashCode();

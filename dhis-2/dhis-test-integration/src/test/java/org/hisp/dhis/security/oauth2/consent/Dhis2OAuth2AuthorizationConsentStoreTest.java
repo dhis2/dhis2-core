@@ -158,7 +158,7 @@ class Dhis2OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBa
   }
 
   @Test
-  void testPersisterMetadata() {
+  void testMappingMatchesLegacyHbm() {
     AbstractEntityPersister persister = persister();
 
     assertEquals("oauth2_authorization_consent", persister.getTableName());
@@ -283,11 +283,14 @@ class Dhis2OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBa
     String authorities = "SCOPE_openid,SCOPE_profile,SCOPE_email,ROLE_x y";
     Dhis2OAuth2AuthorizationConsent many = newConsent("auth-client", "many-user", authorities);
     Dhis2OAuth2AuthorizationConsent none = newConsent("auth-client", "none-user", null);
+    Dhis2OAuth2AuthorizationConsent empty = newConsent("auth-client", "empty-user", "");
     save(many);
     save(none);
+    save(empty);
 
     assertEquals(authorities, reload(many).getAuthorities());
     assertNull(reload(none).getAuthorities());
+    assertEquals("", reload(empty).getAuthorities());
     assertNull(
         jdbcTemplate.queryForObject(
             "select authorities from oauth2_authorization_consent where id = ?",
