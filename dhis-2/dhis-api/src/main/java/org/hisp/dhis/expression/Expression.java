@@ -30,13 +30,30 @@
 package org.hisp.dhis.expression;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.TranslatableObject;
+import org.hisp.dhis.common.TranslationProperty;
+import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.Translation;
 
 /**
  * An Expression is the expression of e.g. a validation rule. It consist of a String representation
@@ -54,8 +71,11 @@ import org.hisp.dhis.translation.Translatable;
  *
  * @author Margrethe Store
  */
+@Entity
+@Table(name = "expression")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "expression", namespace = DxfNamespaces.DXF_2_0)
-public class Expression extends TranslatableObject implements Serializable, EmbeddedObject {
+public class Expression implements Serializable, EmbeddedObject {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = -4868682510629094282L;
 
@@ -66,23 +86,34 @@ public class Expression extends TranslatableObject implements Serializable, Embe
   public static final String EXP_CLOSE = "}";
 
   /** The unique identifier for this Expression. */
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "expressionid")
   private long id;
 
   /** The Expression. */
+  @Column(name = "expression", columnDefinition = "text")
+  @Type(type = "text")
   private String expression;
 
   /** A description of the Expression. */
+  @Column(name = "description")
   private String description;
 
   /** This expression should be given sliding window based data */
+  @Column(name = "slidingwindow")
   private Boolean slidingWindow = false;
 
   /**
    * Indicates whether the expression should evaluate to null if all or any data values are missing
    * in the expression.
    */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "missingvaluestrategy", length = 100)
   private MissingValueStrategy missingValueStrategy =
       MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+
+  @Embedded private TranslationProperty translations = new TranslationProperty();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -217,7 +248,7 @@ public class Expression extends TranslatableObject implements Serializable, Embe
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "description", key = "DESCRIPTION")
   public String getDisplayDescription() {
-    return getTranslation("DESCRIPTION", getDescription());
+    return translations.getTranslation("DESCRIPTION", getDescription());
   }
 
   @JsonProperty
@@ -238,5 +269,18 @@ public class Expression extends TranslatableObject implements Serializable, Embe
 
   public void setSlidingWindow(Boolean slidingWindow) {
     this.slidingWindow = slidingWindow;
+  }
+
+  @Gist(included = Gist.Include.FALSE)
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Translation> getTranslations() {
+    return translations.getTranslations();
+  }
+
+  /** Clears out the translation cache. A null set is stored as an empty set. */
+  public void setTranslations(Set<Translation> translations) {
+    this.translations.setTranslations(translations != null ? translations : new HashSet<>());
   }
 }
