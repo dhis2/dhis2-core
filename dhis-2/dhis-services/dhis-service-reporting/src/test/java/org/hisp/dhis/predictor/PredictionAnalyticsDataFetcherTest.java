@@ -30,6 +30,7 @@
 package org.hisp.dhis.predictor;
 
 import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
@@ -120,7 +121,7 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
     programA = createProgram('A');
     programB = createProgram('B');
 
-    fetcher = new PredictionAnalyticsDataFetcher(analyticsService, categoryService);
+    fetcher = new PredictionAnalyticsDataFetcher(analyticsService, categoryService, false);
   }
 
   // -------------------------------------------------------------------------
@@ -206,10 +207,11 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
     FoundDimensionItemValue expected3;
     FoundDimensionItemValue expected4;
 
-    expected1 = new FoundDimensionItemValue(orgUnitA, periodA, aocC, programIndicatorA, 10.0);
-    expected2 = new FoundDimensionItemValue(orgUnitA, periodB, aocC, programIndicatorB, 20.0);
-    expected3 = new FoundDimensionItemValue(orgUnitA, periodB, aocD, trackedEntityAttributeA, 30.0);
-    expected4 = new FoundDimensionItemValue(orgUnitB, periodA, aocC, programIndicatorA, 40.0);
+    expected1 = new FoundDimensionItemValue(orgUnitA, periodA, null, aocC, programIndicatorA, 10.0);
+    expected2 = new FoundDimensionItemValue(orgUnitA, periodB, null, aocC, programIndicatorB, 20.0);
+    expected3 =
+        new FoundDimensionItemValue(orgUnitA, periodB, null, aocD, trackedEntityAttributeA, 30.0);
+    expected4 = new FoundDimensionItemValue(orgUnitB, periodA, null, aocC, programIndicatorA, 40.0);
 
     // ---------------------------------------------------------------------
     // Items without Attribute Option Combos
@@ -270,9 +272,12 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
 
     CategoryOptionCombo noAoc = null;
 
-    expected5 = new FoundDimensionItemValue(orgUnitA, periodA, noAoc, programIndicatorC, 100.0);
-    expected6 = new FoundDimensionItemValue(orgUnitB, periodA, noAoc, programIndicatorD, 200.0);
-    expected7 = new FoundDimensionItemValue(orgUnitA, periodB, noAoc, programIndicatorC, 300.0);
+    expected5 =
+        new FoundDimensionItemValue(orgUnitA, periodA, null, noAoc, programIndicatorC, 100.0);
+    expected6 =
+        new FoundDimensionItemValue(orgUnitB, periodA, null, noAoc, programIndicatorD, 200.0);
+    expected7 =
+        new FoundDimensionItemValue(orgUnitA, periodB, null, noAoc, programIndicatorC, 300.0);
 
     // ---------------------------------------------------------------------
     // Do the test
@@ -287,6 +292,120 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
     assertContainsOnly(
         List.of(expected1, expected2, expected3, expected4, expected5, expected6, expected7),
         actual);
+  }
+
+  @Test
+  void testGetValuesWithDisaggregatedProgramIndicator() {
+    fetcher = new PredictionAnalyticsDataFetcher(analyticsService, categoryService, true);
+
+    CategoryOptionCombo cocE = createCategoryOptionCombo('E');
+    CategoryOptionCombo cocF = createCategoryOptionCombo('F');
+    CategoryOptionCombo aocC = createCategoryOptionCombo('C');
+
+    when(categoryService.getCategoryOptionCombo(cocE.getUid())).thenReturn(cocE);
+    when(categoryService.getCategoryOptionCombo(cocF.getUid())).thenReturn(cocF);
+    when(categoryService.getCategoryOptionCombo(aocC.getUid())).thenReturn(aocC);
+
+    // ---------------------------------------------------------------------
+    // Disaggregated program indicator, fetched in data value set format
+    // ---------------------------------------------------------------------
+
+    ProgramIndicator programIndicatorE =
+        createProgramIndicator('E', programA, "expressionE", "filterE");
+    programIndicatorE.setCategoryCombo(createCategoryCombo('E'));
+    programIndicatorE.setAggregateExportDataElement("aggExportDE");
+
+    DataQueryParams disagParams =
+        DataQueryParams.newBuilder()
+            .withPeriods(periods.stream().map(PeriodDimension::of).toList())
+            .withDataDimensionItems(List.of(programIndicatorE))
+            .withOrganisationUnits(orgUnits)
+            .build();
+
+    Grid disagGrid = new ListGrid();
+
+    disagGrid.addHeader(new GridHeader(DATA_X_DIM_ID, "Data", ValueType.TEXT, false, true));
+    disagGrid.addHeader(new GridHeader(PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true));
+    disagGrid.addHeader(new GridHeader(ORGUNIT_DIM_ID, "OrgUnit", ValueType.TEXT, false, true));
+    disagGrid.addHeader(
+        new GridHeader(CATEGORYOPTIONCOMBO_DIM_ID, "COC", ValueType.TEXT, false, true));
+    disagGrid.addHeader(
+        new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, false, true));
+    disagGrid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, true));
+
+    // Note: analytics returns the aggregate export data element instead of the program indicator
+    disagGrid
+        .addRow()
+        .addValue("aggExportDE")
+        .addValue(periodA.getIsoDate())
+        .addValue(orgUnitA.getUid())
+        .addValue(cocE.getUid())
+        .addValue(null)
+        .addValue(1.0);
+
+    disagGrid
+        .addRow()
+        .addValue("aggExportDE")
+        .addValue(periodA.getIsoDate())
+        .addValue(orgUnitA.getUid())
+        .addValue(cocF.getUid())
+        .addValue(aocC.getUid())
+        .addValue(2); // Note: boxed as Integer, not Double
+
+    when(analyticsService.getAggregatedDataValuesGrid(disagParams)).thenReturn(disagGrid);
+
+    FoundDimensionItemValue expected1 =
+        new FoundDimensionItemValue(orgUnitA, periodA, cocE, null, programIndicatorE, 1.0);
+    FoundDimensionItemValue expected2 =
+        new FoundDimensionItemValue(orgUnitA, periodA, cocF, aocC, programIndicatorE, 2.0);
+
+    // ---------------------------------------------------------------------
+    // Program indicator without disaggregation, fetched as usual
+    // ---------------------------------------------------------------------
+
+    ProgramIndicator programIndicatorG =
+        createProgramIndicator('G', programB, "expressionG", "filterG");
+
+    DataQueryParams aocParams =
+        DataQueryParams.newBuilder()
+            .withPeriods(periods.stream().map(PeriodDimension::of).toList())
+            .withDataDimensionItems(List.of(programIndicatorG))
+            .withOrganisationUnits(orgUnits)
+            .withAttributeOptionCombos(Collections.emptyList())
+            .build();
+
+    Grid aocGrid = new ListGrid();
+
+    aocGrid.addHeader(new GridHeader(PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true));
+    aocGrid.addHeader(new GridHeader(DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true));
+    aocGrid.addHeader(
+        new GridHeader(ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true));
+    aocGrid.addHeader(
+        new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, false, true));
+    aocGrid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, true));
+
+    aocGrid
+        .addRow()
+        .addValue(periodB.getIsoDate())
+        .addValue(programIndicatorG.getUid())
+        .addValue(orgUnitB.getUid())
+        .addValue(aocC.getUid())
+        .addValue(3.0);
+
+    when(analyticsService.getAggregatedDataValues(aocParams)).thenReturn(aocGrid);
+
+    FoundDimensionItemValue expected3 =
+        new FoundDimensionItemValue(orgUnitB, periodB, null, aocC, programIndicatorG, 3.0);
+
+    // ---------------------------------------------------------------------
+    // Do the test
+    // ---------------------------------------------------------------------
+
+    fetcher.init(periods, Set.of(programIndicatorE, programIndicatorG));
+
+    List<FoundDimensionItemValue> actual = fetcher.getValues(orgUnits);
+
+    assertContainsOnly(List.of(expected1, expected2, expected3), actual);
   }
 
   @Test
