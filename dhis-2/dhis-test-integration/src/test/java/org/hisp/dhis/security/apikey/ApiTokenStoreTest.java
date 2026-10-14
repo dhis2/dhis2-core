@@ -43,11 +43,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.hibernate.Hibernate;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.CustomType;
 import org.hibernate.type.EnumType;
 import org.hibernate.type.ManyToOneType;
@@ -273,6 +275,23 @@ class ApiTokenStoreTest extends PostgresIntegrationTestBase {
   @DisplayName("the entity is second-level cached read-write")
   void testEntityCacheIsReadWrite() {
     assertEquals(AccessType.READ_WRITE, persister().getCacheAccessStrategy().getAccessType());
+  }
+
+  @Test
+  @DisplayName("a loaded token and an uninitialized proxy of the same row are equal")
+  void testEqualsHandlesProxies() {
+    ApiToken token = createAndSaveToken().getApiToken();
+    clearSessionAndSecondLevelCache();
+    ApiToken loaded = entityManager.find(ApiToken.class, token.getId());
+    entityManager.detach(loaded);
+
+    ApiToken proxy = entityManager.getReference(ApiToken.class, token.getId());
+
+    assertInstanceOf(HibernateProxy.class, proxy);
+    assertFalse(Hibernate.isInitialized(proxy));
+    assertEquals(loaded, proxy);
+    assertEquals(proxy, loaded);
+    assertEquals(loaded.hashCode(), proxy.hashCode());
   }
 
   private TokenWrapper createAndSaveToken() {

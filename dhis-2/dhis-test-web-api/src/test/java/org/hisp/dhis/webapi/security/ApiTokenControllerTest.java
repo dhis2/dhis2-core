@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManagerFactory;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import org.hisp.dhis.http.HttpAssertions;
@@ -46,12 +47,15 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.apikey.ApiToken;
+import org.hisp.dhis.security.apikey.ApiTokenAttribute;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonApiToken;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -253,8 +257,16 @@ class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
     fetchAsEntity(token.getUid());
   }
 
-  @Test
-  void testPlaintextTokenIsNeitherStoredNorServed() {
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "/apiTokens/{uid}?fields=*",
+        "/apiTokens/{uid}?fields=:all",
+        "/apiTokens?fields=*",
+        "/apiTokens/{uid}/gist",
+        "/metadata?apiToken=true"
+      })
+  void testPlaintextTokenIsNeitherStoredNorServed(String url) {
     JsonObject created = assertApiTokenCreatedResponse(POST("/apiTokens/", "{}"));
     String uid = created.getString("uid").string();
     String plaintextToken = created.getString("key").string();
@@ -262,10 +274,11 @@ class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
 
     ApiToken token = fetchAsEntity(uid);
     assertFalse(token.getKey().contains(plaintextToken));
-    String json = GET("/apiTokens/{uid}?fields=*", uid).content(HttpStatus.OK).toJson();
+    String json = GET(url.replace("{uid}", uid)).content(HttpStatus.OK).toJson();
+    assertTrue(json.contains(uid), "token missing from " + url);
     assertFalse(json.contains(plaintextToken));
     assertFalse(json.contains(token.getKey()));
-    assertFalse(GET("/apiTokens/{uid}?fields=*", uid).content().has("key"));
+    assertFalse(json.contains("\"key\""));
   }
 
   @Test
@@ -305,9 +318,40 @@ class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
     String uid = createTokenWithAttributes();
     flushAndClear();
     String body = GET("/apiTokens/{uid}", uid).content(HttpStatus.OK).toJson();
+    ApiToken before = fetchAsEntity(uid);
+    Long expire = before.getExpire();
+    List<ApiTokenAttribute> attributes = before.getAttributes();
     switchContextToUser(userB);
 
-    assertStatus(HttpStatus.NOT_FOUND, PUT("/apiTokens/" + uid, body));
+    assertStatus(
+        HttpStatus.NOT_FOUND,
+        PUT("/apiTokens/" + uid, body.replace("1.1.1.1", "4.4.4.4").replace("GET", "PUT")));
+
+    switchContextToUser(userA);
+    flushAndClear();
+    ApiToken after = fetchAsEntity(uid);
+    assertEquals(expire, after.getExpire());
+    assertEquals(attributes, after.getAttributes());
+  }
+
+  @Test
+  void testPutCantChangeOwnerOrKey() {
+    String uid = createTokenWithAttributes();
+    flushAndClear();
+    String key = fetchAsEntity(uid).getKey();
+    String userBUid = userB.getUid();
+
+    JsonObject exported = GET("/apiTokens/{uid}", uid).content(HttpStatus.OK);
+    String body =
+        exported.toJson().replaceFirst("\\{", "{\"key\":\"x\",").replace(userA.getUid(), userBUid);
+    assertTrue(body.contains("\"owner\":\"" + userBUid + "\""));
+    assertStatus(HttpStatus.OK, PUT("/apiTokens/" + uid, body));
+    flushAndClear();
+
+    ApiToken after = fetchAsEntity(uid);
+    assertEquals(key, after.getKey());
+    assertEquals(userA.getUid(), after.getCreatedBy().getUid());
+    assertEquals(userA.getUid(), after.getSharing().getOwner());
   }
 
   @Test
