@@ -32,12 +32,17 @@ package org.hisp.dhis.webapi.controller.userdatastore;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
+import org.hisp.dhis.userdatastore.UserDatastoreEntry;
 import org.hisp.dhis.webapi.controller.UserDatastoreController;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -47,6 +52,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class UserDatastoreControllerTest extends H2ControllerIntegrationTestBase {
+
+  @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Autowired private EntityManagerFactory entityManagerFactory;
 
   @Test
   void testDeleteKeys() {
@@ -148,5 +157,23 @@ class UserDatastoreControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(HttpStatus.CREATED, PUT("/userDataStore/test/mykey", "{\"name\":\"harry\"}"));
     JsonWebMessage myKey = GET("/userDataStore/test/mykey").content().as(JsonWebMessage.class);
     assertEquals("harry", myKey.getString("name").string());
+  }
+
+  @Test
+  void testEncryptedEntryIsStoredEncryptedAndReturnedDecrypted() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/userDataStore/secrets/pin?encrypt=true", "{\"pin\":\"s3cr3t-1234\"}"));
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
+    entityManagerFactory.getCache().evict(UserDatastoreEntry.class);
+
+    String stored =
+        jdbcTemplate.queryForObject(
+            "select encrypted_value from userkeyjsonvalue where namespace = 'secrets'",
+            String.class);
+    assertFalse(stored.contains("s3cr3t-1234"), "the value must not be stored in plain text");
+    JsonWebMessage pin = GET("/userDataStore/secrets/pin").content().as(JsonWebMessage.class);
+    assertEquals("s3cr3t-1234", pin.getString("pin").string());
   }
 }

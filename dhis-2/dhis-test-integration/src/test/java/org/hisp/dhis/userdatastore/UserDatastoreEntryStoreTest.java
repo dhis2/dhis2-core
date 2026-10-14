@@ -31,11 +31,23 @@ package org.hisp.dhis.userdatastore;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
+import java.util.Map;
+import org.hibernate.cache.spi.access.AccessType;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.id.enhanced.SequenceStyleGenerator;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.type.CustomType;
+import org.hibernate.type.ManyToOneType;
+import org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType;
+import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryPlainStringType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -44,6 +56,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -56,6 +69,10 @@ class UserDatastoreEntryStoreTest extends PostgresIntegrationTestBase {
   @Autowired private UserDatastoreStore userDatastoreStore;
 
   @Autowired private UserService injectUserService;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Autowired private EntityManagerFactory entityManagerFactory;
 
   private User user;
 
@@ -306,6 +323,191 @@ class UserDatastoreEntryStoreTest extends PostgresIntegrationTestBase {
     assertFalse(
         userDatastoreStore.getEntry(user, "rollpath", "obj").getValue().contains("3"),
         "user A's nested array must be untouched");
+  }
+
+  // ---------------------------------------------------------------------------
+  // Mapping
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void testEncryptedValueIsStoredEncryptedAndReadBackDecrypted() {
+    String secret = "{\"password\": \"s3cr3t-value\"}";
+    UserDatastoreEntry entry = new UserDatastoreEntry("enc", "secret", secret, true);
+    entry.setCreatedBy(user);
+    userDatastoreStore.save(entry);
+    entityManager.flush();
+
+    Map<String, Object> row =
+        jdbcTemplate.queryForMap(
+            "select encrypted_value, jbvalue::text as jbvalue, encrypted from userkeyjsonvalue"
+                + " where userkeyjsonvalueid = ?",
+            entry.getId());
+    String stored = (String) row.get("encrypted_value");
+    assertNotNull(stored);
+    assertNotEquals(secret, stored);
+    assertFalse(stored.contains("s3cr3t-value"), "the secret must not be stored in plain text");
+    assertNull(row.get("jbvalue"), "an encrypted value must not be written to the jsonb column");
+    assertEquals(Boolean.TRUE, row.get("encrypted"));
+
+    UserDatastoreEntry reloaded = reload(entry);
+    assertTrue(reloaded.getEncrypted());
+    assertEquals(secret, reloaded.getEncryptedValue());
+    assertEquals(secret, reloaded.getValue());
+    assertNull(reloaded.getJbPlainValue());
+  }
+
+  @Test
+  void testPlainValueIsStoredAsJsonbAndNotEncrypted() {
+    UserDatastoreEntry entry = new UserDatastoreEntry("plain", "key", "{\"a\": 1}", false);
+    entry.setCreatedBy(user);
+    userDatastoreStore.save(entry);
+    entityManager.flush();
+
+    Map<String, Object> row =
+        jdbcTemplate.queryForMap(
+            "select encrypted_value, jbvalue::text as jbvalue, encrypted from userkeyjsonvalue"
+                + " where userkeyjsonvalueid = ?",
+            entry.getId());
+    assertEquals("{\"a\": 1}", row.get("jbvalue"));
+    assertNull(row.get("encrypted_value"));
+    assertEquals(Boolean.FALSE, row.get("encrypted"));
+
+    UserDatastoreEntry reloaded = reload(entry);
+    assertFalse(reloaded.getEncrypted());
+    assertEquals("{\"a\": 1}", reloaded.getJbPlainValue());
+    assertEquals("{\"a\": 1}", reloaded.getValue());
+    assertNull(reloaded.getEncryptedValue());
+  }
+
+  @Test
+  void testNewValueOfLoadedEntryIsWrittenOnFlush() {
+    UserDatastoreEntry plain = addEntry(user, "change", "plain", "{\"v\": 1}");
+    UserDatastoreEntry encrypted = new UserDatastoreEntry("change", "enc", "\"old\"", true);
+    encrypted.setCreatedBy(user);
+    userDatastoreStore.save(encrypted);
+
+    UserDatastoreEntry loadedPlain = reload(plain);
+    UserDatastoreEntry loadedEncrypted = userDatastoreStore.get(encrypted.getId());
+    loadedPlain.setValue("{\"v\": 2}");
+    loadedEncrypted.setValue("\"new\"");
+    entityManager.flush();
+
+    assertEquals(
+        "{\"v\": 2}",
+        jdbcTemplate.queryForObject(
+            "select jbvalue::text from userkeyjsonvalue where userkeyjsonvalueid = ?",
+            String.class,
+            plain.getId()));
+    assertEquals("\"new\"", reload(encrypted).getEncryptedValue());
+  }
+
+  @Test
+  void testColumnsRoundTrip() {
+    UserDatastoreEntry entry = new UserDatastoreEntry("columns", "the-key", "[1, 2]", false);
+    entry.setCode("UDE_CODE");
+    entry.setCreatedBy(user);
+    userDatastoreStore.save(entry);
+    entityManager.flush();
+
+    Map<String, Object> row =
+        jdbcTemplate.queryForMap(
+            "select uid, code, created, lastupdated, lastupdatedby, userid, namespace, userkey"
+                + " from userkeyjsonvalue where userkeyjsonvalueid = ?",
+            entry.getId());
+    assertEquals(entry.getUid(), row.get("uid"));
+    assertEquals("UDE_CODE", row.get("code"));
+    assertNotNull(row.get("created"));
+    assertNotNull(row.get("lastupdated"));
+    assertEquals(user.getId(), ((Number) row.get("lastupdatedby")).longValue());
+    assertEquals(user.getId(), ((Number) row.get("userid")).longValue());
+    assertEquals("columns", row.get("namespace"));
+    assertEquals("the-key", row.get("userkey"));
+
+    UserDatastoreEntry reloaded = reload(entry);
+    assertEquals(entry.getUid(), reloaded.getUid());
+    assertEquals("UDE_CODE", reloaded.getCode());
+    assertEquals(entry.getCreated().getTime(), reloaded.getCreated().getTime());
+    assertEquals(entry.getLastUpdated().getTime(), reloaded.getLastUpdated().getTime());
+    assertEquals(user.getUid(), reloaded.getLastUpdatedBy().getUid());
+    assertEquals(user.getUid(), reloaded.getCreatedBy().getUid());
+    assertEquals("columns", reloaded.getNamespace());
+    assertEquals("the-key", reloaded.getKey());
+  }
+
+  @Test
+  void testValueColumnsUseTheEncryptedAndJsonbUserTypes() {
+    EntityPersister persister = persister();
+
+    CustomType encryptedValue =
+        assertInstanceOf(CustomType.class, persister.getPropertyType("encryptedValue"));
+    assertInstanceOf(EncryptedStringUserType.class, encryptedValue.getUserType());
+    CustomType jbPlainValue =
+        assertInstanceOf(CustomType.class, persister.getPropertyType("jbPlainValue"));
+    assertInstanceOf(JsonBinaryPlainStringType.class, jbPlainValue.getUserType());
+  }
+
+  @Test
+  void testPersisterMetadata() {
+    EntityPersister persister = persister();
+
+    assertEquals(
+        List.of(
+            "code",
+            "created",
+            "createdBy",
+            "encrypted",
+            "encryptedValue",
+            "jbPlainValue",
+            "key",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "namespace",
+            "uid"),
+        List.of(persister.getPropertyNames()).stream().sorted().toList());
+
+    for (String property :
+        List.of("uid", "created", "lastUpdated", "createdBy", "namespace", "key")) {
+      assertFalse(isNullable(property), property + " is mapped nullable");
+    }
+    for (String property :
+        List.of("code", "lastUpdatedBy", "jbPlainValue", "encryptedValue", "encrypted")) {
+      assertTrue(isNullable(property), property + " is mapped not-null");
+    }
+
+    for (String property : List.of("createdBy", "lastUpdatedBy")) {
+      ManyToOneType type =
+          assertInstanceOf(ManyToOneType.class, persister.getPropertyType(property));
+      assertFalse(type.isEager(null), property + " is eager");
+    }
+
+    assertEquals(AccessType.READ_WRITE, persister.getCacheAccessStrategy().getAccessType());
+
+    SequenceStyleGenerator generator =
+        assertInstanceOf(SequenceStyleGenerator.class, persister.getIdentifierGenerator());
+    assertEquals(
+        "hibernate_sequence",
+        generator.getDatabaseStructure().getPhysicalName().getObjectName().getText());
+  }
+
+  private UserDatastoreEntry reload(UserDatastoreEntry entry) {
+    entityManager.flush();
+    clearSession();
+    entityManagerFactory.getCache().evict(UserDatastoreEntry.class);
+    return userDatastoreStore.get(entry.getId());
+  }
+
+  private EntityPersister persister() {
+    return entityManagerFactory
+        .unwrap(SessionFactoryImplementor.class)
+        .getMetamodel()
+        .entityPersister(UserDatastoreEntry.class);
+  }
+
+  /** {@link EntityPersister#getPropertyNullability()} holds a nullable flag per property. */
+  private boolean isNullable(String property) {
+    EntityPersister persister = persister();
+    return persister
+        .getPropertyNullability()[persister.getEntityMetamodel().getPropertyIndex(property)];
   }
 
   private UserDatastoreEntry addEntry(User owner, String namespace, String key, String value) {
