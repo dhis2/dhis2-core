@@ -37,9 +37,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.Set;
 import java.util.TreeSet;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +55,8 @@ class OrganisationUnitLevelControllerTest extends PostgresControllerIntegrationT
   private static final String LEVEL_UID = "OuLevelUid1";
 
   @Autowired private EntityManagerFactory entityManagerFactory;
+
+  @Autowired private ConfigurationService configurationService;
 
   @Test
   void testCreateAndUpdateViaMetadataImport() {
@@ -172,6 +177,71 @@ class OrganisationUnitLevelControllerTest extends PostgresControllerIntegrationT
         level.getString("href").string().endsWith("/organisationUnitLevels/" + LEVEL_UID),
         level.getString("href").string());
     assertTrue(level.getObject("access").getBoolean("read").booleanValue());
+  }
+
+  /** The nested level keys of a pre-migration instance: the identifiable properties only. */
+  @Test
+  void testConfigurationLevelsSerializeIdentifiableProperties() {
+    importMetadata(
+        "{'organisationUnitLevels':[{'id':'%s','name':'District','level':2,'offlineLevels':1}]}"
+            .formatted(LEVEL_UID));
+    Configuration configuration = configurationService.getConfiguration();
+    OrganisationUnitLevel level = manager.get(OrganisationUnitLevel.class, LEVEL_UID);
+    configuration.setOfflineOrganisationUnitLevel(level);
+    configuration.setFacilityOrgUnitLevel(level);
+    configurationService.setConfiguration(configuration);
+
+    startNewRequestSession();
+    entityManagerFactory.getCache().evictAll();
+    JsonObject json = GET("/configuration").content(HttpStatus.OK);
+    Set<String> expected =
+        Set.of(
+            "attributeValues",
+            "created",
+            "displayName",
+            "id",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "name",
+            "sharing",
+            "translations");
+    assertEquals(expected, Set.copyOf(json.getObject("offlineOrganisationUnitLevel").names()));
+    assertEquals(expected, Set.copyOf(json.getObject("facilityOrgUnitLevel").names()));
+    assertEquals(
+        "District", json.getObject("facilityOrgUnitLevel").getString("displayName").string());
+  }
+
+  /**
+   * As on a pre-migration instance, a predictor lists its levels as references, and field filtering
+   * still reaches every level property.
+   */
+  @Test
+  void testPredictorLevelsSerializeAsReferences() {
+    importMetadata(
+        ("{'organisationUnitLevels':[{'id':'%s','name':'District','level':2}],"
+                + "'dataElements':[{'id':'DataElemUid','name':'Output','shortName':'Output',"
+                + "'valueType':'INTEGER','aggregationType':'SUM','domainType':'AGGREGATE'}],"
+                + "'predictors':[{'id':'PredictoUid','name':'Predictor','shortName':'Predictor',"
+                + "'output':{'id':'DataElemUid'},'generator':{'expression':'1'},'periodType':'Monthly',"
+                + "'sequentialSampleCount':4,'annualSampleCount':3,"
+                + "'organisationUnitLevels':[{'id':'%s'}],'organisationUnitDescendants':'SELECTED'}]}")
+            .formatted(LEVEL_UID, LEVEL_UID));
+
+    startNewRequestSession();
+    entityManagerFactory.getCache().evictAll();
+    JsonArray levels =
+        GET("/predictors/PredictoUid").content(HttpStatus.OK).getArray("organisationUnitLevels");
+    assertEquals(1, levels.size());
+    assertEquals(Set.of("id"), Set.copyOf(levels.getObject(0).names()));
+    assertEquals(LEVEL_UID, levels.getObject(0).getString("id").string());
+
+    JsonObject level =
+        GET("/predictors/PredictoUid?fields=organisationUnitLevels[id,displayName,level]")
+            .content(HttpStatus.OK)
+            .getArray("organisationUnitLevels")
+            .getObject(0);
+    assertEquals("District", level.getString("displayName").string());
+    assertEquals(2, level.getNumber("level").intValue());
   }
 
   /** Same property set and persisted properties as before the migration. */

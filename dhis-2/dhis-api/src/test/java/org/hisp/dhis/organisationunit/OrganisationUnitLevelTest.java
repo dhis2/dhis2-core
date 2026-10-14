@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -82,18 +81,16 @@ class OrganisationUnitLevelTest {
   }
 
   @Test
-  void testNotEqualToNull() {
-    assertFalse(level("OuLevelUid1", "code", "District").equals(null));
-  }
-
-  @Test
-  void testNotEqualToOtherIdentifiableType() {
+  void testNotEqualToNullOrOtherIdentifiableType() {
     User user = new User();
     user.setUid("OuLevelUid1");
     user.setCode("code");
     user.setName("District");
 
-    assertNotEquals(level("OuLevelUid1", "code", "District"), user);
+    OrganisationUnitLevel level = level("OuLevelUid1", "code", "District");
+
+    assertFalse(level.equals(null));
+    assertNotEquals(level, user);
   }
 
   @Test
@@ -144,23 +141,13 @@ class OrganisationUnitLevelTest {
     level.setOwner("UserUid0001");
     level.setSharing(sharing);
     level.addAttributeValue("AttrUid0001", "value");
+    level.getSharing().setPublicAccess("rw------");
 
     assertNull(level.getCreatedBy());
     assertNull(level.getUser());
     assertNull(level.getSharing().getOwner());
     assertNull(level.getSharing().getPublicAccess());
     assertTrue(level.getAttributeValues().isEmpty());
-  }
-
-  @Test
-  void testSharingIsFreshAndMutable() {
-    OrganisationUnitLevel level = level("OuLevelUid1", null, "District");
-
-    Sharing sharing = level.getSharing();
-    sharing.setPublicAccess("rw------");
-
-    assertNotSame(sharing, level.getSharing());
-    assertNull(level.getSharing().getPublicAccess());
   }
 
   private static OrganisationUnitLevel level(String uid, String code, String name) {

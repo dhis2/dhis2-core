@@ -237,7 +237,7 @@ public class OrganisationUnitLevel implements IdentifiableObject, MetadataObject
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
-  @Description("The name of this Object. Required and unique.")
+  @Description("The name of this Object. Required.")
   @PropertyRange(min = 1)
   public String getName() {
     return name;

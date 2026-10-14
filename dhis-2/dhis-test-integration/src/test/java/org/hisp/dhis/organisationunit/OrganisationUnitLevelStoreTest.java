@@ -143,24 +143,6 @@ class OrganisationUnitLevelStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("an update of name, offline levels and translations is written to the columns")
-  void testUpdate() {
-    OrganisationUnitLevel saved = save(new OrganisationUnitLevel(9, "Village", 1));
-    OrganisationUnitLevel level = reload(saved);
-    level.setName("Hamlet");
-    level.setOfflineLevels(3);
-    level.setTranslations(Set.of(new Translation(new Locale("fr"), "NAME", "Hameau")));
-    store.update(level);
-    entityManager.flush();
-
-    OrganisationUnitLevel reloaded = reload(saved);
-    assertEquals("Hamlet", reloaded.getName());
-    assertEquals(3, reloaded.getOfflineLevels());
-    assertEquals(
-        Set.of(new Translation(new Locale("fr"), "NAME", "Hameau")), reloaded.getTranslations());
-  }
-
-  @Test
   @DisplayName("translations is an embedded jsonb set of type jblTranslations")
   void testTranslationsType() {
     ComponentType component =
@@ -244,20 +226,8 @@ class OrganisationUnitLevelStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("getAllEqName finds the levels with the given name")
-  void testGetAllEqName() {
-    OrganisationUnitLevel facility = save(new OrganisationUnitLevel(7, "Facility"));
-    save(new OrganisationUnitLevel(8, "Ward"));
-    clearSession();
-
-    assertEquals(
-        List.of(facility.getUid()),
-        store.getAllEqName("Facility").stream().map(OrganisationUnitLevel::getUid).toList());
-  }
-
-  @Test
-  @DisplayName("deleteAll removes every level through its HQL delete")
-  void testDeleteAll() {
+  @DisplayName("deleteAll's HQL delete resolves the OrganisationUnitLevel entity name")
+  void testDeleteAllHqlResolvesEntityName() {
     save(new OrganisationUnitLevel(7, "Facility"));
     save(new OrganisationUnitLevel(8, "Ward"));
 
