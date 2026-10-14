@@ -244,8 +244,8 @@ public class PredictionAnalyticsDataFetcher {
     int vlInx = grid.getWidth() - 1;
 
     for (List<Object> row : grid.getRows()) {
-      Period period = periodLookup.get((String) row.get(peInx));
-      OrganisationUnit orgUnit = orgUnitLookup.get((String) row.get(ouInx));
+      Period period = periodLookup.get(row.get(peInx));
+      OrganisationUnit orgUnit = orgUnitLookup.get(row.get(ouInx));
       CategoryOptionCombo categoryOptionCombo = lookUpCoc((String) row.get(coInx));
       CategoryOptionCombo attributeOptionCombo = lookUpCoc((String) row.get(aoInx));
       Object value = getDoubleValue(row.get(vlInx));
