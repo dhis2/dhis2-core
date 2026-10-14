@@ -260,8 +260,10 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    *
    * <p>This is a single column update outside the entity lifecycle: it does not bump {@code
    * lastUpdated} and fires no Hibernate events, so it produces no audit entry and no cache
-   * invalidation message. Only the second-level cache entry of this user is evicted. A {@link User}
-   * already loaded in the current session keeps its previous last login date in memory.
+   * invalidation message for other servers. On this server it does the cache upkeep of an entity
+   * update: the second-level cache entry of this user is evicted, and cached {@link User} query
+   * results are invalidated, as they can depend on the last login. A {@link User} already loaded in
+   * the current session keeps its previous last login date in memory.
    *
    * @param userId the ID of the user
    * @param lastLogin the last login date to write

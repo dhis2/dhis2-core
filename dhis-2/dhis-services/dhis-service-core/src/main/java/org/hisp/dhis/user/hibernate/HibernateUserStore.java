@@ -41,6 +41,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.Root;
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -59,6 +60,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LockOptions;
+import org.hibernate.cache.spi.TimestampsCache;
+import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.jpa.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
@@ -672,9 +675,34 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     jdbcTemplate.update(
         "UPDATE userinfo SET lastlogin = ? WHERE userinfoid = ?", lastLogin, userId);
     // Bypasses Hibernate on purpose (no lastUpdated bump, no audit, no cache invalidation
-    // message), so evict the stale L2 entry ourselves. Other cluster nodes keep their cached
-    // last login until their L2 entry expires, see HibernateUserGroupStore#updateLastUpdated.
+    // message), so do the local cache upkeep of an entity update ourselves. Other cluster nodes
+    // keep their cached last login until their L2 entry expires, see
+    // HibernateUserGroupStore#updateLastUpdated.
     getSession().getSessionFactory().getCache().evictEntityData(User.class, userId);
+    invalidateUserQueryResults();
+  }
+
+  /**
+   * Marks the user table as changed for the query cache, as Hibernate does for an entity update:
+   * cached {@link User} query results are stale from now on, and again once the transaction
+   * completed. Without this, a query that filters or orders by last login, such as {@link
+   * #getUserByOpenId(String)}, keeps returning its old result until the cache entry expires.
+   *
+   * <p>A native query with synchronized query spaces would invalidate too, but it also evicts every
+   * cached {@link User} and every cached collection of users, on every login.
+   */
+  private void invalidateUserQueryResults() {
+    SessionImplementor session = getSession().unwrap(SessionImplementor.class);
+    Serializable[] userTables =
+        session.getFactory().getMetamodel().entityPersister(User.class).getQuerySpaces();
+    TimestampsCache timestampsCache = session.getFactory().getCache().getTimestampsCache();
+
+    timestampsCache.preInvalidate(userTables, session);
+    session
+        .getActionQueue()
+        .registerProcess(
+            (success, completedSession) ->
+                timestampsCache.invalidate(userTables, completedSession));
   }
 
   @Override
