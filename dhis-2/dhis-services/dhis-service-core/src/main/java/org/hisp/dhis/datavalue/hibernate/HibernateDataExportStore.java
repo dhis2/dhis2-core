@@ -124,26 +124,34 @@ public class HibernateDataExportStore implements DataExportStore {
   @Nonnull
   @Override
   public Stream<DataExportValue> exportValues(@Nonnull DataExportParams params) {
-    return createExportQuery(
-            params, NativeSQL.of(getSession()), CurrentUserUtil.getCurrentUserDetails())
-        .stream()
-        .map(DataExportValue::of);
-  }
-
-  static QueryBuilder createExportQuery(
-      DataExportParams params, SQL.QueryAPI api, UserDetails currentUser) {
-    boolean isSuper = currentUser.isSuper();
+    SQL.QueryAPI api = NativeSQL.of(getSession());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     // the AOCs the user can read data for are resolved upfront so the planner sees a known, small
     // list instead of guessing the size of a sharing-filtered set of all category option combos;
     // superusers are not restricted (they must be able to find invalid data), for everyone else
     // this also applies to explicit AOCs, as a second line behind the service's E2011 check
-    Long[] aocAllowed =
-        isSuper
-            ? new Long[0]
+    long[] aocAllowed =
+        currentUser.isSuper()
+            ? null
             : getAllowedAocIds(
                 api, currentUser, params.getAttributeOptionCombos(), aocScopeDataSets(params));
-    // an empty list erases its filter line, so "no readable AOC" needs a filter of its own
-    String noAocAccess = !isSuper && aocAllowed.length == 0 ? "false" : null;
+    if (aocAllowed != null && aocAllowed.length == 0) return Stream.empty();
+    return createExportQuery(params, api, currentUser, aocAllowed).stream()
+        .map(DataExportValue::of);
+  }
+
+  /**
+   * @param aocAllowed internal ids of the AOCs the values are limited to, null for no limit; must
+   *     not be empty (an empty list would erase the filter)
+   */
+  static QueryBuilder createExportQuery(
+      DataExportParams params,
+      SQL.QueryAPI api,
+      UserDetails currentUser,
+      @CheckForNull long[] aocAllowed) {
+    if (aocAllowed != null && aocAllowed.length == 0)
+      throw new IllegalArgumentException("AOC limit must not be empty");
+    boolean isSuper = currentUser.isSuper();
     String sql =
         """
       WITH
@@ -221,8 +229,7 @@ public class HibernateDataExportStore implements DataExportStore {
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
         AND ou.hierarchylevel = :level
-        AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)
-        AND :noAocAccess""";
+        AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)""";
 
     Date lastUpdated = params.getLastUpdated();
     if (lastUpdated == null && params.getLastUpdatedDuration() != null)
@@ -254,7 +261,6 @@ public class HibernateDataExportStore implements DataExportStore {
         .setParameter("lastUpdated", lastUpdated)
         .setParameter("deleted", params.isIncludeDeleted() ? null : false)
         .setParameter("aocAllowed", aocAllowed)
-        .setDynamicClause("noAocAccess", noAocAccess)
         .eraseNullParameterLines()
         // keep params below even when null
         .eraseJoinLine("de_ids", !params.hasDataElementFilters())
@@ -364,15 +370,15 @@ public class HibernateDataExportStore implements DataExportStore {
    *     read data of every category option, plus the default combo (no sharing guards on default),
    *     limited to the explicitly requested AOCs if there are any
    */
-  private static Long[] getAllowedAocIds(
+  private static long[] getAllowedAocIds(
       SQL.QueryAPI api,
       UserDetails user,
       @CheckForNull List<UID> attributeOptionCombos,
       @CheckForNull List<UID> dataSets) {
     // a single bigint column comes back as a plain number per row, not as an Object[] row
     return createAllowedAocQuery(api, user, attributeOptionCombos, dataSets).stream(Number.class)
-        .map(Number::longValue)
-        .toArray(Long[]::new);
+        .mapToLong(Number::longValue)
+        .toArray();
   }
 
   /**
@@ -421,6 +427,28 @@ public class HibernateDataExportStore implements DataExportStore {
         .eraseNullParameterLines()
         .eraseNullParameterJoinLine("aoc", "aoc")
         .useEqualsOverInForParameters("aoc", "ds");
+  }
+
+  @Nonnull
+  @Override
+  public List<String> getAocNotOfAttributeCombo(@Nonnull Stream<UID> attributeOptionCombos) {
+    if (getCurrentUserDetails().isSuper()) return List.of();
+    String sql =
+        """
+      SELECT coc.uid
+      FROM categoryoptioncombo coc
+      WHERE coc.uid = ANY (:coc)
+        AND NOT EXISTS (
+          SELECT 1
+          FROM categorycombos_optioncombos ccoc
+          JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
+          WHERE ccoc.categoryoptioncomboid = coc.categoryoptioncomboid
+            AND (cc.name = 'default' OR cc.datadimensiontype = 'ATTRIBUTE'))""";
+    return createQuery(sql)
+        .setParameter("coc", attributeOptionCombos)
+        .useEqualsOverInForParameters("coc")
+        .stream(String.class)
+        .toList();
   }
 
   @Nonnull

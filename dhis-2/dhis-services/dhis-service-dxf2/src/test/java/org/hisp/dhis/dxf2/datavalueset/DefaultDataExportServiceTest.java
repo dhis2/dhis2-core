@@ -216,4 +216,19 @@ class DefaultDataExportServiceTest {
     assertEquals(ErrorCode.E2011, ex.getCode());
     verify(store, never()).exportValues(any());
   }
+
+  @Test
+  void testExport_ExplicitAocNotOfAttributeCombo_ThrowsE2049() {
+    injectSecurityContextNoSettings(UserDetails.empty().username("nonsuper").build());
+    UID aoc = UID.generate();
+    when(store.getAocNotOfAttributeCombo(any())).thenReturn(List.of(aoc.getValue()));
+
+    DataExportParams.Input params =
+        DataExportParams.Input.builder().attributeOptionCombo(Set.of(aoc.getValue())).build();
+    ConflictException ex =
+        assertThrows(ConflictException.class, () -> service().exportGroup(params, true));
+    assertEquals(ErrorCode.E2049, ex.getCode());
+    verify(store, never()).getAocNoDataReadAccess(any());
+    verify(store, never()).exportValues(any());
+  }
 }

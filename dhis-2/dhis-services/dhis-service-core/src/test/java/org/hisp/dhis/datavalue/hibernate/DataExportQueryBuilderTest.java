@@ -35,6 +35,7 @@ import static org.hisp.dhis.period.Period.of;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
@@ -42,9 +43,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.sql.AbstractQueryBuilderTest;
@@ -55,7 +53,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for the SQL generation as performed by {@link
- * HibernateDataExportStore#createExportQuery(DataExportParams, SQL.QueryAPI, UserDetails)}
+ * HibernateDataExportStore#createExportQuery(DataExportParams, SQL.QueryAPI, UserDetails, long[])}
  *
  * @author Jan Bernitt
  */
@@ -89,7 +87,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE 1=1
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of(),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -120,7 +118,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -158,7 +156,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("pe", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -200,7 +198,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("de", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -242,7 +240,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("deg", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -284,7 +282,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("ou", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -334,7 +332,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("ou", "deleted"), createExportQuery(params, createSpyQuery(), new SystemUser()));
+        Set.of("ou", "deleted"),
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -376,7 +375,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("ougSuper", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -427,7 +426,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("ougSuper", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -471,7 +470,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("oug", "capture", "deleted", "aocAllowed"),
-        createExportQuery(params, withAllowedAocs(createSpyQuery(), 11L), currentUser));
+        createExportQuery(params, createSpyQuery(), currentUser, new long[] {11L}));
   }
 
   @Test
@@ -508,7 +507,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.lastupdated >= :lastUpdated
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("lastUpdated"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
     // pin the actual bound value: the WHERE clause must be backed by the exact filter date,
     // not merely a same-named parameter with an unrelated (or null) value
     assertEquals(lastUpdated, paramValue("lastUpdated"));
@@ -549,7 +548,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.lastupdated >= :lastUpdated
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("lastUpdated"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
     long after = System.currentTimeMillis();
     // pin that lastUpdatedDuration is actually converted into a real cutoff date
     // (now - duration), not left null/ignored, which would silently erase the WHERE line
@@ -593,30 +592,29 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("aocAllowed"),
-        createExportQuery(params, withAllowedAocs(createSpyQuery(), 11L, 12L), user));
-    assertArrayEquals(new Long[] {11L, 12L}, (Long[]) paramValue("aocAllowed"));
+        createExportQuery(params, createSpyQuery(), user, new long[] {11L, 12L}));
+    assertArrayEquals(new long[] {11L, 12L}, (long[]) paramValue("aocAllowed"));
   }
 
   @Test
   void testAocAccess_noList_noAocFilter() {
     DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
     AtomicReference<String> captured = new AtomicReference<>();
-    createExportQuery(params, SQL.spy(captured::set, (n, p) -> {}), new SystemUser()).stream();
+    createExportQuery(params, SQL.spy(captured::set, (n, p) -> {}), new SystemUser(), null)
+        .stream();
     String sql = captured.get();
     assertFalse(sql.contains("aocAllowed"), "no list must mean no AOC filter: " + sql);
     assertFalse(sql.contains("aoc_access"), "CTE must be gone: " + sql);
   }
 
   @Test
-  void testAocAccess_nothingReadable_matchesNothing() {
+  void testAocAccess_emptyList_rejected() {
+    // an empty list would erase the filter line and so lift the restriction
     DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
-    AtomicReference<String> captured = new AtomicReference<>();
-    // the plain spy answers the readable AOC lookup with no rows
-    createExportQuery(params, SQL.spy(captured::set, (n, p) -> {}), UserDetails.empty().build())
-        .stream();
-    String sql = captured.get();
-    assertTrue(sql.contains("WHERE false"), "no readable AOC must match nothing: " + sql);
-    assertFalse(sql.contains("aocAllowed"), "an empty list must not reach the query: " + sql);
+    UserDetails user = UserDetails.empty().build();
+    SQL.QueryAPI api = createSpyQuery();
+    long[] none = new long[0];
+    assertThrows(IllegalArgumentException.class, () -> createExportQuery(params, api, user, none));
   }
 
   @Test
@@ -628,9 +626,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
             .build();
     AtomicReference<String> captured = new AtomicReference<>();
     createExportQuery(
-        params,
-        withAllowedAocs(SQL.spy(captured::set, (n, p) -> {}), 11L),
-        UserDetails.empty().build())
+        params, SQL.spy(captured::set, (n, p) -> {}), UserDetails.empty().build(), new long[] {11L})
         .stream();
     String sql = captured.get();
     assertTrue(sql.contains("aoc.uid = :aoc"), "explicit AOC filter expected: " + sql);
@@ -672,46 +668,5 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
     HibernateDataExportStore.createAllowedAocQuery(
         SQL.spy(captured::set, (n, p) -> {}), UserDetails.empty().build(), aocs, dataSets)
         .stream();
-  }
-
-  /** Answers the readable AOC lookup with the given ids, all other queries go to the spy. */
-  private static SQL.QueryAPI withAllowedAocs(SQL.QueryAPI spy, Long... ids) {
-    return sql ->
-        sql.contains("FROM categorycombos_optioncombos ccoc")
-            ? new AllowedAocs(ids)
-            : spy.createQuery(sql);
-  }
-
-  private record AllowedAocs(Long[] ids) implements SQL.Query {
-
-    @Override
-    public SQL.Query setParameter(@Nonnull SQL.Param param) {
-      return this;
-    }
-
-    @Override
-    public SQL.Query setLimit(int n) {
-      return this;
-    }
-
-    @Override
-    public SQL.Query setOffset(int n) {
-      return this;
-    }
-
-    @Override
-    public <T> Stream<T> stream(Function<SQL.Row, T> map) {
-      return Stream.empty();
-    }
-
-    @Override
-    public <T> Stream<T> stream(@Nonnull Class<T> of) {
-      return Stream.of(ids).map(of::cast);
-    }
-
-    @Override
-    public int count() {
-      return ids.length;
-    }
   }
 }
