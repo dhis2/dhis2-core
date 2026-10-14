@@ -53,7 +53,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.UID;
@@ -253,21 +252,6 @@ class JdbcSingleEventStore {
               coc.setAttributeValues(
                   AttributeValues.of(resultSet.getString("coc_attributevalues")));
 
-              String cosString = resultSet.getString("co_values");
-              JsonMixed cosJson = JsonMixed.of(cosString);
-              JsonObject object = cosJson.asObject();
-              Set<CategoryOption> options = new HashSet<>(object.names().size());
-              for (String uid : object.names()) {
-                JsonObject categoryOptionJson = object.getObject(uid);
-                CategoryOption option = new CategoryOption();
-                option.setUid(uid);
-                option.setCode(categoryOptionJson.getString("code").string(""));
-                option.setName(categoryOptionJson.getString("name").string(""));
-                option.setAttributeValues(
-                    AttributeValues.of(categoryOptionJson.getObject("attributeValues").toJson()));
-                options.add(option);
-              }
-              coc.setCategoryOptions(options);
               event.setAttributeOptionCombo(coc);
 
               event.setOccurredDate(resultSet.getTimestamp("ev_occurreddate"));
@@ -612,8 +596,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     sql.append(
         """
             coc_agg.uid as coc_uid, coc_agg.code as coc_code, coc_agg.name as coc_name,
-                        coc_agg.attributevalues as coc_attributevalues,
-                        coc_agg.co_values as co_values, coc_agg.co_count as option_size""");
+                        coc_agg.attributevalues as coc_attributevalues""");
   }
 
   private void addOrderFieldsToSelect(StringBuilder sql, List<Order> orders) {
@@ -653,44 +636,27 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   /**
-   * Returns the joins and sub-queries needed to fulfill all the needs regarding category option
-   * combo and category options. Category option combos (COC) are composed of category options (CO),
-   * one per category of the COCs category combination (CC).
+   * Joins the events attribute option combo (AOC) so it can be returned in the user specified
+   * idScheme and to enforce access to it.
    *
-   * <p>Important constraints leading to this query:
-   *
-   * <ul>
-   *   <li>While COCs are pre-computed and can be seen as a de-normalization of the possible
-   *       permutations the COs in a COC are stored in a normalized way. The final event should have
-   *       its attributeCategoryOptions field populated with a semicolon separated string of its
-   *       COCs COs. We thus need to aggregate these COs for each event.
-   *   <li>COCs should be returned in the user specified idScheme. So in order to have access to
-   *       uid, code, name, attributes we need another join as all of these fields cannot be added
-   *       to the above aggregation.
-   *   <li>A user must have access to all COs of the events COC to have access to an event.
-   * </ul>
+   * <p>AOCs are composed of category options (CO), one per category of the AOCs category
+   * combination. A user must have data read access to all COs of an events AOC to have access to
+   * the event. Only non-superusers need the join on the COs; superusers read the AOC directly.
    */
   private void addJoinOnCategoryOptionCombo(StringBuilder sql, UserDetails user) {
     sql.append(
         """
- inner join (select coc.uid, coc.code, coc.name, coc.attributevalues, coc.categoryoptioncomboid as id,
-    jsonb_object_agg(
-        co.uid,
-        jsonb_build_object(
-            'name', co.name,
-            'code', co.code,
-            'attributeValues', co.attributevalues
-        )
-    ) as co_values,
- count(co.categoryoptionid) as co_count
- from categoryoptioncombo coc
- inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid
- inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid
- group by coc.categoryoptioncomboid\s""");
+ inner join (select coc.uid, coc.code, coc.name, coc.attributevalues, coc.categoryoptioncomboid as id
+ from categoryoptioncombo coc\s""");
 
     if (isNotSuperUser(user)) {
-      sql.append(" having bool_and(case when ")
-          .append(
+      sql.append(
+          """
+ inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid
+ inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid
+ group by coc.categoryoptioncomboid
+ having bool_and(case when \s""");
+      sql.append(
               JpaQueryUtils.generateSQlQueryForSharingCheck(
                   "co.sharing", user, AclService.LIKE_READ_DATA))
           .append(" then true else false end) = true ");
