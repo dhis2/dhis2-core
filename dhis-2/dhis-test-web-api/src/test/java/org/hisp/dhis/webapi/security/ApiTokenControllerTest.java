@@ -36,8 +36,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManagerFactory;
+import java.util.Set;
+import java.util.TreeSet;
 import org.hisp.dhis.http.HttpAssertions;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.render.RenderService;
@@ -64,6 +68,8 @@ class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private ApiTokenService apiTokenService;
 
   @Autowired private RenderService _renderService;
+
+  @Autowired private EntityManagerFactory entityManagerFactory;
 
   private User userA;
 
@@ -245,6 +251,133 @@ class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(HttpStatus.NOT_FOUND, GET("/apiTokens/{uid}", token.getUid()));
     switchToAdminUser();
     fetchAsEntity(token.getUid());
+  }
+
+  @Test
+  void testPlaintextTokenIsNeitherStoredNorServed() {
+    JsonObject created = assertApiTokenCreatedResponse(POST("/apiTokens/", "{}"));
+    String uid = created.getString("uid").string();
+    String plaintextToken = created.getString("key").string();
+    flushAndClear();
+
+    ApiToken token = fetchAsEntity(uid);
+    assertFalse(token.getKey().contains(plaintextToken));
+    String json = GET("/apiTokens/{uid}?fields=*", uid).content(HttpStatus.OK).toJson();
+    assertFalse(json.contains(plaintextToken));
+    assertFalse(json.contains(token.getKey()));
+    assertFalse(GET("/apiTokens/{uid}?fields=*", uid).content().has("key"));
+  }
+
+  @Test
+  void testPutRoundTripKeepsKeyAndOwner() {
+    String uid = createTokenWithAttributes();
+    flushAndClear();
+    ApiToken before = fetchAsEntity(uid);
+    String key = before.getKey();
+    long newExpire = before.getExpire() + 1000;
+
+    JsonObject exported = GET("/apiTokens/{uid}", uid).content(HttpStatus.OK);
+    assertEquals(userA.getUid(), exported.getObject("createdBy").getString("id").string());
+    String body =
+        exported
+            .toJson()
+            .replace("\"expire\":" + before.getExpire(), "\"expire\":" + newExpire)
+            .replace("1.1.1.1", "4.4.4.4");
+    assertStatus(HttpStatus.OK, PUT("/apiTokens/" + uid, body));
+    flushAndClear();
+
+    ApiToken after = fetchAsEntity(uid);
+    assertEquals(Long.valueOf(newExpire), after.getExpire());
+    assertEquals(key, after.getKey());
+    assertEquals(userA.getUid(), after.getCreatedBy().getUid());
+    assertEquals(userA.getUid(), after.getSharing().getOwner());
+    assertEquals(Set.of("4.4.4.4", "2.2.2.2", "3.3.3.3"), after.getIpAllowedList().getAllowedIps());
+    assertEquals(
+        Set.of("POST", "GET", "PATCH", "HEAD", "DELETE"),
+        after.getMethodAllowedList().getAllowedMethods());
+    assertEquals(
+        Set.of("http://hostname1.com", "http://hostname2.com", "http://hostname3.com"),
+        after.getRefererAllowedList().getAllowedReferrers());
+  }
+
+  @Test
+  void testCantUpdateOtherUsersToken() {
+    String uid = createTokenWithAttributes();
+    flushAndClear();
+    String body = GET("/apiTokens/{uid}", uid).content(HttpStatus.OK).toJson();
+    switchContextToUser(userB);
+
+    assertStatus(HttpStatus.NOT_FOUND, PUT("/apiTokens/" + uid, body));
+  }
+
+  @Test
+  void testSchemaProperties() {
+    JsonObject schema = GET("/schemas/apiToken").content(HttpStatus.OK);
+    assertEquals("apiToken", schema.getString("name").string());
+    assertTrue(schema.getBoolean("metadata").booleanValue());
+    assertTrue(schema.getBoolean("shareable").booleanValue());
+    assertTrue(schema.getBoolean("defaultPrivate").booleanValue());
+    assertFalse(schema.getBoolean("translatable").booleanValue());
+
+    JsonArray properties = schema.getArray("properties");
+    Set<String> names = new TreeSet<>();
+    Set<String> persisted = new TreeSet<>();
+    Set<String> required = new TreeSet<>();
+    for (int i = 0; i < properties.size(); i++) {
+      JsonObject property = properties.getObject(i);
+      String name = property.getString("name").string();
+      names.add(name);
+      if (property.getBoolean("persisted").booleanValue()) {
+        persisted.add(name);
+      }
+      if (property.getBoolean("required").booleanValue()) {
+        required.add(name);
+      }
+    }
+
+    assertEquals(
+        Set.of(
+            "access",
+            "attributeValues",
+            "attributes",
+            "code",
+            "created",
+            "createdBy",
+            "displayName",
+            "expire",
+            "href",
+            "id",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "name",
+            "sharing",
+            "translation",
+            "type",
+            "user",
+            "version"),
+        names);
+    assertEquals(
+        Set.of(
+            "attributes",
+            "code",
+            "created",
+            "createdBy",
+            "expire",
+            "id",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "sharing",
+            "type",
+            "version"),
+        persisted);
+    assertEquals(Set.of("expire", "type", "version"), required);
+  }
+
+  /** Writes pending changes and makes the next read hit the database. */
+  private void flushAndClear() {
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
+    entityManagerFactory.getCache().evictAll();
   }
 
   private ApiToken createNewEmptyToken() {
