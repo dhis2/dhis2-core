@@ -144,10 +144,10 @@ public class OutboundSms implements IdentifiableObject {
   @Transient private Date lastUpdated;
 
   /** Link to this object in the API, set when it is rendered by the web layer. */
-  @Transient private transient String href;
+  @Transient private String href;
 
   /** Access information for this object. Applies to current user. */
-  @Transient private transient Access access;
+  @Transient private Access access;
 
   /**
    * Not persisted, there is no translations column. Kept in memory so that a translations check

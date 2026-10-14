@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Set;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.translation.Translation;
@@ -100,6 +101,27 @@ class OutboundSmsTest {
     sms.setTranslations(translations);
 
     assertEquals(translations, sms.getTranslations());
+  }
+
+  /** The JSON body of POST /api/sms/outbound, including properties the entity does not store. */
+  @Test
+  void testDeserializeSendRequestBody() throws Exception {
+    String json =
+        """
+        {"message": "Hello", "recipients": ["+4711111111", "+4722222222"],
+         "code": "CODE", "name": "Name", "attributeValues": [],
+         "sharing": {"owner": "ownerUid123", "public": "rw------"},
+         "translations": [{"locale": "fr", "property": "NAME", "value": "x"}]}
+        """;
+
+    OutboundSms sms = new ObjectMapper().readValue(json, OutboundSms.class);
+
+    assertEquals("Hello", sms.getMessage());
+    assertEquals(Set.of("+4711111111", "+4722222222"), sms.getRecipients());
+    assertNull(sms.getCode());
+    assertNull(sms.getName());
+    assertNull(sms.getSharing().getOwner());
+    assertEquals(1, sms.getTranslations().size());
   }
 
   private static OutboundSms sms(String uid, String message) {

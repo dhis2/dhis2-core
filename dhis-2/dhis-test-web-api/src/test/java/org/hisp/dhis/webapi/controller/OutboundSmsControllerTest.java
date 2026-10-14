@@ -98,7 +98,10 @@ class OutboundSmsControllerTest extends PostgresControllerIntegrationTestBase {
         propertyNames(schema.getPersistedProperties().values()));
   }
 
-  /** The key set served by play/dev for an outbound SMS before the annotation mapping. */
+  /**
+   * The key set served by play/dev for an outbound SMS before the annotation mapping. created and
+   * lastUpdated have no column: for a loaded row they hold the time it was loaded, as before.
+   */
   @Test
   void testGetMessageJson() {
     saveSms("outSmsJson1", OutboundSmsStatus.SENT, new Date(), "+4711111111", "+4722222222");
