@@ -333,9 +333,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   }
 
   private void saveProgramMessages(List<ProgramMessage> messageBatch, BatchResponseStatus status) {
-    messageBatch.parallelStream()
-        .map(pm -> setParameters(pm, status))
-        .forEach(this::saveProgramMessage);
+    messageBatch.stream().map(pm -> setParameters(pm, status)).forEach(this::saveProgramMessage);
   }
 
   private ProgramMessage setParameters(ProgramMessage message, BatchResponseStatus status) {
@@ -357,7 +355,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   private Enrollment getEnrollment(ProgramMessage programMessage) {
     if (programMessage.getEnrollment() != null) {
-      return manager.get(Enrollment.class, programMessage.getEnrollment().getUid());
+      return manager.getNoAcl(Enrollment.class, programMessage.getEnrollment().getUid());
     }
 
     return null;
@@ -365,7 +363,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   private Event getEvent(ProgramMessage programMessage) {
     if (programMessage.getEvent() != null) {
-      return manager.get(Event.class, programMessage.getEvent().getUid());
+      return manager.getNoAcl(Event.class, programMessage.getEvent().getUid());
     }
 
     return null;
