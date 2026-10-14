@@ -108,7 +108,7 @@ class AggregateDataExchangeTest {
   }
 
   @Test
-  void testNullTranslationsAreReadAsEmpty() {
+  void testSetNullTranslationsStoresEmptySet() {
     AggregateDataExchange exchange = exchange("AdeUid00001", "CODE", "Exchange");
     exchange.setTranslations(null);
 

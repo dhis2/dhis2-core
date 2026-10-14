@@ -153,7 +153,7 @@ class AggregateDataExchangeControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
-  void testTargetApiSecretsAreStoredEncrypted() {
+  void testTargetApiSecretsAreNotStoredInPlaintext() {
     importExternalExchanges();
     startNewRequestSession();
 
