@@ -133,8 +133,7 @@ public class HibernateDataExportStore implements DataExportStore {
     long[] aocAllowed =
         currentUser.isSuper()
             ? null
-            : getAllowedAocIds(
-                api, currentUser, params.getAttributeOptionCombos(), aocScopeDataSets(params));
+            : getAllowedAocIds(api, currentUser, params.getAttributeOptionCombos());
     if (aocAllowed != null && aocAllowed.length == 0) return Stream.empty();
     return createExportQuery(params, api, currentUser, aocAllowed).stream()
         .map(DataExportValue::of);
@@ -371,38 +370,15 @@ public class HibernateDataExportStore implements DataExportStore {
    *     limited to the explicitly requested AOCs if there are any
    */
   private static long[] getAllowedAocIds(
-      SQL.QueryAPI api,
-      UserDetails user,
-      @CheckForNull List<UID> attributeOptionCombos,
-      @CheckForNull List<UID> dataSets) {
+      SQL.QueryAPI api, UserDetails user, @CheckForNull List<UID> attributeOptionCombos) {
     // a single bigint column comes back as a plain number per row, not as an Object[] row
-    return createAllowedAocQuery(api, user, attributeOptionCombos, dataSets).stream(Number.class)
+    return createAllowedAocQuery(api, user, attributeOptionCombos).stream(Number.class)
         .mapToLong(Number::longValue)
         .toArray();
   }
 
-  /**
-   * An export that only selects data sets can only contain AOCs of those data sets' attribute
-   * category combos; AOCs of other combos would be invalid for the requested data sets. Data
-   * element (group) selectors can pull in values of other data sets, so then there is no such
-   * scope.
-   *
-   * @return the data sets to scope the readable AOCs by, or null for no scope
-   */
-  @CheckForNull
-  private static List<UID> aocScopeDataSets(DataExportParams params) {
-    boolean dataSetsOnly =
-        !isEmpty(params.getDataSets())
-            && isEmpty(params.getDataElements())
-            && isEmpty(params.getDataElementGroups());
-    return dataSetsOnly ? params.getDataSets() : null;
-  }
-
   static QueryBuilder createAllowedAocQuery(
-      SQL.QueryAPI api,
-      UserDetails user,
-      @CheckForNull List<UID> attributeOptionCombos,
-      @CheckForNull List<UID> dataSets) {
+      SQL.QueryAPI api, UserDetails user, @CheckForNull List<UID> attributeOptionCombos) {
     String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_READ_DATA);
     String sql =
         """
@@ -418,15 +394,13 @@ public class HibernateDataExportStore implements DataExportStore {
             JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
             WHERE coc_co.categoryoptioncomboid = ccoc.categoryoptioncomboid
               AND NOT (:access)))
-        AND aoc.uid = ANY(:aoc)
-        AND cc.categorycomboid IN (SELECT ds.categorycomboid FROM dataset ds WHERE ds.uid = ANY(:ds))""";
+        AND aoc.uid = ANY(:aoc)""";
     return SQL.of(sql, api)
         .setParameter("aoc", attributeOptionCombos)
-        .setParameter("ds", dataSets)
         .setDynamicClause("access", accessSql)
         .eraseNullParameterLines()
         .eraseNullParameterJoinLine("aoc", "aoc")
-        .useEqualsOverInForParameters("aoc", "ds");
+        .useEqualsOverInForParameters("aoc");
   }
 
   @Nonnull

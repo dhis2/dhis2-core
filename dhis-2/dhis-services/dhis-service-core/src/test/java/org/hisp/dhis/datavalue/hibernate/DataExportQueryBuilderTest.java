@@ -636,10 +636,9 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testAllowedAocQuery_noExplicitAocs_allAttributeAocs() {
     AtomicReference<String> captured = new AtomicReference<>();
-    createAllowedAocQueryWithSpy(List.of(), List.of(), captured);
+    createAllowedAocQueryWithSpy(List.of(), captured);
     String sql = captured.get();
     assertTrue(sql.contains("SELECT DISTINCT ccoc.categoryoptioncomboid"), sql);
-    assertFalse(sql.contains(":ds"), "no data sets must mean no data set scope: " + sql);
     assertFalse(sql.contains(":aoc"), "no explicit AOCs must mean no AOC restriction: " + sql);
     assertFalse(sql.contains("JOIN categoryoptioncombo aoc"), "no join needed: " + sql);
   }
@@ -647,26 +646,14 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testAllowedAocQuery_explicitAocs_onlyThoseAreLookedUp() {
     AtomicReference<String> captured = new AtomicReference<>();
-    createAllowedAocQueryWithSpy(List.of(UID.of("aoc23456789")), List.of(), captured);
+    createAllowedAocQueryWithSpy(List.of(UID.of("aoc23456789")), captured);
     String sql = captured.get();
     assertTrue(sql.contains("aoc.uid = :aoc"), "lookup must be limited to explicit AOCs: " + sql);
   }
 
-  @Test
-  void testAllowedAocQuery_dataSets_onlyTheirAttributeCombos() {
-    AtomicReference<String> captured = new AtomicReference<>();
-    createAllowedAocQueryWithSpy(List.of(), List.of(UID.of("ds123456789")), captured);
-    String sql = captured.get();
-    assertTrue(
-        sql.contains("cc.categorycomboid IN (SELECT ds.categorycomboid FROM dataset ds")
-            && sql.contains("WHERE ds.uid = :ds"),
-        "lookup must be limited to the data sets' attribute combos: " + sql);
-  }
-
-  private void createAllowedAocQueryWithSpy(
-      List<UID> aocs, List<UID> dataSets, AtomicReference<String> captured) {
+  private void createAllowedAocQueryWithSpy(List<UID> aocs, AtomicReference<String> captured) {
     HibernateDataExportStore.createAllowedAocQuery(
-        SQL.spy(captured::set, (n, p) -> {}), UserDetails.empty().build(), aocs, dataSets)
+        SQL.spy(captured::set, (n, p) -> {}), UserDetails.empty().build(), aocs)
         .stream();
   }
 }
