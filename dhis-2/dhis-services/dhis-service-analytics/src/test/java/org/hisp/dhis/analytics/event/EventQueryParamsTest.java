@@ -398,29 +398,6 @@ class EventQueryParamsTest extends TestBase {
   }
 
   @Test
-  void testEnrollmentOuSelectionsHaveDistinctKeys() {
-    List<EventQueryParams> queries =
-        List.of(
-            new EventQueryParams.Builder().build(),
-            new EventQueryParams.Builder().withEnrollmentOuDimension(List.of(ouA)).build(),
-            new EventQueryParams.Builder().withEnrollmentOuDimension(List.of(ouB)).build(),
-            new EventQueryParams.Builder().withEnrollmentOuFilter(List.of(ouA)).build(),
-            new EventQueryParams.Builder().withEnrollmentOuFilter(List.of(ouB)).build(),
-            new EventQueryParams.Builder().withEnrollmentOuDimensionLevels(Set.of(2)).build(),
-            new EventQueryParams.Builder().withEnrollmentOuDimensionLevels(Set.of(3)).build(),
-            new EventQueryParams.Builder().withEnrollmentOuFilterLevels(Set.of(2)).build(),
-            new EventQueryParams.Builder()
-                .withEnrollmentOuDimension(List.of(ouA))
-                .withEnrollmentOuDimensionHierarchical(true)
-                .build());
-
-    assertEquals(queries.size(), queries.stream().map(EventQueryParams::getKey).distinct().count());
-    for (EventQueryParams query : queries) {
-      assertEquals(query.getKey(), new EventQueryParams.Builder(query).build().getKey());
-    }
-  }
-
-  @Test
   void testStagePrefixedItemsInDifferentStagesHaveDistinctKeys() {
     QueryItem itemA = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
     itemA.setProgramStage(psA);

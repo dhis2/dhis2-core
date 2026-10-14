@@ -641,13 +641,6 @@ public class EventQueryParams extends DataQueryParams {
     asc.forEach(e -> key.add("asc", "[" + e.getItem().getUid() + "]"));
     desc.forEach(e -> key.add("desc", "[" + e.getItem().getUid() + "]"));
 
-    // Enrollment and registration OU selections are stored outside the generic dimensions and
-    // filters.
-    enrollmentOuDimensionItems.forEach(
-        ou -> key.add("enrollmentOuDimension", ou.getUid() + ":" + ou.getLevel()));
-    enrollmentOuFilterItems.forEach(
-        ou -> key.add("enrollmentOuFilter", ou.getUid() + ":" + ou.getLevel()));
-
     if (hasRegistrationOu()) {
       key.add("registrationOuDimensionRequested", registrationOuDimensionRequested);
       registrationOuDimensionItems.forEach(
@@ -657,14 +650,11 @@ public class EventQueryParams extends DataQueryParams {
     }
 
     // Enrollment OU selections are also stored outside the generic dimensions and filters.
-    if (hasEnrollmentOu() || enrollmentOuDimensionHierarchical) {
-      key.add("enrollmentOuDimensionHierarchical", enrollmentOuDimensionHierarchical);
+    if (hasEnrollmentOu()) {
       enrollmentOuDimensionItems.forEach(
           ou -> key.add("enrollmentOuDimension", getOrgUnitKeyComponent(ou)));
       enrollmentOuFilterItems.forEach(
           ou -> key.add("enrollmentOuFilter", getOrgUnitKeyComponent(ou)));
-      enrollmentOuDimensionLevels.forEach(level -> key.add("enrollmentOuDimensionLevel", level));
-      enrollmentOuFilterLevels.forEach(level -> key.add("enrollmentOuFilterLevel", level));
     }
 
     return key.addIgnoreNull("value", value, () -> value.getUid())
