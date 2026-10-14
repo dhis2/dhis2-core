@@ -35,12 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.DisplayDensity;
+import org.hisp.dhis.common.IdScheme;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/** Guards the equality of {@link DataEntryForm}: identifiable properties plus the form content. */
+/** Guards the equality and identifier values of {@link DataEntryForm}. */
 class DataEntryFormTest {
 
   @Test
@@ -59,6 +60,12 @@ class DataEntryFormTest {
     change.accept(other);
 
     assertNotEquals(form(), other);
+  }
+
+  /** Previously null: the old class shadowed the base-class name field read by this method. */
+  @Test
+  void testPropertyValueOfNameSchemeIsTheName() {
+    assertEquals("Form A", form().getPropertyValue(IdScheme.NAME));
   }
 
   static Stream<Arguments> changes() {

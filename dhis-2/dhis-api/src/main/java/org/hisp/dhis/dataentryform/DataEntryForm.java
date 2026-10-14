@@ -149,6 +149,10 @@ public class DataEntryForm implements IdentifiableObject, MetadataObject {
   @Column(name = "format")
   private int format;
 
+  /**
+   * The DB column is NOT NULL (V2_43_27); the embeddable stays unrestricted like other {@link
+   * TranslationProperty} users, and {@link #setTranslations(Set)} never writes null.
+   */
   @Embedded private TranslationProperty translations = new TranslationProperty();
 
   /** Link to this object in the API, set when it is rendered by the web layer. */
@@ -191,6 +195,10 @@ public class DataEntryForm implements IdentifiableObject, MetadataObject {
   // hashCode and equals
   // -------------------------------------------------------------------------
 
+  /**
+   * The base uid/code/name hash combined with the form content. The duplicate {@code name} term is
+   * deliberate: it keeps the hash values of the pre-migration formula.
+   */
   @Override
   public int hashCode() {
     int result = getUid() != null ? getUid().hashCode() : 0;
@@ -401,6 +409,10 @@ public class DataEntryForm implements IdentifiableObject, MetadataObject {
     this.access = access;
   }
 
+  /**
+   * Returns the value of the given identifier property. {@code NAME} returns the form name; before
+   * the annotation mapping a shadowed base-class field made it always null.
+   */
   @Override
   public String getPropertyValue(IdScheme idScheme) {
     if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
