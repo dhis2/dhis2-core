@@ -181,7 +181,7 @@ public class Configuration implements Serializable {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public OrganisationUnitLevel getOfflineOrganisationUnitLevel() {
     return offlineOrganisationUnitLevel;
@@ -259,7 +259,7 @@ public class Configuration implements Serializable {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public OrganisationUnitLevel getFacilityOrgUnitLevel() {
     return facilityOrgUnitLevel;
