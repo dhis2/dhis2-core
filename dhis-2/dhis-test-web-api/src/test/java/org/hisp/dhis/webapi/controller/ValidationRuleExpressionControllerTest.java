@@ -105,7 +105,7 @@ class ValidationRuleExpressionControllerTest extends PostgresControllerIntegrati
     assertEquals(2, jdbcTemplate.queryForObject("select count(*) from expression", Integer.class));
   }
 
-  /** The keys of an embedded expression, as on play/dev. */
+  /** The keys of an embedded expression match the pre-migration export. */
   @Test
   void testEmbeddedExpressionJsonKeys() {
     JsonObject leftSide = reloadRule().getObject("leftSide");

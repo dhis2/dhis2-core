@@ -279,7 +279,7 @@ public class Expression implements Serializable, EmbeddedObject {
     return translations.getTranslations();
   }
 
-  /** Clears out the translation cache. A null set is stored as an empty set. */
+  /** A null set is stored as an empty set. */
   public void setTranslations(Set<Translation> translations) {
     this.translations.setTranslations(translations != null ? translations : new HashSet<>());
   }

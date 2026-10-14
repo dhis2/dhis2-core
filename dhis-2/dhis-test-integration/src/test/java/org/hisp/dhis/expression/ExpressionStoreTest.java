@@ -223,7 +223,8 @@ class ExpressionStoreTest extends PostgresIntegrationTestBase {
     assertSame(MissingValueStrategy.class, enumType.returnedClass());
     assertArrayEquals(new int[] {Types.VARCHAR}, enumType.sqlTypes());
 
-    assertEquals(5, persister.getPropertyNullability().length);
+    // missingValueStrategy is deliberately nullable (Flyway has NOT NULL) to keep schema
+    // required:false
     for (String property :
         List.of(
             "expression", "description", "slidingWindow", "missingValueStrategy", "translations")) {

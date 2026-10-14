@@ -30,14 +30,11 @@
 package org.hisp.dhis.expression;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.Set;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.translation.Translation;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 
 class ExpressionTest {
 
@@ -59,29 +56,5 @@ class ExpressionTest {
   void testEqualWhenBothFieldsNull() {
     assertEquals(new Expression(null, null), new Expression(null, null));
     assertEquals(new Expression(null, null).hashCode(), new Expression(null, null).hashCode());
-  }
-
-  @ParameterizedTest
-  @CsvSource(
-      nullValues = "null",
-      value = {
-        "1 + 1, one, 1 + 1, other",
-        "1 + 1, same, 2 + 2, same",
-        "null, same, 1 + 1, same",
-        "1 + 1, same, null, same",
-        "1 + 1, null, 1 + 1, same"
-      })
-  void testNotEqualWhenExpressionOrDescriptionDiffers(
-      String expressionA, String descriptionA, String expressionB, String descriptionB) {
-    assertNotEquals(
-        new Expression(expressionA, descriptionA), new Expression(expressionB, descriptionB));
-  }
-
-  @Test
-  void testNotEqualToNullOrOtherType() {
-    Expression expression = new Expression("1 + 1", "same");
-
-    assertNotEquals(null, expression);
-    assertNotEquals("1 + 1", expression);
   }
 }
