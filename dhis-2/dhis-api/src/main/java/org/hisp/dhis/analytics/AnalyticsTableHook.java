@@ -150,6 +150,12 @@ public class AnalyticsTableHook implements IdentifiableObject, MetadataObject {
   /** Access information for this object. Applies to current user. */
   @Transient private transient Access access;
 
+  /**
+   * Not persisted, there is no translations column. Kept in memory so that the translations check
+   * still rejects translations on this non-translatable type (E1107) instead of dropping them.
+   */
+  @Transient private transient Set<Translation> translations = new HashSet<>();
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -324,7 +330,7 @@ public class AnalyticsTableHook implements IdentifiableObject, MetadataObject {
     this.name = name;
   }
 
-  /** There is no translations column, so the display name is always the name. */
+  /** The schema is not translatable, so the display name is always the name. */
   @Override
   @Sortable(whenPersisted = false)
   @JsonProperty
@@ -407,6 +413,24 @@ public class AnalyticsTableHook implements IdentifiableObject, MetadataObject {
   }
 
   @Override
+  @Gist(included = Include.FALSE)
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Translation> getTranslations() {
+    if (translations == null) {
+      translations = new HashSet<>();
+    }
+    return translations;
+  }
+
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    this.translations = translations;
+  }
+
+  @Override
   public String getPropertyValue(IdScheme idScheme) {
     if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
       return uid;
@@ -431,25 +455,6 @@ public class AnalyticsTableHook implements IdentifiableObject, MetadataObject {
   // -------------------------------------------------------------------------
   // Unsupported IdentifiableObject methods
   // -------------------------------------------------------------------------
-
-  /** AnalyticsTableHook does not support translations, the tablehook table has no column. */
-  @Override
-  @Deprecated(since = "2.44")
-  @Gist(included = Include.FALSE)
-  @Sortable(value = false)
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
-  public Set<Translation> getTranslations() {
-    return new HashSet<>();
-  }
-
-  /** AnalyticsTableHook does not support translations, the tablehook table has no column. */
-  @Override
-  @Deprecated(since = "2.44")
-  public void setTranslations(Set<Translation> translations) {
-    // Not supported
-  }
 
   /** AnalyticsTableHook does not support created by, the tablehook table has no userid column. */
   @Override

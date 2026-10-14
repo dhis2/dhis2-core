@@ -35,6 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.HashMap;
 import java.util.Map;
@@ -141,27 +144,61 @@ class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testPutOfExportedHookWithChangedSqlAndPhase() {
+  void testPutOfExportedHookMovedToAnalyticsTablePhase() throws JsonProcessingException {
     importMetadata(
         ("{'analyticsTableHooks':[{'id':'%s','name':'Hook A','phase':'RESOURCE_TABLE_POPULATED',"
                 + "'resourceTableType':'ORG_UNIT_STRUCTURE','sql':'select 1'}]}")
             .formatted(HOOK_UID));
-    String exported = getHook().toJson();
-    assertTrue(exported.contains("\"sql\":\"select 1\""), exported);
-    String changed =
-        exported
-            .replace("\"sql\":\"select 1\"", "\"sql\":\"select 2\"")
-            .replace(
-                "\"phase\":\"RESOURCE_TABLE_POPULATED\"",
-                "\"phase\":\"ANALYTICS_TABLE_POPULATED\"");
+    ObjectNode exported = (ObjectNode) new ObjectMapper().readTree(getHook().toJson());
+    assertEquals("RESOURCE_TABLE_POPULATED", exported.get("phase").asText());
+    assertEquals("ORG_UNIT_STRUCTURE", exported.get("resourceTableType").asText());
+    exported.put("phase", "ANALYTICS_TABLE_POPULATED");
+    exported.remove("resourceTableType");
+    exported.put("analyticsTableType", "EVENT");
+    exported.put("sql", "update analytics_event set value=1");
 
-    assertStatus(HttpStatus.OK, PUT("/analyticsTableHooks/" + HOOK_UID, changed));
+    assertStatus(HttpStatus.OK, PUT("/analyticsTableHooks/" + HOOK_UID, exported.toString()));
 
     JsonObject updated = getHook();
     assertEquals("Hook A", updated.getString("name").string());
-    assertEquals("select 2", updated.getString("sql").string());
     assertEquals("ANALYTICS_TABLE_POPULATED", updated.getString("phase").string());
-    assertEquals("ORG_UNIT_STRUCTURE", updated.getString("resourceTableType").string());
+    assertFalse(updated.has("resourceTableType"));
+    assertEquals("EVENT", updated.getString("analyticsTableType").string());
+    assertEquals("update analytics_event set value=1", updated.getString("sql").string());
+  }
+
+  @Test
+  void testReplaceTranslationsIsRejectedAsNotTranslatable() {
+    importMetadata(
+        ("{'analyticsTableHooks':[{'id':'%s','name':'Hook A','phase':'RESOURCE_TABLE_POPULATED',"
+                + "'resourceTableType':'ORG_UNIT_STRUCTURE','sql':'select 1'}]}")
+            .formatted(HOOK_UID));
+
+    JsonErrorReport error =
+        PUT(
+                "/analyticsTableHooks/" + HOOK_UID + "/translations",
+                "{'translations':[{'locale':'fr','property':'NAME','value':'Nom'}]}")
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class)
+            .findErrorReport(ErrorCode.E1107);
+    assertNotNull(error);
+    assertTrue(getHook().getArray("translations").isEmpty());
+  }
+
+  @Test
+  void testImportWithTranslationsIsRejectedAsNotTranslatable() {
+    JsonErrorReport error =
+        POST(
+                "/metadata",
+                ("{'analyticsTableHooks':[{'id':'%s','name':'Hook A',"
+                        + "'phase':'RESOURCE_TABLE_POPULATED','resourceTableType':'ORG_UNIT_STRUCTURE',"
+                        + "'sql':'select 1','translations':[{'locale':'fr','property':'NAME',"
+                        + "'value':'Nom'}]}]}")
+                    .formatted(HOOK_UID))
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class)
+            .findErrorReport(ErrorCode.E1107);
+    assertNotNull(error);
   }
 
   /** The keys of an exported hook, with href and access set by the web layer. */

@@ -31,9 +31,17 @@ package org.hisp.dhis.analytics;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.indicator.IndicatorType;
+import java.util.Map;
+import java.util.Set;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
 
 class AnalyticsTableHookTest {
@@ -53,21 +61,50 @@ class AnalyticsTableHookTest {
   }
 
   @Test
-  void testNotEqualToOtherTypeWithSameIdentity() {
-    IndicatorType other = new IndicatorType();
-    other.setUid("hookUid0001");
-    other.setCode("CODE");
-    other.setName("Name");
+  void testNotEqualToSubclassWithSameIdentity() {
+    AnalyticsTableHook subclass = new AnalyticsTableHook() {};
+    subclass.setUid("hookUid0001");
+    subclass.setCode("CODE");
+    subclass.setName("Name");
 
-    assertNotEquals(hook("hookUid0001", "CODE", "Name"), other);
+    assertNotEquals(hook("hookUid0001", "CODE", "Name"), subclass);
   }
 
   @Test
-  void testHashCodeCombinesUidCodeAndName() {
-    int expected = (31 * "hookUid0001".hashCode() + "CODE".hashCode()) * 31 + "Name".hashCode();
-
-    assertEquals(expected, hook("hookUid0001", "CODE", "Name").hashCode());
+  void testHashCodeOfEmptyHookIsZero() {
     assertEquals(0, new AnalyticsTableHook().hashCode());
+  }
+
+  @Test
+  void testUnsupportedPropertiesStayEmpty() {
+    AnalyticsTableHook hook = hook("hookUid0001", "CODE", "Name");
+    User user = new User();
+    hook.setCreatedBy(user);
+    hook.setUser(user);
+    hook.setOwner("ownerUid001");
+    hook.setSharing(Sharing.builder().owner("ownerUid001").publicAccess("rw------").build());
+    hook.setAttributeValues(AttributeValues.of(Map.of("attrUid0001", "x")));
+    hook.addAttributeValue("attrUid0002", "y");
+    hook.removeAttributeValue("attrUid0001");
+
+    assertNull(hook.getCreatedBy());
+    assertNull(hook.getUser());
+    assertNull(hook.getSharing().getOwner());
+    assertNull(hook.getSharing().getPublicAccess());
+    assertTrue(hook.getAttributeValues().isEmpty());
+  }
+
+  @Test
+  void testTranslationsAreKeptInMemoryAndNotUsedForDisplayName() {
+    AnalyticsTableHook hook = hook("hookUid0001", "CODE", "Name");
+    Translation translation = new Translation(new Locale("fr"), "NAME", "Nom");
+    hook.setTranslations(Set.of(translation));
+
+    assertEquals(Set.of(translation), hook.getTranslations());
+    assertEquals("Name", hook.getDisplayName());
+
+    hook.setTranslations(null);
+    assertTrue(hook.getTranslations().isEmpty());
   }
 
   private static AnalyticsTableHook hook(String uid, String code, String name) {
