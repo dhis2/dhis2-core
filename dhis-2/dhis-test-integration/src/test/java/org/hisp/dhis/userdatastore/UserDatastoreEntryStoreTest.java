@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.userdatastore;
 
+import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -51,11 +52,13 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryPlainStringType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,6 +76,10 @@ class UserDatastoreEntryStoreTest extends PostgresIntegrationTestBase {
   @Autowired private JdbcTemplate jdbcTemplate;
 
   @Autowired private EntityManagerFactory entityManagerFactory;
+
+  @Autowired
+  @Qualifier(AES_128_STRING_ENCRYPTOR)
+  private PBEStringEncryptor aes128StringEncryptor;
 
   private User user;
 
@@ -346,6 +353,7 @@ class UserDatastoreEntryStoreTest extends PostgresIntegrationTestBase {
     assertNotNull(stored);
     assertNotEquals(secret, stored);
     assertFalse(stored.contains("s3cr3t-value"), "the secret must not be stored in plain text");
+    assertEquals(secret, aes128StringEncryptor.decrypt(stored));
     assertNull(row.get("jbvalue"), "an encrypted value must not be written to the jsonb column");
     assertEquals(Boolean.TRUE, row.get("encrypted"));
 
@@ -382,14 +390,14 @@ class UserDatastoreEntryStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testNewValueOfLoadedEntryIsWrittenOnFlush() {
     UserDatastoreEntry plain = addEntry(user, "change", "plain", "{\"v\": 1}");
-    UserDatastoreEntry encrypted = new UserDatastoreEntry("change", "enc", "\"old\"", true);
+    UserDatastoreEntry encrypted = new UserDatastoreEntry("change", "enc", "\"old-secret\"", true);
     encrypted.setCreatedBy(user);
     userDatastoreStore.save(encrypted);
 
     UserDatastoreEntry loadedPlain = reload(plain);
     UserDatastoreEntry loadedEncrypted = userDatastoreStore.get(encrypted.getId());
     loadedPlain.setValue("{\"v\": 2}");
-    loadedEncrypted.setValue("\"new\"");
+    loadedEncrypted.setValue("\"new-secret\"");
     entityManager.flush();
 
     assertEquals(
@@ -398,7 +406,17 @@ class UserDatastoreEntryStoreTest extends PostgresIntegrationTestBase {
             "select jbvalue::text from userkeyjsonvalue where userkeyjsonvalueid = ?",
             String.class,
             plain.getId()));
-    assertEquals("\"new\"", reload(encrypted).getEncryptedValue());
+    Map<String, Object> encryptedRow =
+        jdbcTemplate.queryForMap(
+            "select encrypted_value, jbvalue::text as jbvalue from userkeyjsonvalue"
+                + " where userkeyjsonvalueid = ?",
+            encrypted.getId());
+    String stored = (String) encryptedRow.get("encrypted_value");
+    assertNotEquals("\"new-secret\"", stored);
+    assertFalse(stored.contains("new-secret"), "the new secret must not be stored in plain text");
+    assertEquals("\"new-secret\"", aes128StringEncryptor.decrypt(stored));
+    assertNull(encryptedRow.get("jbvalue"), "an encrypted value must not be written to jsonb");
+    assertEquals("\"new-secret\"", reload(encrypted).getEncryptedValue());
   }
 
   @Test
