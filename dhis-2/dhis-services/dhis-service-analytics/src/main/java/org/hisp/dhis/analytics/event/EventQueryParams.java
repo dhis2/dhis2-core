@@ -629,6 +629,14 @@ public class EventQueryParams extends DataQueryParams {
     }
   }
 
+  /**
+   * Returns the cache key component for an org unit item. The level is included for org units as it
+   * determines which uidlevel column is used in the SQL.
+   */
+  private static String getOrgUnitKeyComponent(DimensionalItemObject item) {
+    return item instanceof OrganisationUnit ou ? ou.getUid() + ":" + ou.getLevel() : item.getUid();
+  }
+
   /** Returns a unique key representing this query. The key is suitable for caching. */
   @Override
   public String getKey() {
@@ -639,8 +647,8 @@ public class EventQueryParams extends DataQueryParams {
     headers.forEach(header -> key.add("headers", "[" + header + "]"));
     itemProgramIndicators.forEach(e -> key.add("itemProgramIndicator", e.getUid()));
     eventStatus.forEach(status -> key.add("eventStatus", "[" + status + "]"));
-    asc.forEach(e -> e.getItem().getUid());
-    desc.forEach(e -> e.getItem().getUid());
+    asc.forEach(e -> key.add("asc", "[" + e.getItem().getUid() + "]"));
+    desc.forEach(e -> key.add("desc", "[" + e.getItem().getUid() + "]"));
 
     // Registration OU selections are stored outside the generic dimensions and filters.
     if (hasRegistrationOu()) {
@@ -649,6 +657,17 @@ public class EventQueryParams extends DataQueryParams {
           ou -> key.add("registrationOuDimension", ou.getUid() + ":" + ou.getLevel()));
       registrationOuFilterItems.forEach(
           ou -> key.add("registrationOuFilter", ou.getUid() + ":" + ou.getLevel()));
+    }
+
+    // Enrollment OU selections are also stored outside the generic dimensions and filters.
+    if (hasEnrollmentOu() || enrollmentOuDimensionHierarchical) {
+      key.add("enrollmentOuDimensionHierarchical", enrollmentOuDimensionHierarchical);
+      enrollmentOuDimensionItems.forEach(
+          ou -> key.add("enrollmentOuDimension", getOrgUnitKeyComponent(ou)));
+      enrollmentOuFilterItems.forEach(
+          ou -> key.add("enrollmentOuFilter", getOrgUnitKeyComponent(ou)));
+      enrollmentOuDimensionLevels.forEach(level -> key.add("enrollmentOuDimensionLevel", level));
+      enrollmentOuFilterLevels.forEach(level -> key.add("enrollmentOuFilterLevel", level));
     }
 
     return key.addIgnoreNull("value", value, () -> value.getUid())
