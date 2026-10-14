@@ -31,6 +31,7 @@ package org.hisp.dhis.user;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -51,7 +52,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * The last login is written outside the entity lifecycle, see {@link
- * UserStore#updateLastLogin(long, Date)}. Cached queries and entity updates must still see and keep
+ * UserStore#updateLastLogin(User, Date)}. Cached queries and entity updates must still see and keep
  * it. Runs with the query cache enabled, as in production, and with a transaction per step, as
  * cached query results are shared between transactions.
  *
@@ -101,6 +102,7 @@ class UserLastLoginTest extends PostgresIntegrationTestBase {
     assertTrue(userUids(loggedInSinceYesterday).contains(user.getUid()));
   }
 
+  /** A login recorded by another request while this one holds a stale copy of the user. */
   @Test
   void testUpdateOfUserLoadedBeforeLoginKeepsLastLogin() {
     User user = createAndAddUser("stale");
@@ -108,7 +110,9 @@ class UserLastLoginTest extends PostgresIntegrationTestBase {
     transactionTemplate.execute(
         status -> {
           User loadedBeforeLogin = userService.getUser(user.getUid());
-          userStore.updateLastLogin(loadedBeforeLogin.getId(), new Date());
+          jdbcTemplate.update(
+              "update userinfo set lastlogin = now() where userinfoid = ?",
+              loadedBeforeLogin.getId());
           loadedBeforeLogin.setFirstName("changed");
           userService.updateUser(loadedBeforeLogin);
           return null;
@@ -117,6 +121,32 @@ class UserLastLoginTest extends PostgresIntegrationTestBase {
     assertNotNull(
         jdbcTemplate.queryForObject(
             "select lastlogin from userinfo where uid = ?", Date.class, user.getUid()));
+  }
+
+  /**
+   * Ending the invitation updates the user loaded for the login, and Hibernate puts that user's
+   * in-memory state into the second-level cache after the commit.
+   */
+  @Test
+  void testFirstLoginOfInvitedUserIsSeenInSecondLevelCache() {
+    User user = makeUser("I");
+    user.setInvitation(true);
+    user.setRestoreToken("restore-token");
+    userService.addUser(user);
+
+    userService.setLastLogin(user.getUsername());
+
+    // a row change that bypasses Hibernate: a user that still shows the old first name is read
+    // from the second-level cache, not from the database
+    entityManager.clear();
+    jdbcTemplate.update(
+        "update userinfo set firstname = 'not-cached' where userinfoid = ?", user.getId());
+    User cached =
+        transactionTemplate.execute(status -> entityManager.find(User.class, user.getId()));
+    assertNotNull(cached);
+    assertNotEquals("not-cached", cached.getFirstName());
+    assertNotNull(cached.getLastLogin());
+    assertFalse(cached.isInvitation());
   }
 
   private User addUserWithOpenId(String uniqueCharacter) {

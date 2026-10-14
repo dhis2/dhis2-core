@@ -335,7 +335,7 @@ public interface UserService {
    *
    * <p>A login is not a change of the user: only the last login date is written, {@code
    * lastUpdated} is not bumped and no audit entry is produced, see {@link
-   * UserStore#updateLastLogin(long, Date)}. Ending an invitation is a change, so the first login of
+   * UserStore#updateLastLogin(User, Date)}. Ending an invitation is a change, so the first login of
    * an invited user also updates and audits the user.
    *
    * @param username the username of the User.

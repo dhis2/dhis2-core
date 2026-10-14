@@ -664,7 +664,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     List<User> linkedUserAccounts = getLinkedUserAccounts(actionUser);
     for (User user : linkedUserAccounts) {
       updateLastLogin(
-          user.getId(),
+          user,
           user.getUsername().equals(activeUsername)
               ? Date.from(oneHourInTheFuture)
               : Date.from(oneHourAgo));
@@ -672,14 +672,17 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  public void updateLastLogin(long userId, @Nonnull Date lastLogin) {
+  public void updateLastLogin(@Nonnull User user, @Nonnull Date lastLogin) {
     jdbcTemplate.update(
-        "UPDATE userinfo SET lastlogin = ? WHERE userinfoid = ?", lastLogin, userId);
+        "UPDATE userinfo SET lastlogin = ? WHERE userinfoid = ?", lastLogin, user.getId());
+    // lastLogin is update="false", so this is not a change Hibernate writes, but an update of this
+    // instance puts its in-memory state into the second-level cache after the commit
+    user.setLastLogin(lastLogin);
     // Bypasses Hibernate on purpose (no lastUpdated bump, no audit, no cache invalidation
     // message), so do the local cache upkeep of an entity update ourselves. Other cluster nodes
     // keep their cached last login until their L2 entry expires, see
     // HibernateUserGroupStore#updateLastUpdated.
-    getSession().getSessionFactory().getCache().evictEntityData(User.class, userId);
+    getSession().getSessionFactory().getCache().evictEntityData(User.class, user.getId());
     invalidateUserQueryResults();
   }
 

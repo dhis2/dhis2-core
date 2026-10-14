@@ -651,7 +651,7 @@ public class DefaultUserService implements UserService {
       return;
     }
 
-    userStore.updateLastLogin(user.getId(), new Date());
+    userStore.updateLastLogin(user, new Date());
 
     if (user.isInvitation()) {
       user.clearInvitation();
