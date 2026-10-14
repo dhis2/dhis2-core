@@ -254,15 +254,16 @@ class DataExportAocAccessTest extends PostgresIntegrationTestBase {
     // without a data set there is no attribute combo to scope by
     assertEquals(Set.of("1", "5"), export(slice().dataElement(Set.of(de.getUid()))));
 
-    // superusers are not restricted, so they can find such invalid data
+    // superusers get the same scope by default, they find such invalid data by asking for it
     injectSecurityContextUser(superuser("U"));
-    assertEquals(Set.of("1", "2", "5"), exportedValues(null));
+    assertEquals(Set.of("1", "2"), exportedValues(null));
+    assertEquals(Set.of("5"), exportedValues(defaultCoc.getUid()));
   }
 
   @Test
-  void disaggregationTypedAoc_excludedForNonSuperuser() throws Exception {
-    // invalid configuration: a value stored with a disaggregation COC as its AOC is not exported to
-    // non-superusers; superusers are unchanged
+  void disaggregationTypedAoc_excludedUnlessSuperuserRequestsIt() throws Exception {
+    // invalid configuration: a value stored with a disaggregation COC as its AOC is not exported by
+    // default, not even to superusers; only a superuser can get it by requesting that AOC
     CategoryOptionCombo cocDisaggOpen = createDisaggregationCoc('E');
     addDataValues(new DataValue(de, pe, ou, cocDisaggClosed, cocDisaggOpen, "3"));
 
@@ -270,7 +271,8 @@ class DataExportAocAccessTest extends PostgresIntegrationTestBase {
     assertEquals(Set.of("1"), exportedValues(null));
 
     injectSecurityContextUser(superuser("T"));
-    assertEquals(Set.of("1", "2", "3"), exportedValues(null));
+    assertEquals(Set.of("1", "2"), exportedValues(null));
+    assertEquals(Set.of("3"), exportedValues(cocDisaggOpen.getUid()));
   }
 
   @Test
