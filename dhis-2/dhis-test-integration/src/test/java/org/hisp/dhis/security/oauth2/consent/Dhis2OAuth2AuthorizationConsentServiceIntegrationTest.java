@@ -34,15 +34,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -63,6 +67,10 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
   @Autowired private RegisteredClientRepository clientRepository;
 
   @Autowired private Dhis2OAuth2ClientStore clientStore;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Autowired private EntityManagerFactory entityManagerFactory;
 
   private RegisteredClient registeredClient;
 
@@ -303,5 +311,80 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
 
     assertTrue(authorities1.contains("SCOPE_profile"));
     assertTrue(authorities2.contains("SCOPE_api"));
+  }
+
+  @Test
+  void testConsentFlowReadsPersistedRows() {
+    String principal = "flow-user";
+    authorizationConsentService.save(
+        OAuth2AuthorizationConsent.withId(registeredClient.getId(), principal)
+            .authority(new SimpleGrantedAuthority("SCOPE_profile"))
+            .authority(new SimpleGrantedAuthority("SCOPE_email"))
+            .build());
+    clearSessionAndCache();
+    Dhis2OAuth2AuthorizationConsent created =
+        authorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
+            registeredClient.getId(), principal);
+    assertEquals(
+        Set.of("SCOPE_profile", "SCOPE_email"),
+        authorityNames(authorizationConsentService.findById(registeredClient.getId(), principal)));
+    assertEquals(Set.of("SCOPE_profile", "SCOPE_email"), storedAuthorities(principal));
+
+    authorizationConsentService.save(
+        OAuth2AuthorizationConsent.withId(registeredClient.getId(), principal)
+            .authority(new SimpleGrantedAuthority("SCOPE_profile"))
+            .authority(new SimpleGrantedAuthority("SCOPE_address"))
+            .build());
+    clearSessionAndCache();
+    Dhis2OAuth2AuthorizationConsent updated =
+        authorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
+            registeredClient.getId(), principal);
+    assertEquals(created.getId(), updated.getId());
+    assertEquals(created.getUid(), updated.getUid());
+    assertEquals(created.getCreated(), updated.getCreated());
+    assertEquals(
+        Set.of("SCOPE_profile", "SCOPE_address"),
+        authorityNames(authorizationConsentService.findById(registeredClient.getId(), principal)));
+    assertEquals(Set.of("SCOPE_profile", "SCOPE_address"), storedAuthorities(principal));
+    assertEquals(1, countRows(principal));
+
+    authorizationConsentService.remove(
+        OAuth2AuthorizationConsent.withId(registeredClient.getId(), principal)
+            .authority(new SimpleGrantedAuthority("SCOPE_profile"))
+            .build());
+    clearSessionAndCache();
+    assertNull(authorizationConsentService.findById(registeredClient.getId(), principal));
+    assertEquals(0, countRows(principal));
+  }
+
+  private static Set<String> authorityNames(OAuth2AuthorizationConsent consent) {
+    return consent.getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority)
+        .collect(Collectors.toSet());
+  }
+
+  private Set<String> storedAuthorities(String principal) {
+    String authorities =
+        jdbcTemplate.queryForObject(
+            "select authorities from oauth2_authorization_consent"
+                + " where registered_client_id = ? and principal_name = ?",
+            String.class,
+            registeredClient.getId(),
+            principal);
+    return Set.of(authorities.split(","));
+  }
+
+  private int countRows(String principal) {
+    return jdbcTemplate.queryForObject(
+        "select count(*) from oauth2_authorization_consent"
+            + " where registered_client_id = ? and principal_name = ?",
+        Integer.class,
+        registeredClient.getId(),
+        principal);
+  }
+
+  private void clearSessionAndCache() {
+    clearSession();
+    entityManagerFactory.getCache().evictAll();
   }
 }
