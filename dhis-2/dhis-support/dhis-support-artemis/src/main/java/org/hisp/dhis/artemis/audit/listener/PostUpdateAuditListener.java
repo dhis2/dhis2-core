@@ -139,60 +139,34 @@ public class PostUpdateAuditListener extends AbstractHibernateListener
     }
   }
 
-  /** The audits are sent by the process registered in {@link #updatesOf(EventSource)}. */
+  /** The audits are sent by the process registered in {@link #startTransactionUpdates}. */
   @Override
   public boolean requiresPostCommitHanding(EntityPersister entityPersister) {
     return false;
   }
 
-  /**
-   * Returns the updates of the transaction running in the given session. The first call in a
-   * transaction registers the process that sends the audits once the transaction committed.
-   */
+  /** Returns the updates of the transaction running in the given session. */
   private TransactionUpdates updatesOf(EventSource session) {
-    TransactionUpdates updates = updatesBySession.get(session);
-
-    if (updates == null) {
-      TransactionUpdates transactionUpdates = new TransactionUpdates();
-      updatesBySession.put(session, transactionUpdates);
-      session
-          .getActionQueue()
-          .registerProcess(
-              (success, completedSession) -> {
-                updatesBySession.remove(session);
-
-                if (success) {
-                  transactionUpdates.audited().forEach(this::sendAudit);
-                }
-              });
-      updates = transactionUpdates;
-    }
-
-    return updates;
+    return updatesBySession.computeIfAbsent(session, this::startTransactionUpdates);
   }
 
   /**
-   * Returns true if the update changed only {@link #AUDIT_IGNORED_PROPERTIES}. When Hibernate does
-   * not know which properties changed (an entity reattached without a dirty check), the update
-   * counts as a real change. Collections are not part of the dirty properties when changed in
-   * place, see {@link TransactionUpdates#audited()}.
+   * Starts collecting the updates of the transaction running in the given session, and registers
+   * the process that sends their audits once the transaction committed.
    */
-  private static boolean isBookkeepingOnlyUpdate(PostUpdateEvent event) {
-    int[] dirtyProperties = event.getDirtyProperties();
+  private TransactionUpdates startTransactionUpdates(EventSource session) {
+    TransactionUpdates updates = new TransactionUpdates();
+    session
+        .getActionQueue()
+        .registerProcess(
+            (success, completedSession) -> {
+              updatesBySession.remove(session);
 
-    if (dirtyProperties == null) {
-      return false;
-    }
-
-    String[] propertyNames = event.getPersister().getPropertyNames();
-
-    for (int index : dirtyProperties) {
-      if (!AUDIT_IGNORED_PROPERTIES.contains(propertyNames[index])) {
-        return false;
-      }
-    }
-
-    return true;
+              if (success) {
+                updates.audited().forEach(this::sendAudit);
+              }
+            });
+    return updates;
   }
 
   private void sendAudit(Update update) {
@@ -247,6 +221,30 @@ public class PostUpdateAuditListener extends AbstractHibernateListener
               update ->
                   !isBookkeepingOnlyUpdate(update.event())
                       || collectionOwners.contains(update.event().getEntity()));
+    }
+
+    /**
+     * Returns true if the update changed only {@link #AUDIT_IGNORED_PROPERTIES}. When Hibernate
+     * does not know which properties changed (an entity reattached without a dirty check), the
+     * update counts as a real change. Collections are not part of the dirty properties when changed
+     * in place, see {@link #audited()}.
+     */
+    private static boolean isBookkeepingOnlyUpdate(PostUpdateEvent event) {
+      int[] dirtyProperties = event.getDirtyProperties();
+
+      if (dirtyProperties == null) {
+        return false;
+      }
+
+      String[] propertyNames = event.getPersister().getPropertyNames();
+
+      for (int index : dirtyProperties) {
+        if (!AUDIT_IGNORED_PROPERTIES.contains(propertyNames[index])) {
+          return false;
+        }
+      }
+
+      return true;
     }
   }
 }
