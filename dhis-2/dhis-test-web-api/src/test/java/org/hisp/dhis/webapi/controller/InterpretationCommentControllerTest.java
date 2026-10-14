@@ -49,6 +49,7 @@ import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Tests how interpretation comments are written and served by the interpretations API. */
@@ -60,6 +61,8 @@ class InterpretationCommentControllerTest extends PostgresControllerIntegrationT
   @Autowired private InterpretationService interpretationService;
 
   @Autowired private EntityManagerFactory entityManagerFactory;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private String interpretationUid;
 
@@ -162,6 +165,36 @@ class InterpretationCommentControllerTest extends PostgresControllerIntegrationT
     assertEquals(
         mentionedUsername,
         comment.getArray("mentions").getObject(0).getString("username").string());
+  }
+
+  @Test
+  void testDeleteCommentRemovesItsRowsAndKeepsTheOthers() {
+    String kept = postComment("Kept");
+    String deleted = postComment("Deleted");
+    startNewRequestSession();
+    entityManagerFactory.getCache().evictAll();
+
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        DELETE("/interpretations/" + interpretationUid + "/comments/" + deleted));
+
+    startNewRequestSession();
+    entityManagerFactory.getCache().evictAll();
+    assertEquals(
+        0,
+        jdbcTemplate.queryForObject(
+            "select count(*) from interpretationcomment where uid = ?", Integer.class, deleted));
+    assertEquals(
+        List.of(kept),
+        jdbcTemplate.queryForList(
+            "select c.uid from interpretation_comments ic"
+                + " join interpretationcomment c"
+                + " on c.interpretationcommentid = ic.interpretationcommentid"
+                + " join interpretation i on i.interpretationid = ic.interpretationid"
+                + " where i.uid = ? order by ic.sort_order",
+            String.class,
+            interpretationUid));
+    assertEquals("Kept", getComment(kept).getString("text").string());
   }
 
   private String postComment(String text) {

@@ -58,6 +58,16 @@ class InterpretationCommentTest {
     assertNotEquals(a, subclass);
   }
 
+  /** Code and name are always null, so comments without a uid are equal, as they were before. */
+  @Test
+  void testCommentsWithoutUidAreEqual() {
+    InterpretationComment a = new InterpretationComment("Text A");
+    InterpretationComment b = new InterpretationComment("Text B");
+
+    assertEquals(a, b);
+    assertEquals(a.hashCode(), b.hashCode());
+  }
+
   @Test
   void testUnsupportedPropertiesIgnoreWrites() {
     InterpretationComment comment = comment("commentUidA", "Text");
@@ -85,6 +95,7 @@ class InterpretationCommentTest {
     InterpretationComment comment = comment("commentUidA", "Text");
 
     comment.setUser(first);
+    assertNull(comment.getSharing().getOwner());
     comment.setUser(second);
 
     assertSame(first, comment.getCreatedBy());
