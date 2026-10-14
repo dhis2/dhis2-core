@@ -128,11 +128,10 @@ public class HibernateDataExportStore implements DataExportStore {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     // the AOCs the user can read data for are resolved upfront so the planner sees a known, small
     // list instead of guessing the size of a sharing-filtered set of all category option combos;
-    // superusers skip the sharing check but get the same valid AOCs by default; only AOCs they
-    // request explicitly are not restricted, so they can still find invalid data; for everyone else
+    // superusers are not restricted (they must be able to find invalid data), for everyone else
     // this also applies to explicit AOCs, as a second line behind the service's E2011 check
     long[] aocAllowed =
-        currentUser.isSuper() && !isEmpty(params.getAttributeOptionCombos())
+        currentUser.isSuper()
             ? null
             : getAllowedAocIds(
                 api, currentUser, params.getAttributeOptionCombos(), aocScopeDataSets(params));
@@ -368,8 +367,8 @@ public class HibernateDataExportStore implements DataExportStore {
 
   /**
    * @return internal ids of the option combos of attribute category combos for which the user can
-   *     read data of every category option (any option for superusers), plus the default combo (no
-   *     sharing guards on default), limited to the explicitly requested AOCs if there are any
+   *     read data of every category option, plus the default combo (no sharing guards on default),
+   *     limited to the explicitly requested AOCs if there are any
    */
   private static long[] getAllowedAocIds(
       SQL.QueryAPI api,
