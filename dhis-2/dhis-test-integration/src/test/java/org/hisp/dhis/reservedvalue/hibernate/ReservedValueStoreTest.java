@@ -140,21 +140,19 @@ class ReservedValueStoreTest extends PostgresIntegrationTestBase {
         "trackedEntityAttributeId must stay in-memory only");
   }
 
+  /**
+   * The tracked entity attribute value branch and the store's call path are covered by {@link
+   * HibernateReservedValueStoreTest}.
+   */
   @Test
   @DisplayName(
       "the named native query returns the lower-cased requested values reserved for the owner and"
           + " key")
-  void testNotAvailableValuesNamedQuery() {
+  void testNotAvailableValuesNamedQueryReturnsReservedValues() {
     save(reservedValue("ownerUidA", "RANDOM(###)", "ABC"));
     save(reservedValue("ownerUidA", "OTHER(###)", "DEF"));
     save(reservedValue("ownerUidB", "RANDOM(###)", "GHI"));
     clearSession();
-
-    assertNotNull(
-        entityManagerFactory
-            .unwrap(SessionFactoryImplementor.class)
-            .getNamedQueryRepository()
-            .getNamedSQLQueryDefinition(ReservedValue.NOT_AVAILABLE_VALUES_QUERY));
 
     List<?> result =
         entityManager
@@ -170,8 +168,8 @@ class ReservedValueStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("counting used values selects by the ReservedValue entity's owner uid and key")
-  void testGetNumberOfUsedValuesHqlResolvesEntityName() {
+  @DisplayName("counting used values counts only the rows of the owner uid and key")
+  void testGetNumberOfUsedValuesCountsRowsOfOwnerAndKey() {
     save(reservedValue("ownerUidA", "RANDOM(###)", "1"));
     save(reservedValue("ownerUidA", "RANDOM(###)", "2"));
     save(reservedValue("ownerUidA", "OTHER(###)", "3"));
