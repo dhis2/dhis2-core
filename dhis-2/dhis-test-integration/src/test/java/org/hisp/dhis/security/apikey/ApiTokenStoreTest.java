@@ -128,7 +128,7 @@ class ApiTokenStoreTest extends PostgresIntegrationTestBase {
     assertEquals("apiTokRndT1", row.get("uid"));
     assertEquals("tokenCode1", row.get("code"));
     assertEquals(new Timestamp(created.getTime()), row.get("created"));
-    assertEquals(true, row.get("hasLastUpdated"));
+    assertTrue((Boolean) row.get("hasLastUpdated"));
     assertEquals(owner.getId(), row.get("createdby"));
     assertEquals(owner.getId(), row.get("lastupdatedby"));
     assertEquals(2, row.get("version"));
