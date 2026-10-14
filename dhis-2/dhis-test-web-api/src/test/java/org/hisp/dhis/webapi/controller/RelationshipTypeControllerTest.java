@@ -31,8 +31,9 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +55,8 @@ import org.springframework.transaction.annotation.Transactional;
 class RelationshipTypeControllerTest extends PostgresControllerIntegrationTestBase {
 
   private static final String RELATIONSHIP_TYPE_UID = "RelTypeCon1";
+
+  private static final ObjectMapper JSON = new ObjectMapper();
 
   @Autowired private EntityManagerFactory entityManagerFactory;
 
@@ -158,7 +161,7 @@ class RelationshipTypeControllerTest extends PostgresControllerIntegrationTestBa
   }
 
   @Test
-  void testPutOfExportedTypeWithChangedFromConstraintUpdatesTheConstraint() {
+  void testPutOfExportedTypeWithChangedFromConstraintUpdatesTheConstraint() throws Exception {
     String otherProgram =
         assertStatus(
             HttpStatus.CREATED,
@@ -172,19 +175,19 @@ class RelationshipTypeControllerTest extends PostgresControllerIntegrationTestBa
                     {"trackedEntityAttribute": {"id": "%s"}}]}"""
                     .formatted(trackedEntityType, attrB, attrC)));
     String programStage = importRelationshipType();
-    String exported =
-        GET("/relationshipTypes/" + RELATIONSHIP_TYPE_UID).content(HttpStatus.OK).toJson();
-    String attributes = "\"attributes\":[\"%s\"]".formatted(attrA);
-    String fromProgram = "\"program\":{\"id\":\"%s\"}".formatted(program);
-    assertTrue(exported.contains(attributes) && exported.contains(fromProgram), exported);
+    ObjectNode exported =
+        (ObjectNode)
+            JSON.readTree(
+                GET("/relationshipTypes/" + RELATIONSHIP_TYPE_UID).content(HttpStatus.OK).toJson());
+    ObjectNode fromConstraint = (ObjectNode) exported.get("fromConstraint");
+    fromConstraint.putObject("program").put("id", otherProgram);
+    ((ObjectNode) fromConstraint.get("trackerDataView"))
+        .putArray("attributes")
+        .add(attrC)
+        .add(attrB);
 
     assertStatus(
-        HttpStatus.OK,
-        PUT(
-            "/relationshipTypes/" + RELATIONSHIP_TYPE_UID,
-            exported
-                .replace(attributes, "\"attributes\":[\"%s\",\"%s\"]".formatted(attrC, attrB))
-                .replace(fromProgram, "\"program\":{\"id\":\"%s\"}".formatted(otherProgram))));
+        HttpStatus.OK, PUT("/relationshipTypes/" + RELATIONSHIP_TYPE_UID, exported.toString()));
 
     JsonObject type = reloadType();
     JsonObject from = type.getObject("fromConstraint");
@@ -202,7 +205,10 @@ class RelationshipTypeControllerTest extends PostgresControllerIntegrationTestBa
         jdbcTemplate.queryForObject("select count(*) from relationshipconstraint", Integer.class));
   }
 
-  /** The keys of the embedded constraints match the export on play/dev. */
+  /**
+   * Guards that no API property of the embedded constraints is dropped; null properties are
+   * omitted.
+   */
   @Test
   void testEmbeddedConstraintJsonKeys() {
     importRelationshipType();

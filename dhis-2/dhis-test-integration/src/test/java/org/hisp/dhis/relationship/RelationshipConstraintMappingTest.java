@@ -39,12 +39,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManagerFactory;
 import java.sql.Types;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
@@ -249,13 +248,18 @@ class RelationshipConstraintMappingTest extends PostgresIntegrationTestBase {
 
   /** The entity column of the existing rows among the given ids, by id. */
   private Map<Integer, String> constraintRows(int... ids) {
-    String idList = IntStream.of(ids).mapToObj(Integer::toString).collect(Collectors.joining(","));
+    String placeholders = String.join(",", Collections.nCopies(ids.length, "?"));
     Map<Integer, String> rows = new HashMap<>();
     jdbcTemplate.query(
         "select relationshipconstraintid, entity from relationshipconstraint"
             + " where relationshipconstraintid in ("
-            + idList
+            + placeholders
             + ")",
+        ps -> {
+          for (int i = 0; i < ids.length; i++) {
+            ps.setInt(i + 1, ids[i]);
+          }
+        },
         rs -> {
           rows.put(rs.getInt("relationshipconstraintid"), rs.getString("entity"));
         });
