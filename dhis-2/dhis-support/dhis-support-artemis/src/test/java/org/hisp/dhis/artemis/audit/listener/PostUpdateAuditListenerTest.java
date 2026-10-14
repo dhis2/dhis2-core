@@ -31,12 +31,13 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +99,8 @@ class PostUpdateAuditListenerTest {
 
   private PostUpdateAuditListener listener;
 
+  private final List<AfterTransactionCompletionProcess> registeredProcesses = new ArrayList<>();
+
   @BeforeEach
   void setUp() {
     auditManager = mock(AuditManager.class);
@@ -105,6 +108,9 @@ class PostUpdateAuditListenerTest {
     persistenceContext = mock(PersistenceContext.class);
     session = mock(EventSource.class);
     when(session.getActionQueue()).thenReturn(actionQueue);
+    doAnswer(invocation -> registeredProcesses.add(invocation.getArgument(0)))
+        .when(actionQueue)
+        .registerProcess(any(AfterTransactionCompletionProcess.class));
     when(session.getPersistenceContextInternal()).thenReturn(persistenceContext);
 
     persister = mock(EntityPersister.class);
@@ -140,7 +146,7 @@ class PostUpdateAuditListenerTest {
   void testUpdateOfOnlyBookkeepingPropertiesIsNotAudited(Set<String> dirtyProperties) {
     listener.onPostUpdate(updateEvent(new User(), dirtyProperties));
 
-    registeredProcess().doAfterTransactionCompletion(true, session);
+    completeTransaction(true);
 
     verify(auditManager, never()).send(any());
   }
@@ -154,10 +160,9 @@ class PostUpdateAuditListenerTest {
   void testRealChangeIsAuditedAfterCommit(Set<String> dirtyProperties) {
     listener.onPostUpdate(updateEvent(new User(), dirtyProperties));
 
-    AfterTransactionCompletionProcess process = registeredProcess();
     verify(auditManager, never()).send(any());
 
-    process.doAfterTransactionCompletion(true, session);
+    completeTransaction(true);
 
     ArgumentCaptor<Audit> audit = ArgumentCaptor.forClass(Audit.class);
     verify(auditManager).send(audit.capture());
@@ -188,7 +193,7 @@ class PostUpdateAuditListenerTest {
       changeCollection(user, change);
     }
 
-    registeredProcess().doAfterTransactionCompletion(true, session);
+    completeTransaction(true);
 
     verify(auditManager).send(any());
   }
@@ -198,7 +203,7 @@ class PostUpdateAuditListenerTest {
     changeCollection(new User(), CollectionChange.UPDATE);
     listener.onPostUpdate(updateEvent(new User(), BOOKKEEPING_ONLY));
 
-    registeredProcess().doAfterTransactionCompletion(true, session);
+    completeTransaction(true);
 
     verify(auditManager, never()).send(any());
   }
@@ -207,14 +212,11 @@ class PostUpdateAuditListenerTest {
   void testCollectionChangeOfCompletedTransactionIsNotCarriedOver() {
     User user = new User();
     changeCollection(user, CollectionChange.UPDATE);
-    registeredProcess().doAfterTransactionCompletion(true, session);
+    completeTransaction(true);
 
     listener.onPostUpdate(updateEvent(user, BOOKKEEPING_ONLY));
 
-    ArgumentCaptor<AfterTransactionCompletionProcess> processes =
-        ArgumentCaptor.forClass(AfterTransactionCompletionProcess.class);
-    verify(actionQueue, times(2)).registerProcess(processes.capture());
-    processes.getAllValues().get(1).doAfterTransactionCompletion(true, session);
+    completeTransaction(true);
     verify(auditManager, never()).send(any());
   }
 
@@ -222,7 +224,7 @@ class PostUpdateAuditListenerTest {
   void testRealChangeIsNotAuditedWhenTransactionFails() {
     listener.onPostUpdate(updateEvent(new User(), Set.of("firstName")));
 
-    registeredProcess().doAfterTransactionCompletion(false, session);
+    completeTransaction(false);
 
     verify(auditManager, never()).send(any());
   }
@@ -233,16 +235,16 @@ class PostUpdateAuditListenerTest {
     listener.onPostUpdate(
         new PostUpdateEvent(new User(), 1L, state, state.clone(), null, persister, session));
 
-    registeredProcess().doAfterTransactionCompletion(true, session);
+    completeTransaction(true);
 
     verify(auditManager).send(any());
   }
 
-  private AfterTransactionCompletionProcess registeredProcess() {
-    ArgumentCaptor<AfterTransactionCompletionProcess> process =
-        ArgumentCaptor.forClass(AfterTransactionCompletionProcess.class);
-    verify(actionQueue).registerProcess(process.capture());
-    return process.getValue();
+  /** Runs the processes registered since the last completion in order, as Hibernate does. */
+  private void completeTransaction(boolean success) {
+    List<AfterTransactionCompletionProcess> processes = List.copyOf(registeredProcesses);
+    registeredProcesses.clear();
+    processes.forEach(process -> process.doAfterTransactionCompletion(success, session));
   }
 
   private PostUpdateEvent updateEvent(User user, Set<String> dirtyProperties) {

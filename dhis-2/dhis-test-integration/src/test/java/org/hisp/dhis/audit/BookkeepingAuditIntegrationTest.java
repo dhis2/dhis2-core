@@ -33,7 +33,9 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
@@ -175,6 +177,53 @@ class BookkeepingAuditIntegrationTest extends PostgresIntegrationTestBase {
     await()
         .atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> auditService.countAudits(updateAuditsOf(legendSet.getUid())) == 1);
+  }
+
+  /**
+   * Each update is audited from its own after-commit callback, queued at the position of the update
+   * in the transaction, also when an earlier flush changed a collection.
+   *
+   * <p>{@code createdAt} is taken when an audit is sent, in the committing thread, so it gives the
+   * send order whatever the order of the asynchronous writes. The comparison is strict, so equal
+   * timestamps fail the test instead of passing it.
+   */
+  @Test
+  void testUpdateOfEntityCreatedInSameTransactionIsAuditedAfterItsCreation() {
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    manager.save(orgUnit);
+    OrganisationUnit created = createOrganisationUnit('B');
+
+    transactionTemplate.execute(
+        status -> {
+          User persisted = userService.getUser(user.getUid());
+          persisted.addOrganisationUnit(orgUnit);
+          entityManager.flush();
+          manager.save(created);
+          entityManager.flush();
+          created.setName("renamed");
+          entityManager.flush();
+          return null;
+        });
+
+    AuditQuery auditsOfCreated =
+        AuditQuery.builder()
+            .uid(Set.of(created.getUid()))
+            .auditType(Set.of(AuditType.CREATE, AuditType.UPDATE))
+            .build();
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> auditService.countAudits(auditsOfCreated) == 2);
+    assertTrue(
+        createdAt(created, AuditType.CREATE).isBefore(createdAt(created, AuditType.UPDATE)),
+        "CREATE audit must be sent before the UPDATE audit");
+  }
+
+  private LocalDateTime createdAt(IdentifiableObject object, AuditType auditType) {
+    return jdbcTemplate.queryForObject(
+        "select createdat from audit where uid = ? and audittype = ?",
+        LocalDateTime.class,
+        object.getUid(),
+        auditType.name());
   }
 
   private void importMetadata(ImportStrategy importStrategy, IdentifiableObject object) {
