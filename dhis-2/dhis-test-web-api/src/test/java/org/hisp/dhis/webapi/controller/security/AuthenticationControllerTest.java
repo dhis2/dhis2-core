@@ -116,6 +116,14 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
     assertNotEquals(before.get("lastlogin"), after.get("lastlogin"));
   }
 
+  /** H2 tests run without the second-level cache, so there is no query cache to keep up to date. */
+  @Test
+  void testSetLastLoginWithoutQueryCache() {
+    userService.setLastLogin("admin");
+
+    assertNotNull(lastUpdatedAndLastLogin("admin").get("lastlogin"));
+  }
+
   private Map<String, Object> lastUpdatedAndLastLogin(String username) {
     return jdbcTemplate.queryForMap(
         "select lastupdated, lastlogin from userinfo where username = ?", username);

@@ -61,6 +61,7 @@ import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LockOptions;
 import org.hibernate.cache.spi.TimestampsCache;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.jpa.QueryHints;
 import org.hibernate.query.NativeQuery;
@@ -687,15 +688,21 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
    * cached {@link User} query results are stale from now on, and again once the transaction
    * completed. Without this, a query that filters or orders by last login, such as {@link
    * #getUserByOpenId(String)}, keeps returning its old result until the cache entry expires.
+   * Without a query cache there is nothing to invalidate (and no timestamps cache to do it with).
    *
    * <p>A native query with synchronized query spaces would invalidate too, but it also evicts every
    * cached {@link User} and every cached collection of users, on every login.
    */
   private void invalidateUserQueryResults() {
     SessionImplementor session = getSession().unwrap(SessionImplementor.class);
-    Serializable[] userTables =
-        session.getFactory().getMetamodel().entityPersister(User.class).getQuerySpaces();
-    TimestampsCache timestampsCache = session.getFactory().getCache().getTimestampsCache();
+    SessionFactoryImplementor factory = session.getFactory();
+
+    if (!factory.getSessionFactoryOptions().isQueryCacheEnabled()) {
+      return;
+    }
+
+    Serializable[] userTables = factory.getMetamodel().entityPersister(User.class).getQuerySpaces();
+    TimestampsCache timestampsCache = factory.getCache().getTimestampsCache();
 
     timestampsCache.preInvalidate(userTables, session);
     session
