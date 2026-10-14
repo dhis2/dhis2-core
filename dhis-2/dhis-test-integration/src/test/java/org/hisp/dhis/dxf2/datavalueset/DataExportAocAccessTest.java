@@ -243,18 +243,17 @@ class DataExportAocAccessTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void dataSetExport_excludesAocsOutsideTheDataSetAttributeCombo() throws Exception {
-    // invalid for ds (attribute combo attrCombo): a value of one of its data elements stored with
-    // the default AOC, which only data sets with the default attribute combo may use
+  void dataSetExport_notScopedToTheDataSetAttributeCombo() throws Exception {
+    // a value of one of ds's data elements stored with the default AOC, although ds has a
+    // non-default attribute combo: the default AOC is valid, so the value is exported like before
+    // (whether a data set selector should scope AOCs to its attribute combo is a separate question)
     CategoryOptionCombo defaultCoc = categoryService.getDefaultCategoryOptionCombo();
     addDataValues(new DataValue(de, pe, ou, cocDisaggClosed, defaultCoc, "5"));
 
     injectSecurityContextUser(user);
-    assertEquals(Set.of("1"), exportedValues(null));
-    // without a data set there is no attribute combo to scope by
+    assertEquals(Set.of("1", "5"), exportedValues(null));
     assertEquals(Set.of("1", "5"), export(slice().dataElement(Set.of(de.getUid()))));
 
-    // superusers are not restricted, so they can find such invalid data
     injectSecurityContextUser(superuser("U"));
     assertEquals(Set.of("1", "2", "5"), exportedValues(null));
   }
