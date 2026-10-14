@@ -359,6 +359,7 @@ public class DatastoreEntry implements IdentifiableObject {
   // hashCode and equals
   // -------------------------------------------------------------------------
 
+  /** Includes the (mutable) value on purpose, as equals/hashCode did before this mapping. */
   @Override
   public int hashCode() {
     return Objects.hash(getUid(), getCode(), getNamespace(), getKey(), getValue());
