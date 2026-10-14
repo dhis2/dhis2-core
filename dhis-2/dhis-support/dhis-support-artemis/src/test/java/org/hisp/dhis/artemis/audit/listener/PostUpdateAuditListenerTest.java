@@ -33,8 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -45,10 +45,13 @@ import java.util.stream.Stream;
 import org.hibernate.action.spi.AfterTransactionCompletionProcess;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.spi.ActionQueue;
+import org.hibernate.engine.spi.PersistenceContext;
 import org.hibernate.event.spi.EventSource;
+import org.hibernate.event.spi.PostCollectionRecreateEvent;
+import org.hibernate.event.spi.PostCollectionRemoveEvent;
+import org.hibernate.event.spi.PostCollectionUpdateEvent;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.type.Type;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
@@ -73,24 +76,21 @@ class PostUpdateAuditListenerTest {
 
   private static final List<String> PROPERTY_NAMES =
       List.of(
-          "firstName",
-          "lastLogin",
-          "lastUpdated",
-          "lastUpdatedBy",
-          "lastCheckedInterpretations",
-          "organisationUnits");
+          "firstName", "lastLogin", "lastUpdated", "lastUpdatedBy", "lastCheckedInterpretations");
 
-  private static final int COLLECTION_INDEX = PROPERTY_NAMES.indexOf("organisationUnits");
+  private static final Set<String> BOOKKEEPING_ONLY = Set.of("lastUpdated", "lastUpdatedBy");
 
   private enum CollectionChange {
-    NONE,
-    IN_PLACE,
-    REPLACED
+    RECREATE,
+    UPDATE,
+    REMOVE
   }
 
   private AuditManager auditManager;
 
   private ActionQueue actionQueue;
+
+  private PersistenceContext persistenceContext;
 
   private EventSource session;
 
@@ -102,19 +102,13 @@ class PostUpdateAuditListenerTest {
   void setUp() {
     auditManager = mock(AuditManager.class);
     actionQueue = mock(ActionQueue.class);
+    persistenceContext = mock(PersistenceContext.class);
     session = mock(EventSource.class);
     when(session.getActionQueue()).thenReturn(actionQueue);
-
-    Type scalarType = mock(Type.class);
-    Type collectionType = mock(Type.class);
-    when(collectionType.isCollectionType()).thenReturn(true);
-    Type[] types = new Type[PROPERTY_NAMES.size()];
-    Arrays.fill(types, scalarType);
-    types[COLLECTION_INDEX] = collectionType;
+    when(session.getPersistenceContextInternal()).thenReturn(persistenceContext);
 
     persister = mock(EntityPersister.class);
     when(persister.getPropertyNames()).thenReturn(PROPERTY_NAMES.toArray(String[]::new));
-    when(persister.getPropertyTypes()).thenReturn(types);
 
     AuditMatrix auditMatrix = mock(AuditMatrix.class);
     when(auditMatrix.isEnabled(AuditScope.METADATA, AuditType.UPDATE)).thenReturn(true);
@@ -144,25 +138,21 @@ class PostUpdateAuditListenerTest {
   @ParameterizedTest
   @MethodSource("bookkeepingOnlyChanges")
   void testUpdateOfOnlyBookkeepingPropertiesIsNotAudited(Set<String> dirtyProperties) {
-    listener.onPostUpdate(updateEvent(dirtyProperties, CollectionChange.NONE));
+    listener.onPostUpdate(updateEvent(new User(), dirtyProperties));
 
-    verifyNoInteractions(actionQueue);
+    registeredProcess().doAfterTransactionCompletion(true, session);
+
     verify(auditManager, never()).send(any());
   }
 
-  static Stream<Arguments> realChanges() {
-    return Stream.of(
-        Arguments.of(Set.of("firstName"), CollectionChange.NONE),
-        Arguments.of(Set.of("firstName", "lastLogin", "lastUpdated"), CollectionChange.NONE),
-        Arguments.of(Set.of("lastUpdated", "lastUpdatedBy"), CollectionChange.IN_PLACE),
-        Arguments.of(Set.of("lastUpdated", "lastUpdatedBy"), CollectionChange.REPLACED));
+  static Stream<Set<String>> realChanges() {
+    return Stream.of(Set.of("firstName"), Set.of("firstName", "lastLogin", "lastUpdated"));
   }
 
   @ParameterizedTest
   @MethodSource("realChanges")
-  void testRealChangeIsAuditedAfterCommit(
-      Set<String> dirtyProperties, CollectionChange collectionChange) {
-    listener.onPostUpdate(updateEvent(dirtyProperties, collectionChange));
+  void testRealChangeIsAuditedAfterCommit(Set<String> dirtyProperties) {
+    listener.onPostUpdate(updateEvent(new User(), dirtyProperties));
 
     AfterTransactionCompletionProcess process = registeredProcess();
     verify(auditManager, never()).send(any());
@@ -175,9 +165,62 @@ class PostUpdateAuditListenerTest {
     assertEquals(User.class.getName(), audit.getValue().getKlass());
   }
 
+  static Stream<Arguments> collectionChanges() {
+    return Arrays.stream(CollectionChange.values())
+        .flatMap(change -> Stream.of(Arguments.of(change, true), Arguments.of(change, false)));
+  }
+
+  /**
+   * A collection changed in place is reported in its own event, in the same flush as the update of
+   * its owner or in another one.
+   */
+  @ParameterizedTest(name = "{0}, before the update: {1}")
+  @MethodSource("collectionChanges")
+  void testBookkeepingOnlyUpdateOfEntityWithChangedCollectionIsAudited(
+      CollectionChange change, boolean beforeUpdate) {
+    User user = new User();
+
+    if (beforeUpdate) {
+      changeCollection(user, change);
+      listener.onPostUpdate(updateEvent(user, BOOKKEEPING_ONLY));
+    } else {
+      listener.onPostUpdate(updateEvent(user, BOOKKEEPING_ONLY));
+      changeCollection(user, change);
+    }
+
+    registeredProcess().doAfterTransactionCompletion(true, session);
+
+    verify(auditManager).send(any());
+  }
+
+  @Test
+  void testBookkeepingOnlyUpdateIsNotAuditedForCollectionChangeOfAnotherEntity() {
+    changeCollection(new User(), CollectionChange.UPDATE);
+    listener.onPostUpdate(updateEvent(new User(), BOOKKEEPING_ONLY));
+
+    registeredProcess().doAfterTransactionCompletion(true, session);
+
+    verify(auditManager, never()).send(any());
+  }
+
+  @Test
+  void testCollectionChangeOfCompletedTransactionIsNotCarriedOver() {
+    User user = new User();
+    changeCollection(user, CollectionChange.UPDATE);
+    registeredProcess().doAfterTransactionCompletion(true, session);
+
+    listener.onPostUpdate(updateEvent(user, BOOKKEEPING_ONLY));
+
+    ArgumentCaptor<AfterTransactionCompletionProcess> processes =
+        ArgumentCaptor.forClass(AfterTransactionCompletionProcess.class);
+    verify(actionQueue, times(2)).registerProcess(processes.capture());
+    processes.getAllValues().get(1).doAfterTransactionCompletion(true, session);
+    verify(auditManager, never()).send(any());
+  }
+
   @Test
   void testRealChangeIsNotAuditedWhenTransactionFails() {
-    listener.onPostUpdate(updateEvent(Set.of("firstName"), CollectionChange.NONE));
+    listener.onPostUpdate(updateEvent(new User(), Set.of("firstName")));
 
     registeredProcess().doAfterTransactionCompletion(false, session);
 
@@ -190,7 +233,9 @@ class PostUpdateAuditListenerTest {
     listener.onPostUpdate(
         new PostUpdateEvent(new User(), 1L, state, state.clone(), null, persister, session));
 
-    registeredProcess();
+    registeredProcess().doAfterTransactionCompletion(true, session);
+
+    verify(auditManager).send(any());
   }
 
   private AfterTransactionCompletionProcess registeredProcess() {
@@ -200,20 +245,27 @@ class PostUpdateAuditListenerTest {
     return process.getValue();
   }
 
-  private PostUpdateEvent updateEvent(
-      Set<String> dirtyProperties, CollectionChange collectionChange) {
-    PersistentCollection loaded = mock(PersistentCollection.class);
-    PersistentCollection current =
-        collectionChange == CollectionChange.REPLACED ? mock(PersistentCollection.class) : loaded;
-    when(current.isDirty()).thenReturn(collectionChange == CollectionChange.IN_PLACE);
-
-    Object[] oldState = new Object[PROPERTY_NAMES.size()];
+  private PostUpdateEvent updateEvent(User user, Set<String> dirtyProperties) {
     Object[] state = new Object[PROPERTY_NAMES.size()];
-    oldState[COLLECTION_INDEX] = loaded;
-    state[COLLECTION_INDEX] = current;
-
     int[] dirty = dirtyProperties.stream().mapToInt(PROPERTY_NAMES::indexOf).toArray();
 
-    return new PostUpdateEvent(new User(), 1L, state, oldState, dirty, persister, session);
+    return new PostUpdateEvent(user, 1L, state, state.clone(), dirty, persister, session);
+  }
+
+  private void changeCollection(User owner, CollectionChange change) {
+    PersistentCollection collection = mock(PersistentCollection.class);
+    when(collection.getOwner()).thenReturn(owner);
+    when(persistenceContext.getLoadedCollectionOwnerOrNull(collection)).thenReturn(owner);
+
+    switch (change) {
+      case RECREATE ->
+          listener.onPostRecreateCollection(
+              new PostCollectionRecreateEvent(null, collection, session));
+      case UPDATE ->
+          listener.onPostUpdateCollection(new PostCollectionUpdateEvent(null, collection, session));
+      case REMOVE ->
+          listener.onPostRemoveCollection(
+              new PostCollectionRemoveEvent(null, collection, session, owner));
+    }
   }
 }

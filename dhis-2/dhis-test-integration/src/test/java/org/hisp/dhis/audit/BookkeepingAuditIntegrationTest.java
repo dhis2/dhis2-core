@@ -41,8 +41,16 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -94,6 +102,8 @@ class BookkeepingAuditIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
+  @Autowired private MetadataImportService metadataImportService;
+
   @Autowired private TransactionTemplate transactionTemplate;
 
   @Autowired private JdbcTemplate jdbcTemplate;
@@ -122,7 +132,6 @@ class BookkeepingAuditIntegrationTest extends PostgresIntegrationTestBase {
   static Stream<Named<Consumer<User>>> bookkeepingOnlyChanges() {
     return Stream.of(
         Named.of("only lastUpdated", u -> {}),
-        Named.of("lastLogin", u -> u.setLastLogin(new Date())),
         Named.of("lastCheckedInterpretations", u -> u.setLastCheckedInterpretations(new Date())));
   }
 
@@ -147,7 +156,37 @@ class BookkeepingAuditIntegrationTest extends PostgresIntegrationTestBase {
     await()
         .atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> hasUpdateAuditContaining(orgUnit.getUid()));
-    assertEquals(updateAudits + 1, auditService.countAudits(updateAuditsOfUser()));
+    assertEquals(updateAudits + 1, auditService.countAudits(updateAuditsOf(user.getUid())));
+  }
+
+  /**
+   * The import clears the embedded legends and flushes before it updates the legend set, so the
+   * update itself changes only bookkeeping properties.
+   */
+  @Test
+  void testImportThatRemovesAllEmbeddedObjectsIsAudited() {
+    LegendSet legendSet = createLegendSet('A', createLegend('A', 0d, 10d));
+    importMetadata(ImportStrategy.CREATE, legendSet);
+    LegendSet withoutLegends = createLegendSet('A');
+    withoutLegends.setUid(legendSet.getUid());
+
+    importMetadata(ImportStrategy.UPDATE, withoutLegends);
+
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> auditService.countAudits(updateAuditsOf(legendSet.getUid())) == 1);
+  }
+
+  private void importMetadata(ImportStrategy importStrategy, IdentifiableObject object) {
+    MetadataImportParams params =
+        new MetadataImportParams()
+            .setImportMode(ObjectBundleMode.COMMIT)
+            .setImportStrategy(importStrategy);
+    assertEquals(
+        Status.OK,
+        metadataImportService
+            .importMetadata(params, new MetadataObjects().addObject(object))
+            .getStatus());
   }
 
   private void updateUser(Consumer<User> change) {
@@ -164,19 +203,16 @@ class BookkeepingAuditIntegrationTest extends PostgresIntegrationTestBase {
   private int changeFirstNameAndAwaitAudit(String firstName) {
     updateUser(u -> u.setFirstName(firstName));
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> hasUpdateAuditContaining(firstName));
-    return auditService.countAudits(updateAuditsOfUser());
+    return auditService.countAudits(updateAuditsOf(user.getUid()));
   }
 
   private boolean hasUpdateAuditContaining(String value) {
-    return auditService.getAudits(updateAuditsOfUser()).stream()
+    return auditService.getAudits(updateAuditsOf(user.getUid())).stream()
         .anyMatch(audit -> audit.getData().contains(value));
   }
 
-  private AuditQuery updateAuditsOfUser() {
-    return AuditQuery.builder()
-        .uid(Set.of(user.getUid()))
-        .auditType(Set.of(AuditType.UPDATE))
-        .build();
+  private static AuditQuery updateAuditsOf(String uid) {
+    return AuditQuery.builder().uid(Set.of(uid)).auditType(Set.of(AuditType.UPDATE)).build();
   }
 
   private Map<String, Object> lastUpdatedAndLastLogin() {

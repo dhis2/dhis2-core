@@ -30,12 +30,25 @@
 package org.hisp.dhis.artemis.audit.listener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import org.hibernate.collection.spi.PersistentCollection;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
+import org.hibernate.event.spi.AbstractCollectionEvent;
+import org.hibernate.event.spi.EventSource;
+import org.hibernate.event.spi.PostCollectionRecreateEvent;
+import org.hibernate.event.spi.PostCollectionRecreateEventListener;
+import org.hibernate.event.spi.PostCollectionRemoveEvent;
+import org.hibernate.event.spi.PostCollectionRemoveEventListener;
+import org.hibernate.event.spi.PostCollectionUpdateEvent;
+import org.hibernate.event.spi.PostCollectionUpdateEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.type.Type;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
@@ -50,28 +63,38 @@ import org.springframework.stereotype.Component;
 /**
  * Audits entity updates.
  *
- * <p>Runs at flush time, when Hibernate still knows what changed, and sends the audit after the
- * transaction committed. The decision whether an update is worth an audit entry can only be made at
- * flush time: a collection changed in place is not part of {@link
- * PostUpdateEvent#getDirtyProperties()}, and it is no longer dirty once the transaction committed.
+ * <p>An entity whose updates in a transaction changed only {@link #AUDIT_IGNORED_PROPERTIES}, and
+ * none of its collections, is not audited. Whether an entity changed is a question about the whole
+ * transaction, not about a single flush: Hibernate reports the changed properties with each update,
+ * but a collection changed in place only as a collection event, which can come in an earlier or a
+ * later flush than the update of its owner. A metadata import, for example, clears embedded
+ * collections and flushes before it updates their owner. So the listener collects the updates and
+ * the owners of changed collections during the transaction, and decides and sends the audits once
+ * the transaction committed.
  *
  * @author Luciano Fiandesio
  */
 @Component
 public class PostUpdateAuditListener extends AbstractHibernateListener
-    implements PostUpdateEventListener {
+    implements PostUpdateEventListener,
+        PostCollectionRecreateEventListener,
+        PostCollectionUpdateEventListener,
+        PostCollectionRemoveEventListener {
 
   /**
    * Bookkeeping properties: they record that something happened (a login, a write), they are not
-   * data or metadata. An update that changes only these properties, and no collection, is not
-   * audited. Matched by Hibernate property name on every auditable entity. Keep this set small: a
-   * property listed here can never be the reason for an audit entry.
+   * data or metadata. An entity whose updates change only these properties, and no collection, is
+   * not audited. Matched by Hibernate property name on every auditable entity. Keep this set small:
+   * a property listed here can never be the reason for an audit entry.
    *
    * <p>The properties stay in the payload of updates that are audited, as that payload is a
    * snapshot of the full state.
    */
   static final Set<String> AUDIT_IGNORED_PROPERTIES =
       Set.of("lastUpdated", "lastUpdatedBy", "lastLogin", "lastCheckedInterpretations");
+
+  /** The updates of the transaction running in a session, until that transaction completes. */
+  private final Map<EventSource, TransactionUpdates> updatesBySession = new ConcurrentHashMap<>();
 
   public PostUpdateAuditListener(
       AuditManager auditManager,
@@ -88,42 +111,80 @@ public class PostUpdateAuditListener extends AbstractHibernateListener
   }
 
   @Override
-  public void onPostUpdate(PostUpdateEvent postUpdateEvent) {
-    getAuditable(postUpdateEvent.getEntity(), "update")
-        .filter(auditable -> !isBookkeepingOnlyUpdate(postUpdateEvent))
-        .ifPresent(
-            auditable ->
-                postUpdateEvent
-                    .getSession()
-                    .getActionQueue()
-                    .registerProcess(
-                        (success, session) -> {
-                          if (success) {
-                            sendAudit(postUpdateEvent, auditable);
-                          }
-                        }));
+  public void onPostUpdate(PostUpdateEvent event) {
+    getAuditable(event.getEntity(), "update")
+        .ifPresent(auditable -> updatesOf(event.getSession()).add(event, auditable));
   }
 
-  /** The audit is sent by the process registered in {@link #onPostUpdate(PostUpdateEvent)}. */
+  @Override
+  public void onPostRecreateCollection(PostCollectionRecreateEvent event) {
+    onCollectionChange(event);
+  }
+
+  @Override
+  public void onPostUpdateCollection(PostCollectionUpdateEvent event) {
+    onCollectionChange(event);
+  }
+
+  @Override
+  public void onPostRemoveCollection(PostCollectionRemoveEvent event) {
+    onCollectionChange(event);
+  }
+
+  private void onCollectionChange(AbstractCollectionEvent event) {
+    Object owner = event.getAffectedOwnerOrNull();
+
+    if (owner != null && getAuditable(owner, "update").isPresent()) {
+      updatesOf(event.getSession()).addCollectionOwner(owner);
+    }
+  }
+
+  /** The audits are sent by the process registered in {@link #updatesOf(EventSource)}. */
   @Override
   public boolean requiresPostCommitHanding(EntityPersister entityPersister) {
     return false;
   }
 
   /**
-   * Returns true if the update changed only {@link #AUDIT_IGNORED_PROPERTIES} and no collection.
-   * When Hibernate does not know which properties changed (an entity reattached without a dirty
-   * check), the update counts as a real change.
+   * Returns the updates of the transaction running in the given session. The first call in a
+   * transaction registers the process that sends the audits once the transaction committed.
    */
-  static boolean isBookkeepingOnlyUpdate(PostUpdateEvent postUpdateEvent) {
-    int[] dirtyProperties = postUpdateEvent.getDirtyProperties();
-    Object[] oldState = postUpdateEvent.getOldState();
+  private TransactionUpdates updatesOf(EventSource session) {
+    TransactionUpdates updates = updatesBySession.get(session);
 
-    if (dirtyProperties == null || oldState == null) {
+    if (updates == null) {
+      TransactionUpdates transactionUpdates = new TransactionUpdates();
+      updatesBySession.put(session, transactionUpdates);
+      session
+          .getActionQueue()
+          .registerProcess(
+              (success, completedSession) -> {
+                updatesBySession.remove(session);
+
+                if (success) {
+                  transactionUpdates.audited().forEach(this::sendAudit);
+                }
+              });
+      updates = transactionUpdates;
+    }
+
+    return updates;
+  }
+
+  /**
+   * Returns true if the update changed only {@link #AUDIT_IGNORED_PROPERTIES}. When Hibernate does
+   * not know which properties changed (an entity reattached without a dirty check), the update
+   * counts as a real change. Collections are not part of the dirty properties when changed in
+   * place, see {@link TransactionUpdates#audited()}.
+   */
+  private static boolean isBookkeepingOnlyUpdate(PostUpdateEvent event) {
+    int[] dirtyProperties = event.getDirtyProperties();
+
+    if (dirtyProperties == null) {
       return false;
     }
 
-    String[] propertyNames = postUpdateEvent.getPersister().getPropertyNames();
+    String[] propertyNames = event.getPersister().getPropertyNames();
 
     for (int index : dirtyProperties) {
       if (!AUDIT_IGNORED_PROPERTIES.contains(propertyNames[index])) {
@@ -131,38 +192,24 @@ public class PostUpdateAuditListener extends AbstractHibernateListener
       }
     }
 
-    Type[] propertyTypes = postUpdateEvent.getPersister().getPropertyTypes();
-    Object[] state = postUpdateEvent.getState();
-
-    for (int i = 0; i < propertyTypes.length; i++) {
-      if (propertyTypes[i].isCollectionType() && isChangedCollection(oldState[i], state[i])) {
-        return false;
-      }
-    }
-
     return true;
   }
 
-  /** A collection that was replaced, removed or changed in place. */
-  private static boolean isChangedCollection(Object oldValue, Object newValue) {
-    return oldValue != newValue
-        || (newValue instanceof PersistentCollection collection && collection.isDirty());
-  }
+  private void sendAudit(Update update) {
+    PostUpdateEvent event = update.event();
 
-  private void sendAudit(PostUpdateEvent postUpdateEvent, Auditable auditable) {
     auditManager.send(
         Audit.builder()
             .auditType(getAuditType())
-            .auditScope(auditable.scope())
+            .auditScope(update.auditable().scope())
             .createdAt(LocalDateTime.now())
             .createdBy(getCreatedBy())
-            .object(postUpdateEvent.getEntity())
+            .object(event.getEntity())
             .attributes(
                 auditManager.collectAuditAttributes(
-                    postUpdateEvent.getEntity(), postUpdateEvent.getEntity().getClass()))
+                    event.getEntity(), event.getEntity().getClass()))
             .auditableEntity(
-                new AuditableEntity(
-                    postUpdateEvent.getEntity().getClass(), createAuditEntry(postUpdateEvent)))
+                new AuditableEntity(event.getEntity().getClass(), createAuditEntry(event)))
             .build());
   }
 
@@ -174,5 +221,32 @@ public class PostUpdateAuditListener extends AbstractHibernateListener
         postUpdateEvent.getSession(),
         postUpdateEvent.getId(),
         postUpdateEvent.getPersister());
+  }
+
+  private record Update(PostUpdateEvent event, Auditable auditable) {}
+
+  /** The updates of auditable entities in a transaction, and their changed collections. */
+  private static final class TransactionUpdates {
+    private final List<Update> updates = new ArrayList<>();
+
+    /** Compared by identity, as a session holds a single instance per entity. */
+    private final Set<Object> collectionOwners = Collections.newSetFromMap(new IdentityHashMap<>());
+
+    void add(PostUpdateEvent event, Auditable auditable) {
+      updates.add(new Update(event, auditable));
+    }
+
+    void addCollectionOwner(Object owner) {
+      collectionOwners.add(owner);
+    }
+
+    /** Real changes, and bookkeeping-only updates of entities with a changed collection. */
+    Stream<Update> audited() {
+      return updates.stream()
+          .filter(
+              update ->
+                  !isBookkeepingOnlyUpdate(update.event())
+                      || collectionOwners.contains(update.event().getEntity()));
+    }
   }
 }

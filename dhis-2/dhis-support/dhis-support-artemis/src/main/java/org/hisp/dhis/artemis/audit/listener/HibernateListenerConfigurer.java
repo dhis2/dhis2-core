@@ -99,9 +99,19 @@ public class HibernateListenerConfigurer implements ApplicationContextAware {
         .getEventListenerGroup(EventType.POST_COMMIT_INSERT)
         .appendListener(postInsertAuditListener);
 
-    // POST_UPDATE, not POST_COMMIT_UPDATE: the listener decides at flush time and sends the audit
-    // after the commit itself, see PostUpdateAuditListener
+    // POST_UPDATE, not POST_COMMIT_UPDATE, and the collection events: the listener collects the
+    // changes of a transaction and sends the audits after the commit itself, see
+    // PostUpdateAuditListener
     registry.getEventListenerGroup(EventType.POST_UPDATE).appendListener(postUpdateEventListener);
+    registry
+        .getEventListenerGroup(EventType.POST_COLLECTION_RECREATE)
+        .appendListener(postUpdateEventListener);
+    registry
+        .getEventListenerGroup(EventType.POST_COLLECTION_UPDATE)
+        .appendListener(postUpdateEventListener);
+    registry
+        .getEventListenerGroup(EventType.POST_COLLECTION_REMOVE)
+        .appendListener(postUpdateEventListener);
 
     registry
         .getEventListenerGroup(EventType.POST_COMMIT_DELETE)
