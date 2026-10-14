@@ -34,6 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManagerFactory;
+import java.util.Set;
+import java.util.TreeSet;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -42,10 +45,13 @@ import org.hisp.dhis.test.webapi.json.domain.JsonMetadataVersion;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class MetadataVersionControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @Autowired private EntityManagerFactory entityManagerFactory;
 
   @Test
   @DisplayName("A valid metadata version should be returned from the versions endpoint")
@@ -205,5 +211,142 @@ class MetadataVersionControllerTest extends PostgresControllerIntegrationTestBas
     assertTrue(
         response.error().getMessage().contains("DoesNotExist"),
         "error message should reference the missing version name");
+  }
+
+  @Test
+  @DisplayName(
+      "The version endpoint returns the keys of a persisted version as on a pre-migration instance")
+  void getPersistedMetadataVersionKeysTest() {
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+    String uid =
+        POST("/metadata/version/create?type=BEST_EFFORT").content().getString("id").string();
+    startNewRequestSessionWithoutSecondLevelCache();
+
+    JsonObject version = GET("/metadata/version?versionName=Version_1").content();
+
+    // play/dev has the same keys; its versions have no lastUpdatedBy
+    assertEquals(
+        Set.of(
+            "attributeValues",
+            "created",
+            "displayName",
+            "hashCode",
+            "id",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "name",
+            "sharing",
+            "translations",
+            "type"),
+        Set.copyOf(version.names()));
+    assertEquals(Set.of("users", "userGroups"), Set.copyOf(version.getObject("sharing").names()));
+    assertEquals(uid, version.getString("id").string());
+    assertEquals("Version_1", version.getString("displayName").string());
+    assertEquals("BEST_EFFORT", version.getString("type").string());
+    assertTrue(version.getArray("translations").isEmpty());
+    assertTrue(version.getArray("attributeValues").isEmpty());
+  }
+
+  @Test
+  @DisplayName(
+      "The create endpoint returns the creator, owner and public access set on save as before")
+  void createMetadataVersionKeysTest() {
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+
+    JsonObject version = POST("/metadata/version/create?type=ATOMIC").content();
+
+    assertEquals(
+        Set.of(
+            "attributeValues",
+            "created",
+            "createdBy",
+            "displayName",
+            "hashCode",
+            "id",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "name",
+            "sharing",
+            "translations",
+            "type",
+            "user"),
+        Set.copyOf(version.names()));
+    JsonObject sharing = version.getObject("sharing");
+    assertEquals(Set.of("owner", "public", "users", "userGroups"), Set.copyOf(sharing.names()));
+    assertEquals(getAdminUid(), sharing.getString("owner").string());
+    assertEquals("--------", sharing.getString("public").string());
+    assertEquals(getAdminUid(), version.getObject("createdBy").getString("id").string());
+    assertEquals(getAdminUid(), version.getObject("user").getString("id").string());
+  }
+
+  @Test
+  @DisplayName("The versions endpoint returns the keys of a persisted version as on play/dev")
+  void getPersistedMetadataVersionsKeysTest() {
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+    POST("/metadata/version/create?type=ATOMIC").success();
+    startNewRequestSessionWithoutSecondLevelCache();
+
+    JsonObject version =
+        GET("/metadata/versions").content().getArray("metadataversions").getObject(0);
+
+    assertEquals(Set.of("created", "hashCode", "id", "name", "type"), Set.copyOf(version.names()));
+  }
+
+  @Test
+  @DisplayName("The schema has the same properties and persisted properties as on play/dev")
+  void getMetadataVersionSchemaPropertiesTest() {
+    JsonObject schema = GET("/schemas/metadataVersion").content();
+    JsonArray properties = schema.getArray("properties");
+    Set<String> names = new TreeSet<>();
+    Set<String> persisted = new TreeSet<>();
+    for (int i = 0; i < properties.size(); i++) {
+      JsonObject property = properties.getObject(i);
+      String name = property.getString("name").string();
+      names.add(name);
+      if (property.getBoolean("persisted").booleanValue()) {
+        persisted.add(name);
+      }
+    }
+
+    assertEquals(
+        Set.of(
+            "access",
+            "attributeValues",
+            "code",
+            "created",
+            "createdBy",
+            "displayName",
+            "hashCode",
+            "href",
+            "id",
+            "importDate",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "name",
+            "sharing",
+            "translation",
+            "type",
+            "user"),
+        names);
+    assertEquals(
+        Set.of(
+            "code",
+            "created",
+            "hashCode",
+            "id",
+            "importDate",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "name",
+            "type"),
+        persisted);
+    assertFalse(schema.getBoolean("metadata").booleanValue());
+    assertFalse(schema.getBoolean("shareable").booleanValue());
+  }
+
+  /** Flushes and clears the session and the second-level cache, as between two requests. */
+  private void startNewRequestSessionWithoutSecondLevelCache() {
+    startNewRequestSession();
+    entityManagerFactory.getCache().evictAll();
   }
 }
