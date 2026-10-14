@@ -132,12 +132,18 @@ public class HibernateDataExportStore implements DataExportStore {
 
   static QueryBuilder createExportQuery(
       DataExportParams params, SQL.QueryAPI api, UserDetails currentUser) {
-    String aocAclSql = null;
     boolean isSuper = currentUser.isSuper();
-    // explicit AOCs mean they are already sharing checked
-    if ((params.getAttributeOptionCombos() == null || params.getAttributeOptionCombos().isEmpty())
-        && !isSuper)
-      aocAclSql = generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
+    // the AOCs the user can read data for are resolved upfront so the planner sees a known, small
+    // list instead of guessing the size of a sharing-filtered set of all category option combos;
+    // superusers are not restricted (they must be able to find invalid data), for everyone else
+    // this also applies to explicit AOCs, as a second line behind the service's E2011 check
+    Long[] aocAllowed =
+        isSuper
+            ? new Long[0]
+            : getAllowedAocIds(
+                api, currentUser, params.getAttributeOptionCombos(), aocScopeDataSets(params));
+    // an empty list erases its filter line, so "no readable AOC" needs a filter of its own
+    String noAocAccess = !isSuper && aocAllowed.length == 0 ? "false" : null;
     String sql =
         """
       WITH
@@ -185,13 +191,6 @@ public class HibernateDataExportStore implements DataExportStore {
         JOIN organisationunit root USING (organisationunitid)
         JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
       ),
-      aoc_access AS MATERIALIZED (
-        SELECT aoc.categoryoptioncomboid, aoc.uid
-        FROM categoryoptioncombo aoc
-        WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
-        JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
-        WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))
-      ),
       SELECT
         de.uid AS deid,
         pe.iso,
@@ -215,14 +214,15 @@ public class HibernateDataExportStore implements DataExportStore {
       JOIN period pe ON dv.periodid = pe.periodid
       JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
-      JOIN aoc_access ON dv.attributeoptioncomboid = aoc_access.categoryoptioncomboid
       JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
       WHERE 1=1
         AND coc.uid = ANY(:coc)
         AND aoc.uid = ANY(:aoc)
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
-        AND ou.hierarchylevel = :level""";
+        AND ou.hierarchylevel = :level
+        AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)
+        AND :noAocAccess""";
 
     Date lastUpdated = params.getLastUpdated();
     if (lastUpdated == null && params.getLastUpdatedDuration() != null)
@@ -253,10 +253,10 @@ public class HibernateDataExportStore implements DataExportStore {
         .setParameter("aoc", params.getAttributeOptionCombos())
         .setParameter("lastUpdated", lastUpdated)
         .setParameter("deleted", params.isIncludeDeleted() ? null : false)
-        .setDynamicClause("aocAccess", aocAclSql)
+        .setParameter("aocAllowed", aocAllowed)
+        .setDynamicClause("noAocAccess", noAocAccess)
         .eraseNullParameterLines()
         // keep params below even when null
-        .eraseJoinLine("aoc_access", aocAclSql == null)
         .eraseJoinLine("de_ids", !params.hasDataElementFilters())
         .eraseJoinLine("pe_ids", !params.hasPeriodFilters())
         .eraseJoinLine("ou_with_descendants_ids", !descendants || !params.hasOrgUnitFilters())
@@ -359,6 +359,70 @@ public class HibernateDataExportStore implements DataExportStore {
         .toList();
   }
 
+  /**
+   * @return internal ids of the option combos of attribute category combos for which the user can
+   *     read data of every category option, plus the default combo (no sharing guards on default),
+   *     limited to the explicitly requested AOCs if there are any
+   */
+  private static Long[] getAllowedAocIds(
+      SQL.QueryAPI api,
+      UserDetails user,
+      @CheckForNull List<UID> attributeOptionCombos,
+      @CheckForNull List<UID> dataSets) {
+    // a single bigint column comes back as a plain number per row, not as an Object[] row
+    return createAllowedAocQuery(api, user, attributeOptionCombos, dataSets).stream(Number.class)
+        .map(Number::longValue)
+        .toArray(Long[]::new);
+  }
+
+  /**
+   * An export that only selects data sets can only contain AOCs of those data sets' attribute
+   * category combos; AOCs of other combos would be invalid for the requested data sets. Data
+   * element (group) selectors can pull in values of other data sets, so then there is no such
+   * scope.
+   *
+   * @return the data sets to scope the readable AOCs by, or null for no scope
+   */
+  @CheckForNull
+  private static List<UID> aocScopeDataSets(DataExportParams params) {
+    boolean dataSetsOnly =
+        !isEmpty(params.getDataSets())
+            && isEmpty(params.getDataElements())
+            && isEmpty(params.getDataElementGroups());
+    return dataSetsOnly ? params.getDataSets() : null;
+  }
+
+  static QueryBuilder createAllowedAocQuery(
+      SQL.QueryAPI api,
+      UserDetails user,
+      @CheckForNull List<UID> attributeOptionCombos,
+      @CheckForNull List<UID> dataSets) {
+    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_READ_DATA);
+    String sql =
+        """
+      SELECT DISTINCT ccoc.categoryoptioncomboid
+      FROM categorycombos_optioncombos ccoc
+      JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
+      JOIN categoryoptioncombo aoc ON aoc.categoryoptioncomboid = ccoc.categoryoptioncomboid
+      WHERE (cc.name = 'default'
+          OR cc.datadimensiontype = 'ATTRIBUTE'
+          AND NOT EXISTS (
+            SELECT 1
+            FROM categoryoptioncombos_categoryoptions coc_co
+            JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
+            WHERE coc_co.categoryoptioncomboid = ccoc.categoryoptioncomboid
+              AND NOT (:access)))
+        AND aoc.uid = ANY(:aoc)
+        AND cc.categorycomboid IN (SELECT ds.categorycomboid FROM dataset ds WHERE ds.uid = ANY(:ds))""";
+    return SQL.of(sql, api)
+        .setParameter("aoc", attributeOptionCombos)
+        .setParameter("ds", dataSets)
+        .setDynamicClause("access", accessSql)
+        .eraseNullParameterLines()
+        .eraseNullParameterJoinLine("aoc", "aoc")
+        .useEqualsOverInForParameters("aoc", "ds");
+  }
+
   @Nonnull
   @Override
   public List<String> getAocNoDataReadAccess(@Nonnull Stream<UID> attributeOptionCombos) {
@@ -370,13 +434,19 @@ public class HibernateDataExportStore implements DataExportStore {
       SELECT coc.uid
       FROM categoryoptioncombo coc
       WHERE coc.uid = ANY (:coc)
-        AND EXISTS(
+        AND NOT EXISTS (
           SELECT 1
-          FROM categoryoptioncombos_categoryoptions aoc_co
-          JOIN categoryoption co ON aoc_co.categoryoptionid = co.categoryoptionid
-          WHERE coc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
-            AND NOT (:access)
-      )""";
+          FROM categorycombos_optioncombos ccoc
+          JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
+          WHERE ccoc.categoryoptioncomboid = coc.categoryoptioncomboid
+            AND (cc.name = 'default'
+              OR cc.datadimensiontype = 'ATTRIBUTE'
+              AND NOT EXISTS (
+                SELECT 1
+                FROM categoryoptioncombos_categoryoptions aoc_co
+                JOIN categoryoption co ON aoc_co.categoryoptionid = co.categoryoptionid
+                WHERE aoc_co.categoryoptioncomboid = coc.categoryoptioncomboid
+                  AND NOT (:access))))""";
     return createQuery(sql)
         .setParameter("coc", attributeOptionCombos)
         .setDynamicClause("access", accessSql)

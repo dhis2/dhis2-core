@@ -32,6 +32,7 @@ package org.hisp.dhis.datavalue.hibernate;
 import static org.hisp.dhis.datavalue.DataExportParams.Order.*;
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataExportStore.createExportQuery;
 import static org.hisp.dhis.period.Period.of;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,6 +42,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.sql.AbstractQueryBuilderTest;
@@ -330,8 +334,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("ou", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        Set.of("ou", "deleted"), createExportQuery(params, createSpyQuery(), new SystemUser()));
   }
 
   @Test
@@ -442,13 +445,6 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
             UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm            JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid            JOIN organisationunit ou ON ougm.organisationunitid = ou.organisationunitid            WHERE oug.uid = ANY(:oug) AND ou.uid = ANY(:capture))
           ) ou_all
           WHERE organisationunitid IS NOT NULL
-        ),
-        aoc_access AS MATERIALIZED (
-          SELECT aoc.categoryoptioncomboid, aoc.uid
-          FROM categoryoptioncombo aoc
-          WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
-          JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
-          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT ( ( co.sharing->>'owner' is null or co.sharing->>'owner' = 'null')  or co.sharing->>'public' like '__r_____' or co.sharing->>'public' is null  or (jsonb_has_user_id( co.sharing, 'null') = true  and jsonb_check_user_access( co.sharing, 'null', '__r_____' ) = true )  ))
         )
         SELECT
           de.uid AS deid,
@@ -470,12 +466,12 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN period pe ON dv.periodid = pe.periodid
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
-        JOIN aoc_access ON dv.attributeoptioncomboid = aoc_access.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
+          AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("oug", "capture", "deleted"),
-        createExportQuery(params, createSpyQuery(), currentUser));
+        Set.of("oug", "capture", "deleted", "aocAllowed"),
+        createExportQuery(params, withAllowedAocs(createSpyQuery(), 11L), currentUser));
   }
 
   @Test
@@ -569,34 +565,153 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
   }
 
   @Test
-  void testAocAccess_nonSuperuser_usesMaterializedCte() {
+  void testAocAccess_allowedAocs_semiJoinOnIds() {
     UserDetails user = UserDetails.empty().build();
     DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
-    AtomicReference<String> captured = new AtomicReference<>();
-    SQL.QueryAPI spy = SQL.spy(captured::set, (name, param) -> {});
-    createExportQuery(params, spy, user).stream();
-    String sql = captured.get();
-    assertTrue(sql.contains("aoc_access AS MATERIALIZED"), "expected MATERIALIZED CTE: " + sql);
-    assertTrue(sql.contains("JOIN aoc_access ON"), "expected join to aoc_access CTE: " + sql);
-    assertTrue(
-        sql.contains("JOIN categoryoptioncombo aoc ON"),
-        "expected direct categoryoptioncombo join for aoc alias: " + sql);
-    assertFalse(
-        sql.contains("AND NOT EXISTS"),
-        "NOT EXISTS should not appear inline in WHERE clause: " + sql);
+    assertSQL(
+        """
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("aocAllowed"),
+        createExportQuery(params, withAllowedAocs(createSpyQuery(), 11L, 12L), user));
+    assertArrayEquals(new Long[] {11L, 12L}, (Long[]) paramValue("aocAllowed"));
   }
 
   @Test
-  void testAocAccess_superuser_usesDirectJoin() {
+  void testAocAccess_noList_noAocFilter() {
     DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
     AtomicReference<String> captured = new AtomicReference<>();
-    SQL.QueryAPI spy = SQL.spy(captured::set, (name, param) -> {});
-    createExportQuery(params, spy, new SystemUser()).stream();
+    createExportQuery(params, SQL.spy(captured::set, (n, p) -> {}), new SystemUser()).stream();
     String sql = captured.get();
-    assertFalse(sql.contains("aoc_access"), "expected no aoc_access CTE for superuser: " + sql);
+    assertFalse(sql.contains("aocAllowed"), "no list must mean no AOC filter: " + sql);
+    assertFalse(sql.contains("aoc_access"), "CTE must be gone: " + sql);
+  }
+
+  @Test
+  void testAocAccess_nothingReadable_matchesNothing() {
+    DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
+    AtomicReference<String> captured = new AtomicReference<>();
+    // the plain spy answers the readable AOC lookup with no rows
+    createExportQuery(params, SQL.spy(captured::set, (n, p) -> {}), UserDetails.empty().build())
+        .stream();
+    String sql = captured.get();
+    assertTrue(sql.contains("WHERE false"), "no readable AOC must match nothing: " + sql);
+    assertFalse(sql.contains("aocAllowed"), "an empty list must not reach the query: " + sql);
+  }
+
+  @Test
+  void testAocAccess_explicitAocs_keepAllowedListToo() {
+    DataExportParams params =
+        DataExportParams.builder()
+            .includeDeleted(true)
+            .attributeOptionCombos(List.of(UID.of("aoc23456789")))
+            .build();
+    AtomicReference<String> captured = new AtomicReference<>();
+    createExportQuery(
+        params,
+        withAllowedAocs(SQL.spy(captured::set, (n, p) -> {}), 11L),
+        UserDetails.empty().build())
+        .stream();
+    String sql = captured.get();
+    assertTrue(sql.contains("aoc.uid = :aoc"), "explicit AOC filter expected: " + sql);
+    assertTrue(sql.contains(":aocAllowed"), "allowed list must stay for explicit AOCs: " + sql);
+  }
+
+  @Test
+  void testAllowedAocQuery_noExplicitAocs_allAttributeAocs() {
+    AtomicReference<String> captured = new AtomicReference<>();
+    createAllowedAocQueryWithSpy(List.of(), List.of(), captured);
+    String sql = captured.get();
+    assertTrue(sql.contains("SELECT DISTINCT ccoc.categoryoptioncomboid"), sql);
+    assertFalse(sql.contains(":ds"), "no data sets must mean no data set scope: " + sql);
+    assertFalse(sql.contains(":aoc"), "no explicit AOCs must mean no AOC restriction: " + sql);
+    assertFalse(sql.contains("JOIN categoryoptioncombo aoc"), "no join needed: " + sql);
+  }
+
+  @Test
+  void testAllowedAocQuery_explicitAocs_onlyThoseAreLookedUp() {
+    AtomicReference<String> captured = new AtomicReference<>();
+    createAllowedAocQueryWithSpy(List.of(UID.of("aoc23456789")), List.of(), captured);
+    String sql = captured.get();
+    assertTrue(sql.contains("aoc.uid = :aoc"), "lookup must be limited to explicit AOCs: " + sql);
+  }
+
+  @Test
+  void testAllowedAocQuery_dataSets_onlyTheirAttributeCombos() {
+    AtomicReference<String> captured = new AtomicReference<>();
+    createAllowedAocQueryWithSpy(List.of(), List.of(UID.of("ds123456789")), captured);
+    String sql = captured.get();
     assertTrue(
-        sql.contains("JOIN categoryoptioncombo aoc ON"),
-        "expected direct categoryoptioncombo join: " + sql);
-    assertFalse(sql.contains("NOT EXISTS"), "expected no NOT EXISTS correlated subquery: " + sql);
+        sql.contains("cc.categorycomboid IN (SELECT ds.categorycomboid FROM dataset ds")
+            && sql.contains("WHERE ds.uid = :ds"),
+        "lookup must be limited to the data sets' attribute combos: " + sql);
+  }
+
+  private void createAllowedAocQueryWithSpy(
+      List<UID> aocs, List<UID> dataSets, AtomicReference<String> captured) {
+    HibernateDataExportStore.createAllowedAocQuery(
+        SQL.spy(captured::set, (n, p) -> {}), UserDetails.empty().build(), aocs, dataSets)
+        .stream();
+  }
+
+  /** Answers the readable AOC lookup with the given ids, all other queries go to the spy. */
+  private static SQL.QueryAPI withAllowedAocs(SQL.QueryAPI spy, Long... ids) {
+    return sql ->
+        sql.contains("FROM categorycombos_optioncombos ccoc")
+            ? new AllowedAocs(ids)
+            : spy.createQuery(sql);
+  }
+
+  private record AllowedAocs(Long[] ids) implements SQL.Query {
+
+    @Override
+    public SQL.Query setParameter(@Nonnull SQL.Param param) {
+      return this;
+    }
+
+    @Override
+    public SQL.Query setLimit(int n) {
+      return this;
+    }
+
+    @Override
+    public SQL.Query setOffset(int n) {
+      return this;
+    }
+
+    @Override
+    public <T> Stream<T> stream(Function<SQL.Row, T> map) {
+      return Stream.empty();
+    }
+
+    @Override
+    public <T> Stream<T> stream(@Nonnull Class<T> of) {
+      return Stream.of(ids).map(of::cast);
+    }
+
+    @Override
+    public int count() {
+      return ids.length;
+    }
   }
 }
