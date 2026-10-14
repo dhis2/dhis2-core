@@ -288,13 +288,13 @@ class DataExportAocAccessTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void explicitDisaggregationCocAsAoc_E2011() {
-    // invalid configuration requested explicitly
+  void explicitDisaggregationCocAsAoc_E2049() {
+    // invalid configuration requested explicitly gets its own error, not the sharing one
     CategoryOptionCombo cocDisaggOpen = createDisaggregationCoc('F');
     injectSecurityContextUser(user);
     ConflictException ex =
         assertThrows(ConflictException.class, () -> exportedValues(cocDisaggOpen.getUid()));
-    assertEquals(ErrorCode.E2011, ex.getCode());
+    assertEquals(ErrorCode.E2049, ex.getCode());
   }
 
   @Test

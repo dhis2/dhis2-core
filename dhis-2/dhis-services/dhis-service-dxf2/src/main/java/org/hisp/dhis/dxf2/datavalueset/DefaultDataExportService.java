@@ -488,6 +488,9 @@ public class DefaultDataExportService implements DataExportService {
   private void validateAocAccess(List<UID> attributeCombos) throws ConflictException {
     if (attributeCombos == null || attributeCombos.isEmpty()) return;
     if (getCurrentUserDetails().isSuper()) return;
+    // an invalid AOC gets its own error, so it is not mistaken for a sharing problem
+    List<String> aocInvalid = store.getAocNotOfAttributeCombo(attributeCombos.stream());
+    if (!aocInvalid.isEmpty()) throw new ConflictException(ErrorCode.E2049, aocInvalid);
     List<String> aocNoAccess = store.getAocNoDataReadAccess(attributeCombos.stream());
     if (!aocNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E2011, aocNoAccess);
   }

@@ -199,6 +199,7 @@ public enum ErrorCode {
   E2046("Error parsing CSV file: {0}"),
   E2047("Data value key combination does not exist: {0}"),
   E2048("Error processing gzipped content: {0}"),
+  E2049("Attribute option combo(s) do not belong to an attribute category combo: `${aoc:{0}}`"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
