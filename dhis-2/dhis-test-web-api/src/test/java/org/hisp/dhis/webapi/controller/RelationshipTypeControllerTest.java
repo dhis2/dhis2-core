@@ -31,14 +31,20 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -46,6 +52,12 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class RelationshipTypeControllerTest extends PostgresControllerIntegrationTestBase {
+
+  private static final String RELATIONSHIP_TYPE_UID = "RelTypeCon1";
+
+  @Autowired private EntityManagerFactory entityManagerFactory;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private String program;
 
@@ -143,5 +155,116 @@ class RelationshipTypeControllerTest extends PostgresControllerIntegrationTestBa
 
     assertEquals(3, attributes.size());
     assertEquals(List.of(attrA, attrB, attrC), attributes.toList(JsonString::string));
+  }
+
+  @Test
+  void testPutOfExportedTypeWithChangedFromConstraintUpdatesTheConstraint() {
+    String otherProgram =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                """
+                {"name": "other program", "shortName": "other program",
+                  "programType": "WITH_REGISTRATION", "trackedEntityType": {"id": "%s"},
+                  "programTrackedEntityAttributes": [
+                    {"trackedEntityAttribute": {"id": "%s"}},
+                    {"trackedEntityAttribute": {"id": "%s"}}]}"""
+                    .formatted(trackedEntityType, attrB, attrC)));
+    String programStage = importRelationshipType();
+    String exported =
+        GET("/relationshipTypes/" + RELATIONSHIP_TYPE_UID).content(HttpStatus.OK).toJson();
+    String attributes = "\"attributes\":[\"%s\"]".formatted(attrA);
+    String fromProgram = "\"program\":{\"id\":\"%s\"}".formatted(program);
+    assertTrue(exported.contains(attributes) && exported.contains(fromProgram), exported);
+
+    assertStatus(
+        HttpStatus.OK,
+        PUT(
+            "/relationshipTypes/" + RELATIONSHIP_TYPE_UID,
+            exported
+                .replace(attributes, "\"attributes\":[\"%s\",\"%s\"]".formatted(attrC, attrB))
+                .replace(fromProgram, "\"program\":{\"id\":\"%s\"}".formatted(otherProgram))));
+
+    JsonObject type = reloadType();
+    JsonObject from = type.getObject("fromConstraint");
+    assertEquals("TRACKED_ENTITY_INSTANCE", from.getString("relationshipEntity").string());
+    assertEquals(trackedEntityType, from.getString("trackedEntityType.id").string());
+    assertEquals(otherProgram, from.getString("program.id").string());
+    assertEquals(
+        List.of(attrC, attrB),
+        from.getList("trackerDataView.attributes", JsonString.class).toList(JsonString::string));
+    JsonObject to = type.getObject("toConstraint");
+    assertEquals("PROGRAM_STAGE_INSTANCE", to.getString("relationshipEntity").string());
+    assertEquals(programStage, to.getString("programStage.id").string());
+    assertEquals(
+        2,
+        jdbcTemplate.queryForObject("select count(*) from relationshipconstraint", Integer.class));
+  }
+
+  /** The keys of the embedded constraints match the export on play/dev. */
+  @Test
+  void testEmbeddedConstraintJsonKeys() {
+    importRelationshipType();
+
+    JsonObject type = reloadType();
+
+    assertEquals(
+        Set.of("relationshipEntity", "trackedEntityType", "program", "trackerDataView"),
+        Set.copyOf(type.getObject("fromConstraint").names()));
+    assertEquals(
+        Set.of("relationshipEntity", "programStage", "trackerDataView"),
+        Set.copyOf(type.getObject("toConstraint").names()));
+    assertEquals(
+        Set.of("attributes", "dataElements"),
+        Set.copyOf(type.getObject("fromConstraint.trackerDataView").names()));
+  }
+
+  /**
+   * Imports a relationship type from a tracked entity of the program to an event of a new program
+   * stage, and returns the program stage's uid.
+   */
+  private String importRelationshipType() {
+    String programStage =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programStages/",
+                "{'name': 'test stage', 'program': {'id': '%s'}}".formatted(program)));
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/metadata",
+            """
+            {"relationshipTypes": [{
+              "id": "%s",
+              "name": "Constraint type",
+              "fromToName": "From",
+              "toFromName": "To",
+              "fromConstraint": {
+                "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+                "trackedEntityType": {"id": "%s"},
+                "program": {"id": "%s"},
+                "trackerDataView": {"attributes": ["%s"]}
+              },
+              "toConstraint": {
+                "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+                "programStage": {"id": "%s"},
+                "trackerDataView": {"dataElements": []}
+              }
+            }]}"""
+                .formatted(
+                    RELATIONSHIP_TYPE_UID, trackedEntityType, program, attrA, programStage)));
+    return programStage;
+  }
+
+  /**
+   * The relationship type as exported after the session is flushed and cleared and the second-level
+   * cache evicted, so it is read from the database.
+   */
+  private JsonObject reloadType() {
+    startNewRequestSession();
+    entityManagerFactory.getCache().evictAll();
+    return GET("/relationshipTypes/" + RELATIONSHIP_TYPE_UID).content(HttpStatus.OK);
   }
 }
