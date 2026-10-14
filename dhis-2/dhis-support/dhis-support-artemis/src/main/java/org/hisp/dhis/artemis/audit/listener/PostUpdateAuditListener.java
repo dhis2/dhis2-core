@@ -35,6 +35,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.hibernate.BaseSessionEventListener;
 import org.hibernate.event.spi.AbstractCollectionEvent;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostCollectionRecreateEvent;
@@ -93,7 +94,10 @@ public class PostUpdateAuditListener extends AbstractHibernateListener
   static final Set<String> AUDIT_IGNORED_PROPERTIES =
       Set.of("lastUpdated", "lastUpdatedBy", "lastLogin", "lastCheckedInterpretations");
 
-  /** The collection changes of the transaction running in a session, until it completes. */
+  /**
+   * The collection changes of the transaction running in a session, until it completes or the
+   * session ends.
+   */
   private final Map<EventSource, TransactionCollectionChanges> collectionChangesBySession =
       new ConcurrentHashMap<>();
 
@@ -174,12 +178,26 @@ public class PostUpdateAuditListener extends AbstractHibernateListener
    * Starts recording the collection changes of the transaction running in the given session. The
    * processes of the updates keep their own reference to them, so the entry is only needed until
    * the transaction completes.
+   *
+   * <p>Hibernate stops running the after-completion processes at the first one that throws, for
+   * example a CREATE audit that fails to publish, so the removal at completion can be skipped. The
+   * end of the session removes the entry in any case. Both remove only this transaction's entry,
+   * never the one of a later transaction in the same session.
    */
   private TransactionCollectionChanges startCollectionChanges(EventSource session) {
     TransactionCollectionChanges collectionChanges = new TransactionCollectionChanges();
     session
         .getActionQueue()
-        .registerProcess((success, completedSession) -> collectionChangesBySession.remove(session));
+        .registerProcess(
+            (success, completedSession) ->
+                collectionChangesBySession.remove(session, collectionChanges));
+    session.addEventListeners(
+        new BaseSessionEventListener() {
+          @Override
+          public void end() {
+            collectionChangesBySession.remove(session, collectionChanges);
+          }
+        });
     return collectionChanges;
   }
 
