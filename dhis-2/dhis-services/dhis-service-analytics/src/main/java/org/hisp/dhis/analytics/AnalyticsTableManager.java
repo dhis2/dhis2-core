@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,6 +93,29 @@ public interface AnalyticsTableManager {
    * @param params {@link AnalyticsTableUpdateParams}.
    */
   void preCreateTables(AnalyticsTableUpdateParams params);
+
+  /**
+   * Indicates whether the given tables are in a state that supports a continuous ("latest"
+   * partition) update. For engines requiring unique-key analytics tables (e.g. Doris), a main table
+   * created before that support was introduced remains on the previous key model until a full
+   * rebuild recreates it, and continuous updates must not be attempted against it.
+   *
+   * @param tables the list of {@link AnalyticsTable}.
+   * @return true if a continuous update can proceed.
+   */
+  default boolean isReadyForContinuousUpdate(List<AnalyticsTable> tables) {
+    return true;
+  }
+
+  /**
+   * Checks whether the main table of the given analytics table exists.
+   *
+   * @param table the {@link AnalyticsTable}.
+   * @return true if the main table exists.
+   */
+  default boolean mainTableExists(AnalyticsTable table) {
+    return true;
+  }
 
   /**
    * Removes updated and deleted data from the given tables for "latest" partition update.

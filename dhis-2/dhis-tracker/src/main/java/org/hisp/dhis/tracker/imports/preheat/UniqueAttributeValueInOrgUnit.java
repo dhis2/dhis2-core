@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2026, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,30 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.registrationou;
+package org.hisp.dhis.tracker.imports.preheat;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
-/** Shared identifiers for REGISTRATION_OU query and aggregate handling. */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class RegistrationOuSqlConstants {
-
-  /** The dimension keyword as written in a request. */
-  public static final String DIMENSION_NAME = "REGISTRATION_OU";
-
-  public static final String STRUCT_TABLE = OrganisationUnitStructureResourceTable.TABLE_NAME;
-
-  /**
-   * Distinct from the {@code ous} alias used for the default org unit join, so both can appear in
-   * one query.
-   */
-  public static final String STRUCT_ALIAS = "regous";
-
-  public static final String STRUCT_UID_COLUMN = "organisationunituid";
-
-  public static final String STRUCT_NAME_COLUMN = "name";
-
-  public static final String UID_LEVEL_PREFIX = "uidlevel";
-}
+/**
+ * A value of an attribute unique within an org unit, either stored in the DB or sent for more than
+ * one tracked entity in the payload. A value of the attribute equal to it, ignoring case, is a
+ * duplicate if it is in the same org unit, unless it belongs to the same tracked entity. A value
+ * whose org unit is unknown (e.g. of an enrollment of a tracked entity that does not exist) can't
+ * conflict with any other, so it has no entry.
+ *
+ * @param te the tracked entity owning the value
+ * @param attribute the attribute, in the id scheme of the import
+ * @param value the value
+ * @param orgUnit the org unit of the tracked entity owning the value
+ */
+public record UniqueAttributeValueInOrgUnit(
+    @Nonnull UID te,
+    @Nonnull MetadataIdentifier attribute,
+    @Nonnull String value,
+    @Nonnull MetadataIdentifier orgUnit) {}

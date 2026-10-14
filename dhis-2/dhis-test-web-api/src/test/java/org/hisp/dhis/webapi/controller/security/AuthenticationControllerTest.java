@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -127,6 +128,36 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
   private Map<String, Object> lastUpdatedAndLastLogin(String username) {
     return jdbcTemplate.queryForMap(
         "select lastupdated, lastlogin from userinfo where username = ?", username);
+  }
+
+  @Test
+  void testSuccessfulLoginClearsInvitation() {
+    User invitedUser = createUserWithAuth("invited", "ALL");
+    userService.encodeAndSetPassword(invitedUser, "district");
+    invitedUser.setInvitation(true);
+    invitedUser.setRestoreToken("restore-token");
+    Calendar expiry = Calendar.getInstance();
+    expiry.add(Calendar.DAY_OF_YEAR, 1);
+    invitedUser.setRestoreExpiry(expiry.getTime());
+    invitedUser.setIdToken("id-token");
+    userService.updateUser(invitedUser);
+    manager.flush();
+    manager.clear();
+    clearSecurityContext();
+
+    JsonLoginResponse response =
+        POST("/auth/login", "{'username':'invited','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    manager.flush();
+    manager.clear();
+    User persistedUser = userService.getUserByUsername("invited");
+    assertFalse(persistedUser.isInvitation());
+    assertNull(persistedUser.getRestoreToken());
+    assertNull(persistedUser.getRestoreExpiry());
+    assertNull(persistedUser.getIdToken());
   }
 
   @Test
