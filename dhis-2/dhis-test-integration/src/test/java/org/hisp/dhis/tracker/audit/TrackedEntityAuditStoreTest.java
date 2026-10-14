@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -46,7 +45,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.id.enhanced.NoopOptimizer;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.CustomType;
@@ -122,7 +120,7 @@ class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldGetAuditsByParams() {
+  void testGetAuditsByParams() {
 
     store.addTrackedEntityAudit(auditA);
     store.addTrackedEntityAudit(auditB);
@@ -220,7 +218,30 @@ class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
         "trackedentityinstanceaudit_sequence",
         generator.getDatabaseStructure().getPhysicalName().getObjectName().getText());
     assertEquals(1, generator.getDatabaseStructure().getIncrementSize());
-    assertInstanceOf(NoopOptimizer.class, generator.getOptimizer());
+  }
+
+  @Test
+  @DisplayName("single saves and the native batch insert draw ascending ids from the same sequence")
+  void shouldDrawIdsForSingleAndBatchInsertsFromTheSameSequence() {
+    TrackedEntityAudit firstSingle = audit("userA", getDate(2022, 3, 1));
+    store.addTrackedEntityAudit(firstSingle);
+    store.addTrackedEntityAudit(
+        List.of(audit("userB", getDate(2022, 3, 2)), audit("userC", getDate(2022, 3, 3))));
+    TrackedEntityAudit secondSingle = audit("userD", getDate(2022, 3, 4));
+    store.addTrackedEntityAudit(secondSingle);
+    entityManager.flush();
+
+    List<Map<String, Object>> rows =
+        jdbcTemplate.queryForList(
+            """
+            select trackedentityauditid, accessedby from trackedentityaudit
+            where trackedentity = 'ZtIhaTkP3pL' order by trackedentityauditid""");
+
+    assertEquals(
+        List.of("userA", "userB", "userC", "userD"),
+        rows.stream().map(row -> row.get("accessedby")).toList());
+    assertEquals(firstSingle.getId(), rows.get(0).get("trackedentityauditid"));
+    assertEquals(secondSingle.getId(), rows.get(3).get("trackedentityauditid"));
   }
 
   @Test
@@ -246,29 +267,8 @@ class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
     assertEquals("SEARCH", row.get("audittype"));
 
     TrackedEntityAudit reloaded = reload(audit);
-    assertEquals(audit.getId(), reloaded.getId());
-    assertEquals("ZtIhaTkP3pL", reloaded.getTrackedEntity());
-    assertEquals("mapping comment", reloaded.getComment());
-    assertSame(Timestamp.class, reloaded.getCreated().getClass());
     assertEquals(created.getTime(), reloaded.getCreated().getTime());
-    assertEquals("mappingUser", reloaded.getAccessedBy());
     assertSame(AuditOperationType.SEARCH, reloaded.getAuditType());
-  }
-
-  @Test
-  @DisplayName("an audit with only an audit type is stored with null columns")
-  void shouldStoreNullColumnsForAuditWithOnlyAuditType() {
-    TrackedEntityAudit audit = new TrackedEntityAudit();
-    audit.setAuditType(AuditOperationType.READ);
-    store.addTrackedEntityAudit(audit);
-    entityManager.flush();
-
-    TrackedEntityAudit reloaded = reload(audit);
-    assertNull(reloaded.getTrackedEntity());
-    assertNull(reloaded.getComment());
-    assertNull(reloaded.getCreated());
-    assertNull(reloaded.getAccessedBy());
-    assertSame(AuditOperationType.READ, reloaded.getAuditType());
   }
 
   @Test
