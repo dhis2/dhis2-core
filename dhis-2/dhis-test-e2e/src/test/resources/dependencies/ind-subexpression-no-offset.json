@@ -1,0 +1,14 @@
+{
+  "type": "indicator",
+  "code": "SUBEXPNOOFFSET",
+  "name": "Facilities reporting ANC 1st visit",
+  "shortName": "Facilities reporting ANC 1st",
+  "numeratorDescription": "Facilities reporting ANC 1st visit",
+  "numerator": "subExpression(if(#{fbfJHSPpUQD} > 0, 1, 0))",
+  "denominatorDescription": "One",
+  "denominator": "1",
+  "indicatorType": {
+    "id": "JkWynlWMjJR"
+  },
+  "legendSets": []
+}

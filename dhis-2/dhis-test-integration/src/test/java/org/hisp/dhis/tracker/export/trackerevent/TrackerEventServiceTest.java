@@ -32,11 +32,12 @@ package org.hisp.dhis.tracker.export.trackerevent;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
-import static org.hisp.dhis.tracker.Assertions.assertNotes;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,20 +49,25 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams.TrackerEventOperationParamsBuilder;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.RelationshipItem;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -95,6 +101,8 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
   private TrackedEntity trackedEntity;
   private User importUser;
 
+  private TrackerObjects trackerObjects;
+
   private TrackerEventOperationParams.TrackerEventOperationParamsBuilder operationParamsBuilder;
 
   @BeforeAll
@@ -104,7 +112,7 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    testSetup.importTrackerData();
+    trackerObjects = testSetup.importTrackerData();
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     trackedEntity = get(TrackedEntity.class, "dUE514NMOlo");
@@ -192,14 +200,26 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
-    TrackerEvent pTzf9KYMk72 = get(TrackerEvent.class, "pTzf9KYMk72");
+    Map<String, String> notes =
+        trackerObjects.findEvent(UID.of("pTzf9KYMk72")).orElseThrow().getNotes().stream()
+            .collect(
+                Collectors.toMap(
+                    n -> n.getNote().getValue(),
+                    org.hisp.dhis.tracker.imports.domain.Note::getValue));
+    assertNotEmpty(notes.keySet(), "test expects an event with notes");
     TrackerEventOperationParams params =
-        operationParamsBuilder.events(Set.of(UID.of("pTzf9KYMk72"))).build();
+        operationParamsBuilder
+            .events(Set.of(UID.of("pTzf9KYMk72")))
+            .fields(TrackerEventFields.builder().includeNotes().build())
+            .build();
 
     List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
-    assertNotes(pTzf9KYMk72.getNotes(), events.get(0).getNotes());
+    assertEquals(
+        notes,
+        events.get(0).getNotes().stream()
+            .collect(Collectors.toMap(Note::getUid, Note::getNoteText)));
   }
 
   @Test
@@ -677,6 +697,30 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
     assertIsEmpty(getEvents(operationParamsBuilder.build()));
   }
 
+  @Test
+  void shouldNotReturnDataElementValueWhenUserCannotReadDataElement()
+      throws ForbiddenException, BadRequestException {
+    // Remove metadata read access to DATAEL00001 for the basic user. The event stays accessible,
+    // but the value of the restricted data element must not be returned while the other data
+    // elements of the event still are.
+    DataElement dataElement = get(DataElement.class, "DATAEL00001");
+    dataElement.getSharing().setPublicAccess(DEFAULT);
+    manager.updateNoAcl(dataElement);
+    manager.flush();
+    manager.clear();
+
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builderForEvent(UID.of("D9PbzJY8bJM")).build();
+
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
+
+    assertContainsOnly(
+        Set.of("DATAEL00002", "DATAEL00005", "DATAEL00006", "DATAEL00007", "GieVkTxp4HH"),
+        dataElements(events.get(0)));
+  }
+
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
     assertNotNull(
@@ -694,6 +738,12 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
 
   private static List<String> uids(List<? extends IdentifiableObject> identifiableObject) {
     return identifiableObject.stream().map(IdentifiableObject::getUid).toList();
+  }
+
+  private static Set<String> dataElements(TrackerEvent event) {
+    return event.getEventDataValues().stream()
+        .map(EventDataValue::getDataElement)
+        .collect(Collectors.toSet());
   }
 
   private void updatePublicAccessSharing(

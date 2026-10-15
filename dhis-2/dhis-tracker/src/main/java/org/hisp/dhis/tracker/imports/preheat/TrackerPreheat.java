@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,8 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -136,6 +138,42 @@ public class TrackerPreheat {
   private Pair<String, Set<MetadataIdentifier>> toCategoryOptionComboCacheKey(
       CategoryCombo categoryCombo, Set<MetadataIdentifier> categoryOptions) {
     return Pair.of(categoryCombo.getUid(), categoryOptions);
+  }
+
+  /**
+   * Set of (option set id, option code) pairs confirmed to exist, populated by {@code
+   * OptionValueSupplier}. Only pairs actually referenced by the import payload are present here —
+   * this is not the full set of options for any given option set.
+   *
+   * <p>Preheated {@link org.hisp.dhis.option.OptionSet} instances deliberately carry no populated
+   * {@code options} collection (see {@code OptionSetMapper} for why). {@link
+   * #isValidOptionCode(Long, String)} and {@link #addValidOptionCode(Long, String)} are the
+   * supported way to check option code validity against preheated data. Do not call {@code
+   * OptionSet#getOptions()} on a preheated option set expecting real data — it is always empty.
+   */
+  private final Set<Pair<Long, String>> validOptionCodes = new HashSet<>();
+
+  /**
+   * Option sets {@code OptionValueSupplier} attempted to resolve. Lets callers tell "this code was
+   * checked against the database and does not exist" apart from "this option set was never resolved
+   * at all", which would be an internal bug rather than user error.
+   */
+  private final Set<Long> resolvedOptionSets = new HashSet<>();
+
+  public void addValidOptionCode(Long optionSetId, String code) {
+    this.validOptionCodes.add(Pair.of(optionSetId, code));
+  }
+
+  public boolean isValidOptionCode(Long optionSetId, String code) {
+    return this.validOptionCodes.contains(Pair.of(optionSetId, code));
+  }
+
+  public void addResolvedOptionSet(Long optionSetId) {
+    this.resolvedOptionSets.add(optionSetId);
+  }
+
+  public boolean isOptionSetResolved(Long optionSetId) {
+    return this.resolvedOptionSets.contains(optionSetId);
   }
 
   /**
@@ -254,11 +292,19 @@ public class TrackerPreheat {
   private final Map<String, User> users = Maps.newHashMap();
 
   /**
-   * A list of all unique attribute values that are both present in the payload and in the database.
-   * This is going to be used to validate the uniqueness of attribute values in the Validation
-   * phase.
+   * Values of attributes unique in the whole system, grouped by {@link #caseInsensitiveKey(String)}
+   * of their value, so the validation only compares a value against the few entries sharing it
+   * instead of all of them.
    */
-  @Getter @Setter private List<UniqueAttributeValue> uniqueAttributeValues = Lists.newArrayList();
+  private Map<String, List<UniqueAttributeValueSystemWide>> systemWideUniqueAttributeValuesByValue =
+      Map.of();
+
+  /**
+   * Values of attributes unique within an org unit, grouped by {@link #caseInsensitiveKey(String)}
+   * of their value, for the same reason.
+   */
+  private Map<String, List<UniqueAttributeValueInOrgUnit>> uniqueAttributeValuesInOrgUnitByValue =
+      Map.of();
 
   /** A list of all Enrollment UID having at least one Event that is not deleted. */
   @Getter @Setter private List<UID> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
@@ -275,6 +321,28 @@ public class TrackerPreheat {
    * payload.
    */
   @Getter @Setter private Map<String, List<String>> programWithOrgUnitsMap;
+
+  /**
+   * Projected data elements of a program stage, keyed by program stage uid. Set by {@link
+   * org.hisp.dhis.tracker.imports.preheat.supplier.ProgramStageDataElementsSupplier}, which
+   * documents what is projected and why.
+   */
+  private final Map<UID, ProgramStageDataElements> programStageDataElements = new HashMap<>();
+
+  public void putProgramStageDataElements(
+      @Nonnull UID programStage, @Nonnull ProgramStageDataElements dataElements) {
+    programStageDataElements.put(programStage, dataElements);
+  }
+
+  /**
+   * Returns the projected data elements of the given program stage, never null. An unknown stage
+   * yields empty sets, matching the previous behaviour of a stage with no data elements.
+   */
+  @Nonnull
+  public ProgramStageDataElements getProgramStageDataElements(@Nonnull ProgramStage programStage) {
+    return programStageDataElements.getOrDefault(
+        UID.of(programStage), ProgramStageDataElements.EMPTY);
+  }
 
   public TrackerPreheat() {}
 
@@ -570,6 +638,67 @@ public class TrackerPreheat {
 
   public Optional<User> getUserByUid(String uid) {
     return this.users.values().stream().filter(u -> Objects.equals(uid, u.getUid())).findAny();
+  }
+
+  public void setSystemWideUniqueAttributeValues(List<UniqueAttributeValueSystemWide> values) {
+    this.systemWideUniqueAttributeValuesByValue =
+        values.stream().collect(Collectors.groupingBy(v -> caseInsensitiveKey(v.value())));
+  }
+
+  public void setUniqueAttributeValuesInOrgUnit(List<UniqueAttributeValueInOrgUnit> values) {
+    this.uniqueAttributeValuesInOrgUnitByValue =
+        values.stream().collect(Collectors.groupingBy(v -> caseInsensitiveKey(v.value())));
+  }
+
+  /**
+   * Returns true if a tracked entity other than {@code trackedEntity} has a value of {@code
+   * attribute}, unique in the whole system, equal to {@code value} ignoring case. The tracked
+   * entity is the one of the payload, as a new one has its own value in the payload duplicates.
+   */
+  public boolean hasSystemWideDuplicate(
+      @Nonnull TrackedEntityAttribute attribute,
+      @Nonnull String value,
+      @CheckForNull UID trackedEntity) {
+    return systemWideUniqueAttributeValuesByValue
+        .getOrDefault(caseInsensitiveKey(value), List.of())
+        .stream()
+        .anyMatch(
+            v -> v.attribute().isEqualTo(attribute) && !Objects.equals(trackedEntity, v.te()));
+  }
+
+  /**
+   * Returns true if a tracked entity other than {@code trackedEntity} has a value of {@code
+   * attribute}, unique within an org unit, equal to {@code value} ignoring case in {@code orgUnit}.
+   * Never when {@code orgUnit} is unknown. The tracked entity is the one of the payload, as a new
+   * one has its own value in the payload duplicates.
+   */
+  public boolean hasDuplicateInOrgUnit(
+      @Nonnull TrackedEntityAttribute attribute,
+      @Nonnull String value,
+      @CheckForNull OrganisationUnit orgUnit,
+      @CheckForNull UID trackedEntity) {
+    return uniqueAttributeValuesInOrgUnitByValue
+        .getOrDefault(caseInsensitiveKey(value), List.of())
+        .stream()
+        .anyMatch(
+            v ->
+                v.attribute().isEqualTo(attribute)
+                    && v.orgUnit().isEqualTo(orgUnit)
+                    && !Objects.equals(trackedEntity, v.te()));
+  }
+
+  /**
+   * Folds each code point the same way {@link String#equalsIgnoreCase(String)} compares them (upper
+   * case, then lower case), so two values have the same key exactly when they are equal ignoring
+   * case. Lower casing alone would not do, e.g. for the Greek final sigma.
+   */
+  public static String caseInsensitiveKey(@Nonnull String value) {
+    StringBuilder key = new StringBuilder(value.length());
+    value
+        .codePoints()
+        .map(cp -> Character.toLowerCase(Character.toUpperCase(cp)))
+        .forEach(key::appendCodePoint);
+    return key.toString();
   }
 
   public OrganisationUnit getOrganisationUnit(MetadataIdentifier id) {

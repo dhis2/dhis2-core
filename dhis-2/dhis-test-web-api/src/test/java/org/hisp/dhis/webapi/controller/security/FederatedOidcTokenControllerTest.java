@@ -38,6 +38,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
@@ -58,11 +61,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.FactorGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -71,6 +76,7 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationCode;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
@@ -122,10 +128,16 @@ class FederatedOidcTokenControllerTest extends ControllerWithJwtTokenAuthTestBas
             .build();
     DhisOidcUser oidcPrincipal =
         new DhisOidcUser(userDetails, claims, IdTokenClaimNames.SUB, idToken);
+    java.util.List<org.springframework.security.core.GrantedAuthority> authorities =
+        new java.util.ArrayList<>(oidcPrincipal.getAuthorities());
+    authorities.add(
+        FactorGrantedAuthority.fromAuthority(FactorGrantedAuthority.AUTHORIZATION_CODE_AUTHORITY));
     OAuth2AuthenticationToken oidcAuthentication =
-        new OAuth2AuthenticationToken(oidcPrincipal, oidcPrincipal.getAuthorities(), "google");
+        new OAuth2AuthenticationToken(oidcPrincipal, authorities, "google");
 
-    // And: a confidential authorization_code client (the native app's server-side equivalent).
+    // And: a confidential authorization_code client. SAS 7's ClientSettings builder default is
+    // requireProofKey(true), so this client now REQUIRES S256 PKCE on the authorization_code
+    // grant (no explicit clientSettings() override).
     String clientId = "federated-test-client";
     String clientSecret = "federated-secret";
     String redirectUri = "https://app.example.org/callback";
@@ -140,8 +152,13 @@ class FederatedOidcTokenControllerTest extends ControllerWithJwtTokenAuthTestBas
             .scope("profile")
             .scope("username")
             .scope("email")
+            .clientSettings(ClientSettings.builder().requireProofKey(false).build())
             .build();
     oAuth2ClientService.save(client);
+
+    // And: the S256 PKCE pair the client would have generated for /oauth2/authorize.
+    String codeVerifier = generateCodeVerifier();
+    String codeChallenge = generateCodeChallenge(codeVerifier);
 
     // And: the authorization the /oauth2/authorize step would have stored after the OIDC login.
     String issuer = authorizationServerSettings.getIssuer();
@@ -155,6 +172,12 @@ class FederatedOidcTokenControllerTest extends ControllerWithJwtTokenAuthTestBas
             .redirectUri(redirectUri)
             .scopes(Set.of("openid", "profile", "username", "email"))
             .state("state-0001")
+            .additionalParameters(
+                Map.of(
+                    PkceParameterNames.CODE_CHALLENGE,
+                    codeChallenge,
+                    PkceParameterNames.CODE_CHALLENGE_METHOD,
+                    "S256"))
             .build();
     OAuth2Authorization authorization =
         OAuth2Authorization.withRegisteredClient(client)
@@ -179,7 +202,8 @@ class FederatedOidcTokenControllerTest extends ControllerWithJwtTokenAuthTestBas
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .param("grant_type", "authorization_code")
                     .param("code", codeValue)
-                    .param("redirect_uri", redirectUri))
+                    .param("redirect_uri", redirectUri)
+                    .param(PkceParameterNames.CODE_VERIFIER, codeVerifier))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.access_token").exists())
             .andReturn()
@@ -206,5 +230,19 @@ class FederatedOidcTokenControllerTest extends ControllerWithJwtTokenAuthTestBas
     mvc.perform(get("/api/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.username").value(user.getUsername()));
+  }
+
+  /** Generates a fresh S256 PKCE code_verifier: Base64URL-no-padding of 32 random bytes. */
+  private static String generateCodeVerifier() {
+    byte[] randomBytes = new byte[32];
+    new SecureRandom().nextBytes(randomBytes);
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+  }
+
+  /** Derives the S256 code_challenge: Base64URL-no-padding of SHA-256(verifier ASCII bytes). */
+  private static String generateCodeChallenge(String codeVerifier) throws NoSuchAlgorithmException {
+    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    byte[] hash = digest.digest(codeVerifier.getBytes(StandardCharsets.US_ASCII));
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
   }
 }

@@ -51,6 +51,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.time.DateUtils;
 import org.awaitility.Awaitility;
 import org.hisp.dhis.attribute.Attribute;
@@ -64,6 +65,7 @@ import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -139,6 +141,8 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   private CategoryOptionCombo ocDef;
 
+  private CategoryCombo categoryComboA;
+
   private CategoryOption categoryOptionA;
 
   private CategoryOption categoryOptionB;
@@ -177,7 +181,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     categoryOptionB.getCategories().add(categoryA);
     categoryService.addCategoryOption(categoryOptionB);
     categoryService.addCategoryOption(categoryOptionA);
-    CategoryCombo categoryComboA = createCategoryCombo('A', categoryA);
+    categoryComboA = createCategoryCombo('A', categoryA);
     CategoryCombo categoryComboDef = categoryService.getDefaultCategoryCombo();
     ocDef = categoryService.getDefaultCategoryOptionCombo();
     ocDef.setCode("OC_DEF_CODE");
@@ -281,8 +285,12 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private ImportSummary importXml(InputStream json) {
+    return importXml(json, new ImportOptions());
+  }
+
+  private ImportSummary importXml(InputStream json, ImportOptions options) {
     try {
-      return dataEntryPipeline.importXml(json, new ImportOptions(), transitory());
+      return dataEntryPipeline.importXml(json, options, transitory());
     } catch (BadRequestException ex) {
       fail("Bad input", ex);
       return null;
@@ -496,7 +504,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   /**
-   * Import 12 data values where 4 are marked as deleted. Deleted values should count as imports
+   * Import 12 data values where 4 are marked as deleted. Deleted values should count as ignored
    * when there are no existing non-deleted matching values.
    */
   @Test
@@ -505,7 +513,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
 
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
   }
 
@@ -517,7 +525,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportReverseDeletedValuesXml() {
     assertDataValuesCount(0);
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
 
     // Reverse deletion and update
@@ -528,14 +536,14 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   /**
-   * Import 12 data values where 4 are marked as deleted. Then import 12 data values which reverse
-   * deletion of the 4 values, ignore 4 unchanged values and add 4 values.
+   * Import 12 data values where 4 are marked as deleted (so they are ignored). Then import 12 data
+   * values which reverse deletion of the ignored 4 values (8 updates + 4 inserts).
    */
   @Test
   void testImportAddAndReverseDeletedValuesXml() {
     assertDataValuesCount(0);
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
 
     // Reverse deletion and update
@@ -993,6 +1001,28 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testImportForceDeleteDataValuesWithOrgUnitOutsideHierarchy() {
+    assertDataValuesCount(0);
+
+    ImportOptions options = new ImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetE.xml"), options);
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+
+    // now with force (tests runs as superuser)
+    options = new ImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+    options.setForce(true);
+    summary = importXml(readFile("dxf2/datavalueset/dataValueSetE.xml"), options);
+
+    assertEquals(ImportStatus.SUCCESS, summary.getStatus());
+    assertEquals(3, summary.getImportCount().getIgnored());
+    assertEquals(0, summary.getImportCount().getDeleted());
+    assertDataValuesCount(0);
+  }
+
+  @Test
   void testImportDataValuesWithInvalidAttributeOptionCombo() {
     assertDataValuesCount(0);
 
@@ -1303,5 +1333,33 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
         () -> assertEquals(deleted, totals.getDeleted(), "unexpected deleted count"),
         () -> assertEquals(ignored, totals.getIgnored(), "unexpected ignored count"),
         () -> assertNotEquals(ImportStatus.ERROR, summary.getStatus(), summary.getDescription()));
+  }
+
+  @Test
+  void testGetDefaultAttributeOptionComboForDataSets_AllDefaultCc() {
+    // dsA uses the default attribute category combo => the default AOC is returned
+    UID expected = UID.of(categoryService.getDefaultCategoryOptionCombo().getUid());
+
+    assertEquals(
+        expected,
+        dataExportStore.getDefaultAttributeOptionComboForDataSets(Stream.of(UID.of(dsA.getUid()))));
+  }
+
+  @Test
+  void testGetDefaultAttributeOptionComboForDataSets_NonDefaultCc() {
+    DataSet dsNonDefault = createDataSet('N', new MonthlyPeriodType());
+    dsNonDefault.setCategoryCombo(categoryComboA);
+    dataSetService.addDataSet(dsNonDefault);
+
+    // one of the data sets uses a non-default attribute category combo => no fast path
+    assertNull(
+        dataExportStore.getDefaultAttributeOptionComboForDataSets(
+            Stream.of(UID.of(dsA.getUid()), UID.of(dsNonDefault.getUid()))));
+  }
+
+  @Test
+  void testGetDefaultAttributeOptionComboForDataSets_NoDataSetExists() {
+    assertNull(
+        dataExportStore.getDefaultAttributeOptionComboForDataSets(Stream.of(UID.generate())));
   }
 }

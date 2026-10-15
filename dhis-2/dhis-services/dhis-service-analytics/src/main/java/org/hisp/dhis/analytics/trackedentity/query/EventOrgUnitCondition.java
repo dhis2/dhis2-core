@@ -31,14 +31,12 @@ package org.hisp.dhis.analytics.trackedentity.query;
 
 import static org.hisp.dhis.analytics.common.CommonRequestParams.DEFAULT_ORG_UNIT_SELECTION_MODE;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.STRING;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.analytics.common.query.RenderableHelper.FALSE_CONDITION;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,7 +50,6 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
-import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
@@ -62,7 +59,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /** Generates SQL conditions for event-level organisation unit filtering. */
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class EventOrgUnitCondition extends BaseRenderable {
   private static final Collection<OrganisationUnitSelectionMode> ACCEPTED_OU_MODES =
       List.of(DESCENDANTS, CHILDREN, SELECTED);
@@ -73,6 +70,21 @@ public class EventOrgUnitCondition extends BaseRenderable {
 
   private final QueryContext queryContext;
 
+  private final ScopedColumnResolver columnResolver;
+
+  public static EventOrgUnitCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext queryContext) {
+    return of(
+        dimensionIdentifier, queryContext, ScopedColumnResolver.eventOrgUnit(dimensionIdentifier));
+  }
+
+  public static EventOrgUnitCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      QueryContext queryContext,
+      ScopedColumnResolver columnResolver) {
+    return new EventOrgUnitCondition(dimensionIdentifier, queryContext, columnResolver);
+  }
+
   @Nonnull
   @Override
   public String render() {
@@ -82,7 +94,6 @@ public class EventOrgUnitCondition extends BaseRenderable {
   private Renderable getCondition() {
     OrganisationUnitSelectionMode ouMode = getOuMode();
     List<OrganisationUnit> organisationUnits = getOrganisationUnits();
-    String prefix = getPrefix(dimensionIdentifier);
 
     if (ouMode == SELECTED) {
       List<String> items = organisationUnits.stream().map(IdentifiableObject::getUid).toList();
@@ -90,7 +101,7 @@ public class EventOrgUnitCondition extends BaseRenderable {
       return isEmpty(items)
           ? FALSE_CONDITION
           : BinaryConditionRenderer.of(
-              Field.of(doubleQuote(prefix), () -> "ou", ""), IN, items, STRING, queryContext);
+              columnResolver.resolve("ou"), IN, items, STRING, queryContext);
     } else if (ouMode == CHILDREN) {
       // CHILDREN mode includes only immediate children (align with OrganisationUnitCondition)
       List<String> items =
@@ -103,7 +114,7 @@ public class EventOrgUnitCondition extends BaseRenderable {
       return isEmpty(items)
           ? FALSE_CONDITION
           : BinaryConditionRenderer.of(
-              Field.of(doubleQuote(prefix), () -> "ou", ""), IN, items, STRING, queryContext);
+              columnResolver.resolve("ou"), IN, items, STRING, queryContext);
     }
 
     // ouMode = DESCENDANTS
@@ -112,7 +123,7 @@ public class EventOrgUnitCondition extends BaseRenderable {
     for (OrganisationUnit organisationUnit : organisationUnits) {
       orgUnitConditions.add(
           BinaryConditionRenderer.of(
-              Field.of(doubleQuote(prefix), () -> OULEVEL + organisationUnit.getLevel(), ""),
+              columnResolver.resolve(OULEVEL + organisationUnit.getLevel()),
               IN,
               List.of(organisationUnit.getUid()),
               STRING,

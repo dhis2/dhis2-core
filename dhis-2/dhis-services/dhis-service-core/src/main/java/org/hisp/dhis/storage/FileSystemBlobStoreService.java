@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.storage;
 
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -46,7 +47,6 @@ import java.util.Comparator;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -88,7 +88,7 @@ public class FileSystemBlobStoreService implements BlobStoreService {
   }
 
   @Override
-  public boolean blobExists(BlobKey key) {
+  public boolean blobExists(BlobKey key, BlobReadOptions options) {
     if (key == null) return false;
     Path p = resolve(key);
     return Files.isRegularFile(p);
@@ -96,7 +96,7 @@ public class FileSystemBlobStoreService implements BlobStoreService {
 
   @Override
   @CheckForNull
-  public InputStream openStream(BlobKey key) {
+  public InputStream openStream(BlobKey key, BlobReadOptions options) {
     Path p = resolve(key);
     if (!Files.isRegularFile(p)) return null;
     try {
@@ -108,7 +108,7 @@ public class FileSystemBlobStoreService implements BlobStoreService {
   }
 
   @Override
-  public long contentLength(BlobKey key) {
+  public long contentLength(BlobKey key, BlobReadOptions options) {
     Path p = resolve(key);
     if (!Files.isRegularFile(p)) return 0L;
     try {

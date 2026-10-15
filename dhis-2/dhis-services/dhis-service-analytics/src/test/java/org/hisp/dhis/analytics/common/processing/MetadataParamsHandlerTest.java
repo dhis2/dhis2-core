@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -51,6 +53,8 @@ import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -144,6 +148,68 @@ class MetadataParamsHandlerTest {
       MetadataItem shortFormatItem = (MetadataItem) items.get(shortFormatKey);
       assertNotNull(fullFormatItem, "Full format item should not be null");
       assertNotNull(shortFormatItem, "Short format item should not be null");
+    }
+  }
+
+  @Nested
+  @DisplayName("No-value keyword in metaData.dimensions")
+  class NoValueDimensionTests {
+
+    @Test
+    @DisplayName(
+        "appends D2__NOVALUE to an option-set dimension filtered by the keyword, without an items"
+            + " entry")
+    void shouldAppendNoValueToFilteredOptionSetDimension() {
+      // Given
+      String optionSetUid = "OS123456789";
+      OptionSet optionSet = new OptionSet("Mode of discharge", ValueType.TEXT);
+      optionSet.setUid(optionSetUid);
+      Option option = new Option("Discharged", "MODDISCH");
+      option.setUid("opt1234567a");
+      optionSet.addOption(option);
+
+      String dataElementUid = "de123456789";
+      DataElement dataElement = new DataElement("Mode of discharge");
+      dataElement.setUid(dataElementUid);
+      dataElement.setValueType(ValueType.TEXT);
+      dataElement.setOptionSet(optionSet);
+
+      QueryItem queryItem = new QueryItem(dataElement, null, ValueType.TEXT, null, optionSet);
+
+      DimensionIdentifier<DimensionParam> dimension =
+          DimensionIdentifier.of(
+              emptyElementWithOffset(),
+              emptyElementWithOffset(),
+              DimensionParam.ofObject(
+                  queryItem,
+                  DimensionParamType.DIMENSIONS,
+                  IdScheme.UID,
+                  List.of("IN:D2__NOVALUE")));
+
+      Grid grid = new ListGrid();
+      CommonRequestParams requestParams = new CommonRequestParams();
+
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+          ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+              .commonRaw(requestParams)
+              .commonParsed(
+                  CommonParsedParams.builder().dimensionIdentifiers(List.of(dimension)).build())
+              .build();
+
+      // When
+      metadataParamsHandler.handle(grid, contextParams, null, 0);
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get("dimensions");
+      assertTrue(
+          dimensions.get(dataElementUid).contains("D2__NOVALUE"),
+          "Dimensions should contain D2__NOVALUE for the filtered option-set dimension");
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get("items");
+      assertFalse(items.containsKey("D2__NOVALUE"), "Items should not contain a D2__NOVALUE entry");
     }
   }
 }

@@ -43,7 +43,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.analytics.EventDataType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
@@ -53,6 +57,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.FavoritableObject;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
@@ -69,6 +74,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.ObjectUtils;
 
 /**
@@ -80,7 +86,11 @@ import org.hisp.dhis.util.ObjectUtils;
  */
 @JacksonXmlRootElement(localName = "eventReport", namespace = DxfNamespaces.DXF_2_0)
 public class EventReport extends BaseAnalyticalObject
-    implements EventAnalyticalObject, MetadataObject {
+    implements EventAnalyticalObject, MetadataObject, FavoritableObject {
+
+  /** Users who have marked this object as a favorite. */
+  @Getter @Setter @JsonProperty private Set<String> favorites = new HashSet<>();
+
   /** Program. Required. */
   private Program program;
 
@@ -555,5 +565,17 @@ public class EventReport extends BaseAnalyticalObject
 
   public void setLegacy(final boolean legacy) {
     this.legacy = legacy;
+  }
+
+  @Override
+  public boolean setAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.add(user.getUid());
+  }
+
+  @Override
+  public boolean removeAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.remove(user.getUid());
   }
 }

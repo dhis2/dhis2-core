@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -49,8 +51,6 @@ final class EventItemSelectColumnResolver {
   private final AnalyticsSqlBuilder sqlBuilder;
 
   private final OrganisationUnitResolver organisationUnitResolver;
-
-  private final StageOuTableAliasResolver stageOuTableAliasResolver;
 
   private final ColumnResolver columnResolver;
 
@@ -87,32 +87,31 @@ final class EventItemSelectColumnResolver {
   private List<String> resolveStageOuColumns(EventQueryParams params, QueryItem queryItem) {
     List<String> columns = new ArrayList<>();
     String stageUid = queryItem.getProgramStage().getUid();
-    String stageOuTableAlias = stageOuTableAliasResolver.resolve(params);
     OrganisationUnitResolver.StageOuCteContext stageOuContext =
-        organisationUnitResolver.buildStageOuCteContext(queryItem, params, stageOuTableAlias);
+        organisationUnitResolver.buildStageOuCteContext(queryItem, params, ANALYTICS_TBL_ALIAS);
 
     columns.add(stageOuContext.valueColumn() + " as " + sqlBuilder.quote(stageUid + ".ou"));
-    addRequestedStageOuHeaderColumns(columns, params, stageUid, stageOuTableAlias);
+    addRequestedStageOuHeaderColumns(columns, params, stageUid);
 
     return columns;
   }
 
   private void addRequestedStageOuHeaderColumns(
-      List<String> columns, EventQueryParams params, String stageUid, String stageOuTableAlias) {
+      List<String> columns, EventQueryParams params, String stageUid) {
     if (!params.hasHeaders()) {
       return;
     }
 
     if (params.getHeaders().contains(stageUid + ".ouname")) {
       columns.add(
-          sqlBuilder.quote(stageOuTableAlias, EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
+          sqlBuilder.quote(ANALYTICS_TBL_ALIAS, EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
               + " as "
               + sqlBuilder.quote(stageUid + ".ouname"));
     }
 
     if (params.getHeaders().contains(stageUid + ".oucode")) {
       columns.add(
-          sqlBuilder.quote(stageOuTableAlias, EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
+          sqlBuilder.quote(ANALYTICS_TBL_ALIAS, EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
               + " as "
               + sqlBuilder.quote(stageUid + ".oucode"));
     }
@@ -170,10 +169,5 @@ final class EventItemSelectColumnResolver {
         EventQueryParams params,
         QueryItem queryItem,
         ColumnAndAlias columnAndAlias);
-  }
-
-  @FunctionalInterface
-  interface StageOuTableAliasResolver {
-    String resolve(EventQueryParams params);
   }
 }

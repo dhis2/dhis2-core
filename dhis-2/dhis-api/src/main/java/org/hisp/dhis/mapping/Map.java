@@ -40,8 +40,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.FavoritableObject;
 import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SubscribableObject;
@@ -56,7 +59,7 @@ import org.hisp.dhis.user.UserDetails;
  */
 @JacksonXmlRootElement(localName = "map", namespace = DXF_2_0)
 public class Map extends BaseNameableObject
-    implements InterpretableObject, SubscribableObject, MetadataObject {
+    implements InterpretableObject, SubscribableObject, FavoritableObject, MetadataObject {
   private Double longitude;
 
   private Double latitude;
@@ -77,7 +80,10 @@ public class Map extends BaseNameableObject
 
   private Set<Interpretation> interpretations = new HashSet<>();
 
-  protected Set<String> subscribers = new HashSet<>();
+  private Set<String> subscribers = new HashSet<>();
+
+  /** Users who have marked this object as a favorite. */
+  @Getter @Setter @JsonProperty private Set<String> favorites = new HashSet<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -220,5 +226,17 @@ public class Map extends BaseNameableObject
     }
 
     return this.subscribers.remove(user.getUid());
+  }
+
+  @Override
+  public boolean setAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.add(user.getUid());
+  }
+
+  @Override
+  public boolean removeAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.remove(user.getUid());
   }
 }

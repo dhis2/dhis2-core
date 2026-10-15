@@ -49,8 +49,6 @@ public interface SingleEventMapper extends PreheatMapper<SingleEvent> {
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "id")
   @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "user")
   @Mapping(target = "programStage")
   @Mapping(target = "status")
   @Mapping(target = "organisationUnit")

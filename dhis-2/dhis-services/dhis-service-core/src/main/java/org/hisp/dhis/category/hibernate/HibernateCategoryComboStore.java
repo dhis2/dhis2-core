@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,16 @@ package org.hisp.dhis.category.hibernate;
 import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.hibernate.LockOptions;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -96,8 +99,11 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
         set categoryid = :targetCategoryId
         where cc_c.categoryid in :sourceCategoryIds
         """;
-    return getSession()
-        .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
+        // categorycombos_categories backs both the cached CategoryCombo.categories and
+        // Category.categoryCombos collections. Collection regions are keyed by the collection's
+        // element entity, so naming both entities is what reaches both regions.
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
@@ -116,5 +122,61 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
             CategoryCombo.class)
         .setParameter("uids", UID.toValueSet(uids))
         .getResultList();
+  }
+
+  @Override
+  public void preloadCategoryComboAssociations(Collection<CategoryCombo> categoryCombos) {
+    if (categoryCombos.isEmpty()) {
+      return;
+    }
+
+    // One query per collection of CategoryCombo: fetching categories and optionCombos in the same
+    // query would join the two independently and return their Cartesian product.
+    preload(
+        """
+        select cc from CategoryCombo cc
+        left join fetch cc.categories c
+        left join fetch c.categoryOptions
+        where cc in :categoryCombos
+        """,
+        CategoryCombo.class,
+        categoryCombos);
+
+    // The two queries below cannot be merged, and their order matters. CategoryCombo.optionCombos
+    // is a Set, so filling it calls CategoryOptionCombo.hashCode(), which reads categoryOptions:
+    // fetching both in one query fails with "collection was evicted", and fetching optionCombos on
+    // its own would lazy-load each combo's category options one at a time. So the category options
+    // are put in the session first, rooted at the option combo, and only then are the optionCombos
+    // sets filled.
+    preload(
+        """
+        select coc from CategoryCombo cc
+        join cc.optionCombos coc
+        left join fetch coc.categoryOptions
+        where cc in :categoryCombos
+        """,
+        CategoryOptionCombo.class,
+        categoryCombos);
+    preload(
+        """
+        select cc from CategoryCombo cc
+        left join fetch cc.optionCombos
+        where cc in :categoryCombos
+        """,
+        CategoryCombo.class,
+        categoryCombos);
+  }
+
+  /**
+   * Runs a query only for its side effect of initialising the collections it fetch-joins. It does
+   * not flush first: these queries only read, and an auto flush would dirty check every entity
+   * already in the session, which includes everything the previous preload query loaded.
+   */
+  private <C> void preload(
+      String hql, Class<C> resultType, Collection<CategoryCombo> categoryCombos) {
+    getQuery(hql, resultType)
+        .setParameter("categoryCombos", categoryCombos)
+        .setFlushMode(FlushModeType.COMMIT)
+        .list();
   }
 }

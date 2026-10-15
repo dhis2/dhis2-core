@@ -38,17 +38,37 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class DataElementCondition extends BaseRenderable {
   private final QueryContext queryContext;
 
   private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
+  private final DataValueResolver dataValueResolver;
+
+  public static DataElementCondition of(
+      QueryContext queryContext, DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return of(
+        queryContext,
+        dimensionIdentifier,
+        valueTypeMapping -> getDataValueRenderable(dimensionIdentifier, valueTypeMapping));
+  }
+
+  public static DataElementCondition of(
+      QueryContext queryContext,
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      DataValueResolver dataValueResolver) {
+    return new DataElementCondition(queryContext, dimensionIdentifier, dataValueResolver);
+  }
+
   @Override
   public String render() {
     return dimensionIdentifier.hasLegendSet()
-        ? DataElementWithLegendSetCondition.of(queryContext, dimensionIdentifier).render()
-        : DataElementWithStaticValuesCondition.of(queryContext, dimensionIdentifier).render();
+        ? DataElementWithLegendSetCondition.of(queryContext, dimensionIdentifier, dataValueResolver)
+            .render()
+        : DataElementWithStaticValuesCondition.of(
+                queryContext, dimensionIdentifier, dataValueResolver)
+            .render();
   }
 
   static RenderableDataValue getDataValueRenderable(

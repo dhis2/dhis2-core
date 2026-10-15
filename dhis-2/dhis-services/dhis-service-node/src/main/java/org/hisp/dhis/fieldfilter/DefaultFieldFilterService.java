@@ -35,6 +35,7 @@ import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -46,7 +47,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
@@ -691,9 +691,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
   private boolean isBaseIdentifiableObjectIdOnly(
       @Nonnull Object object, @Nonnull List<String> fields) {
-    return fields.size() == 1
-        && fields.get(0).equals("id")
-        && object instanceof BaseIdentifiableObject;
+    return fields.size() == 1 && fields.get(0).equals("id") && object instanceof IdentifiableObject;
   }
 
   private ComplexNode createBaseIdentifiableObjectIdNode(

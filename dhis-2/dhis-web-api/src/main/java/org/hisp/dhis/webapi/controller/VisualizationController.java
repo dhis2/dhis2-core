@@ -39,6 +39,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.DataDimensionItem;
@@ -66,7 +67,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/visualizations")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
 public class VisualizationController
-    extends AbstractCrudController<Visualization, GetObjectListParams> {
+    extends AbstractCrudController<Visualization, GetObjectListParams>
+    implements FavoritableOperations<Visualization> {
+
   private final LegendSetService legendSetService;
 
   private final DimensionService dimensionService;
@@ -202,6 +205,7 @@ public class VisualizationController
     List<DataDimensionItem> dataDimensionItems = new ArrayList<>();
 
     visualization.getDataDimensionItems().stream()
+        .filter(Objects::nonNull)
         .filter(ddi -> ddi.getExpressionDimensionItem() != null)
         .forEach(
             ddi -> {

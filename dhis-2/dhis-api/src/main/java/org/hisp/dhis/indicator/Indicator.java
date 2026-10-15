@@ -139,6 +139,7 @@ public class Indicator extends BaseDataDimensionalItemObject implements Metadata
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.INDICATOR;
   }
@@ -285,7 +286,7 @@ public class Indicator extends BaseDataDimensionalItemObject implements Metadata
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "dataSets", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "dataSet", namespace = DxfNamespaces.DXF_2_0)
   public Set<DataSet> getDataSets() {

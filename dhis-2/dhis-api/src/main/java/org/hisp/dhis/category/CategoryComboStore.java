@@ -66,4 +66,19 @@ public interface CategoryComboStore extends IdentifiableObjectStore<CategoryComb
    * @return list of {@link CategoryCombo}s
    */
   List<CategoryCombo> getCategoryCombosByUid(Collection<UID> uids);
+
+  /**
+   * Eagerly loads, in three queries rather than one per parent, the associations of the given
+   * {@link CategoryCombo}s: {@link CategoryCombo#getCategories()} with each category's {@link
+   * Category#getCategoryOptions()}, and {@link CategoryCombo#getOptionCombos()} with each option
+   * combo's {@link CategoryOptionCombo#getCategoryOptions()}. Used to prime the session before
+   * those associations are traversed or serialised, avoiding an N+1 select per parent.
+   *
+   * <p>The queries do not flush the session first. Pending changes to these associations are not
+   * seen by the queries, so a caller that has modified them in the current transaction must flush
+   * before calling this method.
+   *
+   * @param categoryCombos the category combos whose associations to load.
+   */
+  void preloadCategoryComboAssociations(Collection<CategoryCombo> categoryCombos);
 }

@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dependsOn.DependsOn;
+import org.hisp.dhis.test.e2e.dependsOn.Resource;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
@@ -253,9 +255,9 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
             "24.82",
             "983.0",
             "3960.0",
+            "100.0",
             "100",
-            "",
-            ""));
+            "1"));
 
     validateRow(
         response,
@@ -265,9 +267,9 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
             "24.71",
             "1542.0",
             "6240.0",
+            "100.0",
             "100",
-            "",
-            ""));
+            "1"));
 
     validateRow(
         response,
@@ -277,9 +279,9 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
             "24.71",
             "1542.0",
             "6240.0",
+            "100.0",
             "100",
-            "",
-            ""));
+            "1"));
   }
 
   @Test
@@ -404,9 +406,9 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
             "25.11",
             "1401.0",
             "5580.0",
+            "100.0",
             "100",
-            "",
-            ""));
+            "1"));
   }
 
   @Test
@@ -533,5 +535,43 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
     validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
     validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
     validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+  }
+
+  @Test
+  @DependsOn(
+      files = {"pi-enrollment-incident-date.json"},
+      delete = true)
+  public void programIndicatorEnrollmentIncidentDate(List<Resource> dependencies) {
+    String indicatorUid = dependencies.get(0).uid();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:USER_ORGUNIT")
+            .add("skipData=false")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:" + indicatorUid + ",pe:2022");
+
+    // When
+    ApiResponse response = analyticsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(8)))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(8));
+
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows. Three of the four facilities reported ANC 1st visit in 2021.
+    validateRow(response, List.of(indicatorUid, "2022", "3246.13", "", "", "", "", ""));
   }
 }

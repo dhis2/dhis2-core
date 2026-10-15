@@ -42,7 +42,7 @@ import java.net.URI;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.hisp.dhis.test.junit.MinIOTestExtension;
+import org.hisp.dhis.test.junit.S3TestExtension;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
@@ -70,13 +70,13 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
  * doesn't support {@code mark/reset} (e.g. {@code ZipFile.getInputStream(zipEntry)} used by app
  * install), the wrapper throws IllegalStateException("...mark/reset...").
  *
- * <p>Plain MinIO doesn't expose the bug because no retry happens. This test injects an {@link
+ * <p>A local S3 server doesn't expose the bug because no retry happens. This test injects an {@link
  * ExecutionInterceptor} that throws {@link RetryableException} on the first {@code PutObject}
  * attempt, forcing the SDK to retry exactly like real AWS S3 does when the first attempt hits a
  * transient 5xx / socket error.
  */
 @Tag("integration")
-@ExtendWith(MinIOTestExtension.class)
+@ExtendWith(S3TestExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class S3BlobStoreNonResetableStreamTest {
 
@@ -92,9 +92,9 @@ class S3BlobStoreNonResetableStreamTest {
     StaticCredentialsProvider credentials =
         StaticCredentialsProvider.create(
             AwsBasicCredentials.create(
-                MinIOTestExtension.MINIO_USER, MinIOTestExtension.MINIO_PASSWORD));
+                S3TestExtension.S3_ACCESS_KEY, S3TestExtension.S3_SECRET_KEY));
     S3Configuration s3Config = S3Configuration.builder().pathStyleAccessEnabled(true).build();
-    URI endpoint = URI.create(MinIOTestExtension.s3Url());
+    URI endpoint = URI.create(S3TestExtension.s3Url());
 
     S3Client s3 =
         S3Client.builder()

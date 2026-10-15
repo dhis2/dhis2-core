@@ -193,8 +193,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>minio</artifactId>
+      <groupId>net.ttddyy</groupId>
+      <artifactId>datasource-proxy</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -295,6 +295,23 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core-jakarta</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-jcache</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hibernate</groupId>
+          <artifactId>hibernate-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <classifier>jakarta</classifier>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -409,6 +426,10 @@
             <ignoredNonTestScopedDependency>software.amazon.awssdk:aws-core</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>software.amazon.awssdk:auth</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>software.amazon.awssdk:regions</ignoredNonTestScopedDependency>
+            <!-- javax.cache API arrives transitively at compile scope (via dhis-support-hibernate);
+                 used directly only in the second level cache effect tests. It is never declared
+                 anywhere in the build (no managed version), matching dhis-support-hibernate. -->
+            <ignoredNonTestScopedDependency>javax.cache:cache-api</ignoredNonTestScopedDependency>
           </ignoredNonTestScopedDependencies>
           <ignoredUsedUndeclaredDependencies>
             <ignoredUsedUndeclaredDependency>software.amazon.awssdk:s3</ignoredUsedUndeclaredDependency>
@@ -416,13 +437,13 @@
             <ignoredUsedUndeclaredDependency>software.amazon.awssdk:aws-core</ignoredUsedUndeclaredDependency>
             <ignoredUsedUndeclaredDependency>software.amazon.awssdk:auth</ignoredUsedUndeclaredDependency>
             <ignoredUsedUndeclaredDependency>software.amazon.awssdk:regions</ignoredUsedUndeclaredDependency>
+            <ignoredUsedUndeclaredDependency>javax.cache:cache-api:jar</ignoredUsedUndeclaredDependency>
           </ignoredUsedUndeclaredDependencies>
           <!-- If code from the following modules is accessed in tests they'll have to move up to ignoredNonTestScopedDependency -->
           <ignoredUnusedDeclaredDependencies>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-setting</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.testcontainers:postgresql</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.testcontainers:jdbc</ignoredUnusedDeclaredDependency>
-            <ignoredUnusedDeclaredDependency>org.testcontainers:minio</ignoredUnusedDeclaredDependency>
             <!-- log4j-slf4j-impl is needed to log using slf4j see https://www.slf4j.org/codes.html#noProviders -->
             <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-audit-consumer</ignoredUnusedDeclaredDependency>

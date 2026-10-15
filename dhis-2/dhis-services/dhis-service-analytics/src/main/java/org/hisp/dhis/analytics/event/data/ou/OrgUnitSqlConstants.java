@@ -29,28 +29,19 @@
  */
 package org.hisp.dhis.analytics.event.data.ou;
 
-import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.analytics.common.ColumnHeader;
-import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
 
-/** Shared SQL identifiers for ENROLLMENT_OU query and aggregate handling. */
+/** Shared SQL identifiers for the tracker org unit dimensions. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class OrgUnitSqlConstants {
 
-  public static final String EVENT_TABLE_ALIAS = ANALYTICS_TBL_ALIAS;
-  public static final String EVENT_ENROLLMENT_OU_COLUMN =
-      EventAnalyticsColumnName.ENROLLMENT_OU_COLUMN_NAME;
-  public static final String ENROLLMENT_TABLE_ALIAS = "enrl";
-  public static final String ENROLLMENT_JOIN_COLUMN =
-      EventAnalyticsColumnName.ENROLLMENT_COLUMN_NAME;
-  public static final String ENROLLMENT_OU_COLUMN = "ou";
-  public static final String ENROLLMENT_OU_NAME_COLUMN = "ouname";
-  public static final String ENROLLMENT_OU_LEVEL_COLUMN = "oulevel";
+  public static final String STRUCT_TABLE = OrganisationUnitStructureResourceTable.TABLE_NAME;
+
+  public static final String STRUCT_UID_COLUMN = "organisationunituid";
+
+  public static final String STRUCT_NAME_COLUMN = "name";
+
   public static final String UID_LEVEL_PREFIX = "uidlevel";
-  public static final String ENROLLMENT_OU_RESULT_ALIAS = ColumnHeader.ENROLLMENT_OU.getItem();
-  public static final String ENROLLMENT_OU_NAME_RESULT_ALIAS =
-      ColumnHeader.ENROLLMENT_OU_NAME.getItem();
 }

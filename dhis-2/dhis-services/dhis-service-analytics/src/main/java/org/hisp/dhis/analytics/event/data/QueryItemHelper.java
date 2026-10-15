@@ -34,6 +34,8 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.apache.commons.lang3.math.NumberUtils.createDouble;
+import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -60,6 +62,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.system.util.MathUtils;
 
 /**
  * @author Dusan Bernat
@@ -71,6 +74,25 @@ public class QueryItemHelper {
   private static final String NA = "[N/A]";
 
   private QueryItemHelper() {}
+
+  /**
+   * Returns the code of the option matching the given number.
+   *
+   * <p>The analytics column of a decimal item is a double, so the option code "1" is stored and
+   * read back as "1.0". Codes are therefore compared numerically, and the code is returned so that
+   * a row value and the response metadata refer to the option in the same way.
+   *
+   * @param optionSet the {@link OptionSet}.
+   * @param value the value to match against the option codes.
+   * @return the matching option code, or empty when no option matches.
+   */
+  public static Optional<String> getMatchingOptionCode(OptionSet optionSet, Double value) {
+    return optionSet.getOptions().stream()
+        .filter(option -> option != null && isCreatable(option.getCode()))
+        .map(Option::getCode)
+        .filter(code -> MathUtils.isEqual(createDouble(code), value))
+        .findFirst();
+  }
 
   /**
    * Returns an item value (legend) for OutputIdScheme (Code, Name, Id, Uid).

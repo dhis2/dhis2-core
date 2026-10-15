@@ -107,10 +107,15 @@ public class EhCacheMetricsConfig {
    * Attempts to extract the EHCache CacheManager from the Hibernate RegionFactory using reflection.
    * Returns the JSR-107 CacheManager wrapper.
    */
-  private javax.cache.CacheManager getEhCacheManager(RegionFactory regionFactory) {
+  javax.cache.CacheManager getEhCacheManager(RegionFactory regionFactory) {
     try {
-      // Common field name for JCacheRegionFactory implementations
-      java.lang.reflect.Field field = regionFactory.getClass().getDeclaredField("cacheManager");
+      java.lang.reflect.Field field = findCacheManagerField(regionFactory.getClass());
+      if (field == null) {
+        log.warn(
+            "Reflection failed: Field 'cacheManager' not found in {} or any of its superclasses. Cannot monitor EHCache.",
+            regionFactory.getClass().getName());
+        return null;
+      }
       field.setAccessible(true);
       Object cacheManagerObj = field.get(regionFactory);
 
@@ -127,11 +132,6 @@ public class EhCacheMetricsConfig {
             cacheManagerObj != null ? cacheManagerObj.getClass().getName() : "null");
         return null;
       }
-    } catch (NoSuchFieldException nsfe) {
-      log.warn(
-          "Reflection failed: Field 'cacheManager' not found in {}. Cannot monitor EHCache.",
-          regionFactory.getClass().getName());
-      return null;
     } catch (Exception e) {
       log.warn(
           "Could not access CacheManager via reflection on {}: {}",
@@ -140,6 +140,26 @@ public class EhCacheMetricsConfig {
           e);
       return null;
     }
+  }
+
+  /**
+   * Finds the 'cacheManager' field declared by the given type or by any of its superclasses. {@code
+   * getDeclaredField} only looks at the class it is called on, so the configured region factory
+   * being a subclass of JCacheRegionFactory (which is where the field is declared) would otherwise
+   * silently disable every EHCache metric.
+   *
+   * @param type the concrete region factory class to start the walk at.
+   * @return the field, or null if neither the type nor any superclass declares it.
+   */
+  static java.lang.reflect.Field findCacheManagerField(Class<?> type) {
+    for (Class<?> current = type; current != null; current = current.getSuperclass()) {
+      try {
+        return current.getDeclaredField("cacheManager");
+      } catch (NoSuchFieldException nsfe) {
+        // Not declared here, keep walking up until Object, whose superclass is null.
+      }
+    }
+    return null;
   }
 
   /**

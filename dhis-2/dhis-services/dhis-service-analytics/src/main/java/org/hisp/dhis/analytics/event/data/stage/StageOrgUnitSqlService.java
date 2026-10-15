@@ -48,8 +48,8 @@ public interface StageOrgUnitSqlService {
    * @param params query parameters
    * @param isGroupByClause true when the expression is for GROUP BY
    * @param valueColumnTableAlias optional table alias to qualify the {@code uidlevelN} column with;
-   *     pass {@code null} for an unqualified column. Required when an enrollment-OU join is in the
-   *     same query so the {@code uidlevelN} column reference is unambiguous.
+   *     pass {@code null} for an unqualified column. Required when an org unit structure table is
+   *     joined in the same query, since it carries {@code uidlevelN} columns as well.
    * @return stage org unit SQL column and alias information
    */
   ColumnAndAlias selectColumn(

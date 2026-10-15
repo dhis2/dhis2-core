@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.security.oauth2.dcr;
 
+import static org.hisp.dhis.security.oauth2.OAuth2Constants.IAT_REDIRECT_URL_CLAIM;
+import static org.hisp.dhis.security.oauth2.OAuth2Constants.SCOPE_CLIENT_CREATE;
 import static org.hisp.dhis.security.oauth2.OAuth2Constants.SYSTEM_REGISTRAR_CLIENTID;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -36,6 +38,7 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import jakarta.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -44,11 +47,11 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.condition.AuthorizationServerEnabledCondition;
 import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2AuthorizationService;
@@ -150,7 +153,7 @@ public class OAuth2DcrService {
                           .filter(trimmed -> !trimmed.isEmpty())
                           .forEach(l::add))
               .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-              .scope("client.create")
+              .scope(SCOPE_CLIENT_CREATE)
               .build();
       oAuth2ClientService.save(registeredClient, new SystemUser());
     } else {
@@ -169,7 +172,9 @@ public class OAuth2DcrService {
   @Nonnull
   @Transactional
   public IatPair createIat(@Nonnull String redirectUri) {
-    String issuer = authorizationServerSettings.getIssuer();
+    String issuer =
+        Objects.requireNonNull(
+            authorizationServerSettings.getIssuer(), "Authorization server issuer is not set");
     int ttlSeconds = systemSettingsService.getCurrentSettings().getDeviceEnrollmentIATTtlSeconds();
     IatPair iaToken =
         createIaToken(registeredClient, redirectUri, issuer, ttlSeconds, objectMapper, jwtEncoder);
@@ -215,8 +220,8 @@ public class OAuth2DcrService {
             .expiresAt(ttlInSeconds)
             .subject(username)
             .id(UUID.randomUUID().toString()) // (jti) Unique token ID
-            .claim("scope", "client.create")
-            .claim("redirect_url", redirectUri)
+            .claim("scope", SCOPE_CLIENT_CREATE)
+            .claim(IAT_REDIRECT_URL_CLAIM, redirectUri)
             .build();
 
     JwsHeader jwsHeader = JwsHeader.with(SignatureAlgorithm.RS256).build();
@@ -231,7 +236,7 @@ public class OAuth2DcrService {
             jwtEncodedToken,
             now,
             ttlInSeconds,
-            Set.of("client.create"));
+            Set.of(SCOPE_CLIENT_CREATE));
 
     // Persist the authorization so that it can be used for authentication/authorization
     OAuth2Authorization authorization =
@@ -264,7 +269,7 @@ public class OAuth2DcrService {
     // Ensure 'scope' is present as Collection<String> in the claims map.
     // Use a mutable, Jackson-friendly type to avoid the deserialization problems.
     Collection<String> tokenScopes = accessToken.getScopes();
-    if (tokenScopes != null && !tokenScopes.isEmpty()) {
+    if (!tokenScopes.isEmpty()) {
       safe.put(OAuth2ParameterNames.SCOPE, new ArrayList<>(tokenScopes));
     }
 
@@ -283,9 +288,9 @@ public class OAuth2DcrService {
               .collect(java.util.stream.Collectors.toCollection(ArrayList::new)));
     }
 
-    Object redirectUrl = safe.get("redirect_url");
+    Object redirectUrl = safe.get(IAT_REDIRECT_URL_CLAIM);
     if (redirectUrl instanceof String s && !s.isBlank()) {
-      safe.put("redirect_url", s);
+      safe.put(IAT_REDIRECT_URL_CLAIM, s);
     }
 
     metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, safe);

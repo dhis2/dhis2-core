@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.merge.category.categorycombo;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +38,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;

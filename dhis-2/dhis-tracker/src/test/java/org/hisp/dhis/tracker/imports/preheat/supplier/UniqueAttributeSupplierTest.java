@@ -29,15 +29,18 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.UID;
@@ -46,14 +49,16 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.UniqueAttributeValueMatch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -89,14 +94,14 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
 
   private Enrollment enrollment;
 
-  private TrackedEntityAttributeValue trackedEntityAttributeValue;
+  private OrganisationUnit orgUnit;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     params = TrackerObjects.builder().build();
     preheat = new TrackerPreheat();
     uniqueAttribute = createTrackedEntityAttribute('A', ValueType.TEXT);
-    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    orgUnit = createOrganisationUnit('A');
     Program program = createProgram('A');
     Attribute attribute = createAttribute('A');
     trackedEntity = createTrackedEntity('A', orgUnit, createTrackedEntityType('U'));
@@ -104,8 +109,6 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
     trackedEntity.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), UNIQUE_VALUE)));
     enrollment = createEnrollment(program, trackedEntity, orgUnit);
     enrollment.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), UNIQUE_VALUE)));
-    trackedEntityAttributeValue =
-        createTrackedEntityAttributeValue('A', trackedEntity, uniqueAttribute);
   }
 
   @Test
@@ -115,7 +118,7 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
 
     this.supplier.preheatAdd(params, preheat);
 
-    assertThat(preheat.getUniqueAttributeValues(), hasSize(0));
+    assertFalse(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, UID.generate()));
   }
 
   @Test
@@ -130,7 +133,7 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
 
     this.supplier.preheatAdd(importParams, preheat);
 
-    assertThat(preheat.getUniqueAttributeValues(), hasSize(0));
+    assertFalse(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, UID.generate()));
   }
 
   @Test
@@ -138,11 +141,14 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
     when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
         .thenReturn(Collections.singletonList(uniqueAttribute));
     TrackerObjects importParams =
-        TrackerObjects.builder().trackedEntities(sameUniqueAttributeTrackedEntities()).build();
+        TrackerObjects.builder()
+            .trackedEntities(sameUniqueAttributeTrackedEntities(UNIQUE_VALUE))
+            .build();
 
     this.supplier.preheatAdd(importParams, preheat);
 
-    assertThat(preheat.getUniqueAttributeValues(), hasSize(2));
+    assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, TE_UID));
+    assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, ANOTHER_TE_UID));
   }
 
   @Test
@@ -157,19 +163,81 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
 
     this.supplier.preheatAdd(importParams, preheat);
 
-    assertThat(preheat.getUniqueAttributeValues(), hasSize(2));
+    assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, TE_UID));
+    assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, ANOTHER_TE_UID));
+  }
+
+  @Test
+  void shouldNotFlagAsDuplicateWhenUniqueAttributeValueIsNullForBothTrackedEntities() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    TrackerObjects importParams =
+        TrackerObjects.builder().trackedEntities(sameUniqueAttributeTrackedEntities(null)).build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertFalse(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, UID.generate()));
+  }
+
+  @Test
+  void shouldFlagAsDuplicateWhenUniqueAttributeValuesHaveDifferentCasing() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .trackedEntities(
+                List.of(
+                    trackedEntityWithAttributeValue(TE_UID, UNIQUE_VALUE.toUpperCase()),
+                    trackedEntityWithAttributeValue(ANOTHER_TE_UID, UNIQUE_VALUE.toLowerCase())))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, TE_UID));
+    assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, ANOTHER_TE_UID));
+  }
+
+  @Test
+  void shouldFlagAsDuplicateWhenPayloadHasManyTrackedEntitiesWithDistinctUniqueValues() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
+        new ArrayList<>(sameUniqueAttributeTrackedEntities(UNIQUE_VALUE));
+    for (int i = 0; i < 20; i++) {
+      trackedEntities.add(trackedEntityWithAttributeValue(UID.generate(), "value " + i));
+    }
+    TrackerObjects importParams = TrackerObjects.builder().trackedEntities(trackedEntities).build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, TE_UID));
+    assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, ANOTHER_TE_UID));
+    assertFalse(preheat.hasSystemWideDuplicate(uniqueAttribute, "value 0", UID.generate()));
+  }
+
+  @Test
+  void shouldNotFlagAsDuplicateWhenTeAndItsEnrollmentHaveUniqueValueWithDifferentCasing() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .trackedEntities(
+                List.of(trackedEntityWithAttributeValue(TE_UID, UNIQUE_VALUE.toUpperCase())))
+            .enrollments(Collections.singletonList(enrollment(TE_UID)))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertFalse(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, UID.generate()));
   }
 
   @Test
   void verifySupplierWhenTeinPayloadAndDBHaveTheSameUniqueAttribute() {
     when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
         .thenReturn(Collections.singletonList(uniqueAttribute));
-    Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap =
-        Map.of(uniqueAttribute, List.of(UNIQUE_VALUE));
-    List<TrackedEntityAttributeValue> attributeValues = List.of(trackedEntityAttributeValue);
-    when(trackedEntityAttributeValueService.getUniqueAttributeByValues(
-            trackedEntityAttributeListMap))
-        .thenReturn(attributeValues);
+    when(trackedEntityAttributeValueService.getUniqueAttributeValues(
+            uniqueAttribute, Set.of(UNIQUE_VALUE)))
+        .thenReturn(List.of(new UniqueAttributeValueMatch(TE_UID, UNIQUE_VALUE, null)));
     TrackerObjects importParams =
         TrackerObjects.builder()
             .trackedEntities(Collections.singletonList(trackedEntity()))
@@ -177,19 +245,18 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
 
     this.supplier.preheatAdd(importParams, preheat);
 
-    assertThat(preheat.getUniqueAttributeValues(), hasSize(1));
+    // the value in the DB is the one of the tracked entity itself
+    assertFalse(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, TE_UID));
+    assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, UID.generate()));
   }
 
   @Test
   void verifySupplierWhenTeinPayloadAndAnotherTeInDBHaveTheSameUniqueAttribute() {
     when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
         .thenReturn(Collections.singletonList(uniqueAttribute));
-    Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap =
-        Map.of(uniqueAttribute, List.of(UNIQUE_VALUE));
-    List<TrackedEntityAttributeValue> attributeValues = List.of(trackedEntityAttributeValue);
-    when(trackedEntityAttributeValueService.getUniqueAttributeByValues(
-            trackedEntityAttributeListMap))
-        .thenReturn(attributeValues);
+    when(trackedEntityAttributeValueService.getUniqueAttributeValues(
+            uniqueAttribute, Set.of(UNIQUE_VALUE)))
+        .thenReturn(List.of(new UniqueAttributeValueMatch(TE_UID, UNIQUE_VALUE, null)));
     TrackerObjects importParams =
         TrackerObjects.builder()
             .trackedEntities(Collections.singletonList(anotherTrackedEntity()))
@@ -197,18 +264,270 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
 
     this.supplier.preheatAdd(importParams, preheat);
 
-    assertThat(preheat.getUniqueAttributeValues(), hasSize(1));
-    assertEquals(TE_UID, preheat.getUniqueAttributeValues().get(0).getTe());
+    assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, ANOTHER_TE_UID));
+    assertFalse(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, TE_UID));
+  }
+
+  @Test
+  void shouldMapOrgUnitScopedValuesFoundInDbUsingTheImportIdSchemes() {
+    TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
+    orgUnit.setId(1);
+    orgUnit.setCode("OU_CODE");
+    preheat.setIdSchemes(
+        TrackerIdSchemeParams.builder().orgUnitIdScheme(TrackerIdSchemeParam.CODE).build());
+    preheat.put(TrackerIdSchemeParam.CODE, orgUnit);
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(List.of(scopedAttribute));
+    when(trackedEntityAttributeValueService.getUniqueAttributeValues(
+            scopedAttribute, Map.of(1L, Set.of(UNIQUE_VALUE))))
+        .thenReturn(List.of(new UniqueAttributeValueMatch(TE_UID, "Unique Value", 1L)));
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .trackedEntities(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+                        .trackedEntity(ANOTHER_TE_UID)
+                        .orgUnit(MetadataIdentifier.ofCode("OU_CODE"))
+                        .attributes(List.of(value(scopedAttribute, UNIQUE_VALUE)))
+                        .build()))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertTrue(
+        preheat.hasDuplicateInOrgUnit(scopedAttribute, UNIQUE_VALUE, orgUnit, ANOTHER_TE_UID));
+  }
+
+  @Test
+  void shouldLookUpOrgUnitScopedValuesOnlyInTheOrgUnitOfTheTrackedEntitiesSendingThem() {
+    TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
+    OrganisationUnit orgUnit1 = orgUnitInPreheat('1', 1);
+    OrganisationUnit orgUnit2 = orgUnitInPreheat('2', 2);
+    OrganisationUnit orgUnit3 = orgUnitInPreheat('3', 3);
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(List.of(uniqueAttribute, scopedAttribute));
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .trackedEntities(
+                List.of(
+                    trackedEntity(
+                        orgUnit1, value(uniqueAttribute, "g1"), value(scopedAttribute, "s1")),
+                    trackedEntity(
+                        orgUnit1, value(uniqueAttribute, "g2"), value(scopedAttribute, "s2")),
+                    trackedEntity(
+                        orgUnit1, value(uniqueAttribute, "g3"), value(scopedAttribute, "s3")),
+                    // same scoped value as in orgUnit1, which is allowed in another org unit
+                    trackedEntity(
+                        orgUnit2, value(uniqueAttribute, "g4"), value(scopedAttribute, "s1")),
+                    // no scoped value, so orgUnit3 must not be part of the scoped lookup
+                    trackedEntity(orgUnit3, value(uniqueAttribute, "g5"))))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    verify(trackedEntityAttributeValueService)
+        .getUniqueAttributeValues(uniqueAttribute, Set.of("g1", "g2", "g3", "g4", "g5"));
+    verify(trackedEntityAttributeValueService)
+        .getUniqueAttributeValues(
+            scopedAttribute,
+            Map.of(orgUnit1.getId(), Set.of("s1", "s2", "s3"), orgUnit2.getId(), Set.of("s1")));
+  }
+
+  @Test
+  void shouldLookUpOrgUnitScopedValueOfEnrollmentInTheOrgUnitOfItsTrackedEntityInDb() {
+    TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
+    OrganisationUnit dbOrgUnit = orgUnitInPreheat('D', 4);
+    trackedEntity.setOrganisationUnit(dbOrgUnit);
+    preheat.putTrackedEntities(List.of(trackedEntity));
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(List.of(scopedAttribute));
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .enrollments(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+                        .enrollment(UID.generate())
+                        .trackedEntity(TE_UID)
+                        .attributes(List.of(value(scopedAttribute, "s1")))
+                        .build()))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    verify(trackedEntityAttributeValueService)
+        .getUniqueAttributeValues(scopedAttribute, Map.of(dbOrgUnit.getId(), Set.of("s1")));
+  }
+
+  @Test
+  void shouldLookUpOrgUnitScopedValueOfEnrollmentInTheOrgUnitOfItsTrackedEntityInDbNotInPreheat() {
+    TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
+    // only org units referenced by the payload are preheated, so not the one of a tracked entity
+    // that only an enrollment refers to
+    OrganisationUnit dbOrgUnit = createOrganisationUnit('D');
+    dbOrgUnit.setId(4);
+    trackedEntity.setOrganisationUnit(dbOrgUnit);
+    preheat.putTrackedEntities(List.of(trackedEntity));
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(List.of(scopedAttribute));
+    when(trackedEntityAttributeValueService.getUniqueAttributeValues(
+            scopedAttribute, Map.of(dbOrgUnit.getId(), Set.of("s1"))))
+        .thenReturn(List.of(new UniqueAttributeValueMatch(ANOTHER_TE_UID, "s1", 4L)));
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .enrollments(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+                        .enrollment(UID.generate())
+                        .trackedEntity(TE_UID)
+                        .attributes(List.of(value(scopedAttribute, "s1")))
+                        .build()))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertTrue(preheat.hasDuplicateInOrgUnit(scopedAttribute, "s1", dbOrgUnit, TE_UID));
+  }
+
+  @Test
+  void shouldNotLookUpOrgUnitScopedValueWhenOrgUnitCannotBeResolved() {
+    TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
+    OrganisationUnit notInPreheat = createOrganisationUnit('N');
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(List.of(scopedAttribute));
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .trackedEntities(List.of(trackedEntity(notInPreheat, value(scopedAttribute, "s1"))))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    verifyNoInteractions(trackedEntityAttributeValueService);
+    assertFalse(preheat.hasDuplicateInOrgUnit(scopedAttribute, "s1", notInPreheat, UID.generate()));
+  }
+
+  @Test
+  void shouldAddOrgUnitScopedValuesDuplicatedInPayloadInTheOrgUnitOfTheirTrackedEntity() {
+    TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
+    OrganisationUnit orgUnit1 = orgUnitInPreheat('1', 1);
+    OrganisationUnit orgUnit2 = orgUnitInPreheat('2', 2);
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(List.of(scopedAttribute));
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity1 =
+        trackedEntity(orgUnit1, value(scopedAttribute, "s1"));
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity2 =
+        trackedEntity(orgUnit2, value(scopedAttribute, "S1"));
+    TrackerObjects importParams =
+        TrackerObjects.builder().trackedEntities(List.of(trackedEntity1, trackedEntity2)).build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    // each value is only a duplicate in the org unit of its tracked entity
+    assertFalse(
+        preheat.hasDuplicateInOrgUnit(scopedAttribute, "s1", orgUnit1, trackedEntity1.getUID()));
+    assertTrue(preheat.hasDuplicateInOrgUnit(scopedAttribute, "s1", orgUnit1, UID.generate()));
+    assertFalse(
+        preheat.hasDuplicateInOrgUnit(scopedAttribute, "s1", orgUnit2, trackedEntity2.getUID()));
+    assertTrue(preheat.hasDuplicateInOrgUnit(scopedAttribute, "s1", orgUnit2, UID.generate()));
+    assertFalse(preheat.hasSystemWideDuplicate(scopedAttribute, "s1", UID.generate()));
+  }
+
+  @Test
+  void shouldSkipOrgUnitScopedValueWhenEnrollmentTrackedEntityDoesNotExist() {
+    TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
+    OrganisationUnit orgUnit1 = orgUnitInPreheat('1', 1);
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(List.of(scopedAttribute));
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
+        trackedEntity(orgUnit1, value(scopedAttribute, "s1"));
+    UID unknownTrackedEntity = UID.generate();
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .trackedEntities(List.of(trackedEntity))
+            .enrollments(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+                        .enrollment(UID.generate())
+                        .trackedEntity(unknownTrackedEntity)
+                        .attributes(List.of(value(scopedAttribute, "s1")))
+                        .build()))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    // the tracked entity of the enrollment is in neither the payload nor the DB, so its org unit
+    // is unknown and its value can't conflict with any other
+    assertFalse(
+        preheat.hasDuplicateInOrgUnit(scopedAttribute, "s1", orgUnit1, trackedEntity.getUID()));
+  }
+
+  @Test
+  void shouldAddValuesFoundInDbAsSystemWideWhenAttributeIsUniqueInTheSystem() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    when(trackedEntityAttributeValueService.getUniqueAttributeValues(
+            uniqueAttribute, Set.of(UNIQUE_VALUE)))
+        .thenReturn(List.of(new UniqueAttributeValueMatch(TE_UID, UNIQUE_VALUE, 42L)));
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .trackedEntities(Collections.singletonList(anotherTrackedEntity()))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertTrue(preheat.hasSystemWideDuplicate(uniqueAttribute, UNIQUE_VALUE, ANOTHER_TE_UID));
+  }
+
+  private TrackedEntityAttribute scopedUniqueAttribute() {
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('S', ValueType.TEXT);
+    attribute.setUnique(true);
+    attribute.setOrgunitScope(true);
+    return attribute;
+  }
+
+  private OrganisationUnit orgUnitInPreheat(char uniqueChar, long id) {
+    OrganisationUnit ou = createOrganisationUnit(uniqueChar);
+    ou.setId(id);
+    preheat.put(TrackerIdSchemeParam.UID, ou);
+    return ou;
+  }
+
+  private static org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity(
+      OrganisationUnit orgUnit, org.hisp.dhis.tracker.imports.domain.Attribute... attributes) {
+    return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+        .trackedEntity(UID.generate())
+        .orgUnit(MetadataIdentifier.ofUid(orgUnit))
+        .attributes(List.of(attributes))
+        .build();
+  }
+
+  private static org.hisp.dhis.tracker.imports.domain.Attribute value(
+      TrackedEntityAttribute attribute, String value) {
+    return org.hisp.dhis.tracker.imports.domain.Attribute.builder()
+        .attribute(MetadataIdentifier.ofUid(attribute))
+        .value(value)
+        .build();
   }
 
   private List<org.hisp.dhis.tracker.imports.domain.TrackedEntity>
-      sameUniqueAttributeTrackedEntities() {
+      sameUniqueAttributeTrackedEntities(String value) {
     return Lists.newArrayList(
-        trackedEntity(),
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(ANOTHER_TE_UID)
-            .attributes(Collections.singletonList(uniqueAttribute()))
-            .build());
+        trackedEntityWithAttributeValue(TE_UID, value),
+        trackedEntityWithAttributeValue(ANOTHER_TE_UID, value));
+  }
+
+  private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityWithAttributeValue(
+      UID teUid, String value) {
+    return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+        .trackedEntity(teUid)
+        .attributes(Collections.singletonList(attributeWithValue(value)))
+        .build();
+  }
+
+  private org.hisp.dhis.tracker.imports.domain.Attribute attributeWithValue(String value) {
+    return org.hisp.dhis.tracker.imports.domain.Attribute.builder()
+        .attribute(MetadataIdentifier.ofUid(this.uniqueAttribute))
+        .value(value)
+        .build();
   }
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity() {
@@ -236,9 +555,6 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
   }
 
   private org.hisp.dhis.tracker.imports.domain.Attribute uniqueAttribute() {
-    return org.hisp.dhis.tracker.imports.domain.Attribute.builder()
-        .attribute(MetadataIdentifier.ofUid(this.uniqueAttribute))
-        .value(UNIQUE_VALUE)
-        .build();
+    return attributeWithValue(UNIQUE_VALUE);
   }
 }

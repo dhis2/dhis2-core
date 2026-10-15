@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,6 @@ import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -76,6 +75,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -118,7 +118,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
 public abstract class AbstractCrudController<
         T extends IdentifiableObject, P extends GetObjectListParams>
-    extends AbstractFullReadOnlyController<T, P> {
+    extends AbstractFullReadOnlyController<T, P> implements CrudOperationsSupport {
   @Autowired protected SchemaValidator schemaValidator;
 
   @Autowired protected RenderService renderService;
@@ -335,35 +335,6 @@ public abstract class AbstractCrudController<
   }
 
   @OpenApi.Filter(
-      includes = {
-        Dashboard.class,
-        EventVisualization.class,
-        org.hisp.dhis.mapping.Map.class,
-        Visualization.class
-      })
-  @PostMapping(value = "/{uid}/favorite")
-  @ResponseBody
-  public WebMessage setAsFavorite(
-      @PathVariable("uid") UID uid, @CurrentUser UserDetails currentUser)
-      throws ConflictException, NotFoundException {
-
-    if (!getSchema().isFavoritable()) {
-      throw new ConflictException("Objects of this class cannot be set as favorite");
-    }
-
-    T object = getEntity(uid);
-    if (object instanceof FavoritableObject favoritableObject) {
-      favoritableObject.setAsFavorite(currentUser);
-      manager.updateNoAcl(object);
-      return ok(
-          String.format(
-              "Object '%s' set as favorite for user '%s'", uid, currentUser.getUsername()));
-    } else {
-      throw new ConflictException("Objects of this class cannot be set as favorite");
-    }
-  }
-
-  @OpenApi.Filter(
       includes = {EventVisualization.class, org.hisp.dhis.mapping.Map.class, Visualization.class})
   @PostMapping(value = "/{uid}/subscriber")
   @ResponseBody
@@ -500,36 +471,6 @@ public abstract class AbstractCrudController<
   }
 
   @OpenApi.Filter(
-      includes = {
-        Dashboard.class,
-        EventVisualization.class,
-        org.hisp.dhis.mapping.Map.class,
-        Visualization.class
-      })
-  @DeleteMapping(value = "/{uid}/favorite")
-  @ResponseBody
-  public WebMessage removeAsFavorite(
-      @PathVariable("uid") UID uid, @CurrentUser UserDetails currentUser)
-      throws NotFoundException, ConflictException {
-
-    if (!getSchema().isFavoritable()) {
-      throw new ConflictException("Objects of this class cannot be set as favorite");
-    }
-
-    T object = getEntity(uid);
-    if (object instanceof FavoritableObject favoritableObject) {
-      favoritableObject.removeAsFavorite(currentUser);
-      manager.updateNoAcl(object);
-
-      return ok(
-          String.format(
-              "Object '%s' removed as favorite for user '%s'", uid, currentUser.getUsername()));
-    } else {
-      throw new ConflictException("Objects of this class cannot be set as favorite");
-    }
-  }
-
-  @OpenApi.Filter(
       includes = {EventVisualization.class, org.hisp.dhis.mapping.Map.class, Visualization.class})
   @DeleteMapping(value = "/{uid}/subscriber")
   @ResponseBody
@@ -578,7 +519,7 @@ public abstract class AbstractCrudController<
     preUpdateItems(object, items);
     TypeReport report = collectionService.mergeCollectionItems(object, property, items);
     postUpdateItems(object, items);
-    hibernateCacheManager.clearCache();
+    clearCacheIfChanged(report);
     return typeReport(report);
   }
 
@@ -607,7 +548,7 @@ public abstract class AbstractCrudController<
     TypeReport report =
         collectionService.replaceCollectionItems(object, property, items.getIdentifiableObjects());
     postUpdateItems(object, items);
-    hibernateCacheManager.clearCache();
+    clearCacheIfChanged(report);
     return typeReport(report);
   }
 
@@ -627,7 +568,7 @@ public abstract class AbstractCrudController<
     TypeReport report =
         collectionService.addCollectionItems(object, property, items.getIdentifiableObjects());
     postUpdateItems(object, items);
-    hibernateCacheManager.clearCache();
+    clearCacheIfChanged(report);
     return typeReport(report);
   }
 
@@ -656,7 +597,7 @@ public abstract class AbstractCrudController<
     TypeReport report =
         collectionService.delCollectionItems(object, property, items.getIdentifiableObjects());
     postUpdateItems(object, items);
-    hibernateCacheManager.clearCache();
+    clearCacheIfChanged(report);
     return typeReport(report);
   }
 
@@ -731,6 +672,14 @@ public abstract class AbstractCrudController<
 
   protected void postPatchEntity(JsonPatch patch, T entityAfter) {}
 
+  /** Collection updates that changed nothing leave the Hibernate caches intact. */
+  private void clearCacheIfChanged(TypeReport report) {
+    Stats stats = report.getStats();
+    if (stats.created() + stats.updated() + stats.deleted() > 0) {
+      hibernateCacheManager.clearCache();
+    }
+  }
+
   protected void preUpdateItems(T entity, IdentifiableObjects items) throws ConflictException {}
 
   protected void postUpdateItems(T entity, IdentifiableObjects items) {}
@@ -740,5 +689,31 @@ public abstract class AbstractCrudController<
     if (!aclService.canUpdate(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
+  }
+
+  /*
+  Special operations support
+   */
+
+  @Override
+  public boolean setAsFavorite(UID id, UserDetails user) throws NotFoundException {
+    T object = getEntity(id);
+    if (object instanceof FavoritableObject obj) {
+      obj.setAsFavorite(user);
+      manager.updateNoAcl(object);
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public boolean removeAsFavorite(UID id, UserDetails user) throws NotFoundException {
+    T object = getEntity(id);
+    if (object instanceof FavoritableObject favoritableObject) {
+      favoritableObject.removeAsFavorite(user);
+      manager.updateNoAcl(object);
+      return true;
+    }
+    return false;
   }
 }

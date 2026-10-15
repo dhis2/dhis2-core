@@ -38,6 +38,8 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.webapi.security.session.SessionStatisticsProvider;
+import org.hisp.dhis.webapi.security.session.SessionStatisticsProvider.SessionGauges;
 import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -59,9 +61,14 @@ public class DataSummaryController {
 
   private final DataStatisticsService dataStatisticsService;
 
+  private final SessionStatisticsProvider sessionStatisticsProvider;
+
   @Autowired
-  public DataSummaryController(DataStatisticsService dataStatisticsService) {
+  public DataSummaryController(
+      DataStatisticsService dataStatisticsService,
+      SessionStatisticsProvider sessionStatisticsProvider) {
     this.dataStatisticsService = dataStatisticsService;
+    this.sessionStatisticsProvider = sessionStatisticsProvider;
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
@@ -96,10 +103,15 @@ public class DataSummaryController {
     }
   }
 
+  /**
+   * Prometheus metrics for the cheap system statistics: object counts, logins, active users, user
+   * invitations, sessions and build info. Safe to scrape frequently. The expensive windowed data
+   * counts are exposed separately on {@link #getPrometheusDataMetrics()}.
+   */
   @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   public @ResponseBody String getPrometheusMetrics() {
-    DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
+    DataSummary summary = dataStatisticsService.getSystemStatisticsOverview();
 
     PrometheusTextBuilder metrics = new PrometheusTextBuilder();
 
@@ -123,6 +135,25 @@ public class DataSummaryController {
         "data_summary_user_invitations",
         "type",
         "Count of user invitations");
+
+    appendSessionMetrics(metrics);
+
+    appendSystemInfoMetrics(metrics, summary.getSystem());
+    return metrics.getMetrics();
+  }
+
+  /**
+   * Prometheus metrics for the expensive system statistics: exact, windowed count queries over the
+   * largest tables (data values, tracker events, single events, enrollments). Served from a
+   * separate, longer-lived cache; scrape this endpoint at a lower frequency than {@link
+   * #getPrometheusMetrics()}.
+   */
+  @GetMapping(value = "/metrics/data", produces = TEXT_PLAIN_VALUE)
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
+  public @ResponseBody String getPrometheusDataMetrics() {
+    DataSummary summary = dataStatisticsService.getSystemStatisticsDataCounts();
+
+    PrometheusTextBuilder metrics = new PrometheusTextBuilder();
 
     metrics.addMetrics(
         summary.getDataValueCount(),
@@ -154,7 +185,23 @@ public class DataSummaryController {
         "days",
         "Count of updated enrollments by day");
 
-    appendSystemInfoMetrics(metrics, summary.getSystem());
     return metrics.getMetrics();
+  }
+
+  /**
+   * Appends gauges for currently active HTTP sessions and the number of distinct users holding
+   * them. Values are cached for one minute, see {@link SessionStatisticsProvider}.
+   */
+  private void appendSessionMetrics(PrometheusTextBuilder metrics) {
+    SessionGauges gauges = sessionStatisticsProvider.getSessionGauges();
+
+    metrics.addHelp("data_summary_active_sessions", "Number of active HTTP sessions");
+    metrics.addType("data_summary_active_sessions");
+    metrics.append(String.format("data_summary_active_sessions %d%n", gauges.sessions()));
+
+    metrics.addHelp(
+        "data_summary_active_session_users", "Number of distinct users with an active session");
+    metrics.addType("data_summary_active_session_users");
+    metrics.append(String.format("data_summary_active_session_users %d%n", gauges.users()));
   }
 }

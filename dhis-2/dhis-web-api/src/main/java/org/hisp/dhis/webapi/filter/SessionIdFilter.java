@@ -36,6 +36,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -54,7 +55,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * via {@code %X{sessionId}} in log4j2 pattern layouts.
  *
  * <p>The session ID is hashed using SHA-256 and base64-encoded for security. Only enabled when
- * {@code logging.session_id} is true.
+ * {@code logging.session_id} is true. The filter never creates a session; requests without an
+ * existing session (e.g. PAT or other stateless authentication) are left untouched.
  *
  * @author Luciano Fiandesio
  * @see <a href="https://logback.qos.ch/manual/mdc.html">MDC Documentation</a>
@@ -87,14 +89,21 @@ public class SessionIdFilter extends OncePerRequestFilter {
             && authentication.isAuthenticated()
             && !authentication.getPrincipal().equals("anonymousUser")) {
 
-          MDC.put(MDC_SESSION_ID, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
+          HttpSession session = req.getSession(false);
+          if (session != null) {
+            MDC.put(MDC_SESSION_ID, IDENTIFIER_PREFIX + hashToBase64(session.getId()));
+          }
         }
       } catch (NoSuchAlgorithmException e) {
         log.error(String.format("Invalid Hash algorithm provided (%s)", HASH_ALGO), e);
       }
     }
 
-    chain.doFilter(req, res);
+    try {
+      chain.doFilter(req, res);
+    } finally {
+      MDC.remove(MDC_SESSION_ID);
+    }
   }
 
   static String hashToBase64(String sessionId) throws NoSuchAlgorithmException {

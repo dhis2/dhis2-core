@@ -42,7 +42,8 @@ import org.mapstruct.factory.Mappers;
       RelationshipTypeMapper.class,
       TrackedEntityMapper.class,
       EnrollmentMapper.class,
-      TrackerEventMapper.class
+      TrackerEventMapper.class,
+      SingleEventMapper.class
     })
 public interface RelationshipMapper extends PreheatMapper<Relationship> {
   RelationshipMapper INSTANCE = Mappers.getMapper(RelationshipMapper.class);
@@ -57,7 +58,6 @@ public interface RelationshipMapper extends PreheatMapper<Relationship> {
   @Mapping(target = "key")
   @Mapping(target = "invertedKey")
   @Mapping(target = "created")
-  @Mapping(target = "createdBy")
   @Mapping(target = "lastUpdated")
   @Mapping(target = "lastUpdatedBy")
   @Mapping(target = "createdAtClient")

@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
+import org.hisp.dhis.analytics.ValidationHelper;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
@@ -1619,5 +1620,133 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
     // Validate selected values for row index 0
     validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2017-07-23 12:45:49.807");
+  }
+
+  @DisplayName("Enrollment Query - rowContext with items from two repeatable stages [DHIS2-21648]")
+  @Test
+  public void rowContextWithItemsFromTwoRepeatableStages() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("headers=ouname,enrollmentdate,uvMKOn1oWvd.DX4LVYeP7bw,CWaAcQYKVpq.HDRons6AfbL")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("rowContext=true")
+            .add("pageSize=100")
+            .add("outputType=ENROLLMENT")
+            .add("page=1")
+            .add("dimension=ou:USER_ORGUNIT")
+            .add("desc=enrollmentdate,CWaAcQYKVpq.HDRons6AfbL");
+
+    // When
+    ApiResponse response = actions.query().get("M3xtLkYBlKI", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        11,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"HDRons6AfbL\":{\"uid\":\"HDRons6AfbL\",\"name\":\"Population\",\"description\":\"Population\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"CWaAcQYKVpq\":{\"uid\":\"CWaAcQYKVpq\",\"name\":\"Foci investigation & classification\",\"description\":\"Includes the details on the foci investigation (including information on households, population, geography, breeding sites, species types, vector behaviour) as well as its final classification at the time of the investigation. This is a repeatable stage as foci can be investigated more than once and may change their classification as time goes on. \"},\"CWaAcQYKVpq.HDRons6AfbL\":{\"uid\":\"HDRons6AfbL\",\"name\":\"Population\",\"description\":\"Population\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"DX4LVYeP7bw\":{\"uid\":\"DX4LVYeP7bw\",\"name\":\"People included\",\"description\":\"Number of people included\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"uvMKOn1oWvd\":{\"uid\":\"uvMKOn1oWvd\",\"name\":\"Foci response\",\"description\":\"Details the public health response conducted within the foci  (including diagnosis and treatment activities, vector control actions and the effectiveness\\/results of the response). This is a repeatable stage as multiple public health responses for the same foci can occur depending on its classification at the time of investigation.\"},\"M3xtLkYBlKI\":{\"uid\":\"M3xtLkYBlKI\",\"name\":\"Malaria focus investigation\",\"description\":\"It allows to register new focus areas in the system. Each focus area needs to be investigated and classified. Includes the relevant identifiers for the foci including the name and geographical details including the locality and its area. \"},\"uvMKOn1oWvd.DX4LVYeP7bw\":{\"uid\":\"DX4LVYeP7bw\",\"name\":\"People included\",\"description\":\"Number of people included\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"}},\"dimensions\":{\"CWaAcQYKVpq.HDRons6AfbL\":[],\"pe\":[],\"uvMKOn1oWvd.DX4LVYeP7bw\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentdate",
+        "Date of Focus Registration",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "uvMKOn1oWvd.DX4LVYeP7bw",
+        "People included",
+        "INTEGER_POSITIVE",
+        "java.lang.Integer",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "CWaAcQYKVpq.HDRons6AfbL",
+        "Population",
+        "INTEGER_POSITIVE",
+        "java.lang.Integer",
+        false,
+        true);
+
+    // 5. Assert rowContext by name.
+    ValidationHelper.validateRowContextByName(
+        response, actualHeaders, 0, "CWaAcQYKVpq.HDRons6AfbL", "ND");
+    ValidationHelper.validateRowContextByName(
+        response, actualHeaders, 1, "CWaAcQYKVpq.HDRons6AfbL", "ND");
+    ValidationHelper.validateRowContextByName(
+        response, actualHeaders, 3, "CWaAcQYKVpq.HDRons6AfbL", "NS");
+    // No rowContext found for header 'CWaAcQYKVpq.HDRons6AfbL' in row index 4.
+    ValidationHelper.validateRowContextByName(
+        response, actualHeaders, 5, "CWaAcQYKVpq.HDRons6AfbL", "NS");
+    // No rowContext found for header 'CWaAcQYKVpq.HDRons6AfbL' in row index 6.
+    ValidationHelper.validateRowContextByName(
+        response, actualHeaders, 7, "CWaAcQYKVpq.HDRons6AfbL", "NS");
+    // No rowContext found for header 'CWaAcQYKVpq.HDRons6AfbL' in row index 8.
+    ValidationHelper.validateRowContextByName(
+        response, actualHeaders, 9, "CWaAcQYKVpq.HDRons6AfbL", "NS");
+
+    // 7. Assert row values by name at specific indices (sorted results).
+    // Validate selected values for row index 0
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 0, "CWaAcQYKVpq.HDRons6AfbL", "");
+    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2022-03-04 00:00:00.0");
+
+    // Validate selected values for row index 3
+    validateRowValueByName(response, actualHeaders, 3, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 3, "CWaAcQYKVpq.HDRons6AfbL", "");
+    validateRowValueByName(response, actualHeaders, 3, "enrollmentdate", "2021-11-13 00:00:00.0");
+
+    // Validate selected values for row index 6
+    validateRowValueByName(response, actualHeaders, 6, "ouname", "Njandama MCHP");
+    validateRowValueByName(response, actualHeaders, 6, "CWaAcQYKVpq.HDRons6AfbL", "12000");
+    validateRowValueByName(response, actualHeaders, 6, "enrollmentdate", "2021-11-07 00:00:00.0");
+
+    // Validate selected values for row index 9
+    validateRowValueByName(response, actualHeaders, 9, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 9, "CWaAcQYKVpq.HDRons6AfbL", "");
+    validateRowValueByName(response, actualHeaders, 9, "enrollmentdate", "2021-10-16 00:00:00.0");
+
+    // Validate selected values for row index 10
+    validateRowValueByName(response, actualHeaders, 10, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 10, "CWaAcQYKVpq.HDRons6AfbL", "500");
+    validateRowValueByName(response, actualHeaders, 10, "enrollmentdate", "2021-07-26 00:00:00.0");
   }
 }

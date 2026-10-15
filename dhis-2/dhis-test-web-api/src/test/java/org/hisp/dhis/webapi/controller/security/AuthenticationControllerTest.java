@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -40,6 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Calendar;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
@@ -57,8 +60,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -68,6 +77,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Autowired private SystemSettingsService settingsService;
   @Autowired private SessionRegistry sessionRegistry;
+  @Autowired private ConfigurableApplicationContext applicationContext;
 
   @AfterEach
   void tearDown() {
@@ -87,6 +97,68 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
     assertEquals("SUCCESS", response.getLoginStatus());
     assertEquals("/", response.getRedirectUrl());
+  }
+
+  @Test
+  void testSuccessfulLoginClearsInvitation() {
+    User invitedUser = createUserWithAuth("invited", "ALL");
+    userService.encodeAndSetPassword(invitedUser, "district");
+    invitedUser.setInvitation(true);
+    invitedUser.setRestoreToken("restore-token");
+    Calendar expiry = Calendar.getInstance();
+    expiry.add(Calendar.DAY_OF_YEAR, 1);
+    invitedUser.setRestoreExpiry(expiry.getTime());
+    invitedUser.setIdToken("id-token");
+    userService.updateUser(invitedUser);
+    manager.flush();
+    manager.clear();
+    clearSecurityContext();
+
+    JsonLoginResponse response =
+        POST("/auth/login", "{'username':'invited','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    manager.flush();
+    manager.clear();
+    User persistedUser = userService.getUserByUsername("invited");
+    assertFalse(persistedUser.isInvitation());
+    assertNull(persistedUser.getRestoreToken());
+    assertNull(persistedUser.getRestoreExpiry());
+    assertNull(persistedUser.getIdToken());
+  }
+
+  @Test
+  void testLoginPublishesNoDuplicateSessionCreatedEvent() {
+    // HttpSessionEventPublisher is registered as a servlet container listener in
+    // DhisWebApiWebAppInitializer, which already publishes HttpSessionCreatedEvent when the
+    // container creates the login session. In this MockMvc setup no container listener exists,
+    // so any HttpSessionCreatedEvent observed during login can only come from a manual publish
+    // in the login code path, which would make session lifecycle consumers count logins twice.
+    List<ApplicationEvent> sessionCreatedEvents = new CopyOnWriteArrayList<>();
+    ApplicationListener<ApplicationEvent> listener =
+        event -> {
+          if (event instanceof HttpSessionCreatedEvent) {
+            sessionCreatedEvents.add(event);
+          }
+        };
+    ApplicationEventMulticaster multicaster =
+        applicationContext.getBean(
+            AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
+            ApplicationEventMulticaster.class);
+    multicaster.addApplicationListener(listener);
+    try {
+      POST("/auth/login", "{'username':'admin','password':'district'}").content(HttpStatus.OK);
+
+      assertEquals(
+          0,
+          sessionCreatedEvents.size(),
+          "login must not manually publish HttpSessionCreatedEvent; the container listener"
+              + " already publishes it, a manual publish means sessions get counted twice");
+    } finally {
+      multicaster.removeApplicationListener(listener);
+    }
   }
 
   @Test

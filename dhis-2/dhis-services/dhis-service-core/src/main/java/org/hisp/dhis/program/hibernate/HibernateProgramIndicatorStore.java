@@ -118,8 +118,7 @@ public class HibernateProgramIndicatorStore
             categorycomboid IN (:sourceCategoryComboIds)
             OR attributecomboid IN (:sourceCategoryComboIds);
         """;
-    return getSession()
-        .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
         .setParameter("targetCategoryComboId", targetCategoryComboId)
         .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))

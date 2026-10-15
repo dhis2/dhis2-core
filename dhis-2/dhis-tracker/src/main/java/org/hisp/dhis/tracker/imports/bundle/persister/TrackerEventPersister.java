@@ -89,6 +89,12 @@ public class TrackerEventPersister
   }
 
   @Override
+  protected Set<String> trackedEntityUidsForAttributeLoad(
+      List<org.hisp.dhis.tracker.imports.domain.TrackerEvent> dtos) {
+    return Set.of();
+  }
+
+  @Override
   protected void assignId(TrackerEvent entity, long id) {
     entity.setId(id);
   }
@@ -361,6 +367,11 @@ public class TrackerEventPersister
         .filter(e -> e.getTrackedEntity() != null)
         .map(e -> e.getTrackedEntity().getUID())
         .collect(Collectors.toSet());
+  }
+
+  @Override
+  protected Set<UID> getUpdatedSingleEvents(TrackerEvent entity) {
+    return Set.of();
   }
 
   private boolean isNewDataValue(

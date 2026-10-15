@@ -92,7 +92,6 @@ class FakeRedisTest {
   }
 
   @Test
-  @SuppressWarnings("DataFlowIssue")
   void testDelete_NonExistingHasNoEffect() {
     BoundZSetOperations<String, String> set1 = redis.boundZSetOps("empty:s");
     assertEquals(0L, set1.zCard());
@@ -106,7 +105,6 @@ class FakeRedisTest {
   }
 
   @Test
-  @SuppressWarnings("DataFlowIssue")
   void testDelete_byKey() {
     BoundZSetOperations<String, String> set1 = redis.boundZSetOps("my:set");
     set1.add("val", 42);
@@ -148,7 +146,6 @@ class FakeRedisTest {
   }
 
   @Test
-  @SuppressWarnings("DataFlowIssue")
   void testRange() {
     BoundZSetOperations<String, String> set1 = redis.boundZSetOps("my:set");
     set1.add("1", 1);
@@ -165,7 +162,6 @@ class FakeRedisTest {
   }
 
   @Test
-  @SuppressWarnings("DataFlowIssue")
   void testReverseRange() {
     BoundZSetOperations<String, String> set1 = redis.boundZSetOps("my:set");
     set1.add("1", 1);
@@ -180,7 +176,6 @@ class FakeRedisTest {
   }
 
   @Test
-  @SuppressWarnings("DataFlowIssue")
   void testRemoveRange() {
     BoundZSetOperations<String, String> set1 = redis.boundZSetOps("my:set");
     set1.add("1", 1);

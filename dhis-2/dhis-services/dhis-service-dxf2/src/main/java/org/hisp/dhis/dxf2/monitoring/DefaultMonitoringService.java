@@ -29,8 +29,10 @@
  */
 package org.hisp.dhis.dxf2.monitoring;
 
+import jakarta.annotation.PostConstruct;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
-import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,8 +43,6 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -60,9 +60,9 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.dxf2.monitoring.MonitoringService")
 public class DefaultMonitoringService implements MonitoringService {
-  private static final int PUSH_INTERVAL = DateTimeConstants.MILLIS_PER_MINUTE * 5;
+  private static final Duration PUSH_INTERVAL = Duration.ofMinutes(5);
 
-  private static final int PUSH_INITIAL_DELAY = DateTimeConstants.MILLIS_PER_SECOND * 30;
+  private static final Duration PUSH_INITIAL_DELAY = Duration.ofSeconds(30);
 
   private final SystemService systemService;
 
@@ -76,7 +76,7 @@ public class DefaultMonitoringService implements MonitoringService {
 
   @PostConstruct
   public void init() {
-    Date date = new DateTime().plus(PUSH_INITIAL_DELAY).toDate();
+    Instant date = Instant.now().plus(PUSH_INITIAL_DELAY);
 
     String url = config.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL);
 

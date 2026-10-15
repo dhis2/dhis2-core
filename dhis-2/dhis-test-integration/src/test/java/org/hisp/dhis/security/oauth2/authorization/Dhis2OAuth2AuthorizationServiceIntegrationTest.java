@@ -397,12 +397,14 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
         (UsernamePasswordAuthenticationToken) principalAttribute;
     assertEquals(currentUser.getUsername(), roundTripped.getName());
     assertTrue(roundTripped.isAuthenticated());
-    assertEquals(
-        currentUser.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.toSet()),
+    // FACTOR_* authorities may be re-attached on load for SAS 7 OIDC auth_time support.
+    assertTrue(
         roundTripped.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.toSet()));
+            .collect(Collectors.toSet())
+            .containsAll(
+                currentUser.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toSet())));
   }
 }

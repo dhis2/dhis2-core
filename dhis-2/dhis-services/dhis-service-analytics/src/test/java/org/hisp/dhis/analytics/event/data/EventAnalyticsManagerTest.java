@@ -96,6 +96,7 @@ import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.AnalyticsType;
@@ -681,6 +682,38 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             (capturedSql) -> assertThat(capturedSql, not(containsString(unexpected)))));
   }
 
+  @Test
+  void verifyGetEventsWithOptionSetNoValueFilter() {
+    mockEmptyRowSet();
+
+    DataElement dataElement = createDataElement('a');
+    QueryItem queryItem =
+        new QueryItem(
+            dataElement, programA, null, ValueType.TEXT, AggregationType.NONE, new OptionSet());
+    queryItem.addFilter(new QueryFilter(QueryOperator.EQ, "D2__NOVALUE"));
+
+    subject.getEvents(createRequestParams(queryItem), createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    assertThat(sql.getValue(), containsString("\"" + dataElement.getUid() + "\" is null"));
+  }
+
+  @Test
+  void verifyGetEventsWithOptionSetNvFilterIsLiteral() {
+    mockEmptyRowSet();
+
+    DataElement dataElement = createDataElement('a');
+    QueryItem queryItem =
+        new QueryItem(
+            dataElement, programA, null, ValueType.TEXT, AggregationType.NONE, new OptionSet());
+    queryItem.addFilter(new QueryFilter(QueryOperator.EQ, "NV"));
+
+    subject.getEvents(createRequestParams(queryItem), createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    assertThat(sql.getValue(), containsString("= 'NV'"));
+  }
+
   private void testIt(
       QueryOperator operator, String filter, Collection<Consumer<String>> assertions) {
     mockEmptyRowSet();
@@ -1070,6 +1103,82 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyNoValueInFilterMatchesEmptyStringForClickHouse() {
+    ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
+    JdbcEventAnalyticsManager clickHouseSubject =
+        createEventAnalyticsManager(clickHouseBuilder, "clickhouse");
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+    mockEmptyRowSet();
+
+    clickHouseSubject.getAggregatedEventData(
+        optionSetNoValueParams(QueryOperator.IN), createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("nullif(ax.\"fwiaetyvegk\", '') is null"));
+  }
+
+  @Test
+  void verifyNoValueEqFilterMatchesEmptyStringForClickHouse() {
+    ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
+    JdbcEventAnalyticsManager clickHouseSubject =
+        createEventAnalyticsManager(clickHouseBuilder, "clickhouse");
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+    mockEmptyRowSet();
+
+    clickHouseSubject.getAggregatedEventData(
+        optionSetNoValueParams(QueryOperator.EQ), createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("nullif(ax.\"fwiaetyvegk\", '') is null"));
+  }
+
+  @Test
+  void verifyNoValueInFilterKeepsRawColumnForPostgres() {
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+    mockEmptyRowSet();
+
+    subject.getAggregatedEventData(optionSetNoValueParams(QueryOperator.IN), createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("ax.\"fwiaetyvegk\" is null"));
+    assertThat(generatedSql, not(containsString("nullif(ax.\"fwiaetyvegk\", '') is null")));
+  }
+
+  @Test
+  void verifyGetEventsNoValueFilterMatchesEmptyStringForClickHouse() {
+    ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
+    JdbcEventAnalyticsManager clickHouseSubject =
+        createEventAnalyticsManager(clickHouseBuilder, "clickhouse");
+    mockEmptyRowSet();
+
+    clickHouseSubject.getEvents(optionSetNoValueParams(QueryOperator.IN), createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("nullif(ax.\"fwiaetyvegk\", '') is null"));
+  }
+
+  /** Builds an aggregated event query whose option set item is filtered by the no-value keyword. */
+  private EventQueryParams optionSetNoValueParams(QueryOperator operator) {
+    EventQueryParams params = createRequestParams(programStage, ValueType.TEXT);
+    QueryItem queryItem = params.getItems().get(0);
+    queryItem.setOptionSet(new OptionSet());
+    queryItem.addFilter(new QueryFilter(operator, "D2__NOVALUE"));
+
+    return new EventQueryParams.Builder(params).build();
+  }
+
+  @Test
   void verifyGetAggregatedEventQueryUsesJoinBasedPeriodLookupForClickHouse() {
     ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
     JdbcEventAnalyticsManager clickHouseSubject =
@@ -1248,7 +1357,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     String variablePlaceholder =
         "FUNC_CTE_VAR( type='vCreationDate', column='created', piUid='piEnrollComplex', psUid='null', offset='0')";
     String psdePlaceholder =
-        "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='piEnrollComplex')";
+        "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='piEnrollComplex', replaceNulls='true')";
     String d2Placeholder =
         "__D2FUNC__(func='countIfValue', ps='PgmStgUid1', de='DataElmUid2', argType='val64', arg64='NQ==', hash='noboundaries', pi='piEnrollComplex')__";
 
@@ -1669,6 +1778,114 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
     // Then: verify renderTimestamp was called for the date value
     verify(sqlBuilder).renderTimestamp("2024-01-15");
+  }
+
+  @Test
+  void verifyEventQuerySortByStageScopedEventDateOrdersByEventOccurredDate() {
+    String actual =
+        eventQuerySql(
+            stageScopedSortItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, ValueType.DATE),
+            true);
+
+    assertEventSortsOnOwnColumn(actual, "\"occurreddate\" asc nulls last");
+  }
+
+  @Test
+  void verifyEventQuerySortByStageScopedScheduledDateOrdersByEventScheduledDate() {
+    String actual =
+        eventQuerySql(
+            stageScopedSortItem(
+                EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, ValueType.DATE),
+            false);
+
+    assertEventSortsOnOwnColumn(actual, "\"scheduleddate\" desc nulls last");
+  }
+
+  @Test
+  void verifyEventQuerySortByStageScopedOrgUnitOrdersByEventOrgUnit() {
+    String actual =
+        eventQuerySql(
+            stageScopedSortItem(
+                EventAnalyticsColumnName.OU_COLUMN_NAME, ValueType.ORGANISATION_UNIT),
+            true);
+
+    assertEventSortsOnOwnColumn(actual, "\"ou\" asc nulls last");
+  }
+
+  @Test
+  void verifyEventQuerySortByBareOrgUnitNameOrdersByEventOrgUnitName() {
+    String actual = eventQuerySql(bareSortItem(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME), true);
+
+    assertEventSortsOnOwnColumn(actual, "\"ouname\" asc nulls last");
+  }
+
+  @Test
+  void verifyEventQuerySortByBareOrgUnitCodeOrdersByEventOrgUnitCode() {
+    String actual =
+        eventQuerySql(bareSortItem(EventAnalyticsColumnName.OU_CODE_COLUMN_NAME), false);
+
+    assertEventSortsOnOwnColumn(actual, "\"oucode\" desc nulls last");
+  }
+
+  @Test
+  void verifyEventQuerySortByBareEventDateOrdersByEventOccurredDate() {
+    String actual =
+        eventQuerySql(bareSortItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME), true);
+
+    assertEventSortsOnOwnColumn(actual, "\"occurreddate\" asc nulls last");
+  }
+
+  @Test
+  void verifyEventQuerySortByBareScheduledDateOrdersByEventScheduledDate() {
+    String actual =
+        eventQuerySql(bareSortItem(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME), false);
+
+    assertEventSortsOnOwnColumn(actual, "\"scheduleddate\" desc nulls last");
+  }
+
+  /**
+   * Event sorting must read the event row's own column: no stage predicate and no join may be
+   * introduced by the sort alone.
+   */
+  private void assertEventSortsOnOwnColumn(String sql, String expectedOrderBy) {
+    assertThat(sql, containsString("order by " + expectedOrderBy));
+    assertThat(sql, not(containsString("ax.\"ps\" = ")));
+    assertThat(sql, not(containsString(" join ")));
+  }
+
+  private String eventQuerySql(QueryItem sortItem, boolean ascending) {
+    mockEmptyRowSet();
+    EventQueryParams.Builder params = createRequestParamsBuilder().withEndpointAction(QUERY);
+    if (ascending) {
+      params.addAscSortItem(sortItem);
+    } else {
+      params.addDescSortItem(sortItem);
+    }
+
+    subject.getEvents(params.build(), createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    return sql.getValue();
+  }
+
+  /**
+   * Mirrors the item {@code DefaultQueryItemLocator} produces for {@code <stage>.EVENT_DATE} etc.
+   */
+  private QueryItem stageScopedSortItem(String columnName, ValueType valueType) {
+    QueryItem item =
+        new QueryItem(
+            new BaseDimensionalItemObject(columnName),
+            programA,
+            null,
+            valueType,
+            AggregationType.NONE,
+            null);
+    item.setProgramStage(programStage);
+    return item;
+  }
+
+  private QueryItem bareSortItem(String columnName) {
+    return new QueryItem(new BaseDimensionalItemObject(columnName));
   }
 
   private EventQueryParams createRequestParamsWithFilter(ValueType queryItemValueType) {

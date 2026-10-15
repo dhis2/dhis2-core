@@ -71,6 +71,8 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPathHelper;
 import org.hisp.dhis.gist.GistBridge;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Filters;
@@ -126,6 +128,8 @@ public abstract class AbstractFullReadOnlyController<
   @Autowired protected FieldFilterService oldFieldFilterService;
 
   @Autowired protected org.hisp.dhis.fieldfiltering.FieldFilterService fieldFilterService;
+
+  @Autowired protected FieldPathHelper fieldPathHelper;
 
   @Autowired protected LinkService linkService;
 
@@ -545,23 +549,31 @@ public abstract class AbstractFullReadOnlyController<
         ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
   }
 
+  /**
+   * Whether {@code href} would actually appear in the response for {@code fields}, at any depth --
+   * {@link LinkService#generateLinks} stamps {@code href} on every {@code IdentifiableObject}
+   * property it finds when {@code deep=true} (root object and nested collections alike), then
+   * field-filtering decides per-object whether it survives into the JSON; this is the coarse gate
+   * deciding whether that walk is worth attempting at all. Delegates to the real field-path
+   * expansion ({@link FieldPathHelper#apply}) instead of substring-matching the raw {@code fields}
+   * string: a property with a {@code @PropertyTransformer} (e.g. {@code UserPropertyTransformer})
+   * never has an {@code href} no matter how deeply nested or with what wildcard it's requested
+   * (DHIS2-21856), and {@code apply()} already prunes everything beneath such a property -- so any
+   * {@code href} path surviving here is one that could genuinely appear in the response. A raw
+   * {@code fields.contains("*")} check can't tell a top-level {@code *} from one four levels deep
+   * inside {@code users[*]}, which is what forced {@code generateLinks} to reflectively touch every
+   * {@code IdentifiableObject} getter on the schema, including large Hibernate-backed collections,
+   * purely to compute an {@code href} that field-filtering would discard anyway.
+   */
   private boolean hasHref(String fields) {
-    return fieldsContains("href", fields);
+    return fieldPathHelper.apply(FieldFilterParser.parse(fields), getEntityClass()).stream()
+        .anyMatch(fieldPath -> "href".contentEquals(fieldPath.getPath().segment()));
   }
 
   private void handleLinksAndAccess(List<T> entityList, String fields, boolean deep) {
     if (hasHref(fields)) {
       linkService.generateLinks(entityList, deep);
     }
-  }
-
-  private boolean fieldsContains(String match, String fields) {
-    return fields.contains("*")
-        || fields.contains(":all")
-        || fields.equals(match)
-        || fields.startsWith(match + ",")
-        || fields.endsWith("," + match)
-        || fields.contains("," + match + ",");
   }
 
   // --------------------------------------------------------------------------

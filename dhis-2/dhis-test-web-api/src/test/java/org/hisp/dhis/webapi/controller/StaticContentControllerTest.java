@@ -93,7 +93,7 @@ class StaticContentControllerTest extends WebSpringTestBase {
   void verifyFetchWithDefaultKey() throws Exception {
     mvc.perform(get(URL + LOGO_BANNER).accept(TEXT_HTML_VALUE).session(session))
         .andExpect(redirectedUrlPattern("**/dhis-web-commons/css/light_blue/logo_banner.png"))
-        .andExpect(status().isMovedTemporarily());
+        .andExpect(status().isFound());
   }
 
   @Test

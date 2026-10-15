@@ -30,24 +30,22 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -55,16 +53,16 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValueInOrgUnit;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValueSystemWide;
 import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.springframework.stereotype.Component;
 
 /**
- * This supplier will populate a list of {@link UniqueAttributeValue}s that contains all the
- * attribute values that are unique and which value is either already present in the DB or
- * duplicated in the payload
+ * This supplier populates the preheat with the values of unique attributes sent in the payload that
+ * are either already present in the DB or duplicated in the payload, as {@link
+ * UniqueAttributeValueSystemWide}s and {@link UniqueAttributeValueInOrgUnit}s
  *
  * @author Luciano Fiandesio
  */
@@ -84,23 +82,27 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         allUniqueAttributesByTrackedEntity =
             getAllAttributesByTrackedEntity(trackerObjects, preheat, uniqueTrackedEntityAttributes);
 
-    List<UniqueAttributeValue> uniqueAttributeValuesFromPayload =
-        getDuplicatedUniqueValuesInPayload(allUniqueAttributesByTrackedEntity);
+    UniqueValues fromPayload =
+        getDuplicatedUniqueValuesInPayload(
+            allUniqueAttributesByTrackedEntity, uniqueTrackedEntityAttributes);
 
-    List<UniqueAttributeValue> uniqueAttributeValuesFromDB =
+    UniqueValues fromDb =
         getAlreadyPresentInDbUniqueValues(
-            preheat.getIdSchemes(),
-            allUniqueAttributesByTrackedEntity,
-            uniqueTrackedEntityAttributes);
+            preheat, allUniqueAttributesByTrackedEntity, uniqueTrackedEntityAttributes);
 
-    List<UniqueAttributeValue> uniqueAttributeValues =
-        Stream.concat(
-                uniqueAttributeValuesFromPayload.stream(), uniqueAttributeValuesFromDB.stream())
+    preheat.setSystemWideUniqueAttributeValues(
+        Stream.concat(fromPayload.systemWide().stream(), fromDb.systemWide().stream())
             .distinct()
-            .toList();
-
-    preheat.setUniqueAttributeValues(uniqueAttributeValues);
+            .toList());
+    preheat.setUniqueAttributeValuesInOrgUnit(
+        Stream.concat(fromPayload.inOrgUnit().stream(), fromDb.inOrgUnit().stream())
+            .distinct()
+            .toList());
   }
+
+  private record UniqueValues(
+      List<UniqueAttributeValueSystemWide> systemWide,
+      List<UniqueAttributeValueInOrgUnit> inOrgUnit) {}
 
   private Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>>
       getAllAttributesByTrackedEntity(
@@ -187,77 +189,141 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
                 }));
   }
 
-  private List<UniqueAttributeValue> getDuplicatedUniqueValuesInPayload(
-      Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> allAttributes) {
-
-    // TE grouped by attribute and value.
-    // Two attributes with the same value and uid are considered equals
-    TreeMap<Attribute, List<org.hisp.dhis.tracker.imports.domain.TrackedEntity>>
-        teByAttributeValue =
-            new TreeMap<>(
-                (o1, o2) -> {
-                  if (Objects.equals(o1.getValue(), o2.getValue())
-                      && Objects.equals(o1.getAttribute(), o2.getAttribute())) {
-                    return 0;
-                  }
-                  return 1;
-                });
+  /**
+   * Finds the unique values sent for more than one tracked entity in the payload. Values are
+   * compared ignoring case, like the validation does, so the case folded value is the one added to
+   * the preheat. A value of an attribute unique within an org unit is skipped when the org unit of
+   * its tracked entity is unknown, as it can't conflict with any other value.
+   */
+  private UniqueValues getDuplicatedUniqueValuesInPayload(
+      Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> allAttributes,
+      List<TrackedEntityAttribute> uniqueTrackedEntityAttributes) {
+    Map<AttributeValueKey, Set<org.hisp.dhis.tracker.imports.domain.TrackedEntity>>
+        trackedEntitiesByAttributeValue = new HashMap<>();
 
     for (Map.Entry<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> entry :
         allAttributes.entrySet()) {
       for (Attribute attribute : entry.getValue()) {
-        if (!teByAttributeValue.containsKey(attribute)) {
-          teByAttributeValue.put(attribute, Lists.newArrayList());
-        }
-        teByAttributeValue.get(attribute).add(entry.getKey());
+        trackedEntitiesByAttributeValue
+            .computeIfAbsent(
+                new AttributeValueKey(
+                    attribute.getAttribute(),
+                    TrackerPreheat.caseInsensitiveKey(attribute.getValue())),
+                k -> new HashSet<>())
+            .add(entry.getKey());
       }
     }
 
-    // If an attribute and value appear in 2 or more tracked entities
-    // it means that is not unique
-    return teByAttributeValue.entrySet().stream()
-        .filter(e -> e.getValue().size() > 1)
-        .flatMap(av -> buildUniqueAttributeValues(av.getKey(), av.getValue()).stream())
-        .toList();
+    List<UniqueAttributeValueSystemWide> systemWide = new ArrayList<>();
+    List<UniqueAttributeValueInOrgUnit> inOrgUnit = new ArrayList<>();
+    for (Map.Entry<AttributeValueKey, Set<org.hisp.dhis.tracker.imports.domain.TrackedEntity>>
+        entry : trackedEntitiesByAttributeValue.entrySet()) {
+      if (entry.getValue().size() < 2) {
+        continue;
+      }
+
+      AttributeValueKey key = entry.getKey();
+      boolean orgUnitScoped =
+          extractAttribute(key.attribute(), uniqueTrackedEntityAttributes)
+              .getOrgUnitScopeNullSafe();
+      for (org.hisp.dhis.tracker.imports.domain.TrackedEntity te : entry.getValue()) {
+        if (!orgUnitScoped) {
+          systemWide.add(
+              new UniqueAttributeValueSystemWide(te.getUID(), key.attribute(), key.value()));
+        } else if (te.getOrgUnit() != null) {
+          inOrgUnit.add(
+              new UniqueAttributeValueInOrgUnit(
+                  te.getUID(), key.attribute(), key.value(), te.getOrgUnit()));
+        }
+      }
+    }
+    return new UniqueValues(systemWide, inOrgUnit);
   }
 
-  private Collection<UniqueAttributeValue> buildUniqueAttributeValues(
-      Attribute attribute, List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> teList) {
-    return teList.stream()
-        .map(
-            te ->
-                new UniqueAttributeValue(
-                    te.getUID(), attribute.getAttribute(), attribute.getValue(), te.getOrgUnit()))
-        .toList();
-  }
+  private record AttributeValueKey(MetadataIdentifier attribute, String value) {}
 
-  private List<UniqueAttributeValue> getAlreadyPresentInDbUniqueValues(
-      TrackerIdSchemeParams idSchemes,
+  /**
+   * Finds the values in the DB that collide with the unique values in the payload. Values of an
+   * attribute unique within an org unit are only looked up in the org unit of the tracked entity
+   * they are sent for, as the validation only compares them within that org unit.
+   */
+  private UniqueValues getAlreadyPresentInDbUniqueValues(
+      TrackerPreheat preheat,
       Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>>
           allAttributesByTrackedEntity,
       List<TrackedEntityAttribute> uniqueTrackedEntityAttributes) {
+    Map<TrackedEntityAttribute, Set<String>> valuesByAttribute = new HashMap<>();
+    Map<TrackedEntityAttribute, Map<Long, Set<String>>> valuesByOrgUnitIdByAttribute =
+        new HashMap<>();
+    Map<Long, OrganisationUnit> orgUnitsById = new HashMap<>();
 
-    Map<TrackedEntityAttribute, List<String>> uniqueValuesByAttribute =
-        allAttributesByTrackedEntity.values().stream()
-            .flatMap(Collection::stream)
-            .distinct()
-            .collect(
-                groupingBy(
-                    a -> extractAttribute(a.getAttribute(), uniqueTrackedEntityAttributes),
-                    mapping(Attribute::getValue, toList())));
+    for (Map.Entry<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> entry :
+        allAttributesByTrackedEntity.entrySet()) {
+      for (Attribute attribute : entry.getValue()) {
+        TrackedEntityAttribute tea =
+            extractAttribute(attribute.getAttribute(), uniqueTrackedEntityAttributes);
+        if (!tea.getOrgUnitScopeNullSafe()) {
+          valuesByAttribute.computeIfAbsent(tea, k -> new HashSet<>()).add(attribute.getValue());
+          continue;
+        }
 
-    List<TrackedEntityAttributeValue> uniqueAttributeAlreadyPresentInDB =
-        trackedEntityAttributeValueService.getUniqueAttributeByValues(uniqueValuesByAttribute);
+        // an org unit that cannot be resolved can't match any stored value in the validation
+        OrganisationUnit orgUnit = getOrgUnit(preheat, entry.getKey());
+        if (orgUnit != null) {
+          orgUnitsById.put(orgUnit.getId(), orgUnit);
+          valuesByOrgUnitIdByAttribute
+              .computeIfAbsent(tea, k -> new HashMap<>())
+              .computeIfAbsent(orgUnit.getId(), k -> new HashSet<>())
+              .add(attribute.getValue());
+        }
+      }
+    }
 
-    return uniqueAttributeAlreadyPresentInDB.stream()
-        .map(
-            av ->
-                new UniqueAttributeValue(
-                    av.getTrackedEntity().getUID(),
-                    idSchemes.toMetadataIdentifier(av.getAttribute()),
-                    av.getValue(),
-                    idSchemes.toMetadataIdentifier(av.getTrackedEntity().getOrganisationUnit())))
-        .toList();
+    TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+    List<UniqueAttributeValueSystemWide> systemWide = new ArrayList<>();
+    valuesByAttribute.forEach(
+        (attribute, values) -> {
+          MetadataIdentifier attributeIdentifier = idSchemes.toMetadataIdentifier(attribute);
+          trackedEntityAttributeValueService
+              .getUniqueAttributeValues(attribute, values)
+              .forEach(
+                  match ->
+                      systemWide.add(
+                          new UniqueAttributeValueSystemWide(
+                              match.trackedEntity(), attributeIdentifier, match.value())));
+        });
+    List<UniqueAttributeValueInOrgUnit> inOrgUnit = new ArrayList<>();
+    valuesByOrgUnitIdByAttribute.forEach(
+        (attribute, valuesByOrgUnitId) -> {
+          MetadataIdentifier attributeIdentifier = idSchemes.toMetadataIdentifier(attribute);
+          trackedEntityAttributeValueService
+              .getUniqueAttributeValues(attribute, valuesByOrgUnitId)
+              .forEach(
+                  match ->
+                      inOrgUnit.add(
+                          new UniqueAttributeValueInOrgUnit(
+                              match.trackedEntity(),
+                              attributeIdentifier,
+                              match.value(),
+                              idSchemes.toMetadataIdentifier(
+                                  orgUnitsById.get(match.orgUnitId())))));
+        });
+    return new UniqueValues(systemWide, inOrgUnit);
+  }
+
+  /**
+   * The org unit of the tracked entity, falling back to the one of the tracked entity in the DB.
+   * The latter is only preheated when the payload references it, e.g. not when only an enrollment
+   * of the tracked entity is sent.
+   */
+  private static OrganisationUnit getOrgUnit(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackedEntity te) {
+    OrganisationUnit orgUnit = preheat.getOrganisationUnit(te.getOrgUnit());
+    if (orgUnit != null) {
+      return orgUnit;
+    }
+    TrackedEntity trackedEntity = preheat.getTrackedEntity(te.getUID());
+    return trackedEntity == null ? null : trackedEntity.getOrganisationUnit();
   }
 
   private TrackedEntityAttribute extractAttribute(
@@ -271,6 +337,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
   private Set<Attribute> filterUniqueAttributes(
       List<Attribute> attributes, List<TrackedEntityAttribute> uniqueTrackedEntityAttributes) {
     return attributes.stream()
+        .filter(tea -> tea.getValue() != null)
         .filter(
             tea ->
                 uniqueTrackedEntityAttributes.stream()

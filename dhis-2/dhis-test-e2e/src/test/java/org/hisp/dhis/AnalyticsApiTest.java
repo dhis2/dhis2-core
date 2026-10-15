@@ -36,6 +36,7 @@ import io.restassured.http.ContentType;
 import org.hisp.dhis.helpers.EnvUtils;
 import org.hisp.dhis.helpers.extensions.AnalyticsSetupExtension;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
+import org.hisp.dhis.helpers.extensions.RequestIdExtension;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
@@ -67,6 +68,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * @author maikel arabori
  */
 @TestInstance(PER_CLASS)
+// RequestIdExtension first so its beforeAll stamps a request id before
+// AnalyticsSetupExtension issues class-setup requests (see its javadoc).
+@ExtendWith(RequestIdExtension.class)
 @ExtendWith(ConfigurationExtension.class)
 @ExtendWith(AnalyticsSetupExtension.class)
 @Timeout(value = AnalyticsApiTest.DEFAULT_LIMIT_EXECUTION_TIME, unit = MINUTES)

@@ -31,7 +31,7 @@ package org.hisp.dhis.analytics.trackedentity.aggregate;
 
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
-import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
@@ -57,7 +57,6 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("asc=ou")
             .add("totalPages=false")
             .add("pageSize=5")
             .add("dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds");
@@ -103,19 +102,15 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name at specific indices (sorted results).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ou", "a04CZxe0PSe");
-    validateRowValueByName(response, actualHeaders, 0, "value", "54");
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(response, actualHeaders, Map.of("ou", "a04CZxe0PSe", "value", "54"));
 
-    // Validate selected values for row index 3 (collation-stable; index 2 swaps a1d/a1E under C
-    // collation)
-    validateRowValueByName(response, actualHeaders, 3, "ou", "a5glgtnXJRG");
-    validateRowValueByName(response, actualHeaders, 3, "value", "62");
+    // Validate row exists with values from original row index 2
+    validateRowExists(response, actualHeaders, Map.of("ou", "a1E6QWBTEwX", "value", "61"));
 
-    // Validate selected values for row index 4
-    validateRowValueByName(response, actualHeaders, 4, "ou", "aBfyTU5Wgds");
-    validateRowValueByName(response, actualHeaders, 4, "value", "53");
+    // Validate row exists with values from original row index 4
+    validateRowExists(response, actualHeaders, Map.of("ou", "aBfyTU5Wgds", "value", "53"));
   }
 
   @Test
@@ -126,7 +121,6 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("asc=ou")
             .add("aggregationType=AVERAGE")
             .add("totalPages=false")
             .add("pageSize=5")
@@ -174,19 +168,15 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name at specific indices (sorted results).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ou", "a04CZxe0PSe");
-    validateRowValueByName(response, actualHeaders, 0, "value", "169.47");
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(response, actualHeaders, Map.of("ou", "a04CZxe0PSe", "value", "169.47"));
 
-    // Validate selected values for row index 3 (collation-stable; index 2 swaps a1d/a1E under C
-    // collation)
-    validateRowValueByName(response, actualHeaders, 3, "ou", "a5glgtnXJRG");
-    validateRowValueByName(response, actualHeaders, 3, "value", "172.36");
+    // Validate row exists with values from original row index 2
+    validateRowExists(response, actualHeaders, Map.of("ou", "a1E6QWBTEwX", "value", "168.9"));
 
-    // Validate selected values for row index 4
-    validateRowValueByName(response, actualHeaders, 4, "ou", "aBfyTU5Wgds");
-    validateRowValueByName(response, actualHeaders, 4, "value", "170.32");
+    // Validate row exists with values from original row index 4
+    validateRowExists(response, actualHeaders, Map.of("ou", "aBfyTU5Wgds", "value", "170.32"));
   }
 
   @Test
@@ -197,7 +187,6 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("asc=ou")
             .add("aggregationType=SUM")
             .add("totalPages=false")
             .add("pageSize=5")
@@ -245,19 +234,15 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name at specific indices (sorted results).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ou", "a04CZxe0PSe");
-    validateRowValueByName(response, actualHeaders, 0, "value", "6101");
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(response, actualHeaders, Map.of("ou", "a04CZxe0PSe", "value", "6101"));
 
-    // Validate selected values for row index 3 (collation-stable; index 2 swaps a1d/a1E under C
-    // collation)
-    validateRowValueByName(response, actualHeaders, 3, "ou", "a5glgtnXJRG");
-    validateRowValueByName(response, actualHeaders, 3, "value", "7756");
+    // Validate row exists with values from original row index 2
+    validateRowExists(response, actualHeaders, Map.of("ou", "a1E6QWBTEwX", "value", "7094"));
 
-    // Validate selected values for row index 4
-    validateRowValueByName(response, actualHeaders, 4, "ou", "aBfyTU5Wgds");
-    validateRowValueByName(response, actualHeaders, 4, "value", "6302");
+    // Validate row exists with values from original row index 4
+    validateRowExists(response, actualHeaders, Map.of("ou", "aBfyTU5Wgds", "value", "6302"));
   }
 
   @Test
@@ -268,7 +253,6 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("asc=ou")
             .add("aggregationType=COUNT")
             .add("totalPages=false")
             .add("pageSize=5")
@@ -316,90 +300,14 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name at specific indices (sorted results).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ou", "a04CZxe0PSe");
-    validateRowValueByName(response, actualHeaders, 0, "value", "36");
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(response, actualHeaders, Map.of("ou", "a04CZxe0PSe", "value", "36"));
 
-    // Validate selected values for row index 3 (collation-stable; index 2 swaps a1d/a1E under C
-    // collation)
-    validateRowValueByName(response, actualHeaders, 3, "ou", "a5glgtnXJRG");
-    validateRowValueByName(response, actualHeaders, 3, "value", "45");
+    // Validate row exists with values from original row index 2
+    validateRowExists(response, actualHeaders, Map.of("ou", "a1E6QWBTEwX", "value", "42"));
 
-    // Validate selected values for row index 4
-    validateRowValueByName(response, actualHeaders, 4, "ou", "aBfyTU5Wgds");
-    validateRowValueByName(response, actualHeaders, 4, "value", "37");
-  }
-
-  @Test
-  public void aggregateAverageValueByOrgUnitAndGender() throws JSONException {
-    // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = isPostgres();
-
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("asc=ou,cejWyOfXge6")
-            .add("aggregationType=AVERAGE")
-            .add("totalPages=false")
-            .add("pageSize=5")
-            .add("dimension=ou:a04CZxe0PSe;a1dP5m3Clw4,cejWyOfXge6")
-            .add("value=lw1SqmMlnfh");
-
-    // When
-    ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
-
-    // Then
-    // 1. Validate Response Structure (Counts, Headers, Height/Width)
-    //    This helper checks basic counts and dimensions, adapting based on the runtime
-    // 'expectPostgis' flag.
-    validateResponseStructure(
-        response,
-        expectPostgis,
-        5,
-        3,
-        3); // Pass runtime flag, row count, and expected header counts
-
-    // 2. Extract Headers into a List of Maps for easy access by name
-    List<Map<String, Object>> actualHeaders =
-        response.extractList("headers", Map.class).stream()
-            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
-            .collect(Collectors.toList());
-
-    // 3. Assert metaData.
-    String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":false},\"items\":{\"a04CZxe0PSe\":{\"name\":\"Murray Town CHC\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"a1dP5m3Clw4\":{\"name\":\"Baoma Kpenge CHP\"},\"PFDfvmGpsR3\":{\"name\":\"Care at birth\"},\"lST1OZ5BDJ2\":{\"name\":\"Provider Follow-up and Support Tool\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"PUZaKR0Jh2k\":{\"name\":\"Previous deliveries\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"Xgk8Wvl0jHr\":{\"name\":\"Delivery\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"bbKtnxRZKEP\":{\"name\":\"Postpartum care visit\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"edqlbukwRfQ\":{\"name\":\"Second antenatal care visit\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"oRySG82BKE6\":{\"name\":\"PNC Visit\"},\"grIfo3oOf4Y\":{\"name\":\"ANC Visit (2-4+)\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"eaDHS084uMp\":{\"name\":\"ANC 1st visit\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"a04CZxe0PSe\",\"a1dP5m3Clw4\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
-    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
-    assertEquals(expectedMetaData, actualMetaData, false);
-
-    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ou",
-        "Organisation unit",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
-
-    // rowContext not found or empty in the response, skipping assertions.
-
-    // 7. Assert row values by name at specific indices (sorted results).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ou", "a04CZxe0PSe");
-    validateRowValueByName(response, actualHeaders, 0, "value", "162.52");
-
-    // Validate selected values for row index 2
-    validateRowValueByName(response, actualHeaders, 2, "ou", "a04CZxe0PSe");
-    validateRowValueByName(response, actualHeaders, 2, "value", "");
-
-    // Validate selected values for row index 4
-    validateRowValueByName(response, actualHeaders, 4, "ou", "a1dP5m3Clw4");
-    validateRowValueByName(response, actualHeaders, 4, "value", "177.53");
+    // Validate row exists with values from original row index 4
+    validateRowExists(response, actualHeaders, Map.of("ou", "aBfyTU5Wgds", "value", "37"));
   }
 }

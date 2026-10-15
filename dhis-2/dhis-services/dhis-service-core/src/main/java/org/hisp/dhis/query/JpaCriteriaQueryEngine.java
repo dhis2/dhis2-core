@@ -33,6 +33,7 @@ import static org.hisp.dhis.query.JpaQueryUtils.isPropertyTypeText;
 import static org.hisp.dhis.query.JpaQueryUtils.stringPredicateIgnoreCase;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -43,11 +44,11 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -82,7 +83,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   private final QueryCacheManager queryCacheManager;
   private final EntityManager entityManager;
   private final UserSettingsService userSettingsService;
-  private final Map<Class<?>, IdentifiableObjectStore<?>> stores = new HashMap<>();
+  private final Map<Class<?>, IdentifiableObjectStore<?>> stores = new ConcurrentHashMap<>();
 
   @Override
   public <T extends IdentifiableObject> List<T> query(Query<T> query) {
@@ -307,11 +308,20 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     return order.isAscending() ? builder.asc(orderExpression) : builder.desc(orderExpression);
   }
 
+  /**
+   * Eagerly populates the store lookup once, at bean initialization. This runs single-threaded as
+   * part of the Spring lifecycle, so concurrent callers of {@link #getStore} only ever read a
+   * fully-populated map.
+   *
+   * <p>Previously the map was filled lazily on the first {@link #query} call with an unsynchronized
+   * check-then-act over a plain {@code HashMap}. Under concurrent first use (e.g. parallel tracker
+   * imports hitting a freshly-started instance) multiple threads could populate it at once and
+   * corrupt the map, after which {@code getStore} returned {@code null} for classes that were
+   * actually present and {@link #query} silently returned an empty result without querying the
+   * database.
+   */
+  @PostConstruct
   private void initStoreMap() {
-    if (!stores.isEmpty()) {
-      return;
-    }
-
     for (IdentifiableObjectStore<?> store : hibernateGenericStores) {
       stores.put(store.getClazz(), store);
     }
@@ -319,7 +329,6 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
   @SuppressWarnings("unchecked")
   private <E extends IdentifiableObject> InternalHibernateGenericStore<E> getStore(Class<E> klass) {
-    initStoreMap();
     return (InternalHibernateGenericStore<E>) stores.get(klass);
   }
 

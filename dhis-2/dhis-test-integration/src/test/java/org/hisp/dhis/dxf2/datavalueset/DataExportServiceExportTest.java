@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,7 @@ import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -110,17 +111,25 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
 
   private DataElement deC;
 
+  private DataElement deD;
+
   private CategoryCombo ccA;
 
   private CategoryOptionCombo cocA;
 
   private CategoryOptionCombo cocB;
 
+  private CategoryOptionCombo defaultCoc;
+
   private Attribute atA;
 
   private DataSet dsA;
 
   private DataSet dsB;
+
+  private DataSet dsD;
+
+  private DataElementGroup degA;
 
   private Period peA;
 
@@ -159,9 +168,11 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     deA = createDataElement('A');
     deB = createDataElement('B');
     deC = createDataElement('C');
+    deD = createDataElement('D');
     dataElementService.addDataElement(deA);
     dataElementService.addDataElement(deB);
     dataElementService.addDataElement(deC);
+    dataElementService.addDataElement(deD);
     ccA = createCategoryCombo('A');
     categoryService.addCategoryCombo(ccA);
     cocA = createCategoryOptionCombo('A');
@@ -170,18 +181,31 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     cocB.setCategoryCombo(ccA);
     categoryService.addCategoryOptionCombo(cocA);
     categoryService.addCategoryOptionCombo(cocB);
+    defaultCoc = categoryService.getDefaultCategoryOptionCombo();
     atA = createAttribute('A');
     atA.setDataElementAttribute(true);
     atA.setOrganisationUnitAttribute(true);
     atA.setCategoryOptionComboAttribute(true);
     idObjectManager.save(atA);
     dsA = createDataSet('A');
+    // dsA/dsB carry attribute category combo ccA: every data value below is stored with an
+    // attribute option combo (cocA/cocB) that belongs to ccA, which is only valid if the data
+    // sets use ccA as their attribute category combo (enforced on import, E8023).
+    dsA.setCategoryCombo(ccA);
     dsA.addDataSetElement(deA);
     dsA.addDataSetElement(deB);
     dsB = createDataSet('B');
+    dsB.setCategoryCombo(ccA);
     dsB.addDataSetElement(deA);
+    // dsD keeps the default attribute category combo (unlike dsA/dsB) so it is eligible for the
+    // default-AOC fast path in DefaultDataExportService.resolveAttributeOptionCombos.
+    dsD = createDataSet('D');
+    dsD.addDataSetElement(deD);
     dataSetService.addDataSet(dsA);
     dataSetService.addDataSet(dsB);
+    dataSetService.addDataSet(dsD);
+    degA = createDataElementGroup('A', deA);
+    idObjectManager.save(degA);
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B', ouA);
     // Not in hierarchy of A
@@ -208,7 +232,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
         new DataValue(deB, peA, ouA, cocA, cocA, "1"),
         new DataValue(deB, peA, ouA, cocB, cocB, "1"),
         new DataValue(deB, peA, ouB, cocA, cocA, "1"),
-        new DataValue(deB, peA, ouB, cocB, cocB, "1"));
+        new DataValue(deB, peA, ouB, cocB, cocB, "1"),
+        new DataValue(deD, peA, ouA, defaultCoc, defaultCoc, "1"));
 
     user = makeUser("A");
     user.setOrganisationUnits(Sets.newHashSet(ouA, ouB));
@@ -216,9 +241,11 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
 
     enableDataSharing(user, dsA, AccessStringHelper.DATA_READ_WRITE);
     enableDataSharing(user, dsB, AccessStringHelper.DATA_READ_WRITE);
+    enableDataSharing(user, dsD, AccessStringHelper.DATA_READ_WRITE);
 
     dataSetService.updateDataSet(dsA);
     dataSetService.updateDataSet(dsB);
+    dataSetService.updateDataSet(dsD);
 
     injectSecurityContextUser(user);
   }
@@ -243,6 +270,91 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     assertEquals(ouA.getUid(), dvs.getOrgUnit());
     assertEquals(peAIso, dvs.getPeriod());
     assertEquals(4, dvs.getDataValues().size());
+  }
+
+  @Test
+  void testExportBasic_DefaultCcDataSetOnly_FastPathReturnsDefaultAocValue() throws Exception {
+    // dsD is the only requested selector and uses the default attribute category combo, so the
+    // fast path in DefaultDataExportService.resolveAttributeOptionCombos applies; the export must
+    // still return the (only) default-AOC value stored for it.
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
+            .dataSet(Set.of(dsD.getUid()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .build();
+    dataExportPipeline.exportAsJson(params, out);
+    DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
+    assertNotNull(dvs);
+    assertEquals(1, dvs.getDataValues().size());
+    assertEquals(deD.getUid(), dvs.getDataValues().get(0).getDataElement());
+  }
+
+  @Test
+  void testExportBasic_DefaultCcDataSetPlusExplicitDataElement_KeepsNonDefaultAocValues()
+      throws Exception {
+    // dsD alone would trigger the default-AOC fast path, but this request also selects deA
+    // explicitly. deA belongs to dsA/dsB, which use a non-default attribute category combo, so
+    // its values legitimately carry non-default AOCs (cocA/cocB). The fast path must not apply to
+    // this mixed selector, or those non-default-AOC values are silently dropped (regression test
+    // for the C1 finding in the PR #25065 review).
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
+            .dataSet(Set.of(dsD.getUid()))
+            .dataElement(Set.of(deA.getUid()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .build();
+    dataExportPipeline.exportAsJson(params, out);
+    DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
+    assertNotNull(dvs);
+    // 1 default-AOC value for deD (from dsD) + 2 non-default-AOC values for deA (cocA, cocB)
+    assertEquals(3, dvs.getDataValues().size());
+    assertTrue(
+        dvs.getDataValues().stream()
+            .anyMatch(
+                dv ->
+                    deA.getUid().equals(dv.getDataElement())
+                        && cocA.getUid().equals(dv.getAttributeOptionCombo())));
+    assertTrue(
+        dvs.getDataValues().stream()
+            .anyMatch(
+                dv ->
+                    deA.getUid().equals(dv.getDataElement())
+                        && cocB.getUid().equals(dv.getAttributeOptionCombo())));
+  }
+
+  @Test
+  void testExportBasic_DefaultCcDataSetPlusDataElementGroup_KeepsNonDefaultAocValues()
+      throws Exception {
+    // Same regression as above, but the additional selector is a data element group (degA,
+    // containing deA) rather than an explicit data element.
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
+            .dataSet(Set.of(dsD.getUid()))
+            .dataElementGroup(Set.of(degA.getUid()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .build();
+    dataExportPipeline.exportAsJson(params, out);
+    DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
+    assertNotNull(dvs);
+    assertEquals(3, dvs.getDataValues().size());
+    assertTrue(
+        dvs.getDataValues().stream()
+            .anyMatch(
+                dv ->
+                    deA.getUid().equals(dv.getDataElement())
+                        && cocA.getUid().equals(dv.getAttributeOptionCombo())));
+    assertTrue(
+        dvs.getDataValues().stream()
+            .anyMatch(
+                dv ->
+                    deA.getUid().equals(dv.getDataElement())
+                        && cocB.getUid().equals(dv.getAttributeOptionCombo())));
   }
 
   @Test
@@ -481,7 +593,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     dataExportPipeline.exportAsJsonSync(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
-    assertEquals(12, dvs.getDataValues().size());
+    // 12 deA/deB values from setUp() plus 1 deD (default-AOC) value
+    assertEquals(13, dvs.getDataValues().size());
     for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
       assertNotNull(dv);
     }
@@ -498,14 +611,15 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
         DataExportParams.Input.builder().lastUpdated(lastUpdated).build();
     dataExportPipeline.exportAsJsonSync(params, out);
     JsonObject json = JsonMixed.of(out.toString(StandardCharsets.UTF_8));
-    assertEquals(14, json.getArray("dataValues").size());
+    // 12 deA/deB values + 1 deD (default-AOC) value from setUp() plus dvA/dvB above
+    assertEquals(15, json.getArray("dataValues").size());
     deleteDataValue(dvA);
     deleteDataValue(dvB);
     out = new ByteArrayOutputStream();
     dataExportPipeline.exportAsJsonSync(params, out);
     json = JsonMixed.of(out.toString(StandardCharsets.UTF_8));
     JsonArray values = json.getArray("dataValues");
-    assertEquals(14, values.size());
+    assertEquals(15, values.size());
     assertEquals(
         2, values.count(JsonValue::asObject, dv -> dv.getBoolean("deleted").booleanValue(false)));
   }
