@@ -30,11 +30,12 @@
 package org.hisp.dhis.ldap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +54,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * E2e coverage for LDAP bind authentication ({@code CustomLdapAuthenticationProvider} / {@code
@@ -65,6 +67,10 @@ import org.springframework.web.client.HttpClientErrorException;
  * password validation for such users happens exclusively against LDAP; non-LDAP users keep
  * DB-password login while LDAP is enabled; DHIS2 account status (disabled) still applies to LDAP
  * users; the same rules hold for HTTP Basic, which goes through the same authentication manager.
+ *
+ * <p>Migrated users retain a usable database password by enabling external authentication without
+ * supplying a new password. Their fallback-rejection cases use a separate fixture, since successful
+ * LDAP authentication replaces that retained hash.
  *
  * <p>The directory accepts unauthenticated binds (DN with an empty password, see
  * config/ldap/allow-unauthenticated-bind.ldif), so the empty-password cases prove that DHIS2 and
@@ -97,6 +103,9 @@ class LdapLoginTest extends BaseE2ETest {
     createUser("ldapuser4", "ldapcn4", SUPER_USER_ROLE_UID, false, false);
     // ldapuser5 -> ldapId with no matching LDAP entry
     createLdapUser("ldapuser5", "ldapmissingcn", SUPER_USER_ROLE_UID);
+    // Keep the migrated user's hash intact: successful LDAP authentication replaces it.
+    // Only the DB-password rejection cases use ldapuser6, never an LDAP-success case.
+    createLdapUser("ldapuser6", "ldapcn6", SUPER_USER_ROLE_UID);
   }
 
   @AfterAll
@@ -126,7 +135,7 @@ class LdapLoginTest extends BaseE2ETest {
   void testLdapUserRejectsDhisStoredPassword() {
     // PIN: for ldapId+externalAuth users the DB password is never consulted;
     // the stored DHIS2 password must NOT authenticate.
-    ResponseEntity<LoginResponse> response = tryLogin("ldapuser1", DHIS_STORED_PASSWORD);
+    ResponseEntity<LoginResponse> response = tryLogin("ldapuser6", DHIS_STORED_PASSWORD);
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 
@@ -209,7 +218,7 @@ class LdapLoginTest extends BaseE2ETest {
   @ParameterizedTest
   @ValueSource(strings = {"wrongPassword###", DHIS_STORED_PASSWORD, ""})
   void testHttpBasicRejectsInvalidLdapPassword(String password) {
-    ResponseEntity<String> me = getMeWithBasicAuth("ldapuser1", password);
+    ResponseEntity<String> me = getMeWithBasicAuth("ldapuser6", password);
     assertEquals(HttpStatus.UNAUTHORIZED, me.getStatusCode());
   }
 
@@ -239,28 +248,30 @@ class LdapLoginTest extends BaseE2ETest {
   private static void createUser(
       String username, String ldapId, String userRoleId, boolean externalAuth, boolean disabled)
       throws JsonProcessingException {
+    // Start with internal authentication so the database contains a real password hash.
     Map<String, Object> userMap =
-        Map.of(
-            "username",
-            username,
-            "password",
-            DHIS_STORED_PASSWORD,
-            "email",
-            username + "@dhis2.org",
-            "ldapId",
-            ldapId,
-            "externalAuth",
-            externalAuth,
-            "disabled",
-            disabled,
-            "firstName",
-            "Ldap",
-            "surname",
-            "User",
-            "userRoles",
-            List.of(Map.of("id", userRoleId)),
-            "organisationUnits",
-            List.of(Map.of("id", orgUnitUID)));
+        new HashMap<>(
+            Map.of(
+                "username",
+                username,
+                "password",
+                DHIS_STORED_PASSWORD,
+                "email",
+                username + "@dhis2.org",
+                "ldapId",
+                ldapId,
+                "externalAuth",
+                false,
+                "disabled",
+                false,
+                "firstName",
+                "Ldap",
+                "surname",
+                "User",
+                "userRoles",
+                List.of(Map.of("id", userRoleId)),
+                "organisationUnits",
+                List.of(Map.of("id", orgUnitUID))));
 
     ResponseEntity<String> response = postWithAdminBasicAuth("/users", userMap);
     assertEquals(
@@ -268,7 +279,26 @@ class LdapLoginTest extends BaseE2ETest {
         response.getStatusCode(),
         "user creation failed: " + response.getBody());
     JsonNode json = objectMapper.readTree(response.getBody());
-    assertNotNull(json.get("response").get("uid").asText());
+    String uid = json.get("response").get("uid").asText();
+    assertFalse(uid.isBlank(), "created user must have a UID");
+
+    ResponseEntity<String> me = getMeWithBasicAuth(username, DHIS_STORED_PASSWORD);
+    assertEquals(HttpStatus.OK, me.getStatusCode(), "internal password must work before conversion");
+    assertEquals(username, objectMapper.readTree(me.getBody()).get("username").asText());
+
+    // Omit the password on update: supplying it with externalAuth=true replaces the hash
+    // with PW_NO_INTERNAL_LOGIN, which cannot expose an accidental DB-password fallback.
+    userMap.remove("password");
+    userMap.put("externalAuth", externalAuth);
+    userMap.put("disabled", disabled);
+    ResponseEntity<String> update =
+        exchangeWithHeaders(
+            addAdminBasicAuthHeaders(new RestTemplate()),
+            "/users/" + uid,
+            HttpMethod.PUT,
+            userMap,
+            jsonHeaders());
+    assertEquals(HttpStatus.OK, update.getStatusCode(), "user update failed: " + update.getBody());
   }
 
   private static String createEmptyRole(String name) throws JsonProcessingException {

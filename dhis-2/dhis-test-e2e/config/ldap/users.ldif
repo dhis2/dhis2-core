@@ -32,6 +32,13 @@ cn: ldapcn4
 sn: NotExternal
 userPassword: ldapPass4###
 
+# Dedicated migrated user: negative-password tests must not share LDAP-success fixtures.
+dn: cn=ldapcn6,ou=users,dc=dhis2,dc=org
+objectClass: inetOrgPerson
+cn: ldapcn6
+sn: RetainedDatabasePassword
+userPassword: ldapPass6###
+
 dn: cn=ldaporphancn,ou=users,dc=dhis2,dc=org
 objectClass: inetOrgPerson
 cn: ldaporphancn
