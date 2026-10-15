@@ -256,7 +256,7 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetOrganisationUnitWithChildrenDoesNotFetchChildrenCollections() {
+  void testGetOrganisationUnitWithChildrenReturnsSubtreeWithLazyChildrenCollections() {
     OrganisationUnit unitA = createOrganisationUnit('A');
     OrganisationUnit unitB = createOrganisationUnit('B', unitA);
     OrganisationUnit unitC = createOrganisationUnit('C', unitA);
