@@ -31,7 +31,6 @@ package org.hisp.dhis.period;
 
 import static java.util.Objects.requireNonNull;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckForNull;
@@ -56,12 +55,21 @@ public record PeriodTypes(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry>
     requireNonNull(entries);
   }
 
+  @OpenApi.Shared(name = "PeriodTypes")
+  public record Output(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry.Output> entries) {
+
+    public Output {
+      requireNonNull(locale);
+      requireNonNull(entries);
+    }
+  }
+
   /** A {@link PeriodType} as exposed in the web API with all its display properties joined in. */
   public record PeriodTypeEntry(
-      @JsonProperty @Nonnull PeriodTypeEnum type,
-      @JsonProperty @Nonnull String isoDuration,
-      @JsonProperty @Nonnull String isoFormat,
-      @JsonProperty int frequencyOrder,
+      @Nonnull PeriodTypeEnum type,
+      @Nonnull String isoDuration,
+      @Nonnull String isoFormat,
+      int frequencyOrder,
       @Nonnull Labels labels,
       @Nonnull Map<RelativePeriodEnum, Labels> relativePeriods) {
 
@@ -72,27 +80,54 @@ public record PeriodTypes(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry>
       requireNonNull(labels);
       requireNonNull(relativePeriods);
     }
+
+    @OpenApi.Shared(name = "PeriodTypeEntry")
+    public record Output(
+        @CheckForNull PeriodTypeEnum type,
+        @CheckForNull String displayName,
+        @CheckForNull String isoDuration,
+        @CheckForNull String isoFormat,
+        @CheckForNull Integer frequencyOrder,
+        @CheckForNull String defaultName,
+        @CheckForNull String label,
+        @CheckForNull String displayLabel,
+        @CheckForNull List<Translation> translations,
+        @CheckForNull Map<RelativePeriodEnum, Labels> relativePeriods) {}
+
+    public Output select(Fields fields) {
+      boolean all = fields.fields().isEmpty() || fields.contains(":all");
+      if (all)
+        return new Output(
+            type,
+            labels.displayName,
+            isoDuration,
+            isoFormat,
+            frequencyOrder,
+            labels.defaultName,
+            labels.label,
+            labels.displayLabel,
+            labels.translations,
+            relativePeriods);
+      return new Output(
+          fields.contains("type") ? type : null,
+          fields.contains("displayName") ? labels.displayName : null,
+          fields.contains("isoDuration") ? isoDuration : null,
+          fields.contains("isoFormat") ? isoFormat : null,
+          fields.contains("frequencyOrder") ? frequencyOrder : null,
+          fields.contains("defaultName") ? labels.defaultName : null,
+          fields.contains("label") ? labels.label : null,
+          fields.contains("displayLabel") ? labels.displayLabel : null,
+          fields.contains("translations") ? labels.translations : null,
+          fields.contains("relativePeriods") ? relativePeriods : null);
+    }
   }
 
   public record Labels(
-      @JsonProperty @CheckForNull @OpenApi.Description("The i18n translation of `name`")
-          String defaultName,
-      @JsonProperty
-          @CheckForNull
-          @OpenApi.Description(
-              "An optional override for the `name` taking precedence over the `defaultName`")
-          String label,
-      @JsonProperty @Nonnull List<Translation> translations,
-      @JsonProperty
-          @CheckForNull
-          @OpenApi.Description(
-              "An optional translation for `label` resolved for a specific `locale` (falls back to `label` when no translation exists)")
-          String displayLabel,
-      @JsonProperty
-          @Nonnull
-          @OpenApi.Description(
-              "The name to display in the UI computed from all sources resolved for a specific `locale`")
-          String displayName) {
+      @CheckForNull String defaultName,
+      @CheckForNull String label,
+      @CheckForNull List<Translation> translations,
+      @CheckForNull String displayLabel,
+      @Nonnull String displayName) {
 
     public static Labels of(
         @Nonnull Locale locale,
@@ -109,16 +144,6 @@ public record PeriodTypes(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry>
       String displayName = displayLabel;
       if (displayName == null) displayName = defaultName;
       return new Labels(defaultName, label, trans, displayLabel, displayName);
-    }
-  }
-
-  public record Output(
-      @Nonnull Locale locale, @Nonnull List<PeriodTypeEntry> entries, @Nonnull Fields fields) {
-
-    public Output {
-      requireNonNull(locale);
-      requireNonNull(entries);
-      requireNonNull(fields);
     }
   }
 }

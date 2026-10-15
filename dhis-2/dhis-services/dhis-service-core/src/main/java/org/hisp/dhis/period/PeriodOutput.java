@@ -32,11 +32,11 @@ package org.hisp.dhis.period;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.translation.Translation;
 
@@ -47,7 +47,6 @@ final class PeriodOutput {
       new JsonBuilder.PrettyPrint(0, 0, false, false, true);
 
   static void toJson(@Nonnull PeriodTypes.Output types, @Nonnull OutputStream json) {
-    Fields fields = types.fields();
     try (json) {
       JsonBuilder.streamObject(
           MINIMIZED,
@@ -57,8 +56,8 @@ final class PeriodOutput {
             root.addArray(
                 "periodTypes",
                 arr -> {
-                  for (PeriodTypes.PeriodTypeEntry e : types.entries()) {
-                    arr.addObject(entry -> toJson(entry, e, fields));
+                  for (PeriodTypes.PeriodTypeEntry.Output e : types.entries()) {
+                    arr.addObject(entry -> addEntry(entry, e));
                   }
                 });
           });
@@ -68,14 +67,13 @@ final class PeriodOutput {
   }
 
   static void toJsonArray(@Nonnull PeriodTypes.Output types, @Nonnull OutputStream json) {
-    Fields fields = types.fields();
     try (json) {
       JsonBuilder.streamArray(
           MINIMIZED,
           json,
           arr -> {
-            for (PeriodTypes.PeriodTypeEntry e : types.entries()) {
-              arr.addObject(entry -> toJson(entry, e, fields));
+            for (PeriodTypes.PeriodTypeEntry.Output e : types.entries()) {
+              arr.addObject(entry -> addEntry(entry, e));
             }
           });
     } catch (IOException ex) {
@@ -84,58 +82,61 @@ final class PeriodOutput {
   }
 
   static void toJson(
-      @Nonnull PeriodTypes.PeriodTypeEntry e, @Nonnull Fields fields, @Nonnull OutputStream json) {
+      @Nonnull PeriodTypes.PeriodTypeEntry.Output entry, @Nonnull OutputStream json) {
     try (json) {
-      JsonBuilder.streamObject(MINIMIZED, json, entry -> toJson(entry, e, fields));
+      JsonBuilder.streamObject(MINIMIZED, json, eObj -> addEntry(eObj, entry));
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
   }
 
-  private static void toJson(
-      JsonBuilder.JsonObjectBuilder entry, PeriodTypes.PeriodTypeEntry e, Fields fields) {
-    boolean hasAll = fields.contains(":all");
-    entry.addString("name", e.type().getName());
-    if (hasAll || fields.contains("isoDuration")) entry.addString("isoDuration", e.isoDuration());
-    if (hasAll || fields.contains("isoFormat")) entry.addString("isoFormat", e.isoFormat());
-    if (hasAll || fields.contains("frequencyOrder"))
-      entry.addNumber("frequencyOrder", e.frequencyOrder());
-
-    toJson(entry, e.labels(), fields);
-    if ((hasAll || fields.contains("relativePeriods")) && !e.relativePeriods().isEmpty()) {
-      entry.addObject(
+  private static void addEntry(
+      JsonBuilder.JsonObjectBuilder eObj, PeriodTypes.PeriodTypeEntry.Output entry) {
+    eObj.addString("name", entry.type().getName());
+    eObj.addString("isoDuration", entry.isoDuration());
+    eObj.addString("isoFormat", entry.isoFormat());
+    eObj.addNumber("frequencyOrder", entry.frequencyOrder());
+    eObj.addString("defaultName", entry.defaultName());
+    eObj.addString("label", entry.label());
+    eObj.addString("displayLabel", entry.displayLabel());
+    eObj.addString("displayName", entry.displayName());
+    addTranslations(eObj, entry.translations());
+    Map<RelativePeriodEnum, PeriodTypes.Labels> relativePeriods = entry.relativePeriods();
+    if (relativePeriods != null && !relativePeriods.isEmpty()) {
+      eObj.addObject(
           "relativePeriods",
-          obj -> {
+          rpMap -> {
             for (Map.Entry<RelativePeriodEnum, PeriodTypes.Labels> rp :
-                e.relativePeriods().entrySet()) {
-              obj.addObject(rp.getKey().name(), rpObj -> toJson(rpObj, rp.getValue(), fields));
+                relativePeriods.entrySet()) {
+              rpMap.addObject(
+                  rp.getKey().name(),
+                  rpObj -> {
+                    PeriodTypes.Labels val = rp.getValue();
+                    rpObj.addString("defaultName", val.defaultName());
+                    rpObj.addString("label", val.label());
+                    rpObj.addString("displayLabel", val.displayLabel());
+                    rpObj.addString("displayName", val.displayName());
+                    addTranslations(rpObj, val.translations());
+                  });
             }
           });
     }
   }
 
-  private static void toJson(
-      JsonBuilder.JsonObjectBuilder entry, PeriodTypes.Labels labels, Fields fields) {
-    boolean hasAll = fields.contains(":all");
-    if (hasAll || fields.contains("defaultName"))
-      entry.addString("defaultName", labels.defaultName());
-    if (hasAll || fields.contains("label")) entry.addString("label", labels.label());
-    if (hasAll || fields.contains("displayLabel"))
-      entry.addString("displayLabel", labels.displayLabel());
-    if (hasAll || fields.contains("displayName"))
-      entry.addString("displayName", labels.displayName());
-    if ((hasAll || fields.contains("translations")) && !labels.translations().isEmpty())
-      entry.addArray(
-          "translations",
-          translations -> {
-            for (Translation t : labels.translations()) {
-              translations.addObject(
-                  translation ->
-                      translation
-                          .addString("locale", t.getLocale().toString())
-                          .addString("property", t.getProperty())
-                          .addString("value", t.getValue()));
-            }
-          });
+  private static void addTranslations(
+      JsonBuilder.JsonObjectBuilder entry, List<Translation> translations) {
+    if (translations == null || translations.isEmpty()) return;
+    entry.addArray(
+        "translations",
+        arr -> {
+          for (Translation t : translations) {
+            arr.addObject(
+                translation ->
+                    translation
+                        .addString("locale", t.getLocale().toString())
+                        .addString("property", t.getProperty())
+                        .addString("value", t.getValue()));
+          }
+        });
   }
 }

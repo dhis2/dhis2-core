@@ -140,7 +140,7 @@ public class PeriodTypeController {
     return objectReport(report);
   }
 
-  @OpenApi.Response(PeriodTypes.class)
+  @OpenApi.Response(PeriodTypes.Output.class)
   @GetMapping
   public void getPeriodTypes(
       @RequestParam(required = false) Locale locale,
@@ -149,7 +149,7 @@ public class PeriodTypeController {
     periodPipeline.exportAllAsJson(locale, fields, lazyJsonOutputStream(response));
   }
 
-  @OpenApi.Response(PeriodTypes.PeriodTypeEntry.class)
+  @OpenApi.Response(PeriodTypes.PeriodTypeEntry.Output.class)
   @GetMapping("/{name}")
   public void getPeriodType(
       @PathVariable("name") PeriodTypeEnum name,

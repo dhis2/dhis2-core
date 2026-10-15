@@ -159,7 +159,7 @@ public class LocaleController {
       @RequestParam(required = false) String country,
       @RequestParam(required = false) String script)
       throws NotFoundException {
-    Locale locale = new Locale(language, country, script);
+    Locale locale = Locale.of(language, country, script);
     I18nLocale i18nLocale = localeService.getI18nLocale(locale);
 
     if (i18nLocale == null) throw new NotFoundException(I18nLocale.class, locale.toString());

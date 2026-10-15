@@ -52,7 +52,9 @@ public class PeriodPipeline {
   public void exportAllAsJson(
       @CheckForNull Locale locale, @Nonnull Fields fields, @Nonnull Supplier<OutputStream> out) {
     PeriodTypes types = service.getAllPeriodTypes(locale);
-    PeriodOutput.toJson(new PeriodTypes.Output(types.locale(), types.entries(), fields), out.get());
+    List<PeriodTypes.PeriodTypeEntry.Output> entries =
+        types.entries().stream().map(e -> e.select(fields)).toList();
+    PeriodOutput.toJson(new PeriodTypes.Output(types.locale(), entries), out.get());
   }
 
   @IndirectTransactional
@@ -62,9 +64,12 @@ public class PeriodPipeline {
       @Nonnull Fields fields,
       @Nonnull Supplier<OutputStream> out) {
     PeriodTypes res = service.getAllPeriodTypes(locale);
-    List<PeriodTypes.PeriodTypeEntry> entries =
-        res.entries().stream().filter(pt -> types.contains(pt.type())).toList();
-    PeriodOutput.toJsonArray(new PeriodTypes.Output(res.locale(), entries, fields), out.get());
+    List<PeriodTypes.PeriodTypeEntry.Output> entries =
+        res.entries().stream()
+            .filter(pt -> types.contains(pt.type()))
+            .map(e -> e.select(fields))
+            .toList();
+    PeriodOutput.toJsonArray(new PeriodTypes.Output(res.locale(), entries), out.get());
   }
 
   @IndirectTransactional
@@ -74,12 +79,13 @@ public class PeriodPipeline {
       @Nonnull Fields fields,
       @Nonnull Supplier<OutputStream> out)
       throws NotFoundException {
-    PeriodTypes.PeriodTypeEntry entry =
+    PeriodTypes.PeriodTypeEntry.Output entry =
         service.getAllPeriodTypes(locale).entries().stream()
             .filter(pt -> type == pt.type())
             .findFirst()
+            .map(e -> e.select(fields))
             .orElse(null);
     if (entry == null) throw new NotFoundException(PeriodType.class, type.getName());
-    PeriodOutput.toJson(entry, fields, out.get());
+    PeriodOutput.toJson(entry, out.get());
   }
 }

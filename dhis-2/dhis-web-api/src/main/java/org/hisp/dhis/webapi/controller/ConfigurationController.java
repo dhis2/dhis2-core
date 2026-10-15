@@ -73,6 +73,7 @@ import org.hisp.dhis.period.PeriodPipeline;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.period.PeriodTypes;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
@@ -481,6 +482,7 @@ public class ConfigurationController {
     configurationService.setCorsWhitelist(corsWhitelist);
   }
 
+  @OpenApi.Response(PeriodTypes.PeriodTypeEntry.Output[].class)
   @GetMapping(
       value = {"/dataOutputPeriodTypes"},
       produces = APPLICATION_JSON_VALUE)

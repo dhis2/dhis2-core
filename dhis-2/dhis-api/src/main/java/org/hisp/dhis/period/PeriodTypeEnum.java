@@ -31,7 +31,6 @@ package org.hisp.dhis.period;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.EnumSet;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.Getter;
@@ -78,16 +77,16 @@ public enum PeriodTypeEnum {
   }
 
   public static final Set<PeriodTypeEnum> WEEKLY_TYPES =
-      EnumSet.of(
+      Set.of(
           WEEKLY, WEEKLY_WEDNESDAY, WEEKLY_THURSDAY, WEEKLY_FRIDAY, WEEKLY_SATURDAY, WEEKLY_SUNDAY);
 
-  public static final Set<PeriodTypeEnum> QUARTERLY_TYPES = EnumSet.of(QUARTERLY, QUARTERLY_NOV);
+  public static final Set<PeriodTypeEnum> QUARTERLY_TYPES = Set.of(QUARTERLY, QUARTERLY_NOV);
 
   public static final Set<PeriodTypeEnum> SIX_MONTHLY_TYPES =
-      EnumSet.of(SIX_MONTHLY, SIX_MONTHLY_APRIL, SIX_MONTHLY_NOV);
+      Set.of(SIX_MONTHLY, SIX_MONTHLY_APRIL, SIX_MONTHLY_NOV);
 
   public static final Set<PeriodTypeEnum> FINANCIAL_YEARLY_TYPES =
-      EnumSet.of(
+      Set.of(
           FINANCIAL_FEB,
           FINANCIAL_APRIL,
           FINANCIAL_JULY,

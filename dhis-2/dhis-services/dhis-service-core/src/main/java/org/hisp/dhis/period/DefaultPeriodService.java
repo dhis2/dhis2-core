@@ -30,6 +30,7 @@
 package org.hisp.dhis.period;
 
 import static java.lang.System.currentTimeMillis;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -269,7 +270,7 @@ public class DefaultPeriodService implements PeriodService {
   public boolean updatePeriodTypeLabel(
       @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale)
       throws ConflictException {
-    if (locale != null) validateLocales(Stream.of(locale));
+    if (locale != null && !isBlank(label)) validateLocales(Stream.of(locale));
     boolean change = periodTypeStore.updateLabel(name, label, locale);
     if (change) PERIOD_TYPES_CACHE.clear();
     return change;
@@ -291,7 +292,7 @@ public class DefaultPeriodService implements PeriodService {
   public boolean updateRelativePeriodLabel(
       @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale)
       throws ConflictException {
-    if (locale != null) validateLocales(Stream.of(locale));
+    if (locale != null && !isBlank(label)) validateLocales(Stream.of(locale));
     boolean change = relativePeriodStore.updateLabel(name, label, locale);
     if (change) PERIOD_TYPES_CACHE.clear();
     return change;
