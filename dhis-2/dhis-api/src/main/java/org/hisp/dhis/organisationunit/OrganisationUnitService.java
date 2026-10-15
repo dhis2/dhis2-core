@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -189,6 +189,12 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
   /**
    * Returns an OrganisationUnit and all its children.
    *
+   * <p>The {@link OrganisationUnit#getChildren() children} collections of the returned units are
+   * not initialized. They load lazily on first access, which needs an open session and can cost one
+   * query per unit. Callers that need the children of many units should use {@link
+   * OrganisationUnitStore#getOrganisationUnits(OrganisationUnitQueryParams)} with {@link
+   * OrganisationUnitQueryParams#setFetchChildren(boolean)} instead.
+   *
    * @param uid the uid of the parent OrganisationUnit in the subtree.
    * @return a list containing the OrganisationUnit with the given id and all its children, or an
    *     empty list if no OrganisationUnits match.
@@ -197,6 +203,12 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
 
   /**
    * Returns an OrganisationUnit and all its children.
+   *
+   * <p>The {@link OrganisationUnit#getChildren() children} collections of the returned units are
+   * not initialized. They load lazily on first access, which needs an open session and can cost one
+   * query per unit. Callers that need the children of many units should use {@link
+   * OrganisationUnitStore#getOrganisationUnits(OrganisationUnitQueryParams)} with {@link
+   * OrganisationUnitQueryParams#setFetchChildren(boolean)} instead.
    *
    * @param uid the uid of the parent OrganisationUnit in the subtree.
    * @param maxLevels the max number of levels to return relative to the given root, inclusive.
@@ -208,6 +220,12 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
   /**
    * Returns an OrganisationUnit and all its children.
    *
+   * <p>The {@link OrganisationUnit#getChildren() children} collections of the returned units are
+   * not initialized. They load lazily on first access, which needs an open session and can cost one
+   * query per unit. Callers that need the children of many units should use {@link
+   * OrganisationUnitStore#getOrganisationUnits(OrganisationUnitQueryParams)} with {@link
+   * OrganisationUnitQueryParams#setFetchChildren(boolean)} instead.
+   *
    * @param id the id of the parent OrganisationUnit in the subtree.
    * @return a list containing the OrganisationUnit with the given id and all its children, or an
    *     empty list if no OrganisationUnits match.
@@ -216,6 +234,12 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
 
   /**
    * Returns an OrganisationUnit and all its children.
+   *
+   * <p>The {@link OrganisationUnit#getChildren() children} collections of the returned units are
+   * not initialized. They load lazily on first access, which needs an open session and can cost one
+   * query per unit. Callers that need the children of many units should use {@link
+   * OrganisationUnitStore#getOrganisationUnits(OrganisationUnitQueryParams)} with {@link
+   * OrganisationUnitQueryParams#setFetchChildren(boolean)} instead.
    *
    * @param id the id of the parent OrganisationUnit in the subtree.
    * @param maxLevels the max number of levels to return relative to the given root, inclusive.
