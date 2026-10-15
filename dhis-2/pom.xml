@@ -99,7 +99,7 @@
     <dhis-json-tree.version>1.9.5</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>6.5.10</spring-security.version>
+    <spring-security.version>6.5.11</spring-security.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <spring-authorization-server.version>1.5.8</spring-authorization-server.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -109,14 +109,14 @@
     <com.google.zxing.javase.version>3.5.4</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>6.2.8</spring.version>
+    <spring.version>6.2.19</spring.version>
     <spring-session-core.version>3.5.1</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
-    <spring-retry.version>1.3.4</spring-retry.version>
+    <spring-retry.version>2.0.13</spring-retry.version>
     <spring-restdocs.version>3.0.6</spring-restdocs.version>
-    <spring-ldap.version>2.4.4</spring-ldap.version>
+    <spring-ldap.version>3.3.8</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
     <lettuce.version>6.8.0.RELEASE</lettuce.version>
 
@@ -214,7 +214,7 @@
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
     <micrometer.version>1.17.1</micrometer.version>
     <!-- Must match the io.prometheus:prometheus-metrics-* version used by micrometer-registry-prometheus -->
-    <prometheus-metrics-model.version>1.7.0</prometheus-metrics-model.version>
+    <prometheus-metrics-model.version>1.9.0</prometheus-metrics-model.version>
 
     <!-- Logging -->
     <log4j.version>2.26.1</log4j.version>
@@ -231,7 +231,7 @@
     <swagger.version>2.1.39</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
-    <h2.version>2.4.240</h2.version>
+    <h2.version>2.5.252</h2.version>
     <jmh.version>1.37</jmh.version>
     <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version>
 
@@ -498,6 +498,11 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-aop</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-oxm</artifactId>
         <version>${spring.version}</version>
       </dependency>
       <dependency>
