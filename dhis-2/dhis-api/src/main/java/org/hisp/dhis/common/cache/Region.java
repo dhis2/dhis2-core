@@ -71,5 +71,6 @@ public enum Region {
   notificationTemplateCache,
   systemStatisticsOverview,
   systemStatisticsDataCounts,
-  dataSummarySessionGauges
+  dataSummarySessionGauges,
+  userDetailsAuthzCache
 }
