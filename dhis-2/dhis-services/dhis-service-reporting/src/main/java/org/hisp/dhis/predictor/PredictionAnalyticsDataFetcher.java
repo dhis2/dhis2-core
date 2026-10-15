@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.predictor;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
@@ -37,7 +38,6 @@ import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionItemType;
@@ -64,11 +65,14 @@ import org.hisp.dhis.program.ProgramIndicator;
  *
  * <p>This class can fetch values from analytics and return them for a list of organisation units.
  *
- * <p>When making disaggregated predictions, program indicators with a non-default category combo
- * are fetched with their category option combos, so their values can be included in the
- * disaggregated predictions according to their category options. These are fetched in data value
- * set format, which returns the category option combo and the attribute option combo (if any) as
- * mapped by the program indicator's category mappings.
+ * <p>Program indicators with category mappings are fetched in data value set format, which returns
+ * the category option combo and attribute option combo (if any) of each value as mapped by the
+ * program indicator's category mappings. This is done for program indicators with a non-default
+ * attribute combo, so their values are predicted by their mapped attribute option combos. It is
+ * also done when making disaggregated predictions for program indicators with a non-default
+ * category combo, so their values can be included in the disaggregated predictions according to
+ * their category options. (When not making disaggregated predictions, values for different category
+ * option combos are summed.)
  *
  * @author Jim Grace
  */
@@ -142,8 +146,8 @@ public class PredictionAnalyticsDataFetcher {
   // -------------------------------------------------------------------------
 
   /**
-   * Categorizes analytics items according to whether they are fetched with category option combos,
-   * or else whether or not they are stored with an attribute option combo.
+   * Categorizes analytics items according to whether they are fetched with their mapped option
+   * combos, or else whether or not they are stored with an attribute option combo.
    */
   private void categorizeAnalyticsItems(Set<DimensionalItemObject> analyticsItems) {
     attributeOptionItems = new HashSet<>();
@@ -151,7 +155,7 @@ public class PredictionAnalyticsDataFetcher {
     categoryOptionItems = new HashSet<>();
 
     for (DimensionalItemObject o : analyticsItems) {
-      if (disagPredictions && hasCategoryOptions(o)) {
+      if (hasMappedOptionCombos(o)) {
         categoryOptionItems.add(o);
       } else if (hasAttributeOptions(o)) {
         attributeOptionItems.add(o);
@@ -161,11 +165,20 @@ public class PredictionAnalyticsDataFetcher {
     }
   }
 
-  /** Checks to see if a dimensional item object is a disaggregated program indicator */
-  private boolean hasCategoryOptions(DimensionalItemObject o) {
+  /**
+   * Checks to see if a dimensional item object is a program indicator whose values are needed by
+   * their mapped option combos: either it has a non-default attribute combo, or we are making
+   * disaggregated predictions and it has a non-default category combo.
+   */
+  private boolean hasMappedOptionCombos(DimensionalItemObject o) {
     return o instanceof ProgramIndicator pi
-        && pi.getCategoryCombo() != null
-        && !pi.getCategoryCombo().isDefault();
+        && (isNonDefault(pi.getAttributeCombo())
+            || (disagPredictions && isNonDefault(pi.getCategoryCombo())));
+  }
+
+  /** Checks to see if a category combo is present and not the default. */
+  private boolean isNonDefault(CategoryCombo categoryCombo) {
+    return categoryCombo != null && !categoryCombo.isDefault();
   }
 
   /**
@@ -191,7 +204,7 @@ public class PredictionAnalyticsDataFetcher {
     DataQueryParams.Builder paramsBuilder = getParamsBuilder(orgUnits, dimensionItems);
 
     if (hasAttributeOptions) {
-      paramsBuilder.withAttributeOptionCombos(Collections.emptyList());
+      paramsBuilder.withAttributeOptionCombos(List.of());
     }
 
     Grid grid = analyticsService.getAggregatedDataValues(paramsBuilder.build());
@@ -222,16 +235,30 @@ public class PredictionAnalyticsDataFetcher {
   }
 
   /**
-   * Queries analytics for a disaggregated program indicator's data by category option combo.
+   * Queries analytics for a program indicator's data by its mapped option combos.
    *
    * <p>This is queried in data value set format so analytics will return the category option combo
    * and attribute option combo (if any) of each value. Each item is queried separately because in
    * this format analytics may return the item's aggregate export data element instead of the item
    * itself.
+   *
+   * <p>If the program indicator has no category combo, its values have no category option combo, so
+   * each value is used for every output category option combo. (The exception is if the program
+   * indicator has an aggregate export category option combo; then analytics returns that.)
+   *
+   * <p>If the program indicator has no attribute combo, its values have no attribute option combo.
+   * For an event program indicator, each value is given the default attribute option combo, the
+   * same as when it is fetched the usual way from a program without an attribute category combo.
+   * For an enrollment program indicator, each value is used for every attribute option combo, the
+   * same as when it is fetched the usual way. (The exception is if the program indicator has an
+   * aggregate export attribute option combo; then analytics returns that.)
    */
   private List<FoundDimensionItemValue> getCategoryOptionValues(
       List<OrganisationUnit> orgUnits, DimensionalItemObject item) {
     List<FoundDimensionItemValue> values = new ArrayList<>();
+
+    CategoryOptionCombo aocIfNone =
+        hasAttributeOptions(item) ? categoryService.getDefaultCategoryOptionCombo() : null;
 
     Grid grid =
         analyticsService.getAggregatedDataValuesGrid(
@@ -248,6 +275,11 @@ public class PredictionAnalyticsDataFetcher {
       OrganisationUnit orgUnit = orgUnitLookup.get(row.get(ouInx));
       CategoryOptionCombo categoryOptionCombo = lookUpCoc((String) row.get(coInx));
       CategoryOptionCombo attributeOptionCombo = lookUpCoc((String) row.get(aoInx));
+
+      if (attributeOptionCombo == null) {
+        attributeOptionCombo = aocIfNone;
+      }
+
       Object value = getDoubleValue(row.get(vlInx));
 
       values.add(
@@ -267,11 +299,20 @@ public class PredictionAnalyticsDataFetcher {
         .withOrganisationUnits(orgUnits);
   }
 
-  /** Finds a category option combo from its UID (if not null), using a local cache. */
+  /**
+   * Finds a category option combo from its UID (if not null), using a local cache.
+   *
+   * @throws IllegalStateException if the UID is not null and the category option combo is not found
+   */
   private CategoryOptionCombo lookUpCoc(String uid) {
-    return (uid == null)
-        ? null
-        : cocLookup.get(uid, () -> categoryService.getCategoryOptionCombo(uid));
+    CategoryOptionCombo coc = cocLookup.get(uid, () -> categoryService.getCategoryOptionCombo(uid));
+
+    if (uid != null && coc == null) {
+      throw new IllegalStateException(
+          format("Can't find category option combo %s returned by analytics", uid));
+    }
+
+    return coc;
   }
 
   /** Converts any non-Double numeric value to Double. */

@@ -137,6 +137,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *       M Adult 40
  *   <li>Cases by Sex with attribute Funder: March F Funder 1 1, F Funder 2 2, M Funder 1 4; April F
  *       Funder 2 10, M Funder 1 20, M Funder 2 40
+ *   <li>Cases with attribute Funder: March Funder 1 5, Funder 2 2; April Funder 1 20, Funder 2 50
  *   <li>Aggregate data element R by Sex: March F 1, M 3; April F 2, M 4
  *   <li>Aggregate data element T by Sex with attribute Funder: March F Funder 1 100, F Funder 2
  *       200, M Funder 1 300
@@ -246,6 +247,12 @@ class AnalyticsPredictionServiceTest extends PostgresIntegrationTestBase {
 
   private Predictor predictorFunder;
 
+  private Predictor predictorCasesAndFunder;
+
+  private Predictor predictorFunderNotDisaggregated;
+
+  private Predictor predictorSexFromFunderOnly;
+
   @BeforeAll
   void setUp() {
     createPeriodTypes();
@@ -265,6 +272,7 @@ class AnalyticsPredictionServiceTest extends PostgresIntegrationTestBase {
     final String PROGRAM_INDICATOR_VISITS_UID = "ProgramIndV";
     final String PROGRAM_INDICATOR_SEX_AGE_UID = "ProgramIndG";
     final String PROGRAM_INDICATOR_FUNDER_UID = "ProgramIndF";
+    final String PROGRAM_INDICATOR_FUNDER_ONLY_UID = "ProgramIndU";
     final String DATA_ELEMENT_T_UID = "DataElemenT";
     final String SEX_MAPPING_UID = "ProgCatMapS";
     final String AGE_MAPPING_UID = "ProgCatMapA";
@@ -475,6 +483,14 @@ class AnalyticsPredictionServiceTest extends PostgresIntegrationTestBase {
                     ccSex,
                     ccFunder,
                     SEX_MAPPING_UID,
+                    FUNDER_MAPPING_UID),
+                newDisaggregatedProgramIndicator(
+                    'U',
+                    PROGRAM_INDICATOR_FUNDER_ONLY_UID,
+                    programB,
+                    EX_CASES,
+                    defaultCombo.getCategoryCombo(),
+                    ccFunder,
                     FUNDER_MAPPING_UID)));
     programService.updateProgram(programB);
 
@@ -565,6 +581,14 @@ class AnalyticsPredictionServiceTest extends PostgresIntegrationTestBase {
                 + "} ) + sum( #{"
                 + DATA_ELEMENT_T_UID
                 + "} )");
+    predictorCasesAndFunder =
+        newDisaggregatedPredictor(
+            'H', ccSex, EXPRESSION_CASES + " + sum( #{" + DATA_ELEMENT_T_UID + "} )");
+    predictorFunderNotDisaggregated =
+        newPredictor('J', "sum( I{" + PROGRAM_INDICATOR_FUNDER_UID + "} )");
+    predictorSexFromFunderOnly =
+        newDisaggregatedPredictor(
+            'K', ccSex, "sum( I{" + PROGRAM_INDICATOR_FUNDER_ONLY_UID + "} )");
 
     User user = createAndAddUser(true, "analyticsUser", orgUnitASet, orgUnitASet);
     injectSecurityContextUser(user);
@@ -939,6 +963,66 @@ class AnalyticsPredictionServiceTest extends PostgresIntegrationTestBase {
     assertEquals("324", getDataValue(output, periodMay, cocMale, aocFunder1), "May M 1");
     assertEquals("212", getDataValue(output, periodMay, cocFemale, aocFunder2), "May F 2");
     assertEquals("40", getDataValue(output, periodMay, cocMale, aocFunder2), "May M 2");
+    assertNull(getDataValue(output, periodApr, cocFemale, defaultCombo), "Apr F default");
+  }
+
+  /**
+   * Tests predicting by sex from a program indicator disaggregated by sex without an attribute
+   * combo, plus an aggregate data element disaggregated by sex with attribute funder. The program
+   * indicator's values are predicted with the default attribute option combo (the attribute option
+   * combo of its events), and are not added into the predictions for each funder.
+   */
+  @Test
+  void testPredictCategoryProgramIndicatorAndAttributeDataElement() {
+    predict(predictorCasesAndFunder);
+    DataElement output = predictorCasesAndFunder.getOutput();
+    assertEquals("3", getDataValue(output, periodApr, cocFemale, defaultCombo), "Apr F default");
+    assertEquals("4", getDataValue(output, periodApr, cocMale, defaultCombo), "Apr M default");
+    assertEquals("100", getDataValue(output, periodApr, cocFemale, aocFunder1), "Apr F 1");
+    assertEquals("300", getDataValue(output, periodApr, cocMale, aocFunder1), "Apr M 1");
+    assertEquals("200", getDataValue(output, periodApr, cocFemale, aocFunder2), "Apr F 2");
+    assertNull(getDataValue(output, periodApr, cocMale, aocFunder2), "Apr M 2");
+    assertEquals("13", getDataValue(output, periodMay, cocFemale, defaultCombo), "May F default");
+    assertEquals("64", getDataValue(output, periodMay, cocMale, defaultCombo), "May M default");
+    assertEquals("100", getDataValue(output, periodMay, cocFemale, aocFunder1), "May F 1");
+    assertEquals("300", getDataValue(output, periodMay, cocMale, aocFunder1), "May M 1");
+    assertEquals("200", getDataValue(output, periodMay, cocFemale, aocFunder2), "May F 2");
+    assertNull(getDataValue(output, periodMay, cocMale, aocFunder2), "May M 2");
+  }
+
+  /**
+   * Tests predicting to an output data element without disaggregation from a program indicator
+   * disaggregated by sex with attribute funder. The sexes are summed, and the predictions are made
+   * for each funder.
+   */
+  @Test
+  void testPredictNotDisaggregatedFromAttributeProgramIndicator() {
+    predict(predictorFunderNotDisaggregated);
+    DataElement output = predictorFunderNotDisaggregated.getOutput();
+    assertEquals("5", getDataValue(output, periodApr, defaultCombo, aocFunder1), "Apr 1");
+    assertEquals("2", getDataValue(output, periodApr, defaultCombo, aocFunder2), "Apr 2");
+    assertEquals("25", getDataValue(output, periodMay, defaultCombo, aocFunder1), "May 1");
+    assertEquals("52", getDataValue(output, periodMay, defaultCombo, aocFunder2), "May 2");
+    assertNull(getDataValue(output, periodApr, defaultCombo, defaultCombo), "Apr default");
+    assertNull(getDataValue(output, periodMay, defaultCombo, defaultCombo), "May default");
+  }
+
+  /**
+   * Tests predicting by sex from a program indicator with attribute funder but no category combo.
+   * The whole value for each funder is predicted for each sex.
+   */
+  @Test
+  void testPredictDisaggregatedFromAttributeOnlyProgramIndicator() {
+    predict(predictorSexFromFunderOnly);
+    DataElement output = predictorSexFromFunderOnly.getOutput();
+    assertEquals("5", getDataValue(output, periodApr, cocFemale, aocFunder1), "Apr F 1");
+    assertEquals("5", getDataValue(output, periodApr, cocMale, aocFunder1), "Apr M 1");
+    assertEquals("2", getDataValue(output, periodApr, cocFemale, aocFunder2), "Apr F 2");
+    assertEquals("2", getDataValue(output, periodApr, cocMale, aocFunder2), "Apr M 2");
+    assertEquals("25", getDataValue(output, periodMay, cocFemale, aocFunder1), "May F 1");
+    assertEquals("25", getDataValue(output, periodMay, cocMale, aocFunder1), "May M 1");
+    assertEquals("52", getDataValue(output, periodMay, cocFemale, aocFunder2), "May F 2");
+    assertEquals("52", getDataValue(output, periodMay, cocMale, aocFunder2), "May M 2");
     assertNull(getDataValue(output, periodApr, cocFemale, defaultCombo), "Apr F default");
   }
 
