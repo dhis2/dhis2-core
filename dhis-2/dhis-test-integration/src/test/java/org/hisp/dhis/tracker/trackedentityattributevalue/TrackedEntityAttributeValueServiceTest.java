@@ -31,13 +31,12 @@ package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.getTrackedEntityAttributeValues;
 import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
@@ -106,15 +105,6 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  void testSaveTrackedEntityAttributeValue() {
-    saveTrackedEntityAttributeValue(entityManager, attributeValueA);
-    saveTrackedEntityAttributeValue(entityManager, attributeValueB);
-    assertContainsOnly(
-        Set.of(attributeValueA, attributeValueB),
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
-  }
-
-  @Test
   void shouldDeleteAllAttributeValuesOfTrackedEntity() {
     saveTrackedEntityAttributeValue(entityManager, attributeValueA);
     saveTrackedEntityAttributeValue(entityManager, attributeValueB);
@@ -122,36 +112,12 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
 
     attributeValueService.deleteTrackedEntityAttributeValues(trackedEntityA);
 
-    assertIsEmpty(attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
+    assertIsEmpty(getTrackedEntityAttributeValues(entityManager, trackedEntityA));
     assertContainsOnly(
-        Set.of(attributeValueC),
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntityB));
-  }
-
-  @Test
-  void testGetTrackedEntityAttributeValue() {
-    saveTrackedEntityAttributeValue(entityManager, attributeValueA);
-    saveTrackedEntityAttributeValue(entityManager, attributeValueC);
-    assertContainsOnly(
-        Set.of(attributeValueA),
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
-    assertContainsOnly(
-        Set.of(attributeValueC),
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntityB));
-  }
-
-  @Test
-  void testGetTrackedEntityAttributeValuesByEntityInstance() {
-    saveTrackedEntityAttributeValue(entityManager, attributeValueA);
-    saveTrackedEntityAttributeValue(entityManager, attributeValueB);
-    saveTrackedEntityAttributeValue(entityManager, attributeValueC);
-    List<TrackedEntityAttributeValue> attributeValues =
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA);
-    assertEquals(2, attributeValues.size());
-    assertTrue(equals(attributeValues, attributeValueA, attributeValueB));
-    attributeValues = attributeValueService.getTrackedEntityAttributeValues(trackedEntityB);
-    assertEquals(1, attributeValues.size());
-    assertTrue(equals(attributeValues, attributeValueC));
+        List.of("C"),
+        getTrackedEntityAttributeValues(entityManager, trackedEntityB).stream()
+            .map(TrackedEntityAttributeValue::getValue)
+            .toList());
   }
 
   @Test
@@ -169,7 +135,7 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
 
     attributeValueService.deleteTrackedEntityAttributeValues(trackedEntityA);
 
-    assertIsEmpty(attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
+    assertIsEmpty(getTrackedEntityAttributeValues(entityManager, trackedEntityA));
     assertTrue(fileResourceService.getFileResource(fileResourceA.getUid()).isAssigned());
     assertTrue(fileResourceService.getFileResource(fileResourceB.getUid()).isAssigned());
   }

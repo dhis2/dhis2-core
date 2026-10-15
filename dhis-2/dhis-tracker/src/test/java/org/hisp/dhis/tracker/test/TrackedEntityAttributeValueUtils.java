@@ -34,10 +34,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.jdbc.Work;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -47,6 +51,13 @@ public class TrackedEntityAttributeValueUtils {
       insert into trackedentityattributevalue
         (trackedentityid, trackedentityattributeid, created, lastupdated, value, updatedby)
       values (?, ?, ?, ?, ?, ?)
+      """;
+
+  private static final String SELECT_SQL =
+      """
+      select trackedentityattributeid, value, created, lastupdated, updatedby
+      from trackedentityattributevalue
+      where trackedentityid = :trackedEntityId
       """;
 
   private TrackedEntityAttributeValueUtils() {
@@ -77,6 +88,35 @@ public class TrackedEntityAttributeValueUtils {
       session.doWork(insert);
       transaction.commit();
     }
+  }
+
+  /**
+   * Returns the values of {@code trackedEntity} as stored in the database, bypassing the attribute
+   * values cached on the tracked entity. The values are not managed by Hibernate.
+   */
+  @SuppressWarnings("unchecked")
+  public static List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
+      EntityManager entityManager, TrackedEntity trackedEntity) {
+    List<Object[]> rows =
+        entityManager
+            .createNativeQuery(SELECT_SQL)
+            .setParameter("trackedEntityId", trackedEntity.getId())
+            .getResultList();
+    return rows.stream()
+        .map(
+            row -> {
+              TrackedEntityAttributeValue value =
+                  new TrackedEntityAttributeValue(
+                      entityManager.find(
+                          TrackedEntityAttribute.class, ((Number) row[0]).longValue()),
+                      trackedEntity,
+                      (String) row[1]);
+              value.setCreated((Date) row[2]);
+              value.setLastUpdated((Date) row[3]);
+              value.setUpdatedBy((String) row[4]);
+              return value;
+            })
+        .toList();
   }
 
   private static void insert(Connection connection, TrackedEntityAttributeValue attributeValue)

@@ -40,7 +40,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.springframework.jdbc.core.RowMapper;
@@ -63,13 +62,6 @@ class JdbcTrackedEntityAttributeValueStore {
    */
   private static final int MAX_VALUES_PER_QUERY = 10_000;
 
-  private static final String SELECT_BY_TRACKED_ENTITY =
-      """
-      select trackedentityattributeid, value, created, lastupdated, updatedby
-      from trackedentityattributevalue
-      where trackedentityid = :trackedEntityId
-      """;
-
   private static final String DELETE_BY_TRACKED_ENTITY =
       """
       delete from trackedentityattributevalue
@@ -91,29 +83,6 @@ class JdbcTrackedEntityAttributeValueStore {
           new UniqueAttributeValueMatch(UID.of(rs.getString(1)), rs.getString(2), rs.getLong(3));
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
-
-  private final TrackedEntityAttributeService trackedEntityAttributeService;
-
-  /**
-   * Returns the values of {@code trackedEntity}. The values are not managed by Hibernate: changing
-   * them has no effect on the database.
-   */
-  public List<TrackedEntityAttributeValue> get(TrackedEntity trackedEntity) {
-    return jdbcTemplate.query(
-        SELECT_BY_TRACKED_ENTITY,
-        new MapSqlParameterSource("trackedEntityId", trackedEntity.getId()),
-        (rs, rowNum) -> {
-          TrackedEntityAttributeValue value =
-              new TrackedEntityAttributeValue(
-                  trackedEntityAttributeService.getTrackedEntityAttribute(rs.getLong(1)),
-                  trackedEntity,
-                  rs.getString(2));
-          value.setCreated(rs.getTimestamp(3));
-          value.setLastUpdated(rs.getTimestamp(4));
-          value.setUpdatedBy(rs.getString(5));
-          return value;
-        });
-  }
 
   /** Deletes all the values of {@code trackedEntity}. */
   public void delete(TrackedEntity trackedEntity) {

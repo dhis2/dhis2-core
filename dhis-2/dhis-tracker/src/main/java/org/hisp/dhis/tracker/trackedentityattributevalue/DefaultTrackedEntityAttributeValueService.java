@@ -29,19 +29,12 @@
  */
 package org.hisp.dhis.tracker.trackedentityattributevalue;
 
-import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,43 +44,10 @@ public class DefaultTrackedEntityAttributeValueService
     implements TrackedEntityAttributeValueService {
   private final JdbcTrackedEntityAttributeValueStore attributeValueStore;
 
-  private final FileResourceService fileResourceService;
-
-  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
-
   @Override
   @Transactional
   public void deleteTrackedEntityAttributeValues(TrackedEntity trackedEntity) {
-    for (TrackedEntityAttributeValue attributeValue : attributeValueStore.get(trackedEntity)) {
-      trackedEntityChangeLogService.addTrackedEntityChangeLog(
-          trackedEntity,
-          attributeValue.getAttribute(),
-          attributeValue.getValue(),
-          null,
-          DELETE,
-          getCurrentUsername());
-
-      deleteFileValue(attributeValue);
-    }
-
     attributeValueStore.delete(trackedEntity);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      TrackedEntity trackedEntity) {
-    return attributeValueStore.get(trackedEntity);
-  }
-
-  private void deleteFileValue(TrackedEntityAttributeValue value) {
-    if (!value.getAttribute().getValueType().isFile()
-        || fileResourceService.getFileResource(value.getValue()) == null) {
-      return;
-    }
-
-    FileResource fileResource = fileResourceService.getFileResource(value.getValue());
-    fileResourceService.updateFileResource(fileResource);
   }
 
   @Override

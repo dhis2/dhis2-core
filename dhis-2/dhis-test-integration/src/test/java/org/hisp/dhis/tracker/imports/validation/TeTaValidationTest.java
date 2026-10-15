@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.imports.validation;
 
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.getTrackedEntityAttributeValues;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -49,7 +50,6 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -66,8 +66,6 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
-
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -106,7 +104,7 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
     assertEquals(1, trackedEntities.size());
     TrackedEntity trackedEntity = trackedEntities.get(0);
     List<TrackedEntityAttributeValue> attributeValues =
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+        getTrackedEntityAttributeValues(entityManager, trackedEntity);
     assertEquals(1, attributeValues.size());
     manager.clear();
     fileResource = fileResourceService.getFileResource(fileResource.getUid());
@@ -136,7 +134,7 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
     assertEquals(1, trackedEntities.size());
     TrackedEntity trackedEntity = trackedEntities.get(0);
     List<TrackedEntityAttributeValue> attributeValues =
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+        getTrackedEntityAttributeValues(entityManager, trackedEntity);
     assertEquals(1, attributeValues.size());
     manager.clear();
     fileResource = fileResourceService.getFileResource(fileResource.getUid());
