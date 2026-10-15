@@ -283,7 +283,8 @@ class LdapLoginTest extends BaseE2ETest {
     assertFalse(uid.isBlank(), "created user must have a UID");
 
     ResponseEntity<String> me = getMeWithBasicAuth(username, DHIS_STORED_PASSWORD);
-    assertEquals(HttpStatus.OK, me.getStatusCode(), "internal password must work before conversion");
+    assertEquals(
+        HttpStatus.OK, me.getStatusCode(), "internal password must work before conversion");
     assertEquals(username, objectMapper.readTree(me.getBody()).get("username").asText());
 
     // Omit the password on update: supplying it with externalAuth=true replaces the hash
