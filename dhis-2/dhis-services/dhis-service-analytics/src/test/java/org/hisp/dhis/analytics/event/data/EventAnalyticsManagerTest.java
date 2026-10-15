@@ -1333,6 +1333,37 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             "group by dps_period_ax_enrollmentdate.`monthly`, ax.`ou`, ax.`fWIAEtYVEGk`"));
   }
 
+  @ParameterizedTest
+  @CsvSource({"doris,FIRST", "doris,LAST", "clickhouse,FIRST", "clickhouse,LAST"})
+  void verifyFirstOrLastQueryOmitsJoinBasedPeriodLookup(
+      String database, AggregationType aggregationType) {
+    AnalyticsSqlBuilder joinLookupBuilder =
+        "doris".equals(database)
+            ? new DorisAnalyticsSqlBuilder("internal", "doris-jdbc.jar")
+            : new ClickHouseAnalyticsSqlBuilder("dhis2");
+    JdbcEventAnalyticsManager joinLookupSubject =
+        createEventAnalyticsManager(joinLookupBuilder, database);
+
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    mockEmptyRowSet();
+
+    PeriodDimension period =
+        PeriodDimension.of("202202").setDateField(TimeField.ENROLLMENT_DATE.name());
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createFirstOrLastValueQuery())
+            .withPeriods(List.of(period), "monthly")
+            .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
+            .build();
+
+    joinLookupSubject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    assertThat(sql.getValue(), not(containsString("dps_period")));
+  }
+
   @Test
   void verifyAggregatedTextDimensionWrapsEmptyStringAsNullForClickHouse() {
     ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
