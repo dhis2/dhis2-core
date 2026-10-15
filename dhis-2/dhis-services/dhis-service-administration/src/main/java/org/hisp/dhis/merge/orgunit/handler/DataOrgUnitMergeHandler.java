@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,7 @@ public class DataOrgUnitMergeHandler {
     final String sql =
         DataMergeStrategy.DISCARD == request.getDataValueMergeStrategy()
             ? getMergeDataValuesDiscardSql()
-            : getMergeDataValuesLastUpdatedSql(request);
+            : getMergeDataValuesLastUpdatedSql();
 
     final SqlParameterSource params =
         new MapSqlParameterSource()
@@ -95,35 +95,40 @@ public class DataOrgUnitMergeHandler {
     return "delete from datavalue where sourceid in (:source_ids);";
   }
 
-  private String getMergeDataValuesLastUpdatedSql(OrgUnitMergeRequest request) {
-    return String.format(
-        // Delete existing target data values
-        "delete from datavalue where sourceid = :target_id; "
-            +
-            // Insert target data values for last modified source data values
-            "with dv_rank as ( "
-            +
-            // Window over data value sources ranked by last modification
-            "select dv.*, row_number() over ("
-            + "partition by dv.dataelementid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid "
-            + "order by dv.lastupdated desc, dv.created desc) as lastupdated_rank "
-            + "from datavalue dv "
-            + "where dv.sourceid in (:source_ids) "
-            + "and dv.deleted is false"
-            + ") "
-            +
-            // Insert target data values
-            "insert into datavalue ("
-            + "dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, "
-            + "value, storedby, created, lastupdated, comment, followup, deleted) "
-            + "select dataelementid, periodid, %s, categoryoptioncomboid, attributeoptioncomboid, "
-            + "value, storedby, created, lastupdated, comment, followup, false "
-            + "from dv_rank "
-            + "where dv_rank.lastupdated_rank = 1; "
-            +
-            // Delete source data values
-            "delete from datavalue where sourceid in (:source_ids);",
-        request.getTarget().getId());
+  /**
+   * Moves the source data values to the target. The target's own values take part in the ranking:
+   * for each key the most recently updated value wins. On a tie the target keeps its own value; a
+   * tie between sources goes to the lowest org unit id, so repeated merges give the same result.
+   */
+  private String getMergeDataValuesLastUpdatedSql() {
+    return """
+        with dv_rank as (
+          select dv.*, row_number() over (
+            partition by dv.dataelementid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid
+            order by dv.lastupdated desc, dv.created desc, (dv.sourceid = :target_id) desc,
+              dv.sourceid) as lastupdated_rank
+          from datavalue dv
+          where (dv.sourceid in (:source_ids) or dv.sourceid = :target_id)
+          and dv.deleted is false)
+        insert into datavalue (
+          dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid,
+          value, storedby, created, lastupdated, comment, followup, deleted)
+        select dataelementid, periodid, :target_id, categoryoptioncomboid, attributeoptioncomboid,
+          value, storedby, created, lastupdated, comment, followup, false
+        from dv_rank
+        where dv_rank.lastupdated_rank = 1
+        and dv_rank.sourceid <> :target_id
+        on conflict (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
+        do update set
+          value = excluded.value,
+          storedby = excluded.storedby,
+          created = excluded.created,
+          lastupdated = excluded.lastupdated,
+          comment = excluded.comment,
+          followup = excluded.followup,
+          deleted = false;
+        delete from datavalue where sourceid in (:source_ids);
+        """;
   }
 
   public void mergeDataApprovalAudits(OrgUnitMergeRequest request) {
@@ -135,7 +140,7 @@ public class DataOrgUnitMergeHandler {
     final String sql =
         DataMergeStrategy.DISCARD == request.getDataApprovalMergeStrategy()
             ? getMergeDataApprovalsDiscardSql()
-            : getMergeDataApprovalsLastUpdatedSql(request);
+            : getMergeDataApprovalsLastUpdatedSql();
 
     final SqlParameterSource params =
         new MapSqlParameterSource()
@@ -149,34 +154,35 @@ public class DataOrgUnitMergeHandler {
     return "delete from dataapproval where organisationunitid in (:source_ids);";
   }
 
-  private String getMergeDataApprovalsLastUpdatedSql(OrgUnitMergeRequest request) {
-    return String.format(
-        // Delete existing target data approvals
-        "delete from dataapproval where organisationunitid = :target_id; "
-            +
-            // Insert target data approvals for last created source data approvals
-            "with da_rank as ( "
-            +
-            // Window over data approval sources ranked by last created
-            "select da.*, row_number() over ("
-            + "partition by da.dataapprovallevelid, da.workflowid, da.periodid, da.attributeoptioncomboid "
-            + "order by da.created desc) as lastcreated_rank "
-            + "from dataapproval da "
-            + "where da.organisationunitid in (:source_ids) "
-            + ") "
-            +
-            // Insert target data approvals
-            "insert into dataapproval ("
-            + "dataapprovalid, dataapprovallevelid, workflowid, periodid, "
-            + "organisationunitid, attributeoptioncomboid, accepted, created, creator) "
-            + "select nextval('hibernate_sequence'), dataapprovallevelid, workflowid, periodid, "
-            + "%s, attributeoptioncomboid, accepted, created, creator "
-            + "from da_rank "
-            + "where da_rank.lastcreated_rank = 1; "
-            +
-            // Delete source data approvals
-            "delete from dataapproval where organisationunitid in (:source_ids);",
-        request.getTarget().getId());
+  /**
+   * Moves the source data approvals to the target. The target's own approvals take part in the
+   * ranking: for each key the most recently created approval wins. On a tie the target keeps its
+   * own approval; a tie between sources goes to the lowest org unit id.
+   */
+  private String getMergeDataApprovalsLastUpdatedSql() {
+    return """
+        with da_rank as (
+          select da.*, row_number() over (
+            partition by da.dataapprovallevelid, da.workflowid, da.periodid, da.attributeoptioncomboid
+            order by da.created desc, (da.organisationunitid = :target_id) desc,
+              da.organisationunitid) as lastcreated_rank
+          from dataapproval da
+          where da.organisationunitid in (:source_ids) or da.organisationunitid = :target_id)
+        insert into dataapproval (
+          dataapprovalid, dataapprovallevelid, workflowid, periodid,
+          organisationunitid, attributeoptioncomboid, accepted, created, creator)
+        select nextval('hibernate_sequence'), dataapprovallevelid, workflowid, periodid,
+          :target_id, attributeoptioncomboid, accepted, created, creator
+        from da_rank
+        where da_rank.lastcreated_rank = 1
+        and da_rank.organisationunitid <> :target_id
+        on conflict (dataapprovallevelid, workflowid, periodid, organisationunitid, attributeoptioncomboid)
+        do update set
+          accepted = excluded.accepted,
+          created = excluded.created,
+          creator = excluded.creator;
+        delete from dataapproval where organisationunitid in (:source_ids);
+        """;
   }
 
   public void mergeLockExceptions(OrgUnitMergeRequest request) {
