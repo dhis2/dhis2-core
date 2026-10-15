@@ -134,9 +134,21 @@ class PeriodTypeControllerTest extends PostgresControllerIntegrationTestBase {
     assertStatus(OK, PUT("/periodTypes/Daily?locale=de&value=Täglich"));
 
     JsonPeriodType daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
-
     assertEquals("Täglich", daily.getDisplayName());
     assertEquals("Täglich", daily.getTranslations().translationValue(Locale.of("de")));
+
+    // update it
+    assertStatus(OK, PUT("/periodTypes/Daily?locale=de&value=Tagtäglich"));
+
+    daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
+    assertEquals("Tagtäglich", daily.getDisplayName());
+    assertEquals("Tagtäglich", daily.getTranslations().translationValue(Locale.of("de")));
+
+    // and erase it
+    assertStatus(OK, PUT("/periodTypes/Daily?locale=de&value="));
+    daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
+    assertEquals("Daily", daily.getDisplayName());
+    assertNull(daily.getTranslations().translationValue(Locale.of("de")));
   }
 
   @Test

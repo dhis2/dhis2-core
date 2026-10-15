@@ -34,7 +34,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
  * A list/set of translations as stored in DB as JSON(B).
@@ -58,7 +58,7 @@ public interface JsonTranslations extends JsonArray {
   @CheckForNull
   default String translationValue(@Nonnull Locale locale) {
     String l = locale.toString();
-    for (JsonMixed e : this)
+    for (JsonObject e : this)
       if (e.getString("locale").text().contentEquals(l)) return e.getString("value").string();
     // fall back to just language?
     if (locale.script() == null && locale.region() != null)

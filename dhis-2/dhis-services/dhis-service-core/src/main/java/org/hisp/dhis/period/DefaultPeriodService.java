@@ -259,8 +259,9 @@ public class DefaultPeriodService implements PeriodService {
       @Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations)
       throws ConflictException {
     validateLocales(translations.stream().map(Translation::getLocale));
-    PERIOD_TYPES_CACHE.clear();
-    return periodTypeStore.updateLabel(name, translations);
+    boolean change = periodTypeStore.updateLabel(name, translations);
+    if (change) PERIOD_TYPES_CACHE.clear();
+    return change;
   }
 
   @Override
@@ -269,8 +270,9 @@ public class DefaultPeriodService implements PeriodService {
       @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale)
       throws ConflictException {
     if (locale != null) validateLocales(Stream.of(locale));
-    PERIOD_TYPES_CACHE.clear();
-    return periodTypeStore.updateLabel(name, label, locale);
+    boolean change = periodTypeStore.updateLabel(name, label, locale);
+    if (change) PERIOD_TYPES_CACHE.clear();
+    return change;
   }
 
   @Override
@@ -279,8 +281,9 @@ public class DefaultPeriodService implements PeriodService {
       @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations)
       throws ConflictException {
     validateLocales(translations.stream().map(Translation::getLocale));
-    PERIOD_TYPES_CACHE.clear();
-    return relativePeriodStore.updateLabel(name, translations);
+    boolean change = relativePeriodStore.updateLabel(name, translations);
+    if (change) PERIOD_TYPES_CACHE.clear();
+    return change;
   }
 
   @Override
@@ -289,8 +292,9 @@ public class DefaultPeriodService implements PeriodService {
       @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale)
       throws ConflictException {
     if (locale != null) validateLocales(Stream.of(locale));
-    PERIOD_TYPES_CACHE.clear();
-    return relativePeriodStore.updateLabel(name, label, locale);
+    boolean change = relativePeriodStore.updateLabel(name, label, locale);
+    if (change) PERIOD_TYPES_CACHE.clear();
+    return change;
   }
 
   @Override

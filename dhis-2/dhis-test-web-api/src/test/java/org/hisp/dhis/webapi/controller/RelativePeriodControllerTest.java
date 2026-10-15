@@ -34,9 +34,13 @@ import static org.hisp.dhis.http.HttpStatus.CREATED;
 import static org.hisp.dhis.http.HttpStatus.NO_CONTENT;
 import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonPeriodType;
+import org.hisp.dhis.translation.JsonTranslations;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,8 +81,27 @@ class RelativePeriodControllerTest extends PostgresControllerIntegrationTestBase
     assertStatus(OK, PUT("/relativePeriods/YESTERDAY?locale=de&value=Gestern"));
 
     JsonPeriodType daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
-
+    JsonObject yesterday = daily.getRelativePeriods().get("YESTERDAY");
+    assertEquals("Gestern", yesterday.getString("displayName").string());
     assertEquals(
-        "Gestern", daily.getRelativePeriods().get("YESTERDAY").getString("displayName").string());
+        "Gestern",
+        yesterday.get("translations", JsonTranslations.class).translationValue(Locale.of("de")));
+
+    // update it
+    assertStatus(OK, PUT("/relativePeriods/YESTERDAY?locale=de&value=Vortags"));
+    daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
+    yesterday = daily.getRelativePeriods().get("YESTERDAY");
+    assertEquals("Vortags", yesterday.getString("displayName").string());
+    assertEquals(
+        "Vortags",
+        yesterday.get("translations", JsonTranslations.class).translationValue(Locale.of("de")));
+
+    // clear it
+    assertStatus(OK, PUT("/relativePeriods/YESTERDAY?locale=de&value="));
+    daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
+    yesterday = daily.getRelativePeriods().get("YESTERDAY");
+    assertEquals("Yesterday", yesterday.getString("displayName").string());
+    assertNull(
+        yesterday.get("translations", JsonTranslations.class).translationValue(Locale.of("de")));
   }
 }

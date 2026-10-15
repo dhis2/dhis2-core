@@ -129,44 +129,31 @@ public class HibernatePeriodTypeStore extends HibernateGenericStore<PeriodType>
                       .executeUpdate())
           > 0;
     }
-    // erase potentially existing value
     String sql =
         """
-      UPDATE periodtype
-      SET translations = COALESCE((
-        SELECT jsonb_agg(elem)
-        FROM jsonb_array_elements(translations) AS elem
-        WHERE elem->>'locale' <> :locale
-      ), cast('[]' as jsonb))
-      WHERE name = :name""";
-    boolean erased =
-        runAutoJoinTransaction(
-                session ->
-                    session
-                        .createNativeQuery(sql)
-                        .setParameter("name", name.getName())
-                        .setParameter("locale", locale.toString())
-                        .executeUpdate())
-            > 0;
-    // now insert the language object
-    if (isBlank(label)) return erased;
-    String sql2 =
-        """
-      UPDATE periodtype
-      SET translations = translations ||
-        jsonb_build_array(jsonb_build_object('locale',:locale,'property','NAME','value',:value))
-      WHERE name = :name""";
-    boolean inserted =
-        runAutoJoinTransaction(
-                session ->
-                    session
-                        .createNativeQuery(sql2)
-                        .setParameter("name", name.getName())
-                        .setParameter("locale", locale.toString())
-                        .setParameter("value", label)
-                        .executeUpdate())
-            > 0;
-    return erased || inserted;
+        UPDATE periodtype
+        SET translations = COALESCE((
+              SELECT jsonb_agg(elem)
+              FROM jsonb_array_elements(translations) AS elem
+              WHERE elem->>'locale' <> :locale
+            ), cast('[]' as jsonb))
+          || CASE
+               WHEN :value IS NULL THEN cast('[]' as jsonb)
+               ELSE jsonb_build_array(jsonb_build_object(
+                      'locale', :locale, 'property', 'NAME', 'value', :value))
+             END
+        WHERE name = :name""";
+
+    String newValue = isBlank(label) ? null : label;
+    return runAutoJoinTransaction(
+            session ->
+                session
+                    .createNativeQuery(sql)
+                    .setParameter("name", name.getName())
+                    .setParameter("locale", locale.toString())
+                    .setParameter("value", newValue)
+                    .executeUpdate())
+        > 0;
   }
 
   @Override

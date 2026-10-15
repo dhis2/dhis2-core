@@ -67,6 +67,7 @@ public interface PeriodTypeStore {
    * @param label the new label, null or empty to erase
    * @param locale when null label is the override for the name not associated with a locale,
    *     otherwise it is a translation for the given locale
+   * @return true, if a row was affected, false otherwise
    */
   boolean updateLabel(
       @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale);
