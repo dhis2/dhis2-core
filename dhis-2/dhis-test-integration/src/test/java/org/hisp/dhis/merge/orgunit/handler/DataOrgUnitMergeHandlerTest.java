@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Date;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -98,6 +99,8 @@ class DataOrgUnitMergeHandlerTest extends IntegrationTestBase {
 
   private User usA;
 
+  private User usB;
+
   private DataApprovalLevel dlA;
 
   private DataApprovalWorkflow dwA;
@@ -122,6 +125,8 @@ class DataOrgUnitMergeHandlerTest extends IntegrationTestBase {
     idObjectManager.save(ouC);
     usA = makeUser("A");
     userService.addUser(usA);
+    usB = makeUser("B");
+    userService.addUser(usB);
     dlA = new DataApprovalLevel("DataApprovalLevelA", 1);
     idObjectManager.save(dlA);
     dwA = new DataApprovalWorkflow("DataApprovalWorkflowA", monthly, Sets.newHashSet(dlA));
@@ -237,12 +242,13 @@ class DataOrgUnitMergeHandlerTest extends IntegrationTestBase {
   void testMergeDataApprovalsKeepsTargetApprovals() {
     addDataApprovals(
         new DataApproval(dlA, dwA, peA, ouC, cocA, false, date(2021, 1, 1), usA),
-        new DataApproval(dlA, dwA, peB, ouA, cocA, false, date(2021, 2, 1), usA));
+        approval(peB, ouA, true, date(2021, 2, 1), usA, date(2021, 2, 15), usB));
 
     handler.mergeDataApprovals(lastUpdatedRequest());
 
     assertEquals(0, getDataApprovalCount(ouA));
     assertEquals(2, getDataApprovalCount(ouC));
+    assertLastUpdated(peB, ouC, date(2021, 2, 15), usB);
   }
 
   @Test
@@ -262,13 +268,14 @@ class DataOrgUnitMergeHandlerTest extends IntegrationTestBase {
   void testMergeDataApprovalsTakesNewerSourceApproval() {
     addDataApprovals(
         new DataApproval(dlA, dwA, peA, ouC, cocA, true, date(2021, 3, 1), usA),
-        new DataApproval(dlA, dwA, peA, ouA, cocA, false, date(2021, 5, 1), usA));
+        approval(peA, ouA, false, date(2021, 5, 1), usA, date(2021, 6, 1), usB));
 
     handler.mergeDataApprovals(lastUpdatedRequest());
 
     assertEquals(0, getDataApprovalCount(ouA));
     assertEquals(1, getDataApprovalCount(ouC));
     assertFalse(isDataApprovalAccepted(peA, ouC));
+    assertLastUpdated(peA, ouC, date(2021, 6, 1), usB);
   }
 
   @Test
@@ -324,6 +331,33 @@ class DataOrgUnitMergeHandlerTest extends IntegrationTestBase {
                 .addValue("pe", pe.getId())
                 .addValue("ou", ou.getId()));
     assertEquals(1, rows);
+  }
+
+  /** An approval last changed (accepted or unaccepted) by another user after it was created. */
+  private DataApproval approval(
+      Period pe,
+      OrganisationUnit ou,
+      boolean accepted,
+      Date created,
+      User creator,
+      Date lastUpdated,
+      User lastUpdatedBy) {
+    DataApproval approval = new DataApproval(dlA, dwA, pe, ou, cocA, accepted, created, creator);
+    approval.setLastUpdated(lastUpdated);
+    approval.setLastUpdatedBy(lastUpdatedBy);
+    return approval;
+  }
+
+  private void assertLastUpdated(
+      Period pe, OrganisationUnit ou, Date lastUpdated, User lastUpdatedBy) {
+    final String sql =
+        "select da.lastupdated, da.lastupdatedby from dataapproval da where da.periodid = :pe"
+            + " and da.organisationunitid = :ou";
+    Map<String, Object> row =
+        jdbcTemplate.queryForMap(
+            sql, new MapSqlParameterSource().addValue("pe", pe.getId()).addValue("ou", ou.getId()));
+    assertEquals(lastUpdated.getTime(), ((Date) row.get("lastupdated")).getTime());
+    assertEquals(lastUpdatedBy.getId(), ((Number) row.get("lastupdatedby")).longValue());
   }
 
   private boolean isDataApprovalAccepted(Period pe, OrganisationUnit ou) {
