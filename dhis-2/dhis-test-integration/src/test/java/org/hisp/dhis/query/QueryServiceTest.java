@@ -38,10 +38,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -50,14 +56,20 @@ import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
+import org.hisp.dhis.translation.Translation;
 import org.jfree.data.time.Year;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,6 +83,13 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
   @Autowired private QueryService queryService;
 
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
+
+  @Autowired private SchemaService schemaService;
+
+  @AfterEach
+  void clearUserSettings() {
+    ThreadUserSettings.clear();
+  }
 
   @BeforeEach
   void createDataElements() {
@@ -901,6 +920,301 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
     query2.add(Filters.eq("parent.id", "wrongparent"));
     List<OrganisationUnit> results2 = queryService.query(query2);
     assertEquals(0, results2.size());
+  }
+
+  @Test
+  void displayNameSearchUsesTranslationsInsteadOfBaseNames() {
+    ThreadUserSettings.put(Map.of("keyDbLocale", "fr"));
+    OrganisationUnit translated =
+        saveSearchOrganisationUnit(
+            'A',
+            "Base name",
+            new Translation(Locale.FRENCH, "NAME", ""),
+            new Translation(Locale.FRENCH, "name", "Clinique"));
+    OrganisationUnit hidden =
+        saveSearchOrganisationUnit(
+            'B', "Clinique hidden", new Translation(Locale.FRENCH, "NAME", "Hopital"));
+
+    assertFalse(
+        schemaService.getSchema(OrganisationUnit.class).getProperty("displayName").isPersisted());
+    assertEquals(List.of(translated.getUid()), searchDisplayName("clinique"));
+    assertEquals(List.of(), searchDisplayName("Base name"));
+    assertEquals(
+        List.of(hidden.getUid()),
+        queryService
+            .query(
+                Query.of(OrganisationUnit.class)
+                    .add(Filters.ilike("name", "clinique", MatchMode.ANYWHERE)))
+            .stream()
+            .map(OrganisationUnit::getUid)
+            .toList());
+    assertEquals(
+        1,
+        queryService.count(
+            Query.of(OrganisationUnit.class)
+                .add(Filters.ilike("displayName", "clinique", MatchMode.ANYWHERE))));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "in, id",
+    "iw, he",
+    "ji, yi",
+    "in-ID, id_ID",
+    "iw_#IL, he_IL",
+    "ji_US, yi_US",
+    "fil-PH, fil_PH",
+    "es_#419, es_419",
+    "sr-Latn-RS, sr_RS_Latn",
+    "sr_RS_#Latn, sr_RS_Latn",
+    "sr_#Latn_RS, sr_RS_Latn",
+    "in-Latn_#ID, id_ID_Latn",
+    "sr_RS_#Latn-_#_, sr_RS_Latn",
+    "en-US-_#_, en_US"
+  })
+  void displayNameSearchNormalizesPersistedLocales(String persistedLocale, String effectiveLocale) {
+    Locale effective = Locale.of(effectiveLocale);
+    ThreadUserSettings.put(Map.of("keyDbLocale", effectiveLocale));
+    OrganisationUnit unit = saveSearchOrganisationUnit('A', "Untranslated base");
+    Locale otherLocale =
+        effective.script() != null
+            ? new Locale(effective.language(), effective.region())
+            : new Locale(effective.language(), effective.region() == null ? "US" : null);
+    saveSearchOrganisationUnit(
+        'B', "Other locale", new Translation(otherLocale, "NAME", "Legacy translated"));
+    entityManager.flush();
+    // Current API writes canonicalize locales. Patch only this row to reproduce existing metadata.
+    entityManager
+        .createNativeQuery(
+            "update organisationunit set translations = cast(:translations as jsonb) where uid = :uid")
+        .setParameter(
+            "translations",
+            "[{\"locale\":\""
+                + persistedLocale
+                + "\",\"property\":\"NAME\",\"value\":\"Legacy translated\"}]")
+        .setParameter("uid", unit.getUid())
+        .executeUpdate();
+    OrganisationUnit reloaded = reloadSearchOrganisationUnit(unit);
+
+    assertEquals("Legacy translated", reloaded.getDisplayName());
+    assertDisplayNameMatch(reloaded, reloaded.getDisplayName(), true);
+    assertDisplayNameMatch(reloaded, "Untranslated base", false);
+  }
+
+  @Test
+  void displayNameSearchPreservesStoredWinnerForCaseInsensitiveTranslationKeys() {
+    ThreadUserSettings.put(Map.of("keyDbLocale", "fr"));
+    Set<Translation> input = new HashSet<>();
+    input.add(new Translation(Locale.FRENCH, "NAME", "P"));
+    input.add(new Translation(Locale.FRENCH, "name", "B"));
+    for (int i = 0; i < 10; i++) {
+      input.add(new Translation(Locale.FRENCH, "X" + i, "x"));
+    }
+    OrganisationUnit unit = saveSearchOrganisationUnit('A', "Untranslated base");
+    // Match the translations endpoint's copy of the deserialized request Set. Its capacity differs
+    // from a default HashSet used during hydration, changing the winner unless array order
+    // survives.
+    unit.setTranslations(new HashSet<>(input));
+    identifiableObjectManager.update(unit);
+    String storedWinner = unit.getDisplayName();
+    OrganisationUnit reloaded = reloadSearchOrganisationUnit(unit);
+
+    assertEquals(storedWinner, reloaded.getDisplayName());
+    assertDisplayNameMatch(reloaded, storedWinner, true);
+    assertDisplayNameMatch(reloaded, storedWinner.equals("P") ? "B" : "P", false);
+    assertDisplayNameMatch(reloaded, "Untranslated base", false);
+  }
+
+  @Test
+  void displayNameFallbackPreservesConditionalTrimmingAndWhitespaceTranslations() {
+    ThreadUserSettings.put(Map.of("keyDbLocale", "fr"));
+    OrganisationUnit absent = saveSearchOrganisationUnit('A', "\t Fallback absent \r");
+    OrganisationUnit missing =
+        saveSearchOrganisationUnit(
+            'B', "\t Fallback missing \r", new Translation(Locale.ENGLISH, "NAME", "English"));
+    OrganisationUnit empty =
+        saveSearchOrganisationUnit(
+            'C', "\t Fallback empty \r", new Translation(Locale.FRENCH, "NAME", ""));
+    OrganisationUnit whitespace =
+        saveSearchOrganisationUnit(
+            'D', "Fallback hidden", new Translation(Locale.FRENCH, "NAME", "   "));
+
+    for (OrganisationUnit unit : List.of(absent, missing, empty, whitespace)) {
+      Query<OrganisationUnit> query =
+          Query.of(OrganisationUnit.class)
+              .add(Filters.like("displayName", unit.getDisplayName(), MatchMode.EXACT));
+      assertEquals(
+          List.of(unit.getUid()),
+          queryService.query(query).stream().map(OrganisationUnit::getUid).toList());
+    }
+    assertEquals(List.of(), searchDisplayName("hidden"));
+    assertEquals(
+        List.of(absent.getUid()),
+        queryService
+            .query(
+                Query.of(OrganisationUnit.class)
+                    .add(Filters.like("displayName", "\t", MatchMode.START)))
+            .stream()
+            .map(OrganisationUnit::getUid)
+            .toList());
+  }
+
+  @Test
+  void displayNameSearchWithoutConfiguredDbLocaleUsesDefaultLocaleFallback() {
+    ThreadUserSettings.clear();
+    OrganisationUnit unit =
+        saveSearchOrganisationUnit(
+            'A', "Default name", new Translation(Locale.FRENCH, "NAME", "Clinique"));
+    assertEquals(List.of(unit.getUid()), searchDisplayName("Default name"));
+    assertEquals(List.of(), searchDisplayName("Clinique"));
+  }
+
+  @Test
+  void displayNameSearchTreatsWildcardsAndEscapeCharactersLiterally() {
+    ThreadUserSettings.put(Map.of("keyDbLocale", "fr"));
+    OrganisationUnit literal =
+        saveSearchOrganisationUnit(
+            'A', "Literal", new Translation(Locale.FRENCH, "NAME", "Clinic %_!\\ North"));
+    saveSearchOrganisationUnit(
+        'B', "Wildcard decoy", new Translation(Locale.FRENCH, "NAME", "Clinic anything North"));
+    saveSearchOrganisationUnit(
+        'C', "Underscore decoy", new Translation(Locale.FRENCH, "NAME", "Clinic %X!\\ North"));
+
+    assertEquals(List.of(literal.getUid()), searchDisplayName("%_!\\"));
+    assertEquals(
+        List.of(literal.getUid()),
+        queryService
+            .query(
+                Query.of(OrganisationUnit.class)
+                    .add(Filters.like("displayName", "%_!\\ North", MatchMode.END)))
+            .stream()
+            .map(OrganisationUnit::getUid)
+            .toList());
+    Query<OrganisationUnit> caseSensitive =
+        Query.of(OrganisationUnit.class)
+            .add(Filters.like("displayName", "clinic", MatchMode.ANYWHERE));
+    assertEquals(List.of(), queryService.query(caseSensitive));
+  }
+
+  @Test
+  void displayNamePagingAndCountDoNotLoadAllCandidates() {
+    ThreadUserSettings.put(Map.of("keyDbLocale", "fr"));
+    for (char suffix = 'A'; suffix <= 'Z'; suffix++) {
+      saveSearchOrganisationUnit(
+          suffix,
+          "Base " + suffix,
+          new Translation(
+              Locale.FRENCH, "NAME", suffix >= 'V' ? "Needle " + suffix : "Unrelated " + suffix));
+    }
+    clearSession();
+    SessionFactory sessionFactory =
+        entityManager.getEntityManagerFactory().unwrap(SessionFactory.class);
+    sessionFactory.getCache().evictEntityData(OrganisationUnit.class);
+    Statistics statistics = sessionFactory.getStatistics();
+    boolean enabled = statistics.isStatisticsEnabled();
+    statistics.setStatisticsEnabled(true);
+    try {
+      long loaded = statistics.getEntityStatistics(OrganisationUnit.class.getName()).getLoadCount();
+      Query<OrganisationUnit> query =
+          Query.of(OrganisationUnit.class)
+              .add(Filters.ilike("displayName", "needle", MatchMode.ANYWHERE))
+              .addOrder(Order.asc("id"))
+              .setFirstResult(2)
+              .setMaxResults(2);
+
+      assertEquals(5, queryService.count(query));
+      assertEquals(
+          loaded, statistics.getEntityStatistics(OrganisationUnit.class.getName()).getLoadCount());
+      assertEquals(
+          List.of("ouabcdefghX", "ouabcdefghY"),
+          queryService.query(query).stream().map(OrganisationUnit::getUid).toList());
+      assertEquals(
+          loaded + 2,
+          statistics.getEntityStatistics(OrganisationUnit.class.getName()).getLoadCount());
+      query.setFirstResult(4);
+      assertEquals(
+          List.of("ouabcdefghZ"),
+          queryService.query(query).stream().map(OrganisationUnit::getUid).toList());
+      assertEquals(5, queryService.count(query));
+    } finally {
+      statistics.setStatisticsEnabled(enabled);
+    }
+  }
+
+  @Test
+  void displayNameAndComputedFiltersPreserveMixedJunctionPaging() {
+    ThreadUserSettings.put(Map.of("keyDbLocale", "fr"));
+    saveSearchOrganisationUnit('A', "First", new Translation(Locale.FRENCH, "NAME", "Clinique"));
+    OrganisationUnit second =
+        saveSearchOrganisationUnit(
+            'B', "Second", new Translation(Locale.FRENCH, "SHORT_NAME", "Memory"));
+    OrganisationUnit third =
+        saveSearchOrganisationUnit(
+            'C',
+            "Third",
+            new Translation(Locale.FRENCH, "NAME", "Clinique"),
+            new Translation(Locale.FRENCH, "SHORT_NAME", "Memory"));
+
+    Query<OrganisationUnit> either =
+        Query.of(OrganisationUnit.class, Junction.Type.OR)
+            .add(Filters.ilike("displayName", "clinique", MatchMode.ANYWHERE))
+            .add(Filters.eq("displayShortName", "Memory"))
+            .addOrder(Order.asc("id"))
+            .setFirstResult(1)
+            .setMaxResults(1);
+    assertEquals(
+        List.of(second.getUid()),
+        queryService.query(either).stream().map(OrganisationUnit::getUid).toList());
+    Query<OrganisationUnit> both =
+        Query.of(OrganisationUnit.class)
+            .add(Filters.ilike("displayName", "clinique", MatchMode.ANYWHERE))
+            .add(Filters.eq("displayShortName", "Memory"))
+            .addOrder(Order.asc("id"))
+            .setMaxResults(1);
+    assertEquals(
+        List.of(third.getUid()),
+        queryService.query(both).stream().map(OrganisationUnit::getUid).toList());
+  }
+
+  private OrganisationUnit reloadSearchOrganisationUnit(OrganisationUnit unit) {
+    entityManager.flush();
+    entityManager.clear();
+    entityManager
+        .getEntityManagerFactory()
+        .unwrap(SessionFactory.class)
+        .getCache()
+        .evictEntityData(OrganisationUnit.class);
+    return entityManager.find(OrganisationUnit.class, unit.getId());
+  }
+
+  private void assertDisplayNameMatch(OrganisationUnit unit, String value, boolean matches) {
+    Query<OrganisationUnit> query =
+        Query.of(OrganisationUnit.class).add(Filters.like("displayName", value, MatchMode.EXACT));
+    assertEquals(
+        matches ? List.of(unit.getUid()) : List.of(),
+        queryService.query(query).stream().map(OrganisationUnit::getUid).toList());
+    assertEquals(matches ? 1 : 0, queryService.count(query));
+  }
+
+  private OrganisationUnit saveSearchOrganisationUnit(
+      char suffix, String name, Translation... translations) {
+    OrganisationUnit unit = createOrganisationUnit(suffix);
+    unit.setUid("ouabcdefgh" + suffix);
+    unit.setName(name);
+    unit.setTranslations(Set.of(translations));
+    identifiableObjectManager.save(unit);
+    return unit;
+  }
+
+  private List<String> searchDisplayName(String term) {
+    return queryService
+        .query(
+            Query.of(OrganisationUnit.class)
+                .add(Filters.ilike("displayName", term, MatchMode.ANYWHERE))
+                .addOrder(Order.asc("id")))
+        .stream()
+        .map(OrganisationUnit::getUid)
+        .toList();
   }
 
   private boolean collectionContainsUid(

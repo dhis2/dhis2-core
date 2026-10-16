@@ -30,6 +30,7 @@
 package org.hisp.dhis.query.operators;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
@@ -66,6 +67,30 @@ public class LikeOperator<T extends Comparable<T>> extends Operator<T> {
         getPropertyPath(root, path),
         String.valueOf(args.get(0)).replace("%", ""),
         jpaMatchMode);
+  }
+
+  /**
+   * Applies the literal string semantics of {@link #test(Object)} to a computed SQL value.
+   * Persisted-property filters retain their existing wildcard handling.
+   */
+  public Predicate getLiteralPredicate(CriteriaBuilder builder, Expression<String> value) {
+    String search = getValue(String.class);
+    if (!caseSensitive) {
+      value = builder.lower(value);
+      search = search.toLowerCase();
+    }
+    if (jpaMatchMode == JpaQueryUtils.StringSearchMode.EQUALS) {
+      return builder.equal(value, search);
+    }
+    String escaped = search.replace("!", "!!").replace("%", "!%").replace("_", "!_");
+    String pattern =
+        switch (jpaMatchMode) {
+          case STARTING_LIKE -> escaped + "%";
+          case ENDING_LIKE -> "%" + escaped;
+          case ANYWHERE -> "%" + escaped + "%";
+          default -> throw new IllegalStateException("Unsupported LIKE mode: " + jpaMatchMode);
+        };
+    return builder.like(value, pattern, '!');
   }
 
   @Override

@@ -37,12 +37,17 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,6 +133,41 @@ class AbstractFullReadOnlyControllerTest extends H2ControllerIntegrationTestBase
     assertNotNull(response);
     int rowCount = getRowCountFromCsv(response);
     assertEquals(10, rowCount);
+  }
+
+  @Test
+  void testTranslatedDisplayNameFilteringAndPaging() {
+    DataElement translated = createDataElement('A');
+    translated.setName("Untranslated name");
+    translated.setTranslations(Set.of(new Translation(Locale.FRENCH, "NAME", "H2 filtre traduit")));
+    dataElementService.addDataElement(translated);
+    DataElement fallback = createDataElement('B');
+    fallback.setName("H2 filtre base");
+    dataElementService.addDataElement(fallback);
+    DataElement masked = createDataElement('C');
+    masked.setName("H2 filtre hidden");
+    masked.setTranslations(Set.of(new Translation(Locale.FRENCH, "NAME", "Different label")));
+    dataElementService.addDataElement(masked);
+
+    String previousLocale = GET("/userSettings/keyDbLocale").content("text/plain");
+    try {
+      assertEquals(HttpStatus.OK, POST("/userSettings/keyDbLocale?value=fr").status());
+      String query =
+          "/dataElements?fields=id,displayName&filter=displayName:ilike:FILTRE"
+              + "&paging=true&pageSize=1&order=displayName:asc";
+      JsonObject first = GET(query).content();
+      JsonObject second = GET(query + "&page=2").content();
+      assertEquals(2, first.getObject("pager").getNumber("total").intValue());
+      assertEquals(2, second.getObject("pager").getNumber("total").intValue());
+      JsonObject firstMatch = first.getList("dataElements", JsonObject.class).get(0);
+      JsonObject secondMatch = second.getList("dataElements", JsonObject.class).get(0);
+      assertEquals(fallback.getUid(), firstMatch.getString("id").string());
+      assertEquals("H2 filtre base", firstMatch.getString("displayName").string());
+      assertEquals(translated.getUid(), secondMatch.getString("id").string());
+      assertEquals("H2 filtre traduit", secondMatch.getString("displayName").string());
+    } finally {
+      POST("/userSettings/keyDbLocale?value=" + previousLocale);
+    }
   }
 
   private void createDataElements(int count) {
