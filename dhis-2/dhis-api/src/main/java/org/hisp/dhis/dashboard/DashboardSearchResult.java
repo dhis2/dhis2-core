@@ -238,9 +238,8 @@ public class DashboardSearchResult {
   }
 
   /**
-   * Serialized with the identifiable object properties only, the shape they had when documents
-   * extended {@link BaseIdentifiableObject}. {@code contentAs = IdentifiableObject.class} would
-   * drop displayName, which the interface does not annotate.
+   * Serialized with the identifiable object property set only. {@code contentAs =
+   * IdentifiableObject.class} would drop displayName, which the interface does not annotate.
    */
   @JsonProperty(value = "resources")
   @JsonIncludeProperties({

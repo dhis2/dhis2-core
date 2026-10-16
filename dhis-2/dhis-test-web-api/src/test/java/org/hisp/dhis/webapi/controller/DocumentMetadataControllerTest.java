@@ -57,7 +57,7 @@ class DocumentMetadataControllerTest extends PostgresControllerIntegrationTestBa
 
   private static final String ATTRIBUTE_UID = "DocAttr0001";
 
-  /** The keys every serialized identifiable object had while documents extended it. */
+  /** The identifiable object property set, which the dashboard search serializes documents with. */
   private static final Set<String> IDENTIFIABLE_KEYS =
       Set.of(
           "access",
@@ -141,8 +141,8 @@ class DocumentMetadataControllerTest extends PostgresControllerIntegrationTestBa
   }
 
   /**
-   * The dashboard search serializes documents with the identifiable object properties only. A
-   * document read in a new request has no access and href, which are therefore left out.
+   * The dashboard search serializes documents with the identifiable object properties only. Access
+   * and href are not set on a document read in a new request, so they are left out.
    */
   @Test
   void shouldServeDocumentsInDashboardSearchWithIdentifiableProperties() {
@@ -159,6 +159,51 @@ class DocumentMetadataControllerTest extends PostgresControllerIntegrationTestBa
     assertEquals(expected, new TreeSet<>(resource.names()));
     assertEquals(DOCUMENT_UID, resource.getString("id").string());
     assertEquals("Imported document", resource.getString("displayName").string());
+  }
+
+  /** Field filtering serves every document property of a dashboard item's resources. */
+  @Test
+  void shouldServeDocumentPropertiesOfDashboardItemResources() {
+    importMetadata(externalDocument("DOC_A", "Imported document", "https://example.org/a", true));
+    importMetadata(
+        """
+        {'dashboards':[{'id':'DashUid0001','name':'Documents',
+          'dashboardItems':[{'id':'DashItem001','type':'RESOURCES',
+            'resources':[{'id':'%s'}]}]}]}
+        """
+            .formatted(DOCUMENT_UID));
+    startNewRequestSession();
+
+    JsonObject resource =
+        GET("/dashboards/DashUid0001?fields=dashboardItems[resources[id,displayName,url,external]]")
+            .content(HttpStatus.OK)
+            .getArray("dashboardItems")
+            .getObject(0)
+            .getArray("resources")
+            .getObject(0);
+
+    assertEquals(Set.of("id", "displayName", "url", "external"), Set.copyOf(resource.names()));
+    assertEquals("Imported document", resource.getString("displayName").string());
+    assertEquals("https://example.org/a", resource.getString("url").string());
+    assertTrue(resource.getBoolean("external").booleanValue());
+  }
+
+  /** The OpenAPI document describes document resources as identifiable objects. */
+  @Test
+  void shouldDescribeDocumentResourcesAsIdentifiableObjectsInOpenApi() {
+    JsonObject schemas =
+        GET("/openapi/openapi.json").content(HttpStatus.OK).getObject("components.schemas");
+
+    for (String owner : Set.of("DashboardItem", "DashboardSearchResult")) {
+      assertEquals(
+          "#/components/schemas/BaseIdentifiableObject",
+          schemas
+              .getObject(owner)
+              .getObject("properties.resources.items")
+              .getString("$ref")
+              .string(),
+          owner);
+    }
   }
 
   @Test
