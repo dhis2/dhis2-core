@@ -29,13 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
-import static org.hisp.dhis.webapi.utils.HeaderUtils.X_CONTENT_TYPE_OPTIONS_VALUE;
-import static org.hisp.dhis.webapi.utils.HeaderUtils.X_XSS_PROTECTION_VALUE;
-
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.tracker.export.FileResourceStream;
@@ -63,21 +58,15 @@ public class RequestHandler {
   private static final CacheControl CACHE_CONTROL_DIRECTIVES =
       CacheControl.noCache().cachePrivate();
 
-  private final DhisConfigurationProvider dhisConfig;
-
   public ResponseEntity<InputStreamResource> serve(
       HttpServletRequest request, FileResourceStream file)
       throws ConflictException, BadRequestException {
     final String etag = file.uid();
-    final String cspHeaders = dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE);
 
     if (ResponseEntityUtils.checkNotModified(etag, request)) {
       return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
           .cacheControl(CACHE_CONTROL_DIRECTIVES)
           .eTag(etag)
-          .header("Content-Security-Policy", cspHeaders)
-          .header("X-Content-Type-Options", X_CONTENT_TYPE_OPTIONS_VALUE)
-          .header("X-XSS-Protection", X_XSS_PROTECTION_VALUE)
           .build();
     }
 
@@ -85,9 +74,6 @@ public class RequestHandler {
     return ResponseEntity.ok()
         .cacheControl(CACHE_CONTROL_DIRECTIVES)
         .eTag(etag)
-        .header("Content-Security-Policy", cspHeaders)
-        .header("X-Content-Type-Options", X_CONTENT_TYPE_OPTIONS_VALUE)
-        .header("X-XSS-Protection", X_XSS_PROTECTION_VALUE)
         .contentType(MediaType.valueOf(file.contentType()))
         .header(
             HttpHeaders.CONTENT_DISPOSITION, ResponseHeader.contentDispositionInline(file.name()))
