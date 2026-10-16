@@ -64,8 +64,6 @@ import org.springframework.util.Assert;
 public class ProgramIndicator extends BaseDataDimensionalItemObject implements MetadataObject {
   public static final String DB_SEPARATOR_ID = "_";
 
-  public static final String SEPARATOR_ID = "\\.";
-
   public static final String KEY_DATAELEMENT = "#";
 
   public static final String KEY_ATTRIBUTE = "A";
