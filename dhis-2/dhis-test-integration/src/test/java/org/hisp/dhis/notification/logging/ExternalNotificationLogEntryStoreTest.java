@@ -42,6 +42,7 @@ import java.util.Map;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.CustomType;
 import org.hibernate.type.EnumType;
 import org.hibernate.type.TextType;
@@ -52,7 +53,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Tests the mapping of {@link ExternalNotificationLogEntry}. */
+/**
+ * Pins the column mapping, types, nullability and caching of {@link ExternalNotificationLogEntry}
+ * through the persister and JDBC, plus the store's key and template uid lookups.
+ */
 @Transactional
 class ExternalNotificationLogEntryStoreTest extends PostgresIntegrationTestBase {
 
@@ -166,6 +170,25 @@ class ExternalNotificationLogEntryStoreTest extends PostgresIntegrationTestBase 
     assertEquals("extNotKey02", notificationLoggingStore.getByKey("keyTwo").getUid());
     assertEquals("extNotKey01", notificationLoggingStore.getByTemplateUid("tmplKey0001").getUid());
     assertNull(notificationLoggingStore.getByKey("unknownKey"));
+  }
+
+  @Test
+  @DisplayName(
+      "a lazy proxy and an entry with the same uid are equal both ways with equal hash codes")
+  void testProxyEqualsEntryWithSameUid() {
+    ExternalNotificationLogEntry saved = entry("extNotPrx01", "proxyKey", "tmplProxy01");
+    notificationLoggingStore.save(saved);
+    entityManager.flush();
+    clearSessionAndSecondLevelCache();
+
+    ExternalNotificationLogEntry proxy =
+        entityManager.getReference(ExternalNotificationLogEntry.class, saved.getId());
+    ExternalNotificationLogEntry other = entry("extNotPrx01", "otherKey", "tmplOther01");
+
+    assertInstanceOf(HibernateProxy.class, proxy);
+    assertEquals(proxy, other);
+    assertEquals(other, proxy);
+    assertEquals(other.hashCode(), proxy.hashCode());
   }
 
   /** Reloads must hit the database, not the second-level cache. */

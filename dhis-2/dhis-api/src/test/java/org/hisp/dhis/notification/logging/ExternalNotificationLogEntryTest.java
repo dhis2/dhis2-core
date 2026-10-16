@@ -51,7 +51,7 @@ class ExternalNotificationLogEntryTest {
   }
 
   @Test
-  void testEntryIsNotEqualToAnotherTypeWithSameUid() {
+  void testEntryIsNotEqualToSubclassWithSameUid() {
     ExternalNotificationLogEntry entry = entry("extNotEqu01", "key", 1);
     ExternalNotificationLogEntry subclass = new ExternalNotificationLogEntry() {};
     subclass.setUid("extNotEqu01");

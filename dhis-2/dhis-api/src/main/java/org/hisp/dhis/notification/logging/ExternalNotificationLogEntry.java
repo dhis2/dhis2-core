@@ -205,6 +205,9 @@ public class ExternalNotificationLogEntry implements IdentifiableObject {
   // hashCode, equals and toString
   // -------------------------------------------------------------------------
 
+  // Same formula as BaseIdentifiableObject. Code and name are always null here, so equality is
+  // effectively by uid and real class.
+
   @Override
   public int hashCode() {
     int result = getUid() != null ? getUid().hashCode() : 0;
