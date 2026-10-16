@@ -196,7 +196,7 @@ public class HibernateDataExportStore implements DataExportStore {
         SELECT DISTINCT ou.organisationunitid
         FROM ou_ids
         JOIN organisationunit root USING (organisationunitid)
-        JOIN organisationunit ou ON ou.path LIKE root.path || '%'
+        JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
       ),
       SELECT
         de.uid AS deid,
