@@ -35,8 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebLocale;
 import org.junit.jupiter.api.AfterEach;
@@ -239,5 +241,89 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("en_IE", dbLocaleElement.getLocale());
     assertEquals("English (Ireland)", dbLocaleElement.getName());
     assertEquals("anglais (Irlande)", dbLocaleElement.getDisplayName());
+  }
+
+  @Test
+  @DisplayName("a db locale is exposed with the same properties as before the JPA mapping")
+  void testGetDbLocaleProperties() {
+    String uid =
+        assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=en&country=IE"));
+
+    JsonObject locale = GET("/locales/dbLocales/{uid}", uid).content(HttpStatus.OK);
+
+    // property set of a created db locale on play/dev before the JPA mapping
+    assertEquals(
+        Set.of(
+            "attributeValues",
+            "created",
+            "displayName",
+            "id",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "locale",
+            "name",
+            "sharing",
+            "translations"),
+        Set.copyOf(locale.names()));
+    assertEquals(uid, locale.getString("id").string());
+    assertEquals("en_IE", locale.getString("locale").string());
+    assertEquals("English (Ireland)", locale.getString("name").string());
+    assertEquals("English (Ireland)", locale.getString("displayName").string());
+    assertEquals(ADMIN_USER_UID, locale.getObject("lastUpdatedBy").getString("id").string());
+    assertTrue(locale.getArray("translations").isEmpty());
+    assertTrue(locale.getArray("attributeValues").isEmpty());
+    assertTrue(locale.getObject("sharing").getObject("users").isEmpty());
+    assertTrue(locale.getObject("sharing").getObject("userGroups").isEmpty());
+  }
+
+  @Test
+  @DisplayName("the db locales list contains a created locale")
+  void testGetDbLocalesWithId() {
+    String uid =
+        assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=en&country=IE"));
+
+    JsonArray locales = GET("/locales/dbLocales").content(HttpStatus.OK);
+
+    assertEquals(1, locales.size());
+    assertEquals(uid, locales.getObject(0).getString("id").string());
+    assertEquals("en_IE", locales.getObject(0).getString("locale").string());
+  }
+
+  @Test
+  @DisplayName("a deleted db locale is no longer found")
+  void testDeleteDbLocale() {
+    String uid =
+        assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=en&country=IE"));
+
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales/" + uid));
+
+    assertStatus(HttpStatus.NOT_FOUND, GET("/locales/dbLocales/{uid}", uid));
+    assertTrue(GET("/locales/dbLocales").content(HttpStatus.OK).isEmpty());
+  }
+
+  @Test
+  @DisplayName("the OpenAPI I18nLocale schema has the same properties as before the JPA mapping")
+  void testOpenApiI18nLocaleProperties() {
+    JsonObject doc = GET("/openapi/openapi.json?scope=path:/api/locales").content(HttpStatus.OK);
+    JsonObject properties = doc.getObject("components.schemas.I18nLocale.properties");
+
+    // I18nLocale schema properties on play/dev before the JPA mapping
+    assertEquals(
+        Set.of(
+            "access",
+            "attributeValues",
+            "code",
+            "created",
+            "createdBy",
+            "displayName",
+            "href",
+            "id",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "locale",
+            "name",
+            "sharing",
+            "translations"),
+        Set.copyOf(properties.names()));
   }
 }
