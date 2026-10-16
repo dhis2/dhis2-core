@@ -59,6 +59,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType;
+import org.hisp.dhis.hibernate.jsonb.type.SharingJsonBinaryType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -210,6 +211,9 @@ class TrackedEntityFilterStoreTest extends PostgresIntegrationTestBase {
     assertJsonType(JsonBinaryType.class, ObjectStyle.class, "style");
     assertJsonType(JsonListBinaryType.class, EventFilter.class, "eventFilters");
     assertJsonType(JsonBinaryType.class, EntityQueryCriteria.class, "entityQueryCriteria");
+    assertInstanceOf(
+        SharingJsonBinaryType.class,
+        assertInstanceOf(CustomType.class, persister().getPropertyType("sharing")).getUserType());
   }
 
   @Test

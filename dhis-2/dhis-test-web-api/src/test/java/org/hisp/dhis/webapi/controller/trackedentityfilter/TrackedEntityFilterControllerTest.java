@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.http.HttpStatus;
@@ -85,6 +86,36 @@ class TrackedEntityFilterControllerTest extends PostgresControllerIntegrationTes
       "[{\"programStage\":\"NpsdDv6kKSO\",\"eventStatus\":\"%s\","
           + "\"eventCreatedPeriod\":{\"periodFrom\":-10,\"periodTo\":10},"
           + "\"assignedUserMode\":\"PROVIDED\",\"assignedUsers\":[\"tTgjgobT1oS\"]}]";
+
+  /**
+   * The properties of a tracked entity filter except translations, which the schema names
+   * "translation" and the JSON names "translations".
+   */
+  private static final Set<String> PROPERTIES_WITHOUT_TRANSLATIONS =
+      Set.of(
+          "access",
+          "attributeValues",
+          "code",
+          "created",
+          "createdBy",
+          "description",
+          "displayDescription",
+          "displayName",
+          "enrollmentCreatedPeriod",
+          "enrollmentStatus",
+          "entityQueryCriteria",
+          "eventFilters",
+          "followup",
+          "href",
+          "id",
+          "lastUpdated",
+          "lastUpdatedBy",
+          "name",
+          "program",
+          "sharing",
+          "sortOrder",
+          "style",
+          "user");
 
   @Autowired private TestSetup testSetup;
   @Autowired private IdentifiableObjectManager manager;
@@ -303,17 +334,12 @@ class TrackedEntityFilterControllerTest extends PostgresControllerIntegrationTes
   void shouldUpdateTrackedEntityFilterWhenExportedFilterWithChangesIsPut() {
     importMetadata(fullFilter("TEF_A", "Imported filter", "createdAt:desc"));
     String exported = getFilter(IMPORTED_UID).toJson();
-    assertTrue(exported.contains("\"name\":\"Imported filter\""), exported);
-    assertTrue(exported.contains("\"order\":\"createdAt:desc\""), exported);
-    assertTrue(exported.contains("\"eventStatus\":\"SCHEDULE\""), exported);
-    assertTrue(exported.contains("\"sortOrder\":3"), exported);
     String changed =
-        exported
-            .replace("\"name\":\"Imported filter\"", "\"name\":\"Changed filter\"")
-            .replace("\"order\":\"createdAt:desc\"", "\"order\":\"updatedAt:asc\"")
-            .replace("\"eventStatus\":\"SCHEDULE\"", "\"eventStatus\":\"OVERDUE\"")
-            .replace("\"sortOrder\":3", "\"sortOrder\":4")
-            .replace("\"value\":\"Filtre\"", "\"value\":\"Filtre change\"");
+        replace(exported, "\"name\":\"Imported filter\"", "\"name\":\"Changed filter\"");
+    changed = replace(changed, "\"order\":\"createdAt:desc\"", "\"order\":\"updatedAt:asc\"");
+    changed = replace(changed, "\"eventStatus\":\"SCHEDULE\"", "\"eventStatus\":\"OVERDUE\"");
+    changed = replace(changed, "\"sortOrder\":3", "\"sortOrder\":4");
+    changed = replace(changed, "\"value\":\"Filtre\"", "\"value\":\"Filtre change\"");
 
     assertStatus(HttpStatus.OK, PUT("/trackedEntityInstanceFilters/" + IMPORTED_UID, changed));
 
@@ -335,33 +361,7 @@ class TrackedEntityFilterControllerTest extends PostgresControllerIntegrationTes
 
     JsonObject filter = getFilter(IMPORTED_UID);
 
-    assertEquals(
-        Set.of(
-            "access",
-            "attributeValues",
-            "code",
-            "created",
-            "createdBy",
-            "description",
-            "displayDescription",
-            "displayName",
-            "enrollmentCreatedPeriod",
-            "enrollmentStatus",
-            "entityQueryCriteria",
-            "eventFilters",
-            "followup",
-            "href",
-            "id",
-            "lastUpdated",
-            "lastUpdatedBy",
-            "name",
-            "program",
-            "sharing",
-            "sortOrder",
-            "style",
-            "translations",
-            "user"),
-        Set.copyOf(filter.names()));
+    assertEquals(withTranslationKey("translations"), Set.copyOf(filter.names()));
     assertTrue(
         filter
             .getString("href")
@@ -393,33 +393,7 @@ class TrackedEntityFilterControllerTest extends PostgresControllerIntegrationTes
       }
     }
 
-    assertEquals(
-        Set.of(
-            "access",
-            "attributeValues",
-            "code",
-            "created",
-            "createdBy",
-            "description",
-            "displayDescription",
-            "displayName",
-            "enrollmentCreatedPeriod",
-            "enrollmentStatus",
-            "entityQueryCriteria",
-            "eventFilters",
-            "followup",
-            "href",
-            "id",
-            "lastUpdated",
-            "lastUpdatedBy",
-            "name",
-            "program",
-            "sharing",
-            "sortOrder",
-            "style",
-            "translation",
-            "user"),
-        names);
+    assertEquals(withTranslationKey("translation"), names);
     assertEquals(
         Set.of(
             "code",
@@ -479,6 +453,18 @@ class TrackedEntityFilterControllerTest extends PostgresControllerIntegrationTes
         }]}
         """
         .formatted(IMPORTED_UID, code, name, programId, order, trackedEntityAttributeId);
+  }
+
+  /** Replaces the single occurrence of {@code from}, failing if it does not occur exactly once. */
+  private static String replace(String json, String from, String to) {
+    assertEquals(1, json.split(Pattern.quote(from), -1).length - 1, () -> from + " in " + json);
+    return json.replace(from, to);
+  }
+
+  private static Set<String> withTranslationKey(String translationKey) {
+    Set<String> names = new TreeSet<>(PROPERTIES_WITHOUT_TRANSLATIONS);
+    names.add(translationKey);
+    return names;
   }
 
   private void importMetadata(String metadata) {
