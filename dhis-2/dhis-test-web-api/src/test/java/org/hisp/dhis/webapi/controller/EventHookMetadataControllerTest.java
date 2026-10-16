@@ -35,9 +35,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManagerFactory;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
+import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
+import org.hisp.dhis.eventhook.EventHook;
+import org.hisp.dhis.eventhook.EventHookSecretManager;
+import org.hisp.dhis.eventhook.Target;
+import org.hisp.dhis.eventhook.targets.JmsTarget;
+import org.hisp.dhis.eventhook.targets.KafkaTarget;
+import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -62,6 +71,32 @@ class EventHookMetadataControllerTest extends PostgresControllerIntegrationTestB
   private static final String JMS_PASSWORD = "Jms-secret-456";
 
   private static final String KAFKA_PASSWORD = "Kafka-secret-789";
+
+  /**
+   * The properties an event hook exposes, except translations, which the schema names {@code
+   * translation} and the JSON output {@code translations}.
+   */
+  private static final Set<String> PROPERTIES =
+      Set.of(
+          "access",
+          "attributeValues",
+          "code",
+          "created",
+          "createdBy",
+          "description",
+          "disabled",
+          "displayName",
+          "href",
+          "id",
+          "lastUpdated",
+          "lastUpdatedBy",
+          "name",
+          "sharing",
+          "source",
+          "targets",
+          "user");
+
+  @Autowired private EventHookSecretManager secretManager;
 
   @Autowired private EntityManagerFactory entityManagerFactory;
 
@@ -147,7 +182,7 @@ class EventHookMetadataControllerTest extends PostgresControllerIntegrationTestB
   }
 
   @Test
-  void testTargetSecretsAreNotStoredInPlaintext() {
+  void testTargetSecretsAreStoredEncrypted() {
     importSecretsHook();
     startNewRequestSession();
 
@@ -160,39 +195,31 @@ class EventHookMetadataControllerTest extends PostgresControllerIntegrationTestB
                 + " from eventhook where uid = ?",
             SECRETS_UID);
     assertEquals("admin", row.get("username"));
-    assertEncrypted(BASIC_PASSWORD, row.get("basic"));
-    assertEncrypted(API_TOKEN, row.get("token"));
-    assertEncrypted(JMS_PASSWORD, row.get("jms"));
-    assertEncrypted(KAFKA_PASSWORD, row.get("kafka"));
+    assertNotPlaintext(BASIC_PASSWORD, row.get("basic"));
+    assertNotPlaintext(API_TOKEN, row.get("token"));
+    assertNotPlaintext(JMS_PASSWORD, row.get("jms"));
+    assertNotPlaintext(KAFKA_PASSWORD, row.get("kafka"));
+
+    EventHook eventHook = manager.get(EventHook.class, SECRETS_UID);
+    entityManager.detach(eventHook);
+    secretManager.decrypt(eventHook);
+    List<Target> targets = eventHook.getTargets();
+    assertEquals(
+        BASIC_PASSWORD,
+        ((HttpBasicAuthScheme) ((WebhookTarget) targets.get(0)).getAuth()).getPassword());
+    assertEquals(
+        API_TOKEN, ((ApiTokenAuthScheme) ((WebhookTarget) targets.get(1)).getAuth()).getToken());
+    assertEquals(JMS_PASSWORD, ((JmsTarget) targets.get(2)).getPassword());
+    assertEquals(KAFKA_PASSWORD, ((KafkaTarget) targets.get(3)).getPassword());
   }
 
-  /** The keys of an exported event hook, as on a pre-migration build. */
+  /** Pins the exported keys of an event hook. */
   @Test
   void testExportedProperties() {
     importMetadata(webhookHook("HOOK_A", "Hook A", "First", false, "id,name"));
 
     JsonObject eventHook = getEventHook(HOOK_UID);
-    assertEquals(
-        Set.of(
-            "access",
-            "attributeValues",
-            "code",
-            "created",
-            "createdBy",
-            "description",
-            "disabled",
-            "displayName",
-            "href",
-            "id",
-            "lastUpdated",
-            "lastUpdatedBy",
-            "name",
-            "sharing",
-            "source",
-            "targets",
-            "translations",
-            "user"),
-        Set.copyOf(eventHook.names()));
+    assertEquals(withProperty("translations"), Set.copyOf(eventHook.names()));
     assertTrue(
         eventHook.getString("href").string().endsWith("/eventHooks/" + HOOK_UID),
         eventHook.getString("href").string());
@@ -200,7 +227,7 @@ class EventHookMetadataControllerTest extends PostgresControllerIntegrationTestB
     assertTrue(eventHook.getObject("sharing").has("public"));
   }
 
-  /** Same property set, persisted and required properties as on play/dev before the migration. */
+  /** Pins the schema's property, persisted and required sets. */
   @Test
   void testSchemaProperties() {
     JsonObject schema = GET("/schemas/eventHook").content(HttpStatus.OK);
@@ -220,27 +247,7 @@ class EventHookMetadataControllerTest extends PostgresControllerIntegrationTestB
       }
     }
 
-    assertEquals(
-        Set.of(
-            "access",
-            "attributeValues",
-            "code",
-            "created",
-            "createdBy",
-            "description",
-            "disabled",
-            "displayName",
-            "href",
-            "id",
-            "lastUpdated",
-            "lastUpdatedBy",
-            "name",
-            "sharing",
-            "source",
-            "targets",
-            "translation",
-            "user"),
-        names);
+    assertEquals(withProperty("translation"), names);
     assertEquals(
         Set.of(
             "attributeValues",
@@ -273,7 +280,11 @@ class EventHookMetadataControllerTest extends PostgresControllerIntegrationTestB
         .formatted(HOOK_UID, code, name, description, disabled, fields);
   }
 
-  /** The JMS and Kafka targets are disabled so that no broker connection is configured. */
+  /**
+   * Imports a hook with a secret on each target type. The hook is disabled because {@code
+   * EventHookListener} reloads synchronously on import and skips disabled hooks, so no JMS or Kafka
+   * client is created. The secrets are encrypted on import whether or not the hook is disabled.
+   */
   private void importSecretsHook() {
     importMetadata(
         ("{'eventHooks':[{'id':'%s','name':'Secrets hook','disabled':true,"
@@ -287,7 +298,13 @@ class EventHookMetadataControllerTest extends PostgresControllerIntegrationTestB
             .formatted(SECRETS_UID, BASIC_PASSWORD, API_TOKEN, JMS_PASSWORD, KAFKA_PASSWORD));
   }
 
-  private static void assertEncrypted(String plaintext, Object stored) {
+  private static Set<String> withProperty(String translationsName) {
+    Set<String> names = new TreeSet<>(PROPERTIES);
+    names.add(translationsName);
+    return names;
+  }
+
+  private static void assertNotPlaintext(String plaintext, Object stored) {
     String value = (String) stored;
     assertFalse(value == null || value.isBlank(), "secret is not stored");
     assertFalse(value.contains(plaintext), value);
