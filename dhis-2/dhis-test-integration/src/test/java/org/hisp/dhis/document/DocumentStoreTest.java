@@ -122,9 +122,9 @@ class DocumentStoreTest extends PostgresIntegrationTestBase {
     assertEquals("DOC_A", row.get("code"));
     assertEquals("Document A", row.get("name"));
     assertEquals(fileResource.getUid(), row.get("url"));
-    assertEquals(false, row.get("external"));
+    assertFalse((Boolean) row.get("external"));
     assertEquals("text/plain", row.get("contenttype"));
-    assertEquals(true, row.get("attachment"));
+    assertTrue((Boolean) row.get("attachment"));
     assertEquals(fileResource.getId(), ((Number) row.get("fileresource")).longValue());
     assertTrue(((String) row.get("translations")).contains("\"Document FR\""));
     assertEquals("value A", row.get("attributevalue"));
@@ -157,9 +157,9 @@ class DocumentStoreTest extends PostgresIntegrationTestBase {
             "select url, external, fileresource, attachment from document where documentid = ?",
             document.getId());
     assertEquals("https://example.org/doc", row.get("url"));
-    assertEquals(true, row.get("external"));
+    assertTrue((Boolean) row.get("external"));
     assertNull(row.get("fileresource"));
-    assertEquals(false, row.get("attachment"));
+    assertFalse((Boolean) row.get("attachment"));
 
     Document reloaded = reload(document);
     assertTrue(reloaded.isExternal());
