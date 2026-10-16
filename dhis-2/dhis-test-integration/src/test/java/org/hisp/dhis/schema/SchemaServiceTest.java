@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
+import java.util.List;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -43,6 +44,7 @@ import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.option.OptionGroup;
@@ -222,5 +224,16 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     Property property = schema.getProperty("dimensionItemType");
     assertNotNull(property, "dimensionItemType is not a property of " + klass.getSimpleName());
     assertTrue(property.isReadable());
+  }
+
+  /** Indicator types must be imported before the indicators that reference them. */
+  @Test
+  void testIndicatorTypeIsImportedBeforeIndicator() {
+    Schema type = schemaService.getSchema(IndicatorType.class);
+    Schema indicator = schemaService.getSchema(Indicator.class);
+    List<Schema> schemas = schemaService.getMetadataSchemas();
+
+    assertTrue(type.getOrder() < indicator.getOrder());
+    assertTrue(schemas.indexOf(type) < schemas.indexOf(indicator));
   }
 }
