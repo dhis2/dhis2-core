@@ -74,10 +74,27 @@ class ProgramStageWorkingListTest {
     assertNotEquals(workingList("Description"), other);
   }
 
+  /** ProgramStageQueryCriteria has no equals, so two criteria instances never compare equal. */
   @Test
-  void notEqualsWhenQueryCriteriaDiffers() {
+  void notEqualsWhenQueryCriteriaIsAnotherInstanceWithSameContent() {
     ProgramStageWorkingList other = workingList("Description");
     other.setProgramStageQueryCriteria(new ProgramStageQueryCriteria());
+
+    assertNotEquals(workingList("Description"), other);
+  }
+
+  @Test
+  void notEqualsWhenCodeDiffers() {
+    ProgramStageWorkingList other = workingList("Description");
+    other.setCode("CODE_B");
+
+    assertNotEquals(workingList("Description"), other);
+  }
+
+  @Test
+  void notEqualsWhenNameDiffers() {
+    ProgramStageWorkingList other = workingList("Description");
+    other.setName("Other working list");
 
     assertNotEquals(workingList("Description"), other);
   }

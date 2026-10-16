@@ -67,7 +67,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.TranslationProperty;
@@ -89,8 +88,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Table(name = "programstageworkinglist")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "programStageWorkingList", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramStageWorkingList extends BaseMetadataObject
-    implements IdentifiableObject, MetadataObject {
+public class ProgramStageWorkingList extends BaseMetadataObject implements IdentifiableObject {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
