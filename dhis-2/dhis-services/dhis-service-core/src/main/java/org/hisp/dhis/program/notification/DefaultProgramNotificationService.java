@@ -377,6 +377,13 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
       ProgramNotificationTemplate template, List<Event> events) {
     MessageBatch batch = new MessageBatch();
 
+    // Web hook templates are dispatched by TrackerNotificationWebHookService, not as program
+    // messages: no batch creator handles their HTTP channel, so they would only be persisted as
+    // recipient-less messages.
+    if (template.getNotificationRecipient() == ProgramNotificationRecipient.WEB_HOOK) {
+      return batch;
+    }
+
     if (template.getNotificationRecipient().isExternalRecipient()) {
       batch.programMessages.addAll(
           events.stream()
@@ -395,6 +402,13 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
   private MessageBatch createEnrollmentMessageBatch(
       ProgramNotificationTemplate template, List<Enrollment> enrollments) {
     MessageBatch batch = new MessageBatch();
+
+    // Web hook templates are dispatched by TrackerNotificationWebHookService, not as program
+    // messages: no batch creator handles their HTTP channel, so they would only be persisted as
+    // recipient-less messages.
+    if (template.getNotificationRecipient() == ProgramNotificationRecipient.WEB_HOOK) {
+      return batch;
+    }
 
     if (template.getNotificationRecipient().isExternalRecipient()) {
       batch.programMessages.addAll(

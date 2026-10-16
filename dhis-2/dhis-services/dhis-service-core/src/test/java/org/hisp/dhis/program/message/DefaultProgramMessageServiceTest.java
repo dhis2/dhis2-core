@@ -30,6 +30,9 @@ package org.hisp.dhis.program.message;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +48,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.SmsMessageBatchCreatorService;
@@ -58,6 +62,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Unit tests for {@link DefaultProgramMessageService#sendMessages(List)}, focusing on how delivery
@@ -203,6 +208,30 @@ class DefaultProgramMessageServiceTest {
     verify(messageBatchService).sendBatches(batchCaptor.capture());
     List<OutboundMessageBatch> batches = batchCaptor.getValue();
     assertEquals(2, batches.size(), "both the SMS and EMAIL batches should be sent");
+  }
+
+  @Test
+  void shouldSaveMessagesWithoutAuthenticatedUser() {
+    // Notifications are sent from async listeners which have no security context, so persisting
+    // the sent message must not depend on the current user.
+    SecurityContextHolder.clearContext();
+
+    OrganisationUnit orgUnit = orgUnitContact(OU_EMAIL, null);
+    ProgramMessage message = orgUnitContactMessage(orgUnit, DeliveryChannel.EMAIL);
+    Event event = new Event();
+    event.setUid("EventUid001");
+    message.setEvent(event);
+
+    when(organisationUnitService.getOrganisationUnit(OU_UID)).thenReturn(orgUnit);
+    when(messageBatchService.sendBatches(anyList())).thenReturn(List.of());
+    when(manager.getNoAcl(Event.class, event.getUid())).thenReturn(event);
+
+    service.sendMessages(new ArrayList<>(List.of(message)));
+
+    verify(manager, never()).get(eq(Event.class), anyString());
+    verify(programMessageStore).save(message);
+    assertEquals(event, message.getEvent());
+    assertEquals(ProgramMessageStatus.SENT, message.getMessageStatus());
   }
 
   private static OutboundMessageBatch getBatch(
