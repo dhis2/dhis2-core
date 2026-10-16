@@ -31,6 +31,16 @@ package org.hisp.dhis.reservedvalue;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedNativeQuery;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
@@ -45,6 +55,22 @@ import org.hisp.dhis.common.DxfNamespaces;
 /**
  * @author Stian Sandvold
  */
+@Entity
+@Table(name = "reservedvalue")
+@NamedNativeQuery(
+    name = ReservedValue.NOT_AVAILABLE_VALUES_QUERY,
+    query =
+        """
+        SELECT LOWER(value) FROM trackedentityattributevalue teav
+        WHERE teav.trackedentityattributeid = :teaId
+        and LOWER(teav.value) in (:values)
+        UNION
+        SELECT LOWER(value) FROM reservedvalue rv
+        WHERE rv.ownerObject = :ownerObject
+        and rv.ownerUid = :ownerUid
+        and rv.key = :key
+        and LOWER(rv.value) in (:values)
+        """)
 @Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor
@@ -54,18 +80,40 @@ public class ReservedValue implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 334738541365949298L;
 
+  /**
+   * Native query returning the lower-cased values among {@code :values} that are already used by
+   * the tracked entity attribute {@code :teaId} or reserved for the owner and key.
+   */
+  public static final String NOT_AVAILABLE_VALUES_QUERY =
+      "getRandomGeneratedValuesNotAvailableNamedQuery";
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "reservedvalue_sequence")
+  @SequenceGenerator(
+      name = "reservedvalue_sequence",
+      sequenceName = "reservedvalue_sequence",
+      allocationSize = 1)
+  @Column(name = "reservedvalueid")
   private int id;
 
+  @Column(name = "ownerobject")
   private String ownerObject;
 
+  @Column(name = "owneruid")
   private String ownerUid;
 
+  @Column(name = "key")
   private String key;
 
+  @Column(name = "value")
   private String value;
 
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "created", nullable = false)
   private Date created;
 
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "expirydate", nullable = false)
   private Date expiryDate;
 
   private transient long trackedEntityAttributeId;
