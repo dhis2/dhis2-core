@@ -29,14 +29,31 @@
  */
 package org.hisp.dhis.version;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 /**
  * @author mortenoh
  */
+@Entity
+@Table(name = "version")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Version {
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "versionid")
   private long id;
 
+  @Column(name = "versionkey", nullable = false, unique = true, length = 230)
   private String key;
 
+  @Column(name = "versionvalue")
   private String value;
 
   // -------------------------------------------------------------------------
