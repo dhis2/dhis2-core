@@ -120,7 +120,7 @@ class TrackedEntityFilterServiceTest extends PostgresIntegrationTestBase {
   void testDefaultPrivateAccess() {
     long idA = trackedEntityFilterService.add(createTrackedEntityFilter('A', programA));
     TrackedEntityFilter trackedEntityFilterA = trackedEntityFilterService.get(idA);
-    assertEquals(trackedEntityFilterA.getPublicAccess(), AccessStringHelper.DEFAULT);
+    assertEquals(trackedEntityFilterA.getSharing().getPublicAccess(), AccessStringHelper.DEFAULT);
   }
 
   @Test
