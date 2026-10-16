@@ -100,9 +100,10 @@ public class CategoryOptionCombo extends BaseDimensionalItemObject
         || obj instanceof CategoryOptionCombo && objectEquals((CategoryOptionCombo) obj);
   }
 
+  /** Uses the other object's getters (not fields) so a proxy compares correctly. */
   private boolean objectEquals(CategoryOptionCombo other) {
-    return Objects.equals(categoryCombo, other.categoryCombo)
-        && Objects.equals(categoryOptions, other.categoryOptions);
+    return Objects.equals(categoryCombo, other.getCategoryCombo())
+        && Objects.equals(categoryOptions, other.getCategoryOptions());
   }
 
   @Override
