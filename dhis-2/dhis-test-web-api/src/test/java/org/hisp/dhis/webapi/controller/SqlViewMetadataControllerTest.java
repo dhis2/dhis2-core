@@ -157,6 +157,22 @@ class SqlViewMetadataControllerTest extends PostgresControllerIntegrationTestBas
     assertEquals("QUERY", rows.getArray(0).getString(1).string());
   }
 
+  @Test
+  void testDataOfExecutedMaterializedView() {
+    importMetadata(
+        ("{'sqlViews':[{'id':'%s','name':'Materialized A','type':'MATERIALIZED_VIEW',"
+                + "'sqlQuery':'select name, type from sqlview'}]}")
+            .formatted(VIEW_UID));
+    startNewRequestSession();
+    assertStatus(HttpStatus.CREATED, POST("/sqlViews/" + VIEW_UID + "/execute"));
+
+    JsonObject data = GET("/sqlViews/" + VIEW_UID + "/data").content(HttpStatus.OK);
+    JsonArray rows = data.getObject("listGrid").getArray("rows");
+    assertEquals(1, rows.size());
+    assertEquals("Materialized A", rows.getArray(0).getString(0).string());
+    assertEquals("MATERIALIZED_VIEW", rows.getArray(0).getString(1).string());
+  }
+
   /** The keys of an exported view, with href and access set by the web layer. */
   @Test
   void testExportedProperties() {
@@ -193,7 +209,7 @@ class SqlViewMetadataControllerTest extends PostgresControllerIntegrationTestBas
     assertTrue(sqlView.getObject("access").getBoolean("read").booleanValue());
   }
 
-  /** Same properties, persisted properties and property types as before the migration. */
+  /** Pins the property names, persisted properties, lengths and required flags of the schema. */
   @Test
   void testSchemaProperties() {
     JsonObject schema = GET("/schemas/sqlView").content(HttpStatus.OK);

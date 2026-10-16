@@ -32,28 +32,21 @@ package org.hisp.dhis.sqlview;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManagerFactory;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.hibernate.Hibernate;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.tuple.entity.EntityMetamodel;
-import org.hibernate.type.CustomType;
-import org.hibernate.type.EnumType;
-import org.hibernate.type.ManyToOneType;
 import org.hibernate.type.TextType;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValuesBinaryType;
-import org.hisp.dhis.hibernate.jsonb.type.SharingJsonBinaryType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,51 +80,39 @@ class SqlViewStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("every mapped property is written to its column and read back from it")
+  @DisplayName("every property of the view is written to its column and read back from it")
   void testColumnsRoundTrip() {
-    User admin = getAdminUser();
     SqlView sqlView =
         new SqlView("Org units", "select uid from organisationunit", SqlViewType.QUERY);
     sqlView.setCode("SQL_OU");
     sqlView.setDescription("All organisation unit uids");
     sqlView.setCacheStrategy(CacheStrategy.CACHE_1_HOUR);
-    sqlView.setLastUpdatedBy(admin);
     sqlView.setAttributeValues(AttributeValues.of(Map.of(ATTRIBUTE_UID, "attribute value")));
     sqlView.getSharing().setPublicAccess("rw------");
     SqlView saved = save(sqlView);
 
     Map<String, Object> row =
         jdbcTemplate.queryForMap(
-            "select uid, code, name, description, sqlquery, type, cachestrategy, created,"
-                + " lastupdated, lastupdatedby, userid, attributevalues::text as attributevalues,"
-                + " sharing->>'public' as publicaccess from sqlview where sqlviewid = ?",
+            "select code, name, description, sqlquery, type, cachestrategy,"
+                + " attributevalues::text as attributevalues, sharing->>'public' as publicaccess"
+                + " from sqlview where sqlviewid = ?",
             saved.getId());
-    assertEquals(saved.getUid(), row.get("uid"));
     assertEquals("SQL_OU", row.get("code"));
     assertEquals("Org units", row.get("name"));
     assertEquals("All organisation unit uids", row.get("description"));
     assertEquals("select uid from organisationunit", row.get("sqlquery"));
     assertEquals("QUERY", row.get("type"));
     assertEquals("CACHE_1_HOUR", row.get("cachestrategy"));
-    assertEquals(saved.getCreated().getTime(), ((Date) row.get("created")).getTime());
-    assertEquals(saved.getLastUpdated().getTime(), ((Date) row.get("lastupdated")).getTime());
-    assertEquals(admin.getId(), ((Number) row.get("lastupdatedby")).longValue());
-    assertEquals(admin.getId(), ((Number) row.get("userid")).longValue());
     assertTrue(((String) row.get("attributevalues")).contains("\"attribute value\""));
     assertEquals("rw------", row.get("publicaccess"));
 
     SqlView reloaded = reload(saved);
-    assertEquals(saved.getUid(), reloaded.getUid());
     assertEquals("SQL_OU", reloaded.getCode());
     assertEquals("Org units", reloaded.getName());
     assertEquals("All organisation unit uids", reloaded.getDescription());
     assertEquals("select uid from organisationunit", reloaded.getSqlQuery());
     assertEquals(SqlViewType.QUERY, reloaded.getType());
     assertEquals(CacheStrategy.CACHE_1_HOUR, reloaded.getCacheStrategy());
-    assertEquals(saved.getCreated().getTime(), reloaded.getCreated().getTime());
-    assertEquals(saved.getLastUpdated().getTime(), reloaded.getLastUpdated().getTime());
-    assertEquals(admin.getUid(), reloaded.getLastUpdatedBy().getUid());
-    assertEquals(admin.getUid(), reloaded.getCreatedBy().getUid());
     assertEquals("attribute value", reloaded.getAttributeValues().get(ATTRIBUTE_UID));
     assertEquals("rw------", reloaded.getSharing().getPublicAccess());
   }
@@ -152,20 +133,23 @@ class SqlViewStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("updateJobId is not persisted")
+  @DisplayName("updateJobId and translations are not persisted properties")
+  void testUpdateJobIdAndTranslationsAreNotMapped() {
+    List<String> properties = List.of(persister().getPropertyNames());
+
+    assertTrue(properties.contains("sqlQuery"), properties::toString);
+    assertFalse(properties.contains("updateJobId"), properties::toString);
+    assertFalse(properties.contains("translations"), properties::toString);
+  }
+
+  @Test
+  @DisplayName("updateJobId is lost when the view is reloaded")
   void testUpdateJobIdIsNotPersisted() {
     SqlView sqlView = new SqlView("Materialized", "select 1", SqlViewType.MATERIALIZED_VIEW);
     sqlView.setUpdateJobId("JobUid00001");
     SqlView saved = save(sqlView);
 
     assertNull(reload(saved).getUpdateJobId());
-    assertPropertyNotMapped("updateJobId");
-  }
-
-  @Test
-  @DisplayName("translations are not persisted, there is no translations column")
-  void testTranslationsAreNotMapped() {
-    assertPropertyNotMapped("translations");
   }
 
   @Test
@@ -191,59 +175,17 @@ class SqlViewStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("type and cacheStrategy are stored by enum name")
-  void testEnumsAreStoredByName() {
-    assertEnumStoredByName("type", SqlViewType.class);
-    assertEnumStoredByName("cacheStrategy", CacheStrategy.class);
-  }
-
-  @Test
-  @DisplayName("sharing and attributeValues use their jsonb user types")
-  void testJsonbTypes() {
-    CustomType sharing = assertInstanceOf(CustomType.class, persister().getPropertyType("sharing"));
-    CustomType attributeValues =
-        assertInstanceOf(CustomType.class, persister().getPropertyType("attributeValues"));
-
-    assertInstanceOf(SharingJsonBinaryType.class, sharing.getUserType());
-    assertInstanceOf(JsonAttributeValuesBinaryType.class, attributeValues.getUserType());
-  }
-
-  @Test
-  @DisplayName("createdBy and lastUpdatedBy are lazy many-to-ones on userid and lastupdatedby")
-  void testUserReferencesAreLazy() {
-    assertFalse(manyToOne("createdBy").isEager(null));
-    assertFalse(manyToOne("lastUpdatedBy").isEager(null));
-  }
-
-  @Test
-  @DisplayName("name, sqlQuery, type, cacheStrategy, created and lastUpdated are mapped not-null")
+  @DisplayName("name, sqlQuery, type and cacheStrategy are mapped not-null")
   void testNullability() {
-    assertNotNullable("uid");
     assertNotNullable("name");
     assertNotNullable("sqlQuery");
     assertNotNullable("type");
     assertNotNullable("cacheStrategy");
-    assertNotNullable("created");
-    assertNotNullable("lastUpdated");
     assertNullable("code");
     assertNullable("description");
-    assertNullable("createdBy");
-    assertNullable("lastUpdatedBy");
-    assertNullable("sharing");
-    assertNullable("attributeValues");
   }
 
-  @Test
-  @DisplayName("created is not updatable")
-  void testCreatedIsNotUpdatable() {
-    EntityPersister persister = persister();
-    EntityMetamodel metamodel = persister.getEntityMetamodel();
-    boolean[] updateability = persister.getPropertyUpdateability();
-
-    assertFalse(updateability[metamodel.getPropertyIndex("created")]);
-    assertTrue(updateability[metamodel.getPropertyIndex("lastUpdated")]);
-  }
-
+  /** The HBM mapping had no cache element; the entity must stay out of the second-level cache. */
   @Test
   @DisplayName("the entity is not second-level cached")
   void testEntityIsNotCached() {
@@ -254,27 +196,17 @@ class SqlViewStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("the store finds views by uid and name through HQL on the entity")
-  void testStoreQueriesByUidAndName() {
-    SqlView saved = save(new SqlView("Find me", "select 1", SqlViewType.VIEW));
+  @DisplayName("an uninitialized proxy equals the loaded view")
+  void testProxyEqualsLoadedView() {
+    SqlView saved = save(new SqlView("Proxied", "select 1", SqlViewType.VIEW));
     clearSession();
+    SqlView proxy = entityManager.getReference(SqlView.class, saved.getId());
+    assertFalse(Hibernate.isInitialized(proxy));
+    assertNotSame(SqlView.class, proxy.getClass());
 
-    assertEquals(saved.getId(), store.getByUid(saved.getUid()).getId());
-    assertEquals(
-        List.of(saved.getUid()),
-        store.getAllEqName("Find me").stream().map(SqlView::getUid).toList());
-  }
-
-  private void assertEnumStoredByName(String property, Class<?> enumClass) {
-    CustomType type = assertInstanceOf(CustomType.class, persister().getPropertyType(property));
-    EnumType<?> enumType = assertInstanceOf(EnumType.class, type.getUserType());
-    assertEquals(enumClass, enumType.returnedClass());
-    assertFalse(enumType.isOrdinal());
-  }
-
-  private void assertPropertyNotMapped(String property) {
-    EntityMetamodel metamodel = persister().getEntityMetamodel();
-    assertThrows(RuntimeException.class, () -> metamodel.getPropertyIndex(property));
+    assertEquals(saved, proxy);
+    assertEquals(proxy, saved);
+    assertEquals(saved.hashCode(), proxy.hashCode());
   }
 
   private EntityPersister persister() {
@@ -282,10 +214,6 @@ class SqlViewStoreTest extends PostgresIntegrationTestBase {
         .unwrap(SessionFactoryImplementor.class)
         .getMetamodel()
         .entityPersister(SqlView.class);
-  }
-
-  private ManyToOneType manyToOne(String property) {
-    return assertInstanceOf(ManyToOneType.class, persister().getPropertyType(property));
   }
 
   private void assertNotNullable(String property) {

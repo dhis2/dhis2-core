@@ -104,7 +104,7 @@ class SqlViewTest {
   }
 
   @Test
-  void testEqualsRequiresTheSameRealClass() {
+  void testSubclassInstanceIsNotEqual() {
     SqlView sqlView = sqlView("SqlViewUi01", "CODE", "View");
     SqlView subclass = new SqlView() {};
     subclass.setUid("SqlViewUi01");
