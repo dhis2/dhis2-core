@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostInsertEvent;
@@ -187,7 +188,7 @@ public abstract class AbstractHibernateListener {
       String pName = persister.getPropertyNames()[i];
       Property property = properties.get(pName);
 
-      if (shouldIgnoreProperty(property)) {
+      if (shouldIgnoreProperty(property) || isUnloadedCollection(value)) {
         continue;
       }
 
@@ -254,17 +255,11 @@ public abstract class AbstractHibernateListener {
     if (value == null) return;
 
     if (property.isCollection() && (value instanceof Collection<?> collectionValue)) {
-
-      if (collectionValue.isEmpty()) return;
-
+      // a loaded empty collection is written as [], so a missing key only means "not loaded"
       Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) collectionValue;
 
       if (IdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
-        List<String> uids = IdentifiableObjectUtils.getUids(collection);
-
-        if (uids != null && !uids.isEmpty()) {
-          objectMap.put(property.getFieldName(), uids);
-        }
+        objectMap.put(property.getFieldName(), IdentifiableObjectUtils.getUids(collection));
       } else {
         handleNonIdentifiableCollection(property, value, objectMap);
       }
@@ -292,6 +287,14 @@ public abstract class AbstractHibernateListener {
     }
 
     return true;
+  }
+
+  /**
+   * Rule 2: a collection the request did not load is left out, as loading it here would read every
+   * element from the database (hundreds of thousands for large org unit sets).
+   */
+  private static boolean isUnloadedCollection(Object value) {
+    return value instanceof PersistentCollection collection && !collection.wasInitialized();
   }
 
   /**
