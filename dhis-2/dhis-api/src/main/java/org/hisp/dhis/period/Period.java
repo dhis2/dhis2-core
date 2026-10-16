@@ -59,6 +59,21 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Access;
+import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
@@ -71,6 +86,14 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.OptimisticLock;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -82,6 +105,10 @@ import org.joda.time.Days;
 /**
  * @author Kristian Nordal
  */
+@Entity
+@Table(name = "period")
+@Immutable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "period", namespace = DxfNamespaces.DXF_2_0)
 public class Period implements Serializable {
   public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
@@ -150,11 +177,34 @@ public class Period implements Serializable {
     return (from == null || !sample.isBefore(from)) && (to == null || !sample.isAfter(to));
   }
 
-  @Getter @Setter private long id;
-  @Setter private PeriodType periodType;
-  @Setter private Date startDate;
-  @Setter private Date endDate;
-  private String isoPeriod;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "periodid")
+  @Getter
+  @Setter
+  private long id;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @Fetch(FetchMode.SELECT)
+  @JoinColumn(name = "periodtypeid", foreignKey = @ForeignKey(name = "fk_period_periodtypeid"))
+  @Setter
+  private PeriodType periodType;
+
+  @Temporal(TemporalType.DATE)
+  @Column(name = "startdate", nullable = false)
+  @Setter
+  private Date startDate;
+
+  @Temporal(TemporalType.DATE)
+  @Column(name = "enddate", nullable = false)
+  @Setter
+  private Date endDate;
+
+  /**
+   * The ISO value given at construction. The {@code iso} column is mapped through {@link
+   * #getIsoDate()} instead, so a loaded period derives its ISO value from its type and dates.
+   */
+  @Transient private String isoPeriod;
 
   public Period() {}
 
@@ -179,9 +229,18 @@ public class Period implements Serializable {
   /**
    * Returns an ISO8601 formatted string version of the period.
    *
+   * <p>The read-only {@code iso} mapping only mirrors the former HBM mapping: rows are written
+   * solely by the native SQL in {@code HibernatePeriodStore#save}, which sets {@code iso}. A
+   * Hibernate {@code persist()} would leave out the NOT NULL {@code iso} column and fail, so do not
+   * persist periods through the entity manager.
+   *
    * @return the period string
    */
   @Nonnull
+  @Access(AccessType.PROPERTY)
+  @Column(name = "iso", nullable = false, insertable = false, updatable = false)
+  @Generated(GenerationTime.ALWAYS)
+  @OptimisticLock(excluded = true)
   public String getIsoDate() {
     return isoPeriod != null ? isoPeriod : getPeriodTypeIsoDate();
   }
