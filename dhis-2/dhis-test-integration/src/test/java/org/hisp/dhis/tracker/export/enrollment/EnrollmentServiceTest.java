@@ -41,6 +41,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
@@ -90,7 +91,6 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.test.RelationshipUtils;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -106,8 +106,6 @@ import org.springframework.transaction.annotation.Transactional;
 class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private EnrollmentService enrollmentService;
-
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired protected UserService _userService;
 
@@ -226,7 +224,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeValueA.setAttribute(trackedEntityAttributeA);
     trackedEntityAttributeValueA.setTrackedEntity(trackedEntityA);
     trackedEntityAttributeValueA.setValue("12");
-    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValueA);
+    saveTrackedEntityAttributeValue(entityManager, trackedEntityAttributeValueA);
     trackedEntityA.setTrackedEntityAttributeValues(Set.of(trackedEntityAttributeValueA));
     manager.update(trackedEntityA);
 

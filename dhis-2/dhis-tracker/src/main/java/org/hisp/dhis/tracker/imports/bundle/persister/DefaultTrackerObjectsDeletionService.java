@@ -33,7 +33,6 @@ import static org.hisp.dhis.audit.AuditOperationType.DELETE;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +53,6 @@ import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.RelationshipItem;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstanceParam;
@@ -117,12 +115,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteRelationships(relationships);
 
-      Collection<TrackedEntityAttributeValue> attributeValues =
-          attributeValueService.getTrackedEntityAttributeValues(trackedEntity);
-
-      for (TrackedEntityAttributeValue attributeValue : attributeValues) {
-        attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
-      }
+      attributeValueService.deleteTrackedEntityAttributeValues(trackedEntity);
 
       trackedEntityChangeLogService.deleteTrackedEntityChangeLogs(trackedEntity);
 
