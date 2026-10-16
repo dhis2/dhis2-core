@@ -31,6 +31,7 @@ package org.hisp.dhis.sqlview;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
@@ -85,5 +86,38 @@ class SqlViewTest {
     assertEquals(svD, list.get(3));
     assertEquals(svE, list.get(4));
     assertEquals(svF, list.get(5));
+  }
+
+  @Test
+  void testEqualsAndHashCodeUseUidCodeAndName() {
+    SqlView a = sqlView("SqlViewUi01", "CODE", "View");
+    SqlView b = sqlView("SqlViewUi01", "CODE", "View");
+    b.setSqlQuery("select 2");
+    b.setDescription("Other description");
+    b.setType(SqlViewType.MATERIALIZED_VIEW);
+
+    assertEquals(a, b);
+    assertEquals(a.hashCode(), b.hashCode());
+    assertNotEquals(a, sqlView("SqlViewUi02", "CODE", "View"));
+    assertNotEquals(a, sqlView("SqlViewUi01", "OTHER", "View"));
+    assertNotEquals(a, sqlView("SqlViewUi01", "CODE", "Other view"));
+  }
+
+  @Test
+  void testEqualsRequiresTheSameRealClass() {
+    SqlView sqlView = sqlView("SqlViewUi01", "CODE", "View");
+    SqlView subclass = new SqlView() {};
+    subclass.setUid("SqlViewUi01");
+    subclass.setCode("CODE");
+    subclass.setName("View");
+
+    assertNotEquals(sqlView, subclass);
+  }
+
+  private static SqlView sqlView(String uid, String code, String name) {
+    SqlView sqlView = new SqlView(name, "select 1", SqlViewType.QUERY);
+    sqlView.setUid(uid);
+    sqlView.setCode(code);
+    return sqlView;
   }
 }
