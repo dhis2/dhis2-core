@@ -586,7 +586,7 @@ public class CategoryOptionCombo
     for (Collection<CategoryOption> options : optionsPerCategory) {
       for (CategoryOption option : cocOptions) {
         if (options.contains(option)) {
-          builder.append(option.getDisplayName()).append(", ");
+          builder.append(option.getName()).append(", ");
         }
       }
     }
