@@ -120,6 +120,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -178,6 +179,9 @@ public class DataHandler {
   private static final int MAX_QUERIES = 8;
 
   private static final int PERCENT = 100;
+
+  /** Indicator computations of at least this many values are logged with their duration. */
+  private static final long LOG_INDICATOR_VALUES_MIN = 10_000;
 
   private final EventAggregateService eventAggregatedService;
 
@@ -308,26 +312,25 @@ public class DataHandler {
    * @param permutations the number of dimension item permutations.
    * @param indicatorCount the number of indicators.
    * @param maxIndicatorValues the max number of indicator values, 0 means unlimited.
+   * @param dimensions describes the permuted dimensions for the log, only called on rejection.
    * @throws IllegalQueryException if the max is exceeded.
    */
   static void checkIndicatorPermutationLimit(
-      long permutations, int indicatorCount, int maxIndicatorValues) {
+      long permutations, int indicatorCount, int maxIndicatorValues, Supplier<String> dimensions) {
     if (maxIndicatorValues <= 0 || indicatorCount <= 0) {
       return;
     }
 
-    long indicatorValues =
-        permutations > Long.MAX_VALUE / indicatorCount
-            ? Long.MAX_VALUE
-            : permutations * indicatorCount;
+    long indicatorValues = multiplySaturated(permutations, indicatorCount);
 
     if (indicatorValues > maxIndicatorValues) {
       log.warn(
-          "Analytics query rejected, would compute {} indicator values ({} permutations x {} indicators), max is {}",
+          "Analytics query rejected, would compute {} indicator values ({} permutations x {} indicators), max is {}, dimensions: {}",
           indicatorValues,
           permutations,
           indicatorCount,
-          maxIndicatorValues);
+          maxIndicatorValues,
+          dimensions.get());
 
       throwIllegalQueryEx(E7153, indicatorValues, maxIndicatorValues);
     }
@@ -338,10 +341,15 @@ public class DataHandler {
       DataQueryParams dataSourceParams,
       List<Indicator> indicators,
       Grid grid) {
+    long permutations = dataSourceParams.countDimensionItemPermutations();
+
     checkIndicatorPermutationLimit(
-        dataSourceParams.countDimensionItemPermutations(),
+        permutations,
         indicators.size(),
-        settingsProvider.getCurrentSettings().getAnalyticsMaxIndicatorPermutations());
+        settingsProvider.getCurrentSettings().getAnalyticsMaxIndicatorPermutations(),
+        () -> describeDimensionItemCounts(dataSourceParams));
+
+    long startNanos = System.nanoTime();
 
     // Try to get filters periods from dimension (pe), or else fall back
     // to "startDate/endDate" periods
@@ -383,6 +391,35 @@ public class DataHandler {
             dataQueryParams, grid, dataSourceParams, indicator, dimensionItems, value);
       }
     }
+
+    long indicatorValues = multiplySaturated(permutations, indicators.size());
+
+    if (indicatorValues >= LOG_INDICATOR_VALUES_MIN) {
+      log.info(
+          "Analytics indicator values: {} ({} permutations x {} indicators) in {} ms, dimensions: {}",
+          indicatorValues,
+          permutations,
+          indicators.size(),
+          (System.nanoTime() - startNanos) / 1_000_000,
+          describeDimensionItemCounts(dataSourceParams));
+    }
+  }
+
+  /** Returns {@code a * b} for non-negative values, or {@link Long#MAX_VALUE} on overflow. */
+  private static long multiplySaturated(long a, int b) {
+    return b > 0 && a > Long.MAX_VALUE / b ? Long.MAX_VALUE : a * b;
+  }
+
+  /**
+   * Describes the dimensions which are permuted for indicator values, as dimension identifier and
+   * number of items, e.g. {@code ou=37 pe=12 Ao6D1EaxLEI=6}.
+   */
+  static String describeDimensionItemCounts(DataQueryParams params) {
+    return params.getDimensions().stream()
+        .filter(d -> !DATA_X_DIM_ID.equals(d.getDimension()))
+        .filter(d -> !CATEGORYOPTIONCOMBO_DIM_ID.equals(d.getDimension()))
+        .map(d -> d.getDimension() + "=" + d.getItems().size())
+        .collect(Collectors.joining(" "));
   }
 
   /**

@@ -30,8 +30,10 @@
 package org.hisp.dhis.analytics.data.handler;
 
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
+import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_COMBO;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType.AOC_ONLY;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType.COC_ONLY;
@@ -201,7 +203,7 @@ class DataHandlerTest {
 
   @Test
   void testCheckIndicatorPermutationLimitAllowsUpToMax() {
-    assertDoesNotThrow(() -> DataHandler.checkIndicatorPermutationLimit(500, 2, 1000));
+    assertDoesNotThrow(() -> DataHandler.checkIndicatorPermutationLimit(500, 2, 1000, () -> ""));
   }
 
   @Test
@@ -209,14 +211,15 @@ class DataHandlerTest {
     IllegalQueryException ex =
         assertThrows(
             IllegalQueryException.class,
-            () -> DataHandler.checkIndicatorPermutationLimit(501, 2, 1000));
+            () -> DataHandler.checkIndicatorPermutationLimit(501, 2, 1000, () -> ""));
 
     assertEquals(ErrorCode.E7153, ex.getErrorCode());
   }
 
   @Test
   void testCheckIndicatorPermutationLimitDisabledByZero() {
-    assertDoesNotThrow(() -> DataHandler.checkIndicatorPermutationLimit(Long.MAX_VALUE, 5, 0));
+    assertDoesNotThrow(
+        () -> DataHandler.checkIndicatorPermutationLimit(Long.MAX_VALUE, 5, 0, () -> ""));
   }
 
   @Test
@@ -224,7 +227,9 @@ class DataHandlerTest {
     IllegalQueryException ex =
         assertThrows(
             IllegalQueryException.class,
-            () -> DataHandler.checkIndicatorPermutationLimit(Long.MAX_VALUE / 2 + 1, 2, 1000));
+            () ->
+                DataHandler.checkIndicatorPermutationLimit(
+                    Long.MAX_VALUE / 2 + 1, 2, 1000, () -> ""));
 
     assertEquals(ErrorCode.E7153, ex.getErrorCode());
   }
@@ -273,6 +278,29 @@ class DataHandlerTest {
             () -> dataHandler.addIndicatorValues(builder.build(), new ListGrid()));
 
     assertEquals(ErrorCode.E7153, ex.getErrorCode());
+  }
+
+  @Test
+  void testDescribeDimensionItemCountsSkipsDataAndCategoryOptionComboDimensions() {
+    Indicator indicator = new Indicator();
+    indicator.setUid("indicatorUA");
+    CategoryOption optionA = new CategoryOption("OptionA");
+    optionA.setUid("optionUidAA");
+    CategoryOption optionB = new CategoryOption("OptionB");
+    optionB.setUid("optionUidBB");
+
+    DataQueryParams params =
+        newBuilder()
+            .addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, List.of(indicator)))
+            .addDimension(
+                new BaseDimensionalObject(
+                    CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, List.of()))
+            .addDimension(new BaseDimensionalObject("categoryAA", CATEGORY, List.of(optionA)))
+            .addDimension(
+                new BaseDimensionalObject("categoryBB", CATEGORY, List.of(optionA, optionB)))
+            .build();
+
+    assertEquals("categoryAA=1 categoryBB=2", DataHandler.describeDimensionItemCounts(params));
   }
 
   @Test
