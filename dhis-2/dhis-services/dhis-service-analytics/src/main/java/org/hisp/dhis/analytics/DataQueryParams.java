@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -962,6 +962,27 @@ public class DataQueryParams {
         CombinationGenerator.newInstance(dimensionOptions);
 
     return generator.getCombinations();
+  }
+
+  /**
+   * Counts the permutations {@link #getDimensionItemPermutations()} would generate, without
+   * generating them. Dimensions without items are counted as one. The count saturates at {@link
+   * Long#MAX_VALUE} instead of overflowing.
+   */
+  public long countDimensionItemPermutations() {
+    long count = 1;
+
+    for (DimensionalObject dimension : dimensions) {
+      if (!DIMENSION_PERMUTATION_IGNORE_DIMS.contains(dimension.getDimension())) {
+        int items = dimension.getItems().size();
+
+        if (items > 1) {
+          count = count > Long.MAX_VALUE / items ? Long.MAX_VALUE : count * items;
+        }
+      }
+    }
+
+    return count;
   }
 
   /**

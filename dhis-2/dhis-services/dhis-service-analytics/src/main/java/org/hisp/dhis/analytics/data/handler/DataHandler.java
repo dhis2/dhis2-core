@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValueObject;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.hasPeriod;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isPeriodInPeriods;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.buildYearToDateRows;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.getPeriodOffsetRow;
@@ -104,6 +105,7 @@ import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
 import static org.hisp.dhis.commons.util.DebugUtils.getStackTrace;
 import static org.hisp.dhis.commons.util.SystemUtils.getCpuCores;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType.values;
+import static org.hisp.dhis.feedback.ErrorCode.E7153;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
 import static org.hisp.dhis.system.grid.GridUtils.getGridIndexByDimensionItem;
 import static org.hisp.dhis.system.util.MathUtils.getWithin;
@@ -298,11 +300,49 @@ public class DataHandler {
     return expressionDimensionItems.stream().map(edi -> edi.toIndicator()).collect(toList());
   }
 
+  /**
+   * Indicator values are computed for every permutation of dimension items, which are all held in
+   * memory, whether or not there is data for them. Rejects the query before that work starts when
+   * the number of indicator values would exceed the given max.
+   *
+   * @param permutations the number of dimension item permutations.
+   * @param indicatorCount the number of indicators.
+   * @param maxIndicatorValues the max number of indicator values, 0 means unlimited.
+   * @throws IllegalQueryException if the max is exceeded.
+   */
+  static void checkIndicatorPermutationLimit(
+      long permutations, int indicatorCount, int maxIndicatorValues) {
+    if (maxIndicatorValues <= 0 || indicatorCount <= 0) {
+      return;
+    }
+
+    long indicatorValues =
+        permutations > Long.MAX_VALUE / indicatorCount
+            ? Long.MAX_VALUE
+            : permutations * indicatorCount;
+
+    if (indicatorValues > maxIndicatorValues) {
+      log.warn(
+          "Analytics query rejected, would compute {} indicator values ({} permutations x {} indicators), max is {}",
+          indicatorValues,
+          permutations,
+          indicatorCount,
+          maxIndicatorValues);
+
+      throwIllegalQueryEx(E7153, indicatorValues, maxIndicatorValues);
+    }
+  }
+
   private void addIndicatorValues(
       DataQueryParams dataQueryParams,
       DataQueryParams dataSourceParams,
       List<Indicator> indicators,
       Grid grid) {
+    checkIndicatorPermutationLimit(
+        dataSourceParams.countDimensionItemPermutations(),
+        indicators.size(),
+        settingsProvider.getCurrentSettings().getAnalyticsMaxIndicatorPermutations());
+
     // Try to get filters periods from dimension (pe), or else fall back
     // to "startDate/endDate" periods
     List<Period> filterPeriods =

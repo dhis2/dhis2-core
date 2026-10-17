@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,18 +31,36 @@ package org.hisp.dhis.analytics.data.handler;
 
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType.AOC_ONLY;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType.COC_ONLY;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.Test;
 
 class DataHandlerTest {
@@ -179,6 +197,89 @@ class DataHandlerTest {
 
     assertEquals(0, params.getDimensions().size());
     assertEquals(3, params.getFilters().size());
+  }
+
+  @Test
+  void testCheckIndicatorPermutationLimitAllowsUpToMax() {
+    assertDoesNotThrow(() -> DataHandler.checkIndicatorPermutationLimit(500, 2, 1000));
+  }
+
+  @Test
+  void testCheckIndicatorPermutationLimitRejectsAboveMax() {
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> DataHandler.checkIndicatorPermutationLimit(501, 2, 1000));
+
+    assertEquals(ErrorCode.E7153, ex.getErrorCode());
+  }
+
+  @Test
+  void testCheckIndicatorPermutationLimitDisabledByZero() {
+    assertDoesNotThrow(() -> DataHandler.checkIndicatorPermutationLimit(Long.MAX_VALUE, 5, 0));
+  }
+
+  @Test
+  void testCheckIndicatorPermutationLimitDoesNotOverflow() {
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> DataHandler.checkIndicatorPermutationLimit(Long.MAX_VALUE / 2 + 1, 2, 1000));
+
+    assertEquals(ErrorCode.E7153, ex.getErrorCode());
+  }
+
+  /**
+   * Shape of the 2026-10-16 ASC incident: one indicator crossed with many category dimensions
+   * multiplies into tens of millions of permutations. The query must be rejected before any
+   * permutation is built.
+   */
+  @Test
+  void testAddIndicatorValuesRejectsTooManyPermutations() {
+    IndicatorType indicatorType = new IndicatorType("Number", 1, true);
+    Indicator indicator = new Indicator();
+    indicator.setUid("indicatorUA");
+    indicator.setIndicatorType(indicatorType);
+    indicator.setNumerator("1");
+    indicator.setDenominator("1");
+
+    DataQueryParams.Builder builder =
+        newBuilder()
+            .addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, List.of(indicator)));
+
+    // 10 dimensions of 6 items: 6^10 = 60,466,176 permutations
+    for (int i = 0; i < 10; i++) {
+      List<DimensionalItemObject> items = new ArrayList<>();
+      for (int j = 0; j < 6; j++) {
+        CategoryOption option = new CategoryOption("Option" + i + j);
+        option.setUid("option" + i + "x" + j + "xxx");
+        items.add(option);
+      }
+      builder.addDimension(new BaseDimensionalObject("category" + i + "xx", CATEGORY, items));
+    }
+
+    ExpressionResolvers resolvers = mock(ExpressionResolvers.class);
+    when(resolvers.getExpressionResolvers()).thenReturn(List.of());
+    SystemSettingsProvider settingsProvider = mock(SystemSettingsProvider.class);
+    when(settingsProvider.getCurrentSettings())
+        .thenReturn(SystemSettings.of(Map.of("keyAnalyticsMaxIndicatorPermutations", "1000000")));
+
+    DataHandler dataHandler =
+        new DataHandler(null, null, resolvers, null, null, settingsProvider, null, null, null);
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> dataHandler.addIndicatorValues(builder.build(), new ListGrid()));
+
+    assertEquals(ErrorCode.E7153, ex.getErrorCode());
+  }
+
+  @Test
+  void testMaxIndicatorPermutationsDefault() {
+    assertEquals(1_000_000, SystemSettings.of(Map.of()).getAnalyticsMaxIndicatorPermutations());
+    // Settable through /api/systemSettings, which only accepts keys with a default
+    assertTrue(SystemSettings.keysWithDefaults().contains("keyAnalyticsMaxIndicatorPermutations"));
   }
 
   private DataHandler withNullDependencies() {

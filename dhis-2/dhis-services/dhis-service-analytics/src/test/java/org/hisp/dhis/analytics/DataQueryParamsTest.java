@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -969,5 +970,47 @@ class DataQueryParamsTest extends TestBase {
     assertTrue(params.hasDimensionId(caA.getUid()));
     assertFalse(params.hasDimensionId(coA.getUid()));
     assertFalse(params.hasDimensionId("xyzzy"));
+  }
+
+  @Test
+  void testCountDimensionItemPermutationsMatchesGeneratedPermutations() {
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(inA, inB)))
+            .addDimension(
+                new BaseDimensionalObject(
+                    CATEGORYOPTIONCOMBO_DIM_ID,
+                    DimensionType.CATEGORY_OPTION_COMBO,
+                    List.of(cocA, cocB)))
+            .addDimension(
+                new BaseDimensionalObject(
+                    ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouA, ouB)))
+            .addDimension(
+                new BaseDimensionalObject(
+                    PERIOD_DIM_ID, DimensionType.PERIOD, List.of(peA, peB, peC)))
+            .addDimension(
+                new BaseDimensionalObject(caA.getUid(), DimensionType.CATEGORY, List.of(coA, coB)))
+            .build();
+
+    // dx and co are not permuted: 2 org units x 3 periods x 2 category options
+    assertEquals(12, params.countDimensionItemPermutations());
+    assertEquals(
+        params.getDimensionItemPermutations().size(), params.countDimensionItemPermutations());
+  }
+
+  @Test
+  void testCountDimensionItemPermutationsSaturatesInsteadOfOverflowing() {
+    List<DimensionalItemObject> items = Collections.nCopies(100_000, coA);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(new BaseDimensionalObject("dimensionA", DimensionType.CATEGORY, items))
+            .addDimension(new BaseDimensionalObject("dimensionB", DimensionType.CATEGORY, items))
+            .addDimension(new BaseDimensionalObject("dimensionC", DimensionType.CATEGORY, items))
+            .addDimension(new BaseDimensionalObject("dimensionD", DimensionType.CATEGORY, items))
+            .build();
+
+    assertEquals(Long.MAX_VALUE, params.countDimensionItemPermutations());
   }
 }
