@@ -222,7 +222,11 @@ public class DataQueryParams {
           CategoryOptionGroupSet.class,
           Category.class);
 
-  private static final Set<String> DIMENSION_PERMUTATION_IGNORE_DIMS =
+  /**
+   * Dimensions that are not part of the dimension item permutations (see {@link
+   * #getDimensionItemPermutations()} and {@link #countDimensionItemPermutations()}).
+   */
+  public static final Set<String> DIMENSION_PERMUTATION_IGNORE_DIMS =
       Set.of(DATA_X_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID);
 
   public static final Set<DimensionType> COMPLETENESS_DIMENSION_TYPES =
