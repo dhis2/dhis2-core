@@ -70,13 +70,13 @@ class PredictionDataFilterTest extends TestBase {
   private final CategoryOptionCombo cocA = createCategoryOptionCombo(ccA, coA);
 
   private final FoundDimensionItemValue valueA =
-      new FoundDimensionItemValue(ouA, periodA, cocA, deA, 1.0);
+      new FoundDimensionItemValue(ouA, periodA, null, cocA, deA, 1.0);
 
   private final FoundDimensionItemValue valueB =
-      new FoundDimensionItemValue(ouA, periodB, cocA, deA, 2.0);
+      new FoundDimensionItemValue(ouA, periodB, null, cocA, deA, 2.0);
 
   private final FoundDimensionItemValue valueC =
-      new FoundDimensionItemValue(ouA, periodC, cocA, deA, 3.0);
+      new FoundDimensionItemValue(ouA, periodC, null, cocA, deA, 3.0);
 
   private final List<DataValue> oldPredictions = emptyList();
 

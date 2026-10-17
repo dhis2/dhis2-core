@@ -117,24 +117,24 @@ class PredictionContextGeneratorTest extends TestBase {
   private final CategoryOptionCombo aocX = createCategoryOptionCombo(createCategoryCombo('X'));
 
   private final FoundDimensionItemValue aocVal1 =
-      new FoundDimensionItemValue(ouA, periodA, aocA, deA, 1.0);
+      new FoundDimensionItemValue(ouA, periodA, null, aocA, deA, 1.0);
 
   private final FoundDimensionItemValue aocVal2 =
-      new FoundDimensionItemValue(ouA, periodB, aocA, deaA, 2.0);
+      new FoundDimensionItemValue(ouA, periodB, null, aocA, deaA, 2.0);
 
   private final FoundDimensionItemValue aocVal3 =
-      new FoundDimensionItemValue(ouA, periodB, aocA, piA, 3.0);
+      new FoundDimensionItemValue(ouA, periodB, null, aocA, piA, 3.0);
 
   private final FoundDimensionItemValue aocVal4 =
-      new FoundDimensionItemValue(ouA, periodC, aocB, teaA, 4.0);
+      new FoundDimensionItemValue(ouA, periodC, null, aocB, teaA, 4.0);
 
   private final CategoryOptionCombo aocNone = null;
 
   private final FoundDimensionItemValue nonAocVal5 =
-      new FoundDimensionItemValue(ouA, periodB, aocNone, paA, 5.0);
+      new FoundDimensionItemValue(ouA, periodB, null, aocNone, paA, 5.0);
 
   private final FoundDimensionItemValue nonAocVal6 =
-      new FoundDimensionItemValue(ouA, periodB, aocNone, paB, 6.0);
+      new FoundDimensionItemValue(ouA, periodB, null, aocNone, paB, 6.0);
 
   private final List<FoundDimensionItemValue> aocValues =
       Lists.newArrayList(aocVal1, aocVal2, aocVal3, aocVal4);
@@ -159,6 +159,35 @@ class PredictionContextGeneratorTest extends TestBase {
 
   private final PredictionDisaggregator preDisA =
       new PredictionDisaggregator(predictorA, emptyList(), cocDefault);
+
+  // Disaggregated prediction: output data element deX has category catX with options X1 and X2
+
+  private final CategoryOption coX1 = createCategoryOption("coX1", "coX1xxxxxxx");
+
+  private final CategoryOption coX2 = createCategoryOption("coX2", "coX2xxxxxxx");
+
+  private final Category catX = createCategory("catX", "catXxxxxxxx", coX1, coX2);
+
+  private final CategoryCombo ccX = createCategoryCombo("ccX", "ccXxxxxxxxx", catX);
+
+  private final CategoryOptionCombo cocX1 = newCoc(1L, "cocX1", "cocX1xxxxxx", ccX, coX1);
+
+  private final CategoryOptionCombo cocX2 = newCoc(2L, "cocX2", "cocX2xxxxxx", ccX, coX2);
+
+  private final DataElement deX = createDataElement('X', ccX);
+
+  private final Predictor predictorX =
+      createPredictor(
+          deX, null, "X", expressionA, null, periodA.getPeriodType(), Set.of(ouLevel1), 0, 0, 0);
+
+  private final PredictionDisaggregator preDisX =
+      new PredictionDisaggregator(predictorX, emptyList(), cocDefault);
+
+  private final FoundDimensionItemValue cocVal7 =
+      new FoundDimensionItemValue(ouA, periodB, cocX1, aocA, piA, 7.0);
+
+  private final FoundDimensionItemValue cocVal8 =
+      new FoundDimensionItemValue(ouA, periodB, cocX2, aocA, piA, 8.0);
 
   // -------------------------------------------------------------------------
   // Format prediction contexts for ease of reading.
@@ -188,12 +217,20 @@ class PredictionContextGeneratorTest extends TestBase {
           aocB, "aocB",
           aocX, "aocX");
 
+  private final Map<CategoryOptionCombo, String> cocName =
+      Map.of(
+          cocD, "cocD",
+          cocX1, "cocX1",
+          cocX2, "cocX2");
+
   private List<String> formatPredictionContextList(List<PredictionContext> contexts) {
     return contexts.stream().map(this::formatPredictionContext).collect(Collectors.toList());
   }
 
   private String formatPredictionContext(PredictionContext ctx) {
-    return "( aoc:"
+    return "( coc:"
+        + cocName.get(ctx.getCategoryOptionCombo())
+        + ", aoc:"
         + aocName.get(ctx.getAttributeOptionCombo())
         + ", period:"
         + periodName.get(ctx.getOutputPeriod())
@@ -244,6 +281,15 @@ class PredictionContextGeneratorTest extends TestBase {
     entries.sort(Comparator.comparing(e -> (Double) e.getValue()));
 
     return entries;
+  }
+
+  private CategoryOptionCombo newCoc(
+      Long id, String name, String uid, CategoryCombo cc, CategoryOption... options) {
+    CategoryOptionCombo coc = createCategoryOptionCombo(name, uid, cc, options);
+    coc.setId(id);
+    cc.getOptionCombos().add(coc);
+
+    return coc;
   }
 
   // -------------------------------------------------------------------------
@@ -410,6 +456,33 @@ class PredictionContextGeneratorTest extends TestBase {
     List<String> actualFormatted = formatPredictionContextList(actual);
 
     assertContainsOnly(List.of(formatted1, formatted2), actualFormatted);
+
+    checkOrder(actual);
+  }
+
+  @Test
+  void testGetContextsWithDisaggregation() {
+    // periodValueMaps for attributeOptionCombo A, for each output COC:
+    MapMap<Period, DimensionalItemObject, Object> cocX1PeriodValueMap =
+        MapMap.ofEntries(immutableEntry(periodB, Map.of(piA, 7.0)));
+    MapMap<Period, DimensionalItemObject, Object> cocX2PeriodValueMap =
+        MapMap.ofEntries(immutableEntry(periodB, Map.of(piA, 8.0)));
+
+    PredictionContext expected1 = new PredictionContext(cocX1, aocA, periodB, cocX1PeriodValueMap);
+    PredictionContext expected2 = new PredictionContext(cocX2, aocA, periodB, cocX2PeriodValueMap);
+    PredictionContext expected3 = new PredictionContext(cocX1, aocA, periodC, cocX1PeriodValueMap);
+    PredictionContext expected4 = new PredictionContext(cocX2, aocA, periodC, cocX2PeriodValueMap);
+
+    List<PredictionContext> actual =
+        getContexts(outputPeriods, List.of(cocVal7, cocVal8), aocX, preDisX);
+
+    assertContainsOnly(
+        List.of(
+            formatPredictionContext(expected1),
+            formatPredictionContext(expected2),
+            formatPredictionContext(expected3),
+            formatPredictionContext(expected4)),
+        formatPredictionContextList(actual));
 
     checkOrder(actual);
   }
