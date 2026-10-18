@@ -260,6 +260,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 .collect(toList())
             : idObjectManager.getAllNoAcl(Program.class);
 
+    // Looked up once for all programs rather than with one query per program
+    Set<String> existingTables =
+        sqlBuilder.requiresUniqueKeyAnalyticsTables()
+            ? getExistingTables(
+                programs.stream()
+                    .map(p -> AnalyticsTable.getTableName(getAnalyticsTableType(), p))
+                    .toList())
+            : Set.of();
+
     for (Program program : programs) {
       // On databases which merge the latest partition into the main table (Doris), a program
       // without a main table yet (e.g. created after the last full rebuild) gets all of its data,
@@ -268,7 +277,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       // databases replace the latest partition with the same window on every run.
       boolean fullHistory =
           sqlBuilder.requiresUniqueKeyAnalyticsTables()
-              && !tableExists(AnalyticsTable.getTableName(getAnalyticsTableType(), program));
+              && !existingTables.contains(
+                  AnalyticsTable.getTableName(getAnalyticsTableType(), program));
       Date programStartDate = fullHistory ? new Date(0L) : startDate;
       Date updatedSince = fullHistory ? new Date(0L) : lastAnyTableUpdate;
 
