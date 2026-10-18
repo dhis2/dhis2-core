@@ -155,12 +155,14 @@ class MappingBatchHandlerTest {
             .jdbcConfiguration(new JdbcConfiguration(StatementDialect.POSTGRESQL, dataSource))
             .tableName(testTableName)
             .columns(testColumns)
+            .autoIncrementColumn(testAutoIncrementColumn)
             .identifierColumns(testIdentifierColumns)
             .uniqueColumns(testUniqueColumns)
             .columnQuoter(col -> "\"" + col + "\"")
             .build();
 
     assertEquals(List.of("\"colA\"", "\"colB\"", "\"colC\"", "\"colD\""), quoted.getColumns());
+    assertEquals("\"" + testAutoIncrementColumn + "\"", quoted.getAutoIncrementColumn());
     assertEquals(List.of("\"colA\"", "\"colB\""), quoted.getIdentifierColumns());
     assertEquals(List.of("\"colA\"", "\"colB\"", "\"colC\""), quoted.getUniqueColumns());
     assertEquals(testValues, quoted.getValues(testRow));
