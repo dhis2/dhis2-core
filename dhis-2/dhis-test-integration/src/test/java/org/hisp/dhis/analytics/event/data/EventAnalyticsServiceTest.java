@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,6 +109,8 @@ import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.option.OptionStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDimension;
@@ -318,6 +320,17 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     manager.save(ou1);
     manager.save(ou2);
     manager.save(ou3);
+
+    // Organisation Unit Group Set as data dimension, with a mixed-case UID so that its column in
+    // the analytics tables (including the ownership table) must be quoted
+    OrganisationUnitGroup ougA = createOrganisationUnitGroup('A');
+    ougA.addOrganisationUnit(ouB);
+    manager.save(ougA);
+    OrganisationUnitGroupSet ougsA = createOrganisationUnitGroupSet('A');
+    ougsA.setUid("ouGroupSetA");
+    ougsA.setDataDimension(true);
+    ougsA.addOrganisationUnitGroup(ougA);
+    manager.save(ougsA);
 
     // Category Options
     coA = createCategoryOption('A');
