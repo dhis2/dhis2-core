@@ -113,6 +113,11 @@ public class MappingBatchHandler extends AbstractBatchHandler<Map<String, Object
   }
 
   @Override
+  public String getAutoIncrementColumn() {
+    return autoIncrementColumn == null ? null : columnQuoter.apply(autoIncrementColumn);
+  }
+
+  @Override
   public List<String> getIdentifierColumns() {
     return quote(identifierColumns);
   }
