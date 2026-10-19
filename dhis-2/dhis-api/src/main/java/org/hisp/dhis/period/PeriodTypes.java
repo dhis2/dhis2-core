@@ -109,7 +109,7 @@ public record PeriodTypes(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry>
             labels.translations,
             relativePeriods);
       return new Output(
-          fields.contains("type") ? type : null,
+          fields.contains("name") ? type : null,
           fields.contains("displayName") ? labels.displayName : null,
           fields.contains("isoDuration") ? isoDuration : null,
           fields.contains("isoFormat") ? isoFormat : null,
