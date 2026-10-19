@@ -675,7 +675,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     injectAdminIntoSecurityContext();
   }
 
@@ -689,7 +689,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @AfterAll
-  public void tearDown() {
+  void tearDown() {
     cleanPeriodTypes();
 
     for (AnalyticsTableService service : analyticsTableServices) {
