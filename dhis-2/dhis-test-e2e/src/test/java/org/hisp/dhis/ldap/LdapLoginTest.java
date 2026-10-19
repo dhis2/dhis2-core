@@ -158,10 +158,10 @@ class LdapLoginTest extends BaseE2ETest {
         "Access is denied, requires one Authority from [F_PERFORM_MAINTENANCE]",
         json.get("message").asText());
 
-    // superuser (ALL) bypass over an LDAP session
+    // superuser (ALL) bypass over an LDAP session; on 2.42 this endpoint answers 204
     String superCookie = performInitialLogin("ldapuser1", "ldapPass1###");
     ResponseEntity<String> allowed = postWithCookie(MAINTENANCE_PATH, null, superCookie);
-    assertEquals(HttpStatus.OK, allowed.getStatusCode(), "body: " + allowed.getBody());
+    assertEquals(HttpStatus.NO_CONTENT, allowed.getStatusCode(), "body: " + allowed.getBody());
   }
 
   @Test
