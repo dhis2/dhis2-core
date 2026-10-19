@@ -77,6 +77,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockserver.client.MockServerClient;
+import org.mockserver.version.Version;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -124,8 +125,12 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
   @BeforeAll
   public static void beforeAll() {
     upstreamMockServerContainer =
-        new GenericContainer<>("mockserver/mockserver:5.15.0")
-            .waitingFor(new HttpWaitStrategy().forStatusCode(404))
+        new GenericContainer<>("mockserver/mockserver:" + Version.getVersion())
+            .waitingFor(
+                new HttpWaitStrategy()
+                    .withMethod("PUT")
+                    .forPath("/mockserver/status")
+                    .forStatusCode(200))
             .withExposedPorts(1080);
     upstreamMockServerContainer.start();
   }
