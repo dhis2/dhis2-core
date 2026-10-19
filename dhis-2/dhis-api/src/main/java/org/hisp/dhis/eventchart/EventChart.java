@@ -33,7 +33,6 @@ import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -48,7 +47,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.AnalyticsType;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -422,7 +420,6 @@ public class EventChart extends BaseChart
 
   @Override
   @JsonProperty
-  @JsonDeserialize(as = BaseDimensionalItemObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Value getValue() {
     return value;

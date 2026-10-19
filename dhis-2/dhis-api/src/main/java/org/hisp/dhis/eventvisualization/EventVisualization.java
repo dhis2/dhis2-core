@@ -664,7 +664,6 @@ public class EventVisualization extends BaseAnalyticalObject
 
   @Override
   @JsonProperty
-  // @JsonDeserialize(as = BaseDimensionalItemObject.class)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public Value getValue() {
     return value;
