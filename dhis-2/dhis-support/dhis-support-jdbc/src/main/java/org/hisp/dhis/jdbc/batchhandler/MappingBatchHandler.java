@@ -82,7 +82,9 @@ public class MappingBatchHandler extends AbstractBatchHandler<Map<String, Object
   // Constructor
   // -------------------------------------------------------------------------
 
-  // Lombok builder will use this constructor which must call super()
+  // Lombok builder will use this constructor which must call super(). It takes every field, so the
+  // parameter count is dictated by the builder; callers use the builder, never this directly.
+  @SuppressWarnings("java:S107")
   public MappingBatchHandler(
       JdbcConfiguration jdbcConfiguration,
       String tableName,
@@ -160,7 +162,7 @@ public class MappingBatchHandler extends AbstractBatchHandler<Map<String, Object
   // -------------------------------------------------------------------------
 
   private List<String> quote(List<String> cols) {
-    return cols.stream().map(columnQuoter).collect(toList());
+    return cols.stream().map(columnQuoter).toList();
   }
 
   private List<Object> getValueList(List<String> cols, Map<String, Object> row) {

@@ -88,7 +88,7 @@ class MappingBatchHandlerTest {
   private MappingBatchHandler target;
 
   @BeforeEach
-  public void setUp() throws SQLException {
+  void setUp() throws SQLException {
     JdbcConfiguration config = new JdbcConfiguration(StatementDialect.POSTGRESQL, dataSource);
 
     target =
