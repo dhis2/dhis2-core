@@ -32,6 +32,7 @@ package org.hisp.dhis.common;
 import static org.hisp.dhis.common.DimensionConstants.QUERY_MODS_ID_SEPARATOR;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Objects;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Lars Helge Overland
@@ -55,6 +57,12 @@ public class BaseDimensionalItemObject extends BaseNameableObject implements Dim
 
   /** Query modifiers for this object. */
   protected transient QueryModifiers queryMods;
+
+  /**
+   * The program stage this item is bound to, in the context of its usage (ie. the program stage of
+   * an event visualization value dimension). Not persisted.
+   */
+  protected transient ProgramStage programStage;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -188,6 +196,17 @@ public class BaseDimensionalItemObject extends BaseNameableObject implements Dim
   @Override
   public void setQueryMods(QueryModifiers queryMods) {
     this.queryMods = queryMods;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ProgramStage getProgramStage() {
+    return programStage;
+  }
+
+  public void setProgramStage(ProgramStage programStage) {
+    this.programStage = programStage;
   }
 
   @Override

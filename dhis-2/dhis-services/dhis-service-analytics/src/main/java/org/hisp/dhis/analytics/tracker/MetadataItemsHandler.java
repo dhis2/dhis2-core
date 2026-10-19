@@ -92,6 +92,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.Option;
@@ -314,18 +315,18 @@ public class MetadataItemsHandler {
       return;
     }
 
-    DimensionalItemObject value = params.getValue();
+    Value value = params.getValue();
     String key =
         isQueryRequest
-            ? value.getUid()
-            : (params.hasStageInValue() ? params.getRequestValue() : value.getUid());
+            ? value.getId()
+            : (params.hasStageInValue() ? params.getRequestValue() : value.getId());
 
     metadataItemMap.put(
         key,
         new MetadataItem(
-            value.getDisplayProperty(params.getDisplayProperty()),
-            includeDetails ? value.getUid() : null,
-            value.getCode()));
+            value.getDimensionalObject().getDisplayProperty(params.getDisplayProperty()),
+            includeDetails ? value.getId() : null,
+            value.getDimensionalObject().getCode()));
   }
 
   /**

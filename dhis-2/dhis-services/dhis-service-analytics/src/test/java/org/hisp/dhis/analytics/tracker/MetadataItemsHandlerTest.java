@@ -85,6 +85,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.Legend;
@@ -1571,7 +1572,7 @@ class MetadataItemsHandlerTest {
               .withEndpointAction(AGGREGATE)
               .withOrganisationUnits(List.of(orgUnitA))
               .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
-              .withValue(dataElementA)
+              .withValue(new Value(dataElementA))
               .build();
 
       when(userService.getUserByUsername(anyString())).thenReturn(null);

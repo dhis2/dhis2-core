@@ -78,6 +78,7 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseAnalyticalObject;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
@@ -302,24 +303,42 @@ public class DefaultDimensionService implements DimensionService {
   @Transactional(readOnly = true)
   public void mergeEventAnalyticalObject(EventAnalyticalObject object) {
     if (object != null) {
-      if (object.getValue() != null) {
-        String uid = object.getValue().getUid();
+      if (object.getValue() != null && object.getValue().getDimensionalObject() != null) {
+        String uid = object.getValue().getDimensionalObject().getUid();
 
         DataElement dataElement = idObjectManager.get(DataElement.class, uid);
 
         if (dataElement != null) {
           object.setDataElementValueDimension(dataElement);
+          object.setProgramStageValueDimension(
+              getValueProgramStage(object.getValue().getDimensionalObject()));
         }
 
         TrackedEntityAttribute attribute = idObjectManager.get(TrackedEntityAttribute.class, uid);
 
         if (attribute != null) {
           object.setAttributeValueDimension(attribute);
+          object.setProgramStageValueDimension(
+              getValueProgramStage(object.getValue().getDimensionalObject()));
         }
       }
 
       populateEventRepetitions(object);
     }
+  }
+
+  /**
+   * Resolves the persisted {@link ProgramStage} referenced by the given value dimension, if any.
+   *
+   * @param value the value {@link DimensionalItemObject}.
+   * @return the {@link ProgramStage} or null.
+   */
+  private ProgramStage getValueProgramStage(DimensionalItemObject value) {
+    if (value instanceof BaseDimensionalItemObject item && item.getProgramStage() != null) {
+      return idObjectManager.get(ProgramStage.class, item.getProgramStage().getUid());
+    }
+
+    return null;
   }
 
   @Override

@@ -1018,7 +1018,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private String getItemId(@Nonnull EventQueryParams params) {
     String programUid = params.getProgram().getUid();
-    String dimensionUid = params.getValue().getUid();
+    String dimensionUid = params.getValue().getId();
     String optionUid = params.getOption() == null ? EMPTY : params.getOption().getUid();
     String itemId = programUid + COMPOSITE_DIM_OBJECT_PLAIN_SEP + dimensionUid;
 
@@ -1070,14 +1070,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         (aggregationType == NONE || aggregationType == CUSTOM) ? "" : aggregationType.getValue();
 
     if (!params.isAggregation()) {
-      String sql = quoteAlias(params.getValue().getUid());
+      String sql = quoteAlias(params.getValue().getId());
       return AggregateClause.of(sql, AggregationType.NONE);
     } else if (params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()
         && params.hasEventProgramIndicatorDimension()) {
       String sql = function + "(value)";
       return AggregateClause.of(sql, aggregationType, "value");
     } else if (params.hasNumericValueDimension() || params.hasBooleanValueDimension()) {
-      String expression = quoteAlias(params.getValue().getUid());
+      String expression = quoteAlias(params.getValue().getId());
       String sql = function + "(" + expression + ")";
       return AggregateClause.of(sql, aggregationType, expression);
     } else if (params.hasProgramIndicatorDimension()) {
@@ -2298,7 +2298,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return true if the aggregation type is NONE on both the param value's aggregation type
    */
   private boolean hasNoAggregationType(EventQueryParams params) {
-    if (params.getValue() == null) {
+    if (params.getValue() == null || params.getValue().getDimensionalObject() == null) {
       return false;
     }
 
@@ -2309,7 +2309,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     // No override exists, so check the value's aggregation type
-    return params.getValue().getAggregationType() == AggregationType.NONE;
+    return params.getValue().getDimensionalObject().getAggregationType() == AggregationType.NONE;
   }
 
   /**

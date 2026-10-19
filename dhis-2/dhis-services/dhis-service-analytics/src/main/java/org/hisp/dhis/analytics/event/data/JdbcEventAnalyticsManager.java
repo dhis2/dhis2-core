@@ -786,7 +786,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    */
   private String getOptionFilter(EventQueryParams params, SqlHelper sqlHelper) {
     if (params.hasOption() && params.hasValue()) {
-      DimensionalItemObject dimensionalItemObject = params.getValue();
+      DimensionalItemObject dimensionalItemObject = params.getValue().getDimensionalObject();
       Option option = params.getOption();
 
       return new StringBuilder()
