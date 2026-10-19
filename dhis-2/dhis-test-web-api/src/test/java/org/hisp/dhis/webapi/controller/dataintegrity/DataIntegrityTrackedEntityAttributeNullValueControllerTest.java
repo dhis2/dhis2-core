@@ -38,10 +38,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Tests the {@code tracked_entity_attribute_null_value} data integrity check, which flags tracked
- * entity attribute values that have no plain text value stored in the {@code value} column. This
- * includes values that only have an {@code encryptedvalue} (previously confidential attributes) and
- * values that are completely empty. Anomalous rows are inserted with plain SQL because the service
- * layer refuses to persist a null value.
+ * entity attribute values that have an {@code encryptedvalue} (previously confidential attributes)
+ * but no plain text value stored in the {@code value} column. Anomalous rows are inserted with
+ * plain SQL because the service layer refuses to persist a null value.
  */
 class DataIntegrityTrackedEntityAttributeNullValueControllerTest
     extends AbstractDataIntegrityIntegrationTest {
@@ -88,8 +87,15 @@ class DataIntegrityTrackedEntityAttributeNullValueControllerTest
   }
 
   @Test
-  void shouldFindIssueWhenAttributeValueHasNeitherPlainTextNorEncryptedValue() {
+  void shouldFindNoIssuesWhenAttributeValueHasNeitherPlainTextNorEncryptedValue() {
     insertAttributeValue(null, null);
+
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK, true);
+  }
+
+  @Test
+  void shouldFindIssueWhenAttributeValueHasEncryptedValueButNoPlainTextValue() {
+    insertAttributeValue(null, "encrypted-cipher-text");
 
     assertHasDataIntegrityIssues(
         DETAILS_ID_TYPE,
@@ -97,13 +103,13 @@ class DataIntegrityTrackedEntityAttributeNullValueControllerTest
         100,
         trackedEntity.getUid(),
         trackedEntity.getUid(),
-        "has no value",
+        "has an encrypted value but no plain text value",
         true);
   }
 
   @Test
-  void shouldFindIssueWhenAttributeValueHasEncryptedValueButNoPlainTextValue() {
-    insertAttributeValue(null, "encrypted-cipher-text");
+  void shouldFindIssueWhenAttributeValueHasEncryptedValueAndEmptyPlainTextValue() {
+    insertAttributeValue("", "encrypted-cipher-text");
 
     assertHasDataIntegrityIssues(
         DETAILS_ID_TYPE,
