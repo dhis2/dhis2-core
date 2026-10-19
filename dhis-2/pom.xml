@@ -115,13 +115,13 @@
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>2.0.13</spring-retry.version>
-    <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
+    <spring-restdocs.version>3.0.6</spring-restdocs.version>
     <spring-ldap.version>3.3.8</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
     <lettuce.version>6.8.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>12.3.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>13.10.3</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.12.0</ehcache3.version>
     <jaxb-runtime.version>4.0.6</jaxb-runtime.version>
@@ -247,7 +247,7 @@
     <maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
     <maven-dependency-plugin.version>3.10.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>3.0.0</restrict-imports-enforcer.version>
-    <versions-maven-plugin.version>2.21.0</versions-maven-plugin.version>
+    <versions-maven-plugin.version>2.23.0</versions-maven-plugin.version>
     <dependency-check-maven.version>13.0.0</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.10.4.1</spotbugs-maven-plugin.version>
     <spotless.version>3.10.4</spotless.version>
