@@ -92,7 +92,8 @@ final class PeriodOutput {
 
   private static void addEntry(
       JsonBuilder.JsonObjectBuilder eObj, PeriodTypes.PeriodTypeEntry.Output entry) {
-    eObj.addString("name", entry.type().getName());
+    PeriodTypeEnum type = entry.type();
+    if (type != null) eObj.addString("name", type.getName());
     eObj.addString("isoDuration", entry.isoDuration());
     eObj.addString("isoFormat", entry.isoFormat());
     eObj.addNumber("frequencyOrder", entry.frequencyOrder());
