@@ -30,7 +30,6 @@
 package org.hisp.dhis.predictor;
 
 import static com.google.common.collect.Maps.immutableEntry;
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
 import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
@@ -145,7 +144,7 @@ class PredictionContextGeneratorTest extends TestBase {
   private final List<FoundDimensionItemValue> allValues =
       Lists.newArrayList(aocVal1, aocVal2, aocVal3, aocVal4, nonAocVal5, nonAocVal6);
 
-  private final List<FoundDimensionItemValue> noValues = emptyList();
+  private final List<FoundDimensionItemValue> noValues = List.of();
 
   private final MapMap<Period, DimensionalItemObject, Object> emptyPeriodValueMap = new MapMap<>();
 
@@ -158,7 +157,7 @@ class PredictionContextGeneratorTest extends TestBase {
           deA, cocD, "A", expressionA, null, periodA.getPeriodType(), Set.of(ouLevel1), 0, 0, 0);
 
   private final PredictionDisaggregator preDisA =
-      new PredictionDisaggregator(predictorA, emptyList(), cocDefault);
+      new PredictionDisaggregator(predictorA, List.of(), cocDefault);
 
   // Disaggregated prediction: output data element deX has category catX with options X1 and X2
 
@@ -181,7 +180,7 @@ class PredictionContextGeneratorTest extends TestBase {
           deX, null, "X", expressionA, null, periodA.getPeriodType(), Set.of(ouLevel1), 0, 0, 0);
 
   private final PredictionDisaggregator preDisX =
-      new PredictionDisaggregator(predictorX, emptyList(), cocDefault);
+      new PredictionDisaggregator(predictorX, List.of(), cocDefault);
 
   private final FoundDimensionItemValue cocVal7 =
       new FoundDimensionItemValue(ouA, periodB, cocX1, aocA, piA, 7.0);

@@ -158,7 +158,7 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
             .withPeriods(periods.stream().map(PeriodDimension::of).toList())
             .withDataDimensionItems(Lists.newArrayList(aocItems))
             .withOrganisationUnits(orgUnits)
-            .withAttributeOptionCombos(Collections.emptyList())
+            .withAttributeOptionCombos(List.of())
             .build();
 
     Grid aocGrid = new ListGrid();
@@ -389,7 +389,7 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
             .withPeriods(periods.stream().map(PeriodDimension::of).toList())
             .withDataDimensionItems(List.of(programIndicatorG))
             .withOrganisationUnits(orgUnits)
-            .withAttributeOptionCombos(Collections.emptyList())
+            .withAttributeOptionCombos(List.of())
             .build();
 
     Grid aocGrid = new ListGrid();
@@ -616,7 +616,7 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
             .withPeriods(periods.stream().map(PeriodDimension::of).toList())
             .withDataDimensionItems(List.of(item))
             .withOrganisationUnits(orgUnits)
-            .withAttributeOptionCombos(Collections.emptyList())
+            .withAttributeOptionCombos(List.of())
             .build();
 
     return argThat(p -> expected.equals(p) && List.of(item).equals(p.getAllDataDimensionItems()));
