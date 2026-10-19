@@ -170,9 +170,11 @@ public class DataOrgUnitMergeHandler {
           where da.organisationunitid in (:source_ids) or da.organisationunitid = :target_id)
         insert into dataapproval (
           dataapprovalid, dataapprovallevelid, workflowid, periodid,
-          organisationunitid, attributeoptioncomboid, accepted, created, creator)
+          organisationunitid, attributeoptioncomboid, accepted, created, creator,
+          lastupdated, lastupdatedby)
         select nextval('hibernate_sequence'), dataapprovallevelid, workflowid, periodid,
-          :target_id, attributeoptioncomboid, accepted, created, creator
+          :target_id, attributeoptioncomboid, accepted, created, creator,
+          lastupdated, lastupdatedby
         from da_rank
         where da_rank.lastcreated_rank = 1
         and da_rank.organisationunitid <> :target_id
@@ -180,7 +182,9 @@ public class DataOrgUnitMergeHandler {
         do update set
           accepted = excluded.accepted,
           created = excluded.created,
-          creator = excluded.creator;
+          creator = excluded.creator,
+          lastupdated = excluded.lastupdated,
+          lastupdatedby = excluded.lastupdatedby;
         delete from dataapproval where organisationunitid in (:source_ids);
         """;
   }
