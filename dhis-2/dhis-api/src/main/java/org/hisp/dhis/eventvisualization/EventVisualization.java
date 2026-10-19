@@ -406,6 +406,7 @@ public class EventVisualization extends BaseAnalyticalObject
 
     if (dimensionalItemObject != null) {
       value = new Value(dimensionalItemObject, programStageValueDimension);
+      value.setUid(dimensionalItemObject.getUid());
     }
   }
 

@@ -649,7 +649,7 @@ public class EventQueryParams extends DataQueryParams {
           ou -> key.add("registrationOuFilter", ou.getUid() + ":" + ou.getLevel()));
     }
 
-    return key.addIgnoreNull("value", value, () -> value.getId())
+    return key.addIgnoreNull("value", value, () -> value.getUid())
         .addIgnoreNull("requestValue", requestValue)
         .addIgnoreNull("valueProgramStage", valueProgramStage, () -> valueProgramStage.getUid())
         .addIgnoreNull("programIndicator", programIndicator, () -> programIndicator.getUid())

@@ -35,32 +35,39 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
 import javax.annotation.Nonnull;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.program.ProgramStage;
 
 /** This object represents the value attribute of an EventVisualization. */
 @Data
-@AllArgsConstructor
-@RequiredArgsConstructor
 @NoArgsConstructor(force = true)
 public class Value implements Serializable, EmbeddedObject {
 
   @Nonnull private DimensionalItemObject dimensionalObject;
 
+  @JsonProperty("id")
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String uid;
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   private ProgramStage programStage;
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public String getId() {
-    if (dimensionalObject != null) {
-      return dimensionalObject.getUID().getValue();
+  public Value(DimensionalItemObject dimensionalItemObject) {
+    this.dimensionalObject = dimensionalItemObject;
+  }
+
+  public Value(DimensionalItemObject dimensionalItemObject, ProgramStage programStage) {
+    this.dimensionalObject = dimensionalItemObject;
+    this.programStage = programStage;
+  }
+
+  public String getProgramStageUid() {
+    if (programStage != null) {
+      return programStage.getUid();
     }
 
     return null;

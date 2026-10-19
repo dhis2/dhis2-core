@@ -1270,7 +1270,7 @@ class DefaultEventDataQueryServiceTest {
     EventQueryParams params = subject.getFromRequest(request);
 
     assertEquals(programStage, params.getProgramStage());
-    assertEquals(booleanElement.getUid(), params.getValue().getId());
+    assertEquals(booleanElement.getUid(), params.getValue().getUid());
     assertTrue(params.hasBooleanValueDimension());
   }
 
@@ -1284,7 +1284,7 @@ class DefaultEventDataQueryServiceTest {
 
     EventQueryParams params = subject.getFromRequest(request);
 
-    assertEquals(trueOnlyElement.getUid(), params.getValue().getId());
+    assertEquals(trueOnlyElement.getUid(), params.getValue().getUid());
     assertTrue(params.hasBooleanValueDimension());
   }
 
@@ -1381,7 +1381,7 @@ class DefaultEventDataQueryServiceTest {
 
     EventQueryParams params = subject.getFromRequest(request);
 
-    assertEquals(attribute.getUid(), params.getValue().getId());
+    assertEquals(attribute.getUid(), params.getValue().getUid());
     assertNull(params.getProgramStage());
   }
 
@@ -1466,7 +1466,7 @@ class DefaultEventDataQueryServiceTest {
 
     EventQueryParams params = subject.getFromRequest(request);
 
-    assertEquals(attribute.getUid(), params.getValue().getId());
+    assertEquals(attribute.getUid(), params.getValue().getUid());
     assertTrue(params.hasNumericValueDimension());
   }
 
@@ -1479,7 +1479,7 @@ class DefaultEventDataQueryServiceTest {
 
     EventQueryParams params = subject.getFromRequest(request);
 
-    assertEquals(attribute.getUid(), params.getValue().getId());
+    assertEquals(attribute.getUid(), params.getValue().getUid());
     assertTrue(params.hasBooleanValueDimension());
   }
 
@@ -1552,7 +1552,7 @@ class DefaultEventDataQueryServiceTest {
 
     EventQueryParams params = subject.getFromRequest(request);
 
-    assertEquals(element.getUid(), params.getValue().getId());
+    assertEquals(element.getUid(), params.getValue().getUid());
   }
 
   @Test
@@ -2106,7 +2106,7 @@ class DefaultEventDataQueryServiceTest {
 
     assertNull(params.getProgramStage());
     assertEquals(programStage, params.getValueProgramStage());
-    assertEquals(element.getUid(), params.getValue().getId());
+    assertEquals(element.getUid(), params.getValue().getUid());
   }
 
   @Test
@@ -2188,7 +2188,7 @@ class DefaultEventDataQueryServiceTest {
 
     EventQueryParams params = subject.getFromRequest(request);
 
-    assertEquals(attribute.getUid(), params.getValue().getId());
+    assertEquals(attribute.getUid(), params.getValue().getUid());
     assertNull(params.getValueProgramStage());
   }
 

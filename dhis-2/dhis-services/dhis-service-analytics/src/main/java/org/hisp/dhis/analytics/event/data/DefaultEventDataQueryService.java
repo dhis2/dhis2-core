@@ -1136,7 +1136,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    */
   private static void validateValueHasAggregationType(EventQueryParams params) {
     if (params.hasValueDimension() && params.isAggregationType(AggregationType.NONE)) {
-      throwIllegalQueryEx(ErrorCode.E7265, params.getValue().getId());
+      throwIllegalQueryEx(ErrorCode.E7265, params.getValue().getUid());
     }
   }
 

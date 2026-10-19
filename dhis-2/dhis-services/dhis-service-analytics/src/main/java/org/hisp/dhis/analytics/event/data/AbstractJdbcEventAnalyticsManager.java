@@ -1018,7 +1018,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private String getItemId(@Nonnull EventQueryParams params) {
     String programUid = params.getProgram().getUid();
-    String dimensionUid = params.getValue().getId();
+    String dimensionUid = params.getValue().getUid();
     String optionUid = params.getOption() == null ? EMPTY : params.getOption().getUid();
     String itemId = programUid + COMPOSITE_DIM_OBJECT_PLAIN_SEP + dimensionUid;
 
@@ -1070,14 +1070,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         (aggregationType == NONE || aggregationType == CUSTOM) ? "" : aggregationType.getValue();
 
     if (!params.isAggregation()) {
-      String sql = quoteAlias(params.getValue().getId());
+      String sql = quoteAlias(params.getValue().getUid());
       return AggregateClause.of(sql, AggregationType.NONE);
     } else if (params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()
         && params.hasEventProgramIndicatorDimension()) {
       String sql = function + "(value)";
       return AggregateClause.of(sql, aggregationType, "value");
     } else if (params.hasNumericValueDimension() || params.hasBooleanValueDimension()) {
-      String expression = quoteAlias(params.getValue().getId());
+      String expression = quoteAlias(params.getValue().getUid());
       String sql = function + "(" + expression + ")";
       return AggregateClause.of(sql, aggregationType, expression);
     } else if (params.hasProgramIndicatorDimension()) {

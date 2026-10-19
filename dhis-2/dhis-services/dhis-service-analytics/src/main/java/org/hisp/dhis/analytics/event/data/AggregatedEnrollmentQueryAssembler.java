@@ -135,7 +135,7 @@ public class AggregatedEnrollmentQueryAssembler {
       return Optional.of(ENROLLMENT_VALUE + ".value");
     }
 
-    return Optional.of(ENROLLMENT_AGGR_BASE_ALIAS + "." + quote(params.getValue().getId()));
+    return Optional.of(ENROLLMENT_AGGR_BASE_ALIAS + "." + quote(params.getValue().getUid()));
   }
 
   /**
@@ -147,7 +147,7 @@ public class AggregatedEnrollmentQueryAssembler {
       return Optional.empty();
     }
 
-    return Optional.of(quote(params.getValue().getId()));
+    return Optional.of(quote(params.getValue().getUid()));
   }
 
   /**

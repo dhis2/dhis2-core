@@ -318,14 +318,14 @@ public class MetadataItemsHandler {
     Value value = params.getValue();
     String key =
         isQueryRequest
-            ? value.getId()
-            : (params.hasStageInValue() ? params.getRequestValue() : value.getId());
+            ? value.getUid()
+            : (params.hasStageInValue() ? params.getRequestValue() : value.getUid());
 
     metadataItemMap.put(
         key,
         new MetadataItem(
             value.getDimensionalObject().getDisplayProperty(params.getDisplayProperty()),
-            includeDetails ? value.getId() : null,
+            includeDetails ? value.getUid() : null,
             value.getDimensionalObject().getCode()));
   }
 
