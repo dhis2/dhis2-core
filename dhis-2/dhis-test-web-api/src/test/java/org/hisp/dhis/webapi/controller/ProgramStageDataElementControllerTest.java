@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -170,7 +171,7 @@ class ProgramStageDataElementControllerTest extends PostgresControllerIntegratio
     importMetadata();
 
     assertEquals(List.of("psdeElemAA1", "psdeElemBB1"), dataElementRowUids());
-    assertEquals(true, row("psdeElemAA1").get("compulsory"));
+    assertTrue((Boolean) row("psdeElemAA1").get("compulsory"));
   }
 
   @Test
@@ -224,7 +225,7 @@ class ProgramStageDataElementControllerTest extends PostgresControllerIntegratio
     startNewRequestSession();
     entityManagerFactory.getCache().evictAll();
     Map<String, Object> rowB = row("psdeElemBB1");
-    assertEquals(true, rowB.get("compulsory"));
+    assertTrue((Boolean) rowB.get("compulsory"));
     assertEquals(5, rowB.get("sort_order"));
     assertEquals(List.of("psdeElemAA1", "psdeElemBB1"), dataElementRowUids());
     assertEquals(
