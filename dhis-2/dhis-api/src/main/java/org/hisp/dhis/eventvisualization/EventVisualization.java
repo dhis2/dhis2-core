@@ -406,7 +406,7 @@ public class EventVisualization extends BaseAnalyticalObject
 
     if (dimensionalItemObject != null) {
       value = new Value(dimensionalItemObject, programStageValueDimension);
-      value.setUid(dimensionalItemObject.getUid());
+      value.setUid(dimensionalItemObject.getUID().getValue());
     }
   }
 
@@ -672,6 +672,20 @@ public class EventVisualization extends BaseAnalyticalObject
 
   public void setValue(Value value) {
     this.value = value;
+
+    if (value != null) {
+      if (value.getDimensionalObject() instanceof DataElement dataElement) {
+        dataElementValueDimension = dataElement;
+      }
+
+      if (value.getDimensionalObject() instanceof TrackedEntityAttribute trackedEntityAttribute) {
+        attributeValueDimension = trackedEntityAttribute;
+      }
+
+      if (value.getProgramStage() != null) {
+        programStageValueDimension = value.getProgramStage();
+      }
+    }
   }
 
   /**
