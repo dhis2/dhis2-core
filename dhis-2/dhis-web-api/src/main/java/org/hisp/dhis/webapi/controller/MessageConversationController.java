@@ -319,6 +319,7 @@ public class MessageConversationController
         MessageService.META_USER_AGENT + request.getHeader(ContextUtils.HEADER_USER_AGENT);
 
     Set<FileResource> attachments = new HashSet<>();
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     for (FileResource fr : messageConversation.getAttachments()) {
       FileResource fileResource = fileResourceService.getFileResource(fr.getUid());
@@ -327,8 +328,8 @@ public class MessageConversationController
         throw new ConflictException("Attachment '" + fr.getUid() + "' not found.");
       }
 
-      if (!fileResource.getDomain().equals(FileResourceDomain.MESSAGE_ATTACHMENT)
-          || fileResource.isAssigned()) {
+      if (!fileResourceService.canAssign(
+          currentUser, fileResource, FileResourceDomain.MESSAGE_ATTACHMENT)) {
         throw new ConflictException(
             "Attachment '" + fr.getUid() + "' is already used or not a valid attachment.");
       }
@@ -399,8 +400,8 @@ public class MessageConversationController
         return conflict("Attachment '" + fileResourceUid + "' not found.");
       }
 
-      if (!fileResource.getDomain().equals(FileResourceDomain.MESSAGE_ATTACHMENT)
-          || fileResource.isAssigned()) {
+      if (!fileResourceService.canAssign(
+          currentUser, fileResource, FileResourceDomain.MESSAGE_ATTACHMENT)) {
         return conflict(
             "Attachment '" + fileResourceUid + "' is already used or not a valid attachment.");
       }

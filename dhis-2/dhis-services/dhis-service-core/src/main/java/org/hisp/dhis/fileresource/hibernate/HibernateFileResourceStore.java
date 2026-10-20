@@ -44,6 +44,8 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.message.Message;
+import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.message.UserMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
@@ -166,6 +168,31 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
             + "left join fileresource fr on fr.fileresourceid = ma.fileresourceid where fr.uid = :uid";
     return nativeSynchronizedQuery(sql)
         .addSynchronizedEntityClass(Message.class)
+        .setParameter("uid", uid)
+        .list();
+  }
+
+  @Override
+  public List<String> findMessageAttachmentParticipants(@Nonnull String uid) {
+    @Language("SQL")
+    String sql =
+        """
+        select distinct u.uid
+        from userinfo u
+        inner join usermessage um on um.userid = u.userinfoid
+        inner join messageconversation_usermessages mcu on mcu.usermessageid = um.usermessageid
+        inner join messageconversation_messages mcm
+          on mcm.messageconversationid = mcu.messageconversationid
+        inner join messageattachments ma on ma.messageid = mcm.messageid
+        inner join fileresource fr on fr.fileresourceid = ma.fileresourceid
+        where fr.uid = :uid
+        """;
+    return nativeSynchronizedQuery(sql)
+        .addSynchronizedEntityClass(User.class)
+        .addSynchronizedEntityClass(UserMessage.class)
+        .addSynchronizedEntityClass(MessageConversation.class)
+        .addSynchronizedEntityClass(Message.class)
+        .addSynchronizedEntityClass(FileResource.class)
         .setParameter("uid", uid)
         .list();
   }
