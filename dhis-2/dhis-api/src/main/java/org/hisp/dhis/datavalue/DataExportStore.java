@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -97,6 +97,21 @@ public interface DataExportStore {
   @Nonnull
   List<String> getDataSetsNoDataReadAccess(@Nonnull Stream<UID> dataSets);
 
+  /**
+   * @param attributeOptionCombos requested attribute option combos
+   * @return the UIDs of the given combos that are not option combos of an attribute category combo
+   *     or the default category combo (invalid as attribute option combos). Empty for superusers.
+   */
+  @Nonnull
+  List<String> getAocNotOfAttributeCombo(@Nonnull Stream<UID> attributeOptionCombos);
+
+  /**
+   * @param attributeOptionCombos requested attribute option combos
+   * @return the UIDs of the given combos the current user may not read data for: combos with a
+   *     category option the user cannot read data of, and combos that are not option combos of an
+   *     attribute category combo or the default category combo. The default combo is always
+   *     readable (no sharing guards on default). Empty for superusers.
+   */
   @Nonnull
   List<String> getAocNoDataReadAccess(@Nonnull Stream<UID> attributeOptionCombos);
 
