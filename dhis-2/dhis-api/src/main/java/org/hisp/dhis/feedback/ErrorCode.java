@@ -39,6 +39,7 @@ public enum ErrorCode {
   E1004("API query cannot be performed"),
   E1005("API query object not found"),
   E1006("API request not permitted for the current user"),
+  E1007("Feature is disabled by configuration, requires `{0} = on` in dhis.conf"),
 
   /* Basic metadata */
   E1100("Data element not found or not accessible: `{0}`"),
