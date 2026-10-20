@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -48,6 +49,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NonTransactional;
@@ -57,6 +59,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.FileResourceStore.DataValueFileReference;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
@@ -213,8 +216,9 @@ public class DefaultFileResourceService implements FileResourceService {
 
     String uid = fileResource.getUid();
     return switch (domain) {
-      // No object level rule: a data value file is only served by the data value API, which applies
-      // the data access rules of the owning data value. Its metadata is covered by canReadMetadata.
+      // No object level rule: the content of a data value file is only served by the data value
+      // API and the audit API (canReadDataValueFile), which apply the data access rules of the
+      // owning data value. Its metadata is covered by canReadMetadata.
       // Note that FileResourceController refuses to serve the content of this domain outright.
       case DATA_VALUE -> false;
 
@@ -247,6 +251,45 @@ public class DefaultFileResourceService implements FileResourceService {
     // Only the content of a data value file is restricted to the data value API; its metadata
     // stays readable for the clients that resolve it from a data value.
     return fileResource.getDomain() == FileResourceDomain.DATA_VALUE || canRead(user, fileResource);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canReadDataValueFile(
+      @Nonnull UserDetails user, @Nonnull FileResource fileResource) {
+    if (fileResource.getDomain() != FileResourceDomain.DATA_VALUE) {
+      return false;
+    }
+    if (canRead(user, fileResource)) {
+      return true;
+    }
+
+    List<DataValueFileReference> references =
+        fileResourceStore.findDataValueReferencesByFileResourceValue(fileResource.getUid()).stream()
+            .filter(
+                ref ->
+                    user.isInUserHierarchy(ref.orgUnitPath())
+                        || user.isInUserDataHierarchy(ref.orgUnitPath()))
+            .toList();
+    if (references.isEmpty()) {
+      return false;
+    }
+
+    Set<String> comboUids = new HashSet<>();
+    for (DataValueFileReference ref : references) {
+      comboUids.add(ref.categoryOptionCombo());
+      comboUids.add(ref.attributeOptionCombo());
+    }
+    Set<String> readableCombos =
+        idObjectManager.getNoAcl(CategoryOptionCombo.class, comboUids).stream()
+            .filter(combo -> aclService.canDataRead(user, combo))
+            .map(CategoryOptionCombo::getUid)
+            .collect(Collectors.toSet());
+    return references.stream()
+        .anyMatch(
+            ref ->
+                readableCombos.contains(ref.categoryOptionCombo())
+                    && readableCombos.contains(ref.attributeOptionCombo()));
   }
 
   @Override

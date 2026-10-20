@@ -36,7 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.DataExportStore;
@@ -165,6 +167,132 @@ class DataValueFileResourceControllerTest extends PostgresControllerIntegrationT
         GET("/dataValues/files?de={de}&pe={pe}&ou={ou}&co={co}", de, pe, ou, coc)
             .content("text/plain"));
     assertEquals(HttpStatus.FORBIDDEN, GET("/fileResources/{uid}/data", fileUid).status());
+  }
+
+  @Test
+  @DisplayName("Audit files: readers of the data value read its current and former files")
+  void testGetAuditFile_readersOfTheDataValue() {
+    String former = uploadDataValueFile("former content");
+    String current = uploadDataValueFile("current content");
+    storeFileValue(de, coc, former);
+    storeFileValue(de, coc, current);
+
+    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, ou);
+    User captureUser = createAndAddUser("auditCaptureReader", orgUnit);
+    User dataViewUser = createAndAddUser(new HashSet<>(), new HashSet<>(Set.of(orgUnit)));
+
+    for (User reader : List.of(captureUser, dataViewUser)) {
+      switchToNewUser(reader);
+      assertEquals("former content", GET("/audits/files/{uid}", former).content("text/plain"));
+      assertEquals("current content", GET("/audits/files/{uid}", current).content("text/plain"));
+    }
+  }
+
+  @Test
+  @DisplayName("Audit files: users who may not read a data value holding the file are refused")
+  void testGetAuditFile_deniedWithoutReadableDataValue() {
+    String former = uploadDataValueFile("former content");
+    String current = uploadDataValueFile("current content");
+    String unbound = uploadDataValueFile("unbound content");
+    storeFileValue(de, coc, former);
+    storeFileValue(de, coc, current);
+
+    OrganisationUnit otherOrgUnit = manager.get(OrganisationUnit.class, addOrganisationUnit("OU2"));
+    User outsider = createAndAddUser("auditOutsider", otherOrgUnit);
+    User reader = createAndAddUser("auditReader", manager.get(OrganisationUnit.class, ou));
+
+    switchToNewUser(outsider);
+    assertEquals(HttpStatus.FORBIDDEN, GET("/audits/files/{uid}", former).status());
+    assertEquals(HttpStatus.FORBIDDEN, GET("/audits/files/{uid}", current).status());
+    assertEquals(HttpStatus.FORBIDDEN, GET("/audits/files/{uid}", unbound).status());
+    // the uploader of a file keeps reading it
+    String own = uploadDataValueFile("own content");
+    assertEquals("own content", GET("/audits/files/{uid}", own).content("text/plain"));
+
+    // no data value holds these files
+    switchToNewUser(reader);
+    assertEquals(HttpStatus.FORBIDDEN, GET("/audits/files/{uid}", unbound).status());
+    assertEquals(HttpStatus.FORBIDDEN, GET("/audits/files/{uid}", own).status());
+
+    switchToAdminUser();
+    assertEquals("unbound content", GET("/audits/files/{uid}", unbound).content("text/plain"));
+    assertEquals("former content", GET("/audits/files/{uid}", former).content("text/plain"));
+    assertEquals("own content", GET("/audits/files/{uid}", own).content("text/plain"));
+  }
+
+  @Test
+  @DisplayName("Audit files: the data read sharing of the data value's category options applies")
+  void testGetAuditFile_requiresDataReadOnCategoryOptions() {
+    String option =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryOptions",
+                "{'name':'Restricted','shortName':'Restricted','sharing':{'public':'rw------'}}"));
+    String category =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                format(
+                    "{'name':'Restricted','shortName':'Restricted',"
+                        + "'dataDimensionType':'DISAGGREGATION','categoryOptions':[{'id':'%s'}]}",
+                    option)));
+    String combo =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryCombos",
+                format(
+                    "{'name':'Restricted','dataDimensionType':'DISAGGREGATION',"
+                        + "'categories':[{'id':'%s'}]}",
+                    category)));
+    String restrictedCoc =
+        GET("/categoryCombos/{id}?fields=categoryOptionCombos[id]", combo)
+            .content()
+            .getArray("categoryOptionCombos")
+            .getObject(0)
+            .getString("id")
+            .string();
+    String restrictedDe =
+        addDataElement("restricted file", "FDE2", ValueType.FILE_RESOURCE, null, combo);
+    addDataSet("Restricted DS", "RDS1", List.of(restrictedDe), List.of(ou));
+    String file = uploadDataValueFile("restricted content");
+    storeFileValue(restrictedDe, restrictedCoc, file);
+
+    User reader = createAndAddUser("auditReader", manager.get(OrganisationUnit.class, ou));
+    switchToNewUser(reader);
+    assertEquals(HttpStatus.FORBIDDEN, GET("/audits/files/{uid}", file).status());
+
+    switchToAdminUser();
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/sharing?type=categoryOption&id=" + option,
+            "{'object':{'publicAccess':'rwr-----','userAccesses':[],'userGroupAccesses':[]}}"));
+    switchToNewUser(reader);
+    assertEquals("restricted content", GET("/audits/files/{uid}", file).content("text/plain"));
+  }
+
+  private String uploadDataValueFile(String content) {
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "value.txt", "text/plain", content.getBytes(StandardCharsets.UTF_8));
+    return POST_MULTIPART("/fileResources?domain=DATA_VALUE", file)
+        .content(HttpStatus.ACCEPTED)
+        .getObject("response")
+        .getObject("fileResource")
+        .getString("id")
+        .string();
+  }
+
+  private void storeFileValue(String dataElement, String categoryOptionCombo, String fileUid) {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            format(
+                "/dataValues?de=%s&pe=%s&ou=%s&co=%s&value=%s",
+                dataElement, pe, ou, categoryOptionCombo, fileUid)));
   }
 
   private void assertClearsFileResourceDataValue(Runnable clearRequest) {

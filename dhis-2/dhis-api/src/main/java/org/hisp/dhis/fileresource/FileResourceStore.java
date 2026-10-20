@@ -118,6 +118,27 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
   List<DataValueFileResourceKey> findDataValuesByFileResourceValue(@Nonnull String uid);
 
   /**
+   * Lookup of the aggregate data values of a file value type that hold the given file resource as
+   * their current value or held it as a former value, as recorded in their change log (audit).
+   *
+   * @param uid of a file resource
+   * @return where each such data value belongs, once per distinct combination
+   */
+  List<DataValueFileReference> findDataValueReferencesByFileResourceValue(@Nonnull String uid);
+
+  /**
+   * Where an aggregate data value that holds, or held, a file resource as value belongs.
+   *
+   * @param orgUnitPath path of the organisation unit of the data value
+   * @param categoryOptionCombo uid of the category option combo of the data value
+   * @param attributeOptionCombo uid of the attribute option combo of the data value
+   */
+  record DataValueFileReference(
+      @Nonnull String orgUnitPath,
+      @Nonnull String categoryOptionCombo,
+      @Nonnull String attributeOptionCombo) {}
+
+  /**
    * Get all unassigned File Resources by JOB_DATA FileResourceDomain, which have no associated job
    * config of scheduling type ONCE_ASAP.
    *
