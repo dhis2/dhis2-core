@@ -50,6 +50,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
@@ -150,7 +151,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
               + " could not be found.");
     }
 
-    return fileResourceService.getExistingFileResource(fileResourceUid);
+    // Like the aggregate data value API, only data value files are served as data values.
+    String uid = fileResourceUid;
+    return fileResourceService
+        .getFileResource(uid, FileResourceDomain.DATA_VALUE)
+        .orElseThrow(() -> new NotFoundException(FileResource.class, uid));
   }
 
   @Nonnull

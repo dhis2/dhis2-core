@@ -49,6 +49,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -640,6 +641,7 @@ class AttributeValidatorTest {
     FileResource fileResource = new FileResource();
     fileResource.setAssigned(true);
     fileResource.setUid(fileResourceUid);
+    fileResource.setDomain(FileResourceDomain.DATA_VALUE);
 
     when(preheat.get(FileResource.class, fileResourceUid)).thenReturn(fileResource);
     when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid("tea")))
@@ -683,6 +685,61 @@ class AttributeValidatorTest {
     fileResource.setFileResourceOwner(uid.getValue());
 
     bundle.setStrategy(trackedEntity, TrackerImportStrategy.UPDATE);
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldOnlyTreatFileValueOfTheSameAttributeAsHeld() {
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setUid("tet");
+    TrackedEntityAttribute fileAttribute = new TrackedEntityAttribute();
+    fileAttribute.setValueType(ValueType.FILE_RESOURCE);
+    fileAttribute.setUid("tea");
+    TrackedEntityAttribute textAttribute = new TrackedEntityAttribute();
+    textAttribute.setValueType(ValueType.TEXT);
+    textAttribute.setUid("text");
+
+    String fileResourceUid = CodeGenerator.generateUid();
+    FileResource fileResource = new FileResource();
+    fileResource.setAssigned(true);
+    fileResource.setUid(fileResourceUid);
+    fileResource.setDomain(FileResourceDomain.DATA_VALUE);
+    fileResource.setFileResourceOwner(UID.generate().getValue());
+
+    when(preheat.get(FileResource.class, fileResourceUid)).thenReturn(fileResource);
+    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid("tea")))
+        .thenReturn(fileAttribute);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid("tet")))
+        .thenReturn(trackedEntityType);
+
+    Attribute attribute = new Attribute();
+    attribute.setAttribute(MetadataIdentifier.ofUid("tea"));
+    attribute.setValue(fileResourceUid);
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TE_UID)
+            .attributes(Collections.singletonList(attribute))
+            .trackedEntityType(MetadataIdentifier.ofUid("tet"))
+            .build();
+    bundle.setStrategy(trackedEntity, TrackerImportStrategy.UPDATE);
+
+    org.hisp.dhis.tracker.model.TrackedEntity savedTrackedEntity = trackedEntity();
+    savedTrackedEntity.setTrackedEntityAttributeValues(
+        Set.of(
+            new TrackedEntityAttributeValue(textAttribute, savedTrackedEntity, fileResourceUid)));
+    when(preheat.getTrackedEntity(TE_UID)).thenReturn(savedTrackedEntity);
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertHasError(reporter, trackedEntity, ValidationCode.E1009);
+
+    reporter = new Reporter(idSchemes);
+    savedTrackedEntity.setTrackedEntityAttributeValues(
+        Set.of(
+            new TrackedEntityAttributeValue(fileAttribute, savedTrackedEntity, fileResourceUid)));
 
     validator.validate(reporter, bundle, trackedEntity);
 
