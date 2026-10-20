@@ -270,6 +270,7 @@ public enum ErrorCode {
   E3050("2FA code can not be null or empty"),
   E3051("2FA code was sent to the user's email"),
   E3052("Email 2FA is enabled on user, can not change email. Disable 2FA first"),
+  E3053("User `{0}` is not allowed to replicate a user lacking their dimension constraints"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),

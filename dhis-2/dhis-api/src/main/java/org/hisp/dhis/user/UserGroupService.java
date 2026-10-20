@@ -48,6 +48,14 @@ public interface UserGroupService {
   UserGroup getUserGroup(String uid);
 
   /**
+   * Returns the user groups with the given UIDs which the current user can read, in one query.
+   *
+   * @param uids the user group UIDs.
+   * @return the readable user groups; unknown UIDs are skipped.
+   */
+  List<UserGroup> getUserGroupsByUid(@Nonnull Collection<UID> uids);
+
+  /**
    * Indicates whether the current user can add or remove members for the user group with the given
    * UID. To do so the current user must have write access to the group or have read access as well
    * as the F_USER_GROUPS_READ_ONLY_ADD_MEMBERS authority.
