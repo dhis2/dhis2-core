@@ -5,9 +5,10 @@
 #
 # Creates (via the API) an attribute category combo of two categories, partner x funding, and a
 # user with national capture and search scope. Then (via SQL) assigns one of the combo's AOCs to
-# every enrollment of the program, adds the user to every user group, and shares every category
-# option with every user group without data access. An AOC is readable by the user only when its
-# partner option is: the share of enrollments the user can read is POPULATE_READABLE_PERCENT.
+# every enrollment of the program, adds the user to every user group, makes the API user a superuser
+# so it can replicate the user into those groups, and shares every category option with every user
+# group without data access. An AOC is readable by the user only when its partner option is: the
+# share of enrollments the user can read is POPULATE_READABLE_PERCENT.
 #
 # Run it against a running stack from dhis-test-performance, or let run-simulation.sh run it after
 # the containers start:
@@ -159,6 +160,7 @@ $PSQL --quiet \
   --set=program_uid="$POPULATE_PROGRAM" \
   --set=category_combo_uid=PerfAocComb \
   --set=username="$POPULATE_USERNAME" \
+  --set=api_username="$DHIS2_USERNAME" \
   < scripts/populate/enrollment-attribute-option-combo.sql
 
 # the SQL changed sharing and user group members behind the caches

@@ -8,6 +8,8 @@
 --   program_uid          UID of the program whose enrollments all get an AOC of the combo
 --   category_combo_uid   UID of the (existing) attribute category combo, with its AOCs generated
 --   username             user added to every user group, so the sharing check compares many groups
+--   api_username         user the test replicates the user with, made a superuser so it can add the
+--                        replicas to every user group (not all of them are shared with it)
 --
 -- Enrollments get the combo's AOCs round robin in id order, so every AOC holds the same share of
 -- them.
@@ -65,6 +67,14 @@ where cco.categoryoptionid = co.categoryoptionid
 insert into usergroupmembers (usergroupid, userid)
 select ug.usergroupid, :user_id
 from usergroup ug
+on conflict do nothing;
+
+insert into userrolemembers (userroleid, userid)
+select ura.userroleid, u.userinfoid
+from userroleauthorities ura
+cross join userinfo u
+where ura.authority = 'ALL'
+  and u.username = :'api_username'
 on conflict do nothing;
 
 commit;
