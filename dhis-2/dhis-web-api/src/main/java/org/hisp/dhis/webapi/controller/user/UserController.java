@@ -506,6 +506,8 @@ public class UserController
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     validateCreateUser(existingUser, currentUser);
 
+    userService.checkCanReplicateUser(existingUser, currentUser);
+
     Map<String, String> auth = renderService.fromJson(request.getInputStream(), Map.class);
 
     String username = StringUtils.trimToNull(auth != null ? auth.get("username") : null);

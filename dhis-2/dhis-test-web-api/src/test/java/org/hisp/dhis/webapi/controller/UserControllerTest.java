@@ -139,6 +139,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @AfterEach
   void afterEach() {
     emailMessageSender.clearMessages();
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", false);
   }
 
   @Test
