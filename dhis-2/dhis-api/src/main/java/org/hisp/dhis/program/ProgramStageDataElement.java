@@ -575,7 +575,10 @@ public class ProgramStageDataElement implements IdentifiableObject, EmbeddedObje
     // Not supported
   }
 
-  /** ProgramStageDataElement does not support name, so it has no display name. */
+  /**
+   * ProgramStageDataElement does not support name, so it has no display name. The annotations are
+   * the ones BaseIdentifiableObject had, kept so the schema property stays the same.
+   */
   @Override
   @Deprecated(since = "2.44")
   @Sortable(whenPersisted = false)
