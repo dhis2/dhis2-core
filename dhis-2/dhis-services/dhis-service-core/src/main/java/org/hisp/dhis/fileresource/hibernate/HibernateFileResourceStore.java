@@ -36,7 +36,9 @@ import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.fileresource.FileResource;
@@ -221,6 +223,49 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
                     ((Number) col[2]).longValue(),
                     (String) col[3]))
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<DataValueFileReference> findDataValueReferencesByFileResourceValue(
+      @Nonnull String uid) {
+    // restricting to the file data elements first lets both lookups use the indexes that lead
+    // with the data element
+    @Language("SQL")
+    String sql =
+        """
+        select distinct ou.path, coc.uid as coc, aoc.uid as aoc
+        from (
+          select dv.sourceid as ouid, dv.categoryoptioncomboid as cocid,
+            dv.attributeoptioncomboid as aocid
+          from datavalue dv
+          where dv.value = :uid
+            and dv.dataelementid in (
+              select de.dataelementid from dataelement de
+              where de.valuetype in ('FILE_RESOURCE', 'IMAGE'))
+          union
+          select dva.organisationunitid, dva.categoryoptioncomboid, dva.attributeoptioncomboid
+          from datavalueaudit dva
+          where dva.value = :uid
+            and dva.dataelementid in (
+              select de.dataelementid from dataelement de
+              where de.valuetype in ('FILE_RESOURCE', 'IMAGE'))
+        ) ref
+        inner join organisationunit ou on ou.organisationunitid = ref.ouid
+        inner join categoryoptioncombo coc on coc.categoryoptioncomboid = ref.cocid
+        inner join categoryoptioncombo aoc on aoc.categoryoptioncomboid = ref.aocid
+        """;
+    Stream<Object[]> rows =
+        nativeSynchronizedQuery(sql)
+            .addSynchronizedEntityClass(DataValue.class)
+            .addSynchronizedEntityClass(DataValueAudit.class)
+            .addSynchronizedEntityClass(DataElement.class)
+            .addSynchronizedEntityClass(OrganisationUnit.class)
+            .addSynchronizedEntityClass(CategoryOptionCombo.class)
+            .setParameter("uid", uid)
+            .stream();
+    return rows.map(
+            row -> new DataValueFileReference((String) row[0], (String) row[1], (String) row[2]))
+        .toList();
   }
 
   @Override
