@@ -144,9 +144,11 @@ public class FieldFilterService {
     }
 
     /**
-     * A property-level {@code @JsonIncludeProperties} restricts what plain Jackson writes for a
-     * reference (e.g. {@code Icon.fileResource}). The field filter selects the properties itself,
-     * so it ignores the restriction the same way it ignores type refinement.
+     * A member-level {@code @JsonIncludeProperties} (on a field or getter) is never honoured by the
+     * field filter. It restricts what plain Jackson writes for a reference (e.g. {@code
+     * Icon.fileResource}), while the field filter selects the properties itself from the {@code
+     * fields} parameter, the same way it ignores type refinement. A class-level
+     * {@code @JsonIncludeProperties} is still honoured.
      */
     @Override
     public JsonIncludeProperties.Value findPropertyInclusionByName(

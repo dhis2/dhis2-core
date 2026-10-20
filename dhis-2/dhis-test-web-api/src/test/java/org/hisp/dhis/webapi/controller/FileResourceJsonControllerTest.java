@@ -52,7 +52,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class FileResourceJsonControllerTest extends PostgresControllerIntegrationTestBase {
 
-  /** The plain Jackson key set of a file resource (null values are omitted). */
+  /**
+   * The key set of an uploaded file resource. Null values are omitted: {@code code} is never set by
+   * an upload, and {@code href}/{@code access} are only set when requested with {@code fields} (top
+   * level). Nested {@code fileResource[*]} does not get them either, as on play/dev.
+   */
   private static final Set<String> FILE_RESOURCE_KEYS =
       Set.of(
           "id",
@@ -74,7 +78,10 @@ class FileResourceJsonControllerTest extends PostgresControllerIntegrationTestBa
           "hasMultipleStorageFiles",
           "storageStatus");
 
-  /** The identifiable object key set that GET /api/icons/{key} writes for its file resource. */
+  /**
+   * The identifiable object key set that GET /api/icons/{key} writes for its file resource ({@code
+   * code}, {@code href} and {@code access} are null and omitted).
+   */
   private static final Set<String> ICON_FILE_RESOURCE_KEYS =
       Set.of(
           "id",
@@ -184,6 +191,16 @@ class FileResourceJsonControllerTest extends PostgresControllerIntegrationTestBa
     assertEquals(FILE_RESOURCE_KEYS, Set.copyOf(fileResource.names()));
     assertEquals(uid, fileResource.getString("id").string());
     assertEquals("ICON", fileResource.getString("domain").string());
+  }
+
+  @Test
+  void openApiDocumentsIconFileResourceAsIdentifiableObject() {
+    JsonObject iconProperties =
+        GET("/openapi.json").content().getObject("components.schemas.Icon.properties");
+
+    assertEquals(
+        "#/components/schemas/BaseIdentifiableObject",
+        iconProperties.getObject("fileResource").getString("$ref").string());
   }
 
   private String createIcon(String key) throws IOException {

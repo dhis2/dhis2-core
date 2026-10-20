@@ -81,7 +81,6 @@ import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.storage.BlobKey;
-import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -427,7 +426,6 @@ public class FileResource implements IdentifiableObject {
   @Sortable(whenPersisted = false)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
     return name;
   }
@@ -506,6 +504,7 @@ public class FileResource implements IdentifiableObject {
 
   @Override
   public void setUser(User user) {
+    // TODO remove this after implementing functions for using Owner
     setCreatedBy(createdBy == null ? user : createdBy);
     setOwner(user != null ? user.getUid() : null);
   }
@@ -533,6 +532,11 @@ public class FileResource implements IdentifiableObject {
     this.sharing = sharing;
   }
 
+  /**
+   * Translations are held in memory only (there is no column). The field stays live so that a
+   * request carrying translations is rejected by the non-translatable schema checks instead of
+   * silently dropping them.
+   */
   @Override
   @Gist(included = Include.FALSE)
   @Sortable(value = false)

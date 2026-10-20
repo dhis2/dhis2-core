@@ -31,7 +31,11 @@ package org.hisp.dhis.fileresource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 
 class FileResourceTest {
@@ -78,6 +82,53 @@ class FileResourceTest {
   @Test
   void displayNameIsTheName() {
     assertEquals("photo.png", fileResource().getDisplayName());
+  }
+
+  @Test
+  void setUserSetsCreatedByAndSharingOwner() {
+    FileResource fileResource = fileResource();
+    User user = user("UserUidAAA1");
+
+    fileResource.setUser(user);
+
+    assertSame(user, fileResource.getCreatedBy());
+    assertSame(user, fileResource.getUser());
+    assertEquals("UserUidAAA1", fileResource.getSharing().getOwner());
+  }
+
+  @Test
+  void setUserKeepsExistingCreatedByButChangesSharingOwner() {
+    FileResource fileResource = fileResource();
+    User creator = user("UserUidAAA1");
+    fileResource.setCreatedBy(creator);
+
+    fileResource.setUser(user("UserUidBBB1"));
+
+    assertSame(creator, fileResource.getCreatedBy());
+    assertEquals("UserUidBBB1", fileResource.getSharing().getOwner());
+  }
+
+  @Test
+  void getPropertyValueReturnsTheIdentifierOfTheScheme() {
+    FileResource fileResource = fileResource();
+    fileResource.setId(42L);
+
+    assertEquals("FileResUidA", fileResource.getPropertyValue(IdScheme.UID));
+    assertEquals("CODE_A", fileResource.getPropertyValue(IdScheme.CODE));
+    assertEquals("photo.png", fileResource.getPropertyValue(IdScheme.NAME));
+    assertEquals("42", fileResource.getPropertyValue(IdScheme.ID));
+    assertEquals("photo.png", fileResource.getDisplayPropertyValue(IdScheme.NAME));
+  }
+
+  @Test
+  void getPropertyValueOfIdIsNullWhenNotPersisted() {
+    assertNull(fileResource().getPropertyValue(IdScheme.ID));
+  }
+
+  private static User user(String uid) {
+    User user = new User();
+    user.setUid(uid);
+    return user;
   }
 
   private static FileResource fileResource() {
