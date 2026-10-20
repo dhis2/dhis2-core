@@ -28,9 +28,12 @@
 package org.hisp.dhis.webapi.controller.security;
 
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -93,6 +96,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Order(2103)
 public class AuthenticationController {
 
+  private static final String APP_START_MODULE_PREFIX = "app:";
+  private static final String DEFAULT_START_MODULE = "dhis-web-dashboard";
+
   @Autowired private AuthenticationManager authenticationManager;
 
   @Autowired private DhisConfigurationProvider dhisConfig;
@@ -100,6 +106,7 @@ public class AuthenticationController {
   @Autowired private RequestCache requestCache;
   @Autowired private SessionRegistry sessionRegistry;
   @Autowired private UserService userService;
+  @Autowired private AppManager appManager;
 
   private SessionAuthenticationStrategy sessionStrategy = new NullAuthenticatedSessionStrategy();
 
@@ -202,8 +209,7 @@ public class AuthenticationController {
   }
 
   private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response) {
-    String redirectUrl =
-        request.getContextPath() + "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
+    String redirectUrl = getStartModuleUrl(request);
 
     SavedRequest savedRequest = requestCache.getRequest(request, null);
     if (savedRequest != null) {
@@ -219,6 +225,32 @@ public class AuthenticationController {
       this.requestCache.removeRequest(request, response);
     }
     return redirectUrl;
+  }
+
+  /**
+   * Resolves the start module system setting to a URL. Start modules referring to an app (prefixed
+   * with {@code app:}) are resolved to the app's launch URL, falling back to the dashboard if the
+   * app is not found or not accessible to the user.
+   */
+  private String getStartModuleUrl(HttpServletRequest request) {
+    String contextPath = request.getContextPath();
+    String startModule = settingManager.getStringSetting(SettingKey.START_MODULE);
+
+    if (startModule == null || startModule.isBlank()) {
+      return contextPath + "/" + DEFAULT_START_MODULE;
+    }
+
+    if (startModule.startsWith(APP_START_MODULE_PREFIX)) {
+      String appName = startModule.substring(APP_START_MODULE_PREFIX.length());
+      return appManager.getApps(contextPath).stream()
+          .filter(app -> appName.equals(app.getShortName()))
+          .map(App::getLaunchUrl)
+          .filter(Objects::nonNull)
+          .findFirst()
+          .orElse(contextPath + "/" + DEFAULT_START_MODULE);
+    }
+
+    return contextPath + "/" + startModule;
   }
 
   private boolean filterSavedRequest(DefaultSavedRequest savedRequest) {
