@@ -41,6 +41,9 @@ import net.sf.jasperreports.j2ee.servlets.ImageServlet;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -79,6 +82,8 @@ public class ReportController extends AbstractCrudController<Report> {
 
   @Autowired private ContextUtils contextUtils;
 
+  @Autowired private DhisConfigurationProvider configuration;
+
   // -------------------------------------------------------------------------
   // CRUD
   // -------------------------------------------------------------------------
@@ -95,6 +100,10 @@ public class ReportController extends AbstractCrudController<Report> {
 
     if (report == null) {
       throw new WebMessageException(notFound("Report not found for identifier: " + uid));
+    }
+
+    if (!report.isTypeHtml()) {
+      checkJasperReportsEnabled();
     }
 
     report.setDesignContent(designContent);
@@ -219,6 +228,18 @@ public class ReportController extends AbstractCrudController<Report> {
   // Supportive methods
   // -------------------------------------------------------------------------
 
+  /**
+   * A non-HTML report design is compiled by the JasperReports engine when the report is rendered,
+   * so both storing a design through the design endpoint and rendering are gated behind the {@code
+   * jasper.reports.enabled} configuration.
+   */
+  private void checkJasperReportsEnabled() throws WebMessageException {
+    if (configuration.isDisabled(ConfigurationKey.JASPER_REPORTS_ENABLED)) {
+      throw new WebMessageException(
+          conflict(ErrorCode.E1007, ConfigurationKey.JASPER_REPORTS_ENABLED.getKey()));
+    }
+  }
+
   private void getReport(
       HttpServletRequest request,
       HttpServletResponse response,
@@ -251,6 +272,8 @@ public class ReportController extends AbstractCrudController<Report> {
 
       reportService.renderHtmlReport(response.getWriter(), uid, date, organisationUnitUid);
     } else {
+      checkJasperReportsEnabled();
+
       date = date != null ? date : new DateTime().minusMonths(1).toDate();
 
       Period period =
