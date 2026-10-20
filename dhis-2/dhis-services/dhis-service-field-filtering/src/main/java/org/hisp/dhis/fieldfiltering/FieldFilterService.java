@@ -32,6 +32,7 @@ package org.hisp.dhis.fieldfiltering;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
@@ -39,6 +40,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -139,6 +141,20 @@ public class FieldFilterService {
     public JavaType refineSerializationType(
         MapperConfig<?> config, Annotated a, JavaType baseType) {
       return baseType;
+    }
+
+    /**
+     * A property-level {@code @JsonIncludeProperties} restricts what plain Jackson writes for a
+     * reference (e.g. {@code Icon.fileResource}). The field filter selects the properties itself,
+     * so it ignores the restriction the same way it ignores type refinement.
+     */
+    @Override
+    public JsonIncludeProperties.Value findPropertyInclusionByName(
+        MapperConfig<?> config, Annotated a) {
+      if (a instanceof AnnotatedMember) {
+        return JsonIncludeProperties.Value.all();
+      }
+      return super.findPropertyInclusionByName(config, a);
     }
   }
 
