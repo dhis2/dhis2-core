@@ -178,12 +178,8 @@ abstract class AbstractGistControllerTest extends H2ControllerIntegrationTestBas
     assertFalse(pager.exists(), "Pager should not be present");
   }
 
-  /**
-   * The guest user will get the {@code Test_skipSharingCheck} authority so we do not get errors
-   * from the H2 database complaining that it does not support JSONB functions. Obviously this has
-   * an impact on the results which are not longer filter, the {@code sharing} is ignored.
-   */
+  /** Switches to a user without any authorities; sharing applies to it like to any other user. */
   protected final void switchToGuestUser() {
-    switchToNewUser("guest", "Test_skipSharingCheck");
+    switchToNewUser("guest");
   }
 }

@@ -414,14 +414,88 @@ public interface UserService {
   List<ErrorReport> validateUserCreateOrUpdateAccess(User user, UserDetails currentUser);
 
   /**
-   * Validate that the current user are allowed to create or modify properties of the given user
-   * role.
+   * Validate that the current user is allowed to create or modify properties of the given user
+   * role. Besides the checks for the ALL authority, the resulting role may only carry authorities
+   * the current user holds. An update without authorities ({@code null}) keeps the stored
+   * authorities, so those are checked then.
    *
-   * @param user the User.
+   * @param role the user role.
    * @param currentUser the current User.
    * @return a list of ErrorReport.
    */
-  List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole user, UserDetails currentUser);
+  List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, UserDetails currentUser);
+
+  /**
+   * Validate that the current user is allowed to delete the given user role. Only a user having the
+   * ALL authority may delete a role carrying the ALL authority.
+   *
+   * @param role the user role.
+   * @param currentUser the current User.
+   * @return a list of ErrorReport.
+   */
+  List<ErrorReport> validateUserRoleDelete(UserRole role, UserDetails currentUser);
+
+  /**
+   * Validate that the current user is allowed to change the sharing of the given object. Changing
+   * the sharing of a user role is an update of the role, so {@link #validateUserRoleCreateOrUpdate}
+   * applies to it; other objects have no extra rule here.
+   *
+   * @param object the object whose sharing is changed.
+   * @param currentUser the current User.
+   * @return a list of ErrorReport; empty when the change is allowed.
+   */
+  List<ErrorReport> validateSharingUpdate(
+      @Nonnull IdentifiableObject object, @Nonnull UserDetails currentUser);
+
+  /**
+   * Checks that the current user may add and remove the given items to and from a collection of
+   * each of the given users, such as their roles, groups or organisation units. The rules are those
+   * of a user update: the current user needs rights over each user (see {@link
+   * #canCurrentUserCanModify}), may only add roles they are allowed to grant (holding every
+   * authority of the role), may only add or remove groups whose members they may change, and may
+   * only add organisation units within their own hierarchy. The items are checked once for all
+   * users.
+   *
+   * @param users the users whose collection is changed.
+   * @param itemType the type of the items of the collection.
+   * @param additions the items about to be added.
+   * @param deletions the items about to be removed.
+   * @param currentUser the current User.
+   * @throws ForbiddenException if the current user may not make the change.
+   */
+  void checkCanChangeUserCollection(
+      @Nonnull Collection<User> users,
+      @Nonnull Class<?> itemType,
+      @Nonnull Collection<? extends IdentifiableObject> additions,
+      @Nonnull Collection<? extends IdentifiableObject> deletions,
+      @Nonnull UserDetails currentUser)
+      throws ForbiddenException;
+
+  /**
+   * Adds the given user to the given user role. The current user needs write access to the role,
+   * rights over the user (see {@link #canCurrentUserCanModify}), and must be allowed to grant the
+   * role (holding every authority of the role).
+   *
+   * @param role the user role.
+   * @param user the user.
+   * @param currentUser the current User.
+   * @throws ForbiddenException if the current user may not add the user to the role.
+   */
+  void addUserToRole(@Nonnull UserRole role, @Nonnull User user, @Nonnull UserDetails currentUser)
+      throws ForbiddenException;
+
+  /**
+   * Removes the given user from the given user role. The current user needs write access to the
+   * role and rights over the user (see {@link #canCurrentUserCanModify}).
+   *
+   * @param role the user role.
+   * @param user the user.
+   * @param currentUser the current User.
+   * @throws ForbiddenException if the current user may not remove the user from the role.
+   */
+  void removeUserFromRole(
+      @Nonnull UserRole role, @Nonnull User user, @Nonnull UserDetails currentUser)
+      throws ForbiddenException;
 
   /**
    * @param inDays number of days to include
