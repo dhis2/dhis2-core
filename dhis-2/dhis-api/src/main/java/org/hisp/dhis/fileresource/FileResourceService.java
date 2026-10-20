@@ -140,6 +140,22 @@ public interface FileResourceService {
   boolean canReadMetadata(@Nonnull UserDetails user, @Nonnull FileResource fileResource);
 
   /**
+   * Decides whether the given user may read the content of the given {@link
+   * FileResourceDomain#DATA_VALUE} file where it is not looked up through its data value, as by the
+   * data value change log (audit) API, which serves current and former values alike.
+   *
+   * <p>This is {@link #canRead(UserDetails, FileResource)}, or the file is the current or a former
+   * value of an aggregate data value of a file value type that the user may read: its organisation
+   * unit is in the user's data capture or data view hierarchy, and the user may read the data of
+   * its category option combo and attribute option combo. Any other domain is not readable here.
+   *
+   * @param user the user requesting the file resource
+   * @param fileResource the data value file resource to read
+   * @return true if the user may read the file resource, false if not
+   */
+  boolean canReadDataValueFile(@Nonnull UserDetails user, @Nonnull FileResource fileResource);
+
+  /**
    * Decides whether the given user may assign the given {@link FileResource} to an object, such as
    * a document, a message or an icon.
    *
