@@ -678,15 +678,20 @@ class JdbcTrackedEntityStore {
   /**
    * Restricts enrollments to those whose attribute option combo is readable by the current user,
    * meaning the user has data read access to every one of its category options.
+   *
+   * <p>The subquery is uncorrelated so Postgres evaluates the sharing check once per category
+   * option (hashed subplan) instead of once per enrollment, which a correlated NOT EXISTS does
+   * under a generic plan. NOT IN is safe because enrollment.attributeoptioncomboid is not null.
    */
   private void addEnrollmentAttributeOptionComboCondition(StringBuilder sql) {
     if (!getCurrentUserDetails().isSuper()) {
-      sql.append(" and not exists (")
-          .append("select 1 from categoryoptioncombos_categoryoptions cocco ")
-          .append("inner join categoryoption co on co.categoryoptionid = cocco.categoryoptionid ")
-          .append("where cocco.categoryoptioncomboid = ")
+      sql.append(" and ")
           .append(ENROLLMENT_ALIAS)
-          .append(".attributeoptioncomboid and not (")
+          .append(".attributeoptioncomboid not in (")
+          .append(
+              "select cocco.categoryoptioncomboid from categoryoptioncombos_categoryoptions cocco ")
+          .append("inner join categoryoption co on co.categoryoptionid = cocco.categoryoptionid ")
+          .append("where not (")
           .append(
               JpaQueryUtils.generateSQlQueryForSharingCheck(
                   "co.sharing", getCurrentUserDetails(), AclService.LIKE_READ_DATA))
