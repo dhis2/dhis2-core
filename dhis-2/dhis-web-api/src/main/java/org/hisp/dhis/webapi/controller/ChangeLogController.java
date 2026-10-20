@@ -67,6 +67,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.Preset;
@@ -93,7 +94,9 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChan
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
@@ -136,12 +139,18 @@ public class ChangeLogController {
   @GetMapping("/files/{uid}")
   public void getFileAudit(
       @OpenApi.Param({UID.class, FileResource.class}) @PathVariable String uid,
-      HttpServletResponse response)
-      throws WebMessageException {
+      HttpServletResponse response,
+      @CurrentUser UserDetails currentUser)
+      throws WebMessageException, ForbiddenException {
     FileResource fileResource = fileResourceService.getFileResource(uid);
 
     if (fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE) {
       throw new WebMessageException(notFound("No file found with uid '" + uid + "'"));
+    }
+
+    if (!fileResourceService.canReadDataValueFile(currentUser, fileResource)) {
+      throw new ForbiddenException(
+          String.format("File resource not found or not accessible: %s", uid));
     }
 
     FileResourceStorageStatus storageStatus = fileResource.getStorageStatus();
