@@ -62,6 +62,9 @@ public enum ConfigurationKey {
   /** SQL view write enabled, can be 'on', 'off'. (default: off) */
   SYSTEM_SQL_VIEW_WRITE_ENABLED("system.sql_view_write_enabled", Constants.OFF, false),
 
+  /** JasperReports report designs enabled, can be 'on', 'off'. (default: off) */
+  JASPER_REPORTS_ENABLED("jasper.reports.enabled", Constants.OFF, false),
+
   /**
    * Set the maximum size for the cache instance to be built. If set to 0, no caching will take
    * place. Cannot be a negative value. (default: 0).
