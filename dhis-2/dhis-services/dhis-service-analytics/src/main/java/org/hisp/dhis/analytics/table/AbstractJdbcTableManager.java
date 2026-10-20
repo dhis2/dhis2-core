@@ -321,8 +321,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     List<AnalyticsTableHook> hooks =
         tableHookService.getByPhaseAndAnalyticsTableType(
             AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, type);
-    tableHookService.executeAnalyticsTableSqlHooks(hooks);
-    return hooks.size();
+    return tableHookService.executeAnalyticsTableSqlHooks(hooks);
   }
 
   /**
