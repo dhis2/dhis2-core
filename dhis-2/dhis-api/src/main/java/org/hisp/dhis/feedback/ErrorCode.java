@@ -259,6 +259,8 @@ public enum ErrorCode {
   E4015("Property `{0}` refers to an object that does not exist, could not find `{1}`"),
   E4016(
       "Object referenced by the `{0}` property is already associated with another object, value: `{1}`"),
+  E4094(
+      "Property `{0}` must refer to an unassigned `{1}` file resource uploaded by the current user, but was given `{2}`"),
   E4017("RenderingType `{0}` is not supported for ValueType `{1}`"),
   E4018("Property `{0}` must be set when property `{1}` is `{2}`"),
   E4019("Failed to parse pattern `{0}` {1}"),

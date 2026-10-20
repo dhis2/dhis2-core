@@ -34,10 +34,12 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpStatus.ACCEPTED;
 import static org.hisp.dhis.http.HttpStatus.CONFLICT;
 import static org.hisp.dhis.http.HttpStatus.CREATED;
+import static org.hisp.dhis.http.HttpStatus.FORBIDDEN;
 import static org.hisp.dhis.http.HttpStatus.NO_CONTENT;
 import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -171,6 +173,69 @@ class DocumentControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("replacement", GET("/documents/" + id + "/data").content("text/plain"));
   }
 
+  @ParameterizedTest
+  @CsvSource({
+    "DOCUMENT, false",
+    "DOCUMENT, true",
+    "JOB_DATA, false",
+    "MESSAGE_ATTACHMENT, false",
+    "DATA_VALUE, false"
+  })
+  void cannotBindUnassignedFileOfAnotherUser(FileResourceDomain domain, boolean update) {
+    String foreignFile = upload("foreign", domain);
+
+    switchToNewUser("documentAuthor", "F_DOCUMENT_PUBLIC_ADD", "F_DOCUMENT_PRIVATE_ADD");
+    HttpResponse response;
+    if (update) {
+      String ownFile = upload("own", FileResourceDomain.DOCUMENT);
+      String id = createDocument("Own", ownFile, false);
+      response =
+          PATCH(
+              "/documents/" + id,
+              "[{'op':'replace','path':'/url','value':'%s'}]".formatted(foreignFile));
+      assertEquals(ownFile, GET("/documents/" + id).content(OK).getString("url").string());
+    } else {
+      response =
+          POST("/documents", "{'name':'Other','url':'%s','external':false}".formatted(foreignFile));
+    }
+
+    assertEquals("E4094", errorCode(response));
+    assertEquals(FORBIDDEN, GET("/fileResources/{uid}/data", foreignFile).status());
+  }
+
+  @Test
+  void cannotBindOwnFileOfAnotherDomain() {
+    String dataValueFile = upload("value", FileResourceDomain.DATA_VALUE);
+
+    assertEquals(
+        "E4094",
+        errorCode(
+            POST(
+                "/documents",
+                "{'name':'Other','url':'%s','external':false}".formatted(dataValueFile))));
+    assertEquals(
+        "DATA_VALUE",
+        GET("/fileResources/{uid}", dataValueFile).content(OK).getString("domain").string());
+  }
+
+  @Test
+  void canBindOwnDocumentFile() {
+    switchToNewUser("documentUploader", "F_DOCUMENT_PUBLIC_ADD", "F_DOCUMENT_PRIVATE_ADD");
+    String id = createDocument("Own", upload("mine", FileResourceDomain.DOCUMENT), false);
+
+    assertEquals("mine", GET("/documents/" + id + "/data").content("text/plain"));
+  }
+
+  private static String errorCode(HttpResponse response) {
+    return response
+        .content(CONFLICT)
+        .getObject("response")
+        .getArray("errorReports")
+        .getObject(0)
+        .getString("errorCode")
+        .string();
+  }
+
   private String createDocument(String name, String url, boolean external) {
     return assertStatus(
         CREATED,
@@ -179,8 +244,12 @@ class DocumentControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   private String upload(String content) {
+    return upload(content, FileResourceDomain.DOCUMENT);
+  }
+
+  private String upload(String content, FileResourceDomain domain) {
     return POST_MULTIPART(
-            "/fileResources?domain=DOCUMENT",
+            "/fileResources?domain=" + domain.name(),
             new MockMultipartFile("file", "document.txt", "text/plain", content.getBytes(UTF_8)))
         .content(ACCEPTED)
         .getObject("response")

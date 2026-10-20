@@ -51,6 +51,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -70,6 +71,7 @@ import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValueSystemWide;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -722,6 +724,9 @@ class AttributeValidatorTest {
     FileResource fileResource = mock(FileResource.class);
     when(fileResource.getUid()).thenReturn(fileResUid);
     when(fileResource.getFormat()).thenReturn(format);
+    when(fileResource.getDomain()).thenReturn(FileResourceDomain.DATA_VALUE);
+    when(fileResource.isCreatedBy(any())).thenReturn(true);
+    bundle.setUser(mock(UserDetails.class));
     when(preheat.get(FileResource.class, fileResUid)).thenReturn(fileResource);
 
     when(program.getProgramAttributes())
