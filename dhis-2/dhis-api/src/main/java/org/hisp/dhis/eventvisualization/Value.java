@@ -72,4 +72,12 @@ public class Value implements Serializable, EmbeddedObject {
 
     return null;
   }
+
+  public String getUid() {
+    if (dimensionalObject != null) {
+      return dimensionalObject.getUid();
+    }
+
+    return uid;
+  }
 }

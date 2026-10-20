@@ -1212,8 +1212,10 @@ public class EventQueryParams extends DataQueryParams {
    */
   public boolean hasNumericValueDimension() {
     return hasValueDimension()
-        && value instanceof ValueTypedDimensionalItemObject
-        && ((ValueTypedDimensionalItemObject) value).getValueType().isNumeric();
+        && value.getDimensionalObject() instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value.getDimensionalObject())
+            .getValueType()
+            .isNumeric();
   }
 
   /**
@@ -1223,8 +1225,10 @@ public class EventQueryParams extends DataQueryParams {
    */
   public boolean hasBooleanValueDimension() {
     return hasValueDimension()
-        && value instanceof ValueTypedDimensionalItemObject
-        && ((ValueTypedDimensionalItemObject) value).getValueType().isBoolean();
+        && value.getDimensionalObject() instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value.getDimensionalObject())
+            .getValueType()
+            .isBoolean();
   }
 
   /**
@@ -1234,8 +1238,8 @@ public class EventQueryParams extends DataQueryParams {
    */
   public boolean hasTextValueDimension() {
     return hasValueDimension()
-        && value instanceof ValueTypedDimensionalItemObject
-        && ((ValueTypedDimensionalItemObject) value).getValueType().isText();
+        && value.getDimensionalObject() instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value.getDimensionalObject()).getValueType().isText();
   }
 
   /**
@@ -1245,8 +1249,8 @@ public class EventQueryParams extends DataQueryParams {
    */
   public boolean hasDateValueDimension() {
     return hasValueDimension()
-        && value instanceof ValueTypedDimensionalItemObject
-        && ((ValueTypedDimensionalItemObject) value).getValueType().isDate();
+        && value.getDimensionalObject() instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value.getDimensionalObject()).getValueType().isDate();
   }
 
   @Override
