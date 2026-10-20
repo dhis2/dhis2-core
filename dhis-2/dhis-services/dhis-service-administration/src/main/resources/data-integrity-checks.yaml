@@ -81,3 +81,4 @@ checks:
   - users/user_roles_no_authorities.yaml
   - users/user_roles_with_no_users.yaml
   - users/users_with_invalid_usernames.yaml
+  - users/user_roles_with_authorities_not_held_by_creator.yaml

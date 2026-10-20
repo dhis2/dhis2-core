@@ -48,6 +48,8 @@ import org.junit.jupiter.api.Test;
 class GistPostgresControllerTest extends DhisControllerIntegrationTest {
   private String orgUnitId;
 
+  private String userGroupId;
+
   private User userA;
 
   @BeforeEach
@@ -56,7 +58,7 @@ class GistPostgresControllerTest extends DhisControllerIntegrationTest {
 
     switchContextToUser(userA);
 
-    String userGroupId =
+    userGroupId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
@@ -92,5 +94,126 @@ class GistPostgresControllerTest extends DhisControllerIntegrationTest {
     JsonObject user0 = users.getObject(0);
     assertEquals("Surnameadmin", user0.getString("surname").string());
     assertEquals(getSuperuserUid(), user0.getString("id").string());
+  }
+
+  @Test
+  void testValidation_Access_CollectionOwnerSharing() {
+    setUserGroupPublicAccess("--------");
+    switchToNewUser("guest");
+    assertEquals(
+        "User not allowed to view UserGroup " + userGroupId,
+        GET("/userGroups/{id}/users/gist", userGroupId).error(HttpStatus.FORBIDDEN).getMessage());
+    switchToSuperuser();
+    assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
+  }
+
+  @Test
+  void testValidation_Access_CollectionOwnerReadable() {
+    setUserGroupPublicAccess("r-------");
+    switchToNewUser("guest");
+    assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
+  }
+
+  @Test
+  void testValidation_Access_CollectionOwnerMissingOrHidden() {
+    setUserGroupPublicAccess("--------");
+    switchToNewUser("guest");
+    assertEquals(
+        "User not allowed to view UserGroup " + userGroupId,
+        GET("/userGroups/{id}/users/gist", userGroupId).error(HttpStatus.FORBIDDEN).getMessage());
+    // a missing owner is refused the same way, so the response does not reveal whether it exists
+    assertEquals(
+        "User not allowed to view UserGroup MissingGrp1",
+        GET("/userGroups/{id}/users/gist", "MissingGrp1").error(HttpStatus.FORBIDDEN).getMessage());
+  }
+
+  @Test
+  void testValidation_Access_CollectionOwnerSharedWithUser() {
+    String readerId = switchToNewUser("reader").getUid();
+    switchToSuperuser();
+    setUserGroupSharing(
+        "'users':{'" + readerId + "':{'id':'" + readerId + "','access':'r-------'}}");
+
+    switchToNewUser("other");
+    assertEquals(HttpStatus.FORBIDDEN, GET("/userGroups/{id}/users/gist", userGroupId).status());
+    switchToStoredUser(readerId);
+    assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
+  }
+
+  @Test
+  void testValidation_Access_CollectionOwnerSharedWithUserGroup() {
+    String readerId = switchToNewUser("member").getUid();
+    switchToSuperuser();
+    String readersId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/userGroups/", "{'name':'readers','users':[{'id':'" + readerId + "'}]}"));
+    setUserGroupSharing(
+        "'userGroups':{'" + readersId + "':{'id':'" + readersId + "','access':'r-------'}}");
+
+    switchToNewUser("outsider");
+    assertEquals(HttpStatus.FORBIDDEN, GET("/userGroups/{id}/users/gist", userGroupId).status());
+    switchToStoredUser(readerId);
+    assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
+  }
+
+  /** Switches to a stored user, reloaded so that its current user group memberships apply. */
+  private void switchToStoredUser(String uid) {
+    manager.flush();
+    manager.clear();
+    switchContextToUser(userService.getUser(uid));
+  }
+
+  /** Makes the user group private except for the given user or user group accesses. */
+  private void setUserGroupSharing(String accesses) {
+    String owner =
+        GET("/userGroups/{id}", userGroupId)
+            .content()
+            .getObject("sharing")
+            .getString("owner")
+            .string();
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        PUT(
+            "/userGroups/" + userGroupId + "/sharing",
+            "{'owner':'" + owner + "','public':'--------','external':false," + accesses + "}"));
+  }
+
+  private void setUserGroupPublicAccess(String publicAccess) {
+    JsonObject group = GET("/userGroups/{id}", userGroupId).content();
+    String sharing =
+        group
+            .getObject("sharing")
+            .node()
+            .extract()
+            .member("public")
+            .replaceWith("\"" + publicAccess + "\"")
+            .toString();
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/userGroups/" + userGroupId + "/sharing", sharing));
+  }
+
+  /** Only superusers skip sharing; a user holding any other authority sees shared objects only. */
+  @Test
+  void testAccess_SharingAppliesToUserWithoutAllAuthority() {
+    String privateSetId = createDataSet("private set", "--------");
+    String publicSetId = createDataSet("public set", "r-------");
+
+    switchToNewUser("viewer", "Test_skipSharingCheck");
+
+    assertEquals(0, getDataSetsWithId(privateSetId).size());
+    assertEquals(1, getDataSetsWithId(publicSetId).size());
+  }
+
+  private String createDataSet(String name, String publicAccess) {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataSets/",
+            "{'name':'%s','shortName':'%s','periodType':'Monthly','sharing':{'public':'%s'}}"
+                .formatted(name, name, publicAccess)));
+  }
+
+  private JsonArray getDataSetsWithId(String id) {
+    return GET("/dataSets/gist?fields=id&headless=true&filter=id:eq:{id}", id).content();
   }
 }

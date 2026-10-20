@@ -45,6 +45,14 @@ public interface UserGroupService {
   UserGroup getUserGroup(String uid);
 
   /**
+   * Returns the user groups with the given UIDs which the current user can read, in one query.
+   *
+   * @param uids the user group UIDs.
+   * @return the readable user groups; unknown UIDs are skipped.
+   */
+  List<UserGroup> getUserGroupsByUid(@Nonnull Collection<String> uids);
+
+  /**
    * Indicates whether the current user can add or remove members for the user group with the given
    * UID. To do so the current user must have write access to the group or have read access as well
    * as the F_USER_GROUPS_READ_ONLY_ADD_MEMBERS authority.
@@ -55,6 +63,15 @@ public interface UserGroupService {
   boolean canAddOrRemoveMember(String uid);
 
   boolean canAddOrRemoveMember(String uid, UserDetails currentUser);
+
+  /**
+   * Like {@link #canAddOrRemoveMember(String, UserDetails)}, for a user group already loaded.
+   *
+   * @param userGroup the user group, may be null.
+   * @param currentUser the current user.
+   * @return true if the current user can add or remove members of the user group.
+   */
+  boolean canAddOrRemoveMember(UserGroup userGroup, UserDetails currentUser);
 
   void addUserToGroups(User user, @Nonnull Collection<String> uids, User currentUser);
 
