@@ -122,6 +122,12 @@ public class DefaultUserGroupService implements UserGroupService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<UserGroup> getUserGroupsByUid(@Nonnull Collection<String> uids) {
+    return userGroupStore.getByUid(uids);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public boolean canAddOrRemoveMember(String uid) {
     return canAddOrRemoveMember(uid, CurrentUserUtil.getCurrentUserDetails());
   }
@@ -129,7 +135,12 @@ public class DefaultUserGroupService implements UserGroupService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrRemoveMember(String uid, UserDetails userDetails) {
-    UserGroup userGroup = getUserGroup(uid);
+    return canAddOrRemoveMember(getUserGroup(uid), userDetails);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canAddOrRemoveMember(UserGroup userGroup, UserDetails userDetails) {
 
     if (userGroup == null || userDetails == null) {
       return false;
@@ -200,10 +211,6 @@ public class DefaultUserGroupService implements UserGroupService {
           }
         });
     aclService.invalidateCurrentUserGroupInfoCache();
-  }
-
-  private Collection<UserGroup> getUserGroupsByUid(@Nonnull Collection<String> uids) {
-    return userGroupStore.getByUid(uids);
   }
 
   @Override

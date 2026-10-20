@@ -83,3 +83,4 @@ checks:
   - users/user_roles_with_no_users.yaml
   - users/users_with_invalid_usernames.yaml
   - tracked_entity_attributes/tracked_entity_attributes_duplicated_unique_values_in_org_unit.yaml
+  - users/user_roles_with_authorities_not_held_by_creator.yaml

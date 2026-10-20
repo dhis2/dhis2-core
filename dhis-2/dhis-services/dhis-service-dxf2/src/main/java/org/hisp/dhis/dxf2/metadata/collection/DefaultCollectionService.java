@@ -31,7 +31,9 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -46,12 +48,16 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,8 +77,16 @@ public class DefaultCollectionService implements CollectionService {
 
   private final EntityManager entityManager;
 
+  private final UserService userService;
+
   @Override
-  @Transactional
+  @Transactional(
+      rollbackFor = {
+        ForbiddenException.class,
+        ConflictException.class,
+        NotFoundException.class,
+        BadRequestException.class
+      })
   public TypeReport addCollectionItems(
       IdentifiableObject object,
       String propertyName,
@@ -84,6 +98,14 @@ public class DefaultCollectionService implements CollectionService {
 
     Collection<String> itemCodes = getItemCodes(objects);
 
+    validateUserChanges(object, property, itemCodes, List.of());
+
+    return addItems(object, property, itemCodes);
+  }
+
+  private TypeReport addItems(
+      IdentifiableObject object, Property property, Collection<String> itemCodes)
+      throws BadRequestException {
     if (itemCodes.isEmpty()) {
       return TypeReport.empty(property.getItemKlass());
     }
@@ -149,7 +171,13 @@ public class DefaultCollectionService implements CollectionService {
   }
 
   @Override
-  @Transactional
+  @Transactional(
+      rollbackFor = {
+        ForbiddenException.class,
+        ConflictException.class,
+        NotFoundException.class,
+        BadRequestException.class
+      })
   public TypeReport delCollectionItems(
       IdentifiableObject object,
       String propertyName,
@@ -161,6 +189,14 @@ public class DefaultCollectionService implements CollectionService {
 
     Collection<String> itemCodes = getItemCodes(objects);
 
+    validateUserChanges(object, property, List.of(), itemCodes);
+
+    return delItems(object, property, itemCodes);
+  }
+
+  private TypeReport delItems(
+      IdentifiableObject object, Property property, Collection<String> itemCodes)
+      throws BadRequestException {
     if (itemCodes.isEmpty()) {
       return TypeReport.empty(property.getItemKlass());
     }
@@ -227,8 +263,19 @@ public class DefaultCollectionService implements CollectionService {
     entityManager.refresh(object);
   }
 
+  /**
+   * Replacing validates the whole change up front, so that a rejected addition cannot leave the
+   * deletions that precede it in place. Only the net change is validated: items that stay in the
+   * collection are removed and added back, which changes nothing.
+   */
   @Override
-  @Transactional
+  @Transactional(
+      rollbackFor = {
+        ForbiddenException.class,
+        ConflictException.class,
+        NotFoundException.class,
+        BadRequestException.class
+      })
   public TypeReport replaceCollectionItems(
       IdentifiableObject object,
       String propertyName,
@@ -238,19 +285,48 @@ public class DefaultCollectionService implements CollectionService {
         validateUpdate(
             object, propertyName, "Only identifiable object collections can be replaced.");
 
-    TypeReport deletions =
-        delCollectionItems(object, propertyName, getCollection(object, property));
-    TypeReport additions = addCollectionItems(object, propertyName, objects);
-    return deletions.mergeAllowEmpty(additions);
+    Collection<String> deletions = getItemCodes(getCollection(object, property));
+    Collection<String> additions = getItemCodes(objects);
+
+    Set<String> current = new HashSet<>(deletions);
+    Set<String> requested = new HashSet<>(additions);
+    validateUserChanges(
+        object,
+        property,
+        additions.stream().filter(uid -> !current.contains(uid)).toList(),
+        deletions.stream().filter(uid -> !requested.contains(uid)).toList());
+
+    TypeReport delReport = delItems(object, property, deletions);
+    TypeReport addReport = addItems(object, property, additions);
+    return delReport.mergeAllowEmpty(addReport);
   }
 
+  /**
+   * Merging validates the whole change up front, so that a rejected addition cannot leave the
+   * deletions that precede it in place.
+   */
   @Override
-  @Transactional
+  @Transactional(
+      rollbackFor = {
+        ForbiddenException.class,
+        ConflictException.class,
+        NotFoundException.class,
+        BadRequestException.class
+      })
   public TypeReport mergeCollectionItems(
       IdentifiableObject object, String propertyName, IdentifiableObjects items)
       throws ForbiddenException, ConflictException, NotFoundException, BadRequestException {
-    TypeReport delReport = delCollectionItems(object, propertyName, items.getDeletions());
-    TypeReport addReport = addCollectionItems(object, propertyName, items.getAdditions());
+    Property property =
+        validateUpdate(
+            object, propertyName, "Only identifiable object collections can be removed from.");
+
+    Collection<String> deletions = getItemCodes(items.getDeletions());
+    Collection<String> additions = getItemCodes(items.getAdditions());
+
+    validateUserChanges(object, property, additions, deletions);
+
+    TypeReport delReport = delItems(object, property, deletions);
+    TypeReport addReport = addItems(object, property, additions);
     return delReport.mergeAllowEmpty(addReport);
   }
 
@@ -273,6 +349,60 @@ public class DefaultCollectionService implements CollectionService {
       throw new ConflictException(message);
     }
     return property;
+  }
+
+  /**
+   * Changes made through the generic collection endpoints to a collection of a user (its roles,
+   * groups, organisation units or dimension constraints), or to the users of a user role or of an
+   * organisation unit, follow the rules of a user update (see {@link
+   * UserService#checkCanChangeUserCollection}): the current user needs rights over every affected
+   * user, and may only add what they could give that user by updating it. All of it is checked
+   * before anything is changed. The members of a user group are governed by the sharing of the
+   * group instead, as with {@link org.hisp.dhis.user.UserGroupService#addUserToGroups}.
+   */
+  @SuppressWarnings("unchecked")
+  private void validateUserChanges(
+      IdentifiableObject object,
+      Property property,
+      Collection<String> additions,
+      Collection<String> deletions)
+      throws ForbiddenException {
+    if (additions.isEmpty() && deletions.isEmpty()) {
+      return;
+    }
+
+    Class<? extends IdentifiableObject> itemType =
+        (Class<? extends IdentifiableObject>) property.getItemKlass();
+
+    if (object instanceof User user) {
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      userService.checkCanChangeUserCollection(
+          List.of(user),
+          itemType,
+          manager.getByUid(itemType, additions),
+          manager.getByUid(itemType, deletions),
+          currentUser);
+    } else if (User.class == itemType
+        && (object instanceof UserRole || object instanceof OrganisationUnit)) {
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      Class<?> objectType = object instanceof UserRole ? UserRole.class : OrganisationUnit.class;
+      if (!additions.isEmpty()) {
+        userService.checkCanChangeUserCollection(
+            manager.getByUid(User.class, additions),
+            objectType,
+            List.of(object),
+            List.of(),
+            currentUser);
+      }
+      if (!deletions.isEmpty()) {
+        userService.checkCanChangeUserCollection(
+            manager.getByUid(User.class, deletions),
+            objectType,
+            List.of(),
+            List.of(object),
+            currentUser);
+      }
+    }
   }
 
   private Collection<String> getItemCodes(Collection<? extends IdentifiableObject> objects) {

@@ -82,6 +82,7 @@ import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonUserGroup;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.jboss.aerogear.security.otp.api.Base32;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -125,6 +126,11 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     User user = userService.getUser(peter.getUid());
     assertEquals("peter@pan.net", user.getEmail());
+  }
+
+  @AfterEach
+  void resetSettings() {
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.FALSE);
   }
 
   @Test

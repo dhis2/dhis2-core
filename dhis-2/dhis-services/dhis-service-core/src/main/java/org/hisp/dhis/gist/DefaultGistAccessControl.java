@@ -120,7 +120,11 @@ public class DefaultGistAccessControl implements GistAccessControl {
                 .fields(singletonList(new Field("sharing", Transform.NONE)))
                 .filters(singletonList(new Filter("id", Comparison.EQ, uid)))
                 .build());
-    Sharing sharing = res.isEmpty() ? new Sharing() : (Sharing) res.get(0);
+    if (res.isEmpty()) {
+      // the owner does not exist, or its sharing hides it from the current user
+      return isSuperuser();
+    }
+    Sharing sharing = (Sharing) res.get(0);
     BaseIdentifiableObject object = new BaseIdentifiableObject();
     object.setSharing(sharing);
     return aclService.canRead(currentUser, object, ioType);
