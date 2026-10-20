@@ -101,8 +101,6 @@ public class DefaultObjectBundleService implements ObjectBundleService {
       params.setUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
 
-    normalize(params);
-
     preheatParams.setUserDetails(params.getUserDetails());
     preheatParams.setObjects(params.getObjects());
 
@@ -113,16 +111,6 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     bundle.setObjectReferences(preheatService.collectObjectReferences(params.getObjects()));
 
     return bundle;
-  }
-
-  private void normalize(ObjectBundleParams params) {
-    params.getObjects().values().stream()
-        .flatMap(List::stream)
-        .forEach(
-            object ->
-                objectBundleHooks
-                    .getObjectHooks(object)
-                    .forEach(hook -> hook.normalize(object, params)));
   }
 
   @Override
