@@ -427,7 +427,7 @@ public class FileResource implements IdentifiableObject {
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getDisplayName() {
-    return name;
+    return getName();
   }
 
   @Override
@@ -504,7 +504,7 @@ public class FileResource implements IdentifiableObject {
 
   @Override
   public void setUser(User user) {
-    // TODO remove this after implementing functions for using Owner
+    // Same as BaseIdentifiableObject: kept until ownership has its own functions
     setCreatedBy(createdBy == null ? user : createdBy);
     setOwner(user != null ? user.getUid() : null);
   }

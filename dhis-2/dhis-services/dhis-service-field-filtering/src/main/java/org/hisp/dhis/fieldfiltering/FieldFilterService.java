@@ -501,25 +501,33 @@ public class FieldFilterService {
       JsonNode parent, PropertyPath path, List<FieldTransformer> transformers) {
     if (path == null) return; // just to make null checker happy
     if (path.parent() != null) {
-      // need to drill down
-      String name = path.head().toString();
-      JsonNode node = parent.get(name);
-      if (node == null || node.isNull()) return; // done here
-      if (node.isObject()) {
-        applyTransformers(node, path.dropHead(), transformers);
-      } else if (node.isArray()) {
-        PropertyPath subPath = path.dropHead();
-        Iterator<JsonNode> iter = node.elements();
-        while (iter.hasNext()) applyTransformers(iter.next(), subPath, transformers);
-      }
+      drillDownAndApplyTransformers(parent, path, transformers);
     } else {
-      // need to apply the transformers
-      if (!parent.isObject()) return; // must be an object, otherwise ignore
-      String name = path.property().toString();
-      JsonNode target = parent.get(name);
-      if (target == null || target.isNull()) return; // nothing to do here
-      transformers.forEach(t -> t.apply(path, target, parent));
+      applyTransformersToProperty(parent, path, transformers);
     }
+  }
+
+  /** Applies the transformers to the child named by the head of the path (object or array). */
+  private void drillDownAndApplyTransformers(
+      JsonNode parent, PropertyPath path, List<FieldTransformer> transformers) {
+    JsonNode node = parent.get(path.head().toString());
+    if (node == null || node.isNull()) return; // done here
+    PropertyPath subPath = path.dropHead();
+    if (node.isObject()) {
+      applyTransformers(node, subPath, transformers);
+    } else if (node.isArray()) {
+      Iterator<JsonNode> iter = node.elements();
+      while (iter.hasNext()) applyTransformers(iter.next(), subPath, transformers);
+    }
+  }
+
+  /** Applies the transformers to the property the path ends in. */
+  private static void applyTransformersToProperty(
+      JsonNode parent, PropertyPath path, List<FieldTransformer> transformers) {
+    if (!parent.isObject()) return; // must be an object, otherwise ignore
+    JsonNode target = parent.get(path.property().toString());
+    if (target == null || target.isNull()) return; // nothing to do here
+    transformers.forEach(t -> t.apply(path, target, parent));
   }
 
   private SimpleFilterProvider createSimpleFilterProvider(
