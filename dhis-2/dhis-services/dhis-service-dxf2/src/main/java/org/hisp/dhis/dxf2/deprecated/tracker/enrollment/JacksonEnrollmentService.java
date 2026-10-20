@@ -47,6 +47,7 @@ import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.program.EnrollmentService;
@@ -86,6 +87,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService {
       TrackedEntityService teiService,
       TrackedEntityAttributeService trackedEntityAttributeService,
       TrackedEntityAttributeValueService trackedEntityAttributeValueService,
+      FileResourceService fileResourceService,
       NoteService commentService,
       IdentifiableObjectManager manager,
       I18nManager i18nManager,
@@ -108,6 +110,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService {
     checkNotNull(teiService);
     checkNotNull(trackedEntityAttributeService);
     checkNotNull(trackedEntityAttributeValueService);
+    checkNotNull(fileResourceService);
     checkNotNull(commentService);
     checkNotNull(manager);
     checkNotNull(i18nManager);
@@ -131,6 +134,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService {
     this.teiService = teiService;
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
+    this.fileResourceService = fileResourceService;
     this.commentService = commentService;
     this.manager = manager;
     this.i18nManager = i18nManager;

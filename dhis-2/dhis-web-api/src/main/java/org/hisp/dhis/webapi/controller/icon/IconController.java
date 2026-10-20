@@ -149,7 +149,7 @@ public class IconController {
 
   @PostMapping
   public WebMessage addIcon(@RequestBody AddIconRequest request)
-      throws BadRequestException, NotFoundException {
+      throws BadRequestException, NotFoundException, ConflictException {
     Icon icon = iconService.addIcon(request, null);
 
     return created(format("Icon created with key %s", icon.getKey()));

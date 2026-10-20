@@ -33,14 +33,23 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.charset.StandardCharsets;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 
 /**
@@ -50,6 +59,7 @@ import org.springframework.mock.web.MockMultipartFile;
  * @author Jan Bernitt
  */
 class DataValueFileResourceControllerTest extends DhisControllerIntegrationTest {
+  @Autowired private FileResourceService fileResourceService;
   private String pe;
 
   private String de;
@@ -101,6 +111,39 @@ class DataValueFileResourceControllerTest extends DhisControllerIntegrationTest 
             assertStatus(
                 HttpStatus.CREATED,
                 POST(format("/dataValues?de=%s&pe=%s&ou=%s&co=%s", de, pe, ou, coc))));
+  }
+
+  @Test
+  @DisplayName("A data reader who did not upload the file reads its metadata and content")
+  void testReadFileDataValueUploadedByAnotherUser() throws ConflictException {
+    byte[] content = "value content".getBytes(StandardCharsets.UTF_8);
+    FileResource file = createFileResource('D', content);
+    file.setName("report.txt");
+    file.setContentType("text/plain");
+    fileResourceService.syncSaveFileResource(file, content);
+    file.setStorageStatus(FileResourceStorageStatus.STORED);
+    String fileUid = file.getUid();
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(format("/dataValues?de=%s&pe=%s&ou=%s&co=%s&value=%s", de, pe, ou, coc, fileUid)));
+
+    User reader = createAndAddUser("dataValueReader", manager.get(OrganisationUnit.class, ou));
+    switchToNewUser(reader);
+
+    // Capture and Data Entry resolve the file from the data value, then read its metadata
+    assertEquals(
+        fileUid,
+        GET("/dataValues?de={de}&pe={pe}&ou={ou}", de, pe, ou).content().getString(0).string());
+    JsonObject metadata = GET("/fileResources/{uid}", fileUid).content(HttpStatus.OK);
+    assertEquals("report.txt", metadata.getString("name").string());
+    assertEquals("DATA_VALUE", metadata.getString("domain").string());
+
+    // the content is served by the data value API, not by the file resource API
+    assertEquals(
+        "value content",
+        GET("/dataValues/files?de={de}&pe={pe}&ou={ou}&co={co}", de, pe, ou, coc)
+            .content("text/plain"));
+    assertEquals(HttpStatus.FORBIDDEN, GET("/fileResources/{uid}/data", fileUid).status());
   }
 
   private void assertClearsFileResourceDataValue(Runnable clearRequest) {
