@@ -71,9 +71,11 @@ public class DefaultDataValueChangelogService implements DataValueChangelogServi
   @Transactional(readOnly = true)
   public List<DataValueChangelogEntry> getChangelogEntries(@Nonnull DataValueQueryParams params)
       throws ForbiddenException {
-    if (!dataValueChangelogStore.isReadable(params))
+    // the store only returns entries the user may read, so only no entries need the check
+    List<DataValueChangelogEntry> entries = dataValueChangelogStore.getEntries(params);
+    if (entries.isEmpty() && !dataValueChangelogStore.isReadable(params))
       throw new ForbiddenException(ErrorCode.E2050, params.getDe(), params.getPe(), params.getOu());
-    return dataValueChangelogStore.getEntries(params);
+    return entries;
   }
 
   @Override
