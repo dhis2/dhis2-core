@@ -32,13 +32,20 @@ package org.hisp.dhis.datavalue.hibernate;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_SELF;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.hypersistence.utils.hibernate.type.array.LongArrayType;
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -94,30 +101,47 @@ class HibernateDataValueAuditStoreSqlTest {
 
   @Test
   void pinnedCountBindsComboIds() {
-    org.mockito.Mockito.doReturn(0L).when(query).getSingleResult();
+    doReturn(List.of(aoc.getId())).when(query).getResultList();
+    doReturn(0L).when(query).getSingleResult();
     store.countDataValueAudits(
         new DataValueAuditQueryParams().setCategoryOptionCombo(coc).setAttributeOptionCombo(aoc));
-    assertBoundCombos();
+    String statement = assertBoundCombos();
+    assertTrue(statement.contains("unnest(CAST(:aocAllowed AS bigint[]))"), statement);
+    verify(query)
+        .setParameter(
+            eq("aocAllowed"), aryEq(new Long[] {aoc.getId()}), eq(LongArrayType.INSTANCE));
   }
 
   @Test
   void readabilityBindsComboIds() {
-    org.mockito.Mockito.doReturn(0L).when(query).getSingleResult();
+    doReturn(List.of(aoc.getId())).when(query).getResultList();
+    doReturn(0L).when(query).getSingleResult();
     store.isReadable(new DataElement(), new OrganisationUnit(), coc, aoc);
     assertBoundCombos();
   }
 
-  private void assertBoundCombos() {
+  /**
+   * The readable attribute option combo lookup and the access checked statement bind the combos
+   * instead of inlining them.
+   *
+   * @return the access checked statement
+   */
+  private String assertBoundCombos() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    verify(session).createNativeQuery(sql.capture());
-    String statement = sql.getValue();
-    assertTrue(statement.startsWith("WITH coc_no_access AS MATERIALIZED ("), statement);
-    assertTrue(statement.contains("AND coc_co.categoryoptioncomboid IN (:coc, :aoc)"), statement);
-    for (CategoryOptionCombo combo : new CategoryOptionCombo[] {coc, aoc}) {
-      assertFalse(statement.contains(Long.toString(combo.getId())), statement);
-      assertFalse(statement.contains(combo.getUid()), statement);
+    verify(session, times(2)).createNativeQuery(sql.capture());
+    String aocLookup = sql.getAllValues().get(0);
+    String statement = sql.getAllValues().get(1);
+    assertTrue(aocLookup.contains("AND ccoc.categoryoptioncomboid = :aoc"), aocLookup);
+    assertTrue(statement.startsWith("WITH\n  coc_no_access AS MATERIALIZED ("), statement);
+    assertTrue(statement.contains("AND coc_co.categoryoptioncomboid = :coc"), statement);
+    for (String s : sql.getAllValues()) {
+      for (CategoryOptionCombo combo : new CategoryOptionCombo[] {coc, aoc}) {
+        assertFalse(s.contains(Long.toString(combo.getId())), s);
+        assertFalse(s.contains(combo.getUid()), s);
+      }
     }
     verify(query).setParameter("coc", coc.getId());
-    verify(query).setParameter("aoc", aoc.getId());
+    verify(query, atLeastOnce()).setParameter("aoc", aoc.getId());
+    return statement;
   }
 }
