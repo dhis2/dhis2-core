@@ -137,7 +137,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     if (params.hasPaging()) {
       query
           .setFirstResult(params.getPager().getOffset())
-          .setMaxResults(params.getPager().getPageSize());
+          // one more than the page tells whether there is a next page
+          .setMaxResults(params.getPager().getPageSize() + 1);
     }
 
     return query.getResultList();
