@@ -202,6 +202,8 @@ public enum ErrorCode {
   E2048("Error processing gzipped content: {0}"),
   E2049("Attribute option combo(s) do not belong to an attribute category combo: `${aoc:{0}}`"),
   E2050("User is not allowed to read data of the data value: `{0}`, `{1}`, `{2}`"),
+  E2051(
+      "An unpaged data value change log returns at most `{0}` entries to a user who is not a superuser, use paging"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
