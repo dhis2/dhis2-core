@@ -65,6 +65,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class HibernateDataValueAuditStoreSqlTest {
   private Session session;
   private NativeQuery<?> query;
+  private JdbcTemplate jdbcTemplate;
   private HibernateDataValueAuditStore store;
   private CategoryOptionCombo coc;
   private CategoryOptionCombo aoc;
@@ -79,10 +80,11 @@ class HibernateDataValueAuditStoreSqlTest {
     when(query.getSingleResult()).thenReturn(null);
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
     when(config.getProperty(CHANGELOG_AGGREGATE_QUERY_TIMEOUT)).thenReturn("0");
+    jdbcTemplate = mock(JdbcTemplate.class);
     store =
         new HibernateDataValueAuditStore(
             entityManager,
-            mock(JdbcTemplate.class),
+            jdbcTemplate,
             mock(ApplicationEventPublisher.class),
             mock(PeriodStore.class),
             config);
@@ -108,8 +110,14 @@ class HibernateDataValueAuditStoreSqlTest {
   void pinnedCountBindsComboIds() {
     doReturn(List.of(aoc.getId())).when(query).getResultList();
     doReturn(0L).when(query).getSingleResult();
+    OrganisationUnit ou = new OrganisationUnit();
+    ou.setId(12L);
+    // a value: with its org unit given, the user's org units are not listed
     store.countDataValueAudits(
-        new DataValueAuditQueryParams().setCategoryOptionCombo(coc).setAttributeOptionCombo(aoc));
+        new DataValueAuditQueryParams()
+            .setOrgUnits(List.of(ou))
+            .setCategoryOptionCombo(coc)
+            .setAttributeOptionCombo(aoc));
     String statement = assertBoundCombos();
     assertTrue(statement.contains("unnest(CAST(:aocAllowed AS bigint[]))"), statement);
     verify(query)
@@ -123,6 +131,27 @@ class HibernateDataValueAuditStoreSqlTest {
     doReturn(0L).when(query).getSingleResult();
     store.isReadable(new DataElement(), new OrganisationUnit(), coc, aoc);
     assertBoundCombos();
+  }
+
+  @Test
+  void listedOrgUnitsReplaceTheDescendantSet() {
+    // the readable AOCs, then the user's org units
+    doReturn(List.of(aoc.getId()), List.of(11L, 12L, 11L)).when(query).getResultList();
+    doReturn(0L).when(query).getSingleResult();
+    store.countDataValueAudits(new DataValueAuditQueryParams());
+
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(session, times(3)).createNativeQuery(sql.capture());
+    String statement = sql.getAllValues().get(2);
+    assertTrue(statement.contains("AND dva.organisationunitid = ANY(:orgUnits)"), statement);
+    assertFalse(statement.contains("ou_roots"), statement);
+    assertFalse(statement.contains("~>=~"), statement);
+    verify(query)
+        .setParameter(eq("orgUnits"), aryEq(new Long[] {11L, 12L}), eq(LongArrayType.INSTANCE));
+    verify(jdbcTemplate)
+        .execute(
+            "SELECT set_config('plan_cache_mode', 'force_custom_plan', true)"
+                + " WHERE current_setting('plan_cache_mode', true) IS NOT NULL");
   }
 
   /**
