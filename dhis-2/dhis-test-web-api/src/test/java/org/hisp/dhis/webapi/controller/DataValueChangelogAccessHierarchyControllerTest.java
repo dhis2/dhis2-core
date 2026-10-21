@@ -223,6 +223,23 @@ class DataValueChangelogAccessHierarchyControllerTest
     assertEquals(rows("/audits/dataValue?fields=value&skipPaging=true"), total(""));
   }
 
+  @Test
+  @DisplayName("Pages of a user who is not a superuser end at entry 10,000, a superuser's do not")
+  void testPageDepthLimit() {
+    switchToNewUser(user(Set.of("A"), Set.of(), false));
+    assertStatus(HttpStatus.OK, GET("/audits/dataValue?fields=value&page=200&pageSize=50"));
+    assertStatus(HttpStatus.OK, GET("/audits/dataValue?fields=value&page=10&pageSize=1000"));
+    assertStatus(HttpStatus.OK, GET("/audits/dataValue?fields=value&page=1&pageSize=10000"));
+    // 2.43 counts first and reads the last page for a page beyond it, so these few entries are
+    // only past entry 10,000 with a larger page
+    JsonObject error =
+        GET("/audits/dataValue?fields=value&page=1&pageSize=10001").content(HttpStatus.CONFLICT);
+    assertEquals("E2052", error.getString("errorCode").string());
+
+    switchToAdminUser();
+    assertStatus(HttpStatus.OK, GET("/audits/dataValue?fields=value&page=1&pageSize=10001"));
+  }
+
   private void assertUserSees(
       Set<String> capture, Set<String> dataView, boolean groupMember, Set<String> roots) {
     switchToNewUser(user(capture, dataView, groupMember));

@@ -50,8 +50,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DefaultDataValueChangelogService implements DataValueChangelogService {
 
-  /** The most entries an unpaged read returns to a user who is not a superuser. */
-  static final int MAX_UNPAGED_ENTRIES = 10_000;
+  /**
+   * The most entries a user who is not a superuser reads with one request: unpaged, or up to the
+   * end of a page. The access checked statement reads all entries before the page.
+   */
+  static final int MAX_ENTRIES = 10_000;
 
   private final DataValueChangelogStore dataValueChangelogStore;
 
@@ -89,13 +92,17 @@ public class DefaultDataValueChangelogService implements DataValueChangelogServi
   public List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params)
       throws ConflictException {
     validateDataSetAccess(params);
-    if (params.hasPaging() || getCurrentUserDetails().isSuper())
+    if (getCurrentUserDetails().isSuper()) return dataValueChangelogStore.getEntries(params);
+    Pager pager = params.getPager();
+    if (pager != null) {
+      if (pager.getOffset() + pager.getPageSize() > MAX_ENTRIES)
+        throw new ConflictException(ErrorCode.E2052, MAX_ENTRIES);
       return dataValueChangelogStore.getEntries(params);
-    // the access checked read is bounded: one more row than allowed tells there are more
+    }
+    // the unpaged read is bounded: one more entry than allowed tells there are more
     List<DataValueChangelog> entries =
-        dataValueChangelogStore.getEntries(withPage(params, MAX_UNPAGED_ENTRIES + 1));
-    if (entries.size() > MAX_UNPAGED_ENTRIES)
-      throw new ConflictException(ErrorCode.E2051, MAX_UNPAGED_ENTRIES);
+        dataValueChangelogStore.getEntries(withPage(params, MAX_ENTRIES + 1));
+    if (entries.size() > MAX_ENTRIES) throw new ConflictException(ErrorCode.E2051, MAX_ENTRIES);
     return entries;
   }
 
