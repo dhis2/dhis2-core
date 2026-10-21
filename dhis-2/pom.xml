@@ -134,7 +134,7 @@
     <HikariCP.version>7.1.0</HikariCP.version>
     <postgresql-driver.version>42.7.14</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
-    <datasource-proxy.version>1.11.0</datasource-proxy.version>
+    <datasource-proxy.version>1.11.1</datasource-proxy.version>
     <mysql-connector-j.version>9.6.0</mysql-connector-j.version>
     <clickhouse-jdbc.version>0.10.0</clickhouse-jdbc.version>
 
@@ -146,7 +146,7 @@
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.22.3</jackson.version>
+    <jackson.version>2.22.4</jackson.version>
     <jackson-datatype-jts.version>2.21.0</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 

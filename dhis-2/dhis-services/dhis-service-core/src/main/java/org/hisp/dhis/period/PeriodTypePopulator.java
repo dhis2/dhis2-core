@@ -40,10 +40,10 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 @RequiredArgsConstructor
 public class PeriodTypePopulator extends TransactionContextStartupRoutine {
 
-  private final PeriodStore periodStore;
+  private final PeriodTypeStore periodTypeStore;
 
   @Override
   public void executeInTransaction() {
-    PeriodType.getAvailablePeriodTypes().forEach(periodStore::addPeriodType);
+    PeriodType.getAvailablePeriodTypes().forEach(periodTypeStore::addPeriodType);
   }
 }
