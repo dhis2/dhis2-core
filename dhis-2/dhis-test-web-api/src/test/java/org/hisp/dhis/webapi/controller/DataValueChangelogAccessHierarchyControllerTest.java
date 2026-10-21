@@ -32,7 +32,12 @@ package org.hisp.dhis.webapi.controller;
 import static java.lang.String.format;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.test.config.QueryCountDataSourceProxy.countCapturedSqlMatching;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,11 +50,13 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.config.QueryCountDataSourceProxy;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -71,10 +78,18 @@ import org.springframework.transaction.annotation.Transactional;
  * hierarchy: a unit is visible when it is a capture or data view unit of the user, or below one.
  */
 @Transactional
+@ContextConfiguration(classes = {QueryCountDataSourceProxy.class})
 class DataValueChangelogAccessHierarchyControllerTest
     extends PostgresControllerIntegrationTestBase {
 
   private static final String PE = "2021-01";
+
+  /** Start of the prev/nextPage links of a change log read with {@code fields=value} */
+  private static final String PAGER_LINK = "http://localhost/api/audits/dataValue?fields=value";
+
+  /** Start of the count statement of the change log */
+  private static final String COUNT_SQL =
+      "SELECT count(distinct dva.datavalueauditid) AS audit_count\nFROM datavalueaudit dva";
 
   /** Kinds of values entered per unit, the digit of tens of the value */
   private static final int OPEN_COC = 1;
@@ -237,6 +252,67 @@ class DataValueChangelogAccessHierarchyControllerTest
     assertStatus(HttpStatus.OK, GET("/audits/dataValue?fields=value&page=201&pageSize=50"));
   }
 
+  @Test
+  @DisplayName("The pager has a total only with totalPages=true and links the pages next to it")
+  void testPagerTotals() {
+    switchToNewUser(user(Set.of("A"), Set.of(), false));
+    int rows = rows("/audits/dataValue?fields=value&skipPaging=true");
+    assertTrue(rows > 4, "rows " + rows);
+    int last = (rows + 1) / 2;
+
+    JsonObject first = pager("&pageSize=2", 2);
+    assertEquals(1, first.getNumber("page").intValue());
+    assertEquals(2, first.getNumber("pageSize").intValue());
+    assertHasNoMember(first, "total", "pageCount", "prevPage");
+    assertPagerLink(first.getString("nextPage").string(), 2, 2, PAGER_LINK);
+
+    JsonObject middle = pager("&page=2&pageSize=2", 2);
+    assertEquals(2, middle.getNumber("page").intValue());
+    assertHasNoMember(middle, "total", "pageCount");
+    assertPagerLink(middle.getString("prevPage").string(), 1, 2, PAGER_LINK);
+    assertPagerLink(middle.getString("nextPage").string(), 3, 2, PAGER_LINK);
+
+    JsonObject lastPage = pager("&page=" + last + "&pageSize=2", rows - 2 * (last - 1));
+    assertHasNoMember(lastPage, "total", "pageCount", "nextPage");
+    assertPagerLink(lastPage.getString("prevPage").string(), last - 1, 2, PAGER_LINK);
+
+    // a full last page: the extra entry read decides, not the page size
+    assertHasNoMember(pager("&pageSize=" + rows, rows), "total", "pageCount", "nextPage");
+    assertHasMember(pager("&pageSize=" + (rows - 1), rows - 1), "nextPage");
+
+    JsonObject totals = pager("&page=2&pageSize=2&totalPages=true", 2);
+    assertEquals(rows, totals.getNumber("total").intValue());
+    assertEquals(last, totals.getNumber("pageCount").intValue());
+    assertPagerLink(totals.getString("prevPage").string(), 1, 2, PAGER_LINK);
+    assertPagerLink(totals.getString("nextPage").string(), 3, 2, PAGER_LINK);
+    // with totals a page beyond the last reports the last page, and links from there
+    JsonObject beyond = pager("&page=" + (last + 1) + "&pageSize=2&totalPages=true", 0);
+    assertEquals(last, beyond.getNumber("page").intValue());
+    assertHasNoMember(beyond, "nextPage");
+    assertPagerLink(beyond.getString("prevPage").string(), last - 1, 2, PAGER_LINK);
+
+    switchToAdminUser();
+    assertHasNoMember(pager("&pageSize=2", 2), "total", "pageCount", "prevPage");
+  }
+
+  @Test
+  @DisplayName("A paged read runs the count statement only with totalPages=true")
+  void testCountOnlyWithTotals() {
+    switchToNewUser(user(Set.of("A"), Set.of(), false));
+    QueryCountDataSourceProxy.clearCapturedSql();
+    pager("&pageSize=2", 2);
+    assertEquals(0, countCapturedSqlMatching(COUNT_SQL));
+    pager("&pageSize=2&totalPages=true", 2);
+    assertEquals(1, countCapturedSqlMatching(COUNT_SQL));
+  }
+
+  /** The pager of a page of the change log, checking the number of entries on the page. */
+  private JsonObject pager(String params, int entries) {
+    JsonObject page = GET("/audits/dataValue?fields=value" + params).content(HttpStatus.OK);
+    assertEquals(entries, page.getArray("dataValueAudits").size(), params);
+    return page.getObject("pager");
+  }
+
   private void assertUserSees(
       Set<String> capture, Set<String> dataView, boolean groupMember, Set<String> roots) {
     switchToNewUser(user(capture, dataView, groupMember));
@@ -292,7 +368,7 @@ class DataValueChangelogAccessHierarchyControllerTest
   }
 
   private int total(String filters) {
-    return GET("/audits/dataValue?fields=value" + filters)
+    return GET("/audits/dataValue?fields=value&totalPages=true" + filters)
         .content(HttpStatus.OK)
         .getObject("pager")
         .getNumber("total")
