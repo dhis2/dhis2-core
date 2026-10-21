@@ -209,7 +209,10 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
    * the user may not read with {@code NOT IN}, the readable data elements and organisation units
    * with {@code (x IN (...)) IS TRUE}, which PostgreSQL does not turn into a semi join. Joins and
    * semi joins are planned from row estimates for the sharing conditions and filters that can be
-   * far off, which made a nested loop over every audit row.
+   * far off, which made a nested loop over every audit row. The org units of the user's hierarchy
+   * are found with the GIN index on {@code patharray} (V2_43_69), one lookup per root, as the data
+   * value export does on master: a unit is in the hierarchy of a root exactly when its path array
+   * has the root.
    *
    * @param with the {@code WITH} clause computing the option combos the user may not read
    * @param where the condition on the alias {@code dva}
@@ -258,7 +261,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
             SELECT ou_acl.organisationunitid
             FROM organisationunit ou_acl
             JOIN organisationunit root_acl
-              ON ou_acl.path = root_acl.path OR ou_acl.path LIKE root_acl.path || '/%%'
+              ON ou_acl.patharray && ARRAY[root_acl.uid]
             WHERE root_acl.organisationunitid IN (
                 SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = %d
                 UNION
