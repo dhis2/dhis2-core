@@ -99,9 +99,10 @@ public class DefaultDataValueChangelogService implements DataValueChangelogServi
         throw new ConflictException(ErrorCode.E2052, MAX_ENTRIES);
       return dataValueChangelogStore.getEntries(params);
     }
-    // the unpaged read is bounded: one more entry than allowed tells there are more
+    // the unpaged read is bounded: the store reads one more entry than the page, which tells
+    // there are more than allowed
     List<DataValueChangelog> entries =
-        dataValueChangelogStore.getEntries(withPage(params, MAX_ENTRIES + 1));
+        dataValueChangelogStore.getEntries(withPage(params, MAX_ENTRIES));
     if (entries.size() > MAX_ENTRIES) throw new ConflictException(ErrorCode.E2051, MAX_ENTRIES);
     return entries;
   }

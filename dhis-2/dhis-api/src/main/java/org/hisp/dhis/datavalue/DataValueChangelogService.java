@@ -70,7 +70,8 @@ public interface DataValueChangelogService {
    * Returns data value audits for the given parameters that the current user may read.
    *
    * @param params the {@link DataValueChangelogQueryParams}.
-   * @return a list of {@link DataValueChangelog}.
+   * @return a list of {@link DataValueChangelog}; paged, one more than the page size when there is
+   *     a next page
    * @throws ConflictException when the user may not read data of a data set given as filter
    */
   List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params)
