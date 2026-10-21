@@ -57,7 +57,7 @@ public enum ErrorCode {
   E1103("Category option combo not found or not accessible: `{0}`"),
   E1104("Attribute option combo not found or not accessible: `{0}`"),
   E1105("Data set not found or not accessible: `{0}`"),
-  E1106("There are duplicate translation records for property `{0}` and locale `{1}` on {2} `{3}`"),
+  E1106("There are duplicate translation records for property `{0}` and locale `{1}`"),
   E1107("Object type `{0}` is not translatable"),
   E1108("Could not add item to collection: {0}"),
   E1109("Could not remove item from collection: {0}"),
@@ -93,6 +93,7 @@ public enum ErrorCode {
   E1133("CategoryCombo must be provided for Category option combo {0}"),
   E1134(
       "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
+  E1135("Locale `${locale:{0}}` is not configured for usage; available are: ${locales:{1}}"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),

@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.period;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.joda.time.DateTimeConstants;
@@ -109,11 +110,13 @@ public class SixMonthlyNovemberPeriodType extends SixMonthlyAbstractPeriodType {
     }
   }
 
+  @Nonnull
   @Override
   public String getIsoFormat() {
     return ISO_FORMAT;
   }
 
+  @Nonnull
   @Override
   public String getIso8601Duration() {
     return ISO8601_DURATION;
