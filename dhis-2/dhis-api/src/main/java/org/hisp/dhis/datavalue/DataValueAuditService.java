@@ -98,7 +98,8 @@ public interface DataValueAuditService {
    * Returns data value audits for the given parameters that the current user may read.
    *
    * @param params the {@link DataValueAuditQueryParams}.
-   * @return a list of {@link DataValueAudit}.
+   * @return a list of {@link DataValueAudit}; paged, one more than the page size when there is a
+   *     next page
    * @throws ConflictException when an unpaged read of a user who is not a superuser has more audits
    *     than allowed, or a page of such a user ends beyond the allowed entries
    */

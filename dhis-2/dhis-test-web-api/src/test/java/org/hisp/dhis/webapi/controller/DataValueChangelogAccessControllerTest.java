@@ -390,7 +390,7 @@ class DataValueChangelogAccessControllerTest extends PostgresControllerIntegrati
   }
 
   private int getChangelogTotal(String filters) {
-    return GET("/audits/dataValue?fields=value" + filters)
+    return GET("/audits/dataValue?fields=value&totalPages=true" + filters)
         .content(HttpStatus.OK)
         .getObject("pager")
         .getNumber("total")
