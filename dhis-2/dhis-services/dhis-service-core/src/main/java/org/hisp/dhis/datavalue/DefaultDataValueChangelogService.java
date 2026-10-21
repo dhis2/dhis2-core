@@ -33,6 +33,9 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,19 +69,33 @@ public class DefaultDataValueChangelogService implements DataValueChangelogServi
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValueChangelogEntry> getChangelogEntries(@Nonnull DataValueQueryParams params) {
+  public List<DataValueChangelogEntry> getChangelogEntries(@Nonnull DataValueQueryParams params)
+      throws ForbiddenException {
+    if (!dataValueChangelogStore.isReadable(params))
+      throw new ForbiddenException(ErrorCode.E2050, params.getDe(), params.getPe(), params.getOu());
     return dataValueChangelogStore.getEntries(params);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params) {
+  public List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params)
+      throws ConflictException {
+    validateDataSetAccess(params);
     return dataValueChangelogStore.getEntries(params);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public int countEntries(DataValueChangelogQueryParams params) {
+  public int countEntries(DataValueChangelogQueryParams params) throws ConflictException {
+    validateDataSetAccess(params);
     return dataValueChangelogStore.countEntries(params);
+  }
+
+  private void validateDataSetAccess(DataValueChangelogQueryParams params)
+      throws ConflictException {
+    if (params.getDataSets() == null || params.getDataSets().isEmpty()) return;
+    List<String> noAccess =
+        dataValueChangelogStore.getDataSetsNoDataReadAccess(params.getDataSets());
+    if (!noAccess.isEmpty()) throw new ConflictException(ErrorCode.E2010, noAccess);
   }
 }
