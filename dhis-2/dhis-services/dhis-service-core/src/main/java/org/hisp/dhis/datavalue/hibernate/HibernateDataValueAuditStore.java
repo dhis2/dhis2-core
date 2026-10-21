@@ -30,6 +30,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE_QUERY_TIMEOUT;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
 import static org.hisp.dhis.security.acl.AclService.LIKE_WRITE_DATA;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
@@ -50,6 +51,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -73,16 +75,21 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
   private final PeriodStore periodStore;
 
+  /** Seconds a statement of a user who is not a superuser may run, 0 for no limit. */
+  private final int queryTimeout;
+
   public HibernateDataValueAuditStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      PeriodStore periodStore) {
+      PeriodStore periodStore,
+      DhisConfigurationProvider config) {
     super(entityManager, jdbcTemplate, publisher, DataValueAudit.class, false);
 
     checkNotNull(periodStore);
 
     this.periodStore = periodStore;
+    this.queryTimeout = config.getIntProperty(CHANGELOG_AGGREGATE_QUERY_TIMEOUT);
   }
 
   // -------------------------------------------------------------------------
@@ -129,6 +136,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     UserDetails user = getCurrentUserDetails();
     Long[] aocAllowed = getAllowedAocIds(user, params.getAttributeOptionCombo());
     if (aocAllowed != null && aocAllowed.length == 0) return List.of();
+    if (aocAllowed != null) limitStatements();
     NativeQuery<DataValueAudit> query =
         createAuditQuery(
             "SELECT dva.*",
@@ -152,6 +160,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     UserDetails user = getCurrentUserDetails();
     Long[] aocAllowed = getAllowedAocIds(user, params.getAttributeOptionCombo());
     if (aocAllowed != null && aocAllowed.length == 0) return 0;
+    if (aocAllowed != null) limitStatements();
     return createAuditQuery(
             "SELECT count(distinct dva.datavalueauditid) AS audit_count",
             params,
@@ -172,6 +181,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return true;
     if (getAllowedAocIds(user, attributeOptionCombo).length == 0) return false;
+    limitStatements();
     Access access = createAccess(user, true);
     String sql =
         access.with()
@@ -197,6 +207,17 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
                     .getSingleResult())
             .longValue()
         > 0;
+  }
+
+  /**
+   * Cancels the rest of the transaction's statements, which check the access of a user who is not a
+   * superuser, when they run longer than {@link
+   * org.hisp.dhis.external.conf.ConfigurationKey#CHANGELOG_AGGREGATE_QUERY_TIMEOUT}: a client that
+   * gives up does not cancel them.
+   */
+  private void limitStatements() {
+    if (queryTimeout > 0)
+      jdbcTemplate.execute("SET LOCAL statement_timeout = '%ds'".formatted(queryTimeout));
   }
 
   /**

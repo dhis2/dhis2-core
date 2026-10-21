@@ -51,6 +51,7 @@ import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.user.UserDetails;
@@ -82,7 +83,8 @@ class HibernateDataValueAuditStoreSqlTest {
             entityManager,
             mock(JdbcTemplate.class),
             mock(ApplicationEventPublisher.class),
-            mock(PeriodStore.class));
+            mock(PeriodStore.class),
+            mock(DhisConfigurationProvider.class));
     UserDetails user = mock(UserDetails.class);
     when(user.getUid()).thenReturn("readerUid01");
     injectSecurityContextNoSettings(user);
