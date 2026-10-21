@@ -237,9 +237,15 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
               AND coc_co.categoryoptioncomboid IN (
                 SELECT c.categoryoptioncomboid FROM categoryoptioncombo c
                 WHERE c.uid = cast(:coc as text))""";
+    long userId = user.getId();
     String with =
         """
         WITH
+          ou_roots AS (
+            SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = %d
+            UNION
+            SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = %d
+          ),
           coc_no_access AS MATERIALIZED (
             SELECT DISTINCT coc_co.categoryoptioncomboid
             FROM categoryoptioncombos_categoryoptions coc_co
@@ -248,8 +254,8 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
               AND coc_co.categoryoptioncomboid NOT IN (
                 SELECT d.categoryoptioncomboid FROM categoryoptioncombo d WHERE d.name = 'default')%s
           )"""
-            .formatted(createDataReadCheck("co.sharing", user), combos);
-    long userId = user.getId();
+            .formatted(userId, userId, createDataReadCheck("co.sharing", user), combos);
+    // a user with every top-level org unit reads all org units: no descendant set is built
     String where =
         """
         (dva.dataelementid IN (
@@ -257,17 +263,18 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
             FROM datasetelement dse_acl
             JOIN dataset ds_acl ON dse_acl.datasetid = ds_acl.datasetid
             WHERE %s)) IS TRUE
-          AND (dva.organisationunitid IN (
-            SELECT ou_acl.organisationunitid
-            FROM organisationunit ou_acl
-            JOIN organisationunit root_acl
-              ON ou_acl.patharray && ARRAY[root_acl.uid]
-            WHERE root_acl.organisationunitid IN (
-                SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = %d
-                UNION
-                SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = %d))) IS TRUE
+          AND (NOT EXISTS (
+              SELECT 1 FROM organisationunit top_acl
+              WHERE top_acl.parentid IS NULL
+                AND top_acl.organisationunitid NOT IN (SELECT organisationunitid FROM ou_roots))
+            OR (dva.organisationunitid IN (
+              SELECT ou_acl.organisationunitid
+              FROM organisationunit ou_acl
+              JOIN organisationunit root_acl
+                ON ou_acl.patharray && ARRAY[root_acl.uid]
+              WHERE root_acl.organisationunitid IN (SELECT organisationunitid FROM ou_roots))) IS TRUE)
           AND dva.categoryoptioncomboid NOT IN (SELECT categoryoptioncomboid FROM coc_no_access)"""
-            .formatted(createDataReadCheck("ds_acl.sharing", user), userId, userId);
+            .formatted(createDataReadCheck("ds_acl.sharing", user));
     return new Access(with, where);
   }
 
