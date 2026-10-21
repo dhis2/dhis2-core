@@ -132,7 +132,8 @@ class HibernateDataValueAuditStoreSqlTest {
     String aocLookup = sql.getAllValues().get(0);
     String statement = sql.getAllValues().get(1);
     assertTrue(aocLookup.contains("AND ccoc.categoryoptioncomboid = :aoc"), aocLookup);
-    assertTrue(statement.startsWith("WITH\n  coc_no_access AS ("), statement);
+    assertTrue(statement.startsWith("WITH\n  ou_roots AS ("), statement);
+    assertTrue(statement.contains("coc_no_access AS ("), statement);
     assertTrue(statement.contains("AND coc_co.categoryoptioncomboid = :coc"), statement);
     for (String s : sql.getAllValues()) {
       for (CategoryOptionCombo combo : new CategoryOptionCombo[] {coc, aoc}) {
