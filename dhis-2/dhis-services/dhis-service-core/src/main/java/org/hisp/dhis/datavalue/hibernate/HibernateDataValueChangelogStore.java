@@ -43,6 +43,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.datavalue.DataValueChangelog;
 import org.hisp.dhis.datavalue.DataValueChangelogEntry;
 import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
@@ -70,8 +71,16 @@ import org.springframework.stereotype.Repository;
 public class HibernateDataValueChangelogStore extends HibernateGenericStore<DataValueChangelog>
     implements DataValueChangelogStore {
 
+  /**
+   * Users with at most this many org units in their hierarchy get them listed by ID in queries for
+   * many values (at most 80 kB), see {@link #getOrgUnitIds}.
+   */
+  public static final int MAX_ORG_UNIT_IDS = 10_000;
+
   /** Seconds a statement of a user who is not a superuser may run, 0 for no limit. */
   private final int queryTimeout;
+
+  private int maxOrgUnitIds = MAX_ORG_UNIT_IDS;
 
   public HibernateDataValueChangelogStore(
       EntityManager entityManager,
@@ -80,6 +89,14 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
       DhisConfigurationProvider config) {
     super(entityManager, jdbcTemplate, publisher, DataValueChangelog.class, false);
     this.queryTimeout = config.getIntProperty(CHANGELOG_AGGREGATE_QUERY_TIMEOUT);
+  }
+
+  /**
+   * @param max the most org units to list by ID, 0 to always find them inside the query
+   */
+  @UsageTestOnly
+  public void setMaxOrgUnitIds(int max) {
+    this.maxOrgUnitIds = max;
   }
 
   @Override
@@ -117,11 +134,11 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   @Override
   public List<DataValueChangelog> getEntries(DataValueChangelogQueryParams params) {
     SQL.QueryAPI api = NativeSQL.of(getSession());
-    long[] aocAllowed =
-        getAllowedAocIds(api, getCurrentUserDetails(), params.getAttributeOptionCombo());
+    UserDetails user = getCurrentUserDetails();
+    long[] aocAllowed = getAllowedAocIds(api, user, params.getAttributeOptionCombo());
     if (aocAllowed != null && aocAllowed.length == 0) return List.of();
     if (aocAllowed != null) limitStatements();
-    return createEntriesQuery(params, createAccess(params), aocAllowed, api).stream(
+    return createEntriesQuery(params, createAccess(api, user, params), aocAllowed, api).stream(
             DataValueChangelog.class)
         .toList();
   }
@@ -129,11 +146,11 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   @Override
   public int countEntries(DataValueChangelogQueryParams params) {
     SQL.QueryAPI api = NativeSQL.of(getSession());
-    long[] aocAllowed =
-        getAllowedAocIds(api, getCurrentUserDetails(), params.getAttributeOptionCombo());
+    UserDetails user = getCurrentUserDetails();
+    long[] aocAllowed = getAllowedAocIds(api, user, params.getAttributeOptionCombo());
     if (aocAllowed != null && aocAllowed.length == 0) return 0;
     if (aocAllowed != null) limitStatements();
-    return createEntriesQuery(params, createAccess(params), aocAllowed, api).count();
+    return createEntriesQuery(params, createAccess(api, user, params), aocAllowed, api).count();
   }
 
   /**
@@ -147,10 +164,71 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
       jdbcTemplate.execute("SET LOCAL statement_timeout = '%ds'".formatted(queryTimeout));
   }
 
-  /** The access of the current user, checking only the option combo if the params pin it. */
+  /**
+   * The access of the user to many values, checking only the option combo if the params pin it.
+   *
+   * <p>With org units listed by ID the rest of the transaction's statements are planned with the
+   * values bound to them: from the 5th execution on a connection pgjdbc prepares a statement on the
+   * server, and a generic plan of PostgreSQL neither hashes a bound array nor knows its size. For a
+   * user with 1,001 org units page 1 took 13 s instead of 36 ms, 5,000 org units over 60 s.
+   */
   @CheckForNull
-  private static Access createAccess(DataValueChangelogQueryParams params) {
-    return createAccess(getCurrentUserDetails(), params.getCategoryOptionCombo() != null);
+  private Access createAccess(
+      SQL.QueryAPI api, UserDetails user, DataValueChangelogQueryParams params) {
+    if (user.isSuper()) return null;
+    long[] orgUnits = getOrgUnitIds(api, user, maxOrgUnitIds);
+    if (orgUnits != null) jdbcTemplate.execute("SET LOCAL plan_cache_mode = force_custom_plan");
+    return createAccess(user, params.getCategoryOptionCombo() != null, orgUnits);
+  }
+
+  /**
+   * The org units in the user's data capture and data view hierarchies, when there are at most
+   * {@code max} and the user does not have every top-level org unit.
+   *
+   * <p>Resolved up front only for the planner, which has statistics for a list of org unit IDs. It
+   * cannot estimate the descendant set found inside the query and takes it to match a fixed share
+   * of all rows. For a user whose rows are rare it then walks the index on {@code created} over the
+   * whole table to fill the first page: for a user with one facility in 5.6 million rows it took 12
+   * s without the list and 0.3 s with it.
+   *
+   * @return internal IDs of the org units, null when the query finds them: for users with every
+   *     top-level org unit, more than {@code max} or none
+   */
+  @CheckForNull
+  static long[] getOrgUnitIds(SQL.QueryAPI api, @Nonnull UserDetails user, int max) {
+    String sql =
+        """
+        WITH
+        %s
+        SELECT ou.organisationunitid
+        FROM organisationunit ou
+        JOIN organisationunit root ON ou.patharray && ARRAY[root.uid]
+        WHERE root.organisationunitid IN (SELECT organisationunitid FROM ou_roots)
+          AND EXISTS (
+            SELECT 1 FROM organisationunit top
+            WHERE top.parentid IS NULL
+              AND top.organisationunitid NOT IN (SELECT organisationunitid FROM ou_roots))"""
+            .formatted(createOrgUnitRoots(user));
+    // a single bigint column comes back as a plain number per row, not as an Object[] row
+    List<Long> ids =
+        SQL.of(sql, api).setLimit(max + 1).stream(Number.class).map(Number::longValue).toList();
+    if (ids.isEmpty() || ids.size() > max) return null;
+    // a unit below two of the user's org units comes twice
+    return ids.stream().mapToLong(Long::longValue).distinct().toArray();
+  }
+
+  /** The {@code ou_roots} CTE: the user's data capture and data view org units. */
+  private static String createOrgUnitRoots(UserDetails user) {
+    long userId = user.getId();
+    return """
+          ou_roots AS (
+            SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = %d
+            UNION
+            SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = %d
+          )
+        """
+        .stripTrailing()
+        .formatted(userId, userId);
   }
 
   /**
@@ -234,22 +312,30 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
    * far off, which made a nested loop over every audit row. The org units of the user's hierarchy
    * are found with the GIN index on {@code patharray} (V2_43_69), one lookup per root, as the data
    * value export does on master: a unit is in the hierarchy of a root exactly when its path array
-   * has the root.
+   * has the root. Queries for many values of a user with a small hierarchy get its org units {@link
+   * #getOrgUnitIds listed by ID} instead.
    *
    * @param with the {@code WITH} clause computing the option combos the user may not read
-   * @param where the condition on the alias {@code dva}
+   * @param where the condition on the alias {@code dva}, without the org units when they are listed
+   * @param orgUnits internal IDs of the org units the user reads, bound as {@code :orgUnits}; null
+   *     when {@code where} checks the org units
    */
-  record Access(@Nonnull String with, @Nonnull String where) {}
+  record Access(@Nonnull String with, @Nonnull String where, @CheckForNull long[] orgUnits) {}
 
   /**
    * @param user the user reading the change log
    * @param boundCombo true to check only the category option combo bound as {@code :coc} (a null
    *     value for the default combo), which the query must bind; false to check all
+   * @param orgUnits internal IDs of the org units the user reads, not empty, which the query must
+   *     bind; null to find them inside the query
    * @return the access of the user, or null when the user reads all rows
    */
   @CheckForNull
-  static Access createAccess(@Nonnull UserDetails user, boolean boundCombo) {
+  static Access createAccess(
+      @Nonnull UserDetails user, boolean boundCombo, @CheckForNull long[] orgUnits) {
     if (user.isSuper()) return null;
+    if (orgUnits != null && orgUnits.length == 0)
+      throw new IllegalArgumentException("org units must not be empty");
     // the default option combo is excluded: AclService always allows it
     String combos =
         !boundCombo
@@ -259,15 +345,10 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
               AND coc_co.categoryoptioncomboid IN (
                 SELECT c.categoryoptioncomboid FROM categoryoptioncombo c
                 WHERE c.uid = cast(:coc as text))""";
-    long userId = user.getId();
+    String roots = orgUnits != null ? "" : "\n" + createOrgUnitRoots(user) + ",";
     String with =
         """
-        WITH
-          ou_roots AS (
-            SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = %d
-            UNION
-            SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = %d
-          ),
+        WITH%s
           coc_no_access AS MATERIALIZED (
             SELECT DISTINCT coc_co.categoryoptioncomboid
             FROM categoryoptioncombos_categoryoptions coc_co
@@ -276,28 +357,35 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
               AND coc_co.categoryoptioncomboid NOT IN (
                 SELECT d.categoryoptioncomboid FROM categoryoptioncombo d WHERE d.name = 'default')%s
           )"""
-            .formatted(userId, userId, createDataReadCheck("co.sharing", user), combos);
+            .formatted(roots, createDataReadCheck("co.sharing", user), combos);
     // a user with every top-level org unit reads all org units: no descendant set is built
+    String orgUnitCheck =
+        orgUnits != null
+            ? ""
+            : """
+
+                AND (NOT EXISTS (
+                    SELECT 1 FROM organisationunit top_acl
+                    WHERE top_acl.parentid IS NULL
+                      AND top_acl.organisationunitid NOT IN (SELECT organisationunitid FROM ou_roots))
+                  OR (dva.organisationunitid IN (
+                    SELECT ou_acl.organisationunitid
+                    FROM organisationunit ou_acl
+                    JOIN organisationunit root_acl
+                      ON ou_acl.patharray && ARRAY[root_acl.uid]
+                    WHERE root_acl.organisationunitid IN (SELECT organisationunitid FROM ou_roots))) IS TRUE)
+              """
+                .stripTrailing();
     String where =
         """
         (dva.dataelementid IN (
             SELECT dse_acl.dataelementid
             FROM datasetelement dse_acl
             JOIN dataset ds_acl ON dse_acl.datasetid = ds_acl.datasetid
-            WHERE %s)) IS TRUE
-          AND (NOT EXISTS (
-              SELECT 1 FROM organisationunit top_acl
-              WHERE top_acl.parentid IS NULL
-                AND top_acl.organisationunitid NOT IN (SELECT organisationunitid FROM ou_roots))
-            OR (dva.organisationunitid IN (
-              SELECT ou_acl.organisationunitid
-              FROM organisationunit ou_acl
-              JOIN organisationunit root_acl
-                ON ou_acl.patharray && ARRAY[root_acl.uid]
-              WHERE root_acl.organisationunitid IN (SELECT organisationunitid FROM ou_roots))) IS TRUE)
+            WHERE %s)) IS TRUE%s
           AND dva.categoryoptioncomboid NOT IN (SELECT categoryoptioncomboid FROM coc_no_access)"""
-            .formatted(createDataReadCheck("ds_acl.sharing", user));
-    return new Access(with, where);
+            .formatted(createDataReadCheck("ds_acl.sharing", user), orgUnitCheck);
+    return new Access(with, where, orgUnits);
   }
 
   /**
@@ -375,6 +463,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         AND ou.uid = ANY(:ou)
         AND pe.iso = ANY(:pe)
         AND :access
+        AND dva.organisationunitid = ANY(:orgUnits)
         AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dva.attributeoptioncomboid)
       ORDER BY dva.created DESC""";
 
@@ -388,6 +477,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .setParameter("coc", params.getCategoryOptionCombo())
         .setParameter("aoc", params.getAttributeOptionCombo())
         .setParameter("aocAllowed", aocAllowed)
+        .setParameter("orgUnits", access == null ? null : access.orgUnits())
         .setDynamicClause("accessWith", access == null ? null : access.with())
         .setDynamicClause("access", access == null ? null : access.where())
         .setOffset(pager == null ? null : pager.getOffset())
@@ -414,7 +504,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     DataValueKey key = toKey(params);
     SQL.QueryAPI api = NativeSQL.of(getSession());
     if (!isAocReadable(api, user, key)) return false;
-    Access access = createAccess(user, true);
+    Access access = createAccess(user, true, null);
     limitStatements();
     @Language("sql")
     String sql =
@@ -469,7 +559,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     UserDetails user = getCurrentUserDetails();
     SQL.QueryAPI api = NativeSQL.of(getSession());
     if (!isAocReadable(api, user, key)) return List.of();
-    Access access = createAccess(user, true);
+    Access access = createAccess(user, true, null);
     if (access != null) limitStatements();
     @Language("sql")
     String sql =
