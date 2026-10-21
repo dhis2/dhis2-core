@@ -51,6 +51,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
@@ -223,10 +224,7 @@ public class AuditController {
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
       dataValueAudits = dataValueAuditService.getDataValueAudits(params);
     } else {
-      int total = dataValueAuditService.countDataValueAudits(params);
-
-      pager = new Pager(page, total, pageSize);
-
+      // the requested page, not limited to the last page: its depth is what the read costs
       dataValueAudits =
           dataValueAuditService.getDataValueAudits(
               new DataValueAuditQueryParams()
@@ -236,7 +234,9 @@ public class AuditController {
                   .setCategoryOptionCombo(categoryOptionCombo)
                   .setAttributeOptionCombo(attributeOptionCombo)
                   .setAuditTypes(auditOperationTypes)
-                  .setPager(pager));
+                  .setPager(new SlimPager(Math.max(page, 1), Math.max(pageSize, 1), null)));
+
+      pager = new Pager(page, dataValueAuditService.countDataValueAudits(params), pageSize);
     }
 
     RootNode rootNode = NodeUtils.createMetadata();
