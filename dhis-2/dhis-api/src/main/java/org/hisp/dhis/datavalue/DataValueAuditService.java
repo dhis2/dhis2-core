@@ -32,6 +32,7 @@ package org.hisp.dhis.datavalue;
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -64,7 +65,7 @@ public interface DataValueAuditService {
   void deleteDataValueAudits(DataElement dataElement);
 
   /**
-   * Returns all DataValueAudits for the given DataValue.
+   * Returns the DataValueAudits for the given DataValue that the current user may read.
    *
    * @param dataValue the DataValue to get DataValueAudits for.
    * @return a list of DataValueAudits which match the given DataValue, or an empty collection if
@@ -82,16 +83,18 @@ public interface DataValueAuditService {
    * @param categoryOptionCombo the {@link CategoryOptionCombo}.
    * @param attributeOptionCombo the {@link CategoryOptionCombo}.
    * @return a list of {@link DataValueAudit}.
+   * @throws ForbiddenException when the current user may not read the data of the data value
    */
   List<DataValueAudit> getDataValueAudits(
       DataElement dataElement,
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo);
+      CategoryOptionCombo attributeOptionCombo)
+      throws ForbiddenException;
 
   /**
-   * Returns data value audits for the given parameters.
+   * Returns data value audits for the given parameters that the current user may read.
    *
    * @param params the {@link DataValueAuditQueryParams}.
    * @return a list of {@link DataValueAudit}.
@@ -99,7 +102,7 @@ public interface DataValueAuditService {
   List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
 
   /**
-   * Returns the count of data value audits for the given parameters.
+   * Returns the count of data value audits for the given parameters that the current user may read.
    *
    * @param params the {@link DataValueAuditQueryParams}.
    * @return a count of {@link DataValueAudit}.

@@ -168,6 +168,7 @@ public enum ErrorCode {
   E2046("Error parsing CSV file: {0}"),
   E2047("Data value key combination does not exist: {0}"),
   E2048("Error processing gzipped content: {0}"),
+  E2050("User is not allowed to read data of the data value: `{0}`, `{1}`, `{2}`"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
