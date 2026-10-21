@@ -32,16 +32,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Use this configuration for tests relying on MinIO storage running in a Docker container. e.g. add
- * to test class like `@ContextConfiguration(classes = {MinIODhisConfiguration.class})`
+ * Use this configuration for tests relying on S3 storage running in a Docker container. e.g. add to
+ * test class like `@ContextConfiguration(classes = {S3Configuration.class})`
  *
  * @author david mackessy
  */
 @Configuration
-public class MinIOConfiguration {
+public class S3Configuration {
   @Bean
   public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new MinIOConfigurationProvider(
+    return new S3ConfigurationProvider(
         new TestContainerPostgresConfig().dhisConfigurationProvider().getProperties());
   }
 }
