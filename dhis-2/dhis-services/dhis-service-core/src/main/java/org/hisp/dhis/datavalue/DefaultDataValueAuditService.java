@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +38,10 @@ import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -52,6 +57,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.datavalue.DataValueAuditService")
 public class DefaultDataValueAuditService implements DataValueAuditService {
+
+  /** The most entries an unpaged read returns to a user who is not a superuser. */
+  static final int MAX_UNPAGED_ENTRIES = 10_000;
+
   private final DataValueAuditStore dataValueAuditStore;
 
   private final DataValueStore dataValueStore;
@@ -180,8 +189,29 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
-    return dataValueAuditStore.getDataValueAudits(params);
+  public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params)
+      throws ConflictException {
+    if (params.hasPaging() || getCurrentUserDetails().isSuper())
+      return dataValueAuditStore.getDataValueAudits(params);
+    // the access checked read is bounded: one more row than allowed tells there are more
+    List<DataValueAudit> audits =
+        dataValueAuditStore.getDataValueAudits(
+            withPager(params, new SlimPager(1, MAX_UNPAGED_ENTRIES + 1, null)));
+    if (audits.size() > MAX_UNPAGED_ENTRIES)
+      throw new ConflictException(ErrorCode.E2051, MAX_UNPAGED_ENTRIES);
+    return audits;
+  }
+
+  private static DataValueAuditQueryParams withPager(
+      DataValueAuditQueryParams params, Pager pager) {
+    return new DataValueAuditQueryParams()
+        .setDataElements(params.getDataElements())
+        .setPeriods(params.getPeriods())
+        .setOrgUnits(params.getOrgUnits())
+        .setCategoryOptionCombo(params.getCategoryOptionCombo())
+        .setAttributeOptionCombo(params.getAttributeOptionCombo())
+        .setAuditTypes(params.getAuditTypes())
+        .setPager(pager);
   }
 
   @Override

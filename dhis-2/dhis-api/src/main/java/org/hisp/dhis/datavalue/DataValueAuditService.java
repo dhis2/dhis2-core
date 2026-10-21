@@ -32,6 +32,7 @@ package org.hisp.dhis.datavalue;
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -98,8 +99,11 @@ public interface DataValueAuditService {
    *
    * @param params the {@link DataValueAuditQueryParams}.
    * @return a list of {@link DataValueAudit}.
+   * @throws ConflictException when an unpaged read of a user who is not a superuser has more audits
+   *     than allowed
    */
-  List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
+  List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params)
+      throws ConflictException;
 
   /**
    * Returns the count of data value audits for the given parameters that the current user may read.

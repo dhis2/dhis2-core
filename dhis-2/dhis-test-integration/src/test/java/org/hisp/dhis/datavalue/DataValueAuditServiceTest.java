@@ -38,6 +38,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -156,7 +157,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testAddGetDataValueAuditSingleRecord() {
+  void testAddGetDataValueAuditSingleRecord() throws ConflictException {
     DataValueAudit dataValueAuditA =
         new DataValueAudit(
             dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditOperationType.UPDATE);
@@ -179,7 +180,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAudit() {
+  void testGetDataValueAudit() throws ConflictException {
     DataValueAudit dvaA =
         new DataValueAudit(
             dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditOperationType.UPDATE);
@@ -229,7 +230,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditNoResult() {
+  void testGetDataValueAuditNoResult() throws ConflictException {
     DataValueAudit dvaA =
         new DataValueAudit(
             dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditOperationType.UPDATE);
@@ -259,7 +260,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditWithFakeCreate() throws ForbiddenException {
+  void testGetDataValueAuditWithFakeCreate() throws ForbiddenException, ConflictException {
     DataValueAuditQueryParams params =
         new DataValueAuditQueryParams()
             .setDataElements(List.of(dataElementA))
