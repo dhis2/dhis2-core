@@ -197,10 +197,11 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
         throw new ConflictException(ErrorCode.E2052, MAX_ENTRIES);
       return dataValueAuditStore.getDataValueAudits(params);
     }
-    // the unpaged read is bounded: one more entry than allowed tells there are more
+    // the unpaged read is bounded: the store reads one more entry than the page, which tells
+    // there are more than allowed
     List<DataValueAudit> audits =
         dataValueAuditStore.getDataValueAudits(
-            withPager(params, new SlimPager(1, MAX_ENTRIES + 1, null)));
+            withPager(params, new SlimPager(1, MAX_ENTRIES, null)));
     if (audits.size() > MAX_ENTRIES) throw new ConflictException(ErrorCode.E2051, MAX_ENTRIES);
     return audits;
   }
