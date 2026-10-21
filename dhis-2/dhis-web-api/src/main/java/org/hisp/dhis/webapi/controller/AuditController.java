@@ -33,8 +33,10 @@ import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -75,9 +77,12 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
@@ -96,6 +101,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -178,7 +184,14 @@ public class AuditController {
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
-      @RequestParam(required = false, defaultValue = "1") int page)
+      @RequestParam(required = false, defaultValue = "1") int page,
+      @OpenApi.Description(
+              "Get the total number of items and pages in the pager. Only enable this if necessary"
+                  + " as it counts all entries. Use the pager's prev/nextPage to determine if there"
+                  + " is a previous or a next page instead.")
+          @RequestParam(required = false)
+          boolean totalPages,
+      HttpServletRequest request)
       throws ConflictException {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
@@ -200,15 +213,19 @@ public class AuditController {
             .setTypes(types);
 
     List<DataValueChangelog> entries;
-    Pager pager = null;
+    RootNode rootNode = NodeUtils.createMetadata();
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
       entries = dataValueChangelogService.getChangelogEntries(params);
     } else {
-      int total = dataValueChangelogService.countEntries(params);
-
-      pager = new Pager(page, total, pageSize);
-
+      // with totals a page beyond the last is the last page, as before; without, the page asked
+      Pager pager;
+      if (totalPages) {
+        pager = new Pager(page, dataValueChangelogService.countEntries(params), pageSize);
+      } else {
+        pager = new Pager();
+        pager.force(Math.max(page, 1), Math.max(pageSize, 1));
+      }
       entries =
           dataValueChangelogService.getChangelogEntries(
               new DataValueChangelogQueryParams()
@@ -220,12 +237,10 @@ public class AuditController {
                   .setAttributeOptionCombo(cc)
                   .setTypes(types)
                   .setPager(pager));
-    }
-
-    RootNode rootNode = NodeUtils.createMetadata();
-
-    if (pager != null) {
-      rootNode.addChild(NodeUtils.createPager(pager));
+      // a paged read has one more entry than the page when there is a next page
+      boolean hasNextPage = entries.size() > pager.getPageSize();
+      if (hasNextPage) entries = entries.subList(0, pager.getPageSize());
+      rootNode.addChild(createPager(pager, totalPages, hasNextPage, getRequestURL(request)));
     }
 
     CollectionNode trackedEntityAttributeValueAudits =
@@ -236,6 +251,38 @@ public class AuditController {
             .getChildren());
 
     return rootNode;
+  }
+
+  /**
+   * The pager of the tracker exports: {@code total} and {@code pageCount} only with {@code
+   * totalPages=true}, {@code prevPage} and {@code nextPage} links only when there is such a page.
+   *
+   * @param pager the page read; with totals it reports the last page for a page beyond it
+   */
+  private static Node createPager(
+      Pager pager, boolean totals, boolean hasNextPage, String requestUrl) {
+    int page = pager.getPage();
+    String prevPage = page > 1 ? getPageLink(requestUrl, page - 1) : null;
+    String nextPage = hasNextPage ? getPageLink(requestUrl, page + 1) : null;
+    if (totals) {
+      pager.setPrevPage(prevPage);
+      pager.setNextPage(nextPage);
+      return NodeUtils.createPager(pager);
+    }
+    ComplexNode node = new ComplexNode("pager");
+    node.setMetadata(true);
+    node.addChild(new SimpleNode("page", page));
+    node.addChild(new SimpleNode("pageSize", pager.getPageSize()));
+    node.addChild(new SimpleNode("prevPage", prevPage));
+    node.addChild(new SimpleNode("nextPage", nextPage));
+    return node;
+  }
+
+  private static String getPageLink(String requestUrl, int page) {
+    return UriComponentsBuilder.fromUriString(requestUrl)
+        .replaceQueryParam("page", page)
+        .build()
+        .toUriString();
   }
 
   @GetMapping("dataApproval")

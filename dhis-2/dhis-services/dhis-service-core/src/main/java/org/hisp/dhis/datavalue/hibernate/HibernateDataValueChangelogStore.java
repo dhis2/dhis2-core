@@ -391,7 +391,8 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .setDynamicClause("accessWith", access == null ? null : access.with())
         .setDynamicClause("access", access == null ? null : access.where())
         .setOffset(pager == null ? null : pager.getOffset())
-        .setLimit(pager == null ? null : pager.getPageSize())
+        // one more than the page tells whether there is a next page
+        .setLimit(pager == null ? null : pager.getPageSize() + 1)
         .eraseNullParameterLines()
         .useEqualsOverInForParameters("types", "ds", "de", "ou", "pe")
         .eraseNullParameterJoinLine("de", "de")

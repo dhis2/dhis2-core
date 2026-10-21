@@ -67,7 +67,8 @@ public interface DataValueChangelogStore extends GenericStore<DataValueChangelog
    * Returns data value audits for the given query that the current user may read.
    *
    * @param params the {@link DataValueChangelogQueryParams}.
-   * @return a list of {@link DataValueChangelog}.
+   * @return a list of {@link DataValueChangelog}; paged, one more than the page size when there is
+   *     a next page
    */
   List<DataValueChangelog> getEntries(DataValueChangelogQueryParams params);
 
