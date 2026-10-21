@@ -240,4 +240,21 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("English (Ireland)", dbLocaleElement.getName());
     assertEquals("anglais (Irlande)", dbLocaleElement.getDisplayName());
   }
+
+  @Test
+  void testDeleteDbLocale() {
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=de"));
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales?language=de"));
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=de&country=DE"));
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales?language=de&country=DE"));
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=de&country=DE&script=Latn"));
+    assertStatus(
+        HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales?language=de&country=DE&script=Latn"));
+  }
+
+  @Test
+  void testDeleteDbLocale_BlankUrlParameters() {
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=de&country=&script="));
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales?language=de&country=&script="));
+  }
 }
