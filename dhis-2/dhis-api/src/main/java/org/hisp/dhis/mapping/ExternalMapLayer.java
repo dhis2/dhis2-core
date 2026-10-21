@@ -103,9 +103,8 @@ public class ExternalMapLayer extends BaseIdentifiableObject implements Metadata
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "attribution", key = "ATTRIBUTION")
   public String getAttribution() {
-    return this.attribution;
+    return attribution;
   }
 
   public void setAttribution(String attribution) {
