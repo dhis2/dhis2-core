@@ -33,9 +33,11 @@ import static org.hisp.dhis.datavalue.hibernate.HibernateDataValueChangelogStore
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataValueChangelogStore.createEntriesQuery;
 import static org.hisp.dhis.period.Period.of;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -300,7 +302,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
     AtomicReference<String> sql = new AtomicReference<>();
     createEntriesQuery(
             params,
-            createAccess(user, true),
+            createAccess(user, true, null),
             new Long[] {987654321L},
             SQL.spy(sql::set, (name, param) -> {}))
         .count();
@@ -308,5 +310,26 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
     assertFalse(sql.get().contains("987654321"), sql.get());
     assertFalse(sql.get().contains("cocUid12345"), sql.get());
     assertFalse(sql.get().contains("aocUid12345"), sql.get());
+  }
+
+  @Test
+  void testAccess_ListedOrgUnitsReplaceTheDescendantSet() {
+    UserDetails user = mock(UserDetails.class);
+    when(user.getUid()).thenReturn("userUid1234");
+    when(user.getId()).thenReturn(7L);
+    when(user.getUserGroupIds()).thenReturn(Set.of());
+    AtomicReference<String> sql = new AtomicReference<>();
+    Set<String> bound = new HashSet<>();
+    createEntriesQuery(
+            new DataValueChangelogQueryParams().setPeriods(List.of(of("2021"))),
+            createAccess(user, false, new Long[] {11L, 12L}),
+            new Long[] {987654321L},
+            SQL.spy(sql::set, (name, param) -> bound.add(name)))
+        .count();
+
+    assertTrue(sql.get().contains("AND dva.organisationunitid = ANY(:orgUnits)"), sql.get());
+    assertFalse(sql.get().contains("ou_roots"), sql.get());
+    assertFalse(sql.get().contains("patharray"), sql.get());
+    assertTrue(bound.contains("orgUnits"), bound.toString());
   }
 }

@@ -47,16 +47,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.datavalue.DataValueChangelogStore;
+import org.hisp.dhis.datavalue.hibernate.HibernateDataValueChangelogStore;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.config.QueryCountDataSourceProxy;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.util.AopTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -97,6 +102,10 @@ class DataValueChangelogAccessHierarchyControllerTest
   private static final int OPEN_AOC = 3;
   private static final int RESTRICTED_AOC = 4;
 
+  /** Most org units the store lists by ID: the default (users here have few) and none. */
+  private static final List<Integer> MAX_ORG_UNIT_IDS =
+      List.of(HibernateDataValueChangelogStore.MAX_ORG_UNIT_IDS, 0);
+
   /** Units by code, in index order; the index is the hundreds of a value. */
   private final Map<String, String> units = new LinkedHashMap<>();
 
@@ -112,8 +121,18 @@ class DataValueChangelogAccessHierarchyControllerTest
   private String restrictedOption;
   private String group;
 
+  @Autowired private DataValueChangelogStore changelogStore;
+
+  private HibernateDataValueChangelogStore store;
+
+  @AfterEach
+  void resetStore() {
+    store.setMaxOrgUnitIds(HibernateDataValueChangelogStore.MAX_ORG_UNIT_IDS);
+  }
+
   @BeforeEach
   void setUp() {
+    store = AopTestUtils.getUltimateTargetObject(changelogStore);
     addUnit("A", null);
     addUnit("B1", "A");
     addUnit("B2", "A");
@@ -220,14 +239,18 @@ class DataValueChangelogAccessHierarchyControllerTest
     switchToNewUser(user(Set.of("A"), Set.of(), false));
     String restrictedAoc = attributeOptionCombo(restrictedOption);
     String openAoc = attributeOptionCombo(openOption);
-    assertEquals(0, total(format("&co=%s&cc=%s", restrictedCoc, defaultCoc)));
-    assertEquals(0, total(format("&co=%s&cc=%s", defaultCoc, restrictedAoc)));
-    assertEquals(Set.of(), visible(format("&co=%s&cc=%s", defaultCoc, restrictedAoc)));
-    Set<String> open = visible(format("&co=%s&cc=%s", defaultCoc, openAoc));
-    assertEquals(expected(Set.of("A"), false, OPEN_AOC), open);
-    assertEquals(
-        expected(Set.of("A"), false, OPEN_COC),
-        visible(format("&co=%s&cc=%s", openCoc, defaultCoc)));
+    for (int max : MAX_ORG_UNIT_IDS) {
+      store.setMaxOrgUnitIds(max);
+      assertEquals(0, total(format("&co=%s&cc=%s", restrictedCoc, defaultCoc)));
+      assertEquals(0, total(format("&co=%s&cc=%s", defaultCoc, restrictedAoc)));
+      assertEquals(Set.of(), visible(format("&co=%s&cc=%s", defaultCoc, restrictedAoc)));
+      Set<String> open = visible(format("&co=%s&cc=%s", defaultCoc, openAoc));
+      assertEquals(expected(Set.of("A"), false, OPEN_AOC), open, "max " + max);
+      assertEquals(
+          expected(Set.of("A"), false, OPEN_COC),
+          visible(format("&co=%s&cc=%s", openCoc, defaultCoc)),
+          "max " + max);
+    }
   }
 
   @Test
@@ -325,16 +348,22 @@ class DataValueChangelogAccessHierarchyControllerTest
       Set<String> capture, Set<String> dataView, boolean groupMember, Set<String> roots) {
     switchToNewUser(user(capture, dataView, groupMember));
     Set<String> expected = expected(roots, groupMember);
-    assertEquals(expected, visible(""));
-    assertEquals(expected, values("/audits/dataValue?fields=value&skipPaging=true"));
-    assertEquals(expected, values("/audits/dataValue?fields=value&paging=false"));
-    assertEquals(rows("/audits/dataValue?fields=value&skipPaging=true"), total(""));
+    // org units listed by ID (few) and found inside the query (many)
+    for (int max : MAX_ORG_UNIT_IDS) {
+      store.setMaxOrgUnitIds(max);
+      assertEquals(expected, visible(""), "max " + max);
+      assertEquals(expected, values("/audits/dataValue?fields=value&skipPaging=true"));
+      assertEquals(expected, values("/audits/dataValue?fields=value&paging=false"));
+      assertEquals(rows("/audits/dataValue?fields=value&skipPaging=true"), total(""));
+      for (String code : units.keySet()) {
+        Set<String> inUnit = new HashSet<>();
+        expected.stream().filter(label -> label.startsWith(code + ":")).forEach(inUnit::add);
+        assertEquals(inUnit, visible("&ou=" + units.get(code)), "max " + max + " " + code);
+      }
+    }
     int i = 0;
     for (Map.Entry<String, String> unit : units.entrySet()) {
       int index = i++;
-      Set<String> inUnit = new HashSet<>();
-      expected.stream().filter(label -> label.startsWith(unit.getKey() + ":")).forEach(inUnit::add);
-      assertEquals(inUnit, visible("&ou=" + unit.getValue()), unit.getKey());
       for (int kind : List.of(OPEN_COC, RESTRICTED_COC, OPEN_AOC, RESTRICTED_AOC)) {
         // a readable value can still fail with 409 on the history part for data view units
         String label = label(unit.getKey(), kind);
