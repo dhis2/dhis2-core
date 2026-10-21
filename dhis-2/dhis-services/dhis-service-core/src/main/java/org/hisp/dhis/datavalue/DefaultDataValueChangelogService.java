@@ -29,9 +29,12 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -46,6 +49,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 public class DefaultDataValueChangelogService implements DataValueChangelogService {
+
+  /** The most entries an unpaged read returns to a user who is not a superuser. */
+  static final int MAX_UNPAGED_ENTRIES = 10_000;
 
   private final DataValueChangelogStore dataValueChangelogStore;
 
@@ -83,7 +89,27 @@ public class DefaultDataValueChangelogService implements DataValueChangelogServi
   public List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params)
       throws ConflictException {
     validateDataSetAccess(params);
-    return dataValueChangelogStore.getEntries(params);
+    if (params.hasPaging() || getCurrentUserDetails().isSuper())
+      return dataValueChangelogStore.getEntries(params);
+    // the access checked read is bounded: one more row than allowed tells there are more
+    List<DataValueChangelog> entries =
+        dataValueChangelogStore.getEntries(withPage(params, MAX_UNPAGED_ENTRIES + 1));
+    if (entries.size() > MAX_UNPAGED_ENTRIES)
+      throw new ConflictException(ErrorCode.E2051, MAX_UNPAGED_ENTRIES);
+    return entries;
+  }
+
+  private static DataValueChangelogQueryParams withPage(
+      DataValueChangelogQueryParams params, int pageSize) {
+    return new DataValueChangelogQueryParams()
+        .setDataSets(params.getDataSets())
+        .setDataElements(params.getDataElements())
+        .setPeriods(params.getPeriods())
+        .setOrgUnits(params.getOrgUnits())
+        .setCategoryOptionCombo(params.getCategoryOptionCombo())
+        .setAttributeOptionCombo(params.getAttributeOptionCombo())
+        .setTypes(params.getTypes())
+        .setPager(new Pager(1, pageSize, pageSize));
   }
 
   @Override
