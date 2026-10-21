@@ -39,6 +39,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -143,7 +144,7 @@ class DataValueChangelogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testAddGetDataValueAuditSingleRecord() {
+  void testAddGetDataValueAuditSingleRecord() throws ConflictException {
     DataValueChangelogQueryParams params =
         decodeInput(
             DataValueChangelogQueryParams.class,
@@ -158,7 +159,7 @@ class DataValueChangelogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAudit() {
+  void testGetDataValueAudit() throws ConflictException {
     DataValueChangelogQueryParams params =
         decodeInput(
             DataValueChangelogQueryParams.class,
@@ -199,7 +200,7 @@ class DataValueChangelogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditNoResult() {
+  void testGetDataValueAuditNoResult() throws ConflictException {
     DataValueChangelogQueryParams params =
         decodeInput(
             DataValueChangelogQueryParams.class,
