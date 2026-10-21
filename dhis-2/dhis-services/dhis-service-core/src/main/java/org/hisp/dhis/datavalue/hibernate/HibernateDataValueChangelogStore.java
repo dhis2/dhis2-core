@@ -29,9 +29,15 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
+import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
+import static org.hisp.dhis.security.acl.AclService.LIKE_WRITE_DATA;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import jakarta.persistence.EntityManager;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Pager;
@@ -48,6 +54,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
+import org.hisp.dhis.user.UserDetails;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -100,18 +107,164 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
 
   @Override
   public List<DataValueChangelog> getEntries(DataValueChangelogQueryParams params) {
-    return createEntriesQuery(params, NativeSQL.of(getSession())).stream(DataValueChangelog.class)
+    return createEntriesQuery(params, createAccess(params), NativeSQL.of(getSession())).stream(
+            DataValueChangelog.class)
         .toList();
   }
 
   @Override
   public int countEntries(DataValueChangelogQueryParams params) {
-    return createEntriesQuery(params, NativeSQL.of(getSession())).count();
+    return createEntriesQuery(params, createAccess(params), NativeSQL.of(getSession())).count();
   }
 
-  static QueryBuilder createEntriesQuery(DataValueChangelogQueryParams params, SQL.QueryAPI api) {
+  /** The access of the current user, checking only the two combos if the params pin both. */
+  @CheckForNull
+  private static Access createAccess(DataValueChangelogQueryParams params) {
+    return createAccess(
+        getCurrentUserDetails(),
+        params.getCategoryOptionCombo() != null && params.getAttributeOptionCombo() != null);
+  }
+
+  @Override
+  public List<String> getDataSetsNoDataReadAccess(@Nonnull Collection<UID> dataSets) {
+    UserDetails user = getCurrentUserDetails();
+    if (user.isSuper() || dataSets.isEmpty()) return List.of();
     String sql =
         """
+        SELECT ds.uid
+        FROM dataset ds
+        WHERE ds.uid = ANY(:ds)
+          AND NOT :access""";
+    return SQL
+        .of(sql, NativeSQL.of(getSession()))
+        .setParameter("ds", dataSets)
+        .setDynamicClause("access", createDataReadCheck("ds.sharing", user))
+        .stream(String.class)
+        .toList();
+  }
+
+  /**
+   * The data read access of a user who is not a superuser to change log rows {@code dva}.
+   *
+   * <p>The user reads a row when its data element belongs to a data set the user may read data of,
+   * its organisation unit is in the user's data capture or data view hierarchy, and the user may
+   * read data of all category options of both its category option combo and its attribute option
+   * combo.
+   *
+   * <p>Each condition is computed once per query and tested as a hashed subplan: the option combos
+   * the user may not read with {@code NOT IN}, the readable data elements and organisation units
+   * with {@code (x IN (...)) IS TRUE}, which PostgreSQL does not turn into a semi join. Joins and
+   * semi joins are planned from row estimates for the sharing conditions and filters that can be
+   * far off, which made a nested loop over every audit row.
+   *
+   * @param with the {@code WITH} clause computing the option combos the user may not read
+   * @param where the condition on the alias {@code dva}
+   */
+  record Access(@Nonnull String with, @Nonnull String where) {}
+
+  /**
+   * @param user the user reading the change log
+   * @param boundCombos true to check only the option combos bound as {@code :coc} and {@code :aoc}
+   *     (a null value for the default combo), which the query must bind; false to check all
+   * @return the access of the user, or null when the user reads all rows
+   */
+  @CheckForNull
+  static Access createAccess(@Nonnull UserDetails user, boolean boundCombos) {
+    if (user.isSuper()) return null;
+    // the default option combo is excluded: AclService always allows it
+    String combos =
+        !boundCombos
+            ? ""
+            : """
+
+              AND coc_co.categoryoptioncomboid IN (
+                SELECT c.categoryoptioncomboid FROM categoryoptioncombo c
+                WHERE c.uid IN (cast(:coc as text), cast(:aoc as text)))""";
+    String with =
+        """
+        WITH
+          coc_no_access AS MATERIALIZED (
+            SELECT DISTINCT coc_co.categoryoptioncomboid
+            FROM categoryoptioncombos_categoryoptions coc_co
+            JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
+            WHERE NOT (%s)
+              AND coc_co.categoryoptioncomboid NOT IN (
+                SELECT d.categoryoptioncomboid FROM categoryoptioncombo d WHERE d.name = 'default')%s
+          )"""
+            .formatted(createDataReadCheck("co.sharing", user), combos);
+    long userId = user.getId();
+    String where =
+        """
+        (dva.dataelementid IN (
+            SELECT dse_acl.dataelementid
+            FROM datasetelement dse_acl
+            JOIN dataset ds_acl ON dse_acl.datasetid = ds_acl.datasetid
+            WHERE %s)) IS TRUE
+          AND (dva.organisationunitid IN (
+            SELECT ou_acl.organisationunitid
+            FROM organisationunit ou_acl
+            JOIN organisationunit root_acl
+              ON ou_acl.path = root_acl.path OR ou_acl.path LIKE root_acl.path || '/%%'
+            WHERE root_acl.organisationunitid IN (
+                SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = %d
+                UNION
+                SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = %d))) IS TRUE
+          AND dva.categoryoptioncomboid NOT IN (SELECT categoryoptioncomboid FROM coc_no_access)
+          AND dva.attributeoptioncomboid NOT IN (SELECT categoryoptioncomboid FROM coc_no_access)"""
+            .formatted(createDataReadCheck("ds_acl.sharing", user), userId, userId);
+    return new Access(with, where);
+  }
+
+  /**
+   * A condition that is true exactly when the user may read data of the object with the given
+   * sharing column, as {@link org.hisp.dhis.security.acl.AclService#canDataRead} decides for a user
+   * who is not a superuser: the public access, the user's own entry, or the entry of one of the
+   * user's groups grants data read or data write. An entry without access string, or no public
+   * access string, grants access, as {@link
+   * org.hisp.dhis.security.acl.AccessStringHelper#isEnabled} does. Ownership does not grant data
+   * access. The condition is never null, also for sharing without, or with JSON {@code null}, user
+   * or user group entries.
+   *
+   * <p>This follows {@code AclService.canDataRead} on purpose and deliberately differs from {@code
+   * JpaQueryUtils.generateSQlQueryForSharingCheck}: ownership does not grant data read, and data
+   * write implies data read. A shared helper for both checks is a planned follow-up.
+   */
+  private static String createDataReadCheck(String sharing, UserDetails user) {
+    String uid = user.getUid();
+    String publicAccess = "(%s->>'public')".formatted(sharing);
+    String check =
+        "%s OR jsonb_typeof(%s->'users'->'%s') = 'object' AND (%s)"
+            .formatted(
+                grantsDataRead(publicAccess),
+                sharing,
+                uid,
+                grantsDataRead("(%s->'users'->'%s'->>'access')".formatted(sharing, uid)));
+    Set<String> groups = user.getUserGroupIds();
+    if (groups != null && !groups.isEmpty()) {
+      // CASE, not AND, guarantees jsonb_each only sees an object (migrated sharing has JSON null)
+      check +=
+          (" OR EXISTS (SELECT 1 FROM jsonb_each(CASE WHEN jsonb_typeof(%1$s->'userGroups') ="
+                  + " 'object' THEN %1$s->'userGroups' ELSE '{}' END) g"
+                  + " WHERE g.key = ANY(cast('{%2$s}' as text[])) AND (%3$s))")
+              .formatted(
+                  sharing,
+                  String.join(",", groups.stream().sorted().toList()),
+                  grantsDataRead("(g.value->>'access')"));
+    }
+    return "(%s) IS TRUE".formatted(check);
+  }
+
+  /** An access string grants data read when it is missing, or allows data read or data write. */
+  private static String grantsDataRead(String access) {
+    return "(%1$s IS NULL OR %1$s LIKE '%2$s' OR %1$s LIKE '%3$s')"
+        .formatted(access, LIKE_READ_DATA, LIKE_WRITE_DATA);
+  }
+
+  static QueryBuilder createEntriesQuery(
+      DataValueChangelogQueryParams params, @CheckForNull Access access, SQL.QueryAPI api) {
+    String sql =
+        """
+      :accessWith
       SELECT *
       FROM datavalueaudit dva
       JOIN period pe ON dva.periodid = pe.periodid
@@ -127,6 +280,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         AND de.uid = ANY(:de)
         AND ou.uid = ANY(:ou)
         AND pe.iso = ANY(:pe)
+        AND :access
       ORDER BY dva.created DESC""";
 
     Pager pager = params.getPager();
@@ -138,6 +292,8 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .setParameter("ou", params.getOrgUnits())
         .setParameter("coc", params.getCategoryOptionCombo())
         .setParameter("aoc", params.getAttributeOptionCombo())
+        .setDynamicClause("accessWith", access == null ? null : access.with())
+        .setDynamicClause("access", access == null ? null : access.where())
         .setOffset(pager == null ? null : pager.getOffset())
         .setLimit(pager == null ? null : pager.getPageSize())
         .eraseNullParameterLines()
@@ -151,21 +307,60 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
 
   @Override
   public List<DataValueChangelogEntry> getEntries(@Nonnull DataValueQueryParams params) {
+    return getEntries(toKey(params));
+  }
+
+  @Override
+  public boolean isReadable(@Nonnull DataValueQueryParams params) {
+    UserDetails user = getCurrentUserDetails();
+    if (user.isSuper()) return true;
+    DataValueKey key = toKey(params);
+    Access access = createAccess(user, true);
+    @Language("sql")
+    String sql =
+        """
+        :accessWith
+        SELECT 1
+        FROM (
+            SELECT de.dataelementid, ou.organisationunitid, coc.categoryoptioncomboid,
+                aoc.categoryoptioncomboid AS attributeoptioncomboid
+            FROM dataelement de, organisationunit ou, categoryoptioncombo coc, categoryoptioncombo aoc
+            WHERE de.uid = :de
+              AND ou.uid = :ou
+              AND (cast(:coc as text) IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
+              AND (cast(:aoc as text) IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
+        ) dva
+        WHERE :access""";
+    return SQL
+        .of(sql, NativeSQL.of(getSession()))
+        .setParameter("de", key.dataElement())
+        .setParameter("ou", key.orgUnit())
+        .setParameter("coc", key.categoryOptionCombo())
+        .setParameter("aoc", key.attributeOptionCombo())
+        .setDynamicClause("accessWith", access.with())
+        .setDynamicClause("access", access.where())
+        .stream()
+        .findAny()
+        .isPresent();
+  }
+
+  private DataValueKey toKey(DataValueQueryParams params) {
     String aoc = getCategoryOptionComboIdByComboAndOptions(params.getCc(), params.getCp());
-    return getEntries(
-        new DataValueKey(
-            UID.of(params.getDe()),
-            UID.of(params.getOu()),
-            UID.ofNullable(params.getCo()),
-            UID.ofNullable(aoc),
-            Period.of(params.getPe())));
+    return new DataValueKey(
+        UID.of(params.getDe()),
+        UID.of(params.getOu()),
+        UID.ofNullable(params.getCo()),
+        UID.ofNullable(aoc),
+        Period.of(params.getPe()));
   }
 
   @Override
   public List<DataValueChangelogEntry> getEntries(@Nonnull DataValueKey key) {
+    Access access = createAccess(getCurrentUserDetails(), true);
     @Language("sql")
     String sql =
         """
+        :accessWith
         SELECT
             de.uid AS de, pe.iso, ou.uid AS ou, coc.uid AS coc, aoc.uid AS aoc, dva.value, dva.modifiedby, dva.created, dva.audittype
         FROM datavalueaudit dva
@@ -180,6 +375,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
             AND pe.iso = :iso
             AND (cast(:coc as text) IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
             AND (cast(:aoc as text) IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
+            AND :access
         ORDER BY dva.created DESC""";
     return SQL
         .of(sql, NativeSQL.of(getSession()))
@@ -189,6 +385,8 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .eraseNullParameterLines()
         .setParameter("coc", key.categoryOptionCombo())
         .setParameter("aoc", key.attributeOptionCombo())
+        .setDynamicClause("accessWith", access == null ? null : access.with())
+        .setDynamicClause("access", access == null ? null : access.where())
         .stream()
         .map(HibernateDataValueChangelogStore::toEntry)
         .toList();
