@@ -91,6 +91,17 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
   List<String> findMessagesByFileResource(@Nonnull String uid);
 
   /**
+   * Lookup of the users that take part in a message conversation containing the given attachment.
+   *
+   * <p>Used to authorize reads of a {@link FileResourceDomain#MESSAGE_ATTACHMENT}: only the
+   * participants of the conversation the attachment belongs to may read it.
+   *
+   * @param uid of a message attachment file resource
+   * @return UID(s) of the users participating in a conversation that contains the attachment
+   */
+  List<String> findMessageAttachmentParticipants(@Nonnull String uid);
+
+  /**
    * Lookup of the custom icon key(s) for a custom icon file resource id.
    *
    * @param uid if a file resource
