@@ -98,7 +98,7 @@ public interface DataValueAuditService {
    * @param params the {@link DataValueAuditQueryParams}.
    * @return a list of {@link DataValueAudit}.
    * @throws ConflictException when an unpaged read of a user who is not a superuser has more audits
-   *     than allowed
+   *     than allowed, or a page of such a user ends beyond the allowed entries
    */
   List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params)
       throws ConflictException;
