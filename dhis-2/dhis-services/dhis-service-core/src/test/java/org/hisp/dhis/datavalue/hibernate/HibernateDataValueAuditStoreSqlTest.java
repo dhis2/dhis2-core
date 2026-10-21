@@ -29,12 +29,19 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_SELF;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.vladmihalcea.hibernate.type.array.LongArrayType;
+import java.util.List;
 import javax.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
@@ -55,7 +62,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 class HibernateDataValueAuditStoreSqlTest {
   private Session session;
-  private NativeQuery query;
+  private NativeQuery<?> query;
   private HibernateDataValueAuditStore store;
   private CategoryOptionCombo coc;
   private CategoryOptionCombo aoc;
@@ -67,18 +74,18 @@ class HibernateDataValueAuditStoreSqlTest {
     query = mock(NativeQuery.class, RETURNS_SELF);
     when(entityManager.unwrap(Session.class)).thenReturn(session);
     when(session.createNativeQuery(anyString())).thenReturn(query);
-    when(query.getSingleResult()).thenReturn(0L);
+    when(query.getSingleResult()).thenReturn(null);
     store =
         new HibernateDataValueAuditStore(
             entityManager,
             mock(JdbcTemplate.class),
             mock(ApplicationEventPublisher.class),
             mock(PeriodStore.class));
-    UserDetails reader = mock(UserDetails.class);
-    when(reader.getUid()).thenReturn("readerUid01");
+    UserDetails user = mock(UserDetails.class);
+    when(user.getUid()).thenReturn("readerUid01");
     SecurityContextHolder.getContext()
         .setAuthentication(
-            new UsernamePasswordAuthenticationToken(reader, null, java.util.List.of()));
+            new UsernamePasswordAuthenticationToken(user, null, java.util.List.of()));
     coc = new CategoryOptionCombo();
     coc.setId(987654321L);
     coc.setUid("comboUid001");
@@ -93,29 +100,48 @@ class HibernateDataValueAuditStoreSqlTest {
   }
 
   @Test
-  void pinnedCountBindsComboRestriction() {
+  void pinnedCountBindsComboIds() {
+    doReturn(List.of(aoc.getId())).when(query).getResultList();
+    doReturn(0L).when(query).getSingleResult();
     store.countDataValueAudits(
         new DataValueAuditQueryParams().setCategoryOptionCombo(coc).setAttributeOptionCombo(aoc));
-    assertComboParameters();
+    String statement = assertBoundCombos();
+    assertTrue(statement.contains("unnest(CAST(:aocAllowed AS bigint[]))"), statement);
+    verify(query)
+        .setParameter(
+            eq("aocAllowed"), aryEq(new Long[] {aoc.getId()}), eq(LongArrayType.INSTANCE));
   }
 
   @Test
-  void readabilityBindsComboRestriction() {
+  void readabilityBindsComboIds() {
+    doReturn(List.of(aoc.getId())).when(query).getResultList();
+    doReturn(0L).when(query).getSingleResult();
     store.isReadable(new DataElement(), new OrganisationUnit(), coc, aoc);
-    assertComboParameters();
+    assertBoundCombos();
   }
 
-  private void assertComboParameters() {
+  /**
+   * The readable attribute option combo lookup and the access checked statement bind the combos
+   * instead of inlining them.
+   *
+   * @return the access checked statement
+   */
+  private String assertBoundCombos() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    verify(session).createNativeQuery(sql.capture());
-    assertTrue(
-        sql.getValue().contains("AND coc_co.categoryoptioncomboid IN (:coc, :aoc)"),
-        sql.getValue());
-    for (CategoryOptionCombo combo : java.util.List.of(coc, aoc)) {
-      assertFalse(sql.getValue().contains(Long.toString(combo.getId())), sql.getValue());
-      assertFalse(sql.getValue().contains(combo.getUid()), sql.getValue());
+    verify(session, times(2)).createNativeQuery(sql.capture());
+    String aocLookup = sql.getAllValues().get(0);
+    String statement = sql.getAllValues().get(1);
+    assertTrue(aocLookup.contains("AND ccoc.categoryoptioncomboid = :aoc"), aocLookup);
+    assertTrue(statement.startsWith("WITH\n  coc_no_access AS ("), statement);
+    assertTrue(statement.contains("AND coc_co.categoryoptioncomboid = :coc"), statement);
+    for (String s : sql.getAllValues()) {
+      for (CategoryOptionCombo combo : new CategoryOptionCombo[] {coc, aoc}) {
+        assertFalse(s.contains(Long.toString(combo.getId())), s);
+        assertFalse(s.contains(combo.getUid()), s);
+      }
     }
     verify(query).setParameter("coc", coc.getId());
-    verify(query).setParameter("aoc", aoc.getId());
+    verify(query, atLeastOnce()).setParameter("aoc", aoc.getId());
+    return statement;
   }
 }
