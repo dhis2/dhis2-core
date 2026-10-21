@@ -71,7 +71,7 @@ public class DefaultAnalyticsTableHookService implements AnalyticsTableHookServi
 
   @Override
   @Transactional
-  public void executeAnalyticsTableSqlHooks(List<AnalyticsTableHook> hooks) {
-    analyticsTableHookStore.executeAnalyticsTableSqlHooks(hooks);
+  public int executeAnalyticsTableSqlHooks(List<AnalyticsTableHook> hooks) {
+    return analyticsTableHookStore.executeAnalyticsTableSqlHooks(hooks);
   }
 }
