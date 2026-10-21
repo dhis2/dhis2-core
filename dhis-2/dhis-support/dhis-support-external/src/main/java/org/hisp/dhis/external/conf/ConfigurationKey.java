@@ -541,6 +541,17 @@ public enum ConfigurationKey {
   CHANGELOG_AGGREGATE("changelog.aggregate", Constants.ON),
 
   /**
+   * Maximum number of seconds a statement reading the aggregate data value change log ({@code
+   * /api/audits/dataValue}, {@code /api/dataEntry/dataValueContext}) may run for a user who is not
+   * a superuser. A statement that runs longer is cancelled and the request fails with 409. {@code
+   * 0} disables the timeout. (default: 30)
+   *
+   * <p>Set this below any timeout in front of DHIS2, such as a reverse proxy or load balancer: a
+   * client that gives up does not cancel the statement.
+   */
+  CHANGELOG_AGGREGATE_QUERY_TIMEOUT("changelog.aggregate.query.timeout", "30", false),
+
+  /**
    * Enable/disable changelog/history log of tracker data values. <br>
    * (default: on)
    */
