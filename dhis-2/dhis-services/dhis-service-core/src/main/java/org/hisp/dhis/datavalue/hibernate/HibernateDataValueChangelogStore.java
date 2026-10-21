@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE_QUERY_TIMEOUT;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
 import static org.hisp.dhis.security.acl.AclService.LIKE_WRITE_DATA;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
@@ -49,6 +50,7 @@ import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.datavalue.DataValueChangelogType;
 import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.sql.NativeSQL;
@@ -68,9 +70,16 @@ import org.springframework.stereotype.Repository;
 public class HibernateDataValueChangelogStore extends HibernateGenericStore<DataValueChangelog>
     implements DataValueChangelogStore {
 
+  /** Seconds a statement of a user who is not a superuser may run, 0 for no limit. */
+  private final int queryTimeout;
+
   public HibernateDataValueChangelogStore(
-      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      DhisConfigurationProvider config) {
     super(entityManager, jdbcTemplate, publisher, DataValueChangelog.class, false);
+    this.queryTimeout = config.getIntProperty(CHANGELOG_AGGREGATE_QUERY_TIMEOUT);
   }
 
   @Override
@@ -111,6 +120,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     long[] aocAllowed =
         getAllowedAocIds(api, getCurrentUserDetails(), params.getAttributeOptionCombo());
     if (aocAllowed != null && aocAllowed.length == 0) return List.of();
+    if (aocAllowed != null) limitStatements();
     return createEntriesQuery(params, createAccess(params), aocAllowed, api).stream(
             DataValueChangelog.class)
         .toList();
@@ -122,7 +132,19 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     long[] aocAllowed =
         getAllowedAocIds(api, getCurrentUserDetails(), params.getAttributeOptionCombo());
     if (aocAllowed != null && aocAllowed.length == 0) return 0;
+    if (aocAllowed != null) limitStatements();
     return createEntriesQuery(params, createAccess(params), aocAllowed, api).count();
+  }
+
+  /**
+   * Cancels the rest of the transaction's statements, which check the access of a user who is not a
+   * superuser, when they run longer than {@link
+   * org.hisp.dhis.external.conf.ConfigurationKey#CHANGELOG_AGGREGATE_QUERY_TIMEOUT}: a client that
+   * gives up does not cancel them.
+   */
+  private void limitStatements() {
+    if (queryTimeout > 0)
+      jdbcTemplate.execute("SET LOCAL statement_timeout = '%ds'".formatted(queryTimeout));
   }
 
   /** The access of the current user, checking only the option combo if the params pin it. */
@@ -392,6 +414,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     SQL.QueryAPI api = NativeSQL.of(getSession());
     if (!isAocReadable(api, user, key)) return false;
     Access access = createAccess(user, true);
+    limitStatements();
     @Language("sql")
     String sql =
         """
@@ -446,6 +469,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     SQL.QueryAPI api = NativeSQL.of(getSession());
     if (!isAocReadable(api, user, key)) return List.of();
     Access access = createAccess(user, true);
+    if (access != null) limitStatements();
     @Language("sql")
     String sql =
         """
