@@ -107,22 +107,74 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
 
   @Override
   public List<DataValueChangelog> getEntries(DataValueChangelogQueryParams params) {
-    return createEntriesQuery(params, createAccess(params), NativeSQL.of(getSession())).stream(
+    SQL.QueryAPI api = NativeSQL.of(getSession());
+    long[] aocAllowed =
+        getAllowedAocIds(api, getCurrentUserDetails(), params.getAttributeOptionCombo());
+    if (aocAllowed != null && aocAllowed.length == 0) return List.of();
+    return createEntriesQuery(params, createAccess(params), aocAllowed, api).stream(
             DataValueChangelog.class)
         .toList();
   }
 
   @Override
   public int countEntries(DataValueChangelogQueryParams params) {
-    return createEntriesQuery(params, createAccess(params), NativeSQL.of(getSession())).count();
+    SQL.QueryAPI api = NativeSQL.of(getSession());
+    long[] aocAllowed =
+        getAllowedAocIds(api, getCurrentUserDetails(), params.getAttributeOptionCombo());
+    if (aocAllowed != null && aocAllowed.length == 0) return 0;
+    return createEntriesQuery(params, createAccess(params), aocAllowed, api).count();
   }
 
-  /** The access of the current user, checking only the two combos if the params pin both. */
+  /** The access of the current user, checking only the option combo if the params pin it. */
   @CheckForNull
   private static Access createAccess(DataValueChangelogQueryParams params) {
-    return createAccess(
-        getCurrentUserDetails(),
-        params.getCategoryOptionCombo() != null && params.getAttributeOptionCombo() != null);
+    return createAccess(getCurrentUserDetails(), params.getCategoryOptionCombo() != null);
+  }
+
+  /**
+   * The attribute option combos the user may read data of: the default one, and those of attribute
+   * category combos with only category options the user may read data of.
+   *
+   * <p>Resolved up front, so the planner sees a known list instead of guessing the size of a
+   * sharing-filtered set of option combos. Copied from {@code
+   * HibernateDataExportStore#getAllowedAocIds} and {@code #createAllowedAocQuery} on master
+   * (DHIS2-22290), with this store's data read check.
+   *
+   * @param aoc the only attribute option combo to check, null to check all
+   * @return internal ids of the option combos, null when the user reads all (superuser)
+   */
+  @CheckForNull
+  static long[] getAllowedAocIds(
+      SQL.QueryAPI api, @Nonnull UserDetails user, @CheckForNull UID aoc) {
+    if (user.isSuper()) return null;
+    // a single bigint column comes back as a plain number per row, not as an Object[] row
+    return createAllowedAocQuery(api, user, aoc).stream(Number.class)
+        .mapToLong(Number::longValue)
+        .toArray();
+  }
+
+  static QueryBuilder createAllowedAocQuery(
+      SQL.QueryAPI api, @Nonnull UserDetails user, @CheckForNull UID aoc) {
+    String sql =
+        """
+        SELECT DISTINCT ccoc.categoryoptioncomboid
+        FROM categorycombos_optioncombos ccoc
+        JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
+        JOIN categoryoptioncombo aoc ON aoc.categoryoptioncomboid = ccoc.categoryoptioncomboid
+        WHERE (cc.name = 'default'
+            OR cc.datadimensiontype = 'ATTRIBUTE'
+            AND NOT EXISTS (
+              SELECT 1
+              FROM categoryoptioncombos_categoryoptions coc_co
+              JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
+              WHERE coc_co.categoryoptioncomboid = ccoc.categoryoptioncomboid
+                AND NOT (:access)))
+          AND aoc.uid = :aoc""";
+    return SQL.of(sql, api)
+        .setParameter("aoc", aoc)
+        .setDynamicClause("access", createDataReadCheck("co.sharing", user))
+        .eraseNullParameterLines()
+        .eraseNullParameterJoinLine("aoc", "aoc");
   }
 
   @Override
@@ -144,12 +196,14 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   }
 
   /**
-   * The data read access of a user who is not a superuser to change log rows {@code dva}.
+   * The data read access of a user who is not a superuser to change log rows {@code dva}, apart
+   * from the attribute option combo, which the queries check against the list of {@link
+   * #getAllowedAocIds allowed ones}.
    *
    * <p>The user reads a row when its data element belongs to a data set the user may read data of,
-   * its organisation unit is in the user's data capture or data view hierarchy, and the user may
-   * read data of all category options of both its category option combo and its attribute option
-   * combo.
+   * its organisation unit is in the user's data capture or data view hierarchy, the user may read
+   * data of all category options of its category option combo, and its attribute option combo is
+   * allowed.
    *
    * <p>Each condition is computed once per query and tested as a hashed subplan: the option combos
    * the user may not read with {@code NOT IN}, the readable data elements and organisation units
@@ -164,22 +218,22 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
 
   /**
    * @param user the user reading the change log
-   * @param boundCombos true to check only the option combos bound as {@code :coc} and {@code :aoc}
-   *     (a null value for the default combo), which the query must bind; false to check all
+   * @param boundCombo true to check only the category option combo bound as {@code :coc} (a null
+   *     value for the default combo), which the query must bind; false to check all
    * @return the access of the user, or null when the user reads all rows
    */
   @CheckForNull
-  static Access createAccess(@Nonnull UserDetails user, boolean boundCombos) {
+  static Access createAccess(@Nonnull UserDetails user, boolean boundCombo) {
     if (user.isSuper()) return null;
     // the default option combo is excluded: AclService always allows it
     String combos =
-        !boundCombos
+        !boundCombo
             ? ""
             : """
 
               AND coc_co.categoryoptioncomboid IN (
                 SELECT c.categoryoptioncomboid FROM categoryoptioncombo c
-                WHERE c.uid IN (cast(:coc as text), cast(:aoc as text)))""";
+                WHERE c.uid = cast(:coc as text))""";
     String with =
         """
         WITH
@@ -209,8 +263,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
                 SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = %d
                 UNION
                 SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = %d))) IS TRUE
-          AND dva.categoryoptioncomboid NOT IN (SELECT categoryoptioncomboid FROM coc_no_access)
-          AND dva.attributeoptioncomboid NOT IN (SELECT categoryoptioncomboid FROM coc_no_access)"""
+          AND dva.categoryoptioncomboid NOT IN (SELECT categoryoptioncomboid FROM coc_no_access)"""
             .formatted(createDataReadCheck("ds_acl.sharing", user), userId, userId);
     return new Access(with, where);
   }
@@ -260,8 +313,17 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .formatted(access, LIKE_READ_DATA, LIKE_WRITE_DATA);
   }
 
+  /**
+   * @param aocAllowed internal ids of the attribute option combos the rows are limited to, null for
+   *     no limit; must not be empty (an empty list would erase the condition)
+   */
   static QueryBuilder createEntriesQuery(
-      DataValueChangelogQueryParams params, @CheckForNull Access access, SQL.QueryAPI api) {
+      DataValueChangelogQueryParams params,
+      @CheckForNull Access access,
+      @CheckForNull long[] aocAllowed,
+      SQL.QueryAPI api) {
+    if (aocAllowed != null && aocAllowed.length == 0)
+      throw new IllegalArgumentException("AOC limit must not be empty");
     String sql =
         """
       :accessWith
@@ -281,6 +343,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         AND ou.uid = ANY(:ou)
         AND pe.iso = ANY(:pe)
         AND :access
+        AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dva.attributeoptioncomboid)
       ORDER BY dva.created DESC""";
 
     Pager pager = params.getPager();
@@ -292,6 +355,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .setParameter("ou", params.getOrgUnits())
         .setParameter("coc", params.getCategoryOptionCombo())
         .setParameter("aoc", params.getAttributeOptionCombo())
+        .setParameter("aocAllowed", aocAllowed)
         .setDynamicClause("accessWith", access == null ? null : access.with())
         .setDynamicClause("access", access == null ? null : access.where())
         .setOffset(pager == null ? null : pager.getOffset())
@@ -315,6 +379,8 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return true;
     DataValueKey key = toKey(params);
+    SQL.QueryAPI api = NativeSQL.of(getSession());
+    if (!isAocReadable(api, user, key)) return false;
     Access access = createAccess(user, true);
     @Language("sql")
     String sql =
@@ -332,7 +398,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         ) dva
         WHERE :access""";
     return SQL
-        .of(sql, NativeSQL.of(getSession()))
+        .of(sql, api)
         .setParameter("de", key.dataElement())
         .setParameter("ou", key.orgUnit())
         .setParameter("coc", key.categoryOptionCombo())
@@ -342,6 +408,16 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .stream()
         .findAny()
         .isPresent();
+  }
+
+  /**
+   * @return true when the user may read data of the attribute option combo of the key, which all
+   *     users may for the default one (null)
+   */
+  private static boolean isAocReadable(SQL.QueryAPI api, UserDetails user, DataValueKey key) {
+    if (key.attributeOptionCombo() == null) return true;
+    long[] allowed = getAllowedAocIds(api, user, key.attributeOptionCombo());
+    return allowed == null || allowed.length > 0;
   }
 
   private DataValueKey toKey(DataValueQueryParams params) {
@@ -356,7 +432,10 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
 
   @Override
   public List<DataValueChangelogEntry> getEntries(@Nonnull DataValueKey key) {
-    Access access = createAccess(getCurrentUserDetails(), true);
+    UserDetails user = getCurrentUserDetails();
+    SQL.QueryAPI api = NativeSQL.of(getSession());
+    if (!isAocReadable(api, user, key)) return List.of();
+    Access access = createAccess(user, true);
     @Language("sql")
     String sql =
         """
@@ -378,7 +457,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
             AND :access
         ORDER BY dva.created DESC""";
     return SQL
-        .of(sql, NativeSQL.of(getSession()))
+        .of(sql, api)
         .setParameter("de", key.dataElement())
         .setParameter("ou", key.orgUnit())
         .setParameter("iso", key.period().getIsoDate())
