@@ -36,6 +36,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -250,7 +251,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditWithFakeCreate() {
+  void testGetDataValueAuditWithFakeCreate() throws ForbiddenException {
     DataValueAuditQueryParams params =
         new DataValueAuditQueryParams()
             .setDataElements(List.of(dataElementA))
@@ -270,7 +271,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditWithFakeCreate2() {
+  void testGetDataValueAuditWithFakeCreate2() throws ForbiddenException {
     dataValueA.setValue("10");
     dataValueService.updateDataValue(dataValueA);
 
@@ -284,7 +285,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditWithFakeCreateDeleteAndCreate() {
+  void testGetDataValueAuditWithFakeCreateDeleteAndCreate() throws ForbiddenException {
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValueA, "10", dataValueA.getStoredBy(), ChangeLogType.UPDATE));
 
@@ -307,7 +308,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @Disabled
-  void testGetDataValueAuditWithFakeCreateDelete2() {
+  void testGetDataValueAuditWithFakeCreateDelete2() throws ForbiddenException {
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValueA, "10", dataValueA.getStoredBy(), ChangeLogType.UPDATE));
 
@@ -332,7 +333,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @Disabled
-  void testGetDataValueAuditWithFakeCreateDeleteAndUndelete() {
+  void testGetDataValueAuditWithFakeCreateDeleteAndUndelete() throws ForbiddenException {
     DataElement dataElement = createDataElement('F');
     DataValue dataValue =
         createDataValue(dataElement, periodA, orgUnitA, optionCombo, optionCombo, "1");
