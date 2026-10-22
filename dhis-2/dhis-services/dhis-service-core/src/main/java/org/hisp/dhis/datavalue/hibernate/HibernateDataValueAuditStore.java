@@ -69,6 +69,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository("org.hisp.dhis.datavalue.DataValueAuditStore")
 public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValueAudit>
     implements DataValueAuditStore {
+  /**
+   * Users with at most this many org units in their hierarchy get them listed by ID in queries for
+   * many values (at most 80 kB), see {@link #getOrgUnitIds}.
+   */
+  public static final int MAX_ORG_UNIT_IDS = 10_000;
+
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
@@ -78,6 +84,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
   /** Seconds a statement of a user who is not a superuser may run, 0 for no limit. */
   private final int queryTimeout;
+
+  private int maxOrgUnitIds = MAX_ORG_UNIT_IDS;
 
   public HibernateDataValueAuditStore(
       SessionFactory sessionFactory,
@@ -93,6 +101,15 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     this.periodStore = periodStore;
     this.currentUserService = currentUserService;
     this.queryTimeout = Integer.parseInt(config.getProperty(CHANGELOG_AGGREGATE_QUERY_TIMEOUT));
+  }
+
+  /**
+   * For tests.
+   *
+   * @param max the most org units to list by ID, 0 to always find them inside the query
+   */
+  public void setMaxOrgUnitIds(int max) {
+    this.maxOrgUnitIds = max;
   }
 
   // -------------------------------------------------------------------------
@@ -177,7 +194,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     if (user.isSuper()) return true;
     if (getAllowedAocIds(user, attributeOptionCombo).length == 0) return false;
     limitStatements();
-    Access access = createAccess(user, true);
+    Access access = createAccess(user, true, null);
     String sql =
         access.with()
             + "\nSELECT count(*) AS audit_count"
@@ -267,8 +284,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
       User user,
       @CheckForNull Long[] aocAllowed) {
     Map<String, Object> parameters = new HashMap<>();
-    Access access =
-        user.isSuper() ? null : createAccess(user, params.getCategoryOptionCombo() != null);
+    Access access = createAccess(user, params);
     StringBuilder sql =
         new StringBuilder(access == null ? "" : access.with() + "\n")
             .append(select)
@@ -297,9 +313,9 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
               .collect(Collectors.toList()));
     }
     if (!params.getOrgUnits().isEmpty()) {
-      sql.append("\n  AND dva.organisationunitid IN (:orgUnits)");
+      sql.append("\n  AND dva.organisationunitid IN (:ou)");
       parameters.put(
-          "orgUnits",
+          "ou",
           params.getOrgUnits().stream()
               .map(IdentifiableObject::getId)
               .collect(Collectors.toList()));
@@ -319,6 +335,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
           params.getAuditTypes().stream().map(Enum::name).collect(Collectors.toList()));
     }
     if (access != null) sql.append("\n  AND ").append(access.where());
+    if (access != null && access.orgUnits() != null)
+      sql.append("\n  AND dva.organisationunitid = ANY(:orgUnits)");
     if (aocAllowed != null)
       sql.append(
           "\n  AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dva.attributeoptioncomboid)");
@@ -339,7 +357,96 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
           }
         });
     if (aocAllowed != null) query.setParameter("aocAllowed", aocAllowed, LongArrayType.INSTANCE);
+    if (access != null && access.orgUnits() != null)
+      query.setParameter("orgUnits", access.orgUnits(), LongArrayType.INSTANCE);
     return query;
+  }
+
+  /**
+   * The access of the user to many values, checking only the category option combo if the params
+   * pin it.
+   *
+   * <p>With org units listed by ID the rest of the transaction's statements are planned with the
+   * values bound to them: from the 5th execution on a connection pgjdbc prepares a statement on the
+   * server, and a generic plan of PostgreSQL neither hashes a bound array nor knows its size. For a
+   * user with 1,001 org units page 1 took 13 s instead of 36 ms, 5,000 org units over 60 s.
+   */
+  @CheckForNull
+  private Access createAccess(User user, DataValueAuditQueryParams params) {
+    if (user.isSuper()) return null;
+    // a query for given org units, such as the one of dataValueContext, already has their IDs
+    Long[] orgUnits = params.getOrgUnits().isEmpty() ? getOrgUnitIds(user, maxOrgUnitIds) : null;
+    // PostgreSQL 10 and 11, which this version supports, have no plan_cache_mode
+    if (orgUnits != null)
+      jdbcTemplate.execute(
+          "SELECT set_config('plan_cache_mode', 'force_custom_plan', true)"
+              + " WHERE current_setting('plan_cache_mode', true) IS NOT NULL");
+    return createAccess(user, params.getCategoryOptionCombo() != null, orgUnits);
+  }
+
+  /**
+   * The org units in the user's data capture and data view hierarchies, when there are at most
+   * {@code max} and the user does not have every top-level org unit.
+   *
+   * <p>Resolved up front only for the planner, which has statistics for a list of org unit IDs. It
+   * cannot estimate the descendant set found inside the query and takes it to match a fixed share
+   * of all rows. For a user whose rows are rare it then walks the index on {@code created} over the
+   * whole table to fill the first page.
+   *
+   * <p>The user's org units are written out twice rather than taken from the {@code ou_roots} CTE
+   * of the access SQL: the planner has no statistics for a CTE it uses twice and took the user to
+   * have 200 of them. With 5,000 it then joined every org unit to every root and did not finish in
+   * 60 s; with the subquery it knows how many there are and scans the path index once per root.
+   *
+   * @return internal IDs of the org units, null when the query finds them: for users with every
+   *     top-level org unit, more than {@code max} or none
+   */
+  @CheckForNull
+  private Long[] getOrgUnitIds(@Nonnull User user, int max) {
+    String roots =
+        "SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = "
+            + user.getId()
+            + "\n    UNION"
+            + "\n    SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = "
+            + user.getId();
+    String sql =
+        "SELECT ou.organisationunitid"
+            + "\nFROM organisationunit ou"
+            + "\nJOIN organisationunit root"
+            + "\n  ON ou.path ~>=~ root.path AND ou.path ~<~ (root.path || '0')"
+            + "\n    AND left(ou.path, length(root.path)) = root.path"
+            + "\nWHERE root.organisationunitid IN ("
+            + "\n    "
+            + roots
+            + ")"
+            + "\n  AND EXISTS ("
+            + "\n    SELECT 1 FROM organisationunit top"
+            + "\n    WHERE top.parentid IS NULL"
+            + "\n      AND top.organisationunitid NOT IN ("
+            + "\n        "
+            + roots.replace("\n    ", "\n        ")
+            + "))";
+    List<?> ids =
+        getSession()
+            .createNativeQuery(sql)
+            .addScalar("organisationunitid", StandardBasicTypes.LONG)
+            .setMaxResults(max + 1)
+            .getResultList();
+    if (ids.isEmpty() || ids.size() > max) return null;
+    // a unit below two of the user's org units comes twice
+    return ids.stream().map(Long.class::cast).distinct().toArray(Long[]::new);
+  }
+
+  /** The {@code ou_roots} CTE: the user's data capture and data view org units. */
+  private static String createOrgUnitRoots(User user) {
+    long userId = user.getId();
+    return "  ou_roots AS ("
+        + "\n    SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = "
+        + userId
+        + "\n    UNION"
+        + "\n    SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = "
+        + userId
+        + "\n  )";
   }
 
   /**
@@ -361,20 +468,27 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
    * before every character of a UID, so {@code [path, path0)} is exactly the root and the paths
    * below it. The prefix test repeats the range for the planner, which estimates such a range at a
    * ninth of all org units per root: the set then seemed too large to hash and was searched again
-   * for every audit row. There is no {@code patharray} on this version.
+   * for every audit row. There is no {@code patharray} on this version. Queries for many values of
+   * a user with a small hierarchy get its org units {@link #getOrgUnitIds listed by ID} instead.
    */
   static final class Access {
     private final String with;
 
     private final String where;
 
+    private final Long[] orgUnits;
+
     /**
      * @param with the {@code WITH} clause computing the option combos the user may not read
-     * @param where the condition on the alias {@code dva}
+     * @param where the condition on the alias {@code dva}, without the org units when they are
+     *     listed
+     * @param orgUnits internal IDs of the org units the user reads, bound as {@code :orgUnits};
+     *     null when {@code where} checks the org units
      */
-    Access(@Nonnull String with, @Nonnull String where) {
+    Access(@Nonnull String with, @Nonnull String where, @CheckForNull Long[] orgUnits) {
       this.with = with;
       this.where = where;
+      this.orgUnits = orgUnits;
     }
 
     @Nonnull
@@ -386,27 +500,31 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     String where() {
       return where;
     }
+
+    @CheckForNull
+    Long[] orgUnits() {
+      return orgUnits;
+    }
   }
 
   /**
    * @param user the user reading the change log
    * @param boundCombo true to check only the category option combo bound as {@code :coc}, which the
    *     query must bind; false to check all
+   * @param orgUnits internal IDs of the org units the user reads, not empty, which the query must
+   *     bind; null to find them inside the query
    * @return the access of the user
    */
-  static Access createAccess(@Nonnull User user, boolean boundCombo) {
+  static Access createAccess(
+      @Nonnull User user, boolean boundCombo, @CheckForNull Long[] orgUnits) {
+    if (orgUnits != null && orgUnits.length == 0)
+      throw new IllegalArgumentException("org units must not be empty");
     // the default option combo is excluded: AclService always allows it
     String combos = !boundCombo ? "" : "\n      AND coc_co.categoryoptioncomboid = :coc";
-    long userId = user.getId();
+    String roots = orgUnits != null ? "" : "\n" + createOrgUnitRoots(user) + ",";
     String with =
         "WITH"
-            + "\n  ou_roots AS ("
-            + "\n    SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = "
-            + userId
-            + "\n    UNION"
-            + "\n    SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = "
-            + userId
-            + "\n  ),"
+            + roots
             + "\n  coc_no_access AS ("
             + "\n    SELECT DISTINCT coc_co.categoryoptioncomboid"
             + "\n    FROM categoryoptioncombos_categoryoptions coc_co"
@@ -421,6 +539,20 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             + combos
             + "\n  )";
     // a user with every top-level org unit reads all org units: no descendant set is built
+    String orgUnitCheck =
+        orgUnits != null
+            ? ""
+            : "\n  AND (NOT EXISTS ("
+                + "\n      SELECT 1 FROM organisationunit top_acl"
+                + "\n      WHERE top_acl.parentid IS NULL"
+                + "\n        AND top_acl.organisationunitid NOT IN (SELECT organisationunitid FROM ou_roots))"
+                + "\n    OR (dva.organisationunitid IN ("
+                + "\n      SELECT ou_acl.organisationunitid"
+                + "\n      FROM organisationunit ou_acl"
+                + "\n      JOIN organisationunit root_acl"
+                + "\n        ON ou_acl.path ~>=~ root_acl.path AND ou_acl.path ~<~ (root_acl.path || '0')"
+                + "\n          AND left(ou_acl.path, length(root_acl.path)) = root_acl.path"
+                + "\n      WHERE root_acl.organisationunitid IN (SELECT organisationunitid FROM ou_roots))) IS TRUE)";
     String where =
         "(dva.dataelementid IN ("
             + "\n    SELECT dse_acl.dataelementid"
@@ -429,19 +561,9 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             + "\n    WHERE "
             + createDataReadCheck("ds_acl.sharing", user)
             + ")) IS TRUE"
-            + "\n  AND (NOT EXISTS ("
-            + "\n      SELECT 1 FROM organisationunit top_acl"
-            + "\n      WHERE top_acl.parentid IS NULL"
-            + "\n        AND top_acl.organisationunitid NOT IN (SELECT organisationunitid FROM ou_roots))"
-            + "\n    OR (dva.organisationunitid IN ("
-            + "\n      SELECT ou_acl.organisationunitid"
-            + "\n      FROM organisationunit ou_acl"
-            + "\n      JOIN organisationunit root_acl"
-            + "\n        ON ou_acl.path ~>=~ root_acl.path AND ou_acl.path ~<~ (root_acl.path || '0')"
-            + "\n          AND left(ou_acl.path, length(root_acl.path)) = root_acl.path"
-            + "\n      WHERE root_acl.organisationunitid IN (SELECT organisationunitid FROM ou_roots))) IS TRUE)"
+            + orgUnitCheck
             + "\n  AND dva.categoryoptioncomboid NOT IN (SELECT categoryoptioncomboid FROM coc_no_access)";
-    return new Access(with, where);
+    return new Access(with, where, orgUnits);
   }
 
   /**
