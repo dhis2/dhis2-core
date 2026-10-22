@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,8 +57,11 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
 @Setter
 public class TrackerEventChangeLog {
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE)
-  @SequenceGenerator(sequenceName = "trackereventchangelog_sequence")
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "trackereventchangelog_sequence")
+  @SequenceGenerator(
+      name = "trackereventchangelog_sequence",
+      sequenceName = "trackereventchangelog_sequence",
+      allocationSize = 1)
   @Column(name = "eventchangelogid")
   private long id;
 
