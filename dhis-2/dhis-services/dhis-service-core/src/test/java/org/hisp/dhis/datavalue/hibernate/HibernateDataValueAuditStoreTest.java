@@ -67,6 +67,7 @@ class HibernateDataValueAuditStoreTest {
   private final NativeQuery<?> query = mock(NativeQuery.class, RETURNS_SELF);
   private final CategoryOptionCombo coc = new CategoryOptionCombo();
   private final CategoryOptionCombo aoc = new CategoryOptionCombo();
+  private final JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
   private HibernateDataValueAuditStore store;
 
   @BeforeEach
@@ -83,7 +84,7 @@ class HibernateDataValueAuditStoreTest {
     store =
         new HibernateDataValueAuditStore(
             sessionFactory,
-            mock(JdbcTemplate.class),
+            jdbcTemplate,
             mock(ApplicationEventPublisher.class),
             mock(PeriodStore.class),
             currentUserService,
@@ -128,8 +129,37 @@ class HibernateDataValueAuditStoreTest {
     assertBoundCombos(sql.getAllValues().get(1));
   }
 
+  @Test
+  void listedOrgUnitsReplaceTheDescendantSet() {
+    // the readable AOCs, then the user's org units
+    doReturn(new ArrayList<>(List.of(aoc.getId())), new ArrayList<>(List.of(11L, 12L, 11L)))
+        .when(query)
+        .getResultList();
+    doReturn(0L).when(query).getSingleResult();
+    store.countDataValueAudits(new DataValueAuditQueryParams());
+
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(session, times(3)).createNativeQuery(sql.capture());
+    String statement = sql.getAllValues().get(2);
+    assertTrue(statement.contains("AND dva.organisationunitid = ANY(:orgUnits)"), statement);
+    assertFalse(statement.contains("ou_roots"), statement);
+    assertFalse(statement.contains("~>=~"), statement);
+    verify(query)
+        .setParameter(eq("orgUnits"), aryEq(new Long[] {11L, 12L}), eq(LongArrayType.INSTANCE));
+    verify(jdbcTemplate)
+        .execute(
+            "SELECT set_config('plan_cache_mode', 'force_custom_plan', true)"
+                + " WHERE current_setting('plan_cache_mode', true) IS NOT NULL");
+  }
+
+  /** A value: with its org unit given, the user's org units are not listed. */
   private DataValueAuditQueryParams params() {
-    return new DataValueAuditQueryParams().setCategoryOptionCombo(coc).setAttributeOptionCombo(aoc);
+    OrganisationUnit ou = new OrganisationUnit();
+    ou.setId(12L);
+    return new DataValueAuditQueryParams()
+        .setOrgUnits(List.of(ou))
+        .setCategoryOptionCombo(coc)
+        .setAttributeOptionCombo(aoc);
   }
 
   /** The readable attribute option combo lookup binds the attribute option combo. */
