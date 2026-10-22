@@ -72,6 +72,16 @@ class TrimNameTriggerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void insertTrimsVerticalTabButKeepsLetterV() {
+    DataElement dataElement = createDataElement('E');
+    dataElement.setName("\u000B version v\u000B");
+
+    save(dataElement);
+
+    assertEquals("version v", selectColumn("name", dataElement));
+  }
+
+  @Test
   void insertTrimsWhitespaceOnlyNameToEmpty() {
     DataElement dataElement = createDataElement('B');
     dataElement.setName("   ");

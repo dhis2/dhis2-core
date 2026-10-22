@@ -1,11 +1,12 @@
 -- Removes leading and trailing whitespace from the name column on insert and update, so that names
 -- differing only by whitespace (e.g. 'Name' vs 'Name ') do not appear as near-duplicate metadata.
--- Whitespace is space, tab, line feed, carriage return, form feed and vertical tab.
+-- Whitespace is space, tab, line feed, carriage return, form feed and vertical tab. The vertical tab
+-- is written as \x0B as Postgres does not support the \v escape, it would be read as the letter v.
 CREATE OR REPLACE FUNCTION trim_metadata_name() RETURNS TRIGGER AS
 $$
 BEGIN
     IF NEW.name IS NOT NULL THEN
-        NEW.name := btrim(NEW.name, E' \t\n\r\f\v');
+        NEW.name := btrim(NEW.name, E' \t\n\r\f\x0B');
     END IF;
     RETURN NEW;
 END;
