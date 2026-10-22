@@ -80,7 +80,8 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest {
           "dataElement", // non-postgres SQL in deletion handler
           "trackedEntityInstance", // conflict (no details)
           "predictor", // NPE in preheat when creating objects
-          "aggregateDataExchange" // required JSONB objects not working
+          "aggregateDataExchange", // required JSONB objects not working
+          "analyticsTableHook" // disabled by default (analytics.table_hooks.enabled)
           );
 
   /**
@@ -115,7 +116,7 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest {
         assertStatus(HttpStatus.OK, DELETE(endpoint + "/" + uid));
       }
     }
-    assertTrue(testedSchemas >= 58, "make sure we actually test schemas");
+    assertTrue(testedSchemas >= 57, "make sure we actually test schemas");
   }
 
   /** Uses the created instance to test the {@code /gist} endpoint list. */

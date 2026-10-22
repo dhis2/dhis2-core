@@ -534,7 +534,16 @@ public enum ConfigurationKey {
   /** CSP default header value/string. Enable or disable the feature. */
   CSP_HEADER_VALUE("csp.header.value", CspConstants.SCRIPT_SOURCE_DEFAULT, false),
 
-  MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false);
+  MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
+
+  /**
+   * Analytics table SQL hooks feature. When off (default), create/update of {@code
+   * AnalyticsTableHook} metadata is rejected, also for superusers importing with {@code
+   * skipValidation}, and scheduled hook SQL is not executed. High risk when enabled: stored SQL
+   * runs as the DHIS2 database role, and every stored hook runs from the next table generation.
+   * When enabled, only superusers can create or update hooks. Values: on/off.
+   */
+  ANALYTICS_TABLE_HOOKS_ENABLED("analytics.table_hooks.enabled", Constants.OFF, false);
 
   private final String key;
 
