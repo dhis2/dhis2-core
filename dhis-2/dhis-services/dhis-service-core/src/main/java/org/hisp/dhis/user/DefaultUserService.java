@@ -43,6 +43,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -62,12 +63,15 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -387,31 +391,20 @@ public class DefaultUserService implements UserService {
     if (currentUser == null) {
       return false;
     }
-
-    boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
-
-    if (canAdd) {
+    if (currentUser.isAuthorized(UserGroup.AUTH_USER_ADD)) {
       return true;
     }
-
-    boolean canAddInGroup = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD_IN_GROUP);
-
-    if (!canAddInGroup) {
+    if (!currentUser.isAuthorized(UserGroup.AUTH_USER_ADD_IN_GROUP) || userGroups.isEmpty()) {
       return false;
     }
+    return userGroupService.getUserGroupsByUid(userGroups).stream()
+        .anyMatch(currentUser::canManage);
+  }
 
-    boolean canManageAnyGroup = false;
-
-    for (String uid : userGroups) {
-      UserGroup userGroup = userGroupService.getUserGroup(uid);
-
-      if (currentUser.canManage(userGroup)) {
-        canManageAnyGroup = true;
-        break;
-      }
-    }
-
-    return canManageAnyGroup;
+  private boolean canAddOrUpdateUserInGroups(Collection<UserGroup> groups, User currentUser) {
+    return currentUser.isAuthorized(UserGroup.AUTH_USER_ADD)
+        || (currentUser.isAuthorized(UserGroup.AUTH_USER_ADD_IN_GROUP)
+            && groups.stream().anyMatch(currentUser::canManage));
   }
 
   // -------------------------------------------------------------------------
@@ -655,24 +648,66 @@ public class DefaultUserService implements UserService {
     checkHasAccessToUserRoles(user, currentUser, errors);
     checkHasAccessToUserGroups(user, currentUser, errors);
 
-    checkIsInOrgUnitHierarchy(user.getOrganisationUnits(), currentUser, errors);
-    checkIsInOrgUnitHierarchy(user.getDataViewOrganisationUnits(), currentUser, errors);
-    checkIsInOrgUnitHierarchy(user.getTeiSearchOrganisationUnits(), currentUser, errors);
+    checkIsInOrgUnitHierarchy(user, currentUser, errors);
 
     return errors;
   }
 
-  private void checkIsInOrgUnitHierarchy(
-      Set<OrganisationUnit> organisationUnits, User currentUser, List<ErrorReport> errors) {
-    for (OrganisationUnit orgUnit : organisationUnits) {
-      boolean inUserHierarchy = organisationUnitService.isInUserHierarchy(currentUser, orgUnit);
-      if (!inUserHierarchy) {
+  /**
+   * Checks that the organisation units, data view organisation units and search organisation units
+   * of the user are within the hierarchy of the current user. They are loaded in one query, as the
+   * payload objects lack the path.
+   */
+  private void checkIsInOrgUnitHierarchy(User user, User currentUser, List<ErrorReport> errors) {
+    List<Collection<OrganisationUnit>> collections =
+        List.of(
+            user.getOrganisationUnits(),
+            user.getDataViewOrganisationUnits(),
+            user.getTeiSearchOrganisationUnits());
+    Set<String> uids = new HashSet<>();
+    collections.forEach(units -> uids.addAll(getUids(units)));
+    if (uids.isEmpty()) {
+      return;
+    }
+    Map<String, OrganisationUnit> byUid = new HashMap<>();
+    for (OrganisationUnit unit : organisationUnitService.getOrganisationUnitsByUid(uids)) {
+      byUid.put(unit.getUid(), unit);
+    }
+    for (Collection<OrganisationUnit> units : collections) {
+      List<OrganisationUnit> loaded = new ArrayList<>(units.size());
+      for (OrganisationUnit orgUnit : units) {
+        OrganisationUnit fetched = byUid.get(orgUnit.getUid());
+        if (fetched == null) {
+          // Unknown (or not readable): it cannot be shown to be within the hierarchy.
+          errors.add(
+              new ErrorReport(
+                  OrganisationUnit.class,
+                  ErrorCode.E7617,
+                  orgUnit.getUid(),
+                  currentUser.getUsername()));
+        } else {
+          loaded.add(fetched);
+        }
+      }
+      checkLoadedOrgUnitsInHierarchy(loaded, currentUser, errors);
+    }
+  }
+
+  private void checkLoadedOrgUnitsInHierarchy(
+      Collection<OrganisationUnit> units, User currentUser, List<ErrorReport> errors) {
+    Set<String> ancestors =
+        currentUser.getOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet());
+    for (OrganisationUnit unit : units) {
+      OrganisationUnit ancestor = unit;
+      while (ancestor != null && !ancestors.contains(ancestor.getUid())) {
+        ancestor = ancestor.getParent();
+      }
+      if (ancestor == null) {
         errors.add(
             new ErrorReport(
-                OrganisationUnit.class,
-                ErrorCode.E7617,
-                orgUnit.getUid(),
-                currentUser.getUsername()));
+                OrganisationUnit.class, ErrorCode.E7617, unit.getUid(), currentUser.getUsername()));
       }
     }
   }
@@ -708,7 +743,7 @@ public class DefaultUserService implements UserService {
 
     if (userRoles != null) {
       List<UserRole> roles =
-          userRoleStore.getByUid(
+          userRoleStore.getByUidNoAcl(
               userRoles.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()));
 
       roles.forEach(
@@ -719,7 +754,10 @@ public class DefaultUserService implements UserService {
             } else if (!currentUser.canIssueUserRole(ur, canGrantOwnUserRoles)) {
               errors.add(
                   new ErrorReport(
-                      UserRole.class, ErrorCode.E3003, currentUser.getUsername(), ur.getName()));
+                      UserRole.class,
+                      ErrorCode.E3003,
+                      currentUser.getUsername(),
+                      roleLabel(ur, currentUser)));
             }
           });
     }
@@ -727,24 +765,226 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, User currentUser) {
+  public List<ErrorReport> validateSharingUpdate(IdentifiableObject object, User currentUser) {
+    return object instanceof UserRole
+        ? validateUserRoleCreateOrUpdate((UserRole) object, currentUser)
+        : List.of();
+  }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, User currentUser) {
+    return validateUserRoleCreateOrUpdate(role, currentUser, MergeMode.REPLACE);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ErrorReport> validateUserRoleCreateOrUpdate(
+      UserRole role, User currentUser, MergeMode mergeMode) {
     List<ErrorReport> errors = new ArrayList<>();
 
-    if (currentUser == null || role == null) {
+    if (currentUser == null || role == null || currentUser.isSuper()) {
       return errors;
     }
 
-    if (!currentUser.isSuper() && role.isSuper()) {
-      errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
+    UserRole stored = storedRole(role);
+    checkUserRoleAllAuthority(role, stored, currentUser, errors);
+
+    // The resulting role may only carry authorities the current user holds. Own roles are allowed
+    // here (canGrantOwnUserRole = true): editing a role you hold does not grant it to anyone.
+    if (!currentUser.canIssueUserRole(resultingRole(role, stored), true)) {
+      errors.add(
+          new ErrorReport(
+              UserRole.class, ErrorCode.E3003, currentUser.getUsername(), role.getName()));
     }
 
-    UserRole userRoleBefore = userRoleStore.get(role.getId());
-    if (!currentUser.isSuper() && userRoleBefore != null && userRoleBefore.isSuper()) {
-      errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
+    // A merge other than replace keeps the stored authorities next to the submitted ones, so the
+    // stored role must be issuable as well.
+    if (mergeMode != null
+        && !mergeMode.isReplace()
+        && stored != null
+        && !currentUser.canIssueUserRole(stored, true)) {
+      errors.add(
+          new ErrorReport(
+              UserRole.class,
+              ErrorCode.E3003,
+              currentUser.getUsername(),
+              roleLabel(stored, currentUser)));
     }
 
     return errors;
+  }
+
+  /**
+   * An update without authorities ({@code null}) keeps the stored authorities of the role (the
+   * metadata merge skips {@code null} collections), so the stored role is the one to check then. A
+   * new role without authorities has none.
+   */
+  private static UserRole resultingRole(UserRole role, UserRole stored) {
+    return role.getAuthorities() == null && stored != null ? stored : role;
+  }
+
+  /**
+   * The stored state of a role being updated, or {@code null} for a new role. Loaded once per check
+   * and shared by the rules that need it.
+   */
+  private UserRole storedRole(UserRole role) {
+    if (role.getId() != 0) {
+      return userRoleStore.get(role.getId());
+    }
+    return role.getUid() == null ? null : userRoleStore.getByUidNoAcl(role.getUid());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ErrorReport> validateUserRoleDelete(UserRole role, User currentUser) {
+    List<ErrorReport> errors = new ArrayList<>();
+
+    if (currentUser != null && role != null && !currentUser.isSuper()) {
+      checkUserRoleAllAuthority(role, storedRole(role), currentUser, errors);
+    }
+
+    return errors;
+  }
+
+  private static void checkUserRoleAllAuthority(
+      UserRole role, UserRole stored, User currentUser, List<ErrorReport> errors) {
+    if (role.isSuper()) {
+      errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
+    }
+
+    if (stored != null && stored.isSuper()) {
+      errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
+    }
+  }
+
+  /**
+   * The name of a role for an error report, or its UID when the current user cannot read the role:
+   * an error must not reveal the name of a role hidden by sharing.
+   */
+  private String roleLabel(UserRole role, User currentUser) {
+    return aclService.canRead(currentUser, role) ? role.getName() : role.getUid();
+  }
+
+  private List<ErrorReport> validateCanIssueUserRoles(
+      Collection<UserRole> roles, User currentUser) {
+
+    if (roles.isEmpty() || currentUser.isSuper()) {
+      return List.of();
+    }
+
+    boolean canGrantOwnUserRoles =
+        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
+
+    return roles.stream()
+        .filter(role -> !currentUser.canIssueUserRole(role, canGrantOwnUserRoles))
+        .map(
+            role ->
+                new ErrorReport(
+                    UserRole.class,
+                    ErrorCode.E3003,
+                    currentUser.getUsername(),
+                    roleLabel(role, currentUser)))
+        .collect(Collectors.toList());
+  }
+
+  private void checkCanAddUserRoles(User user, Collection<UserRole> roles, User currentUser)
+      throws ForbiddenException {
+    checkCanChangeUser(user, currentUser);
+
+    throwIfAny(validateCanIssueUserRoles(roles, currentUser));
+  }
+
+  private void checkCanRemoveUserRoles(User user, User currentUser) throws ForbiddenException {
+    checkCanChangeUser(user, currentUser);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  @SuppressWarnings("unchecked")
+  public void checkCanChangeUserCollection(
+      @Nonnull Collection<User> users,
+      @Nonnull Class<?> itemType,
+      @Nonnull Collection<? extends IdentifiableObject> additions,
+      @Nonnull Collection<? extends IdentifiableObject> deletions,
+      @Nonnull User currentUser)
+      throws ForbiddenException {
+    for (User user : users) {
+      checkCanChangeUser(user, currentUser);
+    }
+
+    List<ErrorReport> errors = new ArrayList<>();
+    if (UserRole.class == itemType) {
+      errors.addAll(validateCanIssueUserRoles((Collection<UserRole>) additions, currentUser));
+    } else if (UserGroup.class == itemType) {
+      List<IdentifiableObject> groups = new ArrayList<>(additions);
+      groups.addAll(deletions);
+      for (IdentifiableObject group : groups) {
+        if (!userGroupService.canAddOrRemoveMember((UserGroup) group, currentUser)) {
+          errors.add(
+              new ErrorReport(
+                  UserGroup.class, ErrorCode.E3005, currentUser.getUsername(), group.getName()));
+        }
+      }
+    } else if (OrganisationUnit.class == itemType && !currentUser.isSuper()) {
+      checkLoadedOrgUnitsInHierarchy((Collection<OrganisationUnit>) additions, currentUser, errors);
+    }
+
+    throwIfAny(errors);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public void checkCanChangeUser(User user, User currentUser) throws ForbiddenException {
+    if (!currentUser.isSuper() && user.isSuper()) {
+      throw new ForbiddenException(ErrorCode.E3041, currentUser.getUsername());
+    }
+
+    List<ErrorReport> errors = new ArrayList<>();
+    if (!canCurrentUserCanModify(currentUser, user, errors::add)) {
+      throwIfAny(errors);
+    }
+  }
+
+  /** Throws the first of the given errors, if any, keeping its error code. */
+  private static void throwIfAny(List<ErrorReport> errors) throws ForbiddenException {
+    if (!errors.isEmpty()) {
+      ErrorReport error = errors.get(0);
+      throw new ForbiddenException(error.getErrorCode(), error.getErrorProperties().toArray());
+    }
+  }
+
+  @Override
+  @Transactional
+  public void addUserToRole(@Nonnull UserRole role, @Nonnull User user, @Nonnull User currentUser)
+      throws ForbiddenException {
+    if (!aclService.canUpdate(currentUser, role)) {
+      throw new ForbiddenException("You don't have the proper permissions to update this object.");
+    }
+
+    checkCanAddUserRoles(user, List.of(role), currentUser);
+
+    if (!user.getUserRoles().contains(role)) {
+      user.getUserRoles().add(role);
+      updateUser(user);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void removeUserFromRole(
+      @Nonnull UserRole role, @Nonnull User user, @Nonnull User currentUser)
+      throws ForbiddenException {
+    if (!aclService.canUpdate(currentUser, role)) {
+      throw new ForbiddenException("You don't have the proper permissions to delete this object.");
+    }
+
+    checkCanRemoveUserRoles(user, currentUser);
+
+    if (user.getUserRoles().contains(role)) {
+      user.getUserRoles().remove(role);
+      updateUser(user);
+    }
   }
 
   @Override
@@ -930,7 +1170,11 @@ public class DefaultUserService implements UserService {
       return false;
     }
 
-    if (!canAddOrUpdateUser(getUids(userToModify.getGroups()), currentUser)
+    List<UserGroup> readableGroups =
+        userToModify.getGroups().stream()
+            .filter(group -> aclService.canRead(currentUser, group))
+            .collect(Collectors.toList());
+    if (!canAddOrUpdateUserInGroups(readableGroups, currentUser)
         || !currentUser.canModifyUser(userToModify)) {
       errors.accept(new ErrorReport(UserRole.class, ErrorCode.E3020, userToModify.getName()));
       return false;
@@ -1048,6 +1292,28 @@ public class DefaultUserService implements UserService {
     if (userDetails != null) {
       List<SessionInformation> allSessions = sessionRegistry.getAllSessions(userDetails, false);
       allSessions.forEach(SessionInformation::expireNow);
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public void checkCanReplicateUser(@Nonnull User source, @Nonnull User currentUser)
+      throws ForbiddenException {
+    checkCanChangeUser(source, currentUser);
+
+    throwIfAny(validateUserCreateOrUpdateAccess(source, currentUser));
+
+    if (currentUser.isSuper()) {
+      return;
+    }
+
+    // Creating a user gives it the dimension constraints of the current user, so that it cannot see
+    // more data than its creator. A replica gets those of its source instead.
+    if (!source.getCatDimensionConstraints().containsAll(currentUser.getCatDimensionConstraints())
+        || !source
+            .getCogsDimensionConstraints()
+            .containsAll(currentUser.getCogsDimensionConstraints())) {
+      throw new ForbiddenException(ErrorCode.E3053, currentUser.getUsername());
     }
   }
 }
