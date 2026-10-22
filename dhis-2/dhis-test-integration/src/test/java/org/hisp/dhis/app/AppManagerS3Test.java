@@ -41,7 +41,7 @@ import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
-import org.hisp.dhis.config.MinIOConfiguration;
+import org.hisp.dhis.config.S3Configuration;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -59,11 +59,11 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
- * Test class configured for use cases when DHIS2 is configured to use MinIO storage. The default
+ * Test class configured for use cases when DHIS2 is configured to use S3 storage. The default
  * storage is the local filesystem.
  */
-@ContextConfiguration(classes = {MinIOConfiguration.class})
-class AppManagerMinIOTest extends IntegrationTestBase {
+@ContextConfiguration(classes = {S3Configuration.class})
+class AppManagerS3Test extends IntegrationTestBase {
 
   @Autowired AppManager appManager;
   @Autowired private UserService _userService;
@@ -76,8 +76,8 @@ class AppManagerMinIOTest extends IntegrationTestBase {
   }
 
   @Test
-  @DisplayName("Can install and then update an App using MinIO storage")
-  void canUpdateAppUsingMinIOStorageTest() throws IOException {
+  @DisplayName("Can install and then update an App using S3 storage")
+  void canUpdateAppUsingS3StorageTest() throws IOException {
     // install an app for the 1st time (version 1)
     AppStatus appStatus =
         appManager.installApp(
