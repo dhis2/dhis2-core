@@ -28,10 +28,15 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.fileresource.FileResourceContentStore;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
 
 /**
  * Tests the {@link MessageConversationController} using (mocked) REST requests.
@@ -39,6 +44,69 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class MessageConversationControllerTest extends DhisControllerConvenienceTest {
+  @Autowired private FileResourceService fileResourceService;
+  @Autowired private FileResourceContentStore fileResourceContentStore;
+
+  @Test
+  void testPostJsonObject_AttachmentOfAnotherUser() {
+    String fileUid = uploadAttachment();
+    switchToNewUser("attachmentSender");
+    assertEquals(
+        HttpStatus.CONFLICT,
+        POST("/messageConversations/", messageWithAttachment(fileUid)).status());
+    assertEquals(HttpStatus.UNAUTHORIZED, GET("/fileResources/{uid}/data", fileUid).status());
+  }
+
+  @Test
+  void testPostMessageConversationReply_AttachmentOfAnotherUser() {
+    String fileUid = uploadAttachment();
+    switchToNewUser("replySender");
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'"
+                    + getSuperuserUid()
+                    + "'}]}"));
+    assertEquals(
+        HttpStatus.CONFLICT,
+        POST("/messageConversations/" + uid + "?attachments=" + fileUid, "The message").status());
+    assertEquals(HttpStatus.UNAUTHORIZED, GET("/fileResources/{uid}/data", fileUid).status());
+  }
+
+  @Test
+  void testPostJsonObject_OwnAttachment() {
+    switchToNewUser("attachmentOwner");
+    String fileUid = uploadAttachment();
+    assertStatus(
+        HttpStatus.CREATED, POST("/messageConversations/", messageWithAttachment(fileUid)));
+    assertEquals("attached", GET("/fileResources/{uid}/data", fileUid).content("text/plain"));
+  }
+
+  private String messageWithAttachment(String fileUid) {
+    return "{'subject':'Subject','text':'Text','users':[{'id':'"
+        + getSuperuserUid()
+        + "'}],'attachments':[{'id':'"
+        + fileUid
+        + "'}]}";
+  }
+
+  private String uploadAttachment() {
+    byte[] bytes = "attached".getBytes();
+    String uid =
+        POST_MULTIPART(
+                "/fileResources?domain=MESSAGE_ATTACHMENT",
+                new MockMultipartFile("file", "attachment.txt", "text/plain", bytes))
+            .content(HttpStatus.ACCEPTED)
+            .getObject("response")
+            .getObject("fileResource")
+            .getString("id")
+            .string();
+    fileResourceContentStore.saveFileResourceContent(
+        fileResourceService.getFileResource(uid), bytes);
+    return uid;
+  }
 
   @Test
   void testPostJsonObject() {

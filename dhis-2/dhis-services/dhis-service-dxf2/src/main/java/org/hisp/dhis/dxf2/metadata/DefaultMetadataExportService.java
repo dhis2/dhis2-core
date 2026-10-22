@@ -76,6 +76,8 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -139,6 +141,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private final ObjectMapper objectMapper;
 
+  private final FileResourceService fileResourceService;
+
   @Override
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true)
@@ -187,6 +191,10 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
       List<? extends IdentifiableObject> objects = queryService.query(query);
 
+      if (klass == FileResource.class) {
+        objects = readableFileResources(objects, params.getUser());
+      }
+
       if (!objects.isEmpty()) {
         log.info(
             "("
@@ -202,6 +210,22 @@ public class DefaultMetadataExportService implements MetadataExportService {
     log.info("(" + params.getUsername() + ") Export:Done took " + timer.toString());
 
     return metadata;
+  }
+
+  /**
+   * {@link FileResource} is not a shareable type, so its query applies no row level access and
+   * returns every file resource. This keeps only those the user may read by the rule of {@link
+   * FileResourceService#canRead}, which the file resource API applies to each of them. A superuser,
+   * and an export without a user ({@code user} is null), keep all of them.
+   */
+  private List<? extends IdentifiableObject> readableFileResources(
+      List<? extends IdentifiableObject> objects, User user) {
+    if (user == null || user.isSuper()) {
+      return objects;
+    }
+    List<IdentifiableObject> readable = new ArrayList<>(objects);
+    readable.removeIf(object -> !fileResourceService.canRead(user, (FileResource) object));
+    return readable;
   }
 
   /**

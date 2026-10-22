@@ -48,6 +48,7 @@ import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
@@ -87,6 +88,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService {
       org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService,
       TrackedEntityAttributeService trackedEntityAttributeService,
       TrackedEntityAttributeValueService trackedEntityAttributeValueService,
+      FileResourceService fileResourceService,
       CurrentUserService currentUserService,
       TrackedEntityCommentService commentService,
       IdentifiableObjectManager manager,
@@ -110,6 +112,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService {
     checkNotNull(teiService);
     checkNotNull(trackedEntityAttributeService);
     checkNotNull(trackedEntityAttributeValueService);
+    checkNotNull(fileResourceService);
     checkNotNull(currentUserService);
     checkNotNull(commentService);
     checkNotNull(manager);
@@ -134,6 +137,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService {
     this.teiService = teiService;
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
+    this.fileResourceService = fileResourceService;
     this.currentUserService = currentUserService;
     this.commentService = commentService;
     this.manager = manager;

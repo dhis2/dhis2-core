@@ -270,6 +270,8 @@ public enum ErrorCode {
   E4090("ProgramRuleVariable `{0}` is missing a source type"),
   E4091("ProgramRuleVariable `{0}` with source type `{1}` requires a program stage"),
   E4092("ProgramRuleVariable `{0}` with source type `{1}` requires a value type"),
+  E4094(
+      "Property `{0}` must refer to an unassigned `{1}` file resource uploaded by the current user, but was given `{2}`"),
 
   /* Metadata Validation (continued) */
   E4060("Object could not be deleted: {0}"),
