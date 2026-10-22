@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.schema.descriptors.AnalyticsTableHookSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -39,4 +44,37 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @OpenApi.Tags("analytics")
 @Controller
 @RequestMapping(value = AnalyticsTableHookSchemaDescriptor.API_ENDPOINT)
-public class AnalyticsTableHookController extends AbstractCrudController<AnalyticsTableHook> {}
+public class AnalyticsTableHookController extends AbstractCrudController<AnalyticsTableHook> {
+
+  private static final String LEGACY_PATCH_NOT_SUPPORTED =
+      "Analytics table hooks can only be updated with PUT, JSON Patch or metadata import";
+
+  /**
+   * The legacy (non JSON Patch) PATCH writes straight to the store and skips the metadata import,
+   * and with it the checks in {@code AnalyticsTableHookObjectBundleHook}.
+   */
+  @Override
+  public void partialUpdateObject(
+      String pvUid,
+      Map<String, String> rpParameters,
+      @CurrentUser User currentUser,
+      HttpServletRequest request)
+      throws ConflictException {
+    throw new ConflictException(LEGACY_PATCH_NOT_SUPPORTED);
+  }
+
+  /**
+   * The legacy property PATCH sets the property on the persistent object before the metadata import
+   * runs, so the change can be flushed even when the import rejects it.
+   */
+  @Override
+  public void updateObjectProperty(
+      String pvUid,
+      String pvProperty,
+      Map<String, String> rpParameters,
+      @CurrentUser User currentUser,
+      HttpServletRequest request)
+      throws ConflictException {
+    throw new ConflictException(LEGACY_PATCH_NOT_SUPPORTED);
+  }
+}
