@@ -40,14 +40,15 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
- * Collects the users whose user group memberships change within a transaction and publishes one
- * {@link UserGroupMembershipChangedEvent} for all of them when the transaction has committed.
- * Nothing is published when the transaction rolls back.
+ * Collects the users whose {@link UserDetails} change within a transaction and publishes one {@link
+ * UserDetailsChangedEvent} for all of them when the transaction has committed. Nothing is published
+ * when the transaction rolls back.
  *
- * <p>Memberships are written both through Hibernate (the {@code UserGroup.members} collection) and
- * directly via SQL ({@link UserGroupStore#addMember}, {@link UserGroupStore#removeMember}); both
- * report here. Collecting per transaction keeps an import that changes many groups down to one
- * event, instead of one per group.
+ * <p>Changes are reported from several places: user group memberships written through Hibernate
+ * (the {@code UserGroup.members} collection) and directly via SQL ({@link
+ * UserGroupStore#addMember}, {@link UserGroupStore#removeMember}), and user role changes made by
+ * the metadata import. Collecting per transaction keeps an import that changes many users down to
+ * one event, instead of one per change.
  *
  * <p>Hibernate may flush while the transaction commits, after the {@code beforeCommit} callbacks
  * have run, so the event is published from {@code afterCompletion}. Transaction synchronization is
@@ -58,21 +59,21 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 @Component
 @RequiredArgsConstructor
-public class UserGroupMembershipChangeCollector {
+public class UserDetailsChangeCollector {
 
   private final ApplicationEventPublisher eventPublisher;
 
   /**
-   * Records that the given users joined or left a user group in the current transaction.
+   * Records that the {@link UserDetails} of the given users changed in the current transaction.
    *
    * @param userIds the primary keys of the users
    */
-  public void membershipsChanged(@Nonnull Collection<Long> userIds) {
+  public void usersChanged(@Nonnull Collection<Long> userIds) {
     if (userIds.isEmpty()) {
       return;
     }
     if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-      eventPublisher.publishEvent(new UserGroupMembershipChangedEvent(Set.copyOf(userIds)));
+      eventPublisher.publishEvent(new UserDetailsChangedEvent(Set.copyOf(userIds)));
       return;
     }
     getOrRegisterTransactionChanges().userIds.addAll(userIds);
@@ -90,7 +91,7 @@ public class UserGroupMembershipChangeCollector {
     return changes;
   }
 
-  /** The membership changes of one transaction. */
+  /** The user changes of one transaction. */
   private static final class TransactionChanges implements TransactionSynchronization {
 
     private final ApplicationEventPublisher eventPublisher;
@@ -104,7 +105,7 @@ public class UserGroupMembershipChangeCollector {
     @Override
     public void afterCompletion(int status) {
       if (status == STATUS_COMMITTED) {
-        eventPublisher.publishEvent(new UserGroupMembershipChangedEvent(Set.copyOf(userIds)));
+        eventPublisher.publishEvent(new UserDetailsChangedEvent(Set.copyOf(userIds)));
       }
     }
   }

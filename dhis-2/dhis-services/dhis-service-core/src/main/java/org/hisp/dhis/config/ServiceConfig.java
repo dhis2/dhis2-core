@@ -77,17 +77,17 @@ public class ServiceConfig {
   }
 
   /**
-   * Single-threaded, bounded executor for asynchronous user session invalidation, see {@code
-   * UserSessionInvalidationListener}. A single thread serializes the work and keeps it from
-   * competing with more important work.
+   * Single-threaded, bounded executor for marking the sessions of users with changed {@link
+   * org.hisp.dhis.user.UserDetails} for a refresh, see {@code UserDetailsChangeListener}. A single
+   * thread serializes the work and keeps it from competing with more important work.
    */
-  @Bean("userSessionInvalidationTaskExecutor")
-  public Executor userSessionInvalidationTaskExecutor() {
+  @Bean("userDetailsChangeTaskExecutor")
+  public Executor userDetailsChangeTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(1);
     executor.setMaxPoolSize(1);
     executor.setQueueCapacity(1000);
-    executor.setThreadNamePrefix("SessionInvalidation-");
+    executor.setThreadNamePrefix("UserDetailsChange-");
     executor.initialize();
     return executor;
   }

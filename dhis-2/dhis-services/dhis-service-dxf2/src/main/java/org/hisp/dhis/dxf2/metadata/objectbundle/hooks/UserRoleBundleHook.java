@@ -30,7 +30,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.Objects;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
@@ -48,34 +47,34 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
 
-  public static final String INVALIDATE_SESSION_KEY = "shouldInvalidateUserSessions";
+  public static final String USER_DETAILS_CHANGED_KEY = "userDetailsChanged";
 
   private final ApplicationEventPublisher eventPublisher;
 
   @Override
   public void preUpdate(UserRole update, UserRole existing, ObjectBundle bundle) {
     if (update == null) return;
-    bundle.putExtras(update, INVALIDATE_SESSION_KEY, userRolesUpdated(update, existing));
+    bundle.putExtras(update, USER_DETAILS_CHANGED_KEY, userDetailsChanged(update, existing));
   }
 
-  private Boolean userRolesUpdated(UserRole update, UserRole existing) {
-    Set<String> newAuthorities = update.getAuthorities();
-    Set<String> existingAuthorities = existing.getAuthorities();
-    return !Objects.equals(newAuthorities, existingAuthorities);
+  /** Authorities and restrictions of the role are part of the {@code UserDetails} of members. */
+  private Boolean userDetailsChanged(UserRole update, UserRole existing) {
+    return !Objects.equals(update.getAuthorities(), existing.getAuthorities())
+        || !Objects.equals(update.getRestrictions(), existing.getRestrictions());
   }
 
   @Override
   public void postUpdate(UserRole updatedUserRole, ObjectBundle bundle) {
-    final Boolean invalidateSessions =
-        (Boolean) bundle.getExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
+    final Boolean userDetailsChanged =
+        (Boolean) bundle.getExtras(updatedUserRole, USER_DETAILS_CHANGED_KEY);
 
-    if (Boolean.TRUE.equals(invalidateSessions)) {
-      // Session invalidation for all members of the role is done asynchronously after the
-      // transaction has committed, see UserSessionInvalidationListener. Loading all members
-      // here would be O(members) full entity loads on the request thread.
+    if (Boolean.TRUE.equals(userDetailsChanged)) {
+      // All members of the role are marked as changed asynchronously after the transaction has
+      // committed, see UserDetailsChangeListener. Loading all members here would be O(members)
+      // full entity loads on the request thread.
       eventPublisher.publishEvent(new UserRoleAuthoritiesChangedEvent(UID.of(updatedUserRole)));
     }
 
-    bundle.removeExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
+    bundle.removeExtras(updatedUserRole, USER_DETAILS_CHANGED_KEY);
   }
 }

@@ -57,6 +57,8 @@ import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
+import org.hisp.dhis.user.UserDetailsChangeTracker;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
 import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
@@ -65,6 +67,7 @@ import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
+import org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -94,6 +97,7 @@ import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.session.ConcurrentSessionFilter;
 import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
@@ -152,6 +156,10 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
 
   @Autowired private RequestCache requestCache;
+
+  @Autowired private UserDetailsChangeTracker userDetailsChangeTracker;
+
+  @Autowired private UserService userService;
 
   private static class CustomRequestMatcher implements RequestMatcher {
     private static final Pattern p1 = Pattern.compile("^/api/apps/.+", Pattern.CASE_INSENSITIVE);
@@ -267,6 +275,10 @@ public class DhisWebApiWebSecurityConfig {
       configureOAuthTokenFilters(http);
 
       http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
+      // after hard session expiry is enforced, before the request is authorized
+      http.addFilterAfter(
+          new UserDetailsRefreshFilter(userDetailsChangeTracker, userService),
+          ConcurrentSessionFilter.class);
 
       setHttpHeaders(http);
 

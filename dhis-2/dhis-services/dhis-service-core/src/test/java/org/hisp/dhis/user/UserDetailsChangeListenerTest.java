@@ -29,95 +29,97 @@
  */
 package org.hisp.dhis.user;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit test of {@link UserSessionInvalidationListener}.
+ * Unit test of {@link UserDetailsChangeListener}.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@ExtendWith(MockitoExtension.class)
-class UserSessionInvalidationListenerTest {
+class UserDetailsChangeListenerTest {
 
   private static final UID ROLE_UID = UID.of("Rab1234abcd");
 
-  @Mock private UserService userService;
+  private UserService userService;
 
-  @InjectMocks private UserSessionInvalidationListener listener;
+  private UserDetailsChangeTracker tracker;
 
-  @Test
-  void invalidatesSessionsOfAllRoleMembersInOrder() {
-    List<String> usernames = List.of("alice", "bob", "carol");
-    when(userService.getUsernamesByUserRole(ROLE_UID)).thenReturn(usernames);
+  private UserDetailsChangeListener listener;
 
-    listener.onUserRoleAuthoritiesChanged(new UserRoleAuthoritiesChangedEvent(ROLE_UID));
-
-    InOrder order = inOrder(userService);
-    usernames.forEach(username -> order.verify(userService).invalidateUserSessions(username));
+  @BeforeEach
+  void setUp() {
+    userService = mock(UserService.class);
+    DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
+    when(config.getIntProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT)).thenReturn(3600);
+    tracker = new InMemoryUserDetailsChangeTracker(config);
+    listener = new UserDetailsChangeListener(userService, tracker);
   }
 
   @Test
-  void invalidatesSessionsOfAllRoleMembersAcrossBatches() {
+  void marksAllRoleMembersAcrossBatchesAsChanged() {
     List<String> usernames =
-        IntStream.range(0, UserSessionInvalidationListener.BATCH_SIZE + 1)
+        IntStream.range(0, UserDetailsChangeListener.BATCH_SIZE + 1)
             .mapToObj(i -> "user" + i)
             .toList();
     when(userService.getUsernamesByUserRole(ROLE_UID)).thenReturn(usernames);
 
     listener.onUserRoleAuthoritiesChanged(new UserRoleAuthoritiesChangedEvent(ROLE_UID));
 
-    verify(userService, times(usernames.size())).invalidateUserSessions(anyString());
-  }
-
-  @Test
-  void invalidatesNothingWhenRoleHasNoMembers() {
-    when(userService.getUsernamesByUserRole(ROLE_UID)).thenReturn(List.of());
-
-    listener.onUserRoleAuthoritiesChanged(new UserRoleAuthoritiesChangedEvent(ROLE_UID));
-
+    assertAll(usernames.stream().map(name -> () -> assertNotNull(tracker.getChangeToken(name))));
     verify(userService, never()).invalidateUserSessions(anyString());
   }
 
   @Test
-  void invalidatesSessionsOfUsersWhoseGroupMembershipChanged() {
+  void marksOnlyUsersWhoseUserDetailsChanged() {
     when(userService.getUsernamesByIds(anyList())).thenReturn(List.of("alice", "bob"));
 
-    listener.onUserGroupMembershipChanged(new UserGroupMembershipChangedEvent(Set.of(1L, 2L)));
+    listener.onUserDetailsChanged(new UserDetailsChangedEvent(Set.of(1L, 2L)));
 
-    verify(userService).invalidateUserSessions("alice");
-    verify(userService).invalidateUserSessions("bob");
+    assertNotNull(tracker.getChangeToken("alice"));
+    assertNotNull(tracker.getChangeToken("bob"));
+    assertNull(tracker.getChangeToken("carol"));
+    verify(userService, never()).invalidateUserSessions(anyString());
   }
 
   @Test
-  void resolvesUsernamesOfGroupMembershipChangePerBatch() {
+  void resolvesUsernamesOfChangedUsersInBatches() {
     Set<Long> userIds =
-        LongStream.range(0, UserSessionInvalidationListener.BATCH_SIZE + 1)
+        LongStream.range(0, UserDetailsChangeListener.BATCH_SIZE + 1)
             .boxed()
             .collect(Collectors.toSet());
-    when(userService.getUsernamesByIds(anyList())).thenReturn(List.of("user"));
+    List<Integer> batchSizes = new ArrayList<>();
+    when(userService.getUsernamesByIds(anyList()))
+        .thenAnswer(
+            call -> {
+              List<Long> batch = call.getArgument(0);
+              batchSizes.add(batch.size());
+              return batch.stream().map(id -> "user" + id).toList();
+            });
 
-    listener.onUserGroupMembershipChanged(new UserGroupMembershipChangedEvent(userIds));
+    listener.onUserDetailsChanged(new UserDetailsChangedEvent(userIds));
 
-    verify(userService, times(2)).getUsernamesByIds(anyList());
-    verify(userService, times(2)).invalidateUserSessions("user");
+    assertTrue(batchSizes.stream().allMatch(size -> size <= UserDetailsChangeListener.BATCH_SIZE));
+    assertAll(userIds.stream().map(id -> () -> assertNotNull(tracker.getChangeToken("user" + id))));
   }
 }

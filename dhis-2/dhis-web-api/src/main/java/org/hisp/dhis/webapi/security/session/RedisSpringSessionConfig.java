@@ -29,16 +29,20 @@
  */
 package org.hisp.dhis.webapi.security.session;
 
+import java.time.Duration;
 import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.user.UserDetailsChangeTracker;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -90,6 +94,14 @@ public class RedisSpringSessionConfig {
   public SessionCreationTimeProvider sessionCreationTimeProvider(
       RedisIndexedSessionRepository sessionRepository) {
     return new RedisSessionCreationTimeProvider(sessionRepository);
+  }
+
+  @Bean
+  public UserDetailsChangeTracker userDetailsChangeTracker(
+      @Qualifier("stringRedisTemplate") StringRedisTemplate stringRedisTemplate) {
+    int sessionTimeout = config.getIntProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT);
+    return new RedisUserDetailsChangeTracker(
+        stringRedisTemplate, Duration.ofSeconds(sessionTimeout));
   }
 
   @Bean
