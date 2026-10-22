@@ -99,8 +99,8 @@ class TrackerSequenceGeneratorTest extends PostgresIntegrationTestBase {
   @Test
   void shouldNotReuseIdOfJdbcInsertedChangeLogWhenPersistingChangeLogThroughHibernate() {
     moveToSameValue("hibernate_sequence", "trackedentitychangelog_sequence");
-    TrackedEntity trackedEntity = get(TrackedEntity.class, "QS6w44flWAf");
-    TrackedEntityAttribute attribute = get(TrackedEntityAttribute.class, "integerAttr");
+    TrackedEntity trackedEntity = get(TrackedEntity.class, UID.of("QS6w44flWAf"));
+    TrackedEntityAttribute attribute = get(TrackedEntityAttribute.class, UID.of("integerAttr"));
     Long jdbcId =
         jdbcTemplate.queryForObject(
             """
@@ -129,8 +129,8 @@ class TrackerSequenceGeneratorTest extends PostgresIntegrationTestBase {
         () ->
             persist(
                     new TrackedEntityChangeLog(
-                        get(TrackedEntity.class, "QS6w44flWAf"),
-                        get(TrackedEntityAttribute.class, "integerAttr"),
+                        get(TrackedEntity.class, UID.of("QS6w44flWAf")),
+                        get(TrackedEntityAttribute.class, UID.of("integerAttr")),
                         "1",
                         "2",
                         ChangeLogType.UPDATE,
@@ -146,8 +146,8 @@ class TrackerSequenceGeneratorTest extends PostgresIntegrationTestBase {
         () ->
             persist(
                     new TrackerEventChangeLog(
-                        get(TrackerEvent.class, "pTzf9KYMk72"),
-                        get(DataElement.class, "DATAEL00001"),
+                        get(TrackerEvent.class, UID.of("pTzf9KYMk72")),
+                        get(DataElement.class, UID.of("DATAEL00001")),
                         null,
                         "1",
                         "2",
@@ -164,8 +164,8 @@ class TrackerSequenceGeneratorTest extends PostgresIntegrationTestBase {
         () ->
             persist(
                     new SingleEventChangeLog(
-                        get(SingleEvent.class, "OTmjvJDn0Fu"),
-                        get(DataElement.class, "DATAEL00001"),
+                        get(SingleEvent.class, UID.of("OTmjvJDn0Fu")),
+                        get(DataElement.class, UID.of("DATAEL00001")),
                         null,
                         "1",
                         "2",
@@ -224,7 +224,7 @@ class TrackerSequenceGeneratorTest extends PostgresIntegrationTestBase {
     return entity;
   }
 
-  private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
+  private <T extends IdentifiableObject> T get(Class<T> type, UID uid) {
     T object = manager.get(type, uid);
     assertNotNull(object);
     return object;
