@@ -397,6 +397,39 @@ class EventQueryParamsTest extends TestBase {
         new EventQueryParams.Builder(params).withRegistrationOuFilter(List.of()).build().getKey());
   }
 
+  @Test
+  void testStagePrefixedItemsInDifferentStagesHaveDistinctKeys() {
+    QueryItem itemA = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    itemA.setProgramStage(psA);
+    QueryItem itemB = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    itemB.setProgramStage(psB);
+
+    EventQueryParams paramsA = new EventQueryParams.Builder().addItem(itemA).build();
+    EventQueryParams paramsB = new EventQueryParams.Builder().addItem(itemB).build();
+
+    assertNotEquals(paramsA.getKey(), paramsB.getKey());
+  }
+
+  @Test
+  void testSortItemsHaveDistinctKeys() {
+    QueryItem itemA = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    QueryItem itemB = new QueryItem(deB, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+
+    List<EventQueryParams> queries =
+        List.of(
+            new EventQueryParams.Builder().build(),
+            new EventQueryParams.Builder().addAscSortItem(itemA).build(),
+            new EventQueryParams.Builder().addDescSortItem(itemA).build(),
+            new EventQueryParams.Builder().addAscSortItem(itemB).build(),
+            new EventQueryParams.Builder().addAscSortItem(itemA).addAscSortItem(itemB).build(),
+            new EventQueryParams.Builder().addAscSortItem(itemB).addAscSortItem(itemA).build());
+
+    assertEquals(queries.size(), queries.stream().map(EventQueryParams::getKey).distinct().count());
+    for (EventQueryParams query : queries) {
+      assertEquals(query.getKey(), new EventQueryParams.Builder(query).build().getKey());
+    }
+  }
+
   private EventQueryParams registrationOuKeyParams(
       boolean dimension, List<OrganisationUnit> items) {
     EventQueryParams.Builder builder = new EventQueryParams.Builder();

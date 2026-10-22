@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,14 +39,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.translation.Translation;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -86,6 +92,7 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
 
   private List<Category> categories;
   @Autowired private DbmsManager dbmsManager;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @BeforeEach
   void setUp() {
@@ -113,6 +120,11 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categories.add(categoryA);
     categories.add(categoryB);
     categories.add(categoryC);
+  }
+
+  @AfterEach
+  void tearDown() {
+    ThreadUserSettings.clear();
   }
 
   // -------------------------------------------------------------------------
@@ -323,6 +335,58 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
         categoryComboT
             .getOptionCombos()
             .contains(createCategoryOptionCombo(categoryComboT, categoryOptionA, categoryOptionE)));
+  }
+
+  @Test
+  void testGeneratedCategoryOptionComboNamesIgnoreUserLocale() {
+    categories.clear();
+    categories.add(categoryA);
+    categoryComboA =
+        new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION, categories);
+    categoryService.addCategoryCombo(categoryComboA);
+    translateToFrench(categoryOptionA, categoryOptionB);
+    ThreadUserSettings.put(Map.of("keyDbLocale", Locale.FRENCH.toString()));
+
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
+
+    assertEquals(Set.of("OptionA", "OptionB"), getStoredOptionComboNames(categoryComboA));
+  }
+
+  @Test
+  void testRegenerateRenamesCategoryOptionComboStoredWithTranslatedName() {
+    categories.clear();
+    categories.add(categoryA);
+    categoryComboA =
+        new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION, categories);
+    categoryService.addCategoryCombo(categoryComboA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
+    categoryComboA.getOptionCombos().forEach(coc -> coc.setName(coc.getName() + " (fr)"));
+    dbmsManager.flushSession();
+    translateToFrench(categoryOptionA, categoryOptionB);
+    ThreadUserSettings.put(Map.of("keyDbLocale", Locale.FRENCH.toString()));
+
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
+
+    assertEquals(Set.of("OptionA", "OptionB"), getStoredOptionComboNames(categoryComboA));
+  }
+
+  private void translateToFrench(CategoryOption... options) {
+    for (CategoryOption option : options) {
+      option.setTranslations(
+          Set.of(Translation.ofLanguage(Locale.FRENCH, "NAME", option.getName() + " (fr)")));
+      categoryService.updateCategoryOption(option);
+    }
+  }
+
+  private Set<String> getStoredOptionComboNames(CategoryCombo categoryCombo) {
+    dbmsManager.flushSession();
+    return Set.copyOf(
+        jdbcTemplate.queryForList(
+            "select coc.name from categoryoptioncombo coc"
+                + " join categorycombos_optioncombos cc on cc.categoryoptioncomboid = coc.categoryoptioncomboid"
+                + " where cc.categorycomboid = ?",
+            String.class,
+            categoryCombo.getId()));
   }
 
   private void assertOptionCombos(Set<CategoryOptionCombo> optionCombos) {
