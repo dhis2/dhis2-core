@@ -96,6 +96,8 @@ public interface DataValueAuditService {
    *
    * @param params the {@link DataValueAuditQueryParams}.
    * @return a list of {@link DataValueAudit}.
+   * @throws org.hisp.dhis.common.IllegalQueryException when an unpaged read of a user who is not a
+   *     superuser has more audits than allowed
    */
   List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
 
