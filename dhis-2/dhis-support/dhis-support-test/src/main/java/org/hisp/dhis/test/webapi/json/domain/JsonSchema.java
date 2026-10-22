@@ -48,17 +48,10 @@ public interface JsonSchema extends JsonObject {
 
   @SuppressWarnings({"rawtypes", "unchecked"})
   default List<Class<?>> getReferences() {
-    return (List)
-        getArray("references").values().stream()
-            .map(
-                klass -> {
-                  try {
-                    return Class.forName(klass.string());
-                  } catch (ClassNotFoundException ex) {
-                    throw new IllegalArgumentException(ex);
-                  }
-                })
-            .toList();
+    // compiler inference issue...
+    Streamable<Class<?>> tmp =
+        getArray("references").values().map(e -> e.parsedChecked(Class::forName));
+    return tmp.toList();
   }
 
   default String getRelativeApiEndpoint() {
