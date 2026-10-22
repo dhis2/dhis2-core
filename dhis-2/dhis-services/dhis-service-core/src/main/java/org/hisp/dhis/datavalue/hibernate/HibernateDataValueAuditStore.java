@@ -31,16 +31,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
 import static org.hisp.dhis.security.acl.AclService.LIKE_WRITE_DATA;
 
+import com.vladmihalcea.hibernate.type.array.LongArrayType;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.TypedQuery;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
+import org.hibernate.type.StandardBasicTypes;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -115,9 +119,18 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
   @Override
   public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
-    TypedQuery<DataValueAudit> query =
+    User user = currentUserService.getCurrentUser();
+    Long[] aocAllowed = getAllowedAocIds(user, params.getAttributeOptionCombo());
+    // mutable, as the query's result: the data entry history removes entries
+    if (aocAllowed != null && aocAllowed.length == 0) return new ArrayList<>();
+    NativeQuery<DataValueAudit> query =
         createAuditQuery(
-            "select dva.*", params, " order by dva.created desc", DataValueAudit.class);
+            "SELECT dva.*",
+            params,
+            "\nORDER BY dva.created DESC",
+            DataValueAudit.class,
+            user,
+            aocAllowed);
 
     if (params.hasPaging()) {
       query
@@ -130,9 +143,17 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
   @Override
   public int countDataValueAudits(DataValueAuditQueryParams params) {
-    return ((Number)
-            createAuditQuery("select count(distinct dva.datavalueauditid)", params, "", null)
-                .getSingleResult())
+    User user = currentUserService.getCurrentUser();
+    Long[] aocAllowed = getAllowedAocIds(user, params.getAttributeOptionCombo());
+    if (aocAllowed != null && aocAllowed.length == 0) return 0;
+    return createAuditQuery(
+            "SELECT count(distinct dva.datavalueauditid) AS audit_count",
+            params,
+            "",
+            Long.class,
+            user,
+            aocAllowed)
+        .getSingleResult()
         .intValue();
   }
 
@@ -144,41 +165,92 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
       @Nonnull CategoryOptionCombo attributeOptionCombo) {
     User user = currentUserService.getCurrentUser();
     if (user.isSuper()) return true;
+    if (getAllowedAocIds(user, attributeOptionCombo).length == 0) return false;
+    Access access = createAccess(user, true);
     String sql =
-        createAccessWith(user, true)
-            + " select count(*) from (select :de as dataelementid, :ou as organisationunitid,"
-            + " :coc as categoryoptioncomboid, :aoc as attributeoptioncomboid) dva where "
-            + createAccessCondition(user);
+        access.with()
+            + "\nSELECT count(*) AS audit_count"
+            + "\nFROM ("
+            + "\n    SELECT de.dataelementid, ou.organisationunitid, coc.categoryoptioncomboid"
+            + "\n    FROM dataelement de, organisationunit ou, categoryoptioncombo coc"
+            + "\n    WHERE de.dataelementid = :de"
+            + "\n      AND ou.organisationunitid = :ou"
+            + "\n      AND coc.categoryoptioncomboid = :coc"
+            + "\n) dva"
+            + "\nWHERE "
+            + access.where();
     return ((Number)
                 getSession()
                     .createNativeQuery(sql)
+                    .addScalar("audit_count", StandardBasicTypes.LONG)
                     .setParameter("de", dataElement.getId())
                     .setParameter("ou", organisationUnit.getId())
                     .setParameter("coc", categoryOptionCombo.getId())
-                    .setParameter("aoc", attributeOptionCombo.getId())
                     .getSingleResult())
             .longValue()
         > 0;
   }
 
   /**
+   * The attribute option combos the user may read data of: the default one, and those of attribute
+   * category combos with only category options the user may read data of.
+   *
+   * <p>Resolved up front, so the planner sees a known list instead of guessing the size of a
+   * sharing-filtered set of option combos. Copied from {@code
+   * HibernateDataExportStore#getAllowedAocIds} and {@code #createAllowedAocQuery} on master
+   * (DHIS2-22290), with this store's data read check.
+   *
+   * @param aoc the only attribute option combo to check, null to check all
+   * @return internal ids of the option combos, null when the user reads all (superuser)
+   */
+  @CheckForNull
+  private Long[] getAllowedAocIds(@Nonnull User user, @CheckForNull CategoryOptionCombo aoc) {
+    if (user.isSuper()) return null;
+    String sql =
+        "SELECT DISTINCT ccoc.categoryoptioncomboid"
+            + "\nFROM categorycombos_optioncombos ccoc"
+            + "\nJOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid"
+            + "\nWHERE (cc.name = 'default'"
+            + "\n    OR cc.datadimensiontype = 'ATTRIBUTE'"
+            + "\n    AND NOT EXISTS ("
+            + "\n      SELECT 1"
+            + "\n      FROM categoryoptioncombos_categoryoptions coc_co"
+            + "\n      JOIN dataelementcategoryoption co ON coc_co.categoryoptionid = co.categoryoptionid"
+            + "\n      WHERE coc_co.categoryoptioncomboid = ccoc.categoryoptioncomboid"
+            + "\n        AND NOT ("
+            + createDataReadCheck("co.sharing", user)
+            + ")))";
+    if (aoc != null) sql += "\n  AND ccoc.categoryoptioncomboid = :aoc";
+    NativeQuery<?> query =
+        getSession()
+            .createNativeQuery(sql)
+            .addScalar("categoryoptioncomboid", StandardBasicTypes.LONG);
+    if (aoc != null) query.setParameter("aoc", aoc.getId());
+    return query.getResultList().stream().map(Long.class::cast).toArray(Long[]::new);
+  }
+
+  /**
    * Creates the query for the data value audits matching the given parameters that the current user
    * may read. Matches nothing if none of the given periods exist.
+   *
+   * @param aocAllowed internal ids of the attribute option combos the rows are limited to, null for
+   *     no limit; must not be empty (an empty list would match nothing)
    */
-  private <T> TypedQuery<T> createAuditQuery(
-      String select, DataValueAuditQueryParams params, String orderBy, Class<T> type) {
-    User user = currentUserService.getCurrentUser();
+  @SuppressWarnings("unchecked")
+  private <T> NativeQuery<T> createAuditQuery(
+      String select,
+      DataValueAuditQueryParams params,
+      String orderBy,
+      Class<T> type,
+      User user,
+      @CheckForNull Long[] aocAllowed) {
     Map<String, Object> parameters = new HashMap<>();
+    Access access =
+        user.isSuper() ? null : createAccess(user, params.getCategoryOptionCombo() != null);
     StringBuilder sql =
-        new StringBuilder(
-                user.isSuper()
-                    ? ""
-                    : createAccessWith(
-                        user,
-                        params.getCategoryOptionCombo() != null
-                            && params.getAttributeOptionCombo() != null))
+        new StringBuilder(access == null ? "" : access.with() + "\n")
             .append(select)
-            .append(" from datavalueaudit dva where 1=1");
+            .append("\nFROM datavalueaudit dva\nWHERE 1=1");
 
     if (!params.getPeriods().isEmpty()) {
       List<Period> storedPeriods =
@@ -187,47 +259,54 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
               .filter(Objects::nonNull)
               .collect(Collectors.toList());
       if (storedPeriods.isEmpty()) {
-        sql.append(" and 1=0");
+        sql.append("\n  AND 1=0");
       } else {
-        sql.append(" and dva.periodid in (:periods)");
+        sql.append("\n  AND dva.periodid IN (:periods)");
         parameters.put(
             "periods", storedPeriods.stream().map(Period::getId).collect(Collectors.toList()));
       }
     }
     if (!params.getDataElements().isEmpty()) {
-      sql.append(" and dva.dataelementid in (:dataElements)");
+      sql.append("\n  AND dva.dataelementid IN (:dataElements)");
       parameters.put(
           "dataElements",
-          params.getDataElements().stream().map(DataElement::getId).collect(Collectors.toList()));
+          params.getDataElements().stream()
+              .map(IdentifiableObject::getId)
+              .collect(Collectors.toList()));
     }
     if (!params.getOrgUnits().isEmpty()) {
-      sql.append(" and dva.organisationunitid in (:orgUnits)");
+      sql.append("\n  AND dva.organisationunitid IN (:orgUnits)");
       parameters.put(
           "orgUnits",
-          params.getOrgUnits().stream().map(OrganisationUnit::getId).collect(Collectors.toList()));
+          params.getOrgUnits().stream()
+              .map(IdentifiableObject::getId)
+              .collect(Collectors.toList()));
     }
     if (params.getCategoryOptionCombo() != null) {
-      sql.append(" and dva.categoryoptioncomboid = :coc");
+      sql.append("\n  AND dva.categoryoptioncomboid = :coc");
       parameters.put("coc", params.getCategoryOptionCombo().getId());
     }
     if (params.getAttributeOptionCombo() != null) {
-      sql.append(" and dva.attributeoptioncomboid = :aoc");
+      sql.append("\n  AND dva.attributeoptioncomboid = :aoc");
       parameters.put("aoc", params.getAttributeOptionCombo().getId());
     }
     if (!params.getAuditTypes().isEmpty()) {
-      sql.append(" and dva.audittype in (:auditTypes)");
+      sql.append("\n  AND dva.audittype IN (:auditTypes)");
       parameters.put(
           "auditTypes",
           params.getAuditTypes().stream().map(Enum::name).collect(Collectors.toList()));
     }
-    if (!user.isSuper()) {
-      sql.append(" and ").append(createAccessCondition(user));
-    }
+    if (access != null) sql.append("\n  AND ").append(access.where());
+    if (aocAllowed != null)
+      sql.append(
+          "\n  AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dva.attributeoptioncomboid)");
     sql.append(orderBy);
 
     NativeQuery<T> query =
-        type == null
-            ? getSession().createNativeQuery(sql.toString())
+        type == Long.class
+            ? getSession()
+                .createNativeQuery(sql.toString())
+                .addScalar("audit_count", StandardBasicTypes.LONG)
             : getSession().createNativeQuery(sql.toString(), type);
     parameters.forEach(
         (name, value) -> {
@@ -237,55 +316,107 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             query.setParameter(name, value);
           }
         });
+    if (aocAllowed != null) query.setParameter("aocAllowed", aocAllowed, LongArrayType.INSTANCE);
     return query;
   }
 
   /**
-   * Compute unreadable combos once, shared by the two NOT IN subplans. This avoids a correlated
-   * category option check for every audit row. PostgreSQL before 12 always materializes CTEs; newer
-   * versions materialize this one because it is referenced twice. Omit the MATERIALIZED keyword to
-   * support both.
+   * The data read access of a user who is not a superuser to change log rows {@code dva}, apart
+   * from the attribute option combo, which the queries check against the list of {@link
+   * #getAllowedAocIds allowed ones}.
+   *
+   * <p>The user reads a row when its data element belongs to a data set the user may read data of,
+   * its organisation unit is in the user's data capture or data view hierarchy, the user may read
+   * data of all category options of its category option combo, and its attribute option combo is
+   * allowed.
+   *
+   * <p>Each condition is computed once per query and tested as a hashed subplan: the option combos
+   * the user may not read with {@code NOT IN}, the readable data elements and organisation units
+   * with {@code (x IN (...)) IS TRUE}, which PostgreSQL does not turn into a semi join.
    */
-  private static String createAccessWith(User user, boolean restrictCombos) {
-    return "WITH coc_no_access AS ("
-        + "SELECT DISTINCT coc_co.categoryoptioncomboid"
-        + " FROM categoryoptioncombos_categoryoptions coc_co"
-        + " JOIN dataelementcategoryoption co ON coc_co.categoryoptionid = co.categoryoptionid"
-        + " WHERE NOT ("
-        + createDataReadCheck("co.sharing", user)
-        + ")"
-        + (restrictCombos ? " AND coc_co.categoryoptioncomboid IN (:coc, :aoc)" : "")
-        // AclService always allows the default combo
-        + " AND coc_co.categoryoptioncomboid NOT IN ("
-        + "SELECT d.categoryoptioncomboid FROM categorycombos_optioncombos d JOIN categorycombo dcc ON d.categorycomboid = dcc.categorycomboid WHERE dcc.name = 'default'"
-        + ")) ";
-  }
+  static final class Access {
+    private final String with;
 
-  /** Data set sharing, capture/view hierarchy and both option combos must allow data read. */
-  private static String createAccessCondition(User user) {
-    // IS TRUE keeps these uncorrelated checks as hashed subplans instead of nested-loop semi joins.
-    return "(dva.dataelementid IN (SELECT dse_acl.dataelementid FROM datasetelement dse_acl"
-        + " JOIN dataset ds_acl ON dse_acl.datasetid = ds_acl.datasetid"
-        + " WHERE "
-        + createDataReadCheck("ds_acl.sharing", user)
-        + ")) IS TRUE"
-        + " AND (dva.organisationunitid IN (SELECT ou_acl.organisationunitid FROM organisationunit ou_acl"
-        + " JOIN organisationunit root_acl ON (ou_acl.path = root_acl.path"
-        + " OR ou_acl.path LIKE concat(root_acl.path, '/%'))"
-        + " WHERE root_acl.organisationunitid IN ("
-        + " SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = "
-        + user.getId()
-        + " UNION SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = "
-        + user.getId()
-        + "))) IS TRUE"
-        + " AND dva.categoryoptioncomboid NOT IN (SELECT categoryoptioncomboid FROM coc_no_access)"
-        + " AND dva.attributeoptioncomboid NOT IN (SELECT categoryoptioncomboid FROM coc_no_access)";
+    private final String where;
+
+    /**
+     * @param with the {@code WITH} clause computing the option combos the user may not read
+     * @param where the condition on the alias {@code dva}
+     */
+    Access(@Nonnull String with, @Nonnull String where) {
+      this.with = with;
+      this.where = where;
+    }
+
+    @Nonnull
+    String with() {
+      return with;
+    }
+
+    @Nonnull
+    String where() {
+      return where;
+    }
   }
 
   /**
-   * Matches AclService.canDataRead: public, user or group data read/write grants access, including
-   * missing access strings. Ownership does not grant data access. IS TRUE makes the condition total
-   * even with absent or JSON-null sharing entries.
+   * @param user the user reading the change log
+   * @param boundCombo true to check only the category option combo bound as {@code :coc}, which the
+   *     query must bind; false to check all
+   * @return the access of the user
+   */
+  static Access createAccess(@Nonnull User user, boolean boundCombo) {
+    // the default option combo is excluded: AclService always allows it
+    String combos = !boundCombo ? "" : "\n      AND coc_co.categoryoptioncomboid = :coc";
+    String with =
+        "WITH"
+            + "\n  coc_no_access AS ("
+            + "\n    SELECT DISTINCT coc_co.categoryoptioncomboid"
+            + "\n    FROM categoryoptioncombos_categoryoptions coc_co"
+            + "\n    JOIN dataelementcategoryoption co ON coc_co.categoryoptionid = co.categoryoptionid"
+            + "\n    WHERE NOT ("
+            + createDataReadCheck("co.sharing", user)
+            + ")"
+            + "\n      AND coc_co.categoryoptioncomboid NOT IN ("
+            + "\n        SELECT d.categoryoptioncomboid FROM categorycombos_optioncombos d"
+            + "\n        JOIN categorycombo dcc ON d.categorycomboid = dcc.categorycomboid"
+            + "\n        WHERE dcc.name = 'default')"
+            + combos
+            + "\n  )";
+    long userId = user.getId();
+    String where =
+        "(dva.dataelementid IN ("
+            + "\n    SELECT dse_acl.dataelementid"
+            + "\n    FROM datasetelement dse_acl"
+            + "\n    JOIN dataset ds_acl ON dse_acl.datasetid = ds_acl.datasetid"
+            + "\n    WHERE "
+            + createDataReadCheck("ds_acl.sharing", user)
+            + ")) IS TRUE"
+            + "\n  AND (dva.organisationunitid IN ("
+            + "\n    SELECT ou_acl.organisationunitid"
+            + "\n    FROM organisationunit ou_acl"
+            + "\n    JOIN organisationunit root_acl"
+            + "\n      ON (ou_acl.path = root_acl.path OR ou_acl.path LIKE concat(root_acl.path, '/%'))"
+            + "\n    WHERE root_acl.organisationunitid IN ("
+            + "\n        SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = "
+            + userId
+            + "\n        UNION"
+            + "\n        SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = "
+            + userId
+            + "))) IS TRUE"
+            + "\n  AND dva.categoryoptioncomboid NOT IN (SELECT categoryoptioncomboid FROM coc_no_access)";
+    return new Access(with, where);
+  }
+
+  /**
+   * A condition that is true exactly when the user may read data of the object with the given
+   * sharing column, as {@link org.hisp.dhis.security.acl.AclService#canDataRead} decides for a user
+   * who is not a superuser: the public access, the user's own entry, or the entry of one of the
+   * user's groups grants data read or data write. An entry without access string, or no public
+   * access string, grants access, as {@link
+   * org.hisp.dhis.security.acl.AccessStringHelper#isEnabled} does. Ownership does not grant data
+   * access. The condition is never null, also for sharing without, or with JSON {@code null}, user
+   * or user group entries.
    *
    * <p>This follows {@code AclService.canDataRead} on purpose and deliberately differs from {@code
    * JpaQueryUtils.generateSQlQueryForSharingCheck}: ownership does not grant data read, and data
@@ -302,20 +433,17 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             + "') = 'object' AND "
             + grantsDataRead("(" + sharing + "->'users'->'" + user.getUid() + "'->>'access')");
     if (user.getGroups() != null && !user.getGroups().isEmpty()) {
-      String groups =
-          user.getGroups().stream()
-              .map(group -> group.getUid())
-              .sorted()
-              .collect(Collectors.joining(","));
-      // CASE guarantees jsonb_each only receives objects, including for migrated sharing.
+      // CASE, not AND, guarantees jsonb_each only sees an object (migrated sharing has JSON null)
       check +=
           " OR EXISTS (SELECT 1 FROM jsonb_each(CASE WHEN jsonb_typeof("
               + sharing
               + "->'userGroups') = 'object' THEN "
               + sharing
-              + "->'userGroups' ELSE '{}' END) g"
-              + " WHERE g.key = ANY(cast('{"
-              + groups
+              + "->'userGroups' ELSE '{}' END) g WHERE g.key = ANY(cast('{"
+              + user.getGroups().stream()
+                  .map(IdentifiableObject::getUid)
+                  .sorted()
+                  .collect(Collectors.joining(","))
               + "}' as text[])) AND "
               + grantsDataRead("(g.value->>'access')")
               + ")";
@@ -323,6 +451,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     return "(" + check + ") IS TRUE";
   }
 
+  /** An access string grants data read when it is missing, or allows data read or data write. */
   private static String grantsDataRead(String access) {
     return "("
         + access
