@@ -31,6 +31,7 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import com.google.common.collect.Lists;
 import java.io.IOException;
@@ -91,6 +92,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -134,12 +136,21 @@ public class AuditController {
   @GetMapping("/files/{uid}")
   public void getFileAudit(
       @OpenApi.Param({UID.class, FileResource.class}) @PathVariable String uid,
-      HttpServletResponse response)
+      HttpServletResponse response,
+      @CurrentUser User currentUser)
       throws WebMessageException {
     FileResource fileResource = fileResourceService.getFileResource(uid);
 
     if (fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE) {
       throw new WebMessageException(notFound("No file found with uid '" + uid + "'"));
+    }
+
+    if (!fileResourceService.canReadDataValueFile(currentUser, fileResource)) {
+      throw new WebMessageException(
+          unauthorized(
+              "You don't have access to fileResource '"
+                  + uid
+                  + "' or this fileResource is not available from this endpoint"));
     }
 
     FileResourceStorageStatus storageStatus = fileResource.getStorageStatus();
