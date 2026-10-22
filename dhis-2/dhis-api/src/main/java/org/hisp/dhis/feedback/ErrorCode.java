@@ -139,6 +139,8 @@ public enum ErrorCode {
   E2043("Max value must be specified"),
   E2044("Max value must be greater than min value"),
   E2050("User is not allowed to read data of the data value: `{0}`, `{1}`, `{2}`"),
+  E2051(
+      "An unpaged data value change log returns at most `{0}` entries to a user who is not a superuser, use paging"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
