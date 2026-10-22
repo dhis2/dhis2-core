@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.security.session;
 
 import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.CHANGE_TOKEN_ATTRIBUTE;
+import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.REFRESHED_AT_ATTRIBUTE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -43,6 +44,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,7 +106,7 @@ class UserDetailsRefreshFilterTest {
   void setUp() {
     tracker = mock(UserDetailsChangeTracker.class);
     userService = mock(UserService.class);
-    filter = new UserDetailsRefreshFilter(tracker, userService);
+    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ZERO);
     session = new MockHttpSession();
   }
 
@@ -208,6 +210,57 @@ class UserDetailsRefreshFilterTest {
     verify(userService, never()).createUserDetailsByUsername(anyString());
   }
 
+  @Test
+  void refreshesPrincipalOlderThanTheRefreshIntervalWithoutChange() throws Exception {
+    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
+    UserDetails refreshed = user("F_NEW");
+    when(userService.createUserDetailsByUsername(USERNAME)).thenReturn(refreshed);
+    long refreshedAt = System.currentTimeMillis() - Duration.ofMinutes(16).toMillis();
+    session.setAttribute(REFRESHED_AT_ATTRIBUTE, refreshedAt);
+
+    doFilter(passwordLogin(user("F_OLD")));
+
+    assertSame(refreshed, SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+    assertTrue((Long) session.getAttribute(REFRESHED_AT_ATTRIBUTE) > refreshedAt);
+    assertNull(session.getAttribute(CHANGE_TOKEN_ATTRIBUTE));
+  }
+
+  @Test
+  void keepsPrincipalYoungerThanTheRefreshInterval() throws Exception {
+    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
+    session.setAttribute(
+        REFRESHED_AT_ATTRIBUTE, System.currentTimeMillis() - Duration.ofMinutes(14).toMillis());
+
+    doFilter(passwordLogin(user("F_OLD")));
+
+    verify(userService, never()).createUserDetailsByUsername(anyString());
+  }
+
+  @Test
+  void refreshIntervalDoesNotEndImpersonation() throws Exception {
+    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
+    session.setAttribute(
+        REFRESHED_AT_ATTRIBUTE, System.currentTimeMillis() - Duration.ofMinutes(16).toMillis());
+
+    doFilter(impersonation(user("F_OLD")));
+
+    assertFalse(session.isInvalid());
+    verify(userService, never()).createUserDetailsByUsername(anyString());
+  }
+
+  @Test
+  void refreshIntervalEndsSessionOfDisabledUser() throws Exception {
+    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
+    when(userService.createUserDetailsByUsername(USERNAME))
+        .thenReturn(userBuilder("F_OLD").enabled(false).build());
+    session.setAttribute(
+        REFRESHED_AT_ATTRIBUTE, System.currentTimeMillis() - Duration.ofMinutes(16).toMillis());
+
+    doFilter(passwordLogin(user("F_OLD")));
+
+    assertTrue(session.isInvalid());
+  }
+
   static Stream<Arguments> sessionsToEnd() {
     return Stream.of(
         Arguments.of("impersonation", true, refreshedAs(builder -> builder)),
@@ -224,19 +277,14 @@ class UserDetailsRefreshFilterTest {
   @ParameterizedTest(name = "{0}")
   @MethodSource("sessionsToEnd")
   void endsSessionInsteadOfRefreshing(
-      String scenario, boolean impersonation, UnaryOperator<UserDetailsImplBuilder> refreshed)
+      String scenario, boolean impersonating, UnaryOperator<UserDetailsImplBuilder> refreshed)
       throws Exception {
     when(tracker.getChangeToken(USERNAME)).thenReturn("token1");
     when(userService.createUserDetailsByUsername(USERNAME))
         .thenReturn(refreshed == null ? null : refreshed.apply(userBuilder("F_NEW")).build());
     UserDetails principal = user("F_OLD");
-    List<GrantedAuthority> authorities = new ArrayList<>(principal.getAuthorities());
-    if (impersonation) {
-      authorities.add(
-          new SwitchUserGrantedAuthority("ROLE_PREVIOUS_ADMINISTRATOR", passwordLogin(user("A"))));
-    }
 
-    doFilter(UsernamePasswordAuthenticationToken.authenticated(principal, null, authorities));
+    doFilter(impersonating ? impersonation(principal) : passwordLogin(principal));
 
     assertTrue(session.isInvalid());
     assertNull(SecurityContextHolder.getContext().getAuthentication());
@@ -247,6 +295,13 @@ class UserDetailsRefreshFilterTest {
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setSession(session);
     filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+  }
+
+  private static UsernamePasswordAuthenticationToken impersonation(UserDetails user) {
+    List<GrantedAuthority> authorities = new ArrayList<>(user.getAuthorities());
+    authorities.add(
+        new SwitchUserGrantedAuthority("ROLE_PREVIOUS_ADMINISTRATOR", passwordLogin(user("A"))));
+    return UsernamePasswordAuthenticationToken.authenticated(user, null, authorities);
   }
 
   private Authentication savedAuthentication() {

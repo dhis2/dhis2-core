@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -202,12 +203,17 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
   /** Whether the update changes data held by the {@code UserDetails} of the user. */
   private Boolean userDetailsChanged(User preUpdateUser, User persistedUser) {
-    Set<String> before =
-        preUpdateUser.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
-    Set<String> after =
-        persistedUser.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
+    return !uids(preUpdateUser.getUserRoles()).equals(uids(persistedUser.getUserRoles()))
+        || !uids(preUpdateUser.getOrganisationUnits())
+            .equals(uids(persistedUser.getOrganisationUnits()))
+        || !uids(preUpdateUser.getDataViewOrganisationUnits())
+            .equals(uids(persistedUser.getDataViewOrganisationUnits()))
+        || !uids(preUpdateUser.getTeiSearchOrganisationUnits())
+            .equals(uids(persistedUser.getTeiSearchOrganisationUnits()));
+  }
 
-    return !Objects.equals(before, after);
+  private static Set<String> uids(Collection<? extends IdentifiableObject> objects) {
+    return objects.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet());
   }
 
   @Override

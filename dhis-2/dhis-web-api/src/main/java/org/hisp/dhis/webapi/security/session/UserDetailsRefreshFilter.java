@@ -37,6 +37,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -71,14 +72,19 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * keeps the token of the last change it has applied in the {@link #CHANGE_TOKEN_ATTRIBUTE}
  * attribute, and the principal is rebuilt from the database when the current token differs.
  *
+ * <p>As a backstop for changes that are not recorded, the principal is also rebuilt when it is
+ * older than the refresh interval ({@code system.session.user_details_refresh_interval}). The time
+ * of the last rebuild is kept in the {@link #REFRESHED_AT_ATTRIBUTE} attribute; before the first
+ * rebuild the creation time of the session is used.
+ *
  * <p>Only authentications kept in the session are refreshed: form, HTTP basic and OIDC logins.
  * Personal access tokens and JWT bearer tokens authenticate every request on their own.
  *
  * <p>The session is ended instead of refreshed when:
  *
  * <ul>
- *   <li>the session impersonates another user, since a refresh could give the impersonating user
- *       authorities it was not allowed to impersonate
+ *   <li>the session impersonates another user and that user changed, since a refresh could give the
+ *       impersonating user authorities it was not allowed to impersonate
  *   <li>the user no longer exists, is disabled or expired, or must set up two-factor authentication
  *       before logging in, the same checks the login makes
  * </ul>
@@ -92,9 +98,15 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
   /** Session attribute with the change token the session principal was last refreshed for. */
   public static final String CHANGE_TOKEN_ATTRIBUTE = "DHIS2_USER_DETAILS_CHANGE_TOKEN";
 
+  /** Session attribute with the time in milliseconds the session principal was last rebuilt. */
+  public static final String REFRESHED_AT_ATTRIBUTE = "DHIS2_USER_DETAILS_REFRESHED_AT";
+
   private final UserDetailsChangeTracker userDetailsChangeTracker;
 
   private final UserService userService;
+
+  /** Interval after which the principal is rebuilt in any case, zero or negative to never. */
+  private final Duration refreshInterval;
 
   private final SecurityContextRepository securityContextRepository =
       new HttpSessionSecurityContextRepository();
@@ -107,12 +119,12 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     HttpSession session = request.getSession(false);
     if (session != null) {
-      refreshIfChanged(request, response, session);
+      refreshIfStale(request, response, session);
     }
     filterChain.doFilter(request, response);
   }
 
-  private void refreshIfChanged(
+  private void refreshIfStale(
       HttpServletRequest request, HttpServletResponse response, HttpSession session) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     UserDetails principal = getSessionPrincipal(authentication);
@@ -123,18 +135,22 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
     // change has committed, so the rebuilt principal includes every change up to this token. A
     // change committed while rebuilding writes a new token, which the next request picks up.
     String token = userDetailsChangeTracker.getChangeToken(principal.getUsername());
-    if (token == null || token.equals(session.getAttribute(CHANGE_TOKEN_ATTRIBUTE))) {
+    boolean changed = token != null && !token.equals(session.getAttribute(CHANGE_TOKEN_ATTRIBUTE));
+    if (!changed && !isRefreshDue(session)) {
       return;
     }
 
-    UserDetails user =
-        isImpersonation(authentication)
-            ? null
-            : userService.createUserDetailsByUsername(principal.getUsername());
+    if (isImpersonation(authentication)) {
+      // only an actual change of the impersonated user ends the session, not the timer
+      if (changed) {
+        endSession(session, principal);
+      }
+      return;
+    }
+
+    UserDetails user = userService.createUserDetailsByUsername(principal.getUsername());
     if (user == null || !canStayLoggedIn(user)) {
-      log.info("Ending session of changed user '{}'", principal.getUsername());
-      SecurityContextHolder.clearContext();
-      session.invalidate();
+      endSession(session, principal);
       return;
     }
 
@@ -142,8 +158,26 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
     context.setAuthentication(createAuthentication(authentication, user));
     SecurityContextHolder.setContext(context);
     securityContextRepository.saveContext(context, request, response);
-    session.setAttribute(CHANGE_TOKEN_ATTRIBUTE, token);
-    log.debug("Refreshed session principal of changed user '{}'", user.getUsername());
+    if (token != null) {
+      session.setAttribute(CHANGE_TOKEN_ATTRIBUTE, token);
+    }
+    session.setAttribute(REFRESHED_AT_ATTRIBUTE, System.currentTimeMillis());
+    log.debug("Refreshed session principal of user '{}'", user.getUsername());
+  }
+
+  private boolean isRefreshDue(HttpSession session) {
+    if (refreshInterval.isZero() || refreshInterval.isNegative()) {
+      return false;
+    }
+    Long refreshedAt = (Long) session.getAttribute(REFRESHED_AT_ATTRIBUTE);
+    long builtAt = refreshedAt != null ? refreshedAt : session.getCreationTime();
+    return System.currentTimeMillis() - builtAt >= refreshInterval.toMillis();
+  }
+
+  private static void endSession(HttpSession session, UserDetails principal) {
+    log.info("Ending session of changed user '{}'", principal.getUsername());
+    SecurityContextHolder.clearContext();
+    session.invalidate();
   }
 
   @CheckForNull

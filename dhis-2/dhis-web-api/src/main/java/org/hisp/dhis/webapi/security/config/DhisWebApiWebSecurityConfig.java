@@ -34,6 +34,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -276,8 +277,13 @@ public class DhisWebApiWebSecurityConfig {
 
       http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
       // after hard session expiry is enforced, before the request is authorized
+      Duration userDetailsRefreshInterval =
+          Duration.ofSeconds(
+              dhisConfig.getIntProperty(
+                  ConfigurationKey.SYSTEM_SESSION_USER_DETAILS_REFRESH_INTERVAL));
       http.addFilterAfter(
-          new UserDetailsRefreshFilter(userDetailsChangeTracker, userService),
+          new UserDetailsRefreshFilter(
+              userDetailsChangeTracker, userService, userDetailsRefreshInterval),
           ConcurrentSessionFilter.class);
 
       setHttpHeaders(http);
