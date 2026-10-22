@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,8 +62,11 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Setter
 public class PotentialDuplicate implements IdentifiableObject {
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE)
-  @SequenceGenerator(sequenceName = "potentialduplicatesequence")
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "potentialduplicatesequence")
+  @SequenceGenerator(
+      name = "potentialduplicatesequence",
+      sequenceName = "potentialduplicatesequence",
+      allocationSize = 1)
   @Column(name = "potentialduplicateid")
   private long id;
 
