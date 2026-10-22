@@ -141,7 +141,8 @@ class HibernateDataValueAuditStoreSqlTest {
    * @return the statement
    */
   private String assertBoundCombos(String sql) {
-    assertTrue(sql.startsWith("WITH\n  coc_no_access AS ("), sql);
+    assertTrue(sql.startsWith("WITH\n  ou_roots AS ("), sql);
+    assertTrue(sql.contains("coc_no_access AS ("), sql);
     assertTrue(sql.contains("AND coc_co.categoryoptioncomboid = :coc"), sql);
     assertTrue(sql.contains("JOIN dataelementcategoryoption co"), sql);
     assertNoComboInlined(sql);

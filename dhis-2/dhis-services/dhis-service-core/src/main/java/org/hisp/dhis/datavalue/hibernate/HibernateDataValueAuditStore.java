@@ -375,8 +375,16 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
   static Access createAccess(@Nonnull User user, boolean boundCombo) {
     // the default option combo is excluded: AclService always allows it
     String combos = !boundCombo ? "" : "\n      AND coc_co.categoryoptioncomboid = :coc";
+    long userId = user.getId();
     String with =
         "WITH"
+            + "\n  ou_roots AS ("
+            + "\n    SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = "
+            + userId
+            + "\n    UNION"
+            + "\n    SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = "
+            + userId
+            + "\n  ),"
             + "\n  coc_no_access AS ("
             + "\n    SELECT DISTINCT coc_co.categoryoptioncomboid"
             + "\n    FROM categoryoptioncombos_categoryoptions coc_co"
@@ -390,7 +398,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             + "\n        WHERE dcc.name = 'default')"
             + combos
             + "\n  )";
-    long userId = user.getId();
+    // a user with every top-level org unit reads all org units: no descendant set is built
     String where =
         "(dva.dataelementid IN ("
             + "\n    SELECT dse_acl.dataelementid"
@@ -399,19 +407,17 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             + "\n    WHERE "
             + createDataReadCheck("ds_acl.sharing", user)
             + ")) IS TRUE"
-            + "\n  AND (dva.organisationunitid IN ("
-            + "\n    SELECT ou_acl.organisationunitid"
-            + "\n    FROM organisationunit ou_acl"
-            + "\n    JOIN organisationunit root_acl"
-            + "\n      ON ou_acl.path ~>=~ root_acl.path AND ou_acl.path ~<~ (root_acl.path || '0')"
-            + "\n        AND left(ou_acl.path, length(root_acl.path)) = root_acl.path"
-            + "\n    WHERE root_acl.organisationunitid IN ("
-            + "\n        SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = "
-            + userId
-            + "\n        UNION"
-            + "\n        SELECT udv.organisationunitid FROM userdatavieworgunits udv WHERE udv.userinfoid = "
-            + userId
-            + "))) IS TRUE"
+            + "\n  AND (NOT EXISTS ("
+            + "\n      SELECT 1 FROM organisationunit top_acl"
+            + "\n      WHERE top_acl.parentid IS NULL"
+            + "\n        AND top_acl.organisationunitid NOT IN (SELECT organisationunitid FROM ou_roots))"
+            + "\n    OR (dva.organisationunitid IN ("
+            + "\n      SELECT ou_acl.organisationunitid"
+            + "\n      FROM organisationunit ou_acl"
+            + "\n      JOIN organisationunit root_acl"
+            + "\n        ON ou_acl.path ~>=~ root_acl.path AND ou_acl.path ~<~ (root_acl.path || '0')"
+            + "\n          AND left(ou_acl.path, length(root_acl.path)) = root_acl.path"
+            + "\n      WHERE root_acl.organisationunitid IN (SELECT organisationunitid FROM ou_roots))) IS TRUE)"
             + "\n  AND dva.categoryoptioncomboid NOT IN (SELECT categoryoptioncomboid FROM coc_no_access)";
     return new Access(with, where);
   }
