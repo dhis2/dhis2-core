@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE_QUERY_TIMEOUT;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalMatchers.aryEq;
@@ -50,6 +51,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.user.CurrentUserService;
@@ -76,13 +78,16 @@ class HibernateDataValueAuditStoreSqlTest {
     when(currentUserService.getCurrentUser()).thenReturn(reader);
     when(sessionFactory.getCurrentSession()).thenReturn(session);
     when(session.createNativeQuery(anyString())).thenReturn(query);
+    DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
+    when(config.getProperty(CHANGELOG_AGGREGATE_QUERY_TIMEOUT)).thenReturn("0");
     store =
         new HibernateDataValueAuditStore(
             sessionFactory,
             mock(JdbcTemplate.class),
             mock(ApplicationEventPublisher.class),
             mock(PeriodStore.class),
-            currentUserService);
+            currentUserService,
+            config);
     coc.setId(918273645L);
     coc.setUid("Coc91827364");
     aoc.setId(564738291L);
