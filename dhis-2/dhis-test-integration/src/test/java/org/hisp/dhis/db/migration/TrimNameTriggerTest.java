@@ -45,7 +45,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration test of the {@code trg_trim_name} trigger created by the {@code
- * V2_44_31__add_trim_name_trigger} migration, which trims the {@code name} of metadata on insert.
+ * V2_44_31__add_trim_name_trigger} migration, which trims the {@code name} of metadata on insert
+ * and update.
  */
 @Transactional
 class TrimNameTriggerTest extends PostgresIntegrationTestBase {
@@ -81,18 +82,34 @@ class TrimNameTriggerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void updateKeepsSurroundingWhitespaceInName() {
+  void updateTrimsSurroundingWhitespaceFromName() {
     DataElement dataElement = createDataElement('C');
     save(dataElement);
 
     jdbcTemplate.update(
-        "update dataelement set name = ? where uid = ?", "  Untrimmed  ", dataElement.getUid());
+        "update dataelement set name = ? where uid = ?",
+        " \t Updated Name \n ",
+        dataElement.getUid());
 
-    assertEquals("  Untrimmed  ", selectColumn("name", dataElement));
+    assertEquals("Updated Name", selectColumn("name", dataElement));
   }
 
   @Test
-  void triggerIsAttachedToEveryTableWithUidAndName() {
+  void entityUpdateTrimsExistingUntrimmedName() {
+    DataElement dataElement = createDataElement('D');
+    save(dataElement);
+    setNameBypassingTrigger(dataElement, "  Untrimmed  ");
+
+    DataElement persisted = manager.get(DataElement.class, dataElement.getUid());
+    persisted.setDescription("changed");
+    manager.update(persisted);
+    dbmsManager.flushSession();
+
+    assertEquals("Untrimmed", selectColumn("name", dataElement));
+  }
+
+  @Test
+  void triggerIsAttachedToEveryTableWithUidCodeAndName() {
     List<String> tablesWithoutTrigger =
         jdbcTemplate.queryForList(
             """
@@ -109,6 +126,11 @@ class TrimNameTriggerTest extends PostgresIntegrationTestBase {
                 where u.table_schema = c.table_schema
                   and u.table_name = c.table_name
                   and u.column_name = 'uid')
+              and exists (
+                select 1 from information_schema.columns k
+                where k.table_schema = c.table_schema
+                  and k.table_name = c.table_name
+                  and k.column_name = 'code')
               and not exists (
                 select 1 from pg_trigger tg
                 where tg.tgrelid = to_regclass(quote_ident(c.table_name))
@@ -121,7 +143,7 @@ class TrimNameTriggerTest extends PostgresIntegrationTestBase {
         "Tables missing trg_trim_name: "
             + tablesWithoutTrigger
             + ". Attach it in the migration creating the table: CREATE TRIGGER trg_trim_name"
-            + " BEFORE INSERT ON <table> FOR EACH ROW EXECUTE FUNCTION trim_metadata_name();");
+            + " BEFORE INSERT OR UPDATE OF name ON <table> FOR EACH ROW EXECUTE FUNCTION trim_metadata_name();");
   }
 
   @Test
@@ -142,6 +164,13 @@ class TrimNameTriggerTest extends PostgresIntegrationTestBase {
     manager.save(dataElement);
     dbmsManager.flushSession();
     dbmsManager.clearSession();
+  }
+
+  private void setNameBypassingTrigger(DataElement dataElement, String name) {
+    jdbcTemplate.execute("alter table dataelement disable trigger trg_trim_name");
+    jdbcTemplate.update(
+        "update dataelement set name = ? where uid = ?", name, dataElement.getUid());
+    jdbcTemplate.execute("alter table dataelement enable trigger trg_trim_name");
   }
 
   private String selectColumn(String column, DataElement dataElement) {
