@@ -56,8 +56,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.datavalue.DataValueAuditService")
 public class DefaultDataValueAuditService implements DataValueAuditService {
 
-  /** The most entries an unpaged read returns to a user who is not a superuser. */
-  static final int MAX_UNPAGED_ENTRIES = 10_000;
+  /**
+   * The most entries a user who is not a superuser reads with one request: unpaged, or up to the
+   * end of a page. The access checked statement reads all entries before the page.
+   */
+  static final int MAX_ENTRIES = 10_000;
 
   // -------------------------------------------------------------------------
   // Dependencies
@@ -213,14 +216,19 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
   @Override
   @Transactional(readOnly = true)
   public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
-    if (params.hasPaging() || currentUserService.currentUserIsSuper())
+    if (currentUserService.currentUserIsSuper())
       return dataValueAuditStore.getDataValueAudits(params);
-    // the access checked read is bounded: one more row than allowed tells there are more
+    if (params.hasPaging()) {
+      Pager pager = params.getPager();
+      if (pager.getOffset() + pager.getPageSize() > MAX_ENTRIES)
+        throw new IllegalQueryException(ErrorCode.E2052, MAX_ENTRIES);
+      return dataValueAuditStore.getDataValueAudits(params);
+    }
+    // the unpaged read is bounded: one more entry than allowed tells there are more
     List<DataValueAudit> audits =
         dataValueAuditStore.getDataValueAudits(
-            withPager(params, new SlimPager(1, MAX_UNPAGED_ENTRIES + 1, null)));
-    if (audits.size() > MAX_UNPAGED_ENTRIES)
-      throw new IllegalQueryException(ErrorCode.E2051, MAX_UNPAGED_ENTRIES);
+            withPager(params, new SlimPager(1, MAX_ENTRIES + 1, null)));
+    if (audits.size() > MAX_ENTRIES) throw new IllegalQueryException(ErrorCode.E2051, MAX_ENTRIES);
     return audits;
   }
 
