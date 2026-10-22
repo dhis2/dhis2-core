@@ -31,6 +31,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1004;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1125;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
 
@@ -46,9 +49,13 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -64,6 +71,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -151,12 +159,80 @@ public class ValidationUtils {
     Stream<MetadataIdentifier> payloadDataValues =
         event.getDataValues().stream().map(DataValue::getDataElement);
     Stream<MetadataIdentifier> savedDataValues =
-        Optional.ofNullable(bundle.getPreheat().getEvent(event.getUid()))
-            .map(org.hisp.dhis.program.ProgramStageInstance::getEventDataValues)
-            .orElse(Set.of())
-            .stream()
+        getSavedEventDataValues(bundle, event).stream()
             .map(dv -> MetadataIdentifier.ofUid(dv.getDataElement()));
     return Stream.concat(payloadDataValues, savedDataValues).collect(Collectors.toSet());
+  }
+
+  private static Set<EventDataValue> getSavedEventDataValues(TrackerBundle bundle, Event event) {
+    ProgramStageInstance savedEvent = bundle.getPreheat().getEvent(event.getUid());
+    return savedEvent == null ? Set.of() : savedEvent.getEventDataValues();
+  }
+
+  /**
+   * A new file binding needs a DATA_VALUE resource uploaded by the importing user (or a superuser),
+   * unless it is assigned to the object being updated. Resending the value held by the same
+   * persisted field is not a new binding, including files without a recorded owner.
+   */
+  public static void validateFileAssignment(
+      ValidationErrorReporter reporter,
+      TrackerBundle bundle,
+      TrackerDto dto,
+      String value,
+      ValueTypedDimensionalItemObject field) {
+    FileResource fileResource = bundle.getPreheat().get(FileResource.class, value);
+    reporter.addErrorIfNull(fileResource, dto, E1084, value);
+    if (fileResource == null || isSavedFileValue(bundle, dto, value, field)) {
+      return;
+    }
+
+    if (fileResource.getDomain() != FileResourceDomain.DATA_VALUE) {
+      reporter.addError(dto, E1004, value);
+      return;
+    }
+
+    if (fileResource.isAssigned()) {
+      String uid = dto.getUid();
+      boolean ownedByDto =
+          bundle.getStrategy(dto).isUpdate()
+              && uid != null
+              && uid.equals(fileResource.getFileResourceOwner());
+      reporter.addErrorIf(() -> !ownedByDto, dto, E1009, value);
+      return;
+    }
+
+    User user = bundle.getUser();
+    reporter.addErrorIf(
+        () -> user == null || !(user.isSuper() || fileResource.isCreatedBy(user)),
+        dto,
+        E1004,
+        value);
+  }
+
+  private static boolean isSavedFileValue(
+      TrackerBundle bundle, TrackerDto dto, String value, ValueTypedDimensionalItemObject field) {
+    String fieldUid = field.getUid();
+    TrackerPreheat preheat = bundle.getPreheat();
+    if (dto instanceof Event) {
+      return getSavedEventDataValues(bundle, (Event) dto).stream()
+          .anyMatch(dv -> fieldUid.equals(dv.getDataElement()) && value.equals(dv.getValue()));
+    }
+
+    String trackedEntityUid = null;
+    if (dto instanceof org.hisp.dhis.tracker.domain.TrackedEntity) {
+      trackedEntityUid = dto.getUid();
+    } else if (dto instanceof org.hisp.dhis.tracker.domain.Enrollment) {
+      trackedEntityUid = ((org.hisp.dhis.tracker.domain.Enrollment) dto).getTrackedEntity();
+    }
+    TrackedEntityInstance trackedEntity =
+        trackedEntityUid == null ? null : preheat.getTrackedEntity(trackedEntityUid);
+    return trackedEntity != null
+        && trackedEntity.getTrackedEntityAttributeValues().stream()
+            .anyMatch(
+                av ->
+                    av.getAttribute() != null
+                        && fieldUid.equals(av.getAttribute().getUid())
+                        && value.equals(av.getValue()));
   }
 
   public static boolean needsToValidateDataValues(Event event, ProgramStage programStage) {

@@ -39,13 +39,18 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.document.Document;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
@@ -76,23 +81,33 @@ public class DefaultFileResourceService implements FileResourceService {
 
   private final ApplicationEventPublisher fileEventPublisher;
 
+  private final AclService aclService;
+
+  private final IdentifiableObjectManager idObjectManager;
+
   public DefaultFileResourceService(
       FileResourceStore fileResourceStore,
       SessionFactory sessionFactory,
       FileResourceContentStore fileResourceContentStore,
       ImageProcessingService imageProcessingService,
-      ApplicationEventPublisher fileEventPublisher) {
+      ApplicationEventPublisher fileEventPublisher,
+      AclService aclService,
+      IdentifiableObjectManager idObjectManager) {
     checkNotNull(fileResourceStore);
     checkNotNull(sessionFactory);
     checkNotNull(fileResourceContentStore);
     checkNotNull(imageProcessingService);
     checkNotNull(fileEventPublisher);
+    checkNotNull(aclService);
+    checkNotNull(idObjectManager);
 
     this.fileResourceStore = fileResourceStore;
     this.sessionFactory = sessionFactory;
     this.fileResourceContentStore = fileResourceContentStore;
     this.imageProcessingService = imageProcessingService;
     this.fileEventPublisher = fileEventPublisher;
+    this.aclService = aclService;
+    this.idObjectManager = idObjectManager;
   }
 
   // -------------------------------------------------------------------------
@@ -121,6 +136,53 @@ public class DefaultFileResourceService implements FileResourceService {
         .stream()
         .filter(IS_ORPHAN_PREDICATE)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canRead(@Nonnull User user, @Nonnull FileResource fileResource) {
+    FileResourceDomain domain = fileResource.getDomain();
+    if (domain == null) {
+      return false;
+    }
+    if (user.isSuper() || fileResource.isCreatedBy(user)) {
+      return true;
+    }
+    String uid = fileResource.getUid();
+    switch (domain) {
+      case ORG_UNIT:
+        return true;
+      case USER_AVATAR:
+        return user.isAuthorized("F_USER_VIEW")
+            || fileResourceStore.findUsersByAvatarFileResource(uid).contains(user.getUid());
+      case MESSAGE_ATTACHMENT:
+        return fileResourceStore.findMessageAttachmentParticipants(uid).contains(user.getUid());
+      case DOCUMENT:
+        return canReadAnyDocument(user, fileResourceStore.findDocumentsByFileResource(uid));
+      case DATA_VALUE:
+      case PUSH_ANALYSIS:
+      default:
+        return false;
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canReadMetadata(@Nonnull User user, @Nonnull FileResource fileResource) {
+    return fileResource.getDomain() == FileResourceDomain.DATA_VALUE || canRead(user, fileResource);
+  }
+
+  @Override
+  public boolean canAssign(
+      @Nonnull User user, @Nonnull FileResource fileResource, @Nonnull FileResourceDomain domain) {
+    return fileResource.getDomain() == domain
+        && !fileResource.isAssigned()
+        && (user.isSuper() || fileResource.isCreatedBy(user));
+  }
+
+  private boolean canReadAnyDocument(User user, List<String> documentUids) {
+    return idObjectManager.getNoAcl(Document.class, documentUids).stream()
+        .anyMatch(document -> aclService.canRead(user, document));
   }
 
   @Override

@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1315;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -45,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -54,6 +56,7 @@ import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
@@ -61,12 +64,14 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -489,9 +494,6 @@ class EventDataValuesValidationHookTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
-
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     hook.validateEvent(reporter, bundle, event);
 
     assertThat(reporter.getErrors(), hasSize(1));
@@ -754,91 +756,147 @@ class EventDataValuesValidationHookTest {
 
   @Test
   void failValidationWhenFileResourceIsAlreadyAssigned() {
-    DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
-        .thenReturn(validDataElement);
-
-    ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
-        .thenReturn(programStage);
-
-    FileResource fileResource = new FileResource();
-    fileResource.setAssigned(true);
-    DataValue validDataValue = dataValue("QX4LpiTZmUH");
-    when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
-    Event event =
-        Event.builder()
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
-
+    FileResource fileResource = dataValueFile(true);
+    Event event = fileEvent(CodeGenerator.generateUid(), fileResource, ValueType.FILE_RESOURCE);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
     hook.validateEvent(reporter, bundle, event);
+    AssertValidationErrorReporter.hasTrackerError(
+        reporter, TrackerErrorCode.E1009, TrackerType.EVENT, event.getUid());
 
-    assertThat(reporter.getErrors(), hasSize(1));
-    assertEquals(TrackerErrorCode.E1009, reporter.getErrors().get(0).getErrorCode());
-
+    // An assigned resource without a recorded owner is not available for a new binding.
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
-
     reporter = new ValidationErrorReporter(idSchemes);
+    hook.validateEvent(reporter, bundle, event);
+    AssertValidationErrorReporter.hasTrackerError(
+        reporter, TrackerErrorCode.E1009, TrackerType.EVENT, event.getUid());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = ValueType.class,
+      names = {"FILE_RESOURCE", "IMAGE"})
+  void successValidationWhenEventAlreadyHoldsAssignedFileResource(ValueType valueType) {
+    FileResource fileResource = dataValueFile(true);
+    String uid = CodeGenerator.generateUid();
+    Event event = fileEvent(uid, fileResource, valueType);
+    org.hisp.dhis.program.ProgramStageInstance savedEvent =
+        new org.hisp.dhis.program.ProgramStageInstance();
+    savedEvent.setEventDataValues(
+        Set.of(new EventDataValue(dataElementUid, fileResource.getUid())));
+    when(preheat.getEvent(uid)).thenReturn(savedEvent);
 
     hook.validateEvent(reporter, bundle, event);
 
-    assertThat(reporter.getErrors(), hasSize(0));
+    assertFalse(reporter.hasErrors());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = ValueType.class,
+      names = {"FILE_RESOURCE", "IMAGE"})
+  void failValidationWhenOnlyAnotherDataElementOfTheEventHoldsFileResource(ValueType valueType) {
+    FileResource fileResource = dataValueFile(true);
+    fileResource.setFileResourceOwner(CodeGenerator.generateUid());
+    String uid = CodeGenerator.generateUid();
+    Event event = fileEvent(uid, fileResource, valueType);
+    org.hisp.dhis.program.ProgramStageInstance savedEvent =
+        new org.hisp.dhis.program.ProgramStageInstance();
+    savedEvent.setEventDataValues(Set.of(new EventDataValue("otherField", fileResource.getUid())));
+    when(preheat.getEvent(uid)).thenReturn(savedEvent);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+
+    hook.validateEvent(reporter, bundle, event);
+
+    AssertValidationErrorReporter.hasTrackerError(
+        reporter, TrackerErrorCode.E1009, TrackerType.EVENT, event.getUid());
   }
 
   @Test
   void validateFileResourceOwner() {
-    DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
-        .thenReturn(validDataElement);
-
-    ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
-        .thenReturn(programStage);
-
-    FileResource fileResource = new FileResource();
-    fileResource.setAssigned(true);
-    DataValue validDataValue = dataValue("QX4LpiTZmUH");
-    when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
-    Event event =
-        Event.builder()
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
-
+    FileResource fileResource = dataValueFile(true);
+    Event event = fileEvent(CodeGenerator.generateUid(), fileResource, ValueType.FILE_RESOURCE);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
     hook.validateEvent(reporter, bundle, event);
+    AssertValidationErrorReporter.hasTrackerError(
+        reporter, TrackerErrorCode.E1009, TrackerType.EVENT, event.getUid());
 
-    assertThat(reporter.getErrors(), hasSize(1));
-    assertEquals(TrackerErrorCode.E1009, reporter.getErrors().get(0).getErrorCode());
-
-    event.setEvent("XYZ");
-    fileResource.setFileResourceOwner("ABC");
-
+    fileResource.setFileResourceOwner(CodeGenerator.generateUid());
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
-
     reporter = new ValidationErrorReporter(idSchemes);
+    hook.validateEvent(reporter, bundle, event);
+    AssertValidationErrorReporter.hasTrackerError(
+        reporter, TrackerErrorCode.E1009, TrackerType.EVENT, event.getUid());
+
+    fileResource.setFileResourceOwner(event.getUid());
+    reporter = new ValidationErrorReporter(idSchemes);
+    hook.validateEvent(reporter, bundle, event);
+    assertFalse(reporter.hasErrors());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = ValueType.class,
+      names = {"FILE_RESOURCE", "IMAGE"})
+  void failValidationWhenFileResourceIsOfAnotherDomain(ValueType valueType) {
+    FileResource fileResource = dataValueFile(false);
+    fileResource.setDomain(FileResourceDomain.DOCUMENT);
+    Event event = fileEvent(CodeGenerator.generateUid(), fileResource, valueType);
 
     hook.validateEvent(reporter, bundle, event);
 
-    assertThat(reporter.getErrors(), hasSize(1));
-    assertEquals(TrackerErrorCode.E1009, reporter.getErrors().get(0).getErrorCode());
+    AssertValidationErrorReporter.hasTrackerError(
+        reporter, TrackerErrorCode.E1004, TrackerType.EVENT, event.getUid());
+  }
 
-    event.setEvent("ABC");
-    fileResource.setFileResourceOwner("ABC");
-
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
-
-    reporter = new ValidationErrorReporter(idSchemes);
+  @ParameterizedTest
+  @EnumSource(
+      value = ValueType.class,
+      names = {"FILE_RESOURCE", "IMAGE"})
+  void failValidationWhenFileResourceWasUploadedByAnotherUser(ValueType valueType) {
+    FileResource fileResource = dataValueFile(false);
+    fileResource.setCreatedBy(user(1L));
+    Event event = fileEvent(CodeGenerator.generateUid(), fileResource, valueType);
+    User importer = mock(User.class);
+    when(importer.getId()).thenReturn(2L);
+    when(bundle.getUser()).thenReturn(importer);
 
     hook.validateEvent(reporter, bundle, event);
 
-    assertThat(reporter.getErrors(), hasSize(0));
+    AssertValidationErrorReporter.hasTrackerError(
+        reporter, TrackerErrorCode.E1004, TrackerType.EVENT, event.getUid());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = ValueType.class,
+      names = {"FILE_RESOURCE", "IMAGE"})
+  void successValidationWhenFileResourceWasUploadedByImporter(ValueType valueType) {
+    FileResource fileResource = dataValueFile(false);
+    fileResource.setCreatedBy(user(1L));
+    Event event = fileEvent(CodeGenerator.generateUid(), fileResource, valueType);
+    User importer = mock(User.class);
+    when(importer.getId()).thenReturn(1L);
+    when(bundle.getUser()).thenReturn(importer);
+
+    hook.validateEvent(reporter, bundle, event);
+
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void successValidationWhenSuperuserImportsFileResourceOfAnotherUser() {
+    FileResource fileResource = dataValueFile(false);
+    fileResource.setCreatedBy(user(1L));
+    Event event = fileEvent(CodeGenerator.generateUid(), fileResource, ValueType.FILE_RESOURCE);
+    User importer = mock(User.class);
+    when(importer.isSuper()).thenReturn(true);
+    when(bundle.getUser()).thenReturn(importer);
+
+    hook.validateEvent(reporter, bundle, event);
+
+    assertFalse(reporter.hasErrors());
   }
 
   @Test
@@ -1079,6 +1137,36 @@ class EventDataValuesValidationHookTest {
         new ProgramStageDataElement(programStage, dataElement);
     programStageDataElement.setCompulsory(compulsory);
     return Set.of(programStageDataElement);
+  }
+
+  private FileResource dataValueFile(boolean assigned) {
+    FileResource fileResource = new FileResource();
+    fileResource.setUid("QX4LpiTZmUH");
+    fileResource.setDomain(FileResourceDomain.DATA_VALUE);
+    fileResource.setAssigned(assigned);
+    return fileResource;
+  }
+
+  private Event fileEvent(String uid, FileResource fileResource, ValueType valueType) {
+    DataElement fileDataElement = dataElement(valueType);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(fileDataElement);
+    ProgramStage programStage = programStage(fileDataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+    when(preheat.get(FileResource.class, fileResource.getUid())).thenReturn(fileResource);
+    return Event.builder()
+        .event(uid)
+        .programStage(idSchemes.toMetadataIdentifier(programStage))
+        .status(EventStatus.ACTIVE)
+        .dataValues(Set.of(dataValue(fileResource.getUid())))
+        .build();
+  }
+
+  private static User user(long id) {
+    User user = new User();
+    user.setId(id);
+    return user;
   }
 
   private OrganisationUnit organisationUnit() {

@@ -42,10 +42,12 @@ import java.io.File;
 import java.util.Map;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
+import org.hisp.dhis.security.acl.AclService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,6 +75,10 @@ class FileResourceServiceTest {
 
   @Mock private Session session;
 
+  @Mock private AclService aclService;
+
+  @Mock private IdentifiableObjectManager idObjectManager;
+
   @Captor private ArgumentCaptor<FileSavedEvent> fileSavedEventCaptor;
 
   @Captor private ArgumentCaptor<ImageFileSavedEvent> imageFileSavedEventCaptor;
@@ -89,7 +95,9 @@ class FileResourceServiceTest {
             sessionFactory,
             fileResourceContentStore,
             imageProcessingService,
-            fileEventPublisher);
+            fileEventPublisher,
+            aclService,
+            idObjectManager);
   }
 
   @Test

@@ -28,6 +28,7 @@
 package org.hisp.dhis.fileresource;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.joda.time.DateTime;
 
@@ -35,4 +36,13 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
   List<FileResource> getExpiredFileResources(DateTime expires);
 
   List<FileResource> getAllUnProcessedImages();
+
+  /** UIDs of documents that own the given file resource. */
+  List<String> findDocumentsByFileResource(@Nonnull String uid);
+
+  /** UIDs of users whose avatar is the given file resource. */
+  List<String> findUsersByAvatarFileResource(@Nonnull String uid);
+
+  /** UIDs of participants in conversations containing the given attachment. */
+  List<String> findMessageAttachmentParticipants(@Nonnull String uid);
 }

@@ -30,13 +30,19 @@ package org.hisp.dhis.fileresource.hibernate;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.document.Document;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceStore;
+import org.hisp.dhis.message.Message;
+import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.message.UserMessage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -99,5 +105,51 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
         .setParameter("hasMultipleStorageFiles", false)
         .setMaxResults(50)
         .getResultList();
+  }
+
+  @Override
+  public List<String> findDocumentsByFileResource(@Nonnull String uid) {
+    return getSession()
+        .createNativeQuery(
+            "select d.uid from document d"
+                + " inner join fileresource fr on fr.fileresourceid = d.fileresource"
+                + " where fr.uid = :uid")
+        .addSynchronizedEntityClass(Document.class)
+        .addSynchronizedEntityClass(FileResource.class)
+        .setParameter("uid", uid)
+        .list();
+  }
+
+  @Override
+  public List<String> findUsersByAvatarFileResource(@Nonnull String uid) {
+    return getSession()
+        .createNativeQuery(
+            "select u.uid from userinfo u"
+                + " inner join fileresource fr on fr.fileresourceid = u.avatar"
+                + " where fr.uid = :uid")
+        .addSynchronizedEntityClass(User.class)
+        .addSynchronizedEntityClass(FileResource.class)
+        .setParameter("uid", uid)
+        .list();
+  }
+
+  @Override
+  public List<String> findMessageAttachmentParticipants(@Nonnull String uid) {
+    return getSession()
+        .createNativeQuery(
+            "select distinct u.uid from userinfo u"
+                + " inner join usermessage um on um.userid = u.userinfoid"
+                + " inner join messageconversation_usermessages mcu on mcu.usermessageid = um.usermessageid"
+                + " inner join messageconversation_messages mcm on mcm.messageconversationid = mcu.messageconversationid"
+                + " inner join messageattachments ma on ma.messageid = mcm.messageid"
+                + " inner join fileresource fr on fr.fileresourceid = ma.fileresourceid"
+                + " where fr.uid = :uid")
+        .addSynchronizedEntityClass(User.class)
+        .addSynchronizedEntityClass(UserMessage.class)
+        .addSynchronizedEntityClass(MessageConversation.class)
+        .addSynchronizedEntityClass(Message.class)
+        .addSynchronizedEntityClass(FileResource.class)
+        .setParameter("uid", uid)
+        .list();
   }
 }

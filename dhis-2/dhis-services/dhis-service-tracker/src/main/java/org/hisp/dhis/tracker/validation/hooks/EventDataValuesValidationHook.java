@@ -28,15 +28,14 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1007;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1302;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1303;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1304;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1305;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1315;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateDeletionMandatoryDataValue;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateFileAssignment;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateOptionSet;
 
@@ -47,7 +46,6 @@ import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -123,12 +121,14 @@ public class EventDataValuesValidationHook implements TrackerValidationHook {
 
     if (dataElement.hasOptionSet()) {
       validateOptionSet(reporter, event, dataElement, dataValue.getValue());
-    } else if (dataElement.getValueType().isFile()) {
-      validateFileNotAlreadyAssigned(reporter, bundle, event, dataValue.getValue());
     } else if (dataElement.getValueType().isOrganisationUnit()) {
       validateOrgUnitValueType(reporter, bundle, event, dataValue.getValue());
-    } else if (status != null) {
+    } else if (status != null && !dataElement.getValueType().isFile()) {
       reporter.addError(event, E1302, dataElement.getUid(), status);
+    }
+
+    if (dataElement.getValueType().isFile()) {
+      validateFileAssignment(reporter, bundle, event, dataValue.getValue(), dataElement);
     }
   }
 
@@ -150,29 +150,6 @@ public class EventDataValuesValidationHook implements TrackerValidationHook {
       if (!dataElements.contains(payloadDataElement)) {
         reporter.addError(event, E1305, payloadDataElement, programStage.getUid());
       }
-    }
-  }
-
-  private void validateFileNotAlreadyAssigned(
-      ValidationErrorReporter reporter, TrackerBundle bundle, Event event, @Nonnull String value) {
-    FileResource fileResource = bundle.getPreheat().get(FileResource.class, value);
-
-    reporter.addErrorIfNull(fileResource, event, E1084, value);
-
-    if (bundle.getStrategy(event).isCreate()) {
-      reporter.addErrorIf(
-          () -> fileResource != null && fileResource.isAssigned(), event, E1009, value);
-    }
-
-    if (bundle.getStrategy(event).isUpdate()) {
-      reporter.addErrorIf(
-          () ->
-              fileResource != null
-                  && fileResource.getFileResourceOwner() != null
-                  && !fileResource.getFileResourceOwner().equals(event.getEvent()),
-          event,
-          E1009,
-          value);
     }
   }
 

@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.user.User;
 import org.springframework.util.MimeTypeUtils;
 
 /**
@@ -113,6 +114,16 @@ public class FileResource extends BaseIdentifiableObject {
     this.contentMd5 = contentMd5;
     this.domain = domain;
     this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.of(key));
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  /** Checks the uploader by primary key without depending on other loaded user properties. */
+  public boolean isCreatedBy(User user) {
+    User createdBy = getCreatedBy();
+    return createdBy != null && createdBy.getId() == user.getId();
   }
 
   // -------------------------------------------------------------------------

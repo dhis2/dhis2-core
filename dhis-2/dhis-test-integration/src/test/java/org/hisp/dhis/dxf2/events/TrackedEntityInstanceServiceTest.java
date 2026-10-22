@@ -168,12 +168,13 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
   @Override
   protected void setUpTest() throws Exception {
 
-    fileResource = createFileResource('F', "fileResource".getBytes());
-    fileResourceService.saveFileResource(fileResource, "fileResource".getBytes());
-
     userService = _userService;
     adminUser = createAndAddAdminUser(AUTHORITY_ALL);
     regularUser = createUserWithAuth("regular-user");
+
+    fileResource = createFileResource('F', "fileResource".getBytes());
+    fileResource.setCreatedBy(adminUser);
+    fileResourceService.saveFileResource(fileResource, "fileResource".getBytes());
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');

@@ -76,8 +76,9 @@ class TeTaValidationTest extends TrackerTest {
             "application/pdf",
             0,
             "d41d8cd98f00b204e9800998ecf8427e",
-            FileResourceDomain.DOCUMENT);
+            FileResourceDomain.DATA_VALUE);
     fileResource.setUid("Jzf6hHNP7jx");
+    fileResource.setCreatedBy(currentUserService.getCurrentUser());
     File file = File.createTempFile("file-resource", "test");
     fileResourceService.saveFileResource(fileResource, file);
     assertFalse(fileResource.isAssigned());
@@ -103,8 +104,9 @@ class TeTaValidationTest extends TrackerTest {
             "application/pdf",
             0,
             "d41d8cd98f00b204e9800998ecf8427e",
-            FileResourceDomain.DOCUMENT);
+            FileResourceDomain.DATA_VALUE);
     fileResource.setUid("Jzf6hHNP7jx");
+    fileResource.setCreatedBy(currentUserService.getCurrentUser());
     File file = File.createTempFile("file-resource", "test");
     fileResourceService.saveFileResource(fileResource, file);
     assertFalse(fileResource.isAssigned());

@@ -33,6 +33,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.springframework.stereotype.Component;
 
@@ -51,7 +52,9 @@ public class EventFileResourcePostProcessor implements Processor {
       if (dataElement.isFileType()) {
         FileResource fileResource = fileResourceService.getFileResource(dataValue.getValue());
 
-        if (!fileResource.isAssigned() || fileResource.getFileResourceOwner() == null) {
+        if (fileResource != null
+            && fileResource.getDomain() == FileResourceDomain.DATA_VALUE
+            && (!fileResource.isAssigned() || fileResource.getFileResourceOwner() == null)) {
           fileResource.setAssigned(true);
           fileResource.setFileResourceOwner(event.getEvent());
           fileResourceService.updateFileResource(fileResource);
