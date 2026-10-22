@@ -55,8 +55,11 @@ public record PeriodTypes(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry>
     requireNonNull(entries);
   }
 
+  @OpenApi.Property
   @OpenApi.Shared(name = "PeriodTypes")
-  public record Output(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry.Output> entries) {
+  public record Output(
+      @Nonnull Locale locale,
+      @OpenApi.Property(name = "periodTypes") @Nonnull List<PeriodTypeEntry.Output> entries) {
 
     public Output {
       requireNonNull(locale);
@@ -81,9 +84,10 @@ public record PeriodTypes(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry>
       requireNonNull(relativePeriods);
     }
 
+    @OpenApi.Property
     @OpenApi.Shared(name = "PeriodTypeEntry")
     public record Output(
-        @CheckForNull PeriodTypeEnum type,
+        @OpenApi.Property(name = "name") @CheckForNull PeriodTypeEnum type,
         @CheckForNull String displayName,
         @CheckForNull String isoDuration,
         @CheckForNull String isoFormat,
@@ -122,6 +126,7 @@ public record PeriodTypes(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry>
     }
   }
 
+  @OpenApi.Property
   public record Labels(
       @CheckForNull String defaultName,
       @CheckForNull String label,
