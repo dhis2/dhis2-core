@@ -41,12 +41,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /** Created by Halvdan Hoem Grelland */
 class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
+  @Autowired private UserService _userService;
   @Autowired private DataValueAuditService dataValueAuditService;
 
   @Autowired private DataValueService dataValueService;
@@ -95,6 +97,8 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
 
   @Override
   public void setUpTest() throws Exception {
+    userService = _userService;
+    createAndInjectAdminUser();
     dataElementA = createDataElement('A');
     dataElementB = createDataElement('B');
     dataElementC = createDataElement('C');

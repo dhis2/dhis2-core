@@ -36,9 +36,12 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -114,7 +117,8 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo) {
+      CategoryOptionCombo attributeOptionCombo)
+      throws AccessDeniedException {
     CategoryOptionCombo coc =
         ObjectUtils.firstNonNull(
             categoryOptionCombo,
@@ -124,6 +128,16 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
         ObjectUtils.firstNonNull(
             attributeOptionCombo,
             categoryOptionComboStore.getByName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME));
+
+    if (!dataValueAuditStore.isReadable(dataElement, organisationUnit, coc, aoc)) {
+      throw new AccessDeniedException(
+          new ErrorMessage(
+                  ErrorCode.E2050,
+                  dataElement.getUid(),
+                  period.getIsoDate(),
+                  organisationUnit.getUid())
+              .getMessage());
+    }
 
     DataValue dataValue =
         dataValueStore.getDataValue(dataElement, period, organisationUnit, coc, aoc, true);

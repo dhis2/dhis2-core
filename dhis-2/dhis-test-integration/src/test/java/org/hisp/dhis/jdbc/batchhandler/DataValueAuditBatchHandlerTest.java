@@ -48,6 +48,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.Test;
@@ -63,6 +64,7 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
   @Autowired private DataValueService dataValueService;
 
   @Autowired private DataValueAuditService auditService;
+  @Autowired private UserService _userService;
 
   @Autowired private DataElementService dataElementService;
 
@@ -105,6 +107,8 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
   // -------------------------------------------------------------------------
   @Override
   public void setUpTest() {
+    userService = _userService;
+    createAndInjectAdminUser();
 
     dataElementA = createDataElement('A');
     dataElementService.addDataElement(dataElementA);

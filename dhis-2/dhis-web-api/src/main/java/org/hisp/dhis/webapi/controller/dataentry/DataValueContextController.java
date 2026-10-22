@@ -48,6 +48,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueContextDto;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDtoMapper;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueQueryParams;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -66,7 +67,8 @@ public class DataValueContextController {
   private final DataValidator dataValidator;
 
   @GetMapping("/dataValueContext")
-  public DataValueContextDto getChangeLog(DataValueQueryParams params) {
+  public DataValueContextDto getChangeLog(DataValueQueryParams params)
+      throws AccessDeniedException {
     DataElement de = dataValidator.getAndValidateDataElement(params.getDe());
     Period pe = dataValidator.getAndValidatePeriod(params.getPe());
     OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(params.getOu());
