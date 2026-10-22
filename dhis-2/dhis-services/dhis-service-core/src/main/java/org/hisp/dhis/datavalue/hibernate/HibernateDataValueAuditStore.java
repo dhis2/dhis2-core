@@ -332,7 +332,14 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
    *
    * <p>Each condition is computed once per query and tested as a hashed subplan: the option combos
    * the user may not read with {@code NOT IN}, the readable data elements and organisation units
-   * with {@code (x IN (...)) IS TRUE}, which PostgreSQL does not turn into a semi join.
+   * with {@code (x IN (...)) IS TRUE}, which PostgreSQL does not turn into a semi join. The org
+   * units of the user's hierarchy are found with the path index ({@code varchar_pattern_ops}), one
+   * range scan per root: a unit is in the hierarchy of a root exactly when its path starts with the
+   * root's path. The pattern operators compare bytes, and {@code 0} follows {@code /} and comes
+   * before every character of a UID, so {@code [path, path0)} is exactly the root and the paths
+   * below it. The prefix test repeats the range for the planner, which estimates such a range at a
+   * ninth of all org units per root: the set then seemed too large to hash and was searched again
+   * for every audit row. There is no {@code patharray} on this version.
    */
   static final class Access {
     private final String with;
@@ -396,7 +403,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             + "\n    SELECT ou_acl.organisationunitid"
             + "\n    FROM organisationunit ou_acl"
             + "\n    JOIN organisationunit root_acl"
-            + "\n      ON (ou_acl.path = root_acl.path OR ou_acl.path LIKE concat(root_acl.path, '/%'))"
+            + "\n      ON ou_acl.path ~>=~ root_acl.path AND ou_acl.path ~<~ (root_acl.path || '0')"
+            + "\n        AND left(ou_acl.path, length(root_acl.path)) = root_acl.path"
             + "\n    WHERE root_acl.organisationunitid IN ("
             + "\n        SELECT um.organisationunitid FROM usermembership um WHERE um.userinfoid = "
             + userId
