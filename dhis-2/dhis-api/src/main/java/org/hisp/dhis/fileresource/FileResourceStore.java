@@ -29,6 +29,7 @@ package org.hisp.dhis.fileresource;
 
 import java.util.List;
 import javax.annotation.Nonnull;
+import lombok.Value;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.joda.time.DateTime;
 
@@ -45,4 +46,26 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
 
   /** UIDs of participants in conversations containing the given attachment. */
   List<String> findMessageAttachmentParticipants(@Nonnull String uid);
+
+  /**
+   * Lookup of the aggregate data values of a file value type that hold the given file resource as
+   * their current value or held it as a former value, as recorded in their audit.
+   *
+   * @param uid of a file resource
+   * @return where each such data value belongs, once per distinct combination
+   */
+  List<DataValueFileReference> findDataValueReferencesByFileResourceValue(@Nonnull String uid);
+
+  /** Where an aggregate data value that holds, or held, a file resource as value belongs. */
+  @Value
+  class DataValueFileReference {
+    /** Path of the organisation unit of the data value. */
+    @Nonnull String orgUnitPath;
+
+    /** Uid of the category option combo of the data value. */
+    @Nonnull String categoryOptionCombo;
+
+    /** Uid of the attribute option combo of the data value. */
+    @Nonnull String attributeOptionCombo;
+  }
 }

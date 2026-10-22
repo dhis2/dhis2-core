@@ -34,17 +34,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.fileresource.FileResourceStore.DataValueFileReference;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
@@ -170,6 +174,53 @@ public class DefaultFileResourceService implements FileResourceService {
   @Transactional(readOnly = true)
   public boolean canReadMetadata(@Nonnull User user, @Nonnull FileResource fileResource) {
     return fileResource.getDomain() == FileResourceDomain.DATA_VALUE || canRead(user, fileResource);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canReadDataValueFile(@Nonnull User user, @Nonnull FileResource fileResource) {
+    if (fileResource.getDomain() != FileResourceDomain.DATA_VALUE) {
+      return false;
+    }
+    if (canRead(user, fileResource)) {
+      return true;
+    }
+
+    Set<String> hierarchy = new HashSet<>();
+    user.getOrganisationUnits().forEach(orgUnit -> hierarchy.add(orgUnit.getUid()));
+    user.getDataViewOrganisationUnits().forEach(orgUnit -> hierarchy.add(orgUnit.getUid()));
+    List<DataValueFileReference> references =
+        fileResourceStore.findDataValueReferencesByFileResourceValue(fileResource.getUid()).stream()
+            .filter(ref -> isInHierarchy(ref.getOrgUnitPath(), hierarchy))
+            .collect(Collectors.toList());
+    if (references.isEmpty()) {
+      return false;
+    }
+
+    Set<String> comboUids = new HashSet<>();
+    for (DataValueFileReference ref : references) {
+      comboUids.add(ref.getCategoryOptionCombo());
+      comboUids.add(ref.getAttributeOptionCombo());
+    }
+    Set<String> readableCombos =
+        idObjectManager.getNoAcl(CategoryOptionCombo.class, comboUids).stream()
+            .filter(combo -> aclService.canDataRead(user, combo))
+            .map(CategoryOptionCombo::getUid)
+            .collect(Collectors.toSet());
+    return references.stream()
+        .anyMatch(
+            ref ->
+                readableCombos.contains(ref.getCategoryOptionCombo())
+                    && readableCombos.contains(ref.getAttributeOptionCombo()));
+  }
+
+  private static boolean isInHierarchy(String orgUnitPath, Set<String> orgUnitUids) {
+    for (String uid : orgUnitPath.split("/")) {
+      if (orgUnitUids.contains(uid)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
