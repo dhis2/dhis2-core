@@ -35,6 +35,7 @@ public enum ErrorCode {
   E1000("API query must be specified"),
   E1001("API query contains an illegal string"),
   E1002("API version is invalid"),
+  E1007("Feature is disabled by configuration, requires `{0} = on` in dhis.conf"),
 
   /* Basic metadata */
   E1100("Data element not found or not accessible: `{0}`"),

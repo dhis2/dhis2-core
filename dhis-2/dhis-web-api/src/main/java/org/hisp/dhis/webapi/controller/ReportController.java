@@ -33,13 +33,18 @@ import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
 import net.sf.jasperreports.j2ee.servlets.ImageServlet;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -50,12 +55,19 @@ import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.report.ReportType;
 import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -71,15 +83,49 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping(value = ReportSchemaDescriptor.API_ENDPOINT)
 public class ReportController extends AbstractCrudController<Report> {
+  private static final String LEGACY_PATCH_NOT_SUPPORTED =
+      "Reports can only be updated with PUT, JSON Patch or metadata import";
+
   @Autowired public ReportService reportService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private ContextUtils contextUtils;
 
+  @Autowired private DhisConfigurationProvider configuration;
+
   // -------------------------------------------------------------------------
   // CRUD
   // -------------------------------------------------------------------------
+
+  /**
+   * The legacy (non JSON Patch) PATCH writes straight to the store and skips the metadata import,
+   * and with it the checks in {@code ReportObjectBundleHook}.
+   */
+  @Override
+  public void partialUpdateObject(
+      String pvUid,
+      Map<String, String> rpParameters,
+      @CurrentUser User currentUser,
+      HttpServletRequest request)
+      throws ConflictException {
+    throw new ConflictException(LEGACY_PATCH_NOT_SUPPORTED);
+  }
+
+  /**
+   * The legacy property PATCH sets the property on the persistent object before the metadata import
+   * runs, so the change can be flushed even when the import rejects it.
+   */
+  @Override
+  public void updateObjectProperty(
+      String pvUid,
+      String pvProperty,
+      Map<String, String> rpParameters,
+      @CurrentUser User currentUser,
+      HttpServletRequest request)
+      throws ConflictException {
+    throw new ConflictException(LEGACY_PATCH_NOT_SUPPORTED);
+  }
 
   @PutMapping("/{uid}/design")
   @PreAuthorize("hasRole('ALL')")
@@ -93,6 +139,10 @@ public class ReportController extends AbstractCrudController<Report> {
 
     if (report == null) {
       throw new WebMessageException(notFound("Report not found for identifier: " + uid));
+    }
+
+    if (!report.isTypeHtml()) {
+      checkJasperReportsEnabled();
     }
 
     report.setDesignContent(designContent);
@@ -213,9 +263,35 @@ public class ReportController extends AbstractCrudController<Report> {
     new ImageServlet().service(request, response);
   }
 
+  /**
+   * Writes web message errors of this controller as JSON with the status of the message. The data
+   * endpoints use the path extension (.pdf, .xls, .html) for content negotiation, which cannot
+   * carry a web message, so a refused request would otherwise not reach the client as a 409. Later
+   * lines do the same for every controller in {@code CrudControllerAdvice}.
+   */
+  @ExceptionHandler(WebMessageException.class)
+  public ResponseEntity<WebMessage> webMessageExceptionHandler(WebMessageException ex) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    return new ResponseEntity<>(
+        ex.getWebMessage(), headers, ex.getWebMessage().getHttpStatusCode());
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
+
+  /**
+   * A non-HTML report design is compiled by the JasperReports engine when the report is rendered,
+   * so both storing a design through the design endpoint and rendering are gated behind the {@code
+   * jasper.reports.enabled} configuration.
+   */
+  private void checkJasperReportsEnabled() throws WebMessageException {
+    if (configuration.isDisabled(ConfigurationKey.JASPER_REPORTS_ENABLED)) {
+      throw new WebMessageException(
+          conflict(ErrorCode.E1007, ConfigurationKey.JASPER_REPORTS_ENABLED.getKey()));
+    }
+  }
 
   private void getReport(
       HttpServletRequest request,
@@ -249,6 +325,8 @@ public class ReportController extends AbstractCrudController<Report> {
 
       reportService.renderHtmlReport(response.getWriter(), uid, date, organisationUnitUid);
     } else {
+      checkJasperReportsEnabled();
+
       date = date != null ? date : new DateTime().minusMonths(1).toDate();
 
       Period period =

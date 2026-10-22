@@ -55,6 +55,8 @@ public enum ConfigurationKey {
   /** SQL view protected tables, can be 'on', 'off'. (default: on) */
   SYSTEM_SQL_VIEW_TABLE_PROTECTION("system.sql_view_table_protection", Constants.ON, false),
 
+  /** JasperReports report designs enabled, can be 'on', 'off'. (default: off) */
+  JASPER_REPORTS_ENABLED("jasper.reports.enabled", Constants.OFF, false),
   /**
    * Disable server-side program rule execution, can be 'on', 'off'. <br>
    * (default: on)
