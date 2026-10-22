@@ -1,0 +1,64 @@
+# Copyright (c) 2004-2026, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: datasets_non_attribute_category_combo
+description: Data sets whose category combination is not an attribute category combination
+section: Data sets
+section_order: 5
+summary_sql: >-
+  WITH datasets_non_attribute_cc AS (
+  SELECT ds.uid, ds.name, cc.name AS comment
+  FROM dataset ds
+  JOIN categorycombo cc ON cc.categorycomboid = ds.categorycomboid
+  WHERE cc.name <> 'default'
+  AND COALESCE(cc.datadimensiontype, '') <> 'ATTRIBUTE')
+  SELECT COUNT(*) AS value,
+  100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM dataset), 0) AS percent
+  FROM datasets_non_attribute_cc;
+details_sql: >-
+  SELECT ds.uid, ds.name, cc.name AS comment
+  FROM dataset ds
+  JOIN categorycombo cc ON cc.categorycomboid = ds.categorycomboid
+  WHERE cc.name <> 'default'
+  AND COALESCE(cc.datadimensiontype, '') <> 'ATTRIBUTE'
+  ORDER BY ds.name;
+severity: SEVERE
+introduction: >
+  The category combination of a data set defines the attribute option combinations its data
+  is entered and stored with. It must either be the default category combination or a category
+  combination with the data dimension type "Attribute". A data set using a category combination
+  of type "Disaggregation" stores its data with disaggregation category option combinations
+  as attribute option combinations, which is not a valid configuration. Such data is not
+  returned to users who are not superusers in data value exports, and requesting it with an
+  explicit attribute option combination fails with error E2049. The name of the category
+  combination is shown as the comment.
+details_id_type: dataSets
+recommendation: >
+  Assign the data set a category combination of type "Attribute" (or the default category
+  combination). Data already stored with the invalid attribute option combinations needs to be
+  moved to valid attribute option combinations, which can be done by a superuser who can still
+  export this data.

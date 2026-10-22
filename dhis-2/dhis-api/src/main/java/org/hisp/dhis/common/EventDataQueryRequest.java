@@ -381,6 +381,10 @@ public class EventDataQueryRequest {
               .userOrganisationUnitCriteria(getAnalyticsQueryCriteria(criteria.getDimension()))
               .rowContext(criteria.isRowContext());
 
+      if (criteria.isAggregatedEnrollments()) {
+        builder.value(criteria.getValue()).aggregationType(criteria.getAggregationType());
+      }
+
       if (criteria.getDimension() == null) {
         criteria.setDimension(new HashSet<>());
       }

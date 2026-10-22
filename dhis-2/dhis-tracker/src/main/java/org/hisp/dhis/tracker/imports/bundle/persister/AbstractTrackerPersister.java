@@ -52,6 +52,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.sql.DataSource;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -535,6 +536,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           if (isDelete) {
             if (!isNew) {
               delete(preheat, currentValue, trackedEntity, user, changeLogs, batch);
+              syncTrackedEntityAttributeValue(trackedEntity, currentValue.getAttribute(), null);
 
               // Leave the entry in the map: the DELETE is not flushed until the end of
               // the run, so a later occurrence of the same TE+attribute in this run must
@@ -547,8 +549,26 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
                 saveOrUpdateAttributeValue(
                     preheat, trackedEntity, attribute, currentValue, user, changeLogs, batch);
             attributeValueById.put(attribute.getAttribute(), persisted);
+            syncTrackedEntityAttributeValue(trackedEntity, persisted.getAttribute(), persisted);
           }
         });
+  }
+
+  /**
+   * Mirrors a staged attribute value write onto the in-memory {@code trackedEntity}, which the JDBC
+   * batch does not touch. Import-time notifications render {@code A{...}} variables and resolve
+   * attribute recipients off this collection, and later persisters in the same import read it from
+   * the preheat.
+   */
+  private static void syncTrackedEntityAttributeValue(
+      TrackedEntity trackedEntity,
+      TrackedEntityAttribute attribute,
+      @CheckForNull TrackedEntityAttributeValue value) {
+    Set<TrackedEntityAttributeValue> values = trackedEntity.getTrackedEntityAttributeValues();
+    values.removeIf(av -> Objects.equals(av.getAttribute().getUid(), attribute.getUid()));
+    if (value != null) {
+      values.add(value);
+    }
   }
 
   /**

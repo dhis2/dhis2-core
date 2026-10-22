@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -263,16 +263,22 @@ public class CategoryCombo extends BaseMetadataObject
     Set<CategoryOptionCombo> generatedOptionCombos = new HashSet<>();
     CombinationGenerator<CategoryOption> generator =
         CombinationGenerator.newInstance(getCategoryOptionsAsLists());
+    // Name each COC up front against sets: an unnamed COC computes its name on every getName()
+    // call by scanning each category's option list, which is quadratic over all generated COCs
+    List<Set<CategoryOption>> optionsPerCategory =
+        categories.stream()
+            .map(c -> (Set<CategoryOption>) new HashSet<>(c.getCategoryOptions()))
+            .toList();
 
     while (generator.hasNext()) {
       CategoryOptionCombo optionCombo = new CategoryOptionCombo();
       optionCombo.setCategoryOptions(new HashSet<>(generator.getNext()));
       optionCombo.setCategoryCombo(this);
-      generatedOptionCombos.add(optionCombo);
-
-      for (CategoryOption categoryOption : optionCombo.getCategoryOptions()) {
-        categoryOption.addCategoryOptionCombo(optionCombo);
+      if (!categories.isEmpty()) {
+        optionCombo.setName(
+            CategoryOptionCombo.buildName(optionCombo.getCategoryOptions(), optionsPerCategory));
       }
+      generatedOptionCombos.add(optionCombo);
     }
 
     return generatedOptionCombos;

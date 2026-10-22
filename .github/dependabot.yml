@@ -12,10 +12,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    ignore:
-      - dependency-name: "codecov/codecov-action"
-        versions:
-          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
   - package-ecosystem: "maven"
     directory: "/dhis-2"
     schedule:
@@ -56,10 +52,6 @@ updates:
       prefix: "chore"
       include: "scope"
     target-branch: "2.43"
-    ignore:
-      - dependency-name: "codecov/codecov-action"
-        versions:
-          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
   - package-ecosystem: "maven"
     directory: "/dhis-2"
     schedule:
@@ -73,27 +65,30 @@ updates:
       include: "scope"
     target-branch: "2.43"
     ignore:
-      - dependency-name: "org.springframework:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
+      - dependency-name: "org.springframework:*" # Spring Framework 7 is documented for Servlet 6.1 (Tomcat 11), 6.2.x patch releases are wanted
         versions:
-          - ">= 6.0"
-      - dependency-name: "org.springframework.security:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
+          - ">= 7.0"
+      - dependency-name: "org.springframework.security:*" # Spring Security 7 requires Spring Framework 7, 6.5.x patch releases are wanted
         versions:
-          - ">= 6.0"
-      - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
-        versions:
-          - ">= 3.0"
-      - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
-        versions:
-          - ">= 2.0"
-      - dependency-name: "org.springframework.session:spring-session-data-redis" # Spring redis 3.x requires Spring 6 (see above)
+          - ">= 7.0"
+      - dependency-name: "org.springframework.data:spring-data-redis" # Spring Data Redis 3.x moves together with Spring Session Data Redis 3.x and needs a code change in RedisSpringSessionConfig, so it is upgraded by hand
         versions:
           - ">= 3.0"
-      - dependency-name: "org.springframework.restdocs:*" # Spring restdocs 3.x requires Spring 6 (see above)
+      - dependency-name: "org.springframework.retry:spring-retry" # Spring Retry 3.x would require Spring Framework 7, 2.0.x is the Spring Framework 6 line
         versions:
           - ">= 3.0"
-      - dependency-name: "org.springframework.ldap:*" # Spring ldap 3.x requires Spring 6 (see above)
+      - dependency-name: "org.springframework.session:spring-session-core" # Spring Session 4.x requires Spring Framework 7, 3.5.x is the Spring Framework 6 line
+        versions:
+          - ">= 4.0"
+      - dependency-name: "org.springframework.session:spring-session-data-redis" # moves together with Spring Data Redis 3.x (see above)
         versions:
           - ">= 3.0"
+      - dependency-name: "org.springframework.restdocs:*" # Spring REST Docs 4.x requires Spring Framework 7, 3.0.x is the Spring Framework 6 line
+        versions:
+          - ">= 4.0"
+      - dependency-name: "org.springframework.ldap:*" # Spring LDAP 4.x requires Spring Framework 7, 3.3.x is the Spring Framework 6 line
+        versions:
+          - ">= 4.0"
       - dependency-name: "org.slf4j:slf4j-api" # will update in https://dhis2.atlassian.net/browse/DHIS2-16504
         versions:
           - ">= 2.0"
@@ -135,10 +130,6 @@ updates:
       prefix: "chore"
       include: "scope"
     target-branch: "2.42"
-    ignore:
-      - dependency-name: "codecov/codecov-action"
-        versions:
-          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
   - package-ecosystem: "maven"
     directory: "/dhis-2"
     schedule:
@@ -155,27 +146,30 @@ updates:
       - dependency-name: "org.apache.struts:*" # will be removed from core (significant work involved in upgrade with the risk of regressions)
         versions:
           - ">= 3.0"
-      - dependency-name: "org.springframework:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
+      - dependency-name: "org.springframework:*" # Spring Framework 7 is documented for Servlet 6.1 (Tomcat 11), 6.2.x patch releases are wanted
         versions:
-          - ">= 6.0"
-      - dependency-name: "org.springframework.security:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
+          - ">= 7.0"
+      - dependency-name: "org.springframework.security:*" # Spring Security 7 requires Spring Framework 7, 6.5.x patch releases are wanted
         versions:
-          - ">= 6.0"
-      - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
-        versions:
-          - ">= 3.0"
-      - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
-        versions:
-          - ">= 2.0"
-      - dependency-name: "org.springframework.session:spring-session-data-redis" # Spring redis 3.x requires Spring 6 (see above)
+          - ">= 7.0"
+      - dependency-name: "org.springframework.data:spring-data-redis" # Spring Data Redis 3.x moves together with Spring Session Data Redis 3.x and needs a code change in RedisSpringSessionConfig, so it is upgraded by hand
         versions:
           - ">= 3.0"
-      - dependency-name: "org.springframework.restdocs:*" # Spring restdocs 3.x requires Spring 6 (see above)
+      - dependency-name: "org.springframework.retry:spring-retry" # Spring Retry 3.x would require Spring Framework 7, 2.0.x is the Spring Framework 6 line
         versions:
           - ">= 3.0"
-      - dependency-name: "org.springframework.ldap:*" # Spring ldap 3.x requires Spring 6 (see above)
+      - dependency-name: "org.springframework.session:spring-session-core" # Spring Session 4.x requires Spring Framework 7, 3.5.x is the Spring Framework 6 line
+        versions:
+          - ">= 4.0"
+      - dependency-name: "org.springframework.session:spring-session-data-redis" # moves together with Spring Data Redis 3.x (see above)
         versions:
           - ">= 3.0"
+      - dependency-name: "org.springframework.restdocs:*" # Spring REST Docs 4.x requires Spring Framework 7, 3.0.x is the Spring Framework 6 line
+        versions:
+          - ">= 4.0"
+      - dependency-name: "org.springframework.ldap:*" # Spring LDAP 4.x requires Spring Framework 7, 3.3.x is the Spring Framework 6 line
+        versions:
+          - ">= 4.0"
       - dependency-name: "org.slf4j:slf4j-api" # will update in https://dhis2.atlassian.net/browse/DHIS2-16504
         versions:
           - ">= 2.0"
@@ -220,10 +214,6 @@ updates:
       prefix: "chore"
       include: "scope"
     target-branch: "2.41"
-    ignore:
-      - dependency-name: "codecov/codecov-action"
-        versions:
-          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
   - package-ecosystem: "maven"
     directory: "/dhis-2"
     schedule:

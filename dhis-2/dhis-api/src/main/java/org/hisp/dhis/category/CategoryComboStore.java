@@ -74,6 +74,10 @@ public interface CategoryComboStore extends IdentifiableObjectStore<CategoryComb
    * combo's {@link CategoryOptionCombo#getCategoryOptions()}. Used to prime the session before
    * those associations are traversed or serialised, avoiding an N+1 select per parent.
    *
+   * <p>The queries do not flush the session first. Pending changes to these associations are not
+   * seen by the queries, so a caller that has modified them in the current transaction must flush
+   * before calling this method.
+   *
    * @param categoryCombos the category combos whose associations to load.
    */
   void preloadCategoryComboAssociations(Collection<CategoryCombo> categoryCombos);

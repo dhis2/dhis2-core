@@ -137,8 +137,8 @@ public class LocaleController {
   @PostMapping(value = "/dbLocales")
   @ResponseBody
   public WebMessage addLocale(
-      @RequestParam(required = false) String country,
       @RequestParam String language,
+      @RequestParam(required = false) String country,
       @RequestParam(required = false) String script) {
 
     I18nLocale i18nLocale;
@@ -152,14 +152,28 @@ public class LocaleController {
   }
 
   @RequiresAuthority(anyOf = F_LOCALE_DELETE)
+  @DeleteMapping(path = "/dbLocales")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void delete(
+      @RequestParam String language,
+      @RequestParam(required = false) String country,
+      @RequestParam(required = false) String script)
+      throws NotFoundException {
+    Locale locale = Locale.of(language, country, script);
+    I18nLocale i18nLocale = localeService.getI18nLocale(locale);
+
+    if (i18nLocale == null) throw new NotFoundException(I18nLocale.class, locale.toString());
+
+    localeService.deleteI18nLocale(i18nLocale);
+  }
+
+  @RequiresAuthority(anyOf = F_LOCALE_DELETE)
   @DeleteMapping(path = "/dbLocales/{uid}")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void delete(@PathVariable String uid) throws NotFoundException {
     I18nLocale i18nLocale = localeService.getI18nLocaleByUid(uid);
 
-    if (i18nLocale == null) {
-      throw new NotFoundException("Cannot find Locale with uid " + uid);
-    }
+    if (i18nLocale == null) throw new NotFoundException(I18nLocale.class, uid);
 
     localeService.deleteI18nLocale(i18nLocale);
   }
