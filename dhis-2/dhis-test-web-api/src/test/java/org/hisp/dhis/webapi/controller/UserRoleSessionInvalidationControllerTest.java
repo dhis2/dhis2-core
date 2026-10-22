@@ -48,7 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Verifies the end-to-end asynchronous invalidation of role member sessions when the authorities of
  * a {@link UserRole} change: the {@code UserRoleBundleHook} publishes an event on commit and {@code
- * UserRoleSessionInvalidationListener} expires the members' sessions after the transaction has
+ * UserSessionInvalidationListener} expires the members' sessions after the transaction has
  * committed, off the request thread.
  *
  * <p>Because the invalidation runs {@code AFTER_COMMIT} on a separate thread, the change has to be

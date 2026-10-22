@@ -607,6 +607,15 @@ public interface UserService {
   List<String> getUsernamesByUserRole(@Nonnull UID roleUid);
 
   /**
+   * Returns the usernames of the users with the given primary keys. Keys without a user are
+   * ignored.
+   *
+   * @param userIds the primary keys of the users.
+   * @return a list of usernames.
+   */
+  List<String> getUsernamesByIds(@Nonnull Collection<Long> userIds);
+
+  /**
    * Register a account recovery attempt for the given user account.
    *
    * @param username the username of the user account.

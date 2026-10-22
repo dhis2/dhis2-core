@@ -183,6 +183,15 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<String> getUsernamesByUserRole(@Nonnull UID roleUid);
 
   /**
+   * Retrieves the usernames of the users with the given primary keys. Keys without a user are
+   * ignored.
+   *
+   * @param userIds the primary keys of the users.
+   * @return a list of usernames.
+   */
+  List<String> getUsernamesByIds(@Nonnull Collection<Long> userIds);
+
+  /**
    * Returns all usernames in the system.
    *
    * @return a list of all usernames

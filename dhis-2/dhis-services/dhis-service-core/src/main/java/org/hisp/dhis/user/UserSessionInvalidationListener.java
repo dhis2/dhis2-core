@@ -31,6 +31,7 @@ package org.hisp.dhis.user;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -39,21 +40,26 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * Invalidates the sessions of all users that are members of a user role whose authorities have
- * changed, so that the new authorities take effect on the next authentication.
+ * Invalidates the sessions of users whose session principal has gone stale, so that the change
+ * takes effect on the next authentication:
+ *
+ * <ul>
+ *   <li>all members of a user role whose authorities have changed
+ *   <li>all users that joined or left a user group
+ * </ul>
  *
  * <p>The work runs after the updating transaction has committed, on a dedicated single-threaded
- * executor, in batches with a pause in between. This keeps an authority change on a role with many
- * members cheap on the request thread and spreads the invalidation work out over time. If the
- * server shuts down before all batches have run, the remaining sessions simply keep the old
- * authorities until they expire or the user re-authenticates.
+ * executor, in batches with a pause in between. This keeps a change that affects many users cheap
+ * on the request thread and spreads the invalidation work out over time. If the server shuts down
+ * before all batches have run, the remaining sessions simply keep the old principal until they
+ * expire or the user re-authenticates.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class UserRoleSessionInvalidationListener {
+public class UserSessionInvalidationListener {
 
   /** Number of users whose sessions are invalidated per batch. */
   static final int BATCH_SIZE = 100;
@@ -71,18 +77,42 @@ public class UserRoleSessionInvalidationListener {
         "Invalidating sessions of {} users after authority change of user role '{}'",
         usernames.size(),
         event.userRoleUid());
+    invalidateInBatches(
+        usernames, Function.identity(), "authority change of user role " + event.userRoleUid());
+  }
 
-    List<List<String>> batches = Lists.partition(usernames, BATCH_SIZE);
+  @Async("userSessionInvalidationTaskExecutor")
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+  public void onUserGroupMembershipChanged(UserGroupMembershipChangedEvent event) {
+    log.info(
+        "Invalidating sessions of {} users after user group membership change",
+        event.userIds().size());
+    invalidateInBatches(
+        List.copyOf(event.userIds()),
+        userService::getUsernamesByIds,
+        "user group membership change");
+  }
+
+  /**
+   * Invalidates the sessions of the given users in batches.
+   *
+   * @param users the users, identified by username or any key that resolves to usernames
+   * @param toUsernames resolves a batch of users to their usernames
+   * @param cause what made the sessions stale, for logging
+   */
+  private <T> void invalidateInBatches(
+      List<T> users, Function<List<T>, List<String>> toUsernames, String cause) {
+    List<List<T>> batches = Lists.partition(users, BATCH_SIZE);
     for (int i = 0; i < batches.size(); i++) {
       if (i > 0 && !pauseBetweenBatches()) {
         log.warn(
-            "Session invalidation for user role '{}' interrupted, {} of {} batches done",
-            event.userRoleUid(),
+            "Session invalidation after {} interrupted, {} of {} batches done",
+            cause,
             i,
             batches.size());
         return;
       }
-      batches.get(i).forEach(userService::invalidateUserSessions);
+      toUsernames.apply(batches.get(i)).forEach(userService::invalidateUserSessions);
     }
   }
 

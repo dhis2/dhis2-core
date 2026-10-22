@@ -71,7 +71,7 @@ public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
 
     if (Boolean.TRUE.equals(invalidateSessions)) {
       // Session invalidation for all members of the role is done asynchronously after the
-      // transaction has committed, see UserRoleSessionInvalidationListener. Loading all members
+      // transaction has committed, see UserSessionInvalidationListener. Loading all members
       // here would be O(members) full entity loads on the request thread.
       eventPublisher.publishEvent(new UserRoleAuthoritiesChangedEvent(UID.of(updatedUserRole)));
     }

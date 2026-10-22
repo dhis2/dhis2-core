@@ -645,6 +645,17 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
+  public List<String> getUsernamesByIds(@Nonnull Collection<Long> userIds) {
+    if (userIds.isEmpty()) {
+      return List.of();
+    }
+    return getSession()
+        .createQuery("select u.username from User u where u.id in (:userIds)", String.class)
+        .setParameter("userIds", userIds)
+        .list();
+  }
+
+  @Override
   public List<String> getAllUsernames() {
     return getSession().createQuery("select u.username from User u", String.class).list();
   }
