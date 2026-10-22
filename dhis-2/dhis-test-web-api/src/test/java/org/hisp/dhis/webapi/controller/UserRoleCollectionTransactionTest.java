@@ -222,6 +222,26 @@ class UserRoleCollectionTransactionTest extends DhisControllerConvenienceTest {
     assertLegacyScalarPatch(null, "", "email", HttpStatus.NO_CONTENT);
   }
 
+  /**
+   * The legacy whole object PATCH refuses arrays, but loads and adds a single UID given for a
+   * collection, without the checks of the user import, so it may not change the roles of a user,
+   * even of a user the current user may change.
+   */
+  @Test
+  void legacyWholePatchOfUserRolesIsRejected() {
+    User target = setUpTarget("whole");
+
+    assertStatus(
+        HttpStatus.CONFLICT,
+        inOpenSession(
+            () ->
+                PATCH_OLD(
+                    "/users/" + target.getUid(),
+                    "{'userRoles':'" + role("whole_UNISSUABLE").getUid() + "'}")));
+
+    assertCommittedRoles(target, "whole_GRANTABLE", "target_whole");
+  }
+
   private void assertLegacyScalarPatch(
       String authority, String suffix, String property, HttpStatus expected) {
     User target =

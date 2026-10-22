@@ -90,6 +90,8 @@ import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.patch.Mutation;
+import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -711,6 +713,37 @@ public class UserController extends AbstractCrudController<User> {
   }
 
   /**
+   * The legacy whole object PATCH writes straight to the store, without the checks of the user
+   * import. It refuses arrays, but a single UID given for a collection of a user (roles, groups,
+   * organisation units, dimension constraints) is loaded and added by the patch, so such changes
+   * are rejected, as on the legacy property PATCH.
+   */
+  @Override
+  protected Patch diff(HttpServletRequest request)
+      throws IOException, BadRequestException, ConflictException {
+    Patch patch = super.diff(request);
+    for (Mutation mutation : patch.getMutations()) {
+      String name = mutation.getPath().split("\\.")[0];
+      Property property = getSchema().getProperty(name);
+      if (property != null
+          && property.isCollection()
+          && property.isIdentifiableObject()
+          && mutation.getValue() != null) {
+        throw legacyPatchOfCollectionRejected(name);
+      }
+    }
+    return patch;
+  }
+
+  private static ConflictException legacyPatchOfCollectionRejected(String property) {
+    return new ConflictException(
+        "The "
+            + property
+            + " of a user can only be changed with PUT, JSON Patch, metadata import or the"
+            + " collection endpoints");
+  }
+
+  /**
    * The legacy property PATCH sets the property on the persistent user before the metadata import
    * runs, so a change can be flushed even when the import rejects it. The collections of a user
    * (roles, groups, organisation units, dimension constraints) are therefore not changed this way,
@@ -733,11 +766,7 @@ public class UserController extends AbstractCrudController<User> {
     checkLegacyPatchUser(pvUid, currentUser);
     Property property = getSchema().getProperty(pvProperty);
     if (property != null && property.isCollection() && property.isIdentifiableObject()) {
-      throw new ConflictException(
-          "The "
-              + pvProperty
-              + " of a user can only be changed with PUT, JSON Patch, metadata import or the"
-              + " collection endpoints");
+      throw legacyPatchOfCollectionRejected(pvProperty);
     }
     super.updateObjectProperty(pvUid, pvProperty, rpParameters, currentUser, request);
   }
