@@ -36,17 +36,28 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /** Created by Halvdan Hoem Grelland */
 class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
+  @Autowired private UserService auditUserService;
+
+  @BeforeEach
+  void authenticateAuditReader() {
+    userService = auditUserService;
+    injectSecurityContext(createAndAddAdminUser("ALL"));
+  }
+
   @Autowired private DataValueAuditService dataValueAuditService;
 
   @Autowired private DataValueService dataValueService;
@@ -249,7 +260,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditWithFakeCreate() {
+  void testGetDataValueAuditWithFakeCreate() throws ForbiddenException {
     DataValueAuditQueryParams params =
         new DataValueAuditQueryParams()
             .setDataElements(List.of(dataElementA))
@@ -269,7 +280,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditWithFakeCreate2() {
+  void testGetDataValueAuditWithFakeCreate2() throws ForbiddenException {
     dataValueA.setValue("10");
     dataValueService.updateDataValue(dataValueA);
 
@@ -283,7 +294,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditWithFakeCreateDeleteAndCreate() {
+  void testGetDataValueAuditWithFakeCreateDeleteAndCreate() throws ForbiddenException {
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValueA, "10", dataValueA.getStoredBy(), AuditType.UPDATE));
 
@@ -306,7 +317,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @Disabled
-  void testGetDataValueAuditWithFakeCreateDelete2() {
+  void testGetDataValueAuditWithFakeCreateDelete2() throws ForbiddenException {
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValueA, "10", dataValueA.getStoredBy(), AuditType.UPDATE));
 
@@ -331,7 +342,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @Disabled
-  void testGetDataValueAuditWithFakeCreateDeleteAndUndelete() {
+  void testGetDataValueAuditWithFakeCreateDeleteAndUndelete() throws ForbiddenException {
     DataElement dataElement = createDataElement('F');
     DataValue dataValue =
         createDataValue(dataElement, periodA, orgUnitA, optionCombo, optionCombo, "1");

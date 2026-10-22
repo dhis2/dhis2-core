@@ -110,6 +110,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
   @BeforeEach
   public void init() {
     userService = _userService;
+    injectSecurityContext(createAndAddAdminUser("ALL"));
 
     cleanUpJob =
         new FileResourceCleanUpJob(

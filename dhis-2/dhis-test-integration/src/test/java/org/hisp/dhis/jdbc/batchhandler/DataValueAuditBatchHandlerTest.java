@@ -48,8 +48,10 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,6 +59,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Lars Helge Overland
  */
 class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
+  @Autowired private UserService auditUserService;
+
+  @BeforeEach
+  void authenticateAuditReader() {
+    userService = auditUserService;
+    injectSecurityContext(createAndAddAdminUser("ALL"));
+  }
 
   @Autowired private BatchHandlerFactory batchHandlerFactory;
 

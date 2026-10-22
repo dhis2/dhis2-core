@@ -67,6 +67,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.Preset;
@@ -82,6 +84,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -132,6 +135,8 @@ public class AuditController {
   private final FileResourceService fileResourceService;
 
   private final DhisConfigurationProvider dhisConfig;
+
+  private final AclService aclService;
 
   @GetMapping("/files/{uid}")
   public void getFileAudit(
@@ -196,8 +201,9 @@ public class AuditController {
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
-      @RequestParam(required = false, defaultValue = "1") int page)
-      throws WebMessageException {
+      @RequestParam(required = false, defaultValue = "1") int page,
+      @CurrentUser User currentUser)
+      throws WebMessageException, ConflictException {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
@@ -206,7 +212,7 @@ public class AuditController {
 
     List<DataElement> dataElements = new ArrayList<>();
     dataElements.addAll(manager.loadByUid(DataElement.class, de));
-    dataElements.addAll(getDataElementsByDataSet(ds));
+    dataElements.addAll(getDataElementsByDataSet(ds, currentUser));
 
     List<Period> periods = getPeriods(pe);
     List<OrganisationUnit> organisationUnits = manager.loadByUid(OrganisationUnit.class, ou);
@@ -536,11 +542,19 @@ public class AuditController {
   // Helpers
   // -----------------------------------------------------------------------------------------------------------------
 
-  private List<DataElement> getDataElementsByDataSet(List<String> uids) throws WebMessageException {
+  private List<DataElement> getDataElementsByDataSet(List<String> uids, User currentUser)
+      throws ConflictException {
     List<DataSet> dataSets = manager.loadByUid(DataSet.class, uids);
-
+    List<String> noDataRead =
+        dataSets.stream()
+            .filter(dataSet -> !aclService.canDataRead(currentUser, dataSet))
+            .map(DataSet::getUid)
+            .collect(Collectors.toList());
+    if (!noDataRead.isEmpty()) {
+      throw new ConflictException(ErrorCode.E2010, String.join(",", noDataRead));
+    }
     return dataSets.stream()
-        .map(ds -> ds.getDataElements())
+        .map(DataSet::getDataElements)
         .flatMap(Set::stream)
         .collect(Collectors.toList());
   }

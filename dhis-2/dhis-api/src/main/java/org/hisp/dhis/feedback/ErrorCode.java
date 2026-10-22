@@ -138,6 +138,7 @@ public enum ErrorCode {
   E2042("Min value must be specified"),
   E2043("Max value must be specified"),
   E2044("Max value must be greater than min value"),
+  E2050("User is not allowed to read data of the data value: `{0}`, `{1}`, `{2}`"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),

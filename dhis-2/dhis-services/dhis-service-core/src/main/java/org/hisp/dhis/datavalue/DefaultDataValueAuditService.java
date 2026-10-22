@@ -35,6 +35,8 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.util.ObjectUtils;
@@ -97,7 +99,8 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo) {
+      CategoryOptionCombo attributeOptionCombo)
+      throws ForbiddenException {
     CategoryOptionCombo coc =
         ObjectUtils.firstNonNull(
             categoryOptionCombo,
@@ -107,6 +110,11 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
         ObjectUtils.firstNonNull(
             attributeOptionCombo,
             categoryOptionComboStore.getByName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME));
+
+    if (!dataValueAuditStore.isReadable(dataElement, organisationUnit, coc, aoc)) {
+      throw new ForbiddenException(
+          ErrorCode.E2050, dataElement.getUid(), period.getIsoDate(), organisationUnit.getUid());
+    }
 
     DataValue dataValue =
         dataValueStore.getDataValue(dataElement, period, organisationUnit, coc, aoc, true);
