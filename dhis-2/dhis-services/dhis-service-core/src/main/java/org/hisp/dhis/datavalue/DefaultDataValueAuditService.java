@@ -129,22 +129,8 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
             attributeOptionCombo,
             categoryOptionComboStore.getByName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME));
 
-    if (!dataValueAuditStore.isReadable(dataElement, organisationUnit, coc, aoc)) {
-      throw new AccessDeniedException(
-          new ErrorMessage(
-                  ErrorCode.E2050,
-                  dataElement.getUid(),
-                  period.getIsoDate(),
-                  organisationUnit.getUid())
-              .getMessage());
-    }
-
     DataValue dataValue =
         dataValueStore.getDataValue(dataElement, period, organisationUnit, coc, aoc, true);
-
-    if (dataValue == null) {
-      return List.of();
-    }
 
     DataValueAuditQueryParams params =
         new DataValueAuditQueryParams()
@@ -154,10 +140,28 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
             .setCategoryOptionCombo(coc)
             .setAttributeOptionCombo(aoc);
 
+    // the store only returns audits the user may read, so only no audits need the check
     List<DataValueAudit> dataValueAudits =
-        dataValueAuditStore.getDataValueAudits(params).stream()
-            .map(x -> DataValueAudit.from(x, x.getCreated()))
-            .collect(Collectors.toList());
+        dataValue == null
+            ? List.of()
+            : dataValueAuditStore.getDataValueAudits(params).stream()
+                .map(x -> DataValueAudit.from(x, x.getCreated()))
+                .collect(Collectors.toList());
+
+    if (dataValueAudits.isEmpty()
+        && !dataValueAuditStore.isReadable(dataElement, organisationUnit, coc, aoc)) {
+      throw new AccessDeniedException(
+          new ErrorMessage(
+                  ErrorCode.E2050,
+                  dataElement.getUid(),
+                  period.getIsoDate(),
+                  organisationUnit.getUid())
+              .getMessage());
+    }
+
+    if (dataValue == null) {
+      return List.of();
+    }
 
     if (dataValueAudits.isEmpty()) {
       dataValueAudits.add(createDataValueAudit(dataValue));
