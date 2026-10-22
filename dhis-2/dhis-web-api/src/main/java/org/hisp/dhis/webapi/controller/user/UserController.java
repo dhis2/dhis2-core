@@ -92,6 +92,7 @@ import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.SecurityService;
@@ -107,6 +108,7 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -440,6 +442,8 @@ public class UserController extends AbstractCrudController<User> {
 
     validateCreateUser(existingUser, currentUser);
 
+    userService.checkCanReplicateUser(existingUser, currentUser);
+
     Map<String, String> auth = renderService.fromJson(request.getInputStream(), Map.class);
 
     String username = StringUtils.trimToNull(auth != null ? auth.get(KEY_USERNAME) : null);
@@ -568,6 +572,7 @@ public class UserController extends AbstractCrudController<User> {
       @CurrentUser User currentUser,
       HttpServletRequest request)
       throws Exception {
+    checkLegacyPatchUser(pvUid, currentUser);
     WebOptions options = new WebOptions(rpParameters);
     List<User> entities = getEntity(pvUid, options);
 
@@ -587,6 +592,7 @@ public class UserController extends AbstractCrudController<User> {
     Patch patch = diff(request);
 
     mergeUserCredentialsMutations(patch);
+    checkNoLegacyPatchOfUserCollections(patch);
 
     prePatchEntity(persistedObject, persistedObject);
     patchService.apply(patch, persistedObject);
@@ -742,6 +748,70 @@ public class UserController extends AbstractCrudController<User> {
   // -------------------------------------------------------------------------
   // PATCH
   // -------------------------------------------------------------------------
+
+  /**
+   * The legacy PATCH routes change the persistent user before (property route) or without (whole
+   * object route) the checks of the user import, so the rights over the user are checked first: a
+   * user having the ALL authority can only be changed by such a user (E3041), and any other user
+   * only by someone allowed to modify it (see {@code UserService#checkCanChangeUser}).
+   */
+  private void checkLegacyPatchUser(String uid, User currentUser) throws WebMessageException {
+    User target = userService.getUser(uid);
+    if (target == null) {
+      throw new WebMessageException(notFound(getEntityClass(), uid));
+    }
+    userService.checkCanChangeUser(target, currentUser);
+  }
+
+  /**
+   * The legacy whole object PATCH writes straight to the store, without the checks of the user
+   * import. It refuses arrays, but a single UID given for a collection of a user (roles, groups,
+   * organisation units, dimension constraints) is loaded and added by the patch, so such changes
+   * are rejected, as on the legacy property PATCH.
+   */
+  private void checkNoLegacyPatchOfUserCollections(Patch patch) throws ConflictException {
+    for (Mutation mutation : patch.getMutations()) {
+      String name = mutation.getPath().split("\\.")[0];
+      Property property = getSchema().getProperty(name);
+      if (property != null
+          && property.isCollection()
+          && property.isIdentifiableObject()
+          && mutation.getValue() != null) {
+        throw legacyPatchOfCollectionRejected(name);
+      }
+    }
+  }
+
+  private static ConflictException legacyPatchOfCollectionRejected(String property) {
+    return new ConflictException(
+        "The "
+            + property
+            + " of a user can only be changed with PUT, JSON Patch, metadata import or the"
+            + " collection endpoints");
+  }
+
+  /**
+   * The legacy property PATCH sets the property on the persistent user before the metadata import
+   * runs, so a change can be flushed even when the import rejects it. The collections of a user
+   * (roles, groups, organisation units, dimension constraints) are therefore not changed this way,
+   * so that the checks of the user import and of {@code UserService#checkCanChangeUserCollection}
+   * always apply to them.
+   */
+  @Override
+  public void updateObjectProperty(
+      @PathVariable("uid") String pvUid,
+      @PathVariable("property") String pvProperty,
+      @RequestParam Map<String, String> rpParameters,
+      @CurrentUser User currentUser,
+      HttpServletRequest request)
+      throws Exception {
+    checkLegacyPatchUser(pvUid, currentUser);
+    Property property = getSchema().getProperty(pvProperty);
+    if (property != null && property.isCollection() && property.isIdentifiableObject()) {
+      throw legacyPatchOfCollectionRejected(pvProperty);
+    }
+    super.updateObjectProperty(pvUid, pvProperty, rpParameters, currentUser, request);
+  }
 
   @Override
   protected void prePatchEntity(User oldEntity, User newEntity) {

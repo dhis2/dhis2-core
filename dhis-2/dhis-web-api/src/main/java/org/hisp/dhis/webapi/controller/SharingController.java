@@ -47,6 +47,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -235,6 +236,12 @@ public class SharingController {
 
     if (!aclService.canManage(user, object)) {
       throw new AccessDeniedException("You do not have manage access to this object.");
+    }
+
+    List<ErrorReport> updateErrors = userService.validateSharingUpdate(object, user);
+    if (!updateErrors.isEmpty()) {
+      ErrorReport error = updateErrors.get(0);
+      return conflict(error.getErrorCode(), error.getErrorProperties().toArray());
     }
 
     Sharing sharing = renderService.fromJson(request.getInputStream(), Sharing.class);

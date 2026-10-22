@@ -62,3 +62,4 @@ checks:
   - groups/group_size_category_option_groups.yaml
   - groups/group_size_category_option_group_sets.yaml
   - groups/group_size_user_groups.yaml
+  - users/user_roles_with_authorities_not_held_by_creator.yaml

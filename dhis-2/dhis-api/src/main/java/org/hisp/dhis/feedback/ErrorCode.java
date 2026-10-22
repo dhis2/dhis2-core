@@ -182,6 +182,7 @@ public enum ErrorCode {
   E3028("User `{0}` does not have access to user role"),
   E3032("User `{0}` does not have access to user role"),
   E3041("User `{0}` is not allowed to change a user having the ALL authority"),
+  E3053("User `{0}` is not allowed to replicate a user lacking their dimension constraints"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),

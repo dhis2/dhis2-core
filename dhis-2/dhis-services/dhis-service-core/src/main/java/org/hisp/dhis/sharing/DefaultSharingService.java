@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.sharing;
 
+import java.util.List;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -90,14 +91,20 @@ public class DefaultSharingService implements SharingService {
 
     BaseIdentifiableObject object = (BaseIdentifiableObject) entity;
 
+    User user = currentUserService.getCurrentUser();
+
+    List<ErrorReport> updateErrors = userService.validateSharingUpdate(entity, user);
+    if (!updateErrors.isEmpty()) {
+      updateErrors.forEach(objectReport::addErrorReport);
+      return objectReport;
+    }
+
     if ((object instanceof SystemDefaultMetadataObject)
         && ((SystemDefaultMetadataObject) object).isDefault()) {
       objectReport.addErrorReport(
           new ErrorReport(Sharing.class, ErrorCode.E3013, entityClass.getSimpleName())
               .setErrorKlass(entityClass));
     }
-
-    User user = currentUserService.getCurrentUser();
 
     if (!aclService.canManage(user, object)) {
       objectReport.addErrorReport(

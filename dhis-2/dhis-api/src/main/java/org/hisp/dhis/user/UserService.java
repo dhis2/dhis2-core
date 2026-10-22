@@ -38,9 +38,12 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * @author Chau Thu Tran
@@ -376,7 +379,104 @@ public interface UserService {
    */
   List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser);
 
-  List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole user, User currentUser);
+  /**
+   * Validate that the current user is allowed to create or modify properties of the given user
+   * role. Besides the checks for the ALL authority, the resulting role may only carry authorities
+   * the current user holds. An update without authorities ({@code null}) keeps the stored
+   * authorities, so those are checked then.
+   *
+   * @param role the user role.
+   * @param currentUser the current User.
+   * @return a list of ErrorReport.
+   */
+  List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, User currentUser);
+
+  /** Also checks retained stored authorities when the merge mode does not replace them. */
+  List<ErrorReport> validateUserRoleCreateOrUpdate(
+      UserRole role, User currentUser, MergeMode mergeMode);
+
+  /**
+   * Checks rights over the target user before it is changed.
+   *
+   * @throws AccessDeniedException if the current user may not change the user.
+   */
+  void checkCanChangeUser(User user, User currentUser) throws AccessDeniedException;
+
+  /** Validates the rules for changing the sharing of an object. */
+  List<ErrorReport> validateSharingUpdate(IdentifiableObject object, User currentUser);
+
+  /**
+   * Validate that the current user is allowed to delete the given user role. Only a user having the
+   * ALL authority may delete a role carrying the ALL authority.
+   *
+   * @param role the user role.
+   * @param currentUser the current User.
+   * @return a list of ErrorReport.
+   */
+  List<ErrorReport> validateUserRoleDelete(UserRole role, User currentUser);
+
+  /**
+   * Checks that the current user may add and remove the given items to and from a collection of
+   * each of the given users, such as their roles, groups or organisation units. The rules are those
+   * of a user update: the current user needs rights over each user (see {@link
+   * #canCurrentUserCanModify}), may only add roles carrying authorities they hold, may only add or
+   * remove groups whose members they may change, and may only add organisation units within their
+   * own hierarchy. The items are checked once for all users.
+   *
+   * @param users the users whose collection is changed.
+   * @param itemType the type of the items of the collection.
+   * @param additions the items about to be added.
+   * @param deletions the items about to be removed.
+   * @param currentUser the current User.
+   * @throws AccessDeniedException if the current user may not make the change.
+   */
+  void checkCanChangeUserCollection(
+      @Nonnull Collection<User> users,
+      @Nonnull Class<?> itemType,
+      @Nonnull Collection<? extends IdentifiableObject> additions,
+      @Nonnull Collection<? extends IdentifiableObject> deletions,
+      @Nonnull User currentUser)
+      throws AccessDeniedException;
+
+  /**
+   * Checks that the current user may replicate the given user. The replica gets the roles, groups,
+   * organisation units and dimension constraints of the source user, and the current user sets its
+   * password, so the current user needs rights over the source user (see {@link
+   * #canCurrentUserCanModify}), must be allowed to grant every role of the source user, including
+   * roles the current user cannot read, the replica must pass the checks of creating a user (see
+   * {@link #validateUserCreateOrUpdateAccess}), and it must carry every dimension constraint of the
+   * current user, as a user created by the current user would.
+   *
+   * @param source the user to replicate.
+   * @param currentUser the current User.
+   * @throws AccessDeniedException if the current user may not replicate the user.
+   */
+  void checkCanReplicateUser(@Nonnull User source, @Nonnull User currentUser)
+      throws AccessDeniedException;
+
+  /**
+   * Adds the given user to the given user role. The current user needs write access to the role,
+   * rights over the user and must hold every authority of the role.
+   *
+   * @param role the user role.
+   * @param user the user.
+   * @param currentUser the current User.
+   * @throws AccessDeniedException if the current user may not add the user to the role.
+   */
+  void addUserToRole(@Nonnull UserRole role, @Nonnull User user, @Nonnull User currentUser)
+      throws AccessDeniedException;
+
+  /**
+   * Removes the given user from the given user role. The current user needs write access to the
+   * role and rights over the user.
+   *
+   * @param role the user role.
+   * @param user the user.
+   * @param currentUser the current User.
+   * @throws AccessDeniedException if the current user may not remove the user from the role.
+   */
+  void removeUserFromRole(@Nonnull UserRole role, @Nonnull User user, @Nonnull User currentUser)
+      throws AccessDeniedException;
 
   /**
    * @param inDays number of days to include
