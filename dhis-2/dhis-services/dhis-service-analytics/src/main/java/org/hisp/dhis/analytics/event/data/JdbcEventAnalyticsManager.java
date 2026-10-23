@@ -473,8 +473,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   @Override
   protected String getFromClause(EventQueryParams params) {
     StringBuilder sql = new StringBuilder(" from ");
+    boolean isFirstOrLast =
+        params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType();
 
-    if (params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
+    if (isFirstOrLast) {
       sql.append(firstOrLastRenderer.render(params));
     } else {
       sql.append(params.getTableName());
@@ -495,8 +497,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
           .append(" ");
     }
 
-    resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
-        .forEach(join -> sql.append(join.toSql()).append(" "));
+    // First/last queries hold a single period, rendered as a literal, so no period bucket is read
+    if (!isFirstOrLast) {
+      resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
+          .forEach(join -> sql.append(join.toSql()).append(" "));
+    }
 
     sql.append(OrgUnitSqlCoordinator.joinClause(params, sqlBuilder));
 

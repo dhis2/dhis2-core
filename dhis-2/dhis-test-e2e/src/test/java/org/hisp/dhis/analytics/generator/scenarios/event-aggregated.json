@@ -211,9 +211,9 @@
       }
     },
     {
-       "name": "stageValueWithBooleanDataElement",
-       "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?displayProperty=NAME&totalPages=false&dimension=A03MvHHogjR.EVENT_DATE:LAST_6_MONTHS&value=A03MvHHogjR.bx6fsa0t90x&relativePeriodDate=2021-07-01",
-       "version": {
+      "name": "stageValueWithBooleanDataElement",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?displayProperty=NAME&totalPages=false&dimension=A03MvHHogjR.EVENT_DATE:LAST_6_MONTHS&value=A03MvHHogjR.bx6fsa0t90x&relativePeriodDate=2021-07-01",
+      "version": {
         "min": 43
       }
     },
@@ -407,6 +407,90 @@
       }
     },
     {
+      "name": "firstBirthValueAtStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202202&aggregationType=FIRST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstAverageBirthValueAtStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202202&aggregationType=FIRST_AVERAGE_ORG_UNIT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstFirstBirthValueAtStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202202&aggregationType=FIRST_FIRST_ORG_UNIT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueAtStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202202&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastAverageBirthValueAtStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202202&aggregationType=LAST_AVERAGE_ORG_UNIT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastLastBirthValueAtStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202202&aggregationType=LAST_LAST_ORG_UNIT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstBirthValueWithStagePeriodFilter",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202202&aggregationType=FIRST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueWithStagePeriodFilter",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202202&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstBirthValueWithScheduledPeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.SCHEDULED_DATE:202202&aggregationType=FIRST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueWithScheduledPeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.SCHEDULED_DATE:202202&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueForEachStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202201;202202&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "sumBirthValuesWithinStagePeriod",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&dimension=flBirth0001.EVENT_DATE:202201&aggregationType=SUM",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "enrollmentOuLevel2",
       "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,ENROLLMENT_OU:LEVEL-2&displayProperty=NAME&totalPages=false",
       "version": {
@@ -472,6 +556,62 @@
     {
       "name": "enrollmentOuWithRegistrationOu",
       "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,ENROLLMENT_OU:LEVEL-2,REGISTRATION_OU:LEVEL-2&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueWithStagePeriodFilters",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202201;202202&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueWithNonConsecutiveStagePeriodFilters",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202201;202204&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstBirthValueWithStagePeriodFilters",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202201;202202&aggregationType=FIRST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastValueWithStageOrgUnitAtStagePeriods",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=A03MvHHogjR.EVENT_DATE:202210;202211;202212&dimension=A03MvHHogjR.ou:USER_ORGUNIT&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastValueWithEnrollmentOrgUnit",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=pe:202210;202211;202212&dimension=ENROLLMENT_OU:USER_ORGUNIT&value=ZzYYXq4fJie.HLmTEmupdX0&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastValueWithRegistrationOrgUnit",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=pe:202210;202211;202212&dimension=REGISTRATION_OU:USER_ORGUNIT&value=ZzYYXq4fJie.HLmTEmupdX0&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastValueAtEnrollmentDatePeriods",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ENROLLMENT_DATE:202201;202202;202203&dimension=ENROLLMENT_OU:USER_ORGUNIT&value=ZzYYXq4fJie.HLmTEmupdX0&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstValueAtEnrollmentDatePeriods",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ENROLLMENT_DATE:202201;202202;202203&dimension=ENROLLMENT_OU:USER_ORGUNIT&value=ZzYYXq4fJie.HLmTEmupdX0&aggregationType=FIRST",
       "version": {
         "min": 44
       }
