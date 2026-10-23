@@ -489,6 +489,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "stageEventStatusWithoutItems",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=A03MvHHogjR.EVENT_STATUS,ou:KIUCimTXf8Q,pe:202201&asc=eventdate,lastupdated&displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
