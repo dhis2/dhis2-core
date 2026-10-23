@@ -40,6 +40,7 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupMembershipChangeCollector;
 import org.hisp.dhis.user.UserGroupStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -48,12 +49,17 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.user.UserGroupStore")
 public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<UserGroup>
     implements UserGroupStore {
+
+  private final UserGroupMembershipChangeCollector membershipChangeCollector;
+
   public HibernateUserGroupStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      AclService aclService) {
+      AclService aclService,
+      UserGroupMembershipChangeCollector membershipChangeCollector) {
     super(entityManager, jdbcTemplate, publisher, UserGroup.class, aclService, true);
+    this.membershipChangeCollector = membershipChangeCollector;
   }
 
   @Override
@@ -68,16 +74,6 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
             + placeholders
             + ")";
     return new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, userGroupIds.toArray()));
-  }
-
-  @Override
-  public void save(@Nonnull UserGroup object, boolean clearSharing) {
-    super.save(object, clearSharing);
-
-    // TODO: MAS: send event to invalidate sessions for users in this group
-    //        object
-    //            .getMembers()
-    //            .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
   }
 
   @Override
@@ -96,13 +92,17 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
         """;
     boolean changed = jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
     if (changed) {
-      evictUserGroupsCollectionCache(userUid);
+      membershipChanged(userUid);
       updateLastUpdated(userGroupUid, lastUpdatedByUid);
     }
     return changed;
   }
 
-  private void evictUserGroupsCollectionCache(@Nonnull UID userUid) {
+  /**
+   * Evicts the cached user groups of the user and reports the membership change, since writing the
+   * membership via SQL bypasses Hibernate.
+   */
+  private void membershipChanged(@Nonnull UID userUid) {
     Long userId =
         jdbcTemplate.queryForObject(
             "SELECT userinfoid FROM userinfo WHERE uid = ?", Long.class, userUid.getValue());
@@ -111,6 +111,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
           .getSessionFactory()
           .getCache()
           .evictCollectionData(User.class.getName() + ".groups", userId);
+      membershipChangeCollector.membershipsChanged(Set.of(userId));
     }
   }
 
@@ -151,7 +152,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
         """;
     boolean changed = jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
     if (changed) {
-      evictUserGroupsCollectionCache(userUid);
+      membershipChanged(userUid);
       updateLastUpdated(userGroupUid, lastUpdatedByUid);
     }
     return changed;
@@ -163,13 +164,4 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
         "DELETE FROM usergroupmembers WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)",
         userUid.getValue());
   }
-
-  //  @Override
-  // TODO: MAS: send event to invalidate sessions for users in this group
-  //  public void update(@Nonnull UserGroup object, User user) {
-  //    super.update(object, user);
-  //    //    object
-  //    //        .getMembers()
-  //    //        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
-  //  }
 }
