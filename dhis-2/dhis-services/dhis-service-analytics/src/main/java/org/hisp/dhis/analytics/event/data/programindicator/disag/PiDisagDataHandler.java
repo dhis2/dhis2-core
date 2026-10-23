@@ -64,7 +64,7 @@ public class PiDisagDataHandler {
 
   /**
    * Adds the CategoryOptionCombo and AttributeOptionCombo to a list of row values if this is a
-   * program indicator and the values are to be output ot a data value set.
+   * program indicator and the values are to be output to a data value set.
    *
    * <p>Returns true if ANY of the following conditions are met:
    *
