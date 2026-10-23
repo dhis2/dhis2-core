@@ -866,6 +866,75 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyAggregatedEventQueryRestrictsStageForStageEventStatusWithoutItems() {
+    mockEmptyRowSet();
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(AGGREGATE)
+            .withOutputType(EventOutputType.EVENT)
+            .withAggregateData(true)
+            .addItem(
+                stageScopedItem(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME, ValueType.TEXT))
+            .build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void verifyAggregatedEventQueryRestrictsStageOnceForStageEventStatusWithItems() {
+    mockEmptyRowSet();
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    QueryItem stageEventStatusItem =
+        stageScopedItem(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME, ValueType.TEXT);
+    stageEventStatusItem.addFilter(new QueryFilter(QueryOperator.IN, "ACTIVE;COMPLETED"));
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(AGGREGATE)
+            .withOutputType(EventOutputType.EVENT)
+            .withAggregateData(true)
+            .addItem(stageEventStatusItem)
+            .build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void verifyEventQueryRestrictsStageForStageEventDateWithoutItems() {
+    mockEmptyRowSet();
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(QUERY)
+            .withOutputType(EventOutputType.EVENT)
+            .addItem(
+                stageScopedItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, ValueType.DATE))
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
   void verifyFirstAggregationTypeSubquery() {
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
@@ -1784,7 +1853,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyEventQuerySortByStageScopedEventDateOrdersByEventOccurredDate() {
     String actual =
         eventQuerySql(
-            stageScopedSortItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, ValueType.DATE),
+            stageScopedItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, ValueType.DATE),
             true);
 
     assertEventSortsOnOwnColumn(actual, "\"occurreddate\" asc nulls last");
@@ -1794,8 +1863,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyEventQuerySortByStageScopedScheduledDateOrdersByEventScheduledDate() {
     String actual =
         eventQuerySql(
-            stageScopedSortItem(
-                EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, ValueType.DATE),
+            stageScopedItem(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, ValueType.DATE),
             false);
 
     assertEventSortsOnOwnColumn(actual, "\"scheduleddate\" desc nulls last");
@@ -1805,8 +1873,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyEventQuerySortByStageScopedOrgUnitOrdersByEventOrgUnit() {
     String actual =
         eventQuerySql(
-            stageScopedSortItem(
-                EventAnalyticsColumnName.OU_COLUMN_NAME, ValueType.ORGANISATION_UNIT),
+            stageScopedItem(EventAnalyticsColumnName.OU_COLUMN_NAME, ValueType.ORGANISATION_UNIT),
             true);
 
     assertEventSortsOnOwnColumn(actual, "\"ou\" asc nulls last");
@@ -1871,7 +1938,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   /**
    * Mirrors the item {@code DefaultQueryItemLocator} produces for {@code <stage>.EVENT_DATE} etc.
    */
-  private QueryItem stageScopedSortItem(String columnName, ValueType valueType) {
+  private QueryItem stageScopedItem(String columnName, ValueType valueType) {
     QueryItem item =
         new QueryItem(
             new BaseDimensionalItemObject(columnName),

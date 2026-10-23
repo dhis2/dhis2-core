@@ -620,6 +620,14 @@ public class EventQueryParams extends DataQueryParams {
     }
   }
 
+  /**
+   * Returns the cache key component for an org unit item. The level is included for org units as it
+   * determines which uidlevel column is used in the SQL.
+   */
+  private static String getOrgUnitKeyComponent(DimensionalItemObject item) {
+    return item instanceof OrganisationUnit ou ? ou.getUid() + ":" + ou.getLevel() : item.getUid();
+  }
+
   /** Returns a unique key representing this query. The key is suitable for caching. */
   @Override
   public String getKey() {
@@ -630,15 +638,8 @@ public class EventQueryParams extends DataQueryParams {
     headers.forEach(header -> key.add("headers", "[" + header + "]"));
     itemProgramIndicators.forEach(e -> key.add("itemProgramIndicator", e.getUid()));
     eventStatus.forEach(status -> key.add("eventStatus", "[" + status + "]"));
-    asc.forEach(e -> e.getItem().getUid());
-    desc.forEach(e -> e.getItem().getUid());
-
-    // Enrollment and registration OU selections are stored outside the generic dimensions and
-    // filters.
-    enrollmentOuDimensionItems.forEach(
-        ou -> key.add("enrollmentOuDimension", ou.getUid() + ":" + ou.getLevel()));
-    enrollmentOuFilterItems.forEach(
-        ou -> key.add("enrollmentOuFilter", ou.getUid() + ":" + ou.getLevel()));
+    asc.forEach(e -> key.add("asc", "[" + e.getItem().getUid() + "]"));
+    desc.forEach(e -> key.add("desc", "[" + e.getItem().getUid() + "]"));
 
     if (hasRegistrationOu()) {
       key.add("registrationOuDimensionRequested", registrationOuDimensionRequested);
@@ -646,6 +647,14 @@ public class EventQueryParams extends DataQueryParams {
           ou -> key.add("registrationOuDimension", ou.getUid() + ":" + ou.getLevel()));
       registrationOuFilterItems.forEach(
           ou -> key.add("registrationOuFilter", ou.getUid() + ":" + ou.getLevel()));
+    }
+
+    // Enrollment OU selections are also stored outside the generic dimensions and filters.
+    if (hasEnrollmentOu()) {
+      enrollmentOuDimensionItems.forEach(
+          ou -> key.add("enrollmentOuDimension", getOrgUnitKeyComponent(ou)));
+      enrollmentOuFilterItems.forEach(
+          ou -> key.add("enrollmentOuFilter", getOrgUnitKeyComponent(ou)));
     }
 
     return key.addIgnoreNull("value", value, () -> value.getUid())
@@ -816,6 +825,20 @@ public class EventQueryParams extends DataQueryParams {
   public boolean hasStageSpecificItem() {
     return getItemsAndItemFilters().stream()
         .anyMatch(item -> item.hasProgramStage() && isStageSpecificDimension(item));
+  }
+
+  /**
+   * Returns the program stage of stage-specific dimension identifiers requested without items (e.g.
+   * {@code stageUid.EVENT_STATUS}). Such items carry no filter, so no per-item stage condition is
+   * rendered for them and the stage must be restricted at query level. Stage-specific items in a
+   * single query always share one stage.
+   */
+  public Optional<ProgramStage> getStageOfStageSpecificItemsWithoutFilter() {
+    return getItemsAndItemFilters().stream()
+        .filter(item -> item.hasProgramStage() && isStageSpecificDimension(item))
+        .filter(item -> !item.hasFilter())
+        .map(QueryItem::getProgramStage)
+        .findFirst();
   }
 
   /**
