@@ -640,7 +640,7 @@ public class MetadataItemsHandler {
     metadataItemMap.putIfAbsent(
         ENROLLMENT_OU.getItem(), new MetadataItem(getEnrollmentOuDisplayName()));
 
-    for (DimensionalItemObject item : params.getEnrollmentOuDimensionItems()) {
+    for (OrganisationUnit item : params.getEnrollmentOuDimensionItems()) {
       metadataItemMap.put(
           item.getUid(),
           new MetadataItem(
@@ -844,7 +844,8 @@ public class MetadataItemsHandler {
       Map<String, List<String>> dimensionItems, EventQueryParams params) {
     if (params.hasEnrollmentOuDimension()) {
       dimensionItems.put(
-          "enrollmentou", getDimensionalItemIds(params.getEnrollmentOuDimensionItems()));
+          "enrollmentou",
+          params.getEnrollmentOuDimensionItems().stream().map(OrganisationUnit::getUid).toList());
     }
   }
 
