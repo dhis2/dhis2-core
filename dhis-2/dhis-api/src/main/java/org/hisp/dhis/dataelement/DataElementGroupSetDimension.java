@@ -51,9 +51,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalEmbeddedObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
@@ -102,7 +102,7 @@ public class DataElementGroupSetDimension implements DimensionalEmbeddedObject {
   }
 
   @JsonProperty("dataElementGroupSet")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(localName = "dataElementGroupSet", namespace = DxfNamespaces.DXF_2_0)
   @Property(value = PropertyType.REFERENCE, required = Property.Value.TRUE)
   public DataElementGroupSet getDimension() {

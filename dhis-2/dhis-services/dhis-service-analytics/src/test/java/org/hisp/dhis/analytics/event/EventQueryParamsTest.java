@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.OrgUnitField;
@@ -50,7 +51,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DateRange;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -338,6 +338,32 @@ class EventQueryParamsTest extends TestBase {
     }
   }
 
+  @Test
+  void testEnrollmentOuSelectionsHaveDistinctKeys() {
+    List<EventQueryParams> queries =
+        List.of(
+            new EventQueryParams.Builder().build(),
+            new EventQueryParams.Builder().withEnrollmentOuDimension(List.of(ouA)).build(),
+            new EventQueryParams.Builder().withEnrollmentOuDimension(List.of(ouB)).build(),
+            new EventQueryParams.Builder().withEnrollmentOuFilter(List.of(ouA)).build(),
+            new EventQueryParams.Builder().withEnrollmentOuFilter(List.of(ouB)).build(),
+            new EventQueryParams.Builder()
+                .withEnrollmentOuDimension(List.of(ouA))
+                .withEnrollmentOuFilter(List.of(ouB))
+                .build(),
+            new EventQueryParams.Builder()
+                .withEnrollmentOuDimension(List.of(ouB))
+                .withEnrollmentOuFilter(List.of(ouA))
+                .build(),
+            new EventQueryParams.Builder().withRegistrationOuDimension(List.of(ouA)).build(),
+            new EventQueryParams.Builder().withRegistrationOuFilter(List.of(ouA)).build());
+
+    assertEquals(queries.size(), queries.stream().map(EventQueryParams::getKey).distinct().count());
+    for (EventQueryParams query : queries) {
+      assertEquals(query.getKey(), new EventQueryParams.Builder(query).build().getKey());
+    }
+  }
+
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   void testRegistrationOuKeyPreservesItemOrder(boolean dimension) {
@@ -370,6 +396,39 @@ class EventQueryParamsTest extends TestBase {
     assertEquals(
         params.getKey(),
         new EventQueryParams.Builder(params).withRegistrationOuFilter(List.of()).build().getKey());
+  }
+
+  @Test
+  void testStagePrefixedItemsInDifferentStagesHaveDistinctKeys() {
+    QueryItem itemA = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    itemA.setProgramStage(psA);
+    QueryItem itemB = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    itemB.setProgramStage(psB);
+
+    EventQueryParams paramsA = new EventQueryParams.Builder().addItem(itemA).build();
+    EventQueryParams paramsB = new EventQueryParams.Builder().addItem(itemB).build();
+
+    assertNotEquals(paramsA.getKey(), paramsB.getKey());
+  }
+
+  @Test
+  void testSortItemsHaveDistinctKeys() {
+    QueryItem itemA = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    QueryItem itemB = new QueryItem(deB, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+
+    List<EventQueryParams> queries =
+        List.of(
+            new EventQueryParams.Builder().build(),
+            new EventQueryParams.Builder().addAscSortItem(itemA).build(),
+            new EventQueryParams.Builder().addDescSortItem(itemA).build(),
+            new EventQueryParams.Builder().addAscSortItem(itemB).build(),
+            new EventQueryParams.Builder().addAscSortItem(itemA).addAscSortItem(itemB).build(),
+            new EventQueryParams.Builder().addAscSortItem(itemB).addAscSortItem(itemA).build());
+
+    assertEquals(queries.size(), queries.stream().map(EventQueryParams::getKey).distinct().count());
+    for (EventQueryParams query : queries) {
+      assertEquals(query.getKey(), new EventQueryParams.Builder(query).build().getKey());
+    }
   }
 
   private EventQueryParams registrationOuKeyParams(
@@ -945,6 +1004,48 @@ class EventQueryParamsTest extends TestBase {
   }
 
   @Test
+  void testGetStageOfStageSpecificItemsWithoutFilterWithBareEventStatusItem() {
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    assertEquals(Optional.of(psA), params.getStageOfStageSpecificItemsWithoutFilter());
+  }
+
+  @Test
+  void testGetStageOfStageSpecificItemsWithoutFilterWithFilteredEventStatusItem() {
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+    qi.addFilter(new QueryFilter(QueryOperator.IN, "ACTIVE;COMPLETED"));
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    assertEquals(Optional.empty(), params.getStageOfStageSpecificItemsWithoutFilter());
+  }
+
+  @Test
+  void testGetStageOfStageSpecificItemsWithoutFilterWithRegularDataElementWithStage() {
+    QueryItem qi = new QueryItem(deA);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    assertEquals(Optional.empty(), params.getStageOfStageSpecificItemsWithoutFilter());
+  }
+
+  @Test
+  void testGetStageOfStageSpecificItemsWithoutFilterWithNoItems() {
+    EventQueryParams params = new EventQueryParams.Builder().build();
+
+    assertEquals(Optional.empty(), params.getStageOfStageSpecificItemsWithoutFilter());
+  }
+
+  @Test
   void testHasStageDateItemWithOccurredDateItem() {
     // Given: a QueryItem for occurred date with program stage
     BaseDimensionalItemObject item =
@@ -1304,10 +1405,8 @@ class EventQueryParamsTest extends TestBase {
 
   @Test
   void testEnrollmentOuDimensionStorage() {
-    List<DimensionalItemObject> items = List.of(ouA, ouB);
-
     EventQueryParams params =
-        new EventQueryParams.Builder().withEnrollmentOuDimension(items).build();
+        new EventQueryParams.Builder().withEnrollmentOuDimension(List.of(ouA, ouB)).build();
 
     assertTrue(params.hasEnrollmentOuDimension());
     assertFalse(params.hasEnrollmentOuFilter());
@@ -1318,9 +1417,8 @@ class EventQueryParamsTest extends TestBase {
 
   @Test
   void testEnrollmentOuFilterStorage() {
-    List<DimensionalItemObject> items = List.of(ouA);
-
-    EventQueryParams params = new EventQueryParams.Builder().withEnrollmentOuFilter(items).build();
+    EventQueryParams params =
+        new EventQueryParams.Builder().withEnrollmentOuFilter(List.of(ouA)).build();
 
     assertFalse(params.hasEnrollmentOuDimension());
     assertTrue(params.hasEnrollmentOuFilter());
@@ -1331,13 +1429,10 @@ class EventQueryParamsTest extends TestBase {
 
   @Test
   void testEnrollmentOuDimensionAndFilter() {
-    List<DimensionalItemObject> dimItems = List.of(ouA);
-    List<DimensionalItemObject> filterItems = List.of(ouB);
-
     EventQueryParams params =
         new EventQueryParams.Builder()
-            .withEnrollmentOuDimension(dimItems)
-            .withEnrollmentOuFilter(filterItems)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .withEnrollmentOuFilter(List.of(ouB))
             .build();
 
     assertTrue(params.hasEnrollmentOuDimension());
@@ -1347,34 +1442,18 @@ class EventQueryParamsTest extends TestBase {
   }
 
   @Test
-  void testEnrollmentOuLevelsForSql() {
-    EventQueryParams params =
-        new EventQueryParams.Builder()
-            .withEnrollmentOuDimensionLevels(Set.of(3))
-            .withEnrollmentOuFilterLevels(Set.of(4))
-            .build();
-
-    assertTrue(params.hasEnrollmentOuDimension());
-    assertTrue(params.hasEnrollmentOuFilter());
-    assertTrue(params.hasEnrollmentOuLevelConstraint());
-    assertEquals(Set.of(3, 4), params.getAllEnrollmentOuLevelsForSql());
-  }
-
-  @Test
   void testEnrollmentOuCopiedInInstance() {
-    List<DimensionalItemObject> items = List.of(ouA, ouB);
-
     EventQueryParams original =
         new EventQueryParams.Builder()
-            .withEnrollmentOuDimension(items)
-            .withEnrollmentOuDimensionLevels(Set.of(4))
+            .withEnrollmentOuDimension(List.of(ouA, ouB))
+            .withEnrollmentOuFilter(List.of(ouA))
             .build();
 
     EventQueryParams copy = new EventQueryParams.Builder(original).build();
 
     assertTrue(copy.hasEnrollmentOuDimension());
-    assertEquals(2, copy.getEnrollmentOuDimensionItems().size());
-    assertEquals(Set.of(4), copy.getEnrollmentOuDimensionLevels());
+    assertEquals(List.of(ouA, ouB), copy.getEnrollmentOuDimensionItems());
+    assertEquals(List.of(ouA), copy.getEnrollmentOuFilterItems());
   }
 
   @Test

@@ -60,7 +60,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
@@ -96,7 +95,6 @@ class DefaultEventDataQueryServiceStageSortTest {
   @Mock private LegendSetService legendSetService;
   @Mock private RelationshipTypeService relationshipTypeService;
   @Mock private DataQueryService dataQueryService;
-  @Mock private OrganisationUnitService organisationUnitService;
 
   private DefaultEventDataQueryService subject;
   private Program program;
@@ -122,7 +120,6 @@ class DefaultEventDataQueryServiceStageSortTest {
             locator,
             attributeService,
             dataQueryService,
-            organisationUnitService,
             new QueryItemFilterHandlerRegistry());
 
     OrganisationUnit ou = createOrganisationUnit('A');

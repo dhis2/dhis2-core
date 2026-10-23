@@ -181,6 +181,7 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
   // TODO dimension, not item
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.PROGRAM_ATTRIBUTE;
   }

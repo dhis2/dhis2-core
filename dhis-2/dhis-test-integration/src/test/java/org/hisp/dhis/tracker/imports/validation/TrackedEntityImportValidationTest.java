@@ -46,6 +46,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -58,6 +59,7 @@ import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -125,6 +127,36 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/te-with_unique_attributes.json");
+
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    assertHasErrors(importReport, 2, ValidationCode.E1064);
+  }
+
+  @Test
+  void failValidationWhenTrackedEntityAttributesHaveSameUniqueValuesAmongManyTrackedEntities()
+      throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/te-with_unique_attributes.json");
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity duplicate =
+        trackerObjects.getTrackedEntities().get(0);
+    for (int i = 0; i < 20; i++) {
+      trackerObjects
+          .getTrackedEntities()
+          .add(
+              org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+                  .trackedEntity(UID.generate())
+                  .trackedEntityType(duplicate.getTrackedEntityType())
+                  .orgUnit(duplicate.getOrgUnit())
+                  .attributes(
+                      List.of(
+                          Attribute.builder()
+                              .attribute(duplicate.getAttributes().get(0).getAttribute())
+                              .value("uniqueName" + i)
+                              .build()))
+                  .build());
+    }
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 

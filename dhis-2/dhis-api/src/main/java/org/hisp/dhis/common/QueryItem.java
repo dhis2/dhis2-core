@@ -217,6 +217,7 @@ public class QueryItem implements GroupableItem {
         .addIgnoreNull("filterItem", getFiltersAsString())
         .addIgnoreNull("programItem", getProgramUid())
         .addIgnoreNull("programStageItem", getProgramStageUid())
+        .addIgnoreNull("repeatableStageParamsItem", repeatableStageParams)
         .addIgnoreNull("legendSetItem", getLegendSetUid())
         .addIgnoreNull("dimensionValuesItem", getDimensionValuesAsString());
 
@@ -228,7 +229,7 @@ public class QueryItem implements GroupableItem {
   }
 
   private String getProgramStageUid() {
-    return program != null ? program.getUid() : null;
+    return programStage != null ? programStage.getUid() : null;
   }
 
   private String getLegendSetUid() {

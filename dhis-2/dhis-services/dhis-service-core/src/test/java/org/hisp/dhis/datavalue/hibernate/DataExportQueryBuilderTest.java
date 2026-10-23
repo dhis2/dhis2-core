@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,10 @@ package org.hisp.dhis.datavalue.hibernate;
 import static org.hisp.dhis.datavalue.DataExportParams.Order.*;
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataExportStore.createExportQuery;
 import static org.hisp.dhis.period.Period.of;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
@@ -51,7 +53,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for the SQL generation as performed by {@link
- * HibernateDataExportStore#createExportQuery(DataExportParams, SQL.QueryAPI, UserDetails)}
+ * HibernateDataExportStore#createExportQuery(DataExportParams, SQL.QueryAPI, UserDetails, long[])}
  *
  * @author Jan Bernitt
  */
@@ -85,7 +87,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE 1=1
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of(),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -116,7 +118,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -154,7 +156,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("pe", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -196,7 +198,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("de", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -238,7 +240,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("deg", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -280,7 +282,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("ou", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -305,7 +307,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           SELECT DISTINCT ou.organisationunitid
           FROM ou_ids
           JOIN organisationunit root USING (organisationunitid)
-          JOIN organisationunit ou ON ou.path LIKE root.path || '%'
+          JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
         )
         SELECT
           de.uid AS deid,
@@ -330,7 +332,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("ou", "deleted"), createExportQuery(params, createSpyQuery(), new SystemUser()));
+        Set.of("ou", "deleted"),
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -372,7 +375,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("ougSuper", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -397,7 +400,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           SELECT DISTINCT ou.organisationunitid
           FROM ou_ids
           JOIN organisationunit root USING (organisationunitid)
-          JOIN organisationunit ou ON ou.path LIKE root.path || '%'
+          JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
         )
         SELECT
           de.uid AS deid,
@@ -423,7 +426,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("ougSuper", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
 
   @Test
@@ -441,13 +444,6 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
             UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm            JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid            JOIN organisationunit ou ON ougm.organisationunitid = ou.organisationunitid            WHERE oug.uid = ANY(:oug) AND ou.uid = ANY(:capture))
           ) ou_all
           WHERE organisationunitid IS NOT NULL
-        ),
-        aoc_access AS MATERIALIZED (
-          SELECT aoc.categoryoptioncomboid, aoc.uid
-          FROM categoryoptioncombo aoc
-          WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
-          JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
-          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT ( ( co.sharing->>'owner' is null or co.sharing->>'owner' = 'null')  or co.sharing->>'public' like '__r_____' or co.sharing->>'public' is null  or (jsonb_has_user_id( co.sharing, 'null') = true  and jsonb_check_user_access( co.sharing, 'null', '__r_____' ) = true )  ))
         )
         SELECT
           de.uid AS deid,
@@ -469,12 +465,12 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN period pe ON dv.periodid = pe.periodid
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
-        JOIN aoc_access ON dv.attributeoptioncomboid = aoc_access.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
+          AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("oug", "capture", "deleted"),
-        createExportQuery(params, createSpyQuery(), currentUser));
+        Set.of("oug", "capture", "deleted", "aocAllowed"),
+        createExportQuery(params, createSpyQuery(), currentUser, new long[] {11L}));
   }
 
   @Test
@@ -511,7 +507,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.lastupdated >= :lastUpdated
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("lastUpdated"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
     // pin the actual bound value: the WHERE clause must be backed by the exact filter date,
     // not merely a same-named parameter with an unrelated (or null) value
     assertEquals(lastUpdated, paramValue("lastUpdated"));
@@ -552,7 +548,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.lastupdated >= :lastUpdated
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("lastUpdated"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
     long after = System.currentTimeMillis();
     // pin that lastUpdatedDuration is actually converted into a real cutoff date
     // (now - duration), not left null/ignored, which would silently erase the WHERE line
@@ -568,34 +564,96 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
   }
 
   @Test
-  void testAocAccess_nonSuperuser_usesMaterializedCte() {
+  void testAocAccess_allowedAocs_semiJoinOnIds() {
     UserDetails user = UserDetails.empty().build();
     DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
-    AtomicReference<String> captured = new AtomicReference<>();
-    SQL.QueryAPI spy = SQL.spy(captured::set, (name, param) -> {});
-    createExportQuery(params, spy, user).stream();
-    String sql = captured.get();
-    assertTrue(sql.contains("aoc_access AS MATERIALIZED"), "expected MATERIALIZED CTE: " + sql);
-    assertTrue(sql.contains("JOIN aoc_access ON"), "expected join to aoc_access CTE: " + sql);
-    assertTrue(
-        sql.contains("JOIN categoryoptioncombo aoc ON"),
-        "expected direct categoryoptioncombo join for aoc alias: " + sql);
-    assertFalse(
-        sql.contains("AND NOT EXISTS"),
-        "NOT EXISTS should not appear inline in WHERE clause: " + sql);
+    assertSQL(
+        """
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("aocAllowed"),
+        createExportQuery(params, createSpyQuery(), user, new long[] {11L, 12L}));
+    assertArrayEquals(new long[] {11L, 12L}, (long[]) paramValue("aocAllowed"));
   }
 
   @Test
-  void testAocAccess_superuser_usesDirectJoin() {
+  void testAocAccess_noList_noAocFilter() {
     DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
     AtomicReference<String> captured = new AtomicReference<>();
-    SQL.QueryAPI spy = SQL.spy(captured::set, (name, param) -> {});
-    createExportQuery(params, spy, new SystemUser()).stream();
+    createExportQuery(params, SQL.spy(captured::set, (n, p) -> {}), new SystemUser(), null)
+        .stream();
     String sql = captured.get();
-    assertFalse(sql.contains("aoc_access"), "expected no aoc_access CTE for superuser: " + sql);
-    assertTrue(
-        sql.contains("JOIN categoryoptioncombo aoc ON"),
-        "expected direct categoryoptioncombo join: " + sql);
-    assertFalse(sql.contains("NOT EXISTS"), "expected no NOT EXISTS correlated subquery: " + sql);
+    assertFalse(sql.contains("aocAllowed"), "no list must mean no AOC filter: " + sql);
+    assertFalse(sql.contains("aoc_access"), "CTE must be gone: " + sql);
+  }
+
+  @Test
+  void testAocAccess_emptyList_rejected() {
+    // an empty list would erase the filter line and so lift the restriction
+    DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
+    UserDetails user = UserDetails.empty().build();
+    SQL.QueryAPI api = createSpyQuery();
+    long[] none = new long[0];
+    assertThrows(IllegalArgumentException.class, () -> createExportQuery(params, api, user, none));
+  }
+
+  @Test
+  void testAocAccess_explicitAocs_keepAllowedListToo() {
+    DataExportParams params =
+        DataExportParams.builder()
+            .includeDeleted(true)
+            .attributeOptionCombos(List.of(UID.of("aoc23456789")))
+            .build();
+    AtomicReference<String> captured = new AtomicReference<>();
+    createExportQuery(
+        params, SQL.spy(captured::set, (n, p) -> {}), UserDetails.empty().build(), new long[] {11L})
+        .stream();
+    String sql = captured.get();
+    assertTrue(sql.contains("aoc.uid = :aoc"), "explicit AOC filter expected: " + sql);
+    assertTrue(sql.contains(":aocAllowed"), "allowed list must stay for explicit AOCs: " + sql);
+  }
+
+  @Test
+  void testAllowedAocQuery_noExplicitAocs_allAttributeAocs() {
+    AtomicReference<String> captured = new AtomicReference<>();
+    createAllowedAocQueryWithSpy(List.of(), captured);
+    String sql = captured.get();
+    assertTrue(sql.contains("SELECT DISTINCT ccoc.categoryoptioncomboid"), sql);
+    assertFalse(sql.contains(":aoc"), "no explicit AOCs must mean no AOC restriction: " + sql);
+    assertFalse(sql.contains("JOIN categoryoptioncombo aoc"), "no join needed: " + sql);
+  }
+
+  @Test
+  void testAllowedAocQuery_explicitAocs_onlyThoseAreLookedUp() {
+    AtomicReference<String> captured = new AtomicReference<>();
+    createAllowedAocQueryWithSpy(List.of(UID.of("aoc23456789")), captured);
+    String sql = captured.get();
+    assertTrue(sql.contains("aoc.uid = :aoc"), "lookup must be limited to explicit AOCs: " + sql);
+  }
+
+  private void createAllowedAocQueryWithSpy(List<UID> aocs, AtomicReference<String> captured) {
+    HibernateDataExportStore.createAllowedAocQuery(
+        SQL.spy(captured::set, (n, p) -> {}), UserDetails.empty().build(), aocs)
+        .stream();
   }
 }

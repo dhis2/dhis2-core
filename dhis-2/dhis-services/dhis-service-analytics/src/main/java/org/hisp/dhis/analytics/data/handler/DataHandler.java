@@ -99,6 +99,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItem;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
+import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE;
 import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
 import static org.hisp.dhis.commons.util.DebugUtils.getStackTrace;
 import static org.hisp.dhis.commons.util.SystemUtils.getCpuCores;
@@ -729,9 +730,28 @@ public class DataHandler {
           .addValue(params.isSkipRounding() ? value : getRoundedValueObject(params, value));
 
       if (params.isIncludeNumDen()) {
-        grid.addValue(actual).addValue(target).addValue(PERCENT).addNullValues(2);
+        int multiplier = isRateMetric(metric) ? PERCENT : 1;
+        int divisor = 1;
+        double factor = (double) multiplier / divisor;
+
+        grid.addValue(actual)
+            .addValue(target)
+            .addValue(factor)
+            .addValue(multiplier)
+            .addValue(divisor);
       }
     }
+  }
+
+  /**
+   * Indicates whether the given metric is a percentage rate, as opposed to a count of reports.
+   *
+   * @param metric the {@link ReportingRateMetric}.
+   * @return true if the metric is {@link ReportingRateMetric#REPORTING_RATE} or {@link
+   *     ReportingRateMetric#REPORTING_RATE_ON_TIME}.
+   */
+  private boolean isRateMetric(ReportingRateMetric metric) {
+    return metric == REPORTING_RATE || metric == REPORTING_RATE_ON_TIME;
   }
 
   private boolean satisfiesMeasureCriteria(DataQueryParams params, Double value) {

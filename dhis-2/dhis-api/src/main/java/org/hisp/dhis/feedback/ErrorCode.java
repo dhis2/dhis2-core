@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ public enum ErrorCode {
   E1103("Category option combo not found or not accessible: `{0}`"),
   E1104("Attribute option combo not found or not accessible: `{0}`"),
   E1105("Data set not found or not accessible: `{0}`"),
-  E1106("There are duplicate translation records for property `{0}` and locale `{1}` on {2} `{3}`"),
+  E1106("There are duplicate translation records for property `{0}` and locale `{1}`"),
   E1107("Object type `{0}` is not translatable"),
   E1108("Could not add item to collection: {0}"),
   E1109("Could not remove item from collection: {0}"),
@@ -93,6 +93,7 @@ public enum ErrorCode {
   E1133("CategoryCombo must be provided for Category option combo {0}"),
   E1134(
       "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
+  E1135("Locale `${locale:{0}}` is not configured for usage; available are: ${locales:{1}}"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),
@@ -117,6 +118,7 @@ public enum ErrorCode {
   E1523("User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`"),
 
   /* Generic merge errors */
+  E1505("Another merge is already in progress, please try again later"),
   E1530("At least one source {0} must be specified"),
   E1531("Target {0} must be specified"),
   E1532("Target {0} cannot be a source {1}"),
@@ -201,6 +203,7 @@ public enum ErrorCode {
   E2046("Error parsing CSV file: {0}"),
   E2047("Data value key combination does not exist: {0}"),
   E2048("Error processing gzipped content: {0}"),
+  E2049("Attribute option combo(s) do not belong to an attribute category combo: `${aoc:{0}}`"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
@@ -644,6 +647,10 @@ public enum ErrorCode {
       "Dimensions `{0}` and `{1}` are reported under the same name `{2}` in a tracked entity aggregate query. Request one offset of a program stage dimension at a time"),
   E7264("Repeatable stage offset is not supported in `value`: `{0}`"),
   E7265("Value `{0}` has aggregation type NONE, specify an `aggregationType`"),
+  E7266(
+      "Value `{0}` must be a data element prefixed with a program stage that contains it, or an attribute of the program without a stage prefix"),
+  E7267(
+      "Aggregation type `{0}` is not supported by enrollment aggregate queries, specify `aggregationType` as one of COUNT, SUM, AVERAGE, MIN, MAX, STDDEV or VARIANCE"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
