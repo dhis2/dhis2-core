@@ -130,7 +130,31 @@ class HibernateDataValueAuditStoreSqlTest {
   }
 
   @Test
+  void boundListsAreTestedByHashBeforePostgres14() {
+    when(jdbcTemplate.queryForObject("SHOW server_version_num", String.class)).thenReturn("100022");
+    doReturn(new ArrayList<>(List.of(aoc.getId())), new ArrayList<>(List.of(11L, 12L)))
+        .when(query)
+        .getResultList();
+    doReturn(0L).when(query).getSingleResult();
+    store.countDataValueAudits(new DataValueAuditQueryParams());
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(session, times(3)).createNativeQuery(sql.capture());
+    String statement = sql.getAllValues().get(2);
+    assertTrue(statement.contains("AND dva.organisationunitid = ANY(:orgUnits)"), statement);
+    assertTrue(
+        statement.contains(
+            "AND (dva.organisationunitid IN (SELECT unnest(CAST(:orgUnits AS bigint[])))) IS TRUE"),
+        statement);
+    assertTrue(
+        statement.contains(
+            "AND (dva.attributeoptioncomboid IN (SELECT unnest(CAST(:aocAllowed AS bigint[])))) IS TRUE"),
+        statement);
+    assertFalse(statement.contains("a.id = dva.attributeoptioncomboid"), statement);
+  }
+
+  @Test
   void listedOrgUnitsReplaceTheDescendantSet() {
+    when(jdbcTemplate.queryForObject("SHOW server_version_num", String.class)).thenReturn("140018");
     // the readable AOCs, then the user's org units
     doReturn(new ArrayList<>(List.of(aoc.getId())), new ArrayList<>(List.of(11L, 12L, 11L)))
         .when(query)
@@ -142,6 +166,9 @@ class HibernateDataValueAuditStoreSqlTest {
     verify(session, times(3)).createNativeQuery(sql.capture());
     String statement = sql.getAllValues().get(2);
     assertTrue(statement.contains("AND dva.organisationunitid = ANY(:orgUnits)"), statement);
+    // PostgreSQL 14 hashes the array itself
+    assertFalse(statement.contains("SELECT unnest(CAST(:orgUnits"), statement);
+    assertTrue(statement.contains("a.id = dva.attributeoptioncomboid"), statement);
     assertFalse(statement.contains("ou_roots"), statement);
     assertFalse(statement.contains("~>=~"), statement);
     verify(query)
