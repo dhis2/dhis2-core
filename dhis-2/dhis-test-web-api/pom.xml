@@ -348,6 +348,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.locationtech.jts</groupId>
       <artifactId>jts-core</artifactId>
       <scope>test</scope>
@@ -408,8 +413,8 @@
     </dependency>
     <dependency>
       <groupId>org.mock-server</groupId>
-      <artifactId>mockserver-client-java</artifactId>
-      <version>5.15.0</version>
+      <artifactId>mockserver-client-java-no-dependencies</artifactId>
+      <version>9.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -456,6 +461,10 @@
             // in StaticContentControllerTest.verifyErrorWhenStoringInvalidMimeType()
             // in StaticContentControllerTest.verifyErrorWhenStoringInvalidKey()
             <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
+            // Removing json-path dependency is causing
+            // java.lang.NoClassDefFoundError: com/jayway/jsonpath/TypeRef
+            // in DcrWithJwksTest (MockMvcResultMatchers.jsonPath())
+            <ignoredUnusedDeclaredDependency>com.jayway.jsonpath:json-path</ignoredUnusedDeclaredDependency>
             <!-- If code from the following modules is accessed in tests they'll have to move down to ignoredNonTestScopedDependency -->
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-reporting</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-validation</ignoredUnusedDeclaredDependency>
