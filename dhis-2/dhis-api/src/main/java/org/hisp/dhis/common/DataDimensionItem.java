@@ -403,7 +403,7 @@ public class DataDimensionItem {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseNameableObject.class)
+  @JsonSerialize(as = NameableObject.class)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public ExpressionDimensionItem getExpressionDimensionItem() {
     return expressionDimensionItem;
