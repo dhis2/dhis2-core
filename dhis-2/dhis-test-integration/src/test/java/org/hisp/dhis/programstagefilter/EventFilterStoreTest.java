@@ -47,6 +47,7 @@ import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.CustomType;
 import org.hibernate.type.StringType;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -210,6 +211,23 @@ class EventFilterStoreTest extends PostgresIntegrationTestBase {
     assertEquals(
         List.of(filterB.getUid()),
         store.getByProgram("ProgramUiB").stream().map(EventFilter::getUid).toList());
+  }
+
+  @Test
+  @DisplayName("an uninitialized proxy equals an instance with the same uid and name")
+  void shouldEqualProxyWithSameUidAndName() {
+    EventFilter saved = save(createFilter("Filter E", "ProgramUiA"));
+    clearSession();
+    entityManagerFactory.getCache().evict(EventFilter.class);
+    EventFilter copy = createFilter("Filter E", "ProgramUiB");
+    copy.setUid(saved.getUid());
+
+    EventFilter proxy = entityManager.getReference(EventFilter.class, saved.getId());
+
+    assertInstanceOf(HibernateProxy.class, proxy);
+    assertEquals(copy, proxy);
+    assertEquals(proxy, copy);
+    assertEquals(copy.hashCode(), proxy.hashCode());
   }
 
   @Test

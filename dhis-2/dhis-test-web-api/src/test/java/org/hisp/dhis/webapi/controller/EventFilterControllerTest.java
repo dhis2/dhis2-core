@@ -36,15 +36,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManagerFactory;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.TestSetup;
@@ -206,31 +206,39 @@ class EventFilterControllerTest extends PostgresControllerIntegrationTestBase {
     assertFalse(getFilter(IMPORTED_UID).has("code"));
   }
 
-  /** The schema properties of an event filter with their persisted flags and lengths. */
+  /** The gist of an event filter lists the same default properties as before the migration. */
   @Test
-  void shouldDescribeEventFilterSchemaProperties() {
-    JsonObject schema = GET("/schemas/eventFilter").content(HttpStatus.OK);
-    JsonArray properties = schema.getArray("properties");
-    Set<String> names = new TreeSet<>();
-    Set<String> persisted = new TreeSet<>();
-    Set<String> required = new TreeSet<>();
-    Map<String, JsonObject> byName = new HashMap<>();
-    for (int i = 0; i < properties.size(); i++) {
-      JsonObject property = properties.getObject(i);
-      String name = property.getString("name").string();
-      names.add(name);
-      byName.put(name, property);
-      if (property.getBoolean("persisted").booleanValue()) {
-        persisted.add(name);
-      }
-      if (property.getBoolean("required").booleanValue()) {
-        required.add(name);
-      }
-    }
+  void shouldServeDefaultGistProperties() {
+    importMetadata(fullFilter("Imported filter", "A description", "occurredAt:desc"));
+    startNewRequestSession();
 
+    JsonObject gist = GET("/eventFilters/{uid}/gist", IMPORTED_UID).content(HttpStatus.OK);
+
+    assertEquals(
+        Set.of(
+            "apiEndpoints",
+            "created",
+            "description",
+            "eventQueryCriteria",
+            "id",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "name",
+            "program",
+            "programStage"),
+        Set.copyOf(gist.names()));
+  }
+
+  @Test
+  void shouldDescribeEventFilterSchemaPropertyNames() {
     Set<String> expectedNames = withTranslationKey("translation");
     expectedNames.add("code");
-    assertEquals(expectedNames, names);
+
+    assertEquals(expectedNames, schemaPropertyNames(property -> true));
+  }
+
+  @Test
+  void shouldDescribeEventFilterSchemaPersistedAndRequiredProperties() {
     assertEquals(
         Set.of(
             "created",
@@ -245,17 +253,39 @@ class EventFilterControllerTest extends PostgresControllerIntegrationTestBase {
             "programStage",
             "sharing",
             "translation"),
-        persisted);
-    assertEquals(Set.of("name", "program"), required);
-    assertEquals(230, byName.get("name").getNumber("length").intValue());
-    assertEquals(255, byName.get("description").getNumber("length").intValue());
-    assertEquals(11, byName.get("program").getNumber("length").intValue());
-    assertEquals(11, byName.get("programStage").getNumber("length").intValue());
-    assertEquals("URL", byName.get("href").getString("propertyType").string());
+        schemaPropertyNames(property -> property.getBoolean("persisted").booleanValue()));
+    assertEquals(
+        Set.of("name", "program"),
+        schemaPropertyNames(property -> property.getBoolean("required").booleanValue()));
+  }
+
+  @Test
+  void shouldDescribeEventFilterSchemaLengthsAndFlags() {
+    JsonObject schema = GET("/schemas/eventFilter").content(HttpStatus.OK);
+    Map<String, JsonObject> properties =
+        schema.getArray("properties").asList(JsonObject.class).stream()
+            .collect(Collectors.toMap(p -> p.getString("name").string(), p -> p));
+
+    assertEquals(230, properties.get("name").getNumber("length").intValue());
+    assertEquals(255, properties.get("description").getNumber("length").intValue());
+    assertEquals(11, properties.get("program").getNumber("length").intValue());
+    assertEquals(11, properties.get("programStage").getNumber("length").intValue());
+    assertEquals("URL", properties.get("href").getString("propertyType").string());
     assertEquals("eventFilter", schema.getString("name").string());
     assertTrue(schema.getBoolean("shareable").booleanValue());
     assertTrue(schema.getBoolean("translatable").booleanValue());
     assertTrue(schema.getBoolean("metadata").booleanValue());
+  }
+
+  private Set<String> schemaPropertyNames(Predicate<JsonObject> filter) {
+    return GET("/schemas/eventFilter")
+        .content(HttpStatus.OK)
+        .getArray("properties")
+        .asList(JsonObject.class)
+        .stream()
+        .filter(filter)
+        .map(property -> property.getString("name").string())
+        .collect(Collectors.toCollection(TreeSet::new));
   }
 
   private static String fullFilter(String name, String description, String order) {
@@ -298,6 +328,7 @@ class EventFilterControllerTest extends PostgresControllerIntegrationTestBase {
   private void importMetadata(String metadata) {
     HttpResponse response = POST("/metadata", metadata);
     assertEquals(HttpStatus.OK, response.status(), () -> response.contentUnchecked().toJson());
+    assertEquals("OK", response.content().getString("status").string());
   }
 
   /** Reads the filter from the database, bypassing the session and the L2 cache. */
