@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.hisp.dhis.http.HttpClientAdapter.HttpResponse;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -73,7 +72,6 @@ class ExternalMapLayerControllerTest extends H2ControllerIntegrationTestBase {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "", // same as null
         "data:image/png;base64,iVBORw0KGgo=",
         "data:image/png;base64,iVBORw0KGg==",
         "data:image/jpeg;base64,/9j/4AAQSkZJRg+/",
@@ -83,6 +81,66 @@ class ExternalMapLayerControllerTest extends H2ControllerIntegrationTestBase {
   void testPostValidImages(String image) {
     String id = assertStatus(HttpStatus.CREATED, POST("/externalMapLayers", layer(image)));
     assertEquals(image, GET("/externalMapLayers/{uid}", id).content().getString("image").string());
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "data:image/png;base64,iVBORw0KGgo=",
+        "data:image/png;base64,iVBORw0KGg==",
+        "data:image/jpeg;base64,/9j/4AAQSkZJRg+/",
+        "data:image/jpg;base64,/9j/4AAQSkZJRg",
+        "data:image/webp;base64,UklGRiQAAABXRUJQ"
+      })
+  void testPostNoImage() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/externalMapLayers",
+            """
+              {
+              "name": "Test",
+              "imageFormat": "PNG",
+              "mapService": "XYZ",
+              "mapLayerPosition": "BASEMAP",
+              "url": "http://test"
+              }
+              """));
+  }
+
+  void testPostNullImage() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/externalMapLayers",
+            """
+            {
+            "name": "Test",
+            "imageFormat": "PNG",
+            "image": null,
+            "mapService": "XYZ",
+            "mapLayerPosition": "BASEMAP",
+            "url": "http://test"
+            }
+            """));
+  }
+
+  /** It handles it as null. */
+  void testPostEmptyImage() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/externalMapLayers",
+            """
+            {
+            "name": "Test",
+            "imageFormat": "PNG",
+            "image": "",
+            "mapService": "XYZ",
+            "mapLayerPosition": "BASEMAP",
+            "url": "http://test"
+            }
+            """));
   }
 
   @Test
