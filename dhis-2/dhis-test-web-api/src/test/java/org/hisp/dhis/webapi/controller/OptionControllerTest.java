@@ -239,7 +239,7 @@ class OptionControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void testOptionGetHasThePreMigrationKeys() {
+  void testOptionGetReturnsTheExpectedKeys() {
     importOptionSet("Anna", "desc a", "#ff0000");
 
     assertContainsOnly(
@@ -298,7 +298,7 @@ class OptionControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void testSchemaHasThePreMigrationProperties() {
+  void testSchemaExposesTheOptionProperties() {
     JsonObject schema = GET("/schemas/option").content();
 
     assertEquals("option", schema.getString("name").string());
@@ -332,19 +332,87 @@ class OptionControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void testSchemaReportsTextLengthForDescriptionAndFormName() {
+  void testSchemaReportsTheColumnLengths() {
     JsonObject schema = GET("/schemas/option").content();
 
-    for (JsonObject property : schema.getList("properties", JsonObject.class)) {
-      String name = property.getString("name").string();
-      if (Set.of("description", "formName").contains(name)) {
-        assertEquals(Integer.MAX_VALUE, property.getNumber("length").intValue(), name);
-      } else if (Set.of("code", "name").contains(name)) {
-        assertEquals(230, property.getNumber("length").intValue(), name);
-      } else if (Set.of("shortName", "createdBy", "lastUpdatedBy", "sharing").contains(name)) {
-        assertFalse(property.getBoolean("persisted").booleanValue(), name);
-      }
+    assertEquals(
+        Integer.MAX_VALUE, schemaProperty(schema, "description").getNumber("length").intValue());
+    assertEquals(
+        Integer.MAX_VALUE, schemaProperty(schema, "formName").getNumber("length").intValue());
+    assertEquals(230, schemaProperty(schema, "code").getNumber("length").intValue());
+    assertEquals(230, schemaProperty(schema, "name").getNumber("length").intValue());
+  }
+
+  @Test
+  void testSchemaReportsTheUnsupportedPropertiesAsNotPersisted() {
+    JsonObject schema = GET("/schemas/option").content();
+
+    for (String name : List.of("shortName", "createdBy", "lastUpdatedBy", "sharing")) {
+      assertFalse(schemaProperty(schema, name).getBoolean("persisted").booleanValue(), name);
     }
+  }
+
+  @Test
+  void testOptionsNestedInAnOptionGroupKeepTheirShape() {
+    importOptionSet("Anna", "desc a", "#ff0000");
+    POST(
+            "/metadata",
+            """
+            {"optionGroups":[{"id":"OptGroup001","name":"Group","shortName":"Group",
+              "optionSet":{"id":"%s"},"options":[{"id":"%s"}]}]}"""
+                .formatted(OPTION_SET_UID, OPTION_A_UID))
+        .content(HttpStatus.OK);
+    newRequest();
+
+    JsonArray defaultOptions = GET("/optionGroups/OptGroup001").content().getArray("options");
+    assertContainsOnly(Set.of("id"), defaultOptions.getObject(0).names());
+    JsonObject group =
+        GET("/optionGroups/OptGroup001?fields=options[id,code,displayName]").content();
+    assertEquals("Anna", group.getString("options[0].displayName").string());
+    assertEquals("A", group.getString("options[0].code").string());
+  }
+
+  @Test
+  void testOptionOfADataElementOptionDimensionItemKeepsItsShape() {
+    importOptionSet("Anna", "desc a", "#ff0000");
+    POST(
+            "/metadata",
+            """
+            {"programs":[{"id":"ProgramUid1","name":"Program","shortName":"Program",
+               "programType":"WITHOUT_REGISTRATION"}],
+             "dataElements":[{"id":"DataElemUid","name":"Data element","shortName":"Data element",
+               "valueType":"TEXT","domainType":"TRACKER","aggregationType":"NONE",
+               "optionSet":{"id":"%s"}}]}"""
+                .formatted(OPTION_SET_UID))
+        .content(HttpStatus.OK);
+    String visualization =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/visualizations/",
+                """
+                {"name":"Option item","type":"PIE","columns":[{"dimension":"dx","items":[
+                  {"id":"ProgramUid1.DataElemUid.%s","dimensionItemType":"PROGRAM_DATA_ELEMENT_OPTION"}]}]}"""
+                    .formatted(OPTION_A_UID)));
+    newRequest();
+
+    String itemPath = "dataDimensionItems[0].programDataElementOption.option";
+    JsonObject defaultOption =
+        GET(
+                "/visualizations/{uid}?fields=dataDimensionItems[programDataElementOption[option]]",
+                visualization)
+            .content()
+            .getObject(itemPath);
+    assertContainsOnly(Set.of("id"), defaultOption.names());
+    JsonObject option =
+        GET(
+                "/visualizations/{uid}?fields=dataDimensionItems[programDataElementOption["
+                    + "option[id,code,displayName]]]",
+                visualization)
+            .content()
+            .getObject(itemPath);
+    assertEquals("Anna", option.getString("displayName").string());
+    assertEquals("A", option.getString("code").string());
   }
 
   private void importOptionSet(String nameA, String descriptionA, String colorA) {
@@ -380,6 +448,13 @@ class OptionControllerTest extends PostgresControllerIntegrationTestBase {
             .content(HttpStatus.OK);
     assertEquals("OK", report.getString("status").string());
     newRequest();
+  }
+
+  private static JsonObject schemaProperty(JsonObject schema, String name) {
+    return schema.getList("properties", JsonObject.class).stream()
+        .filter(p -> name.equals(p.getString("name").string()))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("no schema property " + name));
   }
 
   /** Flushes and clears the session and the second-level cache, as between two requests. */

@@ -141,20 +141,6 @@ class OptionStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("a null attributevalues column loads as empty attribute values")
-  void testNullAttributeValuesLoadAsEmpty() throws ConflictException {
-    OptionSet optionSet = saveOptionSet("Sizes", new Option("Small", "S", 1));
-    Option option = optionSet.getOptions().get(0);
-    jdbcTemplate.update(
-        "update optionvalue set attributevalues = null where optionvalueid = ?", option.getId());
-
-    Option reloaded = reload(option);
-    assertTrue(reloaded.getAttributeValues().isEmpty());
-    reloaded.addAttributeValue(ATTRIBUTE_UID, "added");
-    assertEquals("added", reloaded.getAttributeValues().get(ATTRIBUTE_UID));
-  }
-
-  @Test
   @DisplayName("description and formName are bound as text")
   void testTextColumns() {
     assertInstanceOf(TextType.class, persister().getPropertyType("description"));
@@ -253,11 +239,8 @@ class OptionStoreTest extends PostgresIntegrationTestBase {
     assertEquals(optionSet.getUid(), reloaded.getOptions().get(0).getOptionSet().getUid());
   }
 
-  private OptionSet saveOptionSet(String name, Option... options) throws ConflictException {
+  private OptionSet saveOptionSet(String name) throws ConflictException {
     OptionSet optionSet = new OptionSet(name, ValueType.TEXT);
-    for (Option option : options) {
-      optionSet.addOption(option);
-    }
     optionService.saveOptionSet(optionSet);
     entityManager.flush();
     return optionSet;

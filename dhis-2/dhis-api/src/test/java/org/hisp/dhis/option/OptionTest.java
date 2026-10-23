@@ -100,7 +100,7 @@ class OptionTest {
   }
 
   @Test
-  void testSharingIsANewMutableInstanceOnEveryCall() {
+  void testSharingMutationsAreNotRetained() {
     Option option = new Option("Anna", "A");
     option.getSharing().setPublicAccess("rw------");
 
