@@ -39,8 +39,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetailsChangeCollector;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupMembershipChangeCollector;
 import org.hisp.dhis.user.UserGroupStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -50,16 +50,16 @@ import org.springframework.stereotype.Repository;
 public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<UserGroup>
     implements UserGroupStore {
 
-  private final UserGroupMembershipChangeCollector membershipChangeCollector;
+  private final UserDetailsChangeCollector userDetailsChangeCollector;
 
   public HibernateUserGroupStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService,
-      UserGroupMembershipChangeCollector membershipChangeCollector) {
+      UserDetailsChangeCollector userDetailsChangeCollector) {
     super(entityManager, jdbcTemplate, publisher, UserGroup.class, aclService, true);
-    this.membershipChangeCollector = membershipChangeCollector;
+    this.userDetailsChangeCollector = userDetailsChangeCollector;
   }
 
   @Override
@@ -111,7 +111,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
           .getSessionFactory()
           .getCache()
           .evictCollectionData(User.class.getName() + ".groups", userId);
-      membershipChangeCollector.membershipsChanged(Set.of(userId));
+      userDetailsChangeCollector.usersChanged(Set.of(userId));
     }
   }
 

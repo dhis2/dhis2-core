@@ -86,6 +86,18 @@ class UserRoleBundleHookTest {
   }
 
   @Test
+  void postUpdatePublishesEventWhenRestrictionsChanged() {
+    UserRole existing = createUserRole(Set.of("F_USER_VIEW"));
+    UserRole update = createUserRole(Set.of("F_USER_VIEW"));
+    update.setRestrictions(Set.of("R_ENABLE_2FA"));
+
+    hook.preUpdate(update, existing, bundle);
+    hook.postUpdate(update, bundle);
+
+    verify(eventPublisher).publishEvent(new UserRoleAuthoritiesChangedEvent(UID.of(ROLE_UID)));
+  }
+
+  @Test
   void postUpdateDoesNotPublishWhenAuthoritiesUnchanged() {
     UserRole existing = createUserRole(Set.of("F_USER_VIEW"));
     UserRole update = createUserRole(Set.of("F_USER_VIEW"));

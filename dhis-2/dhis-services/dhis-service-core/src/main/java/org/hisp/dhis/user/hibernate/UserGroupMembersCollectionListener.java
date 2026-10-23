@@ -52,15 +52,15 @@ import org.hibernate.event.spi.PreCollectionUpdateEventListener;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetailsChangeCollector;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupMembershipChangeCollector;
 import org.springframework.stereotype.Component;
 
 /**
  * Reports the users that joined or left a {@link UserGroup} through Hibernate to the {@link
- * UserGroupMembershipChangeCollector}. This covers every write of the {@code UserGroup.members}
- * collection: metadata import and sync, the {@code /userGroups/{uid}/users} and {@code
- * /users/{uid}/userGroups} collection endpoints and {@code UserGroupService#updateUserGroup}.
+ * UserDetailsChangeCollector}. This covers every write of the {@code UserGroup.members} collection:
+ * metadata import and sync, the {@code /userGroups/{uid}/users} and {@code /users/{uid}/userGroups}
+ * collection endpoints and {@code UserGroupService#updateUserGroup}.
  *
  * <p>Only the difference between the members as loaded and as flushed is reported, so saving a
  * group with unchanged members reports nobody. Deleting a user group is not reported.
@@ -76,7 +76,7 @@ public class UserGroupMembersCollectionListener
 
   private final EntityManagerFactory entityManagerFactory;
 
-  private final UserGroupMembershipChangeCollector membershipChangeCollector;
+  private final UserDetailsChangeCollector userDetailsChangeCollector;
 
   @PostConstruct
   void registerListener() {
@@ -97,7 +97,7 @@ public class UserGroupMembersCollectionListener
     }
     Set<Long> before = userIds(snapshotElements(members.getStoredSnapshot()));
     Set<Long> after = userIds((Collection<?>) members);
-    membershipChangeCollector.membershipsChanged(Sets.symmetricDifference(before, after));
+    userDetailsChangeCollector.usersChanged(Sets.symmetricDifference(before, after));
   }
 
   /** A members collection is recreated when the group is created. */
@@ -105,7 +105,7 @@ public class UserGroupMembersCollectionListener
   public void onPreRecreateCollection(PreCollectionRecreateEvent event) {
     PersistentCollection members = event.getCollection();
     if (isMembers(event)) {
-      membershipChangeCollector.membershipsChanged(userIds((Collection<?>) members));
+      userDetailsChangeCollector.usersChanged(userIds((Collection<?>) members));
     }
   }
 
