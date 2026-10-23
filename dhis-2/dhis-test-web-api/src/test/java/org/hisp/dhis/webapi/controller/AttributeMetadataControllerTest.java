@@ -205,8 +205,7 @@ class AttributeMetadataControllerTest extends PostgresControllerIntegrationTestB
 
     assertStatus(HttpStatus.OK, DELETE("/attributes/" + ATTRIBUTE_UID));
 
-    startNewRequestSession();
-    entityManagerFactory.getCache().evictAll();
+    startNewRequestSessionWithoutCache();
     assertEquals(HttpStatus.NOT_FOUND, GET("/attributes/" + ATTRIBUTE_UID).status());
   }
 
@@ -331,8 +330,12 @@ class AttributeMetadataControllerTest extends PostgresControllerIntegrationTestB
 
   /** Reads the attribute from the database, bypassing the session and the L2 cache. */
   private JsonObject getAttribute() {
+    startNewRequestSessionWithoutCache();
+    return GET("/attributes/" + ATTRIBUTE_UID).content(HttpStatus.OK);
+  }
+
+  private void startNewRequestSessionWithoutCache() {
     startNewRequestSession();
     entityManagerFactory.getCache().evictAll();
-    return GET("/attributes/" + ATTRIBUTE_UID).content(HttpStatus.OK);
   }
 }

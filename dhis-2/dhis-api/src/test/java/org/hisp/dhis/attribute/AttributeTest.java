@@ -32,9 +32,17 @@ package org.hisp.dhis.attribute;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.translation.Translation;
 import org.junit.jupiter.api.Test;
 
 class AttributeTest {
@@ -73,6 +81,31 @@ class AttributeTest {
   void shouldNotEqualAttributeWithDifferentObjectTypes() {
     assertNotEqualAfter(a -> a.setUserAttribute(true));
     assertNotEqualAfter(a -> a.setDataElementAttribute(false));
+  }
+
+  @Test
+  void shouldEqualAttributeDifferingOnlyInPropertiesOutsideIdentity() {
+    Attribute other = attribute();
+    other.setSortOrder(7);
+    other.setTranslations(Set.of(new Translation(new Locale("fr"), "NAME", "Attribut")));
+    other.getSharing().setOwner("OwnerUid001");
+    other.setCreated(new Date(0));
+
+    assertEquals(attribute(), other);
+    assertEquals(attribute().hashCode(), other.hashCode());
+  }
+
+  @Test
+  void shouldListClassesOfEnabledObjectTypes() {
+    Attribute attribute = new Attribute("AttributeName", ValueType.TEXT);
+    attribute.setDataElementAttribute(true);
+    assertEquals(List.of(DataElement.class), attribute.getSupportedClasses());
+
+    attribute.setDataElementAttribute(false);
+    attribute.setIndicatorAttribute(true);
+    attribute.setIndicatorGroupAttribute(true);
+    assertEquals(
+        Set.of(Indicator.class, IndicatorGroup.class), Set.copyOf(attribute.getSupportedClasses()));
   }
 
   private static void assertNotEqualAfter(Consumer<Attribute> change) {
