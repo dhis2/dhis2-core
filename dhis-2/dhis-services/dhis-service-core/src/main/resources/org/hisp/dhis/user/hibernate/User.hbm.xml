@@ -171,7 +171,9 @@
                     foreign-key="fk_fk_users_catconstraints_dataelementcategoryid" />
     </set>
 
-    <property name="lastLogin" />
+    <!-- Written only by UserStore.updateLastLogin: an entity update must not write back a stale
+         value from a User loaded before the login was recorded -->
+    <property name="lastLogin" update="false" />
 
     <property name="idToken" />
 
