@@ -214,4 +214,8 @@
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType" name="jsbBlockedOperators">
     <param name="clazz">org.hisp.dhis.common.QueryOperator</param>
   </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType" name="jsbRouteHttpMethods">
+    <param name="clazz">org.hisp.dhis.route.RouteHttpMethod</param>
+  </typedef>
 </hibernate-mapping>

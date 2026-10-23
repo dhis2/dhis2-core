@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Set;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
@@ -128,6 +129,27 @@ class RouteServiceTest {
     Route route = new Route();
     route.setUrl("https://stub");
     routeService.validateRoute(route);
+  }
+
+  @Test
+  void testValidateRouteFailsWhenRouteAllowsNoHttpMethods() {
+    Properties properties = new Properties();
+    properties.setProperty(
+        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(),
+        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getDefaultValue());
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
+    routeService.postConstruct();
+
+    Route route = new Route();
+    route.setUrl("https://stub");
+    route.setAllowedMethods(Set.of());
+    ConflictException exception =
+        assertThrows(ConflictException.class, () -> routeService.validateRoute(route));
+    assertEquals("Route must allow at least one HTTP method", exception.getMessage());
   }
 
   @ParameterizedTest

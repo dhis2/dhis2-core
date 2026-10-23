@@ -33,6 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,5 +79,41 @@ class RouteTest {
     assertEquals("https://thisisatest.com/some/path/123/", routeWithDirectorySubPath.getBaseUrl());
     assertEquals("https://thisisatest.com/", routeWithPathWildcard.getBaseUrl());
     assertEquals("https://thisisatest.com/sub/path/", routeWithSubPathAndPathWildcard.getBaseUrl());
+  }
+
+  @Test
+  void testAllowsMethodGivenDefaultAllowedMethods() {
+    for (RouteHttpMethod method : RouteHttpMethod.values()) {
+      assertTrue(tldRoute.allowsMethod(method.name()));
+    }
+    assertFalse(tldRoute.allowsMethod("OPTIONS"));
+  }
+
+  @Test
+  void testAllowsMethodGivenConfiguredAllowedMethods() {
+    tldRoute.setAllowedMethods(Set.of(RouteHttpMethod.GET));
+
+    assertTrue(tldRoute.allowsMethod("GET"));
+    assertFalse(tldRoute.allowsMethod("POST"));
+    assertFalse(tldRoute.allowsMethod("DELETE"));
+  }
+
+  @Test
+  void testSetAllowedMethodsOrdersMethods() {
+    tldRoute.setAllowedMethods(
+        new LinkedHashSet<>(
+            List.of(RouteHttpMethod.DELETE, RouteHttpMethod.GET, RouteHttpMethod.PATCH)));
+
+    assertEquals(
+        List.of(RouteHttpMethod.GET, RouteHttpMethod.PATCH, RouteHttpMethod.DELETE),
+        List.copyOf(tldRoute.getAllowedMethods()));
+  }
+
+  @Test
+  void testSetAllowedMethodsGivenNull() {
+    tldRoute.setAllowedMethods(null);
+
+    assertTrue(tldRoute.getAllowedMethods().isEmpty());
+    assertFalse(tldRoute.allowsMethod("GET"));
   }
 }

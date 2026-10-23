@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -1081,5 +1082,146 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
             jsonMapper.writeValueAsString(route));
 
     assertStatus(HttpStatus.CONFLICT, updateHttpResponse);
+  }
+
+  @Test
+  void testAddRouteDefaultsToAllowingAllHttpMethods() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    HttpResponse getHttpResponse =
+        GET(
+            "/routes/{id}",
+            postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+    assertStatus(HttpStatus.OK, getHttpResponse);
+    assertEquals(
+        List.of("GET", "POST", "PUT", "PATCH", "DELETE"),
+        getHttpResponse.content().getArray("allowedMethods").stringValues());
+  }
+
+  @Test
+  void testAddRouteGivenNoAllowedMethods() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("allowedMethods", List.of());
+
+    assertEquals(
+        "Route must allow at least one HTTP method",
+        POST("/routes", jsonMapper.writeValueAsString(route))
+            .error(HttpStatus.CONFLICT)
+            .getMessage());
+  }
+
+  @Test
+  void testAddRouteGivenUnsupportedAllowedMethod() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("allowedMethods", List.of("GET", "TRACE"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    assertStatus(HttpStatus.CONFLICT, postHttpResponse);
+  }
+
+  @Test
+  void testUpdateRouteAllowedMethods() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    String routeId = postHttpResponse.content().get("response.uid").as(JsonString.class).string();
+
+    route.put("allowedMethods", List.of("PUT", "GET"));
+    assertStatus(HttpStatus.OK, PUT("/routes/" + routeId, jsonMapper.writeValueAsString(route)));
+
+    assertEquals(
+        List.of("GET", "PUT"),
+        GET("/routes/{id}", routeId).content().getArray("allowedMethods").stringValues());
+    assertStatus(HttpStatus.METHOD_NOT_ALLOWED, POST("/routes/" + routeId + "/run", "{}"));
+  }
+
+  @Test
+  void testUpdateRouteGivenNoAllowedMethods() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    route.put("allowedMethods", List.of());
+    HttpResponse updateHttpResponse =
+        PUT(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string(),
+            jsonMapper.writeValueAsString(route));
+
+    assertStatus(HttpStatus.CONFLICT, updateHttpResponse);
+  }
+
+  @Test
+  void testRunRouteGivenAllowedHttpMethod() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("allowedMethods", List.of("GET", "POST"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.POST,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                Body("{}")));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+  }
+
+  @Test
+  void testRunRouteGivenHttpMethodNotAllowed() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub/**");
+    route.put("allowedMethods", List.of("GET"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    String routeId = postHttpResponse.content().get("response.uid").as(JsonString.class).string();
+
+    assertEquals(
+        "Request method 'POST' is not supported",
+        POST("/routes/" + routeId + "/run", "{}")
+            .error(HttpStatus.METHOD_NOT_ALLOWED)
+            .getMessage());
+
+    assertStatus(HttpStatus.METHOD_NOT_ALLOWED, DELETE("/routes/" + routeId + "/run/foo"));
+  }
+
+  @Test
+  void testRunRouteGivenHttpMethodNotAllowedWhenUserIsNotAuthorized()
+      throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("allowedMethods", List.of("GET"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    switchToNewUser(createAndAddRandomUser());
+    HttpResponse runHttpResponse =
+        POST(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                + "/run",
+            "{}");
+
+    assertStatus(HttpStatus.FORBIDDEN, runHttpResponse);
   }
 }

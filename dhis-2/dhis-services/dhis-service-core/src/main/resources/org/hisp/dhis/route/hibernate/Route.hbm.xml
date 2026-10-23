@@ -41,5 +41,7 @@
 
         <property name="responseTimeoutSeconds" type="integer"/>
 
+        <property name="allowedMethods" column="allowedmethods" type="jsbRouteHttpMethods" not-null="true"/>
+
     </class>
 </hibernate-mapping>

@@ -52,6 +52,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -85,7 +86,10 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws BadGatewayException, ForbiddenException, NotFoundException {
+      throws BadGatewayException,
+          ForbiddenException,
+          NotFoundException,
+          HttpRequestMethodNotSupportedException {
     return runWithSubpath(id, currentUser, request);
   }
 
@@ -102,7 +106,10 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws NotFoundException, ForbiddenException, BadGatewayException {
+      throws NotFoundException,
+          ForbiddenException,
+          BadGatewayException,
+          HttpRequestMethodNotSupportedException {
 
     Route route = routeService.getRoute(id);
 
@@ -113,6 +120,11 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
     if (!aclService.canRead(currentUser, route)
         && !currentUser.hasAnyAuthority(route.getAuthorities())) {
       throw new ForbiddenException("User not authorized to execute route");
+    }
+
+    if (!route.allowsMethod(request.getMethod())) {
+      throw new HttpRequestMethodNotSupportedException(
+          request.getMethod(), route.getAllowedMethods().stream().map(Enum::name).toList());
     }
 
     Optional<String> subPath = getSubPath(request.getPathInfo(), id);

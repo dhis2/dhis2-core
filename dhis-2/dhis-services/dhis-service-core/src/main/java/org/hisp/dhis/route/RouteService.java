@@ -273,6 +273,10 @@ public class RouteService {
       throw new ConflictException(
           "Route response timeout must be greater than 0 seconds and less than or equal to 60 seconds");
     }
+
+    if (route.getAllowedMethods().isEmpty()) {
+      throw new ConflictException("Route must allow at least one HTTP method");
+    }
   }
 
   /**

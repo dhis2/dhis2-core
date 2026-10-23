@@ -31,9 +31,11 @@ package org.hisp.dhis.route;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -74,6 +76,29 @@ public class Route extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonProperty(defaultValue = "" + DEFAULT_RESPONSE_TIMEOUT_SECONDS)
   private int responseTimeoutSeconds = DEFAULT_RESPONSE_TIMEOUT_SECONDS;
+
+  /** HTTP methods accepted when invoking the route. Defaults to all supported methods. */
+  @JsonProperty private Set<RouteHttpMethod> allowedMethods = EnumSet.allOf(RouteHttpMethod.class);
+
+  /**
+   * Stores the given methods as an {@link EnumSet} so that they are always serialized in the same
+   * order. A null value is treated as an empty set.
+   */
+  public Route setAllowedMethods(Set<RouteHttpMethod> allowedMethods) {
+    this.allowedMethods =
+        allowedMethods == null || allowedMethods.isEmpty()
+            ? EnumSet.noneOf(RouteHttpMethod.class)
+            : EnumSet.copyOf(allowedMethods);
+    return this;
+  }
+
+  /**
+   * @param method the HTTP method name of the request, e.g. GET
+   * @return true if the route is configured to accept requests with the given HTTP method
+   */
+  public boolean allowsMethod(String method) {
+    return allowedMethods.stream().anyMatch(allowedMethod -> allowedMethod.name().equals(method));
+  }
 
   /**
    * If the route url ends with /** return true. Otherwise return false.
