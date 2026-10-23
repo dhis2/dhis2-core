@@ -53,7 +53,8 @@ public class ProgramItemAttribute extends ProgramExpressionItem {
           "Tracked entity attribute " + attributeId + " not found.");
     }
 
-    visitor.getItemDescriptions().put(ctx.getText(), attribute.getDisplayName());
+    // Key by the item text, not ctx.getText(): for d2:hasValue(A{...}) ctx is the whole call
+    visitor.getItemDescriptions().put("A{" + attributeId + "}", attribute.getDisplayName());
 
     return getNullReplacementValue(attribute.getValueType());
   }
