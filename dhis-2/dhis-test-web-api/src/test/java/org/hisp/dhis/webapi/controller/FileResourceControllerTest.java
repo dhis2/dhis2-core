@@ -29,12 +29,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -42,12 +46,47 @@ import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
+
+  @Autowired private DhisConfigurationProvider config;
+
+  @ParameterizedTest
+  @ValueSource(strings = {"on", "off"})
+  void testDownloadedContentRemainsIsolated(String cspSetting) {
+    String content = "Uploaded document";
+    MockMultipartFile upload =
+        new MockMultipartFile(
+            "file", "document.txt", "text/plain", content.getBytes(StandardCharsets.UTF_8));
+    String uid =
+        POST_MULTIPART("/fileResources?domain=DOCUMENT", upload)
+            .content(HttpStatus.ACCEPTED)
+            .getObject("response")
+            .getObject("fileResource")
+            .getString("id")
+            .string();
+    Object original = config.getProperties().setProperty(CSP_ENABLED.getKey(), cspSetting);
+    try {
+      HttpResponse response = GET("/fileResources/{uid}/data", uid);
+      assertEquals(HttpStatus.OK, response.status());
+      assertEquals(content, response.content("text/plain"));
+      assertContains("default-src 'none';", response.header("Content-Security-Policy"));
+      assertEquals("nosniff", response.header("X-Content-Type-Options"));
+    } finally {
+      if (original == null) {
+        config.getProperties().remove(CSP_ENABLED.getKey());
+      } else {
+        config.getProperties().put(CSP_ENABLED.getKey(), original);
+      }
+    }
+  }
 
   @Test
   void testSaveTooBigFileSize() {
