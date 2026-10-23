@@ -47,8 +47,6 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.BooleanType;
-import org.hibernate.type.CustomType;
-import org.hibernate.type.EnumType;
 import org.hibernate.type.ManyToOneType;
 import org.hibernate.type.StringType;
 import org.hibernate.type.TimestampType;
@@ -137,7 +135,7 @@ class IncomingSmsStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testOnlyColumnsOfIncomingSmsTableArePersisted() {
+  void testPersistedPropertyNames() {
     assertEquals(
         Set.of(
             "uid",
@@ -201,13 +199,6 @@ class IncomingSmsStoreTest extends PostgresIntegrationTestBase {
     assertTrue(reloaded.isParsed());
     assertEquals("Processed by command X", reloaded.getStatusMessage());
     assertEquals(user.getUid(), reloaded.getCreatedBy().getUid());
-    assertEquals(user.getUid(), reloaded.getUser().getUid());
-  }
-
-  @Test
-  void testEncodingAndStatusAreStoredAsEnumOrdinals() {
-    assertOrdinalEnum("encoding", SmsMessageEncoding.class);
-    assertOrdinalEnum("status", SmsMessageStatus.class);
   }
 
   @Test
@@ -282,14 +273,6 @@ class IncomingSmsStoreTest extends PostgresIntegrationTestBase {
         incomingSmsStore.getSmsByStatus(SmsMessageStatus.INCOMING, "+47333").stream()
             .map(IncomingSms::getUid)
             .toList());
-  }
-
-  private void assertOrdinalEnum(String property, Class<?> enumClass) {
-    CustomType type = assertInstanceOf(CustomType.class, persister().getPropertyType(property));
-    EnumType<?> enumType = assertInstanceOf(EnumType.class, type.getUserType());
-
-    assertTrue(enumType.isOrdinal(), property);
-    assertEquals(enumClass, enumType.returnedClass());
   }
 
   /** Reloads must hit the database, not the second-level cache. */

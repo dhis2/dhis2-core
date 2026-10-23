@@ -165,7 +165,7 @@ public class IncomingSms implements IdentifiableObject {
    * Not persisted, there is no translations column. Kept in memory so that a translations check
    * still sees translations set on this non-translatable type instead of dropping them.
    */
-  @Transient private Set<Translation> translations = new HashSet<>();
+  @Transient private transient Set<Translation> translations = new HashSet<>();
 
   public IncomingSms() {
     setAutoFields();
@@ -284,6 +284,7 @@ public class IncomingSms implements IdentifiableObject {
   // hashCode, equals and toString
   // -------------------------------------------------------------------------
 
+  /** Code and name are not supported and always null, so equality is effectively by uid. */
   @Override
   public int hashCode() {
     int result = getUid() != null ? getUid().hashCode() : 0;

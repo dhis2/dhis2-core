@@ -36,6 +36,7 @@ import jakarta.persistence.EntityManagerFactory;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.http.HttpStatus;
@@ -43,10 +44,13 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.sms.incoming.SmsMessageEncoding;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,6 +117,7 @@ class IncomingSmsControllerTest extends PostgresControllerIntegrationTestBase {
     long id =
         saveSms("inSmsJson01", SmsMessageStatus.PROCESSED, new Date(1_600_000_000_000L), null);
     entityManager.flush();
+    // the store sets createdBy to the current user on save; play/dev rows have no user
     jdbcTemplate.update("update incomingsms set userid = null where id = ?", id);
     flushAndClear();
 
@@ -155,6 +160,55 @@ class IncomingSmsControllerTest extends PostgresControllerIntegrationTestBase {
 
     assertEquals(sender.getUid(), sms.getObject("createdBy").getString("id").string());
     assertEquals(sender.getUid(), sms.getObject("user").getString("id").string());
+  }
+
+  @Test
+  void testGetMessageAsUserWithSendSmsAuthority() {
+    saveSms("inSmsAuth01", SmsMessageStatus.INCOMING, new Date(), null);
+    flushAndClear();
+    switchToNewUser("smsReader", Authorities.F_MOBILE_SENDSMS.name());
+
+    JsonObject sms = GET("/sms/inbound/inSmsAuth01?fields=id,text").content(HttpStatus.OK);
+
+    assertEquals("inSmsAuth01", sms.getString("id").string());
+    assertEquals("Text of inSmsAuth01", sms.getString("text").string());
+  }
+
+  @Test
+  void testReceiveJsonBodyStoresMessageWithSenderAsCreatedBy() {
+    User sender = createUserWithAuth("smsSender", Authorities.F_MOBILE_SETTINGS.name());
+    sender.setPhoneNumber("+4798765432");
+    userService.updateUser(sender);
+
+    JsonWebMessage response =
+        POST(
+                "/sms/inbound",
+                """
+                {"originator": "+4798765432", "text": "hello inbound", "gatewayid": "gw1",
+                 "smsencoding": "ENC8BIT"}
+                """)
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+    String uid = response.getMessage().replaceFirst("^Received SMS: ", "");
+    entityManager.flush();
+
+    Map<String, Object> row =
+        jdbcTemplate.queryForMap(
+            "select originator, text, gatewayid, encoding, userid from incomingsms where uid = ?",
+            uid);
+    assertEquals(
+        Map.of(
+            "originator",
+            "+4798765432",
+            "text",
+            "hello inbound",
+            "gatewayid",
+            "gw1",
+            "encoding",
+            SmsMessageEncoding.ENC8BIT.ordinal(),
+            "userid",
+            sender.getId()),
+        row);
   }
 
   @Test

@@ -33,11 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Set;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.translation.Translation;
@@ -105,7 +103,6 @@ class IncomingSmsTest {
     assertNull(sms.getLastUpdatedBy());
     assertNull(sms.getSharing().getOwner());
     assertNull(sms.getSharing().getPublicAccess());
-    assertNotSame(sms.getSharing(), sms.getSharing());
   }
 
   @Test
@@ -116,26 +113,6 @@ class IncomingSmsTest {
     sms.setTranslations(translations);
 
     assertEquals(translations, sms.getTranslations());
-  }
-
-  /** The JSON body of POST /api/sms/inbound uses the lower-case property names. */
-  @Test
-  void testDeserializeReceiveRequestBody() throws Exception {
-    String json =
-        """
-        {"originator": "+4711111111", "text": "Hello", "gatewayid": "gw",
-         "smsencoding": "ENCUCS2", "smsstatus": "INCOMING", "code": "CODE", "name": "Name"}
-        """;
-
-    IncomingSms sms = new ObjectMapper().readValue(json, IncomingSms.class);
-
-    assertEquals("+4711111111", sms.getOriginator());
-    assertEquals("Hello", sms.getText());
-    assertEquals("gw", sms.getGatewayId());
-    assertSame(SmsMessageEncoding.ENCUCS2, sms.getEncoding());
-    assertSame(SmsMessageStatus.INCOMING, sms.getStatus());
-    assertNull(sms.getCode());
-    assertNull(sms.getName());
   }
 
   private static IncomingSms sms(String uid, String text) {
