@@ -114,7 +114,7 @@ class QueryItemLocatorTest {
   private String programStageUid;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     programA = createProgram('A');
 
     dimension = CodeGenerator.generateUid();
