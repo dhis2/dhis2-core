@@ -53,6 +53,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -95,6 +96,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.ListBuilder;
 import org.postgresql.util.PSQLException;
@@ -648,14 +650,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // Program stage
     // ---------------------------------------------------------------------
 
-    if (params.hasProgramStage()) {
-      sql +=
-          hlp.whereAnd()
-              + " "
-              + quoteAlias("ps")
-              + " = '"
-              + params.getProgramStage().getUid()
-              + "' ";
+    Optional<ProgramStage> programStage =
+        params.hasProgramStage()
+            ? Optional.of(params.getProgramStage())
+            : params.getStageOfStageSpecificItemsWithoutFilter();
+
+    if (programStage.isPresent()) {
+      sql += hlp.whereAnd() + " " + quoteAlias("ps") + " = '" + programStage.get().getUid() + "' ";
     }
 
     sql += getOptionFilter(params, hlp);
