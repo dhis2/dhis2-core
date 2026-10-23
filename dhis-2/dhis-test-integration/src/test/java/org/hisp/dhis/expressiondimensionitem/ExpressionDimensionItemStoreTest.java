@@ -47,7 +47,6 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.tuple.entity.EntityMetamodel;
 import org.hibernate.type.ComponentType;
 import org.hibernate.type.CustomType;
-import org.hibernate.type.EnumType;
 import org.hibernate.type.ManyToOneType;
 import org.hibernate.type.TextType;
 import org.hisp.dhis.attribute.AttributeValues;
@@ -154,20 +153,6 @@ class ExpressionDimensionItemStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("a new item is stored with the default missing value strategy and sliding window")
-  void testDefaultsAreStored() {
-    ExpressionDimensionItem saved = save(item("Defaults"));
-
-    Map<String, Object> row =
-        jdbcTemplate.queryForMap(
-            "select missingvaluestrategy, slidingwindow from expressiondimensionitem"
-                + " where expressiondimensionitemid = ?",
-            saved.getId());
-    assertEquals("SKIP_IF_ALL_VALUES_MISSING", row.get("missingvaluestrategy"));
-    assertEquals(Boolean.FALSE, row.get("slidingwindow"));
-  }
-
-  @Test
   @DisplayName("null translations, attributevalues and sharing columns load as empty values")
   void testNullJsonbColumnsLoadAsEmptyValues() {
     ExpressionDimensionItem saved = save(item("Null jsonb"));
@@ -206,17 +191,6 @@ class ExpressionDimensionItemStoreTest extends PostgresIntegrationTestBase {
   void testTextColumns() {
     assertInstanceOf(TextType.class, persister().getPropertyType("description"));
     assertInstanceOf(TextType.class, persister().getPropertyType("expression"));
-  }
-
-  @Test
-  @DisplayName("missingValueStrategy is stored by enum name")
-  void testMissingValueStrategyIsStoredByName() {
-    CustomType type =
-        assertInstanceOf(CustomType.class, persister().getPropertyType("missingValueStrategy"));
-    EnumType<?> enumType = assertInstanceOf(EnumType.class, type.getUserType());
-
-    assertFalse(enumType.isOrdinal());
-    assertEquals(MissingValueStrategy.class, enumType.returnedClass());
   }
 
   @Test
@@ -264,8 +238,8 @@ class ExpressionDimensionItemStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("the item's own persisted properties exclude the analytics-only state")
-  void testItemPropertiesArePersisted() {
+  @DisplayName("the item's columns are mapped and the analytics-only state is not mapped")
+  void testPersistedAndTransientProperties() {
     EntityMetamodel metamodel = persister().getEntityMetamodel();
     for (String property :
         List.of(

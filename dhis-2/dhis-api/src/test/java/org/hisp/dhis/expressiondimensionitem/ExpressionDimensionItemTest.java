@@ -43,6 +43,8 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Unit tests for {@link ExpressionDimensionItem}. */
 class ExpressionDimensionItemTest {
@@ -81,6 +83,34 @@ class ExpressionDimensionItemTest {
 
     assertEquals(a, b);
     assertEquals(a.hashCode(), b.hashCode());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"uid", "code", "name"})
+  void testItemsWithADifferentIdentifierAreNotEqual(String property) {
+    ExpressionDimensionItem a = item("Short", "Description");
+    ExpressionDimensionItem b = item("Short", "Description");
+    switch (property) {
+      case "uid" -> b.setUid("otherUid");
+      case "code" -> b.setCode("otherCode");
+      default -> b.setName("otherName");
+    }
+
+    assertNotEquals(a, b);
+    assertNotEquals(a.hashCode(), b.hashCode());
+  }
+
+  @Test
+  void testItemIsNotEqualToAnInstanceOfASubclass() {
+    ExpressionDimensionItem a = item("Short", "Description");
+    ExpressionDimensionItem subclass = new ExpressionDimensionItem() {};
+    subclass.setUid("anyUid");
+    subclass.setCode("anyCode");
+    subclass.setName("anyName");
+    subclass.setShortName("Short");
+    subclass.setDescription("Description");
+
+    assertNotEquals(a, subclass);
   }
 
   @Test

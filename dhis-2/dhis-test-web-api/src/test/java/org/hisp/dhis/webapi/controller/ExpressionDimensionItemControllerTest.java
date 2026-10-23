@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
@@ -117,15 +118,18 @@ class ExpressionDimensionItemControllerTest extends PostgresControllerIntegratio
         ("{'expressionDimensionItems':[{'id':'%s','name':'Expression A','shortName':'Expr A',"
                 + "'expression':'1+1'}]}")
             .formatted(ITEM_UID));
-    String exported = getItem().toJson();
-    assertTrue(exported.contains("\"expression\":\"1+1\""), exported);
-    assertTrue(exported.contains("\"translations\":[]"), exported);
+    JsonObject exported = getItem();
+    assertEquals("1+1", exported.getString("expression").string());
+    assertTrue(exported.getArray("translations").isEmpty());
+    String withExpression =
+        exported.getString("expression").node().replaceWith("\"1+3\"").getDeclaration().toString();
     String changed =
-        exported
-            .replace("\"expression\":\"1+1\"", "\"expression\":\"1+3\"")
-            .replace(
-                "\"translations\":[]",
-                "\"translations\":[{\"locale\":\"fr\",\"property\":\"NAME\",\"value\":\"Expression fr\"}]");
+        JsonMixed.of(withExpression)
+            .getArray("translations")
+            .node()
+            .replaceWith("[{\"locale\":\"fr\",\"property\":\"NAME\",\"value\":\"Expression fr\"}]")
+            .getDeclaration()
+            .toString();
 
     assertStatus(HttpStatus.OK, PUT("/expressionDimensionItems/" + ITEM_UID, changed));
 
@@ -297,8 +301,7 @@ class ExpressionDimensionItemControllerTest extends PostgresControllerIntegratio
 
     JsonObject visualization =
         getVisualization(
-            "?fields=dataDimensionItems[dataDimensionItemType,"
-                + "expressionDimensionItem[id,name,shortName,expression]]");
+            "?fields=dataDimensionItems[dataDimensionItemType,expressionDimensionItem[*]]");
     JsonObject item =
         visualization
             .getArray("dataDimensionItems")
@@ -308,6 +311,9 @@ class ExpressionDimensionItemControllerTest extends PostgresControllerIntegratio
     assertEquals("Expression test", item.getString("name").string());
     assertEquals("Exp test", item.getString("shortName").string());
     assertEquals("1+2", item.getString("expression").string());
+    assertEquals("Expression test", item.getString("displayName").string());
+    assertEquals("Exp test", item.getString("displayShortName").string());
+    assertEquals("EXPRESSION_DIMENSION_ITEM", item.getString("dimensionItemType").string());
   }
 
   @Test
