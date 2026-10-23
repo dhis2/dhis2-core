@@ -291,7 +291,7 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(
       localName = "programStageDataElements",
       namespace = DxfNamespaces.DXF_2_0)
