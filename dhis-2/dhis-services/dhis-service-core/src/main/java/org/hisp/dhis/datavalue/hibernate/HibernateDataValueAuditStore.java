@@ -197,7 +197,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     if (user.isSuper()) return true;
     if (getAllowedAocIds(user, attributeOptionCombo).length == 0) return false;
     limitStatements();
-    Access access = createAccess(user, true, null);
+    Access access = createAccess(user, true, null, true);
     String sql =
         access.with()
             + "\nSELECT count(*) AS audit_count"
@@ -413,7 +413,20 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
       jdbcTemplate.execute(
           "SELECT set_config('plan_cache_mode', 'force_custom_plan', true)"
               + " WHERE current_setting('plan_cache_mode', true) IS NOT NULL");
-    return createAccess(user, params.getCategoryOptionCombo() != null, orgUnits);
+    return createAccess(
+        user, params.getCategoryOptionCombo() != null, orgUnits, isOneValue(params));
+  }
+
+  /**
+   * True when the params select the rows of one data value, as the data value context does: one
+   * data element, period and org unit, and both option combos.
+   */
+  private static boolean isOneValue(DataValueAuditQueryParams params) {
+    return params.getDataElements().size() == 1
+        && params.getPeriods().size() == 1
+        && params.getOrgUnits().size() == 1
+        && params.getCategoryOptionCombo() != null
+        && params.getAttributeOptionCombo() != null;
   }
 
   /**
@@ -502,6 +515,9 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
    * ninth of all org units per root: the set then seemed too large to hash and was searched again
    * for every audit row. There is no {@code patharray} on this version. Queries for many values of
    * a user with a small hierarchy get its org units {@link #getOrgUnitIds listed by ID} instead.
+   * Reads of one data value look up the org unit of their rows in the hierarchy instead: the
+   * estimated cost of the set made PostgreSQL 10 prefer a scan of all rows by {@code created} (27 s
+   * instead of 33 ms for a user with 5,000 org units).
    */
   static final class Access {
     private final String with;
@@ -545,10 +561,13 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
    *     query must bind; false to check all
    * @param orgUnits internal IDs of the org units the user reads, not empty, which the query must
    *     bind; null to find them inside the query
+   * @param oneValue true when the query reads the rows of one data value: their org unit is then
+   *     looked up in the user's hierarchy row by row instead of in the set of all org units of the
+   *     hierarchy (ignored when {@code orgUnits} are given)
    * @return the access of the user
    */
   static Access createAccess(
-      @Nonnull User user, boolean boundCombo, @CheckForNull Long[] orgUnits) {
+      @Nonnull User user, boolean boundCombo, @CheckForNull Long[] orgUnits, boolean oneValue) {
     if (orgUnits != null && orgUnits.length == 0)
       throw new IllegalArgumentException("org units must not be empty");
     // the default option combo is excluded: AclService always allows it
@@ -571,20 +590,36 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             + combos
             + "\n  )";
     // a user with every top-level org unit reads all org units: no descendant set is built
-    String orgUnitCheck =
-        orgUnits != null
-            ? ""
-            : "\n  AND (NOT EXISTS ("
-                + "\n      SELECT 1 FROM organisationunit top_acl"
-                + "\n      WHERE top_acl.parentid IS NULL"
-                + "\n        AND top_acl.organisationunitid NOT IN (SELECT organisationunitid FROM ou_roots))"
-                + "\n    OR (dva.organisationunitid IN ("
-                + "\n      SELECT ou_acl.organisationunitid"
-                + "\n      FROM organisationunit ou_acl"
-                + "\n      JOIN organisationunit root_acl"
-                + "\n        ON ou_acl.path ~>=~ root_acl.path AND ou_acl.path ~<~ (root_acl.path || '0')"
-                + "\n          AND left(ou_acl.path, length(root_acl.path)) = root_acl.path"
-                + "\n      WHERE root_acl.organisationunitid IN (SELECT organisationunitid FROM ou_roots))) IS TRUE)";
+    String topCheck =
+        "\n  AND (NOT EXISTS ("
+            + "\n      SELECT 1 FROM organisationunit top_acl"
+            + "\n      WHERE top_acl.parentid IS NULL"
+            + "\n        AND top_acl.organisationunitid NOT IN (SELECT organisationunitid FROM ou_roots))";
+    String rootJoin =
+        "\n      FROM organisationunit ou_acl"
+            + "\n      JOIN organisationunit root_acl"
+            + "\n        ON ou_acl.path ~>=~ root_acl.path AND ou_acl.path ~<~ (root_acl.path || '0')"
+            + "\n          AND left(ou_acl.path, length(root_acl.path)) = root_acl.path";
+    String orgUnitCheck;
+    if (orgUnits != null) {
+      orgUnitCheck = "";
+    } else if (oneValue) {
+      // the descendant set's estimated cost made PostgreSQL 10 scan the whole table by created
+      orgUnitCheck =
+          topCheck
+              + "\n    OR EXISTS ("
+              + "\n      SELECT 1"
+              + rootJoin
+              + "\n      WHERE ou_acl.organisationunitid = dva.organisationunitid"
+              + "\n        AND root_acl.organisationunitid IN (SELECT organisationunitid FROM ou_roots)))";
+    } else {
+      orgUnitCheck =
+          topCheck
+              + "\n    OR (dva.organisationunitid IN ("
+              + "\n      SELECT ou_acl.organisationunitid"
+              + rootJoin
+              + "\n      WHERE root_acl.organisationunitid IN (SELECT organisationunitid FROM ou_roots))) IS TRUE)";
+    }
     String where =
         "(dva.dataelementid IN ("
             + "\n    SELECT dse_acl.dataelementid"

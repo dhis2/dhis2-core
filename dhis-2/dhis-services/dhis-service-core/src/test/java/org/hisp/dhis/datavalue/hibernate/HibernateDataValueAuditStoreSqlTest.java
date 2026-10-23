@@ -53,6 +53,8 @@ import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -126,7 +128,38 @@ class HibernateDataValueAuditStoreSqlTest {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
     verify(session, times(2)).createNativeQuery(sql.capture());
     assertAocLookup(sql.getAllValues().get(0));
-    assertBoundCombos(sql.getAllValues().get(1));
+    assertOrgUnitRowByRow(assertBoundCombos(sql.getAllValues().get(1)));
+  }
+
+  @Test
+  void oneValueLooksUpItsOrgUnitRowByRow() {
+    doReturn(0L).when(query).getSingleResult();
+    DataElement de = new DataElement();
+    de.setId(13L);
+    Period pe = new MonthlyPeriodType().createPeriod("202101");
+    store.countDataValueAudits(params().setDataElements(List.of(de)).setPeriods(List.of(pe)));
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(session, times(2)).createNativeQuery(sql.capture());
+    assertOrgUnitRowByRow(sql.getAllValues().get(1));
+  }
+
+  @Test
+  void manyValuesOfGivenOrgUnitsUseTheDescendantSet() {
+    doReturn(0L).when(query).getSingleResult();
+    store.countDataValueAudits(params());
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(session, times(2)).createNativeQuery(sql.capture());
+    String statement = sql.getAllValues().get(1);
+    assertTrue(statement.contains("OR (dva.organisationunitid IN ("), statement);
+    assertFalse(statement.contains("WHERE ou_acl.organisationunitid = dva.organisationunitid"));
+  }
+
+  /** The org unit of each row is looked up in the user's hierarchy: no descendant set is built. */
+  private static void assertOrgUnitRowByRow(String statement) {
+    assertTrue(
+        statement.contains("WHERE ou_acl.organisationunitid = dva.organisationunitid"), statement);
+    assertFalse(statement.contains("OR (dva.organisationunitid IN ("), statement);
+    assertFalse(statement.contains("= ANY(:orgUnits)"), statement);
   }
 
   @Test
