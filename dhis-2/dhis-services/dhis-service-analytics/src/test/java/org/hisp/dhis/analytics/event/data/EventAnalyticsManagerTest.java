@@ -95,6 +95,7 @@ import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.PeriodDimension;
@@ -897,7 +898,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
                     "Facility type",
                     List.of(createOrganisationUnitGroup('A'))))
             .withOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)
-            .withValue(deX)
+            .withValue(new Value(deX))
             .withProgram(programA)
             .withTableName(getTable(programA.getUid()))
             .withAggregationType(
@@ -1713,7 +1714,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParamsWithFilter(ValueType.TEXT))
-            .withValue(deU)
+            .withValue(new Value(deU))
             .withAggregationType(analyticsAggregationType)
             .withAggregateData(true)
             .build();

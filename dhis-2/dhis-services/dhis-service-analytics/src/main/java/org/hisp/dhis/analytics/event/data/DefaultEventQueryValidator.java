@@ -135,7 +135,10 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     }
     if (params.hasValueDimension()
         && params.getItems().stream()
-            .anyMatch(item -> !item.hasLegendSet() && params.getValue().equals(item.getItem()))) {
+            .anyMatch(
+                item ->
+                    !item.hasLegendSet()
+                        && params.getValue().getDimensionalObject().equals(item.getItem()))) {
       return new ErrorMessage(ErrorCode.E7203);
     }
     if (params.hasAggregationType() && !(params.hasValueDimension() || params.isAggregateData())) {

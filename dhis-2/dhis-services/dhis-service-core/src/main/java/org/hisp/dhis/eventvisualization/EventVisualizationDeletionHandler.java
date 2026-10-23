@@ -89,6 +89,10 @@ public class EventVisualizationDeletionHandler
       if (visualization.getProgramStage() != null
           && visualization.getProgramStage().equals(programStage)) {
         service.delete(visualization);
+      } else if (visualization.getProgramStageValueDimension() != null
+          && visualization.getProgramStageValueDimension().equals(programStage)) {
+        visualization.setProgramStageValueDimension(null);
+        service.update(visualization);
       }
     }
   }

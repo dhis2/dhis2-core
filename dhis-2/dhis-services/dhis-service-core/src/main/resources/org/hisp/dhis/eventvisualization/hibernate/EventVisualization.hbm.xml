@@ -129,6 +129,9 @@
         <many-to-one name="dataElementValueDimension" class="org.hisp.dhis.dataelement.DataElement"
                      column="dataelementvaluedimensionid" foreign-key="fk_evisualization_dataelementvaluedimensionid"/>
 
+        <many-to-one name="programStageValueDimension" class="org.hisp.dhis.program.ProgramStage"
+                     column="programstagevaluedimensionid" foreign-key="fk_evisualization_programstagevaluedimensionid"/>
+
         <many-to-one name="attributeValueDimension" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
                      column="attributevaluedimensionid" foreign-key="fk_evisualization_attributevaluedimensionid"/>
 

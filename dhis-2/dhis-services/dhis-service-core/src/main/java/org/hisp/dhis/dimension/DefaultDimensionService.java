@@ -302,24 +302,42 @@ public class DefaultDimensionService implements DimensionService {
   @Transactional(readOnly = true)
   public void mergeEventAnalyticalObject(EventAnalyticalObject object) {
     if (object != null) {
-      if (object.getValue() != null) {
+      if (object.getValue() != null && isNotBlank(object.getValue().getUid())) {
         String uid = object.getValue().getUid();
 
         DataElement dataElement = idObjectManager.get(DataElement.class, uid);
 
         if (dataElement != null) {
           object.setDataElementValueDimension(dataElement);
+          object.setProgramStageValueDimension(
+              getValueProgramStage(object.getValue().getProgramStageUid()));
         }
 
         TrackedEntityAttribute attribute = idObjectManager.get(TrackedEntityAttribute.class, uid);
 
         if (attribute != null) {
           object.setAttributeValueDimension(attribute);
+          object.setProgramStageValueDimension(
+              getValueProgramStage(object.getValue().getProgramStageUid()));
         }
       }
 
       populateEventRepetitions(object);
     }
+  }
+
+  /**
+   * Resolves the persisted {@link ProgramStage} referenced by the given value dimension, if any.
+   *
+   * @param programStageUid the {@link ProgramStage} uid.
+   * @return the {@link ProgramStage} or null.
+   */
+  private ProgramStage getValueProgramStage(String programStageUid) {
+    if (isNotBlank(programStageUid)) {
+      return idObjectManager.get(ProgramStage.class, programStageUid);
+    }
+
+    return null;
   }
 
   @Override

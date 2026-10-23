@@ -102,6 +102,7 @@ import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -1867,7 +1868,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     String stageUid = repeatableProgramStage.getUid();
     EventQueryParams.Builder params = createRequestParamsBuilder();
     params.withEndpointAction(AGGREGATE);
-    params.withValue(dataElementA);
+    params.withValue(new Value(dataElementA));
     params.withValueProgramStage(repeatableProgramStage);
     params.withAggregationType(AnalyticsAggregationType.AVERAGE);
 
@@ -1905,7 +1906,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     EventQueryParams.Builder params = createRequestParamsBuilder();
     params.withEndpointAction(AGGREGATE);
     params.addItem(dimensionItem);
-    params.withValue(dataElementA);
+    params.withValue(new Value(dataElementA));
     params.withValueProgramStage(repeatableProgramStage);
     params.withAggregationType(AnalyticsAggregationType.SUM);
 
@@ -1939,7 +1940,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
     EventQueryParams.Builder params = createRequestParamsBuilder();
     params.withEndpointAction(AGGREGATE);
-    params.withValue(attribute);
+    params.withValue(new Value(attribute));
     params.withAggregationType(AnalyticsAggregationType.AVERAGE);
 
     ListGrid grid = new ListGrid();
