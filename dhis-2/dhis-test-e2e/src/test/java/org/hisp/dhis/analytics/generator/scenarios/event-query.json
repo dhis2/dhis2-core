@@ -461,6 +461,27 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "enrollmentOuQueryDistrict",
+      "query": "/api/analytics/events/query/regOuProg01.json?dimension=pe:2022,ENROLLMENT_OU:O6uvpzGd5pu&headers=enrollmentou,enrollmentouname,ouname&displayProperty=NAME&pageSize=10&page=1&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentOuQueryFilterLevel3",
+      "query": "/api/analytics/events/query/regOuProg01.json?dimension=pe:2022&filter=ENROLLMENT_OU:LEVEL-3&headers=ouname&asc=ouname&displayProperty=NAME&pageSize=10&page=1&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentOuQuerySortByName",
+      "query": "/api/analytics/events/query/regOuProg01.json?dimension=pe:2022,ENROLLMENT_OU:LEVEL-2&headers=enrollmentou,enrollmentouname&asc=enrollmentouname&displayProperty=NAME&pageSize=10&page=1&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

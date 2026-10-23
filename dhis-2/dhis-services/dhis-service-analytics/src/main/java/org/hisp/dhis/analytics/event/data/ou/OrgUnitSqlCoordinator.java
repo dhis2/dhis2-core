@@ -31,29 +31,195 @@ package org.hisp.dhis.analytics.event.data.ou;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.AnalyticsType;
 
-/** Orchestrates ENROLLMENT_OU SQL clauses for query and aggregate paths. */
+/**
+ * Orchestrates the SQL clauses of the tracker org unit dimensions for query and aggregate paths.
+ * Applies to both event and enrollment analytics, since the org unit columns exist in both table
+ * types; the enrollment endpoints only support REGISTRATION_OU.
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class OrgUnitSqlCoordinator {
 
   /**
-   * Adds the ENROLLMENT_OU join to a {@link SelectBuilder} query when enrollment OU is used as a
-   * filter or dimension.
+   * Adds the org unit structure join to a {@link SelectBuilder} query when the dimension is used as
+   * a dimension or a filter.
+   *
+   * @param dimension the tracker org unit dimension
+   * @param sb builder being assembled
+   * @param params query parameters
+   * @param sqlBuilder database-specific SQL builder for column quoting
+   */
+  public static void addJoinIfNeeded(
+      TrackerOrgUnitDimension dimension,
+      SelectBuilder sb,
+      EventQueryParams params,
+      SqlBuilder sqlBuilder) {
+    if (!dimension.isRequested(params)) {
+      return;
+    }
+
+    sb.innerJoin(
+        OrgUnitSqlConstants.STRUCT_TABLE,
+        dimension.getStructAlias(),
+        alias -> OrgUnitSqlFragments.joinCondition(dimension, alias, sqlBuilder));
+  }
+
+  /**
+   * Returns the org unit structure join clause, or an empty string when the dimension is not used.
+   *
+   * @param dimension the tracker org unit dimension
+   * @param params query parameters
+   * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return {@code inner join ... on ...} clause, or an empty string
+   */
+  public static String joinClause(
+      TrackerOrgUnitDimension dimension, EventQueryParams params, SqlBuilder sqlBuilder) {
+    return dimension.isRequested(params)
+        ? OrgUnitSqlFragments.innerJoinClause(dimension, sqlBuilder)
+        : "";
+  }
+
+  /**
+   * Returns the where conditions of the dimension. Items are grouped by hierarchy level and matched
+   * against the corresponding {@code uidlevel} column, which yields "at or below" semantics. Within
+   * a dimension or filter the per-level predicates are OR-ed, because the requested subtrees form a
+   * union. The dimension and the filter are AND-ed, because each restricts the result
+   * independently.
+   *
+   * @param dimension the tracker org unit dimension
+   * @param params query parameters
+   * @param hlp helper used to add {@code where/and} prefixes
+   * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return where conditions, or an empty string when the dimension restricts nothing
+   */
+  public static String wherePredicate(
+      TrackerOrgUnitDimension dimension,
+      EventQueryParams params,
+      SqlHelper hlp,
+      SqlBuilder sqlBuilder) {
+    List<String> restrictions = new ArrayList<>();
+
+    addRestriction(restrictions, dimension, dimension.dimensionItems(params), sqlBuilder);
+    addRestriction(restrictions, dimension, dimension.filterItems(params), sqlBuilder);
+
+    if (restrictions.isEmpty()) {
+      return "";
+    }
+
+    return hlp.whereAnd() + " " + String.join(" and ", restrictions) + " ";
+  }
+
+  /**
+   * Returns the select or group-by column of the dimension for aggregate queries, producing one
+   * output row per requested org unit, each aggregating its whole subtree.
+   *
+   * @param dimension the tracker org unit dimension
+   * @param params query parameters
+   * @param isGroupBy whether the column is destined for the group-by clause
+   * @param isAggregated whether the query is in aggregated mode
+   * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return the column, or empty when the query has no disaggregation by the dimension
+   */
+  public static Optional<String> dimensionSelectColumn(
+      TrackerOrgUnitDimension dimension,
+      EventQueryParams params,
+      boolean isGroupBy,
+      boolean isAggregated,
+      SqlBuilder sqlBuilder) {
+    if (!isAggregated || !dimension.hasAggregateColumn(params)) {
+      return Optional.empty();
+    }
+
+    return Optional.of(
+        OrgUnitSqlFragments.selectUidLevel(
+            dimension,
+            singleLevelOf(dimension, dimension.dimensionItems(params)),
+            isGroupBy,
+            sqlBuilder));
+  }
+
+  /**
+   * Returns the query output columns of the dimension, being the UID and the name of the org unit
+   * held by the event row.
+   *
+   * @param dimension the tracker org unit dimension
+   * @param params query parameters
+   * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return the UID and name projections, or an empty list when the dimension is absent
+   */
+  public static List<String> querySelectColumns(
+      TrackerOrgUnitDimension dimension, EventQueryParams params, SqlBuilder sqlBuilder) {
+    if (!dimension.isDimensionRequested(params)) {
+      return List.of();
+    }
+
+    return List.of(
+        OrgUnitSqlFragments.selectUid(dimension, sqlBuilder),
+        OrgUnitSqlFragments.selectName(dimension, sqlBuilder));
+  }
+
+  /**
+   * True if the given projection is the registration OU column contributed by {@link
+   * #dimensionSelectColumn}. The enrollment aggregate base CTE strips table aliases from its
+   * projections, which would turn this column into a bare {@code uidlevelN} that is ambiguous
+   * between the analytics table and the joined org unit structure table, so it has to be recognised
+   * and handled separately.
+   */
+  public static boolean isRegistrationOuColumn(String column) {
+    return column != null
+        && column.contains(TrackerOrgUnitDimension.REGISTRATION_OU.getStructAlias() + ".");
+  }
+
+  /**
+   * Returns the registration OU projection for the enrollment aggregate base CTE, qualified and
+   * aliased as {@code registrationou} so the outer query can select and group by it off the CTE.
+   *
+   * @param params query parameters
+   * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return the projection, or empty when the dimension carries no org units
+   */
+  public static Optional<String> baseCteSelectColumn(
+      EventQueryParams params, SqlBuilder sqlBuilder) {
+    return dimensionSelectColumn(
+        TrackerOrgUnitDimension.REGISTRATION_OU, params, false, true, sqlBuilder);
+  }
+
+  /**
+   * Keeps the table qualifier on a {@code uidlevelN} projection instead of the alias-stripped form.
+   * The org unit structure table joined for registration org unit also carries {@code uidlevelN}
+   * columns, so a bare reference is ambiguous whenever the org unit dimension is itself
+   * level-based. The CTE's output column name is unaffected, because a column reference is named
+   * after the column rather than its qualifier.
+   *
+   * @param qualified the projection as produced by the dimension resolver, table alias included
+   * @param stripped the same projection with its table alias removed
+   * @return the qualified form for org unit level columns, otherwise the stripped form
+   */
+  public static String preserveQualifierIfAmbiguous(String qualified, String stripped) {
+    String bare = stripped == null ? "" : stripped.replace("\"", "").trim();
+
+    return bare.startsWith(OrgUnitSqlConstants.UID_LEVEL_PREFIX) ? qualified : stripped;
+  }
+
+  /**
+   * Adds the org unit structure joins of every requested tracker org unit dimension.
    *
    * @param sb builder being assembled
    * @param params query parameters
@@ -61,158 +227,100 @@ public final class OrgUnitSqlCoordinator {
    */
   public static void addJoinIfNeeded(
       SelectBuilder sb, EventQueryParams params, SqlBuilder sqlBuilder) {
-    if (!params.hasEnrollmentOu()) {
-      return;
+    for (TrackerOrgUnitDimension dimension : TrackerOrgUnitDimension.values()) {
+      addJoinIfNeeded(dimension, sb, params, sqlBuilder);
     }
-
-    String enrollmentTableName = enrollmentTableName(params);
-
-    sb.innerJoin(
-        enrollmentTableName,
-        OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS,
-        alias -> OrgUnitSqlFragments.joinCondition(alias, sqlBuilder));
   }
 
   /**
-   * Appends the ENROLLMENT_OU legacy join clause for string-based SQL generation.
+   * Returns the org unit structure join clauses of every requested tracker org unit dimension.
    *
-   * @param sql SQL buffer being assembled
    * @param params query parameters
    * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return the {@code inner join ... on ...} clauses, or an empty string
    */
-  public static void appendLegacyJoin(
-      StringBuilder sql, EventQueryParams params, SqlBuilder sqlBuilder) {
-    if (params.hasEnrollmentOu()) {
-      sql.append(OrgUnitSqlFragments.innerJoinClause(enrollmentTableName(params), sqlBuilder));
-    }
+  public static String joinClause(EventQueryParams params, SqlBuilder sqlBuilder) {
+    return Arrays.stream(TrackerOrgUnitDimension.values())
+        .map(dimension -> joinClause(dimension, params, sqlBuilder))
+        .collect(joining());
   }
 
   /**
-   * Adds ENROLLMENT_OU select/group-by column for aggregate event queries when ENROLLMENT_OU is a
-   * dimension. This produces disaggregation by enrollment org unit, matching the standard OU
-   * dimension behavior.
+   * Returns the where conditions of every tracker org unit dimension. The dimensions restrict
+   * independently, so their conditions are AND-ed.
    *
-   * @param columns mutable output column list
    * @param params query parameters
-   * @param isGroupBy whether the target list is used for group-by
-   * @param isAggregated whether the query is in aggregated mode
-   * @param analyticsType current analytics type
-   * @param sqlBuilder database-specific SQL builder for column quoting
-   */
-  public static void addDimensionSelectColumns(
-      List<String> columns,
-      EventQueryParams params,
-      boolean isGroupBy,
-      boolean isAggregated,
-      AnalyticsType analyticsType,
-      SqlBuilder sqlBuilder) {
-    if (isAggregated && params.hasEnrollmentOuDimension() && analyticsType == AnalyticsType.EVENT) {
-      if (params.isEnrollmentOuDimensionHierarchical()) {
-        // Hierarchical mode: produce a literal OU uid (no group by needed).
-        if (!isGroupBy) {
-          List<DimensionalItemObject> items = params.getEnrollmentOuDimensionItems();
-          String uid = items.isEmpty() ? "" : items.get(0).getUid();
-          columns.add(OrgUnitSqlFragments.selectLiteralEnrollmentOuUid(uid));
-        }
-      } else {
-        columns.add(OrgUnitSqlFragments.selectEnrollmentOuUid(isGroupBy, sqlBuilder));
-      }
-    }
-  }
-
-  /**
-   * Adds ENROLLMENT_OU query output columns (UID and name) for event query endpoint rows.
-   *
-   * @param columns mutable output column list
-   * @param params query parameters
-   * @param sqlBuilder database-specific SQL builder for column quoting
-   */
-  public static void addQuerySelectColumns(
-      List<String> columns, EventQueryParams params, SqlBuilder sqlBuilder) {
-    if (!params.hasEnrollmentOuDimension()) {
-      return;
-    }
-
-    columns.add(OrgUnitSqlFragments.selectEnrollmentOuUid(false, sqlBuilder));
-    columns.add(OrgUnitSqlFragments.selectEnrollmentOuName(sqlBuilder));
-  }
-
-  /**
-   * Appends ENROLLMENT_OU where conditions. UID items are grouped by org unit level and produce
-   * {@code enrl."uidlevel{N}" in (...)} conditions joined with AND. Level constraints produce
-   * {@code enrl."oulevel" in (...)} conditions. The two groups are combined with OR semantics.
-   *
-   * @param sql SQL buffer being assembled
    * @param hlp helper used to add {@code where/and} prefixes
-   * @param params query parameters
    * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return where conditions, or an empty string when no dimension restricts anything
    */
-  public static void appendWherePredicateIfNeeded(
-      StringBuilder sql, SqlHelper hlp, EventQueryParams params, SqlBuilder sqlBuilder) {
-    if (!params.hasEnrollmentOu()) {
-      return;
-    }
-
-    List<String> predicates = new ArrayList<>();
-
-    // Dimension items: hierarchical mode uses uidlevel filtering, direct mode uses enrl."ou" match.
-    List<DimensionalItemObject> dimensionItems = params.getEnrollmentOuDimensionItems();
-    if (!dimensionItems.isEmpty()) {
-      if (params.isEnrollmentOuDimensionHierarchical()) {
-        String uidLevelClause = buildUidLevelClause(dimensionItems, sqlBuilder);
-        predicates.add(" " + uidLevelClause + " ");
-      } else {
-        String uids =
-            dimensionItems.stream().map(item -> "'" + item.getUid() + "'").collect(joining(","));
-        predicates.add(OrgUnitSqlFragments.predicateByUids(uids, sqlBuilder));
-      }
-    }
-
-    // Filter items use hierarchical uidlevel filtering.
-    List<DimensionalItemObject> filterItems = params.getEnrollmentOuFilterItems();
-    if (!filterItems.isEmpty()) {
-      String uidLevelClause = buildUidLevelClause(filterItems, sqlBuilder);
-      predicates.add(" " + uidLevelClause + " ");
-    }
-
-    if (!params.getEnrollmentOuFilterLevels().isEmpty()) {
-      String levels =
-          params.getEnrollmentOuFilterLevels().stream().map(String::valueOf).collect(joining(","));
-      predicates.add(OrgUnitSqlFragments.predicateByLevels(levels, sqlBuilder));
-    }
-
-    if (!predicates.isEmpty()) {
-      sql.append(hlp.whereAnd()).append(" (").append(String.join(" or ", predicates)).append(") ");
-    }
+  public static String wherePredicate(
+      EventQueryParams params, SqlHelper hlp, SqlBuilder sqlBuilder) {
+    return Arrays.stream(TrackerOrgUnitDimension.values())
+        .map(dimension -> wherePredicate(dimension, params, hlp, sqlBuilder))
+        .collect(joining());
   }
 
   /**
-   * Groups org unit items by level and produces uidlevel-based IN conditions joined with AND.
+   * Returns the query output columns of every tracker org unit dimension.
    *
-   * @param items org unit items (must be OrganisationUnit instances)
+   * @param params query parameters
    * @param sqlBuilder database-specific SQL builder for column quoting
-   * @return combined uidlevel predicates joined with " and "
+   * @return the UID and name projections, in dimension order
    */
-  private static String buildUidLevelClause(
-      List<DimensionalItemObject> items, SqlBuilder sqlBuilder) {
-    Map<Integer, List<OrganisationUnit>> byLevel =
-        items.stream()
-            .map(item -> (OrganisationUnit) item)
-            .collect(groupingBy(OrganisationUnit::getLevel));
-
-    return byLevel.entrySet().stream()
-        .map(
-            entry -> {
-              String uids =
-                  entry.getValue().stream()
-                      .map(ou -> "'" + ou.getUid() + "'")
-                      .collect(joining(","));
-              return OrgUnitSqlFragments.predicateByUidLevel(entry.getKey(), uids, sqlBuilder);
-            })
-        .collect(joining(" and "));
+  public static List<String> querySelectColumns(EventQueryParams params, SqlBuilder sqlBuilder) {
+    return Arrays.stream(TrackerOrgUnitDimension.values())
+        .flatMap(dimension -> querySelectColumns(dimension, params, sqlBuilder).stream())
+        .toList();
   }
 
-  private static String enrollmentTableName(EventQueryParams params) {
-    return AnalyticsTable.getTableName(AnalyticsTableType.ENROLLMENT, params.getProgram());
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /** Adds one parenthesised restriction covering all levels present in the given items. */
+  private static void addRestriction(
+      List<String> restrictions,
+      TrackerOrgUnitDimension dimension,
+      List<OrganisationUnit> items,
+      SqlBuilder sqlBuilder) {
+    if (items.isEmpty()) {
+      return;
+    }
+
+    String predicate =
+        byLevel(items).entrySet().stream()
+            .map(
+                entry ->
+                    OrgUnitSqlFragments.predicateByUidLevel(
+                        dimension, entry.getKey(), quotedUids(entry.getValue()), sqlBuilder))
+            .collect(joining(" or "));
+
+    restrictions.add("(" + predicate + ")");
+  }
+
+  /**
+   * Returns the single hierarchy level shared by the given org units. One group-by column cannot
+   * represent several levels at once, and an org unit below two requested ancestors at different
+   * levels belongs to both, so a mixed-level set has no unambiguous disaggregation.
+   */
+  private static int singleLevelOf(
+      TrackerOrgUnitDimension dimension, List<OrganisationUnit> items) {
+    Map<Integer, List<OrganisationUnit>> byLevel = byLevel(items);
+
+    if (byLevel.size() > 1) {
+      throwIllegalQueryEx(ErrorCode.E7261, dimension.getDimensionName());
+    }
+
+    return byLevel.keySet().iterator().next();
+  }
+
+  /** Groups by level in ascending order, so generated predicates are deterministic. */
+  private static Map<Integer, List<OrganisationUnit>> byLevel(List<OrganisationUnit> items) {
+    return items.stream().collect(groupingBy(OrganisationUnit::getLevel, TreeMap::new, toList()));
+  }
+
+  private static String quotedUids(List<OrganisationUnit> items) {
+    return items.stream().map(item -> "'" + item.getUid() + "'").collect(joining(","));
   }
 }
