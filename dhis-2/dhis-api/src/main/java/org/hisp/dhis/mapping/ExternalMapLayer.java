@@ -35,8 +35,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -111,6 +113,14 @@ public class ExternalMapLayer extends BaseIdentifiableObject implements Metadata
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "attribution", key = "ATTRIBUTION")
+  @Sortable(whenPersisted = false)
+  public String getDisplayAttribution() {
+    return getTranslation("ATTRIBUTION", getAttribution());
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getLayers() {
     return layers;
   }
@@ -163,11 +173,19 @@ public class ExternalMapLayer extends BaseIdentifiableObject implements Metadata
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(max = 1024)
   public String getDescription() {
-    return description;
+    return this.description;
   }
 
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
+  @Sortable(whenPersisted = false)
+  public String getDisplayDescription() {
+    return getTranslation("DESCRIPTION", getDescription());
   }
 
   @JsonProperty

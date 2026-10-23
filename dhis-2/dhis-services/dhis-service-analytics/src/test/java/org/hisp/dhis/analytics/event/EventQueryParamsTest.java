@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.OrgUnitField;
@@ -1000,6 +1001,48 @@ class EventQueryParamsTest extends TestBase {
 
     // Then: should return false as data element is not a stage-specific dimension
     assertFalse(params.hasStageSpecificItem());
+  }
+
+  @Test
+  void testGetStageOfStageSpecificItemsWithoutFilterWithBareEventStatusItem() {
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    assertEquals(Optional.of(psA), params.getStageOfStageSpecificItemsWithoutFilter());
+  }
+
+  @Test
+  void testGetStageOfStageSpecificItemsWithoutFilterWithFilteredEventStatusItem() {
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+    qi.addFilter(new QueryFilter(QueryOperator.IN, "ACTIVE;COMPLETED"));
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    assertEquals(Optional.empty(), params.getStageOfStageSpecificItemsWithoutFilter());
+  }
+
+  @Test
+  void testGetStageOfStageSpecificItemsWithoutFilterWithRegularDataElementWithStage() {
+    QueryItem qi = new QueryItem(deA);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    assertEquals(Optional.empty(), params.getStageOfStageSpecificItemsWithoutFilter());
+  }
+
+  @Test
+  void testGetStageOfStageSpecificItemsWithoutFilterWithNoItems() {
+    EventQueryParams params = new EventQueryParams.Builder().build();
+
+    assertEquals(Optional.empty(), params.getStageOfStageSpecificItemsWithoutFilter());
   }
 
   @Test
