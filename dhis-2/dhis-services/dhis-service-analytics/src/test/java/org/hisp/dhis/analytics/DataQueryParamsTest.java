@@ -934,7 +934,8 @@ class DataQueryParamsTest extends TestBase {
     assertEquals(
         1,
         params.getQueryKey().keyComponents.stream()
-            .filter(v -> v.startsWith("timeDateRanges:occurreddateoccurreddateoccurreddate["))
+            .filter(
+                v -> v.startsWith("timeDateRanges:occurreddateenrollmentoccurreddateoccurreddate["))
             .collect(toSet())
             .size());
   }
