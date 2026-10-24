@@ -53,7 +53,7 @@ details_sql: >-
     (SELECT categorycomboid,COUNT(*) as theoretical_cardnality FROM categorycombos_categories
      GROUP BY categorycomboid) bar on foo.categorycomboid = bar.categorycomboid
     WHERE foo.actual_cardnality != bar.theoretical_cardnality )
-    SELECT x.uid as uid,x.name,y.name as comment
+    SELECT y.uid as uid,y.name,x.name as comment
     FROM baz
     INNER JOIN categorycombo x on baz.categorycomboid = x.categorycomboid
     INNER JOIN categoryoptioncombo y on baz.categoryoptioncomboid = y.categoryoptioncomboid;
