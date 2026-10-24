@@ -84,6 +84,9 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
   private int maxOrgUnitIds = MAX_ORG_UNIT_IDS;
 
+  /** Whether the database is PostgreSQL 14 or later, null until asked. */
+  private volatile Boolean postgres14;
+
   public HibernateDataValueAuditStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -105,6 +108,16 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
    */
   public void setMaxOrgUnitIds(int max) {
     this.maxOrgUnitIds = max;
+  }
+
+  /**
+   * For tests.
+   *
+   * @param is14 true to query as on PostgreSQL 14 or later, false as before 14, null to ask the
+   *     server
+   */
+  public void setPostgres14(@CheckForNull Boolean is14) {
+    this.postgres14 = is14;
   }
 
   // -------------------------------------------------------------------------
@@ -317,11 +330,25 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
       parameters.put("auditTypes", params.getAuditTypes().stream().map(Enum::name).toList());
     }
     if (access != null) sql.append("\n  AND ").append(access.where());
-    if (access != null && access.orgUnits() != null)
+    if (access != null && access.orgUnits() != null) {
+      // = ANY gives the planner the estimate of the list
       sql.append("\n  AND dva.organisationunitid = ANY(:orgUnits)");
-    if (aocAllowed != null)
+      // before PostgreSQL 14 it searches the array for every row: a hashed subplan does the test
+      // (a count of a user with 500 org units: 15.5 s instead of 1.6 s on PostgreSQL 10); on 14
+      // the subplan would only keep the scan from running in parallel
+      if (!isPostgres14())
+        sql.append(
+            "\n  AND (dva.organisationunitid IN (SELECT unnest(CAST(:orgUnits AS bigint[])))) IS TRUE");
+    }
+    if (aocAllowed != null && isPostgres14())
       sql.append(
           "\n  AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dva.attributeoptioncomboid)");
+    // before PostgreSQL 14 a semi join with the list, which the planner takes to have 100 rows,
+    // could become a nested loop over the list (a count of a user with 1,001 org units and 8,087
+    // allowed option combos ran into the timeout on PostgreSQL 10): a hashed subplan instead
+    if (aocAllowed != null && !isPostgres14())
+      sql.append(
+          "\n  AND (dva.attributeoptioncomboid IN (SELECT unnest(CAST(:aocAllowed AS bigint[])))) IS TRUE");
     sql.append(orderBy);
 
     NativeQuery<T> query =
@@ -335,6 +362,21 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     if (access != null && access.orgUnits() != null)
       query.setParameter("orgUnits", access.orgUnits(), LongArrayType.INSTANCE);
     return query;
+  }
+
+  /**
+   * Whether the database is PostgreSQL 14 or later, which hashes {@code = ANY} of an array. Before
+   * 14 the bound lists are tested with hashed subplans, which on 14 would only keep the scan from
+   * running in parallel.
+   */
+  private boolean isPostgres14() {
+    Boolean is14 = postgres14;
+    if (is14 == null) {
+      String version = jdbcTemplate.queryForObject("SHOW server_version_num", String.class);
+      is14 = version != null && Integer.parseInt(version) >= 140000;
+      postgres14 = is14;
+    }
+    return is14;
   }
 
   /**
