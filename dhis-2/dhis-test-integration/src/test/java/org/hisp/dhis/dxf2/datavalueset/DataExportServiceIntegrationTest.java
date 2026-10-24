@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -48,7 +50,9 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -665,6 +669,22 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     assertImported(12, 0, summary);
     assertImportDataValues(summary);
+  }
+
+  @Test
+  void testExportValues_PeriodParsedOncePerExport() {
+    assertImported(12, 0, importXml(readFile("dxf2/datavalueset/dataValueSetB.xml")));
+
+    Map<String, Period> firstByIso = new HashMap<>();
+    for (DataExportValue dv : dataExportStore.getAllDataValues()) {
+      Period first = firstByIso.computeIfAbsent(dv.period().getIsoDate(), iso -> dv.period());
+      assertSame(first, dv.period(), "rows of the same period should share one Period");
+    }
+    assertEquals(Set.of(peA.getIsoDate(), peB.getIsoDate()), firstByIso.keySet());
+
+    // the cache is per export, a second export must not hand out the same (mutable) instances
+    Period again = dataExportStore.getAllDataValues().get(0).period();
+    assertNotSame(firstByIso.get(again.getIsoDate()), again);
   }
 
   @Test

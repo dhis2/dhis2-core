@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -79,9 +80,21 @@ public record DataExportValue(
    * @return the row as {@link DataExportValue} record
    */
   public static DataExportValue of(Object[] row) {
+    return of(row, Period::of);
+  }
+
+  /**
+   * Create records from DB rows. Assumes types based on DB column types and persistence mapping.
+   *
+   * @param row a row as returned by the DB
+   * @param periods resolves the ISO period of a row to a {@link Period}, e.g. using a cache so rows
+   *     of the same period do not each parse the ISO value again
+   * @return the row as {@link DataExportValue} record
+   */
+  public static DataExportValue of(Object[] row, Function<String, Period> periods) {
     return new DataExportValue(
         UID.of((String) row[0]),
-        Period.of((String) row[1]),
+        periods.apply((String) row[1]),
         UID.of((String) row[2]),
         UID.of((String) row[3]),
         UID.of((String) row[4]),
