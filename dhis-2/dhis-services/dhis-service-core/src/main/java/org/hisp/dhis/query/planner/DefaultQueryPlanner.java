@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Filter;
+import org.hisp.dhis.query.JpaCriteriaQueryEngine;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -62,7 +63,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
     Query<T> memoryQuery = plan.memoryQuery();
     Query<T> dbQuery = plan.dbQuery();
 
-    // if there are any non persisted filters, leave the paging to the in-memory engine
+    // Remaining in-memory filtering or ordering must happen before paging.
     if (!memoryQuery.isEmpty()) {
       dbQuery.setSkipPaging(true);
     } else {
@@ -215,8 +216,9 @@ public class DefaultQueryPlanner implements QueryPlanner {
   /**
    * Returns whether a filter can be executed in the DB query plan.
    *
-   * <p>Virtual filters are DB-eligible only for `identifiable` and `query`. For regular filters,
-   * the path must resolve to a persisted property and not require in-memory alias traversal (for
+   * <p>Virtual filters are DB-eligible only for `identifiable` and `query`. Root displayName LIKE
+   * filters are eligible when the engine implements their translated expression. Other regular
+   * filters must resolve to persisted properties and not require in-memory alias traversal (for
    * example collection/embedded paths handled by {@code pathRequiresInMemoryFiltering(...)}).
    *
    * @param query query containing the filter
@@ -225,6 +227,10 @@ public class DefaultQueryPlanner implements QueryPlanner {
    */
   private boolean isDbFilter(Query<?> query, Filter filter) {
     if (filter.isVirtual()) return filter.isIdentifiable() || filter.isQuery();
+    if (JpaCriteriaQueryEngine.supportsTranslatedNameFilter(
+        schemaService.getSchema(query.getObjectType()), filter)) {
+      return true;
+    }
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
     if (path == null || !path.isPersisted()) return false;
     if (Attribute.ObjectType.isValidType(path.getPath())) return false;
@@ -234,6 +240,16 @@ public class DefaultQueryPlanner implements QueryPlanner {
         return true;
       }
       if (pathRequiresInMemoryFiltering(query.getObjectType(), path.getAlias())) {
+        return false;
+      }
+      // Implicit relationship joins are not null-preserving. Keep the old all-memory OR
+      // fallback when displayName pushdown would otherwise discard matching parentless objects.
+      if (query.getRootJunctionType() == Junction.Type.OR
+          && query.getFilters().stream()
+              .anyMatch(
+                  f ->
+                      JpaCriteriaQueryEngine.supportsTranslatedNameFilter(
+                          schemaService.getSchema(query.getObjectType()), f))) {
         return false;
       }
       return path.getProperty().isSimple();
