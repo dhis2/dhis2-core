@@ -34,15 +34,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -63,6 +67,10 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
   @Autowired private RegisteredClientRepository clientRepository;
 
   @Autowired private Dhis2OAuth2ClientStore clientStore;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Autowired private EntityManagerFactory entityManagerFactory;
 
   private RegisteredClient registeredClient;
 
@@ -303,5 +311,97 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
 
     assertTrue(authorities1.contains("SCOPE_profile"));
     assertTrue(authorities2.contains("SCOPE_api"));
+  }
+
+  @Test
+  void testSavedConsentIsFoundFromPersistedRow() {
+    saveConsent("flow-save-user", "SCOPE_profile", "SCOPE_email");
+    clearSessionAndCache();
+
+    assertEquals(
+        Set.of("SCOPE_profile", "SCOPE_email"),
+        authorityNames(
+            authorizationConsentService.findById(registeredClient.getId(), "flow-save-user")));
+    assertEquals(Set.of("SCOPE_profile", "SCOPE_email"), storedAuthorities("flow-save-user"));
+  }
+
+  @Test
+  void testSavingAgainUpdatesAuthoritiesAndKeepsIdentity() {
+    saveConsent("flow-upsert-user", "SCOPE_profile", "SCOPE_email");
+    clearSessionAndCache();
+    Dhis2OAuth2AuthorizationConsent created =
+        authorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
+            registeredClient.getId(), "flow-upsert-user");
+
+    saveConsent("flow-upsert-user", "SCOPE_profile", "SCOPE_address");
+    clearSessionAndCache();
+    Dhis2OAuth2AuthorizationConsent updated =
+        authorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
+            registeredClient.getId(), "flow-upsert-user");
+
+    assertEquals(created.getId(), updated.getId());
+    assertEquals(created.getUid(), updated.getUid());
+    assertEquals(created.getCreated(), updated.getCreated());
+    assertEquals(
+        Set.of("SCOPE_profile", "SCOPE_address"),
+        authorityNames(
+            authorizationConsentService.findById(registeredClient.getId(), "flow-upsert-user")));
+    assertEquals(Set.of("SCOPE_profile", "SCOPE_address"), storedAuthorities("flow-upsert-user"));
+    assertEquals(1, countRows("flow-upsert-user"));
+  }
+
+  @Test
+  void testRemoveDeletesPersistedRow() {
+    saveConsent("flow-remove-user", "SCOPE_profile");
+    clearSessionAndCache();
+
+    authorizationConsentService.remove(
+        OAuth2AuthorizationConsent.withId(registeredClient.getId(), "flow-remove-user")
+            .authority(new SimpleGrantedAuthority("SCOPE_profile"))
+            .build());
+    clearSessionAndCache();
+
+    assertNull(authorizationConsentService.findById(registeredClient.getId(), "flow-remove-user"));
+    assertEquals(0, countRows("flow-remove-user"));
+  }
+
+  private void saveConsent(String principal, String... authorities) {
+    OAuth2AuthorizationConsent.Builder builder =
+        OAuth2AuthorizationConsent.withId(registeredClient.getId(), principal);
+    for (String authority : authorities) {
+      builder.authority(new SimpleGrantedAuthority(authority));
+    }
+    authorizationConsentService.save(builder.build());
+  }
+
+  private static Set<String> authorityNames(OAuth2AuthorizationConsent consent) {
+    return consent.getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority)
+        .collect(Collectors.toSet());
+  }
+
+  private Set<String> storedAuthorities(String principal) {
+    String authorities =
+        jdbcTemplate.queryForObject(
+            "select authorities from oauth2_authorization_consent"
+                + " where registered_client_id = ? and principal_name = ?",
+            String.class,
+            registeredClient.getId(),
+            principal);
+    return Set.of(authorities.split(","));
+  }
+
+  private int countRows(String principal) {
+    return jdbcTemplate.queryForObject(
+        "select count(*) from oauth2_authorization_consent"
+            + " where registered_client_id = ? and principal_name = ?",
+        Integer.class,
+        registeredClient.getId(),
+        principal);
+  }
+
+  private void clearSessionAndCache() {
+    clearSession();
+    entityManagerFactory.getCache().evictAll();
   }
 }
