@@ -30,12 +30,14 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
@@ -53,6 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class AccountControllerTest extends DhisControllerIntegrationTest {
   @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private PasswordManager passwordManager;
   @Autowired private DhisConfigurationProvider configurationProvider;
 
   @BeforeEach
@@ -102,6 +105,62 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
         "User self registration is not allowed",
         POST("/account?username=test&firstName=fn&surname=sn&password=Pass%23%23%23123663&email=test@example.com&phoneNumber=0123456789&employer=em")
             .content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  void testUpdatePassword_EmailRecoveryRequired() {
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_HOST_NAME, "mail.example.com");
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_USERNAME, "noreply");
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_PASSWORD, "secret");
+    systemSettingManager.saveSystemSetting(SettingKey.CREDENTIALS_EXPIRES, 1);
+
+    String oldPassword = "Str0ng_old_1A";
+    User user = createUserWithAuth("expiredmail");
+    userService.encodeAndSetPassword(user, oldPassword);
+    Calendar calendar = Calendar.getInstance();
+    calendar.add(Calendar.MONTH, -2);
+    user.setPasswordLastUpdated(calendar.getTime());
+    userService.updateUser(user);
+    clearSecurityContext();
+
+    assertMessage(
+        "status",
+        "EMAIL_RECOVERY_REQUIRED",
+        "Password must be reset using email recovery for this account",
+        POST(String.format(
+                "/account/password?username=%s&oldPassword=%s&password=Str0ng_new_1A",
+                user.getUsername(), oldPassword))
+            .content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  void testUpdatePassword_NoEmailStillAllowedWhenRecoveryEnabled() {
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_HOST_NAME, "mail.example.com");
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_USERNAME, "noreply");
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_PASSWORD, "secret");
+    systemSettingManager.saveSystemSetting(SettingKey.CREDENTIALS_EXPIRES, 1);
+
+    String oldPassword = "Str0ng_old_1A";
+    String newPassword = "Str0ng_new_1A";
+    User user = createUserWithAuth("expirednoem");
+    user.setEmail(null);
+    userService.encodeAndSetPassword(user, oldPassword);
+    Calendar calendar = Calendar.getInstance();
+    calendar.add(Calendar.MONTH, -2);
+    user.setPasswordLastUpdated(calendar.getTime());
+    userService.updateUser(user);
+    clearSecurityContext();
+
+    assertMessage(
+        "status",
+        "OK",
+        "Account was updated.",
+        POST(String.format(
+                "/account/password?username=%s&oldPassword=%s&password=%s",
+                user.getUsername(), oldPassword, newPassword))
+            .content(HttpStatus.OK));
   }
 
   @Test
