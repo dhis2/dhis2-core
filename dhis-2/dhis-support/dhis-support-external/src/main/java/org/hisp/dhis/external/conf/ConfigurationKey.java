@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -474,7 +474,8 @@ public enum ConfigurationKey {
 
   /**
    * Skip building indexes for dimensional columns on analytics tables for the comma-separated list
-   * of dimension identifiers. Experimental.
+   * of dimension identifiers. The value {@code id} skips the index on the {@code id} column of the
+   * data value and completeness tables, which is only used by continuous analytics. Experimental.
    */
   ANALYTICS_TABLE_SKIP_INDEX("analytics.table.skip_index", "", false),
 
