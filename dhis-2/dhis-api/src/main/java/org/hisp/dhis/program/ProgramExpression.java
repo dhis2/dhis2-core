@@ -32,12 +32,21 @@ package org.hisp.dhis.program;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.io.Serializable;
+import org.hibernate.annotations.Type;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Chau Thu Tran
  */
+@Entity
+@Table(name = "programexpression")
 @JacksonXmlRootElement(localName = "programExpression", namespace = DxfNamespaces.DXF_2_0)
 public class ProgramExpression implements Serializable {
   public static final String SEPARATOR_ID = "\\.";
@@ -56,10 +65,16 @@ public class ProgramExpression implements Serializable {
 
   public static final String OBJECT_PROGRAM_STAGE = "PS";
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "programexpressionid")
   private long id;
 
+  @Column(name = "expression", columnDefinition = "text")
+  @Type(type = "text")
   private String expression;
 
+  @Column(name = "description")
   private String description;
 
   // -------------------------------------------------------------------------
