@@ -30,6 +30,17 @@
 package org.hisp.dhis.tracker.audit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
@@ -39,19 +50,37 @@ import org.hisp.dhis.audit.AuditOperationType;
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
 @Deprecated
+@Entity
+@Table(name = "trackedentityaudit")
 public class TrackedEntityAudit implements Serializable {
   private static final long serialVersionUID = 4260110537887403524L;
 
+  @Id
+  @GeneratedValue(
+      strategy = GenerationType.SEQUENCE,
+      generator = "trackedentityinstanceaudit_sequence")
+  @SequenceGenerator(
+      name = "trackedentityinstanceaudit_sequence",
+      sequenceName = "trackedentityinstanceaudit_sequence",
+      allocationSize = 1)
+  @Column(name = "trackedentityauditid")
   private long id;
 
+  @Column(name = "trackedentity")
   private String trackedEntity;
 
+  @Column(name = "comment", length = 50000)
   private String comment;
 
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "created")
   private Date created;
 
+  @Column(name = "accessedby")
   private String accessedBy;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "audittype", length = 100, nullable = false)
   private AuditOperationType auditType;
 
   // -------------------------------------------------------------------------
