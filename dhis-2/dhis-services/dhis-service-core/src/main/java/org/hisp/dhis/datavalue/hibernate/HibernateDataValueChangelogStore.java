@@ -208,7 +208,24 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     if (user.isSuper()) return null;
     long[] orgUnits = getOrgUnitIds(api, user, maxOrgUnitIds);
     if (orgUnits != null) jdbcTemplate.execute("SET LOCAL plan_cache_mode = force_custom_plan");
-    return createAccess(user, params.getCategoryOptionCombo() != null, orgUnits);
+    return createAccess(
+        user, params.getCategoryOptionCombo() != null, orgUnits, isOneValue(params));
+  }
+
+  /**
+   * True when the params select the rows of one data value: one data element, period and org unit,
+   * and both option combos.
+   */
+  private static boolean isOneValue(DataValueChangelogQueryParams params) {
+    return isOne(params.getDataElements())
+        && isOne(params.getPeriods())
+        && isOne(params.getOrgUnits())
+        && params.getCategoryOptionCombo() != null
+        && params.getAttributeOptionCombo() != null;
+  }
+
+  private static boolean isOne(@CheckForNull List<?> items) {
+    return items != null && items.size() == 1;
   }
 
   /**
@@ -343,7 +360,10 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
    * are found with the GIN index on {@code patharray} (V2_43_69), one lookup per root, as the data
    * value export does on master: a unit is in the hierarchy of a root exactly when its path array
    * has the root. Queries for many values of a user with a small hierarchy get its org units {@link
-   * #getOrgUnitIds listed by ID} instead.
+   * #getOrgUnitIds listed by ID} instead. Reads of one data value, such as the data value context,
+   * look up the org unit of their rows in the hierarchy instead: on PostgreSQL 10 the estimated
+   * cost of the set made the planner prefer a scan of all rows by {@code created} (27 s instead of
+   * 33 ms for a user with 5,000 org units, on 2.40).
    *
    * @param with the {@code WITH} clause computing the option combos the user may not read
    * @param where the condition on the alias {@code dva}, without the org units when they are listed
@@ -358,11 +378,17 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
    *     value for the default combo), which the query must bind; false to check all
    * @param orgUnits internal IDs of the org units the user reads, not empty, which the query must
    *     bind; null to find them inside the query
+   * @param oneValue true when the query reads the rows of one data value: their org unit is then
+   *     looked up in the user's hierarchy row by row instead of in the set of all org units of the
+   *     hierarchy (ignored when {@code orgUnits} are given)
    * @return the access of the user, or null when the user reads all rows
    */
   @CheckForNull
   static Access createAccess(
-      @Nonnull UserDetails user, boolean boundCombo, @CheckForNull long[] orgUnits) {
+      @Nonnull UserDetails user,
+      boolean boundCombo,
+      @CheckForNull long[] orgUnits,
+      boolean oneValue) {
     if (user.isSuper()) return null;
     if (orgUnits != null && orgUnits.length == 0)
       throw new IllegalArgumentException("org units must not be empty");
@@ -389,23 +415,44 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
           )"""
             .formatted(roots, createDataReadCheck("co.sharing", user), combos);
     // a user with every top-level org unit reads all org units: no descendant set is built
-    String orgUnitCheck =
-        orgUnits != null
-            ? ""
-            : """
+    String orgUnitCheck;
+    if (orgUnits != null) {
+      orgUnitCheck = "";
+    } else if (oneValue) {
+      // the descendant set's estimated cost made PostgreSQL 10 scan the whole table by created
+      orgUnitCheck =
+          """
 
-                AND (NOT EXISTS (
-                    SELECT 1 FROM organisationunit top_acl
-                    WHERE top_acl.parentid IS NULL
-                      AND top_acl.organisationunitid NOT IN (SELECT organisationunitid FROM ou_roots))
-                  OR (dva.organisationunitid IN (
-                    SELECT ou_acl.organisationunitid
-                    FROM organisationunit ou_acl
-                    JOIN organisationunit root_acl
-                      ON ou_acl.patharray && ARRAY[root_acl.uid]
-                    WHERE root_acl.organisationunitid IN (SELECT organisationunitid FROM ou_roots))) IS TRUE)
-              """
-                .stripTrailing();
+            AND (NOT EXISTS (
+                SELECT 1 FROM organisationunit top_acl
+                WHERE top_acl.parentid IS NULL
+                  AND top_acl.organisationunitid NOT IN (SELECT organisationunitid FROM ou_roots))
+              OR EXISTS (
+                SELECT 1
+                FROM organisationunit ou_acl
+                JOIN organisationunit root_acl
+                  ON ou_acl.patharray && ARRAY[root_acl.uid]
+                WHERE ou_acl.organisationunitid = dva.organisationunitid
+                  AND root_acl.organisationunitid IN (SELECT organisationunitid FROM ou_roots)))
+          """
+              .stripTrailing();
+    } else {
+      orgUnitCheck =
+          """
+
+            AND (NOT EXISTS (
+                SELECT 1 FROM organisationunit top_acl
+                WHERE top_acl.parentid IS NULL
+                  AND top_acl.organisationunitid NOT IN (SELECT organisationunitid FROM ou_roots))
+              OR (dva.organisationunitid IN (
+                SELECT ou_acl.organisationunitid
+                FROM organisationunit ou_acl
+                JOIN organisationunit root_acl
+                  ON ou_acl.patharray && ARRAY[root_acl.uid]
+                WHERE root_acl.organisationunitid IN (SELECT organisationunitid FROM ou_roots))) IS TRUE)
+          """
+              .stripTrailing();
+    }
     String where =
         """
         (dva.dataelementid IN (
@@ -549,7 +596,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     DataValueKey key = toKey(params);
     SQL.QueryAPI api = NativeSQL.of(getSession());
     if (!isAocReadable(api, user, key)) return false;
-    Access access = createAccess(user, true, null);
+    Access access = createAccess(user, true, null, true);
     limitStatements();
     @Language("sql")
     String sql =
@@ -604,7 +651,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     UserDetails user = getCurrentUserDetails();
     SQL.QueryAPI api = NativeSQL.of(getSession());
     if (!isAocReadable(api, user, key)) return List.of();
-    Access access = createAccess(user, true, null);
+    Access access = createAccess(user, true, null, true);
     if (access != null) limitStatements();
     @Language("sql")
     String sql =

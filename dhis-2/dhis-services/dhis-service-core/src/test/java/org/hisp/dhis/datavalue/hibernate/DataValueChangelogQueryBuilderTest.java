@@ -302,7 +302,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
     AtomicReference<String> sql = new AtomicReference<>();
     createEntriesQuery(
             params,
-            createAccess(user, true, null),
+            createAccess(user, true, null, false),
             new long[] {987654321L},
             true,
             SQL.spy(sql::set, (name, param) -> {}))
@@ -323,7 +323,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
     Set<String> bound = new HashSet<>();
     createEntriesQuery(
             new DataValueChangelogQueryParams().setPeriods(List.of(of("2021"))),
-            createAccess(user, false, new long[] {11L, 12L}),
+            createAccess(user, false, new long[] {11L, 12L}, false),
             new long[] {987654321L},
             true,
             SQL.spy(sql::set, (name, param) -> bound.add(name)))
