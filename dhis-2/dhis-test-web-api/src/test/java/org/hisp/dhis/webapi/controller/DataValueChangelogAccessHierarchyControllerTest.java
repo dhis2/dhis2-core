@@ -106,6 +106,12 @@ class DataValueChangelogAccessHierarchyControllerTest
   private static final List<Integer> MAX_ORG_UNIT_IDS =
       List.of(HibernateDataValueChangelogStore.MAX_ORG_UNIT_IDS, 0);
 
+  /**
+   * The change log statements as on PostgreSQL 14 and later, and as before 14 (hashed subplans for
+   * the bound lists), whatever the test database: both must read the same rows.
+   */
+  private static final List<Boolean> POSTGRES_14 = List.of(true, false);
+
   /** Units by code, in index order; the index is the hundreds of a value. */
   private final Map<String, String> units = new LinkedHashMap<>();
 
@@ -128,6 +134,7 @@ class DataValueChangelogAccessHierarchyControllerTest
   @AfterEach
   void resetStore() {
     store.setMaxOrgUnitIds(HibernateDataValueChangelogStore.MAX_ORG_UNIT_IDS);
+    store.setPostgres14(null);
   }
 
   @BeforeEach
@@ -239,18 +246,21 @@ class DataValueChangelogAccessHierarchyControllerTest
     switchToNewUser(user(Set.of("A"), Set.of(), false));
     String restrictedAoc = attributeOptionCombo(restrictedOption);
     String openAoc = attributeOptionCombo(openOption);
-    for (int max : MAX_ORG_UNIT_IDS) {
-      store.setMaxOrgUnitIds(max);
-      assertEquals(0, total(format("&co=%s&cc=%s", restrictedCoc, defaultCoc)));
-      assertEquals(0, total(format("&co=%s&cc=%s", defaultCoc, restrictedAoc)));
-      assertEquals(Set.of(), visible(format("&co=%s&cc=%s", defaultCoc, restrictedAoc)));
-      Set<String> open = visible(format("&co=%s&cc=%s", defaultCoc, openAoc));
-      assertEquals(expected(Set.of("A"), false, OPEN_AOC), open, "max " + max);
-      assertEquals(
-          expected(Set.of("A"), false, OPEN_COC),
-          visible(format("&co=%s&cc=%s", openCoc, defaultCoc)),
-          "max " + max);
-    }
+    for (int max : MAX_ORG_UNIT_IDS)
+      for (boolean is14 : POSTGRES_14) {
+        store.setMaxOrgUnitIds(max);
+        store.setPostgres14(is14);
+        String mode = mode(max, is14);
+        assertEquals(0, total(format("&co=%s&cc=%s", restrictedCoc, defaultCoc)), mode);
+        assertEquals(0, total(format("&co=%s&cc=%s", defaultCoc, restrictedAoc)), mode);
+        assertEquals(Set.of(), visible(format("&co=%s&cc=%s", defaultCoc, restrictedAoc)), mode);
+        Set<String> open = visible(format("&co=%s&cc=%s", defaultCoc, openAoc));
+        assertEquals(expected(Set.of("A"), false, OPEN_AOC), open, mode);
+        assertEquals(
+            expected(Set.of("A"), false, OPEN_COC),
+            visible(format("&co=%s&cc=%s", openCoc, defaultCoc)),
+            mode);
+      }
   }
 
   @Test
@@ -339,19 +349,23 @@ class DataValueChangelogAccessHierarchyControllerTest
       Set<String> capture, Set<String> dataView, boolean groupMember, Set<String> roots) {
     switchToNewUser(user(capture, dataView, groupMember));
     Set<String> expected = expected(roots, groupMember);
-    // org units listed by ID (few) and found inside the query (many)
-    for (int max : MAX_ORG_UNIT_IDS) {
-      store.setMaxOrgUnitIds(max);
-      assertEquals(expected, visible(""), "max " + max);
-      assertEquals(expected, values("/audits/dataValue?fields=value&skipPaging=true"));
-      assertEquals(expected, values("/audits/dataValue?fields=value&paging=false"));
-      assertEquals(rows("/audits/dataValue?fields=value&skipPaging=true"), total(""));
-      for (String code : units.keySet()) {
-        Set<String> inUnit = new HashSet<>();
-        expected.stream().filter(label -> label.startsWith(code + ":")).forEach(inUnit::add);
-        assertEquals(inUnit, visible("&ou=" + units.get(code)), "max " + max + " " + code);
+    // org units listed by ID (few) and found inside the query (many), each as on PostgreSQL 14
+    // and before
+    for (int max : MAX_ORG_UNIT_IDS)
+      for (boolean is14 : POSTGRES_14) {
+        store.setMaxOrgUnitIds(max);
+        store.setPostgres14(is14);
+        String mode = mode(max, is14);
+        assertEquals(expected, visible(""), mode);
+        assertEquals(expected, values("/audits/dataValue?fields=value&skipPaging=true"), mode);
+        assertEquals(expected, values("/audits/dataValue?fields=value&paging=false"), mode);
+        assertEquals(rows("/audits/dataValue?fields=value&skipPaging=true"), total(""), mode);
+        for (String code : units.keySet()) {
+          Set<String> inUnit = new HashSet<>();
+          expected.stream().filter(label -> label.startsWith(code + ":")).forEach(inUnit::add);
+          assertEquals(inUnit, visible("&ou=" + units.get(code)), mode + " " + code);
+        }
       }
-    }
     int i = 0;
     for (Map.Entry<String, String> unit : units.entrySet()) {
       int index = i++;
@@ -363,6 +377,10 @@ class DataValueChangelogAccessHierarchyControllerTest
             expected.contains(label), status != HttpStatus.FORBIDDEN, label + " " + status);
       }
     }
+  }
+
+  private static String mode(int maxOrgUnitIds, boolean postgres14) {
+    return "max " + maxOrgUnitIds + (postgres14 ? ", PG 14" : ", before PG 14");
   }
 
   /** Change log rows the user should read: both values of each readable value of the units. */
