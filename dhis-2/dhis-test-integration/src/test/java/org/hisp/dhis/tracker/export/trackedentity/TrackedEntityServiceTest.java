@@ -48,6 +48,7 @@ import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursBefore;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
@@ -116,7 +117,6 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.test.RelationshipUtils;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -136,8 +136,6 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TestNotes testNotes;
-
-  @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
@@ -420,18 +418,18 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
         trackedEntityA, programB, orgUnitA);
 
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaA, trackedEntityA, "A"));
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaA, trackedEntityChildA, "CA"));
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaA, trackedEntityGrandchildA, "GCA"));
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaB, trackedEntityA, "B"));
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaC, trackedEntityA, "C"));
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaE, trackedEntityA, "E"));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(teaA, trackedEntityA, "A"));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(teaA, trackedEntityChildA, "CA"));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(teaA, trackedEntityGrandchildA, "GCA"));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(teaB, trackedEntityA, "B"));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(teaC, trackedEntityA, "C"));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(teaE, trackedEntityA, "E"));
 
     RelationshipType relationshipTypeA = createRelationshipType('A');
     relationshipTypeA
