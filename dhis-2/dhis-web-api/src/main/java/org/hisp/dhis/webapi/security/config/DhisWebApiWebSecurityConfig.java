@@ -65,6 +65,7 @@ import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
+import org.hisp.dhis.webapi.security.session.ReauthenticatingExpiredSessionStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -450,7 +451,9 @@ public class DhisWebApiWebSecurityConfig {
                 .maximumSessions(
                     Integer.parseInt(
                         dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
-                .expiredUrl("/dhis-web-commons-security/logout.action"));
+                .expiredSessionStrategy(
+                    new ReauthenticatingExpiredSessionStrategy(
+                        "/dhis-web-commons-security/logout.action")));
   }
 
   @Bean

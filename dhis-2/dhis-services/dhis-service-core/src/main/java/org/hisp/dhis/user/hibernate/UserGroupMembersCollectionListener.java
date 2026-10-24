@@ -74,9 +74,9 @@ public class UserGroupMembersCollectionListener
 
   private static final String MEMBERS_ROLE = UserGroup.class.getName() + ".members";
 
-  private final EntityManagerFactory entityManagerFactory;
+  private final transient EntityManagerFactory entityManagerFactory;
 
-  private final UserGroupMembershipChangeCollector membershipChangeCollector;
+  private final transient UserGroupMembershipChangeCollector membershipChangeCollector;
 
   @PostConstruct
   void registerListener() {
