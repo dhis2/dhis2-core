@@ -47,6 +47,8 @@ import org.hibernate.event.spi.AbstractCollectionEvent;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.event.spi.PreCollectionRecreateEvent;
 import org.hibernate.event.spi.PreCollectionRecreateEventListener;
+import org.hibernate.event.spi.PreCollectionRemoveEvent;
+import org.hibernate.event.spi.PreCollectionRemoveEventListener;
 import org.hibernate.event.spi.PreCollectionUpdateEvent;
 import org.hibernate.event.spi.PreCollectionUpdateEventListener;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -60,17 +62,20 @@ import org.springframework.stereotype.Component;
  * Reports the users that joined or left a {@link UserGroup} through Hibernate to the {@link
  * UserGroupMembershipChangeCollector}. This covers every write of the {@code UserGroup.members}
  * collection: metadata import and sync, the {@code /userGroups/{uid}/users} and {@code
- * /users/{uid}/userGroups} collection endpoints and {@code UserGroupService#updateUserGroup}.
+ * /users/{uid}/userGroups} collection endpoints, {@code UserGroupService#updateUserGroup} and the
+ * deletion of a user group.
  *
  * <p>Only the difference between the members as loaded and as flushed is reported, so saving a
- * group with unchanged members reports nobody. Deleting a user group is not reported.
+ * group with unchanged members reports nobody. Deleting a group reports all of its members.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
 @RequiredArgsConstructor
 public class UserGroupMembersCollectionListener
-    implements PreCollectionUpdateEventListener, PreCollectionRecreateEventListener {
+    implements PreCollectionUpdateEventListener,
+        PreCollectionRecreateEventListener,
+        PreCollectionRemoveEventListener {
 
   private static final String MEMBERS_ROLE = UserGroup.class.getName() + ".members";
 
@@ -87,6 +92,7 @@ public class UserGroupMembersCollectionListener
             .getService(EventListenerRegistry.class);
     registry.appendListeners(EventType.PRE_COLLECTION_UPDATE, this);
     registry.appendListeners(EventType.PRE_COLLECTION_RECREATE, this);
+    registry.appendListeners(EventType.PRE_COLLECTION_REMOVE, this);
   }
 
   @Override
@@ -110,8 +116,22 @@ public class UserGroupMembersCollectionListener
   }
 
   /**
+   * A members collection is removed when the group is deleted. The deletion handlers of a user
+   * group iterate its members before the delete, so the collection is initialized by then.
+   */
+  @Override
+  public void onPreRemoveCollection(PreCollectionRemoveEvent event) {
+    PersistentCollection members = event.getCollection();
+    if (members != null && members.wasInitialized() && isMembers(event)) {
+      membershipChangeCollector.membershipsChanged(
+          userIds(snapshotElements(members.getStoredSnapshot())));
+    }
+  }
+
+  /**
    * Uses the persister the collection is being flushed with, since a collection wrapped for a new
-   * group has no role yet.
+   * group has no role yet, and falls back to the persister it was loaded with, since a removed
+   * collection has no current persister.
    */
   private static boolean isMembers(AbstractCollectionEvent event) {
     CollectionEntry entry =
@@ -119,7 +139,13 @@ public class UserGroupMembersCollectionListener
             .getSession()
             .getPersistenceContextInternal()
             .getCollectionEntry(event.getCollection());
-    CollectionPersister persister = entry == null ? null : entry.getCurrentPersister();
+    if (entry == null) {
+      return false;
+    }
+    CollectionPersister persister =
+        entry.getCurrentPersister() != null
+            ? entry.getCurrentPersister()
+            : entry.getLoadedPersister();
     return persister != null && MEMBERS_ROLE.equals(persister.getRole());
   }
 

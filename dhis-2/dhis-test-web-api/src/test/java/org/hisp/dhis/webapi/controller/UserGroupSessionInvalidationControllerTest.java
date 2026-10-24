@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -49,9 +50,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.session.SessionRegistry;
 
 /**
- * Verifies that the sessions of users who join or leave a user group are invalidated after the
- * change has committed, whichever API changed the membership, and that the sessions of members
- * whose membership did not change are left alone.
+ * Verifies that the sessions of users who join or leave a user group, or whose group is deleted,
+ * are invalidated after the change has committed, whichever API changed the membership, and that
+ * the sessions of members whose membership did not change are left alone.
  *
  * <p>The class is not {@code @Transactional}, so every request commits on its own. The invalidation
  * runs on a single-threaded executor after the commit; draining that executor before asserting
@@ -80,6 +81,11 @@ class UserGroupSessionInvalidationControllerTest extends H2ControllerIntegration
     member = createUserWithAuth("member");
     memberPrincipal = userService.createUserDetails(member);
     groupId = assertStatus(CREATED, POST("/userGroups", "{'name':'Group'}"));
+  }
+
+  @AfterEach
+  void removeMemberSession() {
+    sessionRegistry.removeSessionInformation(SESSION_ID);
   }
 
   @ParameterizedTest
@@ -142,6 +148,23 @@ class UserGroupSessionInvalidationControllerTest extends H2ControllerIntegration
     assertFalse(sessionRegistry.getAllSessions(memberPrincipal, false).isEmpty());
   }
 
+  /**
+   * Deletes through metadata import, which leaves the sharing of the group in place. {@code DELETE
+   * /userGroups/{uid}} cannot run on H2, since it removes the group from sharing with SQL for
+   * JSONB.
+   */
+  @Test
+  void deletingUserGroupInvalidatesSessionsOfItsMembers() {
+    joinGroup();
+    registerMemberSession();
+
+    POST("/metadata?importStrategy=DELETE", "{'userGroups':[{'id':'" + groupId + "'}]}")
+        .content(OK);
+    awaitSessionInvalidation();
+
+    assertMemberSessionInvalidated();
+  }
+
   private void joinGroup() {
     POST("/userGroups/" + groupId + "/users/" + member.getUid()).content(OK);
     // the join itself invalidates sessions, so let that finish before registering a session
@@ -155,7 +178,6 @@ class UserGroupSessionInvalidationControllerTest extends H2ControllerIntegration
 
   private void assertMemberSessionInvalidated() {
     assertTrue(sessionRegistry.getAllSessions(memberPrincipal, false).isEmpty());
-    sessionRegistry.removeSessionInformation(SESSION_ID);
   }
 
   /** The executor is single-threaded, so once this task ran all queued invalidations have run. */
