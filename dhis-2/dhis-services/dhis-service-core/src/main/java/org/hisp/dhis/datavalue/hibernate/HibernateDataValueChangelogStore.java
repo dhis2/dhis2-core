@@ -82,6 +82,9 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
 
   private int maxOrgUnitIds = MAX_ORG_UNIT_IDS;
 
+  /** Whether the database is PostgreSQL 14 or later, null until asked. */
+  private volatile Boolean postgres14;
+
   public HibernateDataValueChangelogStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -97,6 +100,15 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   @UsageTestOnly
   public void setMaxOrgUnitIds(int max) {
     this.maxOrgUnitIds = max;
+  }
+
+  /**
+   * @param is14 true to query as on PostgreSQL 14 or later, false as before 14, null to ask the
+   *     server
+   */
+  @UsageTestOnly
+  public void setPostgres14(@CheckForNull Boolean is14) {
+    this.postgres14 = is14;
   }
 
   @Override
@@ -138,8 +150,9 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     Long[] aocAllowed = getAllowedAocIds(api, user, params.getAttributeOptionCombo());
     if (aocAllowed != null && aocAllowed.length == 0) return List.of();
     if (aocAllowed != null) limitStatements();
-    return createEntriesQuery(params, createAccess(api, user, params), aocAllowed, api).stream(
-            DataValueChangelog.class)
+    return createEntriesQuery(
+            params, createAccess(api, user, params), aocAllowed, isPostgres14(), api)
+        .stream(DataValueChangelog.class)
         .toList();
   }
 
@@ -150,7 +163,9 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     Long[] aocAllowed = getAllowedAocIds(api, user, params.getAttributeOptionCombo());
     if (aocAllowed != null && aocAllowed.length == 0) return 0;
     if (aocAllowed != null) limitStatements();
-    return createEntriesQuery(params, createAccess(api, user, params), aocAllowed, api).count();
+    return createEntriesQuery(
+            params, createAccess(api, user, params), aocAllowed, isPostgres14(), api)
+        .count();
   }
 
   /**
@@ -162,6 +177,21 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   private void limitStatements() {
     if (queryTimeout > 0)
       jdbcTemplate.execute("SET LOCAL statement_timeout = '%ds'".formatted(queryTimeout));
+  }
+
+  /**
+   * Whether the database is PostgreSQL 14 or later, which hashes {@code = ANY} of an array. Before
+   * 14 the bound lists are tested with hashed subplans, which on 14 would only keep the scan from
+   * running in parallel.
+   */
+  private boolean isPostgres14() {
+    Boolean is14 = postgres14;
+    if (is14 == null) {
+      String version = jdbcTemplate.queryForObject("SHOW server_version_num", String.class);
+      is14 = version != null && Integer.parseInt(version) >= 140000;
+      postgres14 = is14;
+    }
+    return is14;
   }
 
   /**
@@ -436,14 +466,24 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   /**
    * @param aocAllowed internal ids of the attribute option combos the rows are limited to, null for
    *     no limit; must not be empty (an empty list would erase the condition)
+   * @param postgres14 true to test the bound lists as PostgreSQL 14 and later can, false to test
+   *     them with hashed subplans as needed before 14
    */
   static QueryBuilder createEntriesQuery(
       DataValueChangelogQueryParams params,
       @CheckForNull Access access,
       @CheckForNull Long[] aocAllowed,
+      boolean postgres14,
       SQL.QueryAPI api) {
     if (aocAllowed != null && aocAllowed.length == 0)
       throw new IllegalArgumentException("AOC limit must not be empty");
+    // = ANY(:orgUnits) gives the planner the estimate of the list. Before PostgreSQL 14 it searches
+    // the array for every row: a hashed subplan does the test (a count of a user with 500 org
+    // units: 15.5 s instead of 1.6 s on PostgreSQL 10). A semi join with the allowed combos, which
+    // the planner takes to have 100 rows, could become a nested loop over the list before 14 (a
+    // count of a user with 1,001 org units and 8,087 allowed combos ran into the timeout on
+    // PostgreSQL 10): a hashed subplan instead. On 14 the subplans would only keep the scan from
+    // running in parallel.
     String sql =
         """
       :accessWith
@@ -464,10 +504,13 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         AND pe.iso = ANY(:pe)
         AND :access
         AND dva.organisationunitid = ANY(:orgUnits)
+        AND (dva.organisationunitid IN (SELECT unnest(CAST(:orgUnitsHashed AS bigint[])))) IS TRUE
         AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dva.attributeoptioncomboid)
+        AND (dva.attributeoptioncomboid IN (SELECT unnest(CAST(:aocAllowedHashed AS bigint[])))) IS TRUE
       ORDER BY dva.created DESC""";
 
     Pager pager = params.getPager();
+    Long[] orgUnits = access == null ? null : access.orgUnits();
     return SQL.of(sql, api)
         .setParameter("types", params.getTypes(), DataValueChangelogType::name)
         .setParameter("pe", params.getPeriods(), Period::getIsoDate)
@@ -476,8 +519,10 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .setParameter("ou", params.getOrgUnits())
         .setParameter("coc", params.getCategoryOptionCombo())
         .setParameter("aoc", params.getAttributeOptionCombo())
-        .setParameter("aocAllowed", aocAllowed)
-        .setParameter("orgUnits", access == null ? null : access.orgUnits())
+        .setParameter("aocAllowed", postgres14 ? aocAllowed : null)
+        .setParameter("aocAllowedHashed", postgres14 ? null : aocAllowed)
+        .setParameter("orgUnits", orgUnits)
+        .setParameter("orgUnitsHashed", postgres14 ? null : orgUnits)
         .setDynamicClause("accessWith", access == null ? null : access.with())
         .setDynamicClause("access", access == null ? null : access.where())
         .setOffset(pager == null ? null : pager.getOffset())

@@ -70,7 +70,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE dva.audittype = ANY(:types)
       ORDER BY dva.created DESC""",
         Set.of("types"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -84,7 +84,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE dva.audittype = :types
       ORDER BY dva.created DESC""",
         Set.of("types"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -98,7 +98,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM datavalueaudit dva
       WHERE dva.audittype = ANY(:types)""",
         Set.of("types"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -111,7 +111,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM datavalueaudit dva
       WHERE dva.audittype = :types""",
         Set.of("types"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -127,7 +127,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE de.uid = ANY(:de)
       ORDER BY dva.created DESC""",
         Set.of("de"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -142,7 +142,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE de.uid = :de
       ORDER BY dva.created DESC""",
         Set.of("de"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -158,7 +158,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE ou.uid = ANY(:ou)
       ORDER BY dva.created DESC""",
         Set.of("ou"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -173,7 +173,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE ou.uid = :ou
       ORDER BY dva.created DESC""",
         Set.of("ou"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -190,7 +190,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE ds.uid = ANY(:ds)
       ORDER BY dva.created DESC""",
         Set.of("ds"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -206,7 +206,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE ds.uid = :ds
       ORDER BY dva.created DESC""",
         Set.of("ds"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -221,7 +221,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE pe.iso = ANY(:pe)
       ORDER BY dva.created DESC""",
         Set.of("pe"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -236,7 +236,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE pe.iso = :pe
       ORDER BY dva.created DESC""",
         Set.of("pe"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -250,7 +250,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE dva.categoryoptioncomboid = (SELECT coc.categoryoptioncomboid FROM categoryoptioncombo coc WHERE coc.uid = :coc)
       ORDER BY dva.created DESC""",
         Set.of("coc"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -264,7 +264,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE dva.attributeoptioncomboid = (SELECT aoc.categoryoptioncomboid FROM categoryoptioncombo aoc WHERE aoc.uid = :aoc)
       ORDER BY dva.created DESC""",
         Set.of("aoc"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -286,7 +286,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
         AND pe.iso = :pe
       ORDER BY dva.created DESC""",
         Set.of("types", "ds", "pe"),
-        createEntriesQuery(params, null, null, createSpyQuery()));
+        createEntriesQuery(params, null, null, true, createSpyQuery()));
   }
 
   @Test
@@ -304,6 +304,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
             params,
             createAccess(user, true, null),
             new Long[] {987654321L},
+            true,
             SQL.spy(sql::set, (name, param) -> {}))
         .count();
 
@@ -324,6 +325,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
             new DataValueChangelogQueryParams().setPeriods(List.of(of("2021"))),
             createAccess(user, false, new Long[] {11L, 12L}),
             new Long[] {987654321L},
+            true,
             SQL.spy(sql::set, (name, param) -> bound.add(name)))
         .count();
 
