@@ -35,10 +35,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -143,5 +149,145 @@ class OptionGroupStoreTest extends PostgresIntegrationTestBase {
     optionStore.delete(option);
     optionGroupA = store.get(optionGroupA.getId());
     assertTrue(optionGroupA.getMembers().isEmpty());
+  }
+
+  private Option saveOption(char uniqueChar, OptionSet optionSet) {
+    Option option = createOption(uniqueChar);
+    option.setOptionSet(optionSet);
+    optionStore.save(option);
+    return option;
+  }
+
+  @Test
+  @DisplayName("members round-trip through the optiongroupmembers join table")
+  void testMembersJoinTable() {
+    OptionSet optionSet = createOptionSet('J');
+    optionSet.setValueType(ValueType.TEXT);
+    optionSetStore.save(optionSet);
+    Option o1 = saveOption('1', optionSet);
+    Option o2 = saveOption('2', optionSet);
+
+    OptionGroup group = new OptionGroup("JpaMembersGroup");
+    group.setShortName("JpaMembersGroup");
+    group.addOption(o1);
+    group.addOption(o2);
+    store.save(group);
+    long id = group.getId();
+
+    clearSession();
+
+    OptionGroup reloaded = store.get(id);
+    assertNotNull(reloaded);
+    Set<String> memberUids = new HashSet<>();
+    reloaded.getMembers().forEach(o -> memberUids.add(o.getUid()));
+    assertEquals(2, memberUids.size());
+    assertTrue(memberUids.containsAll(Set.of(o1.getUid(), o2.getUid())));
+  }
+
+  @Test
+  @DisplayName("createdBy is persisted to the userid column")
+  void testCreatedByPersisted() {
+    OptionGroup group = new OptionGroup("JpaCreatedByGroup");
+    group.setShortName("JpaCreatedByGroup");
+    group.setCreatedBy(getAdminUser());
+    store.save(group);
+    long id = group.getId();
+
+    clearSession();
+
+    OptionGroup reloaded = store.get(id);
+    assertNotNull(reloaded.getCreatedBy(), "createdBy must persist to the userid column");
+    assertEquals(getAdminUser().getUid(), reloaded.getCreatedBy().getUid());
+  }
+
+  @Test
+  @DisplayName("shortName and description (text-typed) round-trip")
+  void testScalarFieldsPersist() {
+    OptionGroup group = new OptionGroup("JpaScalarGroup");
+    group.setShortName("JpaScalarGroup");
+    // Longer than 255 chars: description is a text column
+    String longDescription = "d".repeat(1000);
+    group.setDescription(longDescription);
+    store.save(group);
+    long id = group.getId();
+
+    clearSession();
+
+    OptionGroup reloaded = store.get(id);
+    assertEquals("JpaScalarGroup", reloaded.getShortName());
+    assertEquals(longDescription, reloaded.getDescription());
+  }
+
+  @Test
+  @DisplayName("optionSet many-to-one round-trip")
+  void testOptionSetPersisted() {
+    OptionSet optionSet = createOptionSet('K');
+    optionSet.setValueType(ValueType.TEXT);
+    optionSetStore.save(optionSet);
+
+    OptionGroup group = new OptionGroup("JpaOptionSetGroup");
+    group.setShortName("JpaOptionSetGroup");
+    group.setOptionSet(optionSet);
+    store.save(group);
+    long id = group.getId();
+
+    clearSession();
+
+    OptionGroup reloaded = store.get(id);
+    assertNotNull(reloaded.getOptionSet());
+    assertEquals(optionSet.getUid(), reloaded.getOptionSet().getUid());
+  }
+
+  @Test
+  @DisplayName("id is generated (SEQUENCE) on save")
+  void testIdGeneration() {
+    OptionGroup group = new OptionGroup("JpaIdGenGroup");
+    group.setShortName("JpaIdGenGroup");
+    store.save(group);
+    assertTrue(group.getId() > 0, "id must be generated on save");
+    assertNotNull(group.getUid());
+  }
+
+  @Test
+  @DisplayName("deleting the group keeps its member Option (no cascade, DHIS2-22154)")
+  void testDeleteGroupKeepsOptions() {
+    OptionSet optionSet = createOptionSet('L');
+    optionSet.setValueType(ValueType.TEXT);
+    optionSetStore.save(optionSet);
+    Option option = saveOption('3', optionSet);
+    long optionId = option.getId();
+
+    OptionGroup group = new OptionGroup("JpaCascadeGroup");
+    group.setShortName("JpaCascadeGroup");
+    group.addOption(option);
+    store.save(group);
+    long id = group.getId();
+
+    store.delete(store.get(id));
+
+    clearSession();
+
+    assertNotNull(optionStore.get(optionId), "deleting a group must not delete its member Option");
+  }
+
+  @Test
+  @DisplayName(
+      "attributeValues, legendSets and aggregationType have no column and are not supported")
+  void testUnsupportedProperties() {
+    OptionGroup group = new OptionGroup("UnsupportedGroup");
+    group.setShortName("UnsupportedGroup");
+    group.setAttributeValues(
+        AttributeValues.of(Map.<CharSequence, CharSequence>of("hQKI6KcEu5t", "avalue")));
+    group.setAggregationType(AggregationType.SUM);
+    store.save(group);
+    long id = group.getId();
+
+    clearSession();
+
+    OptionGroup reloaded = store.get(id);
+    assertTrue(reloaded.getAttributeValues().isEmpty());
+    assertTrue(reloaded.getLegendSets().isEmpty());
+    assertNull(reloaded.getAggregationType());
+    assertNull(reloaded.getQueryMods());
   }
 }
