@@ -34,6 +34,18 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 import java.util.UUID;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
@@ -44,16 +56,38 @@ import org.hisp.dhis.user.User;
 /**
  * @author Lars Helge Overland
  */
+@Entity
+@Table(
+    name = "usermessage",
+    indexes = {
+      @Index(name = "usermessage_userid", columnList = "userid"),
+      @Index(name = "usermessage_isread", columnList = "isread")
+    })
 @JacksonXmlRootElement(localName = "userMessage", namespace = DxfNamespaces.DXF_2_0)
 public class UserMessage {
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "usermessage_sequence")
+  @SequenceGenerator(
+      name = "usermessage_sequence",
+      sequenceName = "usermessage_sequence",
+      allocationSize = 1)
+  @Column(name = "usermessageid")
   private int id;
 
+  @Column(name = "usermessagekey")
   private String key;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "userid",
+      nullable = false,
+      foreignKey = @ForeignKey(name = "fk_usermessage_user"))
   private User user;
 
+  @Column(name = "isread", nullable = false)
   private boolean read;
 
+  @Column(name = "isfollowup")
   private boolean followUp;
 
   private transient String lastRecipientSurname;
