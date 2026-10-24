@@ -32,28 +32,32 @@ package org.hisp.dhis.webapi.security.session;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
- * Tests through the real security filter chain that sessions created by an HTTP Basic login are
- * registered, so that invalidating the user's sessions (as a role or user group change does)
- * expires them, also after the client authenticated again on an expired session.
+ * Tests through the real security filter chain how sessions created by an HTTP Basic login are
+ * handled: they are registered, so that invalidating the user's sessions (as a role or user group
+ * change does) expires them, also after the client authenticated again on an expired session; and
+ * they do not count toward the maximum number of sessions per user that interactive logins enforce.
  *
  * <p>The test base is {@code @Transactional}, so a membership change would never commit here; the
  * tests invalidate the sessions directly. That a membership change invalidates the user's sessions
@@ -61,7 +65,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class SessionRegisteringSecurityContextRepositoryTest extends AuthenticationApiTestBase {
+class HttpBasicSessionTest extends AuthenticationApiTestBase {
 
   private static final String LOGOUT_URL = "/dhis-web-commons-security/logout.action";
 
@@ -69,11 +73,19 @@ class SessionRegisteringSecurityContextRepositoryTest extends AuthenticationApiT
 
   @Autowired private DhisConfigurationProvider config;
 
-  private final List<String> sessionIds = new ArrayList<>();
+  private int maxSessions;
+
+  @BeforeEach
+  void setUp() {
+    maxSessions = config.getIntProperty(ConfigurationKey.MAX_SESSIONS_PER_USER);
+    removeAdminSessions();
+  }
 
   @AfterEach
-  void removeSessions() {
-    sessionIds.forEach(sessionRegistry::removeSessionInformation);
+  void removeAdminSessions() {
+    sessionRegistry.getAllSessions(userService.createUserDetails(getAdminUser()), true).stream()
+        .map(SessionInformation::getSessionId)
+        .forEach(sessionRegistry::removeSessionInformation);
   }
 
   @Test
@@ -91,27 +103,48 @@ class SessionRegisteringSecurityContextRepositoryTest extends AuthenticationApiT
   }
 
   @Test
-  void basicLoginsWithoutSessionCookieDoNotLogOutOtherSessions() throws Exception {
-    MockHttpSession session = basicLogin(get("/api/me"));
-
-    int maxSessions = config.getIntProperty(ConfigurationKey.MAX_SESSIONS_PER_USER);
+  void basicSessionsDoNotCountTowardSessionLimit() throws Exception {
+    MockHttpSession formSession = formLogin();
     for (int i = 0; i <= maxSessions; i++) {
       basicLogin(get("/api/me"));
     }
 
-    mvc.perform(get("/api/me").session(session)).andExpect(status().isOk());
+    // the next interactive login counts the user's sessions
+    formLogin();
+
+    mvc.perform(get("/api/me").session(formSession)).andExpect(status().isOk());
+  }
+
+  @Test
+  void interactiveLoginsStillEnforceSessionLimit() throws Exception {
+    MockHttpSession firstSession = formLogin();
+    for (int i = 0; i < maxSessions; i++) {
+      formLogin();
+    }
+
+    mvc.perform(get("/api/me").session(firstSession)).andExpect(redirectedUrl(LOGOUT_URL));
+  }
+
+  private MockHttpSession formLogin() throws Exception {
+    return login(
+        post("/api/auth/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"username\":\"admin\",\"password\":\"district\"}"));
   }
 
   private MockHttpSession basicLogin(MockHttpServletRequestBuilder request) throws Exception {
+    return login(request.header(HttpHeaders.AUTHORIZATION, basic()));
+  }
+
+  private MockHttpSession login(RequestBuilder request) throws Exception {
     MockHttpSession session =
         (MockHttpSession)
-            mvc.perform(request.header(HttpHeaders.AUTHORIZATION, basic()))
+            mvc.perform(request)
                 .andExpect(status().isOk())
                 .andReturn()
                 .getRequest()
                 .getSession(false);
     assertNotNull(session);
-    sessionIds.add(session.getId());
     return session;
   }
 

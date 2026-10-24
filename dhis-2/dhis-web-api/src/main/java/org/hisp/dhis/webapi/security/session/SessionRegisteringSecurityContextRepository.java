@@ -50,10 +50,11 @@ import org.springframework.security.web.context.SecurityContextRepository;
  * unknown to an in-memory registry. Sessions the registry does not know are never expired when the
  * roles or user groups of the user change, and keep the user details from login.
  *
- * <p>Only the session is registered; the maximum number of sessions per user is not enforced, so an
- * API client that sends credentials without keeping the cookie, and thereby gets a new session on
- * every request, does not log the same user out elsewhere. With Redis, the registry finds sessions
- * by principal name and registering is a no-op.
+ * <p>The session is also marked in {@link HttpBasicSessions}, so that it does not count toward the
+ * maximum number of sessions per user: neither on this request nor at the user's next interactive
+ * login. An API client that sends credentials without keeping the cookie, and thereby gets a new
+ * session on every request, does not log the same user out elsewhere. With Redis, the registry
+ * finds sessions by principal name and registering is a no-op.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -64,8 +65,12 @@ public class SessionRegisteringSecurityContextRepository implements SecurityCont
 
   private final RegisterSessionAuthenticationStrategy registerSession;
 
-  public SessionRegisteringSecurityContextRepository(SessionRegistry sessionRegistry) {
+  private final HttpBasicSessions httpBasicSessions;
+
+  public SessionRegisteringSecurityContextRepository(
+      SessionRegistry sessionRegistry, HttpBasicSessions httpBasicSessions) {
     this.registerSession = new RegisterSessionAuthenticationStrategy(sessionRegistry);
+    this.httpBasicSessions = httpBasicSessions;
   }
 
   @Override
@@ -86,6 +91,7 @@ public class SessionRegisteringSecurityContextRepository implements SecurityCont
     Authentication authentication = context.getAuthentication();
     if (authentication != null && authentication.isAuthenticated()) {
       registerSession.onAuthentication(authentication, request, response);
+      httpBasicSessions.markSession(request);
     }
   }
 

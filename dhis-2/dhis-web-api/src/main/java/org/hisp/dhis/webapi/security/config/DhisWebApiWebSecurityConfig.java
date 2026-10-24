@@ -65,6 +65,8 @@ import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
+import org.hisp.dhis.webapi.security.session.HttpBasicSessions;
+import org.hisp.dhis.webapi.security.session.InteractiveSessionRegistry;
 import org.hisp.dhis.webapi.security.session.ReauthenticatingExpiredSessionStrategy;
 import org.hisp.dhis.webapi.security.session.SessionRegisteringSecurityContextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,6 +158,8 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private RequestCache requestCache;
 
   @Autowired private SessionRegistry sessionRegistry;
+
+  @Autowired private HttpBasicSessions httpBasicSessions;
 
   private static class CustomRequestMatcher implements RequestMatcher {
     private static final Pattern p1 = Pattern.compile("^/api/apps/.+", Pattern.CASE_INSENSITIVE);
@@ -414,7 +418,8 @@ public class DhisWebApiWebSecurityConfig {
                         // that session so that it is expired when the user's roles or groups
                         // change.
                         filter.setSecurityContextRepository(
-                            new SessionRegisteringSecurityContextRepository(sessionRegistry));
+                            new SessionRegisteringSecurityContextRepository(
+                                sessionRegistry, httpBasicSessions));
                         return filter;
                       }
                     }));
@@ -455,6 +460,8 @@ public class DhisWebApiWebSecurityConfig {
                 .maximumSessions(
                     Integer.parseInt(
                         dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
+                // HTTP Basic sessions do not count toward the maximum
+                .sessionRegistry(new InteractiveSessionRegistry(sessionRegistry, httpBasicSessions))
                 .expiredSessionStrategy(
                     new ReauthenticatingExpiredSessionStrategy(
                         "/dhis-web-commons-security/logout.action")));
