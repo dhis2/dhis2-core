@@ -554,6 +554,13 @@ public interface SqlBuilder {
   String tableExists(String name);
 
   /**
+   * @param names the table names, must not be empty.
+   * @return a statement which will return one row with a single column with the table name for each
+   *     of the given tables which exists.
+   */
+  String tablesExist(Collection<String> names);
+
+  /**
    * Only meaningful for engines where {@link #requiresUniqueKeyAnalyticsTables()} is true, which
    * may have main tables predating the introduction of unique-key analytics tables.
    *
