@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -57,7 +58,9 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -67,11 +70,15 @@ import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -88,6 +95,16 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   private static final String EVENT_UID = "ZwwuwNp6gVd";
 
   private static final String ORG_UNIT_UID = "QfUVllTs6cS";
+
+  private static final String SINGLE_EVENT_PROGRAM_UID = "rT3rvcn2vid";
+
+  private static final String SINGLE_EVENT_PROGRAM_STAGE_UID = "o68AuhbJDSz";
+
+  private static final String ATTRIBUTE_OPTION_COMBO_UID = "OOlvX50cXC0";
+
+  private static final String CATEGORY_OPTION_UID = "Aj6SFQQBBFU";
+
+  private static final String USER_GROUP_UID = "jCDKJBruqjc";
 
   @Autowired private TestSetup testSetup;
 
@@ -207,6 +224,49 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
 
     assertHasOnlyErrors(
         importReport, ValidationCode.E1096, ValidationCode.E1104, ValidationCode.E1095);
+  }
+
+  @Test
+  void shouldImportEventWhenUserJoinedCategoryOptionGroupAfterAuthentication() {
+    User user = userService.getUser(USER_1);
+    // principal as stored in the session at login, before the group membership below exists
+    UserDetails authenticatedUser = UserDetails.fromUser(user);
+
+    Program program = manager.get(Program.class, SINGLE_EVENT_PROGRAM_UID);
+    program.getSharing().setPublicAccess(AccessStringHelper.CATEGORY_OPTION_DEFAULT);
+    manager.update(program);
+    UserGroup userGroup = manager.get(UserGroup.class, USER_GROUP_UID);
+    CategoryOption categoryOption = manager.get(CategoryOption.class, CATEGORY_OPTION_UID);
+    categoryOption
+        .getSharing()
+        .setPublicAccess(AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT);
+    categoryOption
+        .getSharing()
+        .addUserGroupAccess(
+            new UserGroupAccess(userGroup, AccessStringHelper.CATEGORY_OPTION_DEFAULT));
+    manager.update(categoryOption);
+    userGroup.addUser(user);
+    manager.update(userGroup);
+    injectSecurityContext(authenticatedUser);
+
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .events(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+                        .event(UID.generate())
+                        .program(MetadataIdentifier.ofUid(SINGLE_EVENT_PROGRAM_UID))
+                        .programStage(MetadataIdentifier.ofUid(SINGLE_EVENT_PROGRAM_STAGE_UID))
+                        .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID))
+                        .attributeOptionCombo(MetadataIdentifier.ofUid(ATTRIBUTE_OPTION_COMBO_UID))
+                        .occurredAt(Instant.parse("2019-08-01T00:00:00Z"))
+                        .build()))
+            .build();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects);
+
+    assertNoErrors(importReport);
   }
 
   @Test
