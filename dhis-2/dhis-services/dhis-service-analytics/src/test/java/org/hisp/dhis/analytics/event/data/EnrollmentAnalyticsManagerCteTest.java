@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_CODE_COL
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_NAME_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
@@ -751,6 +752,74 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
                     .formatted(programAUid))));
     assertThat(generatedSql, not(containsString("where (((occurreddate >=")));
     assertThat(generatedSql, not(containsString("enrollmentdate >=")));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentCreatedDimensionAndsEnrollmentDateFilter() {
+    EventQueryParams params =
+        createAggregateEnrollmentWithDateFieldDimensionAndFilter(
+            "CREATED", "ENROLLMENT_DATE", "2023");
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+
+    assertThat(
+        generatedSql,
+        containsString(
+            "(((created >= '2022-09-01' and created < '2023-09-01')) "
+                + "and ((enrollmentdate >= '2023-01-01' and enrollmentdate < '2024-01-01')))"));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentEventDateFilterRangesAreOredInEventJoin() {
+    EventQueryParams params =
+        createAggregateEnrollmentWithDateFieldDimensionAndFilter(
+            "ENROLLMENT_DATE", "EVENT_DATE", "2023", "2024");
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+
+    assertThat(
+        generatedSql,
+        containsString(
+            "and ((ev.\"occurreddate\" >= '2023-01-01' and ev.\"occurreddate\" < '2024-01-01') "
+                + "or (ev.\"occurreddate\" >= '2024-01-01' and ev.\"occurreddate\" < '2025-01-01'))"));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentEventDateFilterWithDateDimensionUsesEventJoin() {
+    EventQueryParams params =
+        createAggregateEnrollmentWithDateFieldDimensionAndFilter(
+            "ENROLLMENT_DATE", "EVENT_DATE", "2023");
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+
+    assertThat(
+        generatedSql,
+        containsString(
+            noEof(
+                """
+                inner join (
+                    select
+                        ev.enrollment as enrollment,
+                        max(ev."occurreddate") as event_occurreddate
+                    from analytics_event_%s ev
+                    where ev.eventstatus != 'SCHEDULE'
+                      and ((ev."occurreddate" >= '2023-01-01' and ev."occurreddate" < '2024-01-01'))
+                    group by ev.enrollment
+                ) evf on evf.enrollment = ax.enrollment
+                """
+                    .formatted(programAUid))));
+    assertThat(
+        generatedSql, containsString("(enrollmentdate >= '2022-09-01' and enrollmentdate <"));
+    assertThat(generatedSql, not(containsString("(occurreddate >= '2023-01-01'")));
   }
 
   @Test
@@ -1565,6 +1634,23 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     EventQueryParams.Builder params = createRequestParamsBuilder();
     params.withPeriods(
         java.util.List.of(PeriodDimension.of("2022Sep").setDateField("EVENT_DATE")), "yearly");
+    params.withEndpointAction(AGGREGATE);
+    return new EventQueryParams.Builder(params.build()).withStartEndDatesForPeriods().build();
+  }
+
+  private EventQueryParams createAggregateEnrollmentWithDateFieldDimensionAndFilter(
+      String dimensionDateField, String filterDateField, String... filterYears) {
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withPeriods(
+        java.util.List.of(PeriodDimension.of("2022Sep").setDateField(dimensionDateField)),
+        "yearly");
+    params.addFilter(
+        new BaseDimensionalObject(
+            PERIOD_DIM_ID,
+            DimensionType.PERIOD,
+            java.util.Arrays.stream(filterYears)
+                .map(year -> PeriodDimension.of(year).setDateField(filterDateField))
+                .toList()));
     params.withEndpointAction(AGGREGATE);
     return new EventQueryParams.Builder(params.build()).withStartEndDatesForPeriods().build();
   }

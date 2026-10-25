@@ -55,6 +55,7 @@ import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
 import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
@@ -291,6 +292,20 @@ public class EventQueryParams extends DataQueryParams {
    */
   @Getter protected Map<TimeField, List<DateRange>> timeDateRanges = new EnumMap<>(TimeField.class);
 
+  /**
+   * Date ranges of period filters that carry a time field, applied in "AND" with {@link
+   * #timeDateRanges}. Only populated when the query has both a period dimension and a period
+   * filter.
+   */
+  @Getter
+  protected Map<TimeField, List<DateRange>> filterTimeDateRanges = new EnumMap<>(TimeField.class);
+
+  /**
+   * Date ranges of period filters without a time field, applied in "AND" on the default time
+   * column. Only populated when the query has both a period dimension and a period filter.
+   */
+  @Getter protected List<DateRange> filterDateRanges = new ArrayList<>();
+
   /** Flag to enable enhanced OR conditions. */
   @Getter protected boolean enhancedCondition = false;
 
@@ -393,7 +408,9 @@ public class EventQueryParams extends DataQueryParams {
     params.dataIdScheme = this.dataIdScheme;
     params.periodType = this.periodType;
     params.explainOrderId = this.explainOrderId;
-    params.timeDateRanges = this.timeDateRanges;
+    params.timeDateRanges = copyOf(this.timeDateRanges);
+    params.filterTimeDateRanges = copyOf(this.filterTimeDateRanges);
+    params.filterDateRanges = new ArrayList<>(this.filterDateRanges);
     params.skipPartitioning = this.skipPartitioning;
     params.enhancedCondition = this.enhancedCondition;
     params.endpointItem = this.endpointItem;
@@ -675,6 +692,12 @@ public class EventQueryParams extends DataQueryParams {
           ou -> key.add("registrationOuFilter", ou.getUid() + ":" + ou.getLevel()));
     }
 
+    // Period filters applied in "AND" with the period dimension are stored outside the filters.
+    if (hasFilterDateRanges()) {
+      key.add("filterTimeDateRanges", filterTimeDateRanges);
+      key.add("filterDateRanges", filterDateRanges);
+    }
+
     // Enrollment OU selections are also stored outside the generic dimensions and filters.
     if (hasEnrollmentOu()) {
       enrollmentOuDimensionItems.forEach(
@@ -724,10 +747,34 @@ public class EventQueryParams extends DataQueryParams {
    *
    * <p>When heterogeneous date fields are specified, set a specific start/date pair for each of
    * them.
+   *
+   * <p>When both a period dimension and a period filter are present, the filter periods are kept
+   * apart in {@link #filterTimeDateRanges} and {@link #filterDateRanges}, so they can be applied in
+   * "AND" with the dimension periods.
    */
   void replacePeriodsWithDates() {
-    List<PeriodDimension> periods = asTypedList(getDimensionOrFilterItems(PERIOD_DIM_ID));
+    List<PeriodDimension> dimensionPeriods = asTypedList(getDimensionOptions(PERIOD_DIM_ID));
+    List<PeriodDimension> filterPeriods = asTypedList(getFilterOptions(PERIOD_DIM_ID));
 
+    if (dimensionPeriods.isEmpty()) {
+      addPeriodDates(filterPeriods);
+    } else {
+      addPeriodDates(dimensionPeriods);
+      addFilterPeriodDates(filterPeriods);
+    }
+
+    // Sorting lists of data ranges.
+    Stream.of(timeDateRanges.values(), filterTimeDateRanges.values(), List.of(filterDateRanges))
+        .flatMap(Collection::stream)
+        .forEach(ranges -> ranges.sort(Comparator.comparing(DateRange::getStartDate)));
+
+    removeDimensionOrFilter(PERIOD_DIM_ID);
+
+    // Also extract dates from stage date QueryItems (stageId.EVENT_DATE, stageId.SCHEDULED_DATE)
+    extractDatesFromStageDateItems();
+  }
+
+  private void addPeriodDates(List<PeriodDimension> periods) {
     for (PeriodDimension period : periods) {
       Date start = period.getStartDate();
       Date end = period.getEndDate();
@@ -743,30 +790,42 @@ public class EventQueryParams extends DataQueryParams {
       } else {
         Optional<AnalyticsDateFilter> optDateFilter = AnalyticsDateFilter.of(period.getDateField());
 
-        if (optDateFilter.isPresent()) {
-          TimeField timeField = optDateFilter.get().getTimeField();
-
-          if (timeDateRanges.containsKey(timeField)) {
-            List<DateRange> dateRanges = timeDateRanges.get(timeField);
-            dateRanges.add(dateRange);
-            timeDateRanges.replace(timeField, dateRanges);
-          } else {
-            List<DateRange> dateRanges = new ArrayList<>();
-            dateRanges.add(dateRange);
-            timeDateRanges.put(timeField, dateRanges);
-          }
-        }
+        optDateFilter.ifPresent(
+            dateFilter -> addDateRange(timeDateRanges, dateFilter.getTimeField(), dateRange));
       }
     }
+  }
 
-    // Sorting lists of data ranges.
-    for (List<DateRange> ranges : timeDateRanges.values()) {
-      ranges.sort(Comparator.comparing(DateRange::getStartDate));
+  /**
+   * Collects the date ranges of period filters, which apply in "AND" with the period dimension.
+   * Periods without a date field are collected in {@link #filterDateRanges}.
+   */
+  private void addFilterPeriodDates(List<PeriodDimension> periods) {
+    for (PeriodDimension period : periods) {
+      DateRange dateRange = new DateRange(period.getStartDate(), period.getEndDate());
+
+      if (isBlank(period.getDateField())) {
+        filterDateRanges.add(dateRange);
+      } else {
+        AnalyticsDateFilter.of(period.getDateField())
+            .ifPresent(
+                dateFilter ->
+                    addDateRange(filterTimeDateRanges, dateFilter.getTimeField(), dateRange));
+      }
     }
-    removeDimensionOrFilter(PERIOD_DIM_ID);
+  }
 
-    // Also extract dates from stage date QueryItems (stageId.EVENT_DATE, stageId.SCHEDULED_DATE)
-    extractDatesFromStageDateItems();
+  /** Copies the given date ranges, so the copy can be changed without affecting the original. */
+  private static Map<TimeField, List<DateRange>> copyOf(
+      Map<TimeField, List<DateRange>> dateRanges) {
+    Map<TimeField, List<DateRange>> copy = new EnumMap<>(TimeField.class);
+    dateRanges.forEach((timeField, ranges) -> copy.put(timeField, new ArrayList<>(ranges)));
+    return copy;
+  }
+
+  private static void addDateRange(
+      Map<TimeField, List<DateRange>> dateRanges, TimeField timeField, DateRange dateRange) {
+    dateRanges.computeIfAbsent(timeField, key -> new ArrayList<>()).add(dateRange);
   }
 
   /**
@@ -1200,12 +1259,26 @@ public class EventQueryParams extends DataQueryParams {
     return MapUtils.isNotEmpty(getTimeDateRanges());
   }
 
+  /** Returns true if period filters must be applied in "AND" with the period dimension. */
+  public boolean hasFilterDateRanges() {
+    return MapUtils.isNotEmpty(filterTimeDateRanges) || isNotEmpty(filterDateRanges);
+  }
+
   public Map<TimeField, List<DateRange>> getTimeDateRanges(Set<TimeField> timeFields) {
+    return selectDateRanges(getTimeDateRanges(), timeFields);
+  }
+
+  public Map<TimeField, List<DateRange>> getFilterTimeDateRanges(Set<TimeField> timeFields) {
+    return selectDateRanges(filterTimeDateRanges, timeFields);
+  }
+
+  private static Map<TimeField, List<DateRange>> selectDateRanges(
+      Map<TimeField, List<DateRange>> dateRanges, Set<TimeField> timeFields) {
     Map<TimeField, List<DateRange>> matchingRanges = new EnumMap<>(TimeField.class);
 
     timeFields.forEach(
         timeField -> {
-          List<DateRange> ranges = getTimeDateRanges().get(timeField);
+          List<DateRange> ranges = dateRanges.get(timeField);
           if (ranges != null && !ranges.isEmpty()) {
             matchingRanges.put(timeField, List.copyOf(ranges));
           }
@@ -1706,8 +1779,23 @@ public class EventQueryParams extends DataQueryParams {
     }
 
     public Builder withPeriods(List<? extends DimensionalItemObject> periods, String periodType) {
+      return withPeriods(periods, periodType, null);
+    }
+
+    /**
+     * Sets the period dimension with the given display name, which is used as the period header
+     * label.
+     */
+    public Builder withPeriods(
+        List<? extends DimensionalItemObject> periods,
+        String periodType,
+        String dimensionDisplayName) {
       this.params.setDimensionOptions(
-          PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), asList(periods));
+          PERIOD_DIM_ID,
+          DimensionType.PERIOD,
+          periodType.toLowerCase(),
+          dimensionDisplayName,
+          asList(periods));
       this.params.periodType = periodType;
       return this;
     }
@@ -1996,6 +2084,7 @@ public class EventQueryParams extends DataQueryParams {
     public Builder withoutTimeDateRanges(Set<TimeField> timeFields) {
       if (timeFields != null) {
         timeFields.forEach(this.params.getTimeDateRanges()::remove);
+        timeFields.forEach(this.params.filterTimeDateRanges::remove);
       }
       return this;
     }

@@ -279,6 +279,41 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "createdDimensionEnrollmentDateFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=CREATED:2017&filter=ENROLLMENT_DATE:2023&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentDateDimensionCreatedFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=ENROLLMENT_DATE:2022;2023&filter=CREATED:2016&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentDateDimensionBarePeFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=ENROLLMENT_DATE:2022;2023&filter=pe:2022&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "barePeDimensionCreatedFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2022;2023&filter=CREATED:2016&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentDateDimensionAndFilterSameField",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=ENROLLMENT_DATE:2022;2023&filter=ENROLLMENT_DATE:2023&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

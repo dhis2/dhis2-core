@@ -246,6 +246,55 @@ class EventAggregateServiceTest {
   }
 
   @Test
+  void shouldKeepPeHeaderLabelWhenPeriodDimensionIsCombinedWithDateFieldFilter() {
+    AnalyticsCacheSettings cacheSettings = mock(AnalyticsCacheSettings.class);
+    when(cacheSettings.isCachingEnabled()).thenReturn(false);
+    AnalyticsCache cache = new AnalyticsCache(mock(CacheProvider.class), cacheSettings);
+
+    EventAnalyticsManager manager = mock(EventAnalyticsManager.class);
+    EventQueryPlanner planner = mock(EventQueryPlanner.class);
+    AnalyticsSecurityManager security = mock(AnalyticsSecurityManager.class);
+    when(security.withUserConstraints(any(EventQueryParams.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(planner.planAggregateQuery(any()))
+        .thenAnswer(invocation -> List.of(invocation.getArgument(0, EventQueryParams.class)));
+    when(manager.getAggregatedEventData(any(), any(), anyInt()))
+        .thenAnswer(invocation -> invocation.getArgument(1, Grid.class));
+
+    EventAggregateService aggregateService =
+        new EventAggregateService(
+            null,
+            null,
+            manager,
+            null,
+            null,
+            planner,
+            cache,
+            security,
+            mock(EventQueryValidator.class),
+            mock(MetadataItemsHandler.class),
+            mock(SchemeIdHandler.class));
+
+    PeriodDimension lastUpdatedPeriod = PeriodDimension.of("2017").setDateField("LAST_UPDATED");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    PERIOD_DIM_ID, PERIOD, "Period", List.of(PeriodDimension.of("2022"))))
+            .addFilter(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(lastUpdatedPeriod)))
+            .build();
+
+    Grid grid = aggregateService.getAggregatedData(params);
+
+    GridHeader peHeader =
+        grid.getHeaders().stream()
+            .filter(header -> PERIOD_DIM_ID.equals(header.getName()))
+            .findFirst()
+            .orElseThrow();
+    assertEquals("Period", peHeader.getColumn());
+  }
+
+  @Test
   void shouldCacheRegistrationOuSelectionsAndOutputShapesIndependently() {
     AnalyticsCacheSettings cacheSettings = mock(AnalyticsCacheSettings.class);
     when(cacheSettings.isCachingEnabled()).thenReturn(true);

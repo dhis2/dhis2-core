@@ -488,6 +488,50 @@ class MetadataItemsHandlerTest {
     }
 
     @Test
+    @DisplayName("should emit enrollmentdate in items for a date filter next to a date dimension")
+    void shouldEmitDateFilterMetadataNextToDateDimension() {
+      // Given - CREATED period dimension with an ENROLLMENT_DATE period filter
+      Grid grid = new ListGrid();
+
+      List<PeriodDimension> createdPeriods =
+          createPeriodDimensions("2023Q1").stream().map(pd -> pd.setDateField("CREATED")).toList();
+      PeriodDimension enrollmentFilterPeriod =
+          createPeriodDimensions("2023Q2").get(0).setDateField("ENROLLMENT_DATE");
+
+      EventQueryParams initialParams =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createdPeriods, "quarterly")
+              .addFilter(
+                  new BaseDimensionalObject(
+                      PERIOD_DIM_ID, DimensionType.PERIOD, List.of(enrollmentFilterPeriod)))
+              .build();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder(initialParams)
+              .withStartEndDatesForPeriods()
+              .withPeriods(createdPeriods, "")
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(items.containsKey("created"), "Items should contain 'created' metadata entry");
+      assertTrue(
+          items.containsKey("enrollmentdate"),
+          "Items should contain 'enrollmentdate' metadata entry");
+    }
+
+    @Test
     @DisplayName("should emit incident date periods under incidentdate key and pe")
     void shouldEmitIncidentDatePeriodsUnderSeparateKey() {
       // Given
