@@ -40,6 +40,7 @@ import static org.hisp.dhis.test.TestBase.createLegendSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -83,6 +84,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
@@ -96,6 +98,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 
 class EventAggregateServiceTest {
 
@@ -247,33 +250,10 @@ class EventAggregateServiceTest {
 
   @Test
   void shouldKeepPeHeaderLabelWhenPeriodDimensionIsCombinedWithDateFieldFilter() {
-    AnalyticsCacheSettings cacheSettings = mock(AnalyticsCacheSettings.class);
-    when(cacheSettings.isCachingEnabled()).thenReturn(false);
-    AnalyticsCache cache = new AnalyticsCache(mock(CacheProvider.class), cacheSettings);
-
     EventAnalyticsManager manager = mock(EventAnalyticsManager.class);
-    EventQueryPlanner planner = mock(EventQueryPlanner.class);
-    AnalyticsSecurityManager security = mock(AnalyticsSecurityManager.class);
-    when(security.withUserConstraints(any(EventQueryParams.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
-    when(planner.planAggregateQuery(any()))
-        .thenAnswer(invocation -> List.of(invocation.getArgument(0, EventQueryParams.class)));
     when(manager.getAggregatedEventData(any(), any(), anyInt()))
         .thenAnswer(invocation -> invocation.getArgument(1, Grid.class));
-
-    EventAggregateService aggregateService =
-        new EventAggregateService(
-            null,
-            null,
-            manager,
-            null,
-            null,
-            planner,
-            cache,
-            security,
-            mock(EventQueryValidator.class),
-            mock(MetadataItemsHandler.class),
-            mock(SchemeIdHandler.class));
+    EventAggregateService aggregateService = createAggregateService(manager);
 
     PeriodDimension lastUpdatedPeriod = PeriodDimension.of("2017").setDateField("LAST_UPDATED");
     EventQueryParams params =
@@ -292,6 +272,72 @@ class EventAggregateServiceTest {
             .findFirst()
             .orElseThrow();
     assertEquals("Period", peHeader.getColumn());
+  }
+
+  @ParameterizedTest
+  @CsvSource({"2020, 2022, yearly", "202201, 202203, monthly"})
+  void shouldKeepNonadjacentPeriodsWhenCombinedWithDateFieldFilter(
+      String firstPeriod, String lastPeriod, String periodType) {
+    EventAnalyticsManager manager = mock(EventAnalyticsManager.class);
+    when(manager.getAggregatedEventData(any(), any(), anyInt()))
+        .thenAnswer(invocation -> invocation.getArgument(1, Grid.class));
+    EventAggregateService aggregateService = createAggregateService(manager);
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    PERIOD_DIM_ID,
+                    PERIOD,
+                    "Period",
+                    List.of(PeriodDimension.of(firstPeriod), PeriodDimension.of(lastPeriod))))
+            .addFilter(
+                new BaseDimensionalObject(
+                    PERIOD_DIM_ID,
+                    PERIOD,
+                    List.of(PeriodDimension.of("2023").setDateField("LAST_UPDATED"))))
+            .build();
+
+    aggregateService.getAggregatedData(params);
+
+    ArgumentCaptor<EventQueryParams> query = ArgumentCaptor.forClass(EventQueryParams.class);
+    verify(manager).getAggregatedEventData(query.capture(), any(), anyInt());
+    String timeCondition =
+        new EventTimeFieldSqlRenderer(new PostgreSqlBuilder())
+            .renderPeriodTimeFieldSql(query.getValue());
+
+    assertTrue(
+        timeCondition.contains(
+            "ax.\"%s\" in ('%s', '%s')".formatted(periodType, firstPeriod, lastPeriod)),
+        () -> "Period selection must exclude the gaps: " + timeCondition);
+    assertTrue(
+        timeCondition.contains(
+            "ax.\"lastupdated\" >= '2023-01-01' and ax.\"lastupdated\" < '2024-01-01'"),
+        () -> "Date filter must still constrain the selection: " + timeCondition);
+  }
+
+  private EventAggregateService createAggregateService(EventAnalyticsManager manager) {
+    AnalyticsCacheSettings cacheSettings = mock(AnalyticsCacheSettings.class);
+    when(cacheSettings.isCachingEnabled()).thenReturn(false);
+    AnalyticsCache cache = new AnalyticsCache(mock(CacheProvider.class), cacheSettings);
+    EventQueryPlanner planner = mock(EventQueryPlanner.class);
+    AnalyticsSecurityManager security = mock(AnalyticsSecurityManager.class);
+    when(security.withUserConstraints(any(EventQueryParams.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(planner.planAggregateQuery(any()))
+        .thenAnswer(invocation -> List.of(invocation.getArgument(0, EventQueryParams.class)));
+
+    return new EventAggregateService(
+        null,
+        null,
+        manager,
+        null,
+        null,
+        planner,
+        cache,
+        security,
+        mock(EventQueryValidator.class),
+        mock(MetadataItemsHandler.class),
+        mock(SchemeIdHandler.class));
   }
 
   @Test

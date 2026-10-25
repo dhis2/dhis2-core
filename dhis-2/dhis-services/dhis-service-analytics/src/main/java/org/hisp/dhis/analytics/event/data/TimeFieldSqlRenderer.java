@@ -87,7 +87,11 @@ public abstract class TimeFieldSqlRenderer {
     } else if (params.useStartEndDates()
         || params.hasTimeDateRanges()
         || params.hasFilterDateRanges()) {
-      sql.append(joinWithAnd(getDateRangeCondition(params), getFilterDateRangeCondition(params)));
+      sql.append(
+          joinWithAnd(
+              getDateRangeCondition(params),
+              getFilterDateRangeCondition(params),
+              getDefaultPeriodDimensionCondition(params)));
     } else // Periods condition only for pivot table (aggregated).
     {
       sql.append(getAggregatedConditionForPeriods(params));
@@ -201,6 +205,17 @@ public abstract class TimeFieldSqlRenderer {
     return Stream.of(conditions)
         .filter(StringUtils::isNotEmpty)
         .collect(Collectors.joining(" and "));
+  }
+
+  /** Keeps gaps between default periods retained for aggregate grouping after date conversion. */
+  private String getDefaultPeriodDimensionCondition(EventQueryParams params) {
+    List<DimensionalItemObject> periods =
+        params.getDimensionOptions(PERIOD_DIM_ID).stream()
+            .filter(this::isPeriod)
+            .filter(period -> StringUtils.isBlank(((PeriodDimension) period).getDateField()))
+            .toList();
+
+    return periods.isEmpty() ? EMPTY : getAggregatedConditionForPeriods(params, periods);
   }
 
   /**
