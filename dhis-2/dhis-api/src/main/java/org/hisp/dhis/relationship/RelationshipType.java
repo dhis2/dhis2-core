@@ -103,12 +103,16 @@ public class RelationshipType extends BaseMetadataObject
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
 
-  /** A unique one-to-one reference; replacing the constraint deletes the previous one. */
+  /*
+   * The constraints are owned one-to-one references, so replacing one deletes the previous row.
+   * Hibernate 5.6 only removes orphans of a to-one that is a logical one-to-one, which an annotated
+   * @ManyToOne never is, hence @OneToOne with a unique join column. It is still bound as a
+   * many-to-one, so the schema keeps manyToOne=true; its cascade reads "all,delete,delete-orphan".
+   */
   @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "from_relationshipconstraintid", unique = true)
   private RelationshipConstraint fromConstraint;
 
-  /** A unique one-to-one reference; replacing the constraint deletes the previous one. */
   @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "to_relationshipconstraintid", unique = true)
   private RelationshipConstraint toConstraint;

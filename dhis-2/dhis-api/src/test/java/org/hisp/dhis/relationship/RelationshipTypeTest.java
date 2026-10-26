@@ -70,6 +70,18 @@ class RelationshipTypeTest {
     assertEquals(type.hashCode(), other.hashCode());
   }
 
+  @Test
+  void shouldNotEqualInstanceOfSubclassWithSameUidCodeAndName() {
+    RelationshipType type = createRelationshipType("uid", "code", "name");
+    RelationshipType subclass = new RelationshipType() {};
+    subclass.setUid("uid");
+    subclass.setCode("code");
+    subclass.setName("name");
+
+    assertNotEquals(type, subclass);
+    assertNotEquals(subclass, type);
+  }
+
   private static RelationshipType createRelationshipType(String uid, String code, String name) {
     RelationshipType type = new RelationshipType();
     type.setUid(uid);

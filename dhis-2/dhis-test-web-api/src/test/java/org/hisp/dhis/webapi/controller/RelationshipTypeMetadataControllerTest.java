@@ -247,13 +247,7 @@ class RelationshipTypeMetadataControllerTest extends PostgresControllerIntegrati
 
   @Test
   void shouldDescribeRelationshipTypeSchemaTypesAndLengths() {
-    Map<String, JsonObject> properties =
-        GET("/schemas/relationshipType")
-            .content(HttpStatus.OK)
-            .getArray("properties")
-            .asList(JsonObject.class)
-            .stream()
-            .collect(Collectors.toMap(p -> p.getString("name").string(), p -> p));
+    Map<String, JsonObject> properties = schemaProperties();
 
     assertEquals(230, properties.get("name").getNumber("length").intValue());
     assertEquals(50, properties.get("code").getNumber("length").intValue());
@@ -262,6 +256,21 @@ class RelationshipTypeMetadataControllerTest extends PostgresControllerIntegrati
     assertEquals("URL", properties.get("href").getString("propertyType").string());
     assertEquals("COMPLEX", properties.get("fromConstraint").getString("propertyType").string());
     assertEquals("BOOLEAN", properties.get("referral").getString("propertyType").string());
+  }
+
+  @Test
+  void shouldDescribeConstraintsAsOwnedUniqueManyToOneWithOrphanDelete() {
+    Map<String, JsonObject> properties = schemaProperties();
+
+    for (String name : new String[] {"fromConstraint", "toConstraint"}) {
+      JsonObject constraint = properties.get(name);
+      assertTrue(constraint.getBoolean("manyToOne").booleanValue(), name);
+      assertFalse(constraint.getBoolean("oneToOne").booleanValue(), name);
+      assertTrue(constraint.getBoolean("unique").booleanValue(), name);
+      assertTrue(constraint.getBoolean("owner").booleanValue(), name);
+      assertTrue(constraint.getBoolean("embeddedObject").booleanValue(), name);
+      assertEquals("all,delete,delete-orphan", constraint.getString("cascade").string(), name);
+    }
   }
 
   @Test
@@ -275,14 +284,19 @@ class RelationshipTypeMetadataControllerTest extends PostgresControllerIntegrati
   }
 
   private Set<String> schemaPropertyNames(Predicate<JsonObject> filter) {
+    return schemaProperties().values().stream()
+        .filter(filter)
+        .map(property -> property.getString("name").string())
+        .collect(Collectors.toCollection(TreeSet::new));
+  }
+
+  private Map<String, JsonObject> schemaProperties() {
     return GET("/schemas/relationshipType")
         .content(HttpStatus.OK)
         .getArray("properties")
         .asList(JsonObject.class)
         .stream()
-        .filter(filter)
-        .map(property -> property.getString("name").string())
-        .collect(Collectors.toCollection(TreeSet::new));
+        .collect(Collectors.toMap(p -> p.getString("name").string(), p -> p));
   }
 
   private static String relationshipType(String name, String toFromName, boolean referral) {

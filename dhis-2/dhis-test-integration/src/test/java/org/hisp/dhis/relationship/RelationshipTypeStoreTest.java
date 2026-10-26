@@ -46,7 +46,7 @@ import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.CustomType;
-import org.hibernate.type.EntityType;
+import org.hibernate.type.ManyToOneType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValuesBinaryType;
@@ -161,6 +161,7 @@ class RelationshipTypeStoreTest extends PostgresIntegrationTestBase {
   void shouldDeleteReplacedConstraint() {
     RelationshipType type = save(createRelationshipType('C'));
     int oldFromId = type.getFromConstraint().getId();
+    int toId = type.getToConstraint().getId();
     RelationshipConstraint newFrom = new RelationshipConstraint();
     newFrom.setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
 
@@ -168,7 +169,8 @@ class RelationshipTypeStoreTest extends PostgresIntegrationTestBase {
     store.update(type);
     entityManager.flush();
 
-    assertEquals(0, countConstraints(oldFromId, oldFromId));
+    assertEquals(0, countConstraints(oldFromId));
+    assertEquals(1, countConstraints(toId));
     RelationshipType reloaded = reload(type);
     assertNotEquals(oldFromId, reloaded.getFromConstraint().getId());
     assertEquals(
@@ -176,13 +178,19 @@ class RelationshipTypeStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("the constraints are lazy unique (one-to-one) references")
-  void shouldMapConstraintsAsLazyOneToOneReferences() {
+  @DisplayName("the constraints are lazy one-to-one many-to-one references with orphan delete")
+  void shouldMapConstraintsAsLazyOneToOneReferencesWithOrphanDelete() {
+    EntityPersister persister = persister();
     for (String property : new String[] {"fromConstraint", "toConstraint"}) {
-      EntityType type = assertInstanceOf(EntityType.class, persister().getPropertyType(property));
+      ManyToOneType type =
+          assertInstanceOf(ManyToOneType.class, persister.getPropertyType(property));
+      int index = persister.getEntityMetamodel().getPropertyIndex(property);
 
       assertFalse(type.isEager(null), property + " is eager");
       assertTrue(type.isLogicalOneToOne(), property + " is not a one-to-one reference");
+      assertTrue(
+          persister.getPropertyCascadeStyles()[index].hasOrphanDelete(),
+          property + " has no orphan delete");
     }
   }
 
@@ -195,8 +203,8 @@ class RelationshipTypeStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("name, fromToName, bidirectional and referral are mapped not-null")
-  void shouldMapNameFromToNameAndFlagsNotNull() {
+  @DisplayName("only name, fromToName, bidirectional and referral are mapped not-null")
+  void shouldMapOnlyNameFromToNameAndFlagsNotNull() {
     assertNotNullable("name");
     assertNotNullable("fromToName");
     assertNotNullable("bidirectional");
@@ -239,6 +247,7 @@ class RelationshipTypeStoreTest extends PostgresIntegrationTestBase {
     entityManagerFactory.getCache().evict(RelationshipType.class);
     RelationshipType copy = new RelationshipType();
     copy.setUid(saved.getUid());
+    copy.setCode(saved.getCode());
     copy.setName(saved.getName());
 
     RelationshipType proxy = entityManager.getReference(RelationshipType.class, saved.getId());
@@ -300,12 +309,11 @@ class RelationshipTypeStoreTest extends PostgresIntegrationTestBase {
     return type;
   }
 
-  private int countConstraints(int fromId, int toId) {
+  private int countConstraints(Integer... ids) {
     return jdbcTemplate.queryForObject(
-        "select count(*) from relationshipconstraint where relationshipconstraintid in (?, ?)",
+        "select count(*) from relationshipconstraint where relationshipconstraintid = any(?)",
         Integer.class,
-        fromId,
-        toId);
+        (Object) ids);
   }
 
   private EntityPersister persister() {
