@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.setting;
 
-import java.util.Set;
-
 /**
  * Can be implemented by Spring beans to observe {@link SystemSettings} changes.
  *
@@ -44,28 +42,11 @@ import java.util.Set;
 public interface SystemSettingsObserver {
 
   /**
-   * @return the keys the listener wants to observe
-   */
-  Set<String> observedSystemSettingsKeys();
-
-  /**
    * Observers are notified after the DB update has taken place. Exceptions thrown by observers are
    * logged but otherwise ignored.
    *
    * @param key the setting that changed
-   * @param value the new value
+   * @param value the new value ({@code null} for delete)
    */
-  default void onSystemSettingPut(String key, String value) {
-    // override to handle
-  }
-
-  /**
-   * Observers are notified after the DB update has taken place. Exceptions thrown by observers are
-   * logged but otherwise ignored.
-   *
-   * @param key the setting that got cleared (null value)
-   */
-  default void onSystemSettingsDelete(String key) {
-    // override to handle
-  }
+  void onSystemSettingChange(String key, String value);
 }
