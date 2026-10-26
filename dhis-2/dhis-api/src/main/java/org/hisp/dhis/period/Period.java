@@ -71,6 +71,8 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hisp.dhis.calendar.DateInterval;
+import org.hisp.dhis.calendar.DateUnitPeriodTypeParser;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -86,6 +88,8 @@ import org.joda.time.Days;
 public class Period implements Serializable {
   public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
 
+  private static final DateUnitPeriodTypeParser DATE_UNIT_PARSER = new DateUnitPeriodTypeParser();
+
   /**
    * Returns a period based on the given date string in ISO format. Returns null if the date string
    * cannot be parsed to a period.
@@ -97,16 +101,22 @@ public class Period implements Serializable {
    */
   @Nonnull
   public static Period of(@Nonnull String isoPeriod) {
-    PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriod);
     try {
-      Period p = type.createPeriod(isoPeriod);
-      if (p == null)
-        throw new IllegalArgumentException(
-            "Invalid Period `%s`, failed to create date interval".formatted(isoPeriod));
-      return p;
+      Period.Input input = Period.Input.of(isoPeriod);
+      DateInterval interval = DATE_UNIT_PARSER.parse(input);
+      if (interval == null) {
+        throw new IllegalArgumentException("Invalid Period `%s`".formatted(isoPeriod));
+      }
+      PeriodType type = PeriodType.getPeriodType(input.type());
+      return new Period(
+          type,
+          interval.getFrom().toJdkDate(),
+          interval.getTo().toJdkDate(),
+          type.getIsoDate(interval.getFrom()));
+    } catch (IllegalArgumentException ex) {
+      throw ex;
     } catch (Exception ex) {
-      throw new IllegalArgumentException(
-          "Invalid Period `%s`, failed to create date interval".formatted(isoPeriod), ex);
+      throw new IllegalArgumentException("Invalid Period `%s`".formatted(isoPeriod), ex);
     }
   }
 
