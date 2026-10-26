@@ -374,9 +374,10 @@ class DataExportOutputTest {
             false);
     DataExportGroup.Output group = groupWith(Stream.of(dv));
     assertEquals(
-        "dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,"
-            + "value,storedby,lastupdated,comment,followup,deleted\n"
-            + "de1,2020,ou1,coc1,aoc1,42,admin,2024-01-02,note,true,false\n",
+        """
+        dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value,storedby,lastupdated,comment,followup,deleted
+        de1,2020,ou1,coc1,aoc1,42,admin,2024-01-02,note,true,false
+        """,
         toCsv(group));
   }
 
@@ -410,9 +411,10 @@ class DataExportOutputTest {
             null,
             Stream.of(dv));
     assertEquals(
-        "dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,"
-            + "value,storedby,lastupdated,comment,followup,deleted\n"
-            + "de1,2024,ouGroup,coc1,aocGroup,42,,,,,false\n",
+        """
+        dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value,storedby,lastupdated,comment,followup,deleted
+        de1,2024,ouGroup,coc1,aocGroup,42,,,,,false
+        """,
         toCsv(group));
   }
 
@@ -446,9 +448,10 @@ class DataExportOutputTest {
             null,
             Stream.of(dv));
     assertEquals(
-        "dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,"
-            + "value,storedby,lastupdated,comment,followup,deleted\n"
-            + "de1,2020,ou2,coc1,aoc2,42,,,,,false\n",
+        """
+        dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value,storedby,lastupdated,comment,followup,deleted
+        de1,2020,ou2,coc1,aoc2,42,,,,,false
+        """,
         toCsv(group));
   }
 
