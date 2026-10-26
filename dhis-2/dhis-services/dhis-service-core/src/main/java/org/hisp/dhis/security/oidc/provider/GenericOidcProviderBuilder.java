@@ -261,6 +261,12 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider {
     final Map<String, Object> metadata = new HashMap<>();
 
     metadata.put(EXTRA_REQUEST_PARAMETERS, getExtraRequestParameters(config));
+    if (StringUtils.isNotBlank(config.get(CLIENT_ASSERTION_AUDIENCE))) {
+      metadata.put(CLIENT_ASSERTION_AUDIENCE, config.get(CLIENT_ASSERTION_AUDIENCE));
+    }
+    metadata.put(
+        ID_TOKEN_JWS_ALGORITHM,
+        SupportedJwsAlgorithms.parseOrDefault(config.get(ID_TOKEN_JWS_ALGORITHM)).getName());
 
     if (DhisConfigurationProvider.isOn(config.get(ENABLE_LOGOUT))) {
       metadata.put(

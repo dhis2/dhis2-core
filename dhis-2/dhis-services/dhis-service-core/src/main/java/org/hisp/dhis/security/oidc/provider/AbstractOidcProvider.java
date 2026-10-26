@@ -120,6 +120,12 @@ public abstract class AbstractOidcProvider {
 
   public static final String JWK_SET_URL = "jwk_set_url";
 
+  /** Optional single audience for client assertions; unset preserves Spring's default audiences. */
+  public static final String CLIENT_ASSERTION_AUDIENCE = "client_assertion_audience";
+
+  /** Expected ID-token signature algorithm, independent of userinfo; defaults to RS256. */
+  public static final String ID_TOKEN_JWS_ALGORITHM = "id_token_jws_algorithm";
+
   /**
    * Selects userinfo response handling: {@code json} (default; Spring Security's normal path) or
    * {@code jwt} (eSignet-style signed JWT). See {@link
