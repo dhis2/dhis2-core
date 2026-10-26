@@ -84,14 +84,12 @@ class PeriodNonIsoCalendarTest {
   void setUp() {
     DateUnitPeriodTypeParser.setCalendarService(ETHIOPIAN);
     PeriodType.setCalendarService(ETHIOPIAN);
-    Period.clearCache();
   }
 
   @AfterEach
   void tearDown() {
     DateUnitPeriodTypeParser.setCalendarService(null);
     PeriodType.setCalendarService(null);
-    Period.clearCache();
   }
 
   @ParameterizedTest(name = "{0} -> {1} .. {2} ({3})")
