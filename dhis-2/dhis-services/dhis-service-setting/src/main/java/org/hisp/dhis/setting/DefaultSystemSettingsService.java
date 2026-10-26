@@ -31,12 +31,15 @@ package org.hisp.dhis.setting;
 
 import static org.hisp.dhis.setting.SystemSettings.isConfidential;
 
+import jakarta.annotation.PostConstruct;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -77,8 +80,20 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   private final @Qualifier("tripleDesStringEncryptor") PBEStringEncryptor pbeStringEncryptor;
   private final TransactionTemplate transactionTemplate;
 
+  private final List<SystemSettingsObserver> observers;
+  private final Map<String, List<SystemSettingsObserver>> observersByKey =
+      new ConcurrentHashMap<>();
+
   /** The "cache" for the current settings */
   private SystemSettings allSettings;
+
+  @PostConstruct
+  private void init() {
+    for (SystemSettingsObserver o : observers) {
+      for (String key : o.observedSystemSettingsKeys())
+        observersByKey.computeIfAbsent(key, k -> new ArrayList<>()).add(o);
+    }
+  }
 
   @Override
   @NonTransactional
@@ -137,10 +152,23 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
       } else {
         systemSettingStore.put(
             key, isConfidential(key) ? pbeStringEncryptor.encrypt(value) : value);
+        notifyObserversPut(key, value);
       }
     }
     deleteAll(deletes);
     allSettings = null; // invalidate
+  }
+
+  private void notifyObserversPut(String key, String value) {
+    List<SystemSettingsObserver> keyObservers = observersByKey.get(key);
+    if (keyObservers == null) return;
+    for (SystemSettingsObserver o : keyObservers) {
+      try {
+        o.onSystemSettingPut(key, value);
+      } catch (Exception ex) {
+        log.error("SystemSettingsObserver threw exception", ex);
+      }
+    }
   }
 
   @Nonnull
@@ -168,7 +196,25 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   @Transactional
   public void deleteAll(@Nonnull Set<String> keys) {
     if (keys.isEmpty()) return;
-    if (systemSettingStore.delete(keys) > 0) allSettings = null; // invalidate
+    if (systemSettingStore.delete(keys) > 0) {
+      allSettings = null; // invalidate
+      notifyObserversDelete(keys);
+    }
+  }
+
+  private void notifyObserversDelete(@Nonnull Set<String> keys) {
+    for (String key : keys) {
+      List<SystemSettingsObserver> keyObservers = observersByKey.get(key);
+      if (keyObservers != null) {
+        for (SystemSettingsObserver o : keyObservers) {
+          try {
+            o.onSystemSettingsDelete(key);
+          } catch (Exception ex) {
+            log.error("SystemSettingsObserver threw exception", ex);
+          }
+        }
+      }
+    }
   }
 
   private String decrypt(String key, String value) {

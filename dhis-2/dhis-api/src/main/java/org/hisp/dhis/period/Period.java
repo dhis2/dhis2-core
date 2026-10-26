@@ -135,10 +135,13 @@ public class Period implements Serializable {
               cal.toIso(interval.getTo()).toJdkDate(),
               type.getIsoDate(interval.getFrom()));
       // we only cache successful creations
-      // OOPS! Need to use the input as key to also cache different input forms
+      // OOPS! Need to use the isoPeriod as key to also cache different input formats
       PERIOD_BY_ISO_CACHE.put(isoPeriod, res);
       return res;
     } catch (IllegalArgumentException ex) {
+      // wrap for subtypes
+      if (ex.getClass() != IllegalArgumentException.class)
+        throw new IllegalArgumentException("Invalid Period `%s`".formatted(isoPeriod), ex);
       throw ex;
     } catch (Exception ex) {
       throw new IllegalArgumentException("Invalid Period `%s`".formatted(isoPeriod), ex);

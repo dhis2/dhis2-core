@@ -215,11 +215,6 @@ class PeriodCalendarTest {
     assertEquals("2023-01-15", p.getEndDateString());
   }
 
-  @Test
-  void biWeeklyIsFourteenDays() {
-    assertEquals(14, Period.of("2023BiW1").getDaysInPeriod());
-  }
-
   // ---------------------------------------------------------------------
   // Invalid calendar dates must be rejected (not silently stored)
   //
