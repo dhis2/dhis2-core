@@ -128,6 +128,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Luciano Fiandesio
@@ -137,6 +138,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @Autowired private TestNotes testNotes;
 
@@ -2566,6 +2569,26 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .program(programA)
             .build();
     addAttributeOptionComboToEnrollment(enrollmentA, AccessStringHelper.DEFAULT);
+
+    assertIsEmpty(trackedEntityService.findTrackedEntities(operationParams));
+  }
+
+  @Test
+  void shouldNotReturnTrackedEntityWhenEnrollmentCategoryOptionSharingHasNoUsersKey()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .program(programA)
+            .build();
+    addAttributeOptionComboToEnrollment(enrollmentA, AccessStringHelper.DEFAULT);
+    CategoryOption categoryOption =
+        enrollmentA.getAttributeOptionCombo().getCategoryOptions().iterator().next();
+    jdbcTemplate.update(
+        "update categoryoption set sharing = jsonb_build_object('owner', ?, 'public', ?) where uid = ?",
+        superuser.getUid(),
+        AccessStringHelper.DEFAULT,
+        categoryOption.getUid());
 
     assertIsEmpty(trackedEntityService.findTrackedEntities(operationParams));
   }

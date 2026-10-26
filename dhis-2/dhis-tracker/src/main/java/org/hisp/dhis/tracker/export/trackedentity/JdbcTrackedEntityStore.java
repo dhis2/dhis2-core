@@ -687,11 +687,11 @@ class JdbcTrackedEntityStore {
           .append(
               "select cocco.categoryoptioncomboid from categoryoptioncombos_categoryoptions cocco ")
           .append("inner join categoryoption co on co.categoryoptionid = cocco.categoryoptionid ")
-          .append("where not (")
+          .append("where not coalesce((")
           .append(
               JpaQueryUtils.generateSQlQueryForSharingCheck(
                   "co.sharing", getCurrentUserDetails(), AclService.LIKE_READ_DATA))
-          .append("))");
+          .append("), false))");
     }
   }
 
