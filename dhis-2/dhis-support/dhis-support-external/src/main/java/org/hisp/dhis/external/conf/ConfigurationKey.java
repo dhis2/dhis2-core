@@ -778,6 +778,20 @@ public enum ConfigurationKey {
   /** CSRF feature. Enable or disable the feature. (sensitive) */
   CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true),
 
+  /**
+   * Reject browser requests from web origins that are neither this server nor on the CORS
+   * allowlist, based on the Origin and Sec-Fetch-Site request headers. (default: on)
+   */
+  CROSS_ORIGIN_PROTECTION_ENABLED(
+      "http.security.cross_origin_protection.enabled", Constants.ON, false),
+
+  /**
+   * Only log requests the cross-origin protection would reject, and let them through. Use it to
+   * diagnose reverse proxy setups before enforcing. (default: off)
+   */
+  CROSS_ORIGIN_PROTECTION_LOG_ONLY(
+      "http.security.cross_origin_protection.log_only", Constants.OFF, false),
+
   /** The maximum number of category options in a single category */
   METADATA_CATEGORIES_MAX_OPTIONS("metadata.categories.max_options", "50", false),
 
