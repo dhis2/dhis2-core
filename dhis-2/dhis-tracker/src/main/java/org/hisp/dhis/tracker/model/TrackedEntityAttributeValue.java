@@ -165,13 +165,23 @@ public class TrackedEntityAttributeValue implements Serializable {
   /**
    * Returns the encrypted or the plain-text value based on the confidential state of the attribute.
    *
+   * <p>A confidential value without an encrypted value falls back to the plain-text value. Before
+   * it wrote {@code encryptedvalue}, the JDBC tracker importer (DHIS2-21378) stored confidential
+   * values only in plain text in {@code value}, see DHIS2-22301. The fallback lives here rather
+   * than in the Hibernate-mapped {@link #getEncryptedValue()} so it does not make loaded entities
+   * dirty.
+   *
    * @return String with value, either plain-text or decrypted.
    */
   @AuditAttribute
   @JsonProperty
   @EqualsAndHashCode.Include
   public String getValue() {
-    return (getAttribute().getConfidential() ? this.getEncryptedValue() : this.getPlainValue());
+    if (Boolean.FALSE.equals(getAttribute().getConfidential())) {
+      return getPlainValue();
+    }
+    String encrypted = getEncryptedValue();
+    return encrypted != null ? encrypted : getPlainValue();
   }
 
   /**

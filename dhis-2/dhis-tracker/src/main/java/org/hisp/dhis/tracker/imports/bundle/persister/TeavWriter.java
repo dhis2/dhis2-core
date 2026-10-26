@@ -40,15 +40,19 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 
 /**
  * Flushes staged {@link TrackedEntityAttributeValue} writes via JDBC against {@code
  * trackedentityattributevalue}: a multi-row INSERT, a single unnest UPDATE keyed on the composite
  * ({@code trackedentityid}, {@code trackedentityattributeid}) PK, and a single unnest DELETE on the
  * same key. TEAV has a composite PK and no sequence, so no id pre-allocation is needed.
- * Confidential attributes (and the {@code encryptedvalue} column) were removed in DHIS2-21518, so
- * the value is stored as plain text in {@code value}.
+ *
+ * <p>Mirrors the former Hibernate mapping: the value is always stored as plain text in {@code
+ * value}, and for confidential attributes it is additionally stored AES-128 encrypted in {@code
+ * encryptedvalue} using the same encryptor as the {@code Aes128EncryptedString} Hibernate type.
  */
 final class TeavWriter {
 
@@ -56,14 +60,17 @@ final class TeavWriter {
   // regardless of row count.
   private static final String INSERT_SQL =
       "insert into trackedentityattributevalue ("
-          + "trackedentityid, trackedentityattributeid, created, lastupdated, value, storedby)"
-          + " select trackedentityid, trackedentityattributeid, created, lastupdated, value, storedby"
+          + "trackedentityid, trackedentityattributeid, created, lastupdated, value, encryptedvalue,"
+          + " storedby)"
+          + " select trackedentityid, trackedentityattributeid, created, lastupdated, value,"
+          + " encryptedvalue, storedby"
           + " from ( select"
           + " unnest(?::bigint[]) as trackedentityid,"
           + " unnest(?::bigint[]) as trackedentityattributeid,"
           + " unnest(?::timestamptz[]) as created,"
           + " unnest(?::timestamptz[]) as lastupdated,"
           + " unnest(?::text[]) as value,"
+          + " unnest(?::text[]) as encryptedvalue,"
           + " unnest(?::text[]) as storedby"
           + " ) v";
 
@@ -72,12 +79,14 @@ final class TeavWriter {
       "update trackedentityattributevalue teav set"
           + " lastupdated = v.lastupdated,"
           + " value = v.value,"
+          + " encryptedvalue = v.encryptedvalue,"
           + " storedby = v.storedby"
           + " from ( select"
           + " unnest(?::bigint[]) as trackedentityid,"
           + " unnest(?::bigint[]) as trackedentityattributeid,"
           + " unnest(?::timestamptz[]) as lastupdated,"
           + " unnest(?::text[]) as value,"
+          + " unnest(?::text[]) as encryptedvalue,"
           + " unnest(?::text[]) as storedby"
           + " ) v where teav.trackedentityid = v.trackedentityid"
           + " and teav.trackedentityattributeid = v.trackedentityattributeid";
@@ -92,9 +101,15 @@ final class TeavWriter {
           + " ) v where teav.trackedentityid = v.trackedentityid"
           + " and teav.trackedentityattributeid = v.trackedentityattributeid";
 
+  private final PBEStringEncryptor encryptor;
+
   private final List<TrackedEntityAttributeValue> inserts = new ArrayList<>();
   private final List<TrackedEntityAttributeValue> updates = new ArrayList<>();
   private final List<TrackedEntityAttributeValue> deletes = new ArrayList<>();
+
+  TeavWriter(PBEStringEncryptor encryptor) {
+    this.encryptor = encryptor;
+  }
 
   void stageInsert(TrackedEntityAttributeValue value) {
     inserts.add(value);
@@ -144,7 +159,8 @@ final class TeavWriter {
             ps.setArray(p++, bigintArray(conn, chunk, v -> v.getAttribute().getId()));
             ps.setArray(p++, textArray(conn, chunk, v -> toTimestamptz(v.getCreated())));
             ps.setArray(p++, textArray(conn, chunk, v -> toTimestamptz(v.getLastUpdated())));
-            ps.setArray(p++, textArray(conn, chunk, TrackedEntityAttributeValue::getValue));
+            ps.setArray(p++, textArray(conn, chunk, TrackedEntityAttributeValue::getPlainValue));
+            ps.setArray(p++, textArray(conn, chunk, this::encryptedValue));
             ps.setArray(p++, textArray(conn, chunk, TrackedEntityAttributeValue::getStoredBy));
             ps.executeUpdate();
           }
@@ -161,6 +177,7 @@ final class TeavWriter {
           Long[] attributeIds = new Long[n];
           String[] lastUpdated = new String[n];
           String[] value = new String[n];
+          String[] encryptedValue = new String[n];
           String[] storedBy = new String[n];
 
           for (int i = 0; i < n; i++) {
@@ -168,7 +185,8 @@ final class TeavWriter {
             trackedEntityIds[i] = v.getTrackedEntity().getId();
             attributeIds[i] = v.getAttribute().getId();
             lastUpdated[i] = toTimestamptz(v.getLastUpdated());
-            value[i] = v.getValue();
+            value[i] = v.getPlainValue();
+            encryptedValue[i] = encryptedValue(v);
             storedBy[i] = v.getStoredBy();
           }
 
@@ -177,7 +195,8 @@ final class TeavWriter {
             ps.setArray(2, conn.createArrayOf("bigint", attributeIds));
             ps.setArray(3, conn.createArrayOf("text", lastUpdated));
             ps.setArray(4, conn.createArrayOf("text", value));
-            ps.setArray(5, conn.createArrayOf("text", storedBy));
+            ps.setArray(5, conn.createArrayOf("text", encryptedValue));
+            ps.setArray(6, conn.createArrayOf("text", storedBy));
             ps.executeUpdate();
           }
         });
@@ -203,6 +222,20 @@ final class TeavWriter {
             ps.executeUpdate();
           }
         });
+  }
+
+  /**
+   * Encrypts the value of a confidential attribute for the {@code encryptedvalue} column. Returns
+   * null for non-confidential attributes, clearing any ciphertext left over from when the attribute
+   * was confidential. Hibernate kept that stale ciphertext, but it holds an outdated value of an
+   * attribute that is no longer confidential.
+   */
+  @CheckForNull
+  private String encryptedValue(TrackedEntityAttributeValue value) {
+    if (Boolean.FALSE.equals(value.getAttribute().getConfidential()) || value.getValue() == null) {
+      return null;
+    }
+    return encryptor.encrypt(value.getValue());
   }
 
   record Mark(int inserts, int updates, int deletes) {}
