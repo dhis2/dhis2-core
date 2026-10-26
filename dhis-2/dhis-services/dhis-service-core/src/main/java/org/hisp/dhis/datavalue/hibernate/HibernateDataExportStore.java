@@ -38,9 +38,11 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import jakarta.persistence.EntityManager;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -124,10 +126,14 @@ public class HibernateDataExportStore implements DataExportStore {
   @Nonnull
   @Override
   public Stream<DataExportValue> exportValues(@Nonnull DataExportParams params) {
+    // the same few periods repeat across many rows, parse each ISO period once per export;
+    // the cache must not outlive the export since Period is mutable
+    Map<String, Period> periods = new HashMap<>();
+    Function<String, Period> periodOf = iso -> periods.computeIfAbsent(iso, Period::of);
     return createExportQuery(
             params, NativeSQL.of(getSession()), CurrentUserUtil.getCurrentUserDetails())
         .stream()
-        .map(DataExportValue::of);
+        .map(row -> DataExportValue.of(row, periodOf));
   }
 
   static QueryBuilder createExportQuery(
