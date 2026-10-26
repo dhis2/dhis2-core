@@ -66,11 +66,15 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateUnitPeriodTypeParser;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -90,6 +94,14 @@ public class Period implements Serializable {
 
   private static final DateUnitPeriodTypeParser DATE_UNIT_PARSER = new DateUnitPeriodTypeParser();
 
+  private static final Cache<Period> PERIOD_BY_ISO_CACHE =
+      new SimpleCacheBuilder<Period>()
+          .forRegion("periodCache")
+          .expireAfterWrite(1, TimeUnit.HOURS)
+          .withInitialCapacity(1000)
+          .withMaximumSize(10000)
+          .build();
+
   /**
    * Returns a period based on the given date string in ISO format. Returns null if the date string
    * cannot be parsed to a period.
@@ -101,6 +113,8 @@ public class Period implements Serializable {
    */
   @Nonnull
   public static Period of(@Nonnull String isoPeriod) {
+    Optional<Period> period = PERIOD_BY_ISO_CACHE.getIfPresent(isoPeriod);
+    if (period.isPresent()) return period.get();
     try {
       Period.Input input = Period.Input.of(isoPeriod);
       DateInterval interval = DATE_UNIT_PARSER.parse(input);
@@ -108,11 +122,18 @@ public class Period implements Serializable {
         throw new IllegalArgumentException("Invalid Period `%s`".formatted(isoPeriod));
       }
       PeriodType type = PeriodType.getPeriodType(input.type());
-      return new Period(
-          type,
-          interval.getFrom().toJdkDate(),
-          interval.getTo().toJdkDate(),
-          type.getIsoDate(interval.getFrom()));
+
+      org.hisp.dhis.calendar.Calendar cal = PeriodType.getCalendar();
+      Period res =
+          new Period(
+              type,
+              cal.toIso(interval.getFrom()).toJdkDate(),
+              cal.toIso(interval.getTo()).toJdkDate(),
+              type.getIsoDate(interval.getFrom()));
+      // we only cache successful creations
+      // OOPS! Need to use the input as key to also cache different input forms
+      PERIOD_BY_ISO_CACHE.put(isoPeriod, res);
+      return res;
     } catch (IllegalArgumentException ex) {
       throw ex;
     } catch (Exception ex) {

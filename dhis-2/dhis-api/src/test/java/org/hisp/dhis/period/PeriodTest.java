@@ -149,7 +149,7 @@ class PeriodTest {
 
   @Test
   void rejectsNull() {
-    assertThrows(IllegalArgumentException.class, () -> Period.of(null));
+    assertThrows(NullPointerException.class, () -> Period.of(null));
   }
 
   // ---------------------------------------------------------------------
