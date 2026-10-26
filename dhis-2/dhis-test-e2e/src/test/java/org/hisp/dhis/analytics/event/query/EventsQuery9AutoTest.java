@@ -579,6 +579,7 @@ public class EventsQuery9AutoTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
+            .add("asc=eventdate,lastupdated")
             .add("totalPages=true")
             .add("pageSize=100")
             .add("dimension=ou:ImspTQPwCqd,INCIDENT_DATE:GE:2021-01-01:LT:2022-01-01");
@@ -819,13 +820,13 @@ public class EventsQuery9AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values by name at specific indices (sorted results).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "psi", "WBevB9yTVBl");
+    validateRowValueByName(response, actualHeaders, 0, "psi", "W08EkxIe97v");
     validateRowValueByName(
-        response, actualHeaders, 0, "enrollmentoccurreddate", "2021-05-18 12:27:48.317");
-    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2021-05-19 12:27:48.317");
-    validateRowValueByName(response, actualHeaders, 0, "incidentdate", "2021-05-18 12:27:48.317");
-    validateRowValueByName(response, actualHeaders, 0, "tei", "RABlFsj5Omi");
-    validateRowValueByName(response, actualHeaders, 0, "pi", "gL8BooqKhdX");
+        response, actualHeaders, 0, "enrollmentoccurreddate", "2021-10-22 12:27:48.386");
+    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2021-11-11 12:27:48.386");
+    validateRowValueByName(response, actualHeaders, 0, "incidentdate", "2021-10-22 12:27:48.386");
+    validateRowValueByName(response, actualHeaders, 0, "tei", "J8KD01PshMC");
+    validateRowValueByName(response, actualHeaders, 0, "pi", "UNNfIq11NKH");
     validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 0, "programstatus", "ACTIVE");
     validateRowValueByName(response, actualHeaders, 0, "ou", "DiszpKrYNg8");
@@ -843,20 +844,19 @@ public class EventsQuery9AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 5, "ou", "DiszpKrYNg8");
 
     // Validate selected values for row index 10
-    validateRowValueByName(response, actualHeaders, 10, "psi", "Jpr20TLJ7Z1");
+    validateRowValueByName(response, actualHeaders, 10, "psi", "tBAguooTVqg");
     validateRowValueByName(
-        response, actualHeaders, 10, "enrollmentoccurreddate", "2021-06-05 12:27:48.595");
-    validateRowValueByName(
-        response, actualHeaders, 10, "enrollmentdate", "2021-06-17 12:27:48.595");
-    validateRowValueByName(response, actualHeaders, 10, "incidentdate", "2021-06-05 12:27:48.595");
-    validateRowValueByName(response, actualHeaders, 10, "tei", "foc5zag6gbE");
-    validateRowValueByName(response, actualHeaders, 10, "pi", "SolDyMgW3oc");
+        response, actualHeaders, 10, "enrollmentoccurreddate", "2021-04-25 12:35:24.03");
+    validateRowValueByName(response, actualHeaders, 10, "enrollmentdate", "2021-05-14 12:35:24.03");
+    validateRowValueByName(response, actualHeaders, 10, "incidentdate", "2021-04-25 12:35:24.03");
+    validateRowValueByName(response, actualHeaders, 10, "tei", "LxMVYhJm3Jp");
+    validateRowValueByName(response, actualHeaders, 10, "pi", "awZ5RHoJin5");
     validateRowValueByName(response, actualHeaders, 10, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 10, "programstatus", "ACTIVE");
     validateRowValueByName(response, actualHeaders, 10, "ou", "DiszpKrYNg8");
 
     // Validate selected values for row index 15
-    validateRowValueByName(response, actualHeaders, 15, "psi", "mGyp4KbD0nm");
+    validateRowValueByName(response, actualHeaders, 15, "psi", "iEP0VnCo2W0");
     validateRowValueByName(
         response, actualHeaders, 15, "enrollmentoccurreddate", "2021-09-26 12:34:17.849");
     validateRowValueByName(
@@ -869,32 +869,33 @@ public class EventsQuery9AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 15, "ou", "DiszpKrYNg8");
 
     // Validate selected values for row index 20
-    validateRowValueByName(response, actualHeaders, 20, "psi", "esuBvAPWArc");
+    validateRowValueByName(response, actualHeaders, 20, "psi", "te1wR0edoZI");
     validateRowValueByName(
-        response, actualHeaders, 20, "enrollmentoccurreddate", "2021-04-25 12:35:24.03");
-    validateRowValueByName(response, actualHeaders, 20, "enrollmentdate", "2021-05-14 12:35:24.03");
-    validateRowValueByName(response, actualHeaders, 20, "incidentdate", "2021-04-25 12:35:24.03");
-    validateRowValueByName(response, actualHeaders, 20, "tei", "LxMVYhJm3Jp");
-    validateRowValueByName(response, actualHeaders, 20, "pi", "awZ5RHoJin5");
+        response, actualHeaders, 20, "enrollmentoccurreddate", "2021-06-05 12:27:48.595");
+    validateRowValueByName(
+        response, actualHeaders, 20, "enrollmentdate", "2021-06-17 12:27:48.595");
+    validateRowValueByName(response, actualHeaders, 20, "incidentdate", "2021-06-05 12:27:48.595");
+    validateRowValueByName(response, actualHeaders, 20, "tei", "foc5zag6gbE");
+    validateRowValueByName(response, actualHeaders, 20, "pi", "SolDyMgW3oc");
     validateRowValueByName(response, actualHeaders, 20, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 20, "programstatus", "ACTIVE");
     validateRowValueByName(response, actualHeaders, 20, "ou", "DiszpKrYNg8");
 
     // Validate selected values for row index 25
-    validateRowValueByName(response, actualHeaders, 25, "psi", "byZXfrFwZqJ");
+    validateRowValueByName(response, actualHeaders, 25, "psi", "cUnS4SLLlhE");
     validateRowValueByName(
-        response, actualHeaders, 25, "enrollmentoccurreddate", "2021-09-26 12:34:17.849");
+        response, actualHeaders, 25, "enrollmentoccurreddate", "2021-06-05 12:27:48.595");
     validateRowValueByName(
-        response, actualHeaders, 25, "enrollmentdate", "2021-10-15 12:34:17.849");
-    validateRowValueByName(response, actualHeaders, 25, "incidentdate", "2021-09-26 12:34:17.849");
-    validateRowValueByName(response, actualHeaders, 25, "tei", "wsk89u7zquT");
-    validateRowValueByName(response, actualHeaders, 25, "pi", "ITyaPVATEwc");
+        response, actualHeaders, 25, "enrollmentdate", "2021-06-17 12:27:48.595");
+    validateRowValueByName(response, actualHeaders, 25, "incidentdate", "2021-06-05 12:27:48.595");
+    validateRowValueByName(response, actualHeaders, 25, "tei", "foc5zag6gbE");
+    validateRowValueByName(response, actualHeaders, 25, "pi", "SolDyMgW3oc");
     validateRowValueByName(response, actualHeaders, 25, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 25, "programstatus", "ACTIVE");
     validateRowValueByName(response, actualHeaders, 25, "ou", "DiszpKrYNg8");
 
     // Validate selected values for row index 26
-    validateRowValueByName(response, actualHeaders, 26, "psi", "cUnS4SLLlhE");
+    validateRowValueByName(response, actualHeaders, 26, "psi", "Jpr20TLJ7Z1");
     validateRowValueByName(
         response, actualHeaders, 26, "enrollmentoccurreddate", "2021-06-05 12:27:48.595");
     validateRowValueByName(
