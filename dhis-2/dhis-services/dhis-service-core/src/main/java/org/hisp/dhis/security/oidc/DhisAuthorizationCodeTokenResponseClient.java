@@ -29,10 +29,13 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ASSERTION_AUDIENCE;
+
 import com.nimbusds.jose.jwk.JWK;
 import jakarta.annotation.PostConstruct;
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
@@ -115,6 +118,16 @@ public class DhisAuthorizationCodeTokenResponseClient
                   clientRegistrations.getDhisOidcClientRegistration(
                       clientRegistration.getRegistrationId());
               context.getHeaders().jwkSetUrl(dhisOidcClientRegistration.getJwkSetUrl());
+              String audience =
+                  (String)
+                      clientRegistration
+                          .getProviderDetails()
+                          .getConfigurationMetadata()
+                          .get(CLIENT_ASSERTION_AUDIENCE);
+              if (audience != null) {
+                // Nimbus serializes a singleton audience as a JSON string (FAPI 2.0).
+                context.getClaims().audience(List.of(audience));
+              }
             };
 
     NimbusJwtClientAuthenticationParametersConverter<OAuth2AuthorizationCodeGrantRequest>

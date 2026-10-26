@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ASSERTION_AUDIENCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.SignedJWT;
 import com.sun.net.httpserver.Headers;
@@ -53,10 +55,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
@@ -235,6 +240,33 @@ class DhisAuthorizationCodeTokenResponseClientTest {
     assertEquals(JWSAlgorithm.RS256, signedJwt.getHeader().getAlgorithm());
     assertNotNull(signedJwt.getHeader().getJWKURL());
     assertEquals(JWK_SET_URL, signedJwt.getHeader().getJWKURL().toString());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void clientAssertionAudienceOverrideDoesNotChangeOtherProviders(boolean override)
+      throws Exception {
+    String issuer = "https://idp.example.org";
+    RSAKey key = generateRsaJwk();
+    when(clientRegistrations.getDhisOidcClientRegistration(REGISTRATION_ID))
+        .thenReturn(DhisOidcClientRegistration.builder().jwk(key).jwkSetUrl(JWK_SET_URL).build());
+    ClientRegistration registration =
+        baseRegistrationBuilder()
+            .clientAuthenticationMethod(ClientAuthenticationMethod.PRIVATE_KEY_JWT)
+            .issuerUri(issuer)
+            .providerConfigurationMetadata(
+                override ? Map.of(CLIENT_ASSERTION_AUDIENCE, issuer) : Map.of())
+            .build();
+
+    tokenResponseClient.getTokenResponse(grantRequest(registration));
+
+    SignedJWT assertion =
+        SignedJWT.parse(extractFormParam(capturedRequestBody, "client_assertion"));
+    assertTrue(assertion.verify(new RSASSAVerifier(key.toPublicJWK())));
+    assertEquals(CLIENT_ID, assertion.getJWTClaimsSet().getIssuer());
+    assertEquals(CLIENT_ID, assertion.getJWTClaimsSet().getSubject());
+    // FAPI 2.0 rejects even a one-element JSON array: check the actual on-wire representation.
+    assertEquals(override ? issuer : tokenUri(), assertion.getPayload().toJSONObject().get("aud"));
   }
 
   @Test

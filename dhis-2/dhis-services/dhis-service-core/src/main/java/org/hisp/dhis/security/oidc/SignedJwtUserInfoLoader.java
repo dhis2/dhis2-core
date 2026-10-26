@@ -195,9 +195,9 @@ public class SignedJwtUserInfoLoader {
   /**
    * Validates the UserInfo claims as required by OpenID Connect Core 1.0, section 5.3.2. {@code
    * sub} must be present and equal the {@code sub} of the ID token, otherwise the response may
-   * describe another user (token substitution, section 16.11). A signed response must also name the
-   * OP in {@code iss} and this client in {@code aud}; eSignet leaves both out, so they are only
-   * checked when present, against the issuer of the ID token and the client id.
+   * describe another user (token substitution, section 16.11). When present, {@code iss} must name
+   * the OP and {@code aud} this client. eSignet 2.0.0 with mock-identity-system 0.14.0 includes
+   * both; providers that omit them retain subject and signature verification.
    */
   private static void validateClaims(JWTClaimsSet claims, OidcIdToken idToken, String clientId) {
     String subject = claims.getSubject();
