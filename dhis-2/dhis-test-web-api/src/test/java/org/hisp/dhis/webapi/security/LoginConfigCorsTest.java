@@ -37,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Set;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.filter.LoginConfigCorsFilter;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +68,7 @@ class LoginConfigCorsTest extends H2ControllerIntegrationTestBase {
   @Autowired private ConfigurationService configurationService;
 
   @BeforeEach
-  void setUpCors() {
+  void setUpCors() throws ConflictException {
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
             .addFilter(loginConfigCorsFilter, "/api/*")

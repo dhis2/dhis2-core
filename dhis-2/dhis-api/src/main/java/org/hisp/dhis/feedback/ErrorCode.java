@@ -94,6 +94,7 @@ public enum ErrorCode {
   E1134(
       "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
   E1135("Locale `${locale:{0}}` is not configured for usage; available are: ${locales:{1}}"),
+  E1136("Invalid CORS allowlist entry `{0}`: {1}"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),
