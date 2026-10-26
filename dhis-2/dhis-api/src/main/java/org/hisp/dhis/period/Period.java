@@ -102,6 +102,10 @@ public class Period implements Serializable {
           .withMaximumSize(10000)
           .build();
 
+  static void clearCache() {
+    PERIOD_BY_ISO_CACHE.invalidateAll();
+  }
+
   /**
    * Returns a period based on the given date string in ISO format. Returns null if the date string
    * cannot be parsed to a period.
