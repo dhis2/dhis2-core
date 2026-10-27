@@ -33,7 +33,6 @@ import static org.hisp.dhis.json.JsonStreamOutput.addArrayElements;
 import static org.hisp.dhis.json.JsonStreamOutput.addObjectMembers;
 
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
@@ -41,7 +40,9 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.csv.CsvBuilder;
+import org.hisp.dhis.jsontree.Appender;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
@@ -60,30 +61,28 @@ public final class GistOutput {
       new JsonBuilder.PrettyPrint(0, 0, false, true, true);
 
   public static void toCsv(@Nonnull GistObject.Output obj, @Nonnull OutputStream out) {
-    try (PrintWriter csv = new PrintWriter(out)) {
-      new CsvBuilder(csv).toRows(obj.paths(), Stream.of(obj.values()));
+    try (Appender csv = Appender.ofUTF8(out)) {
+      // we cast so the values are columns not rows
+      Stream<Object> singleRow = Stream.of((Object) obj.values());
+      new CsvBuilder(csv).toRows(obj.paths(), singleRow);
     }
   }
 
   public static void toCsv(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
-    try (PrintWriter csv = new PrintWriter(out)) {
+    try (Appender csv = Appender.ofUTF8(out)) {
       new CsvBuilder(csv).skipHeaders(list.headless()).toRows(list.paths(), list.values());
     }
   }
 
   public static void toJson(@Nonnull GistObject.Output obj, @Nonnull OutputStream out) {
     List<ObjectOutput.Property> properties = obj.properties();
-    if (properties.size() == 1) {
-      // only write the property value itself
-      // by first writing the array of objects (to a string buffer)
-      // and then navigating to the value,
-      // so we use the same code to write the actual values
+    if (obj.unwrap() && properties.size() == 1) {
       Stream<IntFunction<Object>> values = Stream.of(i -> obj.values()[i]);
       JsonNode array =
           JsonBuilder.createArray(FORMAT, arr -> addArrayElements(arr, properties, values));
-      JsonValue value = JsonMixed.of(array).getObject(0).get(properties.get(0).path());
-      try (PrintWriter json = new PrintWriter(out)) {
-        json.append(value.toJson());
+      JsonValue value = JsonMixed.of(array).getObject(0).get(properties.get(0).path().toString());
+      try (Appender json = Appender.ofUTF8(out)) {
+        json.appendEncoded(value.toJson());
       }
     } else {
       IntFunction<Object> values = (i -> obj.values()[i]);
@@ -113,6 +112,7 @@ public final class GistOutput {
                   p.addString("prevPage", pager.prevPage());
                   p.addString("nextPage", pager.nextPage());
                 });
+          obj.addBoolean("gist", true);
           obj.addArray(list.collectionName(), addObjectListElements(list, values));
         });
   }
@@ -122,14 +122,14 @@ public final class GistOutput {
       GistObjectList.Output list, Stream<IntFunction<Object>> values) {
     List<ObjectOutput.Property> properties = list.properties();
     return arr -> {
-      if (properties.size() == 1) {
+      if (list.unwrap() && properties.size() == 1) {
         // list each only as the property itself
         // to do that, first list objects but to written to a string
         // then iterate the values from the array
-        String path = properties.get(0).path();
+        PropertyPath path = properties.get(0).path();
         JsonNode array =
             JsonBuilder.createArray(temp -> addArrayElements(temp, properties, values));
-        array.elements().forEach(e -> arr.addElement(e.get(path)));
+        array.elements().forEach(e -> arr.addElement(e.get(path.toString())));
       } else {
         // list each as an object with the given properties
         addArrayElements(arr, properties, values);
