@@ -32,11 +32,13 @@ package org.hisp.dhis.setting;
 import static org.hisp.dhis.setting.SystemSettings.isConfidential;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -77,8 +79,19 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   private final @Qualifier("tripleDesStringEncryptor") PBEStringEncryptor pbeStringEncryptor;
   private final TransactionTemplate transactionTemplate;
 
+  private final Map<String, List<SystemSettingsObserver>> observersByKey =
+      new ConcurrentHashMap<>();
+
   /** The "cache" for the current settings */
   private SystemSettings allSettings;
+
+  @Override
+  @NonTransactional
+  public void registerObserver(
+      @Nonnull Set<String> keys, @Nonnull SystemSettingsObserver observer) {
+    for (String key : keys)
+      observersByKey.computeIfAbsent(key, k -> new ArrayList<>()).add(observer);
+  }
 
   @Override
   @NonTransactional
@@ -137,10 +150,23 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
       } else {
         systemSettingStore.put(
             key, isConfidential(key) ? pbeStringEncryptor.encrypt(value) : value);
+        notifyObservers(key, value);
       }
     }
     deleteAll(deletes);
     allSettings = null; // invalidate
+  }
+
+  private void notifyObservers(String key, String value) {
+    List<SystemSettingsObserver> keyObservers = observersByKey.get(key);
+    if (keyObservers == null) return;
+    for (SystemSettingsObserver o : keyObservers) {
+      try {
+        o.onSystemSettingChange(key, value);
+      } catch (Exception ex) {
+        log.error("SystemSettingsObserver threw exception", ex);
+      }
+    }
   }
 
   @Nonnull
@@ -168,7 +194,10 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   @Transactional
   public void deleteAll(@Nonnull Set<String> keys) {
     if (keys.isEmpty()) return;
-    if (systemSettingStore.delete(keys) > 0) allSettings = null; // invalidate
+    if (systemSettingStore.delete(keys) > 0) {
+      allSettings = null; // invalidate
+      for (String key : keys) notifyObservers(key, null);
+    }
   }
 
   private String decrypt(String key, String value) {
