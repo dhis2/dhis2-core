@@ -710,15 +710,17 @@ public class EventsQuery9AutoTest extends AnalyticsApiTest {
       validateHeaderPropertiesByName(
           response, actualHeaders, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     }
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "enrollmentgeometry",
-        "Enrollment geometry",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+    if (expectPostgis) {
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "enrollmentgeometry",
+          "Enrollment geometry",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
+    }
     if (expectPostgis) {
       validateHeaderPropertiesByName(
           response,
@@ -810,10 +812,12 @@ public class EventsQuery9AutoTest extends AnalyticsApiTest {
       validateHeaderExistence(actualHeaders, "geometry", true);
       validateHeaderExistence(actualHeaders, "longitude", true);
       validateHeaderExistence(actualHeaders, "latitude", true);
+      validateHeaderExistence(actualHeaders, "enrollmentgeometry", true);
     } else {
       validateHeaderExistence(actualHeaders, "geometry", false);
       validateHeaderExistence(actualHeaders, "longitude", false);
       validateHeaderExistence(actualHeaders, "latitude", false);
+      validateHeaderExistence(actualHeaders, "enrollmentgeometry", false);
     }
 
     // rowContext not found or empty in the response, skipping assertions.
