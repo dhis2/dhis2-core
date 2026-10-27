@@ -110,7 +110,7 @@ public class Route extends BaseMetadataObject implements IdentifiableObject, Met
   private String name;
 
   @Type(type = "text")
-  @Column(name = "description")
+  @Column(name = "description", columnDefinition = "text")
   @Getter
   @Setter
   @JsonProperty
@@ -123,7 +123,7 @@ public class Route extends BaseMetadataObject implements IdentifiableObject, Met
   private boolean disabled;
 
   @Type(type = "text")
-  @Column(name = "url")
+  @Column(name = "url", columnDefinition = "text")
   @Getter
   @Setter
   @JsonProperty(required = true)
