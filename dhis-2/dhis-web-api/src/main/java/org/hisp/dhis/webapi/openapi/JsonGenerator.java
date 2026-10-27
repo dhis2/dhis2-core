@@ -40,6 +40,7 @@ import lombok.Value;
 import org.hisp.dhis.jsontree.Appender;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.jsontree.Text;
 
 @RequiredArgsConstructor
 public class JsonGenerator {
@@ -67,7 +68,7 @@ public class JsonGenerator {
    */
   @FunctionalInterface
   public interface AppendTextBlock {
-    void escape(Appender out, String text, String contentIndent);
+    void escape(Appender out, CharSequence text, String contentIndent);
   }
 
   @Value
@@ -129,7 +130,7 @@ public class JsonGenerator {
     String objectEnd;
     String objectEmpty;
     String objectItemSeparator;
-    BiConsumer<Appender, String> appendEscapedInline;
+    BiConsumer<Appender, CharSequence> appendEscapedInline;
     AppendTextBlock appendEscapedBlock;
     UnaryOperator<Format> adjustFormat;
   }
@@ -161,17 +162,17 @@ public class JsonGenerator {
     addObjectMember(null, addMembers);
   }
 
-  final void addObjectMember(String name, boolean condition, Runnable addMembers) {
+  final void addObjectMember(CharSequence name, boolean condition, Runnable addMembers) {
     if (condition) addObjectMember(name, addMembers);
   }
 
-  final <E> void addObjectMember(String name, Collection<E> members, Consumer<E> forEach) {
+  final <E> void addObjectMember(CharSequence name, Collection<E> members, Consumer<E> forEach) {
     if (!members.isEmpty()) {
       addObjectMember(name, () -> members.forEach(forEach));
     }
   }
 
-  final void addObjectMember(String name, Runnable addMembers) {
+  final void addObjectMember(CharSequence name, Runnable addMembers) {
     appendMemberName(name);
     write(language.objectStart);
     if (format.isNewLineAfterObjectStart()) appendNewline();
@@ -199,17 +200,17 @@ public class JsonGenerator {
     }
   }
 
-  final void addArrayMember(String name, Collection<String> values) {
+  final void addArrayMember(CharSequence name, Collection<? extends CharSequence> values) {
     if (values.isEmpty()) return;
     addArrayMember(name, values, value -> addStringMember(null, value));
   }
 
-  final <E> void addArrayMember(String name, Collection<E> items, Consumer<E> forEach) {
+  final <E> void addArrayMember(CharSequence name, Collection<E> items, Consumer<E> forEach) {
     if (items.isEmpty()) return;
     addArrayMember(name, () -> items.forEach(forEach));
   }
 
-  final void addArrayMember(String name, Runnable addElements) {
+  final void addArrayMember(CharSequence name, Runnable addElements) {
     appendMemberName(name);
     write(language.arrayStart);
     if (format.isNewLineAfterArrayStart()) appendNewline();
@@ -229,12 +230,12 @@ public class JsonGenerator {
     finishItem();
   }
 
-  final void addInlineArrayMember(String name, Collection<String> values) {
+  final void addInlineArrayMember(CharSequence name, Collection<? extends CharSequence> values) {
     if (values.isEmpty()) return;
     appendMemberName(name);
     write(language.arrayInlineStart);
     int i = 0;
-    for (String value : values) {
+    for (CharSequence value : values) {
       if (i > 0) write(language.arrayInlineItemSeparator);
       appendStringInline(value);
       i++;
@@ -243,7 +244,7 @@ public class JsonGenerator {
     finishItem();
   }
 
-  final void addStringMember(String name, String value) {
+  final void addStringMember(CharSequence name, CharSequence value) {
     if (value != null) {
       appendMemberName(name);
       appendStringInline(value);
@@ -251,7 +252,7 @@ public class JsonGenerator {
     }
   }
 
-  final void addStringMultilineMember(String name, String value) {
+  final void addStringMultilineMember(CharSequence name, CharSequence value) {
     if (value != null && !value.isEmpty()) {
       appendMemberName(name);
       appendStringBlock(value);
@@ -259,21 +260,21 @@ public class JsonGenerator {
     }
   }
 
-  final void addTrueMember(String name, Boolean value) {
+  final void addTrueMember(CharSequence name, Boolean value) {
     if (value == Boolean.TRUE) addBooleanMember(name, true);
   }
 
-  final void addBooleanMember(String name, Boolean value) {
+  final void addBooleanMember(CharSequence name, Boolean value) {
     if (value != null) addBooleanMember(name, value.booleanValue());
   }
 
-  final void addBooleanMember(String name, boolean value) {
+  final void addBooleanMember(CharSequence name, boolean value) {
     appendMemberName(name);
     write(value ? "true" : "false");
     finishItem();
   }
 
-  final void addNumberMember(String name, Number value) {
+  final void addNumberMember(CharSequence name, Number value) {
     if (value != null) {
       if (value instanceof Double && value.doubleValue() % 1.0d != 0d) {
         addNumberMember(name, value.doubleValue());
@@ -283,11 +284,11 @@ public class JsonGenerator {
     }
   }
 
-  final void addNumberMember(String name, Integer value) {
+  final void addNumberMember(CharSequence name, Integer value) {
     if (value != null) addNumberMember(name, value.intValue());
   }
 
-  final void addNumberMember(String name, double value) {
+  final void addNumberMember(CharSequence name, double value) {
     appendMemberName(name);
     out.appendDouble(value);
     atLineStart = false;
@@ -295,7 +296,7 @@ public class JsonGenerator {
     finishItem();
   }
 
-  final void addNumberMember(String name, int value) {
+  final void addNumberMember(CharSequence name, int value) {
     appendMemberName(name);
     out.appendInt(value);
     atLineStart = false;
@@ -303,7 +304,7 @@ public class JsonGenerator {
     finishItem();
   }
 
-  final void addRawMember(String name, JsonValue value) {
+  final void addRawMember(CharSequence name, JsonValue value) {
     if (value == null || value.isUndefined()) return;
     if (value.isString() && value.as(JsonString.class).string("").isEmpty()) return;
     appendMemberName(name);
@@ -317,7 +318,7 @@ public class JsonGenerator {
     if (items != null) items.run();
   }
 
-  private void appendStringInline(String str) {
+  private void appendStringInline(CharSequence str) {
     if (str == null) {
       write("null");
       return;
@@ -327,7 +328,7 @@ public class JsonGenerator {
     nothingWritten = false;
   }
 
-  private void appendStringBlock(String str) {
+  private void appendStringBlock(CharSequence str) {
     if (str == null) {
       write("null");
       return;
@@ -337,7 +338,7 @@ public class JsonGenerator {
     nothingWritten = false;
   }
 
-  private void appendMemberName(String name) {
+  private void appendMemberName(CharSequence name) {
     if (name == null && nothingWritten) return; // root: nothing to write here
     if (!firstItemAtLevel) write(language.objectItemSeparator);
     appendMemberIndent();
@@ -406,21 +407,23 @@ public class JsonGenerator {
     nothingWritten = false;
   }
 
-  private static void escapeYamlString(Appender out, String unescaped) {
+  private static void escapeYamlString(Appender out, CharSequence unescaped) {
     if (unescaped.isEmpty()) return;
+    Text text = Text.of(unescaped);
     boolean quote =
         Character.isDigit(unescaped.charAt(0))
-            || "true".equals(unescaped)
-            || "false".equals(unescaped)
-            || unescaped.contains("#")
-            || unescaped.startsWith("*");
+            || text.contentEquals("true")
+            || text.contentEquals("false")
+            || text.contains("#")
+            || text.startsWith("*");
     if (quote) out.appendAscii('"');
     out.appendEncoded(unescaped);
     if (quote) out.appendAscii('"');
   }
 
-  private static void escapeYamlText(Appender out, String text, String contentIndent) {
-    if (text.indexOf('\n') < 0) {
+  private static void escapeYamlText(Appender out, CharSequence text, String contentIndent) {
+    Text t = Text.of(text);
+    if (t.indexOf('\n') < 0) {
       escapeYamlString(out, text);
       return;
     }
@@ -428,7 +431,7 @@ public class JsonGenerator {
     out.appendAscii("|-\n");
     int start = 0;
     int end;
-    while ((end = text.indexOf('\n', start)) >= 0) {
+    while ((end = t.indexOf('\n', start)) >= 0) {
       if (end > start) {
         out.appendAscii(contentIndent);
         out.appendEncoded(text, start, end);

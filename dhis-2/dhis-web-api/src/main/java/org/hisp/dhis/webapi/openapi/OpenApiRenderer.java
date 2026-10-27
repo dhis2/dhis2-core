@@ -777,7 +777,7 @@ public class OpenApiRenderer {
         true,
         "",
         () -> {
-          appendSummary(null, "", renderSummary::run);
+          appendSummary(null, "", renderSummary);
           renderBody.run();
         });
   }
@@ -1331,7 +1331,7 @@ public class OpenApiRenderer {
     } else if (schema.isWrapper()) {
       SchemaObject p0 = schema.properties().entries().stream().limit(1).toList().get(0);
       appendRaw("{");
-      appendEscaped(p0.getKey().toString());
+      appendEscaped(p0.getKey());
       appendRaw(":");
       renderSchemaSignatureType(p0);
       appendRaw("}");
@@ -1472,7 +1472,7 @@ public class OpenApiRenderer {
               id,
               "",
               () -> {
-                appendCode("property", () -> appendEscaped(name.toString()));
+                appendCode("property", () -> appendEscaped(name));
                 appendCode("property secondary", ":");
                 renderSchemaSummary(type, false);
               });
