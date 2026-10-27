@@ -80,7 +80,7 @@ public class OpenApiController {
 
   private static final SoftCache<Api> API_CACHE = new SoftCache<>();
   private static final SoftCache<String> JSON_CACHE = new SoftCache<>();
-  private static final SoftCache<String> HTML_CACHE = new SoftCache<>();
+  private static final SoftCache<byte[]> HTML_CACHE = new SoftCache<>();
 
   /**
    * As long as the server is the same the response will be for the same request, so we just create
@@ -123,10 +123,8 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    // for HTML X-properties must be included
     generation.setIncludeXProperties(true);
-
-    getHtmlWriter(response).write(renderCached(scoping, generation, rendering));
+    writeHtml(response, renderCached(scoping, generation, rendering));
   }
 
   @OpenApi.Description(
@@ -142,11 +140,9 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    // for HTML X-properties must be included
     generation.setIncludeXProperties(true);
-
     OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path:/api/" + path));
-    getHtmlWriter(response).write(renderCached(scope, generation, rendering));
+    writeHtml(response, renderCached(scope, generation, rendering));
   }
 
   /*
@@ -211,8 +207,15 @@ public class OpenApiController {
     getJsonWriter(response).write(generateCached(Language.JSON, scoping, generation));
   }
 
-  private PrintWriter getHtmlWriter(HttpServletResponse response) {
-    return getWriter(response, TEXT_HTML_VALUE);
+  private static void writeHtml(HttpServletResponse response, byte[] bytes) {
+    response.setContentType(TEXT_HTML_VALUE + ";charset=UTF-8");
+    response.setHeader("ETag", E_TAG);
+    response.setContentLength(bytes.length);
+    try {
+      response.getOutputStream().write(bytes);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
   }
 
   private PrintWriter getYamlWriter(HttpServletResponse response) {
@@ -234,7 +237,7 @@ public class OpenApiController {
   }
 
   @Nonnull
-  private String renderCached(
+  private byte[] renderCached(
       OpenApiScopingParams scoping,
       OpenApiGenerationParams generation,
       OpenApiRenderingParams rendering) {

@@ -32,6 +32,8 @@ package org.hisp.dhis.webapi.openapi;
 import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.markdownToHTML;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Set;
+import org.hisp.dhis.jsontree.TextBuilder;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
@@ -355,6 +357,44 @@ class OpenApiMarkdownTest {
           lets see how it goes
         ```
         """);
+  }
+
+  @Test
+  void testAppenderOutput_MatchesStringOutput() {
+    // Non-trivial markdown that exercises every span type and block element
+    String markdown =
+        """
+      ## Title
+
+      Paragraph with **bold**, _italic_, `code`, and a [link](https://example.com).
+
+      * item one
+      * item two
+
+      > a quote
+      """;
+    String expected = markdownToHTML(markdown);
+    TextBuilder out = new TextBuilder();
+    OpenApiMarkdown.markdownToHTML(markdown, Set.of(), out);
+    assertEquals(expected, out.toString());
+  }
+
+  @Test
+  void testAppenderOutput_BlankAndNull() {
+    TextBuilder out = new TextBuilder();
+    OpenApiMarkdown.markdownToHTML("", Set.of(), out);
+    OpenApiMarkdown.markdownToHTML("   ", Set.of(), out);
+    OpenApiMarkdown.markdownToHTML(null, Set.of(), out);
+    assertEquals("", out.toString());
+  }
+
+  @Test
+  void testAppenderOutput_Utf8() {
+    // Verifies non-ASCII content reaches the Appender through appendEncoded rather than being
+    // dropped or mangled — € is U+20AC (3 bytes), 😀 is U+1F600 (4 bytes)
+    TextBuilder out = new TextBuilder();
+    OpenApiMarkdown.markdownToHTML("Hello € and 😀", Set.of(), out);
+    assertEquals("<p>Hello € and 😀</p>", out.toString());
   }
 
   private static void assertRenders(

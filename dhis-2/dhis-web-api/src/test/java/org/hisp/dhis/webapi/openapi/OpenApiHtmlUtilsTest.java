@@ -34,6 +34,7 @@ import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.stripHtml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.Text;
+import org.hisp.dhis.jsontree.TextBuilder;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -136,7 +137,7 @@ class OpenApiHtmlUtilsTest {
   }
 
   private void assertEscapedEquals(String expected, String actual) {
-    StringBuilder escaped = new StringBuilder();
+    TextBuilder escaped = new TextBuilder();
     appendEscaped(Text.of(actual), escaped);
     assertEquals(expected, escaped.toString());
   }
