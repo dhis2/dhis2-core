@@ -2514,6 +2514,167 @@ class MetadataItemsHandlerTest {
   }
 
   @Nested
+  @DisplayName("Stage Event Status Metadata Tests")
+  class StageEventStatusMetadataTests {
+
+    private QueryItem createStageEventStatusItem(String stageUid, String filter) {
+      ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid(stageUid);
+      programStage.setName("Birth");
+
+      QueryItem item =
+          new QueryItem(
+                  new BaseDimensionalItemObject("eventstatus"),
+                  programA,
+                  null,
+                  ValueType.TEXT,
+                  AggregationType.NONE,
+                  null)
+              .withCustomHeader(AnalyticsCustomHeader.forEventStatus(programStage));
+      item.setProgramStage(programStage);
+
+      if (filter != null) {
+        item.addFilter(new QueryFilter(QueryOperator.IN, filter));
+        QueryFilter.getFilterItems(filter).forEach(item::addDimensionValue);
+      }
+
+      return item;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, List<String>> getDimensions(Grid grid) {
+      return (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getItems(Grid grid) {
+      return (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"AGGREGATE", "QUERY"})
+    @DisplayName("should list requested statuses in dimensions and label them in items")
+    void shouldIncludeRequestedStatusesForStageEventStatusDimension(String endpointAction) {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction("QUERY".equals(endpointAction) ? QUERY : AGGREGATE)
+              .addItem(createStageEventStatusItem("A03MvHHogjR", "ACTIVE;COMPLETED"))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      assertEquals(
+          List.of("ACTIVE", "COMPLETED"), getDimensions(grid).get("A03MvHHogjR.eventstatus"));
+
+      Map<String, Object> items = getItems(grid);
+      assertEquals("Active", ((MetadataItem) items.get("ACTIVE")).getName());
+      assertEquals("Completed", ((MetadataItem) items.get("COMPLETED")).getName());
+      assertFalse(items.containsKey("SCHEDULE"));
+    }
+
+    @Test
+    @DisplayName("should list requested statuses for a stage event status filter")
+    void shouldIncludeRequestedStatusesForStageEventStatusFilter() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .addItemFilter(createStageEventStatusItem("A03MvHHogjR", "ACTIVE;COMPLETED"))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      assertEquals(
+          List.of("ACTIVE", "COMPLETED"), getDimensions(grid).get("A03MvHHogjR.eventstatus"));
+
+      Map<String, Object> items = getItems(grid);
+      assertEquals("Active", ((MetadataItem) items.get("ACTIVE")).getName());
+      assertEquals("Completed", ((MetadataItem) items.get("COMPLETED")).getName());
+    }
+
+    @Test
+    @DisplayName("should keep dimensions empty for a stage event status without items")
+    void shouldKeepDimensionsEmptyForStageEventStatusWithoutItems() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .addItem(createStageEventStatusItem("A03MvHHogjR", null))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      assertEquals(List.of(), getDimensions(grid).get("A03MvHHogjR.eventstatus"));
+
+      Map<String, Object> items = getItems(grid);
+      assertFalse(items.containsKey("ACTIVE"));
+      assertFalse(items.containsKey("COMPLETED"));
+    }
+
+    @Test
+    @DisplayName("should label every stage event status")
+    void shouldLabelEveryStageEventStatus() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .addItem(createStageEventStatusItem("A03MvHHogjR", "ACTIVE;COMPLETED;SCHEDULE"))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      Map<String, Object> items = getItems(grid);
+      assertEquals("Active", ((MetadataItem) items.get("ACTIVE")).getName());
+      assertEquals("Completed", ((MetadataItem) items.get("COMPLETED")).getName());
+      assertEquals("Schedule", ((MetadataItem) items.get("SCHEDULE")).getName());
+    }
+
+    @Test
+    @DisplayName("should list each stage's own statuses when two stages are requested")
+    void shouldListStatusesPerStage() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .addItem(createStageEventStatusItem("A03MvHHogjR", "ACTIVE"))
+              .addItem(createStageEventStatusItem("ZzYYXq4fJie", "COMPLETED;SCHEDULE"))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      Map<String, List<String>> dimensions = getDimensions(grid);
+      assertEquals(List.of("ACTIVE"), dimensions.get("A03MvHHogjR.eventstatus"));
+      assertEquals(List.of("COMPLETED", "SCHEDULE"), dimensions.get("ZzYYXq4fJie.eventstatus"));
+    }
+  }
+
+  @Nested
   @DisplayName("Custom Header Tests")
   class CustomHeaderTests {
 
