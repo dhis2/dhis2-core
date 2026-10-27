@@ -64,6 +64,8 @@ class MetadataProposalStoreTest extends PostgresIntegrationTestBase {
 
   private static final Date FINALISED = new Date(1_700_000_360_000L);
 
+  private static final Date REFINALISED = new Date(1_700_000_720_000L);
+
   @Autowired private MetadataProposalStore store;
 
   @Autowired private JdbcTemplate jdbcTemplate;
@@ -165,7 +167,7 @@ class MetadataProposalStoreTest extends PostgresIntegrationTestBase {
     proposal.setChange(newChange);
     proposal.setStatus(MetadataProposalStatus.REJECTED);
     proposal.setReason("Rejected");
-    proposal.setFinalised(FINALISED);
+    proposal.setFinalised(REFINALISED);
     proposal.setFinalisedBy(getAdminUser());
 
     store.update(proposal);
@@ -180,7 +182,7 @@ class MetadataProposalStoreTest extends PostgresIntegrationTestBase {
     assertEquals(newChange, json((String) row.get("change")));
     assertEquals("REJECTED", row.get("status"));
     assertEquals("Rejected", row.get("reason"));
-    assertEquals(FINALISED.getTime(), ((Date) row.get("finalised")).getTime());
+    assertEquals(REFINALISED.getTime(), ((Date) row.get("finalised")).getTime());
     assertEquals(getAdminUser().getId(), row.get("finalisedby"));
   }
 

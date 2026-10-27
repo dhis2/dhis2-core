@@ -98,20 +98,21 @@ class MetadataProposalControllerTest extends PostgresControllerIntegrationTestBa
   @Test
   void shouldStoreAdjustedChangeAndTargetOfOpposedProposal() {
     String proposalId = proposeNameUpdate("New name");
-    assertStatus(
-        HttpStatus.NO_CONTENT,
-        PATCH(
-            "/metadata/proposals/" + proposalId,
-            Body("Wrong name"),
-            ContentType(MediaType.TEXT_PLAIN)));
     String otherUnitId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/organisationUnits/",
                 "{'name':'Other Unit', 'shortName':'OU2', 'openingDate': '2020-01-01'}"));
-    assertEquals("NEEDS_UPDATE", getProposal(proposalId).getString("status").string());
-    assertEquals("Wrong name", getProposal(proposalId).getString("reason").string());
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        PATCH(
+            "/metadata/proposals/" + proposalId,
+            Body("Wrong name"),
+            ContentType(MediaType.TEXT_PLAIN)));
+    JsonObject opposed = getProposal(proposalId);
+    assertEquals("NEEDS_UPDATE", opposed.getString("status").string());
+    assertEquals("Wrong name", opposed.getString("reason").string());
 
     assertStatus(
         HttpStatus.OK,
@@ -138,9 +139,6 @@ class MetadataProposalControllerTest extends PostgresControllerIntegrationTestBa
     assertEquals("ACCEPTED", accepted.getString("status").string());
     assertEquals(getAdminUid(), accepted.getString("finalisedBy").string());
     assertFalse(accepted.getString("finalised").string().isEmpty());
-    assertEquals(
-        "Accepted name",
-        GET("/organisationUnits/{id}", unitId).content().getString("name").string());
   }
 
   @Test

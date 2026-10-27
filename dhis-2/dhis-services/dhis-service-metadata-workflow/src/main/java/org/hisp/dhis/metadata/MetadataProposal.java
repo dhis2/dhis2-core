@@ -42,6 +42,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -108,7 +109,10 @@ public class MetadataProposal implements PrimaryKeyObject {
   private String targetId;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "createdby", nullable = false)
+  @JoinColumn(
+      name = "createdby",
+      nullable = false,
+      foreignKey = @ForeignKey(name = "fk_createdby_userid"))
   private User createdBy;
 
   @Column(name = "created", nullable = false)
@@ -126,7 +130,7 @@ public class MetadataProposal implements PrimaryKeyObject {
   private String reason;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "finalisedby")
+  @JoinColumn(name = "finalisedby", foreignKey = @ForeignKey(name = "fk_finalisedby_userid"))
   private User finalisedBy;
 
   @Column(name = "finalised")
