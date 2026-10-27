@@ -88,7 +88,7 @@ public class JsonGenerator {
             "",
             ",",
             Appender::appendJsonEscaped,
-            (out, text, contentIndent) -> out.appendJsonEscaped(text),
+            (appender, text, contentIndent) -> appender.appendJsonEscaped(text),
             UnaryOperator.identity());
 
     public static final Language YAML =
