@@ -411,9 +411,14 @@ public class DataHandler {
     }
   }
 
-  /** Returns {@code a * b} for non-negative values, or {@link Long#MAX_VALUE} on overflow. */
-  private static long multiplySaturated(long a, int b) {
-    return b > 0 && a > Long.MAX_VALUE / b ? Long.MAX_VALUE : a * b;
+  /**
+   * Returns {@code permutations * indicatorCount}, i.e. the number of indicator values to compute,
+   * for non-negative values, or {@link Long#MAX_VALUE} on overflow.
+   */
+  private static long multiplySaturated(long permutations, int indicatorCount) {
+    return indicatorCount > 0 && permutations > Long.MAX_VALUE / indicatorCount
+        ? Long.MAX_VALUE
+        : permutations * indicatorCount;
   }
 
   /**
