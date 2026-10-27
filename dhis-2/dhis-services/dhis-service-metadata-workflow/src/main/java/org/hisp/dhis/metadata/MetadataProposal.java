@@ -119,6 +119,8 @@ public class MetadataProposal implements PrimaryKeyObject {
   @Temporal(TemporalType.TIMESTAMP)
   private Date created;
 
+  // the concrete Jackson node types are Serializable, and the field must stay persistent
+  @SuppressWarnings("java:S1948")
   @Type(type = "jbJsonNode")
   @Column(name = "change", nullable = false)
   private JsonNode change;
