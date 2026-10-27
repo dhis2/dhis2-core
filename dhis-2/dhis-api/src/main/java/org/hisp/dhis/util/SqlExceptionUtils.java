@@ -39,6 +39,8 @@ public class SqlExceptionUtils {
 
   private static final String PG_TABLE_NOT_EXISTING = "42P01";
 
+  private static final String PG_COLUMN_NOT_EXISTING = "42703";
+
   public static final String ERR_MSG_TABLE_NOT_EXISTING =
       "Query failed, likely because the requested analytics table does not exist: ";
 
@@ -68,6 +70,31 @@ public class SqlExceptionUtils {
           || Optional.of(ex) // clickhouse
               .map(SQLException::getMessage)
               .filter(m -> m.contains("Unknown table expression identifier"))
+              .isPresent();
+    }
+
+    return false;
+  }
+
+  /**
+   * Utility method to detect if the {@link SQLException} refers to a missing column in the table.
+   *
+   * @param ex a {@link SQLException} to analyze
+   * @return true if the error is a missing column error, false otherwise
+   */
+  public static boolean columnDoesNotExist(SQLException ex) {
+    if (ex != null) {
+      return Optional.of(ex) // postgres
+              .map(SQLException::getSQLState)
+              .filter(PG_COLUMN_NOT_EXISTING::equals)
+              .isPresent()
+          || Optional.of(ex) // doris
+              .map(SQLException::getMessage)
+              .filter(m -> m.contains("column") && m.contains("does not exist in the table"))
+              .isPresent()
+          || Optional.of(ex) // clickhouse
+              .map(SQLException::getMessage)
+              .filter(m -> m.contains("Unknown column"))
               .isPresent();
     }
 

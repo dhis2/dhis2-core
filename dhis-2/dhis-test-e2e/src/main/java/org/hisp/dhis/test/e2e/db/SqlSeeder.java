@@ -52,6 +52,8 @@ public class SqlSeeder {
   /** Directory holding the scripts, relative to the module root. */
   public static final String SEED_DIR = "src/test/resources/db/seed";
 
+  public static final String SEED_DIR_AFTER = "src/test/resources/db/seed/after";
+
   /** Applies when {@code db.seed.timeout.seconds} is not set. */
   private static final int DEFAULT_TIMEOUT_SECONDS = 1800;
 
@@ -66,7 +68,7 @@ public class SqlSeeder {
    * @return the number of scripts applied
    * @throws IllegalStateException if the scripts cannot be listed, read or applied
    */
-  public static int applySeedScripts() {
+  public static int applySeedScripts(String path) {
     // Checked before the directory is looked at, so that disabling seeding cannot fail on a
     // missing directory.
     if (!Optional.ofNullable(TestConfiguration.get().shouldApplySeedScripts()).orElse(true)) {
@@ -74,10 +76,10 @@ public class SqlSeeder {
       return 0;
     }
 
-    List<Path> scripts = seedScripts(Path.of(SEED_DIR));
+    List<Path> scripts = seedScripts(Path.of(path));
 
     if (scripts.isEmpty()) {
-      logger.info("No SQL seed scripts in {}", SEED_DIR);
+      logger.info("No SQL seed scripts in {}", path);
       return 0;
     }
 
@@ -97,7 +99,7 @@ public class SqlSeeder {
           "Could not connect to "
               + url
               + " to apply the SQL seed scripts in "
-              + SEED_DIR
+              + path
               + ". Pass -Ddb.url, -Ddb.username and -Ddb.password when the database of the instance"
               + " under test is not the one at that url.",
           e);
