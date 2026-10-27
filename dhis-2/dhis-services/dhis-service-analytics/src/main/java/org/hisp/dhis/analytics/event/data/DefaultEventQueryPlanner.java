@@ -143,7 +143,9 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
         params.getItems().stream()
             .anyMatch(
                 item ->
-                    EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId()));
+                    EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId())
+                        || EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME.equals(
+                            item.getItemId()));
 
     if (hasEventDateItem) {
       builder.withSkipPartitioning(true);

@@ -911,7 +911,7 @@ public class EventQueryTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("dimension=edqlbukwRfQ.vANAXwtLwcT,ou:ImspTQPwCqd, pe:THIS_YEAR")
+            .add("dimension=edqlbukwRfQ.vANAXwtLwcT,ou:ImspTQPwCqd,pe:THIS_YEAR")
             .add("headers=ou,ounamehierarchy,edqlbukwRfQ.vANAXwtLwcT")
             .add("stage=edqlbukwRfQ")
             .add("displayProperty=NAME")
@@ -952,11 +952,16 @@ public class EventQueryTest extends AnalyticsApiTest {
         true);
 
     validateRow(
-        response, 0, List.of("Urk55T8KgpT", "Sierra Leone / Kailahun / Mandu / Yoyah CHP", "24"));
+        response,
+        0,
+        List.of(
+            "zQpYVEyAM2t",
+            "Sierra Leone / Western Area / Rural Western Area / Hastings Health Centre",
+            "10"));
     validateRow(
         response,
         1,
-        List.of("QFcMulIoEii", "Sierra Leone / Bombali / Gbanti Kamaranka / Gbainkfay MCHP", "21"));
+        List.of("lyONqUkY1Bq", "Sierra Leone / Tonkolili / Kunike / Matholey MCHP", "17"));
   }
 
   @Test
