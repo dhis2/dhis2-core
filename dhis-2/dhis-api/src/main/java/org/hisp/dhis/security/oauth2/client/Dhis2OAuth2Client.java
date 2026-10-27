@@ -249,7 +249,7 @@ public class Dhis2OAuth2Client implements IdentifiableObject, MetadataObject {
   @Getter
   @Setter
   @JsonProperty
-  @Column(name = "client_settings")
+  @Column(name = "client_settings", columnDefinition = "text")
   @Type(type = "text")
   private String clientSettings;
 
@@ -260,7 +260,7 @@ public class Dhis2OAuth2Client implements IdentifiableObject, MetadataObject {
   @Getter
   @Setter
   @JsonProperty
-  @Column(name = "token_settings")
+  @Column(name = "token_settings", columnDefinition = "text")
   @Type(type = "text")
   private String tokenSettings;
 
