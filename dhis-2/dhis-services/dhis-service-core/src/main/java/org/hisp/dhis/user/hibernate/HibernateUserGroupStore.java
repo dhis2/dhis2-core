@@ -31,7 +31,6 @@ package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -68,12 +67,13 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
     if (userGroupIds.isEmpty()) {
       return Set.of();
     }
-    String placeholders = String.join(",", Collections.nCopies(userGroupIds.size(), "?"));
-    String sql =
-        "select managedgroupid from usergroupmanaged where managedbygroupid in ("
-            + placeholders
-            + ")";
-    return new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, userGroupIds.toArray()));
+    return new HashSet<>(
+        getSession()
+            .createQuery(
+                "select managed.id from UserGroup g join g.managedGroups managed where g.id in (:userGroupIds)",
+                Long.class)
+            .setParameterList("userGroupIds", userGroupIds)
+            .list());
   }
 
   @Override

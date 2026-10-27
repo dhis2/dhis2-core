@@ -91,6 +91,11 @@ public class RedisSpringSessionConfig {
   }
 
   @Bean
+  public HttpBasicSessions httpBasicSessions(RedisIndexedSessionRepository sessionRepository) {
+    return new RedisHttpBasicSessions(sessionRepository);
+  }
+
+  @Bean
   public SessionCreationTimeProvider sessionCreationTimeProvider(
       RedisIndexedSessionRepository sessionRepository) {
     return new RedisSessionCreationTimeProvider(sessionRepository);

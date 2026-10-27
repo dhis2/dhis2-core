@@ -38,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.concurrent.TimeUnit;
-import org.hisp.dhis.http.HttpClientAdapter.HttpResponse;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -54,9 +53,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.session.SessionRegistry;
 
 /**
- * Verifies that users who join or leave a user group are marked as changed after the change has
- * committed, whichever API changed the membership, so that their sessions refresh their principal
- * instead of being logged out. Members whose membership did not change are left alone.
+ * Verifies that users who join or leave a user group, or whose group is deleted, are marked as
+ * changed after commit, whichever API changed the membership, so their sessions refresh their
+ * principal instead of being logged out. Members whose membership did not change are left alone.
  *
  * <p>The class is not {@code @Transactional}, so every request commits on its own. The marking runs
  * on a single-threaded executor after the commit; draining that executor before asserting makes the
@@ -153,6 +152,23 @@ class UserGroupSessionRefreshControllerTest extends H2ControllerIntegrationTestB
     awaitUserDetailsChanges();
 
     assertEquals(tokenBefore, changeToken());
+  }
+
+  /**
+   * Deletes through metadata import, which leaves the sharing of the group in place. {@code DELETE
+   * /userGroups/{uid}} cannot run on H2, since it removes the group from sharing with SQL for
+   * JSONB.
+   */
+  @Test
+  void deletingUserGroupMarksMembersAsChanged() {
+    joinGroup();
+    String tokenBefore = changeToken();
+
+    POST("/metadata?importStrategy=DELETE", "{'userGroups':[{'id':'" + groupId + "'}]}")
+        .content(OK);
+    awaitUserDetailsChanges();
+
+    assertMarkedAsChangedWithSessionKept(tokenBefore);
   }
 
   private void joinGroup() {

@@ -68,6 +68,10 @@ import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
+import org.hisp.dhis.webapi.security.session.HttpBasicSessions;
+import org.hisp.dhis.webapi.security.session.InteractiveSessionRegistry;
+import org.hisp.dhis.webapi.security.session.ReauthenticatingExpiredSessionStrategy;
+import org.hisp.dhis.webapi.security.session.SessionRegisteringSecurityContextRepository;
 import org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -86,10 +90,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer.SessionFixationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
@@ -161,6 +165,10 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private UserDetailsChangeTracker userDetailsChangeTracker;
 
   @Autowired private UserService userService;
+
+  @Autowired private SessionRegistry sessionRegistry;
+
+  @Autowired private HttpBasicSessions httpBasicSessions;
 
   private static class CustomRequestMatcher implements RequestMatcher {
     private static final Pattern p1 = Pattern.compile("^/api/apps/.+", Pattern.CASE_INSENSITIVE);
@@ -424,10 +432,12 @@ public class DhisWebApiWebSecurityConfig {
                     new ObjectPostProcessor<BasicAuthenticationFilter>() {
                       @Override
                       public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
-                        // Explicitly set security context repository on http basic, is
-                        // NullSecurityContextRepository by default now.
+                        // Keep the context of an HTTP Basic login in the session, and register
+                        // that session so that it is expired when the user's roles or groups
+                        // change.
                         filter.setSecurityContextRepository(
-                            new HttpSessionSecurityContextRepository());
+                            new SessionRegisteringSecurityContextRepository(
+                                sessionRegistry, httpBasicSessions));
                         return filter;
                       }
                     }));
@@ -468,7 +478,11 @@ public class DhisWebApiWebSecurityConfig {
                 .maximumSessions(
                     Integer.parseInt(
                         dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
-                .expiredUrl("/dhis-web-commons-security/logout.action"));
+                // HTTP Basic sessions do not count toward the maximum
+                .sessionRegistry(new InteractiveSessionRegistry(sessionRegistry, httpBasicSessions))
+                .expiredSessionStrategy(
+                    new ReauthenticatingExpiredSessionStrategy(
+                        "/dhis-web-commons-security/logout.action")));
   }
 
   @Bean
