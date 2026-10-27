@@ -235,9 +235,9 @@ class DataHandlerTest {
   }
 
   /**
-   * Shape of the 2026-10-16 ASC incident: one indicator crossed with many category dimensions
-   * multiplies into tens of millions of permutations. The query must be rejected before any
-   * permutation is built.
+   * Shape of a production incident: one indicator crossed with many category dimensions multiplies
+   * into tens of millions of permutations. The query must be rejected before any permutation is
+   * built.
    */
   @Test
   void testAddIndicatorValuesRejectsTooManyPermutations() {
@@ -272,10 +272,12 @@ class DataHandlerTest {
     DataHandler dataHandler =
         new DataHandler(null, null, resolvers, null, null, settingsProvider, null, null, null);
 
+    DataQueryParams params = builder.build();
+    ListGrid grid = new ListGrid();
+
     IllegalQueryException ex =
         assertThrows(
-            IllegalQueryException.class,
-            () -> dataHandler.addIndicatorValues(builder.build(), new ListGrid()));
+            IllegalQueryException.class, () -> dataHandler.addIndicatorValues(params, grid));
 
     assertEquals(ErrorCode.E7153, ex.getErrorCode());
   }
