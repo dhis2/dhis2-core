@@ -249,7 +249,7 @@ public class Attribute extends BaseMetadataObject implements NameableObject, Met
   private String shortName;
 
   @Type(type = "text")
-  @Column(name = "description")
+  @Column(name = "description", columnDefinition = "text")
   private String description;
 
   @Enumerated(EnumType.STRING)
