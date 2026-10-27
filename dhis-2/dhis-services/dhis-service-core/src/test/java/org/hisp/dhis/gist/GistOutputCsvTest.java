@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.object.ObjectOutput;
 import org.junit.jupiter.api.Test;
 
@@ -62,8 +61,6 @@ import org.junit.jupiter.api.Test;
  */
 class GistOutputCsvTest {
 
-  private static final boolean UNWRAP = true;
-  private static final boolean NO_UNWRAP = false;
   private static final boolean HEADLESS = true;
   private static final boolean NO_HEADLESS = false;
 
@@ -73,7 +70,6 @@ class GistOutputCsvTest {
   void testObject_Simple() {
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
             List.of(prop("id", String.class), prop("name", String.class)),
             new Object[] {"abc", "Hello"});
     assertEquals("id,name\nabc,Hello\n", toCsv(obj));
@@ -83,7 +79,6 @@ class GistOutputCsvTest {
   void testObject_HeadersFollowPathOrder() {
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
             List.of(prop("z", String.class), prop("a", String.class), prop("m", String.class)),
             new Object[] {"1", "2", "3"});
     assertEquals("z,a,m\n1,2,3\n", toCsv(obj));
@@ -94,7 +89,6 @@ class GistOutputCsvTest {
     // CSV is a flat table — nested paths become dotted column names, values are not navigated
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
             List.of(prop("a.b", String.class), prop("c.d.e", String.class)),
             new Object[] {"x", "y"});
     assertEquals("a.b,c.d.e\nx,y\n", toCsv(obj));
@@ -103,7 +97,7 @@ class GistOutputCsvTest {
   @Test
   void testObject_EmptyDoesNotEmitLine() {
     // No properties → header row is just LF; no columns → data row is not emitted
-    GistObject.Output obj = new GistObject.Output(NO_UNWRAP, List.of(), new Object[0]);
+    GistObject.Output obj = new GistObject.Output(List.of(), new Object[0]);
     assertEquals("\n", toCsv(obj));
   }
 
@@ -111,7 +105,7 @@ class GistOutputCsvTest {
   void testObject_UnwrapIgnoredForCsv() {
     // unwrap only applies to JSON — CSV always emits a header row plus a data row
     GistObject.Output obj =
-        new GistObject.Output(UNWRAP, List.of(prop("name", String.class)), new Object[] {"Hello"});
+        new GistObject.Output(List.of(prop("name", String.class)), new Object[] {"Hello"});
     assertEquals("name\nHello\n", toCsv(obj));
   }
 
@@ -119,7 +113,6 @@ class GistOutputCsvTest {
   void testObject_NullValueBecomesEmptyField() {
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
             List.of(prop("a", String.class), prop("b", String.class), prop("c", String.class)),
             new Object[] {"x", null, "z"});
     assertEquals("a,b,c\nx,,z\n", toCsv(obj));
@@ -129,8 +122,7 @@ class GistOutputCsvTest {
   void testObject_QuoteEscapingThroughPipeline() {
     // A field containing a comma triggers quoting — confirms CsvBuilder's contract applies here
     GistObject.Output obj =
-        new GistObject.Output(
-            NO_UNWRAP, List.of(prop("value", String.class)), new Object[] {"x,y"});
+        new GistObject.Output(List.of(prop("value", String.class)), new Object[] {"x,y"});
     assertEquals("value\n\"x,y\"\n", toCsv(obj));
   }
 
@@ -138,7 +130,6 @@ class GistOutputCsvTest {
   void testObject_MixedTypes() {
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
             List.of(
                 prop("id", String.class),
                 prop("count", Integer.class),
@@ -153,7 +144,6 @@ class GistOutputCsvTest {
     // Confirms UTF-8 output — the writer never falls back to platform default charset
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
             List.of(prop("name", String.class), prop("desc", String.class)),
             new Object[] {"héllo", "😀"});
     assertEquals("name,desc\nhéllo,😀\n", toCsv(obj));
@@ -165,7 +155,6 @@ class GistOutputCsvTest {
   void testList_WithHeaders() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             NO_HEADLESS,
             null,
             "items",
@@ -178,7 +167,6 @@ class GistOutputCsvTest {
   void testList_Headless_SkipsHeaders() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             HEADLESS,
             null,
             "items",
@@ -192,7 +180,6 @@ class GistOutputCsvTest {
     // Headers only, no data rows
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             NO_HEADLESS,
             null,
             "items",
@@ -206,7 +193,7 @@ class GistOutputCsvTest {
     // No headers, no rows → empty output
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP, HEADLESS, null, "items", List.of(prop("id", String.class)), Stream.empty());
+            HEADLESS, null, "items", List.of(prop("id", String.class)), Stream.empty());
     assertEquals("", toCsv(list));
   }
 
@@ -214,7 +201,6 @@ class GistOutputCsvTest {
   void testList_HeadersFollowPathOrder() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             NO_HEADLESS,
             null,
             "items",
@@ -228,7 +214,6 @@ class GistOutputCsvTest {
     // unwrap only applies to JSON
     GistObjectList.Output list =
         new GistObjectList.Output(
-            UNWRAP,
             NO_HEADLESS,
             null,
             "items",
@@ -243,7 +228,6 @@ class GistOutputCsvTest {
     GistPager pager = new GistPager(1, 50, 200, "prevURL", "nextURL");
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             NO_HEADLESS,
             pager,
             "items",
@@ -260,7 +244,6 @@ class GistOutputCsvTest {
   void testList_NullValuesBeomeEmptyFields() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             NO_HEADLESS,
             null,
             "items",
@@ -273,7 +256,6 @@ class GistOutputCsvTest {
   void testList_Unicode() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             NO_HEADLESS,
             null,
             "items",
@@ -287,7 +269,6 @@ class GistOutputCsvTest {
   void testList_MixedTypes() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             NO_HEADLESS,
             null,
             "items",
@@ -314,7 +295,7 @@ class GistOutputCsvTest {
    * never construct properties directly.
    */
   private static ObjectOutput.Property prop(String path, Class<?> type) {
-    return new ObjectOutput.Property(PropertyPath.of(path), new ObjectOutput.Type(type), false);
+    return new ObjectOutput.Property(path, new ObjectOutput.Type(type), false);
   }
 
   private static String toCsv(GistObject.Output obj) {

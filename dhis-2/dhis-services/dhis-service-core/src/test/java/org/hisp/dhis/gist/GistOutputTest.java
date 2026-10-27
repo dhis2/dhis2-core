@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.object.ObjectOutput;
 import org.junit.jupiter.api.Test;
@@ -57,8 +56,6 @@ import org.junit.jupiter.api.Test;
  */
 class GistOutputTest {
 
-  private static final boolean UNWRAP = true;
-  private static final boolean NO_UNWRAP = false;
   private static final boolean HEADLESS = true;
   private static final boolean NO_HEADLESS = false;
 
@@ -66,7 +63,7 @@ class GistOutputTest {
 
   @Test
   void testPaths_Empty() {
-    GistObject.Output obj = new GistObject.Output(NO_UNWRAP, List.of(), new Object[0]);
+    GistObject.Output obj = new GistObject.Output(List.of(), new Object[0]);
     assertEquals(List.of(), obj.paths());
   }
 
@@ -74,9 +71,7 @@ class GistOutputTest {
   void testPaths_Simple() {
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
-            List.of(prop("id", String.class), prop("name", String.class)),
-            new Object[2]);
+            List.of(prop("id", String.class), prop("name", String.class)), new Object[2]);
     assertEquals(List.of("id", "name"), obj.paths());
   }
 
@@ -84,9 +79,7 @@ class GistOutputTest {
   void testPaths_Nested() {
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
-            List.of(prop("a.b", String.class), prop("c.d.e", String.class)),
-            new Object[2]);
+            List.of(prop("a.b", String.class), prop("c.d.e", String.class)), new Object[2]);
     assertEquals(List.of("a.b", "c.d.e"), obj.paths());
   }
 
@@ -96,7 +89,6 @@ class GistOutputTest {
   void testToJsonObject_Simple() {
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
             List.of(prop("id", String.class), prop("name", String.class)),
             new Object[] {"abc", "Hello"});
     assertEquals(
@@ -109,7 +101,6 @@ class GistOutputTest {
   void testToJsonObject_Numbers() {
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
             List.of(
                 prop("count", Integer.class),
                 prop("total", Long.class),
@@ -125,7 +116,6 @@ class GistOutputTest {
   void testToJsonObject_Booleans() {
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
             List.of(prop("a", Boolean.class), prop("b", Boolean.class)),
             new Object[] {true, false});
     assertEquals(
@@ -138,7 +128,6 @@ class GistOutputTest {
   void testToJsonObject_Nested() {
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
             List.of(
                 prop("a.x", String.class), prop("a.y", String.class), prop("b.z", Integer.class)),
             new Object[] {"x1", "y1", 42});
@@ -153,7 +142,6 @@ class GistOutputTest {
     // FORMAT uses excludeNullMembers=true, so a null value drops the member entirely
     GistObject.Output obj =
         new GistObject.Output(
-            NO_UNWRAP,
             List.of(prop("a", String.class), prop("b", String.class), prop("c", String.class)),
             new Object[] {"value", null, "other"});
     assertEquals(
@@ -164,7 +152,7 @@ class GistOutputTest {
 
   @Test
   void testToJsonObject_Empty() {
-    GistObject.Output obj = new GistObject.Output(NO_UNWRAP, List.of(), new Object[0]);
+    GistObject.Output obj = new GistObject.Output(List.of(), new Object[0]);
     assertEquals("{}", toJson(obj));
   }
 
@@ -173,14 +161,14 @@ class GistOutputTest {
   @Test
   void testToJsonObject_Unwrap_SingleStringProperty() {
     GistObject.Output obj =
-        new GistObject.Output(UNWRAP, List.of(prop("name", String.class)), new Object[] {"Hello"});
+        new GistObject.Output(List.of(prop("name", String.class)), new Object[] {"Hello"});
     assertEquals("\"Hello\"", toJson(obj));
   }
 
   @Test
   void testToJsonObject_Unwrap_SingleNumberProperty() {
     GistObject.Output obj =
-        new GistObject.Output(UNWRAP, List.of(prop("count", Integer.class)), new Object[] {42});
+        new GistObject.Output(List.of(prop("count", Integer.class)), new Object[] {42});
     assertEquals("42", toJson(obj));
   }
 
@@ -188,7 +176,7 @@ class GistOutputTest {
   void testToJsonObject_Unwrap_SingleNestedProperty() {
     // Path a.b — object is built as {"a":{"b":…}} then get("a.b") navigates to the value
     GistObject.Output obj =
-        new GistObject.Output(UNWRAP, List.of(prop("a.b", String.class)), new Object[] {"nested"});
+        new GistObject.Output(List.of(prop("a.b", String.class)), new Object[] {"nested"});
     assertEquals("\"nested\"", toJson(obj));
   }
 
@@ -197,9 +185,7 @@ class GistOutputTest {
     // unwrap only applies when properties.size() == 1
     GistObject.Output obj =
         new GistObject.Output(
-            UNWRAP,
-            List.of(prop("a", String.class), prop("b", String.class)),
-            new Object[] {"x", "y"});
+            List.of(prop("a", String.class), prop("b", String.class)), new Object[] {"x", "y"});
     assertEquals(
         """
       {"a":"x","b":"y"}""",
@@ -212,7 +198,7 @@ class GistOutputTest {
   void testToJsonList_Headless_Empty() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP, HEADLESS, null, "items", List.of(prop("id", String.class)), Stream.empty());
+            HEADLESS, null, "items", List.of(prop("id", String.class)), Stream.empty());
     assertEquals("[]", toJson(list));
   }
 
@@ -220,7 +206,6 @@ class GistOutputTest {
   void testToJsonList_Headless_Single() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             HEADLESS,
             null,
             "items",
@@ -236,7 +221,6 @@ class GistOutputTest {
   void testToJsonList_Headless_Multiple() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             HEADLESS,
             null,
             "items",
@@ -244,7 +228,7 @@ class GistOutputTest {
             Stream.<Object[]>of(new Object[] {"a"}, new Object[] {"b"}, new Object[] {"c"}));
     assertEquals(
         """
-      [{"id":"a"},{"id":"b"},{"id":"c"}]""",
+      ["a","b","c"]""",
         toJson(list));
   }
 
@@ -252,7 +236,6 @@ class GistOutputTest {
   void testToJsonList_Headless_Nested() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             HEADLESS,
             null,
             "items",
@@ -270,7 +253,6 @@ class GistOutputTest {
   void testToJsonList_Wrapped_WithoutPager() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             NO_HEADLESS,
             null,
             "items",
@@ -280,7 +262,7 @@ class GistOutputTest {
     // gist:true + collectionName array, no pager
     assertEquals(
         """
-      {"gist":true,"items":[{"id":"abc"}]}""",
+      {"items":["abc"]}""",
         json);
   }
 
@@ -289,7 +271,6 @@ class GistOutputTest {
     GistPager pager = new GistPager(1, 50, 200, "prevURL", "nextURL");
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             NO_HEADLESS,
             pager,
             "items",
@@ -299,7 +280,7 @@ class GistOutputTest {
     assertTrue(
         JsonMixed.of(
 """
-{"pager":{"page":1,"pageSize":50,"total":200,"pageCount":4,"prevPage":"prevURL","nextPage":"nextURL"},"gist":true,"items":[{"id":"abc"}]}""")
+{"pager":{"page":1,"pageSize":50,"total":200,"pageCount":4,"prevPage":"prevURL","nextPage":"nextURL"},"items":["abc"]}""")
             .equivalentTo(JsonMixed.of(json)));
   }
 
@@ -308,7 +289,6 @@ class GistOutputTest {
     GistPager pager = new GistPager(1, 50, 10, null, null);
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
             NO_HEADLESS,
             pager,
             "items",
@@ -325,15 +305,10 @@ class GistOutputTest {
   void testToJsonList_Wrapped_Empty() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            NO_UNWRAP,
-            NO_HEADLESS,
-            null,
-            "items",
-            List.of(prop("id", String.class)),
-            Stream.empty());
+            NO_HEADLESS, null, "items", List.of(prop("id", String.class)), Stream.empty());
     assertEquals(
         """
-      {"gist":true,"items":[]}""",
+      {"items":[]}""",
         toJson(list));
   }
 
@@ -343,7 +318,6 @@ class GistOutputTest {
   void testToJsonList_Headless_Unwrap_SingleProperty() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            UNWRAP,
             HEADLESS,
             null,
             "items",
@@ -359,7 +333,6 @@ class GistOutputTest {
   void testToJsonList_Wrapped_Unwrap_SingleProperty() {
     GistObjectList.Output list =
         new GistObjectList.Output(
-            UNWRAP,
             NO_HEADLESS,
             null,
             "items",
@@ -367,7 +340,7 @@ class GistOutputTest {
             Stream.<Object[]>of(new Object[] {"a"}, new Object[] {"b"}));
     assertEquals(
         """
-      {"gist":true,"items":["a","b"]}""",
+      {"items":["a","b"]}""",
         toJson(list));
   }
 
@@ -376,7 +349,6 @@ class GistOutputTest {
     // unwrap only applies when properties.size() == 1
     GistObjectList.Output list =
         new GistObjectList.Output(
-            UNWRAP,
             HEADLESS,
             null,
             "items",
@@ -403,7 +375,7 @@ class GistOutputTest {
    * never construct properties directly.
    */
   private static ObjectOutput.Property prop(String path, Class<?> type) {
-    return new ObjectOutput.Property(PropertyPath.of(path), new ObjectOutput.Type(type), false);
+    return new ObjectOutput.Property(path, new ObjectOutput.Type(type), false);
   }
 
   private static String toJson(GistObject.Output obj) {

@@ -40,7 +40,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.csv.CsvBuilder;
 import org.hisp.dhis.jsontree.Appender;
 import org.hisp.dhis.jsontree.JsonBuilder;
@@ -76,11 +75,11 @@ public final class GistOutput {
 
   public static void toJson(@Nonnull GistObject.Output obj, @Nonnull OutputStream out) {
     List<ObjectOutput.Property> properties = obj.properties();
-    if (obj.unwrap() && properties.size() == 1) {
+    if (properties.size() == 1) {
       Stream<IntFunction<Object>> values = Stream.of(i -> obj.values()[i]);
       JsonNode array =
           JsonBuilder.createArray(FORMAT, arr -> addArrayElements(arr, properties, values));
-      JsonValue value = JsonMixed.of(array).getObject(0).get(properties.get(0).path().toString());
+      JsonValue value = JsonMixed.of(array).getObject(0).get(properties.get(0).path());
       try (Appender json = Appender.ofUTF8(out)) {
         json.appendEncoded(value.toJson());
       }
@@ -112,7 +111,6 @@ public final class GistOutput {
                   p.addString("prevPage", pager.prevPage());
                   p.addString("nextPage", pager.nextPage());
                 });
-          obj.addBoolean("gist", true);
           obj.addArray(list.collectionName(), addObjectListElements(list, values));
         });
   }
@@ -122,14 +120,14 @@ public final class GistOutput {
       GistObjectList.Output list, Stream<IntFunction<Object>> values) {
     List<ObjectOutput.Property> properties = list.properties();
     return arr -> {
-      if (list.unwrap() && properties.size() == 1) {
+      if (properties.size() == 1) {
         // list each only as the property itself
         // to do that, first list objects but to written to a string
         // then iterate the values from the array
-        PropertyPath path = properties.get(0).path();
+        String path = properties.get(0).path();
         JsonNode array =
             JsonBuilder.createArray(temp -> addArrayElements(temp, properties, values));
-        array.elements().forEach(e -> arr.addElement(e.get(path.toString())));
+        array.elements().forEach(e -> arr.addElement(e.get(path)));
       } else {
         // list each as an object with the given properties
         addArrayElements(arr, properties, values);
