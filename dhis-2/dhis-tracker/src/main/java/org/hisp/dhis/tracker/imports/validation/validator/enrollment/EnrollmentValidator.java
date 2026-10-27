@@ -46,7 +46,7 @@ public class EnrollmentValidator implements Validator<TrackerBundle> {
   private final Validator<TrackerBundle> validator;
 
   public EnrollmentValidator(
-      SecurityEnrollmentValidator securityEnrollmentValidator,
+      SecurityOwnershipValidator securityOwnershipValidator,
       AttributeValidator attributeValidator,
       CategoryOptValidator categoryOptValidator) {
     validator =
