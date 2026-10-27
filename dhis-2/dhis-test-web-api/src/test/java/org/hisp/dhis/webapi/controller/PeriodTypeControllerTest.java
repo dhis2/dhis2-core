@@ -29,21 +29,27 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
+import static org.hisp.dhis.http.HttpStatus.NO_CONTENT;
 import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.jsontree.Text;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonPeriodType;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,10 +59,20 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen
  */
 @Transactional
-class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
+class PeriodTypeControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @BeforeEach
+  void setUp() {
+    assertStatus(CREATED, POST("/locales/dbLocales?language=de"));
+  }
+
+  @AfterEach
+  void tearDown() {
+    assertStatus(NO_CONTENT, DELETE("/locales/dbLocales?language=de"));
+  }
 
   @Test
-  void testPeriodTypeDefaults() {
+  void testGetPeriodTypes() {
     JsonObject object = GET("/periodTypes").content(HttpStatus.OK).as(JsonObject.class);
     JsonList<JsonPeriodType> periodTypes = object.getList("periodTypes", JsonPeriodType.class);
     assertTrue(periodTypes.exists());
@@ -66,6 +82,42 @@ class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
     assertNotNull(periodType.getIsoDuration());
     assertNotNull(periodType.getIsoFormat());
     assertNotNull(periodType.getFrequencyOrder());
+    assertNotNull(periodType.getDefaultName());
+    assertNotNull(periodType.getDisplayName());
+  }
+
+  @Test
+  void testGetPeriodTypes_RelativePeriods() {
+    JsonPeriodType daily = GET("/periodTypes/Daily").content().as(JsonPeriodType.class);
+    JsonMap<JsonObject> relativePeriods = daily.getRelativePeriods();
+    assertEquals(9, relativePeriods.size());
+    assertEquals("Today", relativePeriods.get("TODAY").getString("displayName").string());
+  }
+
+  @Test
+  void testGetPeriodTypes_RelativePeriodsOrder() {
+    JsonPeriodType weekly = GET("/periodTypes/Weekly").content().as(JsonPeriodType.class);
+    assertEquals(
+        List.of(
+            "THIS_WEEK",
+            "LAST_WEEK",
+            "LAST_4_WEEKS",
+            "LAST_12_WEEKS",
+            "LAST_52_WEEKS",
+            "WEEKS_THIS_YEAR"),
+        weekly.getRelativePeriods().keys().map(Text::toString).toList());
+
+    JsonPeriodType monthly = GET("/periodTypes/Monthly").content().as(JsonPeriodType.class);
+    assertEquals(
+        List.of(
+            "THIS_MONTH",
+            "LAST_MONTH",
+            "LAST_3_MONTHS",
+            "LAST_6_MONTHS",
+            "LAST_12_MONTHS",
+            "MONTHS_THIS_YEAR",
+            "MONTHS_LAST_YEAR"),
+        monthly.getRelativePeriods().keys().map(Text::toString).toList());
   }
 
   @Test
@@ -85,18 +137,13 @@ class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testPut() {
+  void testPutLabel_Body() {
     // Given
     String body =
         """
           {
             "name": "Daily",
-            "displayName": "Daily",
-            "isoDuration": "P1D",
-            "isoFormat": "yyyyMMdd",
-            "frequencyOrder": 1,
-            "label": "Daily-test",
-            "displayLabel": "Daily"
+            "label": "Daily-test"
           }
         """;
 
@@ -104,25 +151,42 @@ class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(OK, PUT("/periodTypes/", body));
 
     // Then
-    JsonObject response = GET("/periodTypes").content();
+    JsonPeriodType daily = GET("/periodTypes/Daily").content().as(JsonPeriodType.class);
 
-    assertThat(response.get("periodTypes").toString(), containsString("Daily-test"));
-    assertThat(response.get("periodTypes").toString(), containsString("Daily"));
+    assertEquals("Daily-test", daily.getLabel());
+    assertEquals("Daily-test", daily.getDisplayName());
   }
 
   @Test
-  void testPutError() {
+  void testPutLabel_URL() {
+    assertStatus(OK, PUT("/periodTypes/Daily?locale=de&value=Täglich"));
+
+    JsonPeriodType daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
+    assertEquals("Täglich", daily.getDisplayName());
+    assertEquals("Täglich", daily.getTranslations().translationValue(Locale.of("de")));
+
+    // update it
+    assertStatus(OK, PUT("/periodTypes/Daily?locale=de&value=Tagtäglich"));
+
+    daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
+    assertEquals("Tagtäglich", daily.getDisplayName());
+    assertEquals("Tagtäglich", daily.getTranslations().translationValue(Locale.of("de")));
+
+    // and erase it
+    assertStatus(OK, PUT("/periodTypes/Daily?locale=de&value="));
+    daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
+    assertEquals("Daily", daily.getDisplayName());
+    assertNull(daily.getTranslations().translationValue(Locale.of("de")));
+  }
+
+  @Test
+  void testPutLabel_BodyError() {
     // Given
     String body =
         """
           {
             "name": "DailyInvalid",
-            "displayName": "Daily",
-            "isoDuration": "P1D",
-            "isoFormat": "yyyyMMdd",
-            "frequencyOrder": 1,
-            "label": "Daily-test",
-            "displayLabel": "Daily"
+            "label": "Daily-test"
           }
         """;
 

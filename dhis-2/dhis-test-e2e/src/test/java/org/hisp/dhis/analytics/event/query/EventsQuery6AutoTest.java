@@ -4467,4 +4467,307 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 3, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 3, "programstatus", "ACTIVE");
   }
+
+  @Test
+  public void stageEventStatusWithoutItems() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("asc=eventdate,lastupdated")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=A03MvHHogjR.EVENT_STATUS,ou:KIUCimTXf8Q,pe:202201");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        19,
+        24,
+        20); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"202201\":{\"name\":\"January 2022\"},\"A03MvHHogjR.eventstatus\":{\"name\":\"Event status\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"KIUCimTXf8Q\":{\"name\":\"Nongowa\"}},\"dimensions\":{\"A03MvHHogjR.eventstatus\":[],\"pe\":[],\"ou\":[\"KIUCimTXf8Q\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "psi", "Event", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "ps", "Program stage", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "eventdate",
+        "Event date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "createdbydisplayname",
+        "Created by",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "lastupdatedbydisplayname",
+        "Last updated by",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "created",
+        "Created on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "completed",
+        "Completed on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "scheduleddate",
+        "Scheduled date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentdate",
+        "Date of enrollment",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "incidentdate",
+        "Date of birth",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "tei", "Tracked entity", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pi", "Program instance", "TEXT", "java.lang.String", false, true);
+    if (expectPostgis) {
+      validateHeaderPropertiesByName(
+          response, actualHeaders, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "enrollmentgeometry",
+          "Enrollment geometry",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "longitude",
+          "Longitude",
+          "NUMBER",
+          "java.lang.Double",
+          false,
+          true);
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "latitude",
+          "Latitude",
+          "NUMBER",
+          "java.lang.Double",
+          false,
+          true);
+    }
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ounamehierarchy",
+        "Organisation unit name hierarchy",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "oucode",
+        "Organisation unit code",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "programstatus",
+        "Program status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "eventstatus",
+        "Event status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "A03MvHHogjR.eventstatus",
+        "Event status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row values by name at specific indices (sorted results).
+    // Validate selected values for row index 0
+    validateRowValueByName(response, actualHeaders, 0, "psi", "uSAoLDBDNmv");
+    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.eventstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2023-01-01 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 0, "incidentdate", "2023-01-01 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 0, "tei", "RFZviLYC3pV");
+    validateRowValueByName(response, actualHeaders, 0, "pi", "GQqLz6K5zIq");
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Potehun MCHP");
+    validateRowValueByName(response, actualHeaders, 0, "programstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 0, "ou", "zY9ds4oNZxw");
+
+    // Validate selected values for row index 4
+    validateRowValueByName(response, actualHeaders, 4, "psi", "Z3MwLtF8KYL");
+    validateRowValueByName(response, actualHeaders, 4, "A03MvHHogjR.eventstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 4, "enrollmentdate", "2023-01-02 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 4, "incidentdate", "2023-01-02 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 4, "tei", "G5iKSeWWUND");
+    validateRowValueByName(response, actualHeaders, 4, "pi", "bq2TPopHO17");
+    validateRowValueByName(response, actualHeaders, 4, "ouname", "Gbo-Lambayama 2 MCHP");
+    validateRowValueByName(response, actualHeaders, 4, "programstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 4, "ou", "TYq1YW7qs7k");
+
+    // Validate selected values for row index 8
+    validateRowValueByName(response, actualHeaders, 8, "psi", "Xy7qztgy2Nl");
+    validateRowValueByName(response, actualHeaders, 8, "A03MvHHogjR.eventstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 8, "enrollmentdate", "2023-01-14 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 8, "incidentdate", "2023-01-14 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 8, "tei", "u65h6gXRb5w");
+    validateRowValueByName(response, actualHeaders, 8, "pi", "qM5Drjm1jXN");
+    validateRowValueByName(response, actualHeaders, 8, "ouname", "Konabu MCHP");
+    validateRowValueByName(response, actualHeaders, 8, "programstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 8, "ou", "mhJQYk2Jwym");
+
+    // Validate selected values for row index 12
+    validateRowValueByName(response, actualHeaders, 12, "psi", "YiJcGQZC1nc");
+    validateRowValueByName(response, actualHeaders, 12, "A03MvHHogjR.eventstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 12, "enrollmentdate", "2023-01-18 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 12, "incidentdate", "2023-01-18 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 12, "tei", "UQROZPDv02G");
+    validateRowValueByName(response, actualHeaders, 12, "pi", "JecVPe0cwK5");
+    validateRowValueByName(response, actualHeaders, 12, "ouname", "Kpayama 2 MCHP");
+    validateRowValueByName(response, actualHeaders, 12, "programstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 12, "ou", "geVF87N7qTw");
+
+    // Validate selected values for row index 16
+    validateRowValueByName(response, actualHeaders, 16, "psi", "SxruoFq468Y");
+    validateRowValueByName(response, actualHeaders, 16, "A03MvHHogjR.eventstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 16, "enrollmentdate", "2023-01-24 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 16, "incidentdate", "2023-01-24 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 16, "tei", "gqADXERTcex");
+    validateRowValueByName(response, actualHeaders, 16, "pi", "KMB9XKEJ3Ds");
+    validateRowValueByName(response, actualHeaders, 16, "ouname", "Gbo-Kakajama 2 MCHP");
+    validateRowValueByName(response, actualHeaders, 16, "programstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 16, "ou", "l0WRLZlEgB1");
+
+    // Validate selected values for row index 18
+    validateRowValueByName(response, actualHeaders, 18, "psi", "JR3W8AD1dYC");
+    validateRowValueByName(response, actualHeaders, 18, "A03MvHHogjR.eventstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 18, "enrollmentdate", "2023-01-30 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 18, "incidentdate", "2023-01-30 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 18, "tei", "yecgKjG4wkI");
+    validateRowValueByName(response, actualHeaders, 18, "pi", "UEKKWQYDaGw");
+    validateRowValueByName(response, actualHeaders, 18, "ouname", "Tokpombu MCHP");
+    validateRowValueByName(response, actualHeaders, 18, "programstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 18, "ou", "IFXdzAk7hKi");
+  }
 }
