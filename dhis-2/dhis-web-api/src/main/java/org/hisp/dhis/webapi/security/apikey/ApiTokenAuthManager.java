@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.webapi.security.apikey;
 
+import java.util.Objects;
 import java.util.Optional;
+import javax.annotation.CheckForNull;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.security.apikey.ApiToken;
@@ -38,6 +40,7 @@ import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsChangeTracker;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.annotation.Lazy;
@@ -51,18 +54,33 @@ import org.springframework.stereotype.Service;
  * Processes API token authentication requests, looks for the 'Authorization' header containing an
  * API token. If the token is found, the request will be authenticated only if the token is not
  * expired and the request constraint rules are matching.
+ *
+ * <p>Authenticated tokens are cached together with the {@link UserDetails} of their owner. A cached
+ * token is authenticated again when its owner changed since, see {@link UserDetailsChangeTracker}.
  */
 @Service
 public class ApiTokenAuthManager implements AuthenticationManager {
   private final ApiTokenService apiTokenService;
   private final UserService userService;
+  private final UserDetailsChangeTracker userDetailsChangeTracker;
 
-  private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
+  private final Cache<CachedToken> apiTokenCache;
+
+  /**
+   * An authenticated token and the change token of its owner at the time the owner's {@link
+   * UserDetails} were created.
+   */
+  private record CachedToken(
+      ApiTokenAuthenticationToken authentication, @CheckForNull String ownerChangeToken) {}
 
   public ApiTokenAuthManager(
-      ApiTokenService apiTokenService, CacheProvider cacheProvider, @Lazy UserService userService) {
+      ApiTokenService apiTokenService,
+      CacheProvider cacheProvider,
+      @Lazy UserService userService,
+      UserDetailsChangeTracker userDetailsChangeTracker) {
     this.userService = userService;
     this.apiTokenService = apiTokenService;
+    this.userDetailsChangeTracker = userDetailsChangeTracker;
     this.apiTokenCache = cacheProvider.createApiKeyCache();
   }
 
@@ -75,37 +93,47 @@ public class ApiTokenAuthManager implements AuthenticationManager {
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
     final String tokenKey = ((ApiTokenAuthenticationToken) authentication).getTokenKey();
 
-    final Optional<ApiTokenAuthenticationToken> cachedToken = apiTokenCache.getIfPresent(tokenKey);
+    final Optional<CachedToken> cachedToken = apiTokenCache.getIfPresent(tokenKey);
 
-    if (cachedToken.isPresent()) {
-      validateTokenExpiry(cachedToken.get().getToken().getExpire());
-      return cachedToken.get();
-    } else {
-      ApiToken apiToken = apiTokenService.getByKey(tokenKey);
-      if (apiToken == null) {
-        throw new ApiTokenAuthenticationException(
-            ApiTokenErrors.invalidToken("The API token does not exists"));
-      }
-
-      validateTokenExpiry(apiToken.getExpire());
-
-      UserDetails currentUserDetails = validateAndCreateUserDetails(apiToken.getCreatedBy());
-
-      ApiTokenAuthenticationToken authenticationToken =
-          new ApiTokenAuthenticationToken(apiToken, currentUserDetails);
-
-      apiTokenCache.put(tokenKey, authenticationToken);
-
-      return authenticationToken;
+    if (cachedToken.isPresent() && isOwnerUnchanged(cachedToken.get())) {
+      ApiTokenAuthenticationToken cachedAuthentication = cachedToken.get().authentication();
+      validateTokenExpiry(cachedAuthentication.getToken().getExpire());
+      return cachedAuthentication;
     }
-  }
 
-  private UserDetails validateAndCreateUserDetails(User createdBy) {
-    if (createdBy == null) {
+    ApiToken apiToken = apiTokenService.getByKey(tokenKey);
+    if (apiToken == null) {
+      throw new ApiTokenAuthenticationException(
+          ApiTokenErrors.invalidToken("The API token does not exists"));
+    }
+
+    validateTokenExpiry(apiToken.getExpire());
+
+    User owner = apiToken.getCreatedBy();
+    if (owner == null) {
       throw new ApiTokenAuthenticationException(
           ApiTokenErrors.invalidToken("The API token does not have any owner."));
     }
 
+    // read before the user details are created, see UserDetailsChangeTracker
+    String ownerChangeToken = userDetailsChangeTracker.getChangeToken(owner.getUsername());
+    UserDetails currentUserDetails = validateAndCreateUserDetails(owner);
+
+    ApiTokenAuthenticationToken authenticationToken =
+        new ApiTokenAuthenticationToken(apiToken, currentUserDetails);
+
+    apiTokenCache.put(tokenKey, new CachedToken(authenticationToken, ownerChangeToken));
+
+    return authenticationToken;
+  }
+
+  private boolean isOwnerUnchanged(CachedToken cachedToken) {
+    String owner = cachedToken.authentication().getPrincipal().getUsername();
+    return Objects.equals(
+        cachedToken.ownerChangeToken(), userDetailsChangeTracker.getChangeToken(owner));
+  }
+
+  private UserDetails validateAndCreateUserDetails(User createdBy) {
     // User lookup and UserDetails creation must happen within a single transaction, so that lazy
     // collections (e.g. User.userRoles) are accessible. This code can run on endpoints excluded
     // from open-session-in-view, where no Hibernate session is otherwise available.

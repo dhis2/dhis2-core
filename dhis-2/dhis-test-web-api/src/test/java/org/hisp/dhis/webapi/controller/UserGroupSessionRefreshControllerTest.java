@@ -32,13 +32,16 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpStatus.CREATED;
 import static org.hisp.dhis.http.HttpStatus.OK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsChangeTracker;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,25 +53,27 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.session.SessionRegistry;
 
 /**
- * Verifies that the sessions of users who join or leave a user group, or whose group is deleted,
- * are invalidated after the change has committed, whichever API changed the membership, and that
- * the sessions of members whose membership did not change are left alone.
+ * Verifies that users who join or leave a user group, or whose group is deleted, are marked as
+ * changed after commit, whichever API changed the membership, so their sessions refresh their
+ * principal instead of being logged out. Members whose membership did not change are left alone.
  *
- * <p>The class is not {@code @Transactional}, so every request commits on its own. The invalidation
- * runs on a single-threaded executor after the commit; draining that executor before asserting
- * makes the assertions deterministic, also the ones that expect a session to survive.
+ * <p>The class is not {@code @Transactional}, so every request commits on its own. The marking runs
+ * on a single-threaded executor after the commit; draining that executor before asserting makes the
+ * assertions deterministic, also the ones that expect no change.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class UserGroupSessionInvalidationControllerTest extends H2ControllerIntegrationTestBase {
+class UserGroupSessionRefreshControllerTest extends H2ControllerIntegrationTestBase {
 
   private static final String SESSION_ID = "memberSession";
 
   @Autowired private SessionRegistry sessionRegistry;
 
+  @Autowired private UserDetailsChangeTracker userDetailsChangeTracker;
+
   @Autowired
-  @Qualifier("userSessionInvalidationTaskExecutor")
-  private ThreadPoolTaskExecutor sessionInvalidationExecutor;
+  @Qualifier("userDetailsChangeTaskExecutor")
+  private ThreadPoolTaskExecutor userDetailsChangeExecutor;
 
   private User member;
 
@@ -81,10 +86,11 @@ class UserGroupSessionInvalidationControllerTest extends H2ControllerIntegration
     member = createUserWithAuth("member");
     memberPrincipal = userService.createUserDetails(member);
     groupId = assertStatus(CREATED, POST("/userGroups", "{'name':'Group'}"));
+    sessionRegistry.registerNewSession(SESSION_ID, memberPrincipal);
   }
 
   @AfterEach
-  void removeMemberSession() {
+  void tearDown() {
     sessionRegistry.removeSessionInformation(SESSION_ID);
   }
 
@@ -97,25 +103,25 @@ class UserGroupSessionInvalidationControllerTest extends H2ControllerIntegration
         "POST | /users/{user}/userGroups/{group} | ",
         "PUT | /userGroups/{group} | {'name':'Group','users':[{'id':'{user}'}]}"
       })
-  void joiningUserGroupInvalidatesSession(String method, String path, String body) {
-    registerMemberSession();
+  void joiningUserGroupMarksMemberAsChanged(String method, String path, String body) {
+    String tokenBefore = changeToken();
 
     request(method, path, body).content(OK);
-    awaitSessionInvalidation();
+    awaitUserDetailsChanges();
 
-    assertMemberSessionInvalidated();
+    assertMarkedAsChangedWithSessionKept(tokenBefore);
   }
 
   @Test
-  void creatingUserGroupWithMemberInvalidatesSession() {
-    registerMemberSession();
+  void creatingUserGroupWithMemberMarksMemberAsChanged() {
+    String tokenBefore = changeToken();
 
     assertStatus(
         CREATED,
         POST("/userGroups", "{'name':'Other','users':[{'id':'" + member.getUid() + "'}]}"));
-    awaitSessionInvalidation();
+    awaitUserDetailsChanges();
 
-    assertMemberSessionInvalidated();
+    assertMarkedAsChangedWithSessionKept(tokenBefore);
   }
 
   @ParameterizedTest
@@ -126,26 +132,26 @@ class UserGroupSessionInvalidationControllerTest extends H2ControllerIntegration
         "DELETE | /userGroups/{group}/users/{user} | ",
         "PUT | /userGroups/{group} | {'name':'Group','users':[]}"
       })
-  void leavingUserGroupInvalidatesSession(String method, String path, String body) {
+  void leavingUserGroupMarksMemberAsChanged(String method, String path, String body) {
     joinGroup();
-    registerMemberSession();
+    String tokenBefore = changeToken();
 
     request(method, path, body).content(OK);
-    awaitSessionInvalidation();
+    awaitUserDetailsChanges();
 
-    assertMemberSessionInvalidated();
+    assertMarkedAsChangedWithSessionKept(tokenBefore);
   }
 
   @Test
-  void updatingUserGroupWithUnchangedMembersKeepsSession() {
+  void updatingUserGroupWithUnchangedMembersDoesNotMarkMember() {
     joinGroup();
-    registerMemberSession();
+    String tokenBefore = changeToken();
 
     PUT("/userGroups/" + groupId, "{'name':'Renamed','users':[{'id':'" + member.getUid() + "'}]}")
         .content(OK);
-    awaitSessionInvalidation();
+    awaitUserDetailsChanges();
 
-    assertFalse(sessionRegistry.getAllSessions(memberPrincipal, false).isEmpty());
+    assertEquals(tokenBefore, changeToken());
   }
 
   /**
@@ -154,38 +160,39 @@ class UserGroupSessionInvalidationControllerTest extends H2ControllerIntegration
    * JSONB.
    */
   @Test
-  void deletingUserGroupInvalidatesSessionsOfItsMembers() {
+  void deletingUserGroupMarksMembersAsChanged() {
     joinGroup();
-    registerMemberSession();
+    String tokenBefore = changeToken();
 
     POST("/metadata?importStrategy=DELETE", "{'userGroups':[{'id':'" + groupId + "'}]}")
         .content(OK);
-    awaitSessionInvalidation();
+    awaitUserDetailsChanges();
 
-    assertMemberSessionInvalidated();
+    assertMarkedAsChangedWithSessionKept(tokenBefore);
   }
 
   private void joinGroup() {
     POST("/userGroups/" + groupId + "/users/" + member.getUid()).content(OK);
-    // the join itself invalidates sessions, so let that finish before registering a session
-    awaitSessionInvalidation();
+    awaitUserDetailsChanges();
   }
 
-  private void registerMemberSession() {
-    sessionRegistry.registerNewSession(SESSION_ID, memberPrincipal);
+  private String changeToken() {
+    return userDetailsChangeTracker.getChangeToken(member.getUsername());
+  }
+
+  private void assertMarkedAsChangedWithSessionKept(String tokenBefore) {
+    String tokenAfter = changeToken();
+    assertNotNull(tokenAfter);
+    assertNotEquals(tokenBefore, tokenAfter);
     assertFalse(sessionRegistry.getAllSessions(memberPrincipal, false).isEmpty());
   }
 
-  private void assertMemberSessionInvalidated() {
-    assertTrue(sessionRegistry.getAllSessions(memberPrincipal, false).isEmpty());
-  }
-
-  /** The executor is single-threaded, so once this task ran all queued invalidations have run. */
-  private void awaitSessionInvalidation() {
+  /** The executor is single-threaded, so once this task ran all queued changes have run. */
+  private void awaitUserDetailsChanges() {
     try {
-      sessionInvalidationExecutor.submit(() -> {}).get(10, TimeUnit.SECONDS);
+      userDetailsChangeExecutor.submit(() -> {}).get(10, TimeUnit.SECONDS);
     } catch (Exception ex) {
-      throw new IllegalStateException("Session invalidation did not finish", ex);
+      throw new IllegalStateException("User details changes were not processed", ex);
     }
   }
 

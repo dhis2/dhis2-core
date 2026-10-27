@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,48 @@
  */
 package org.hisp.dhis.user;
 
-import org.hisp.dhis.common.UID;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.junit.jupiter.api.Test;
 
 /**
- * Event published after the authorities of a {@link UserRole} have changed, so that active sessions
- * of users with that role can be invalidated asynchronously, outside the updating transaction and
- * off the request thread.
+ * Unit test of {@link InMemoryUserDetailsChangeTracker}.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public record UserRoleAuthoritiesChangedEvent(UID userRoleUid) {}
+class InMemoryUserDetailsChangeTrackerTest {
+
+  @Test
+  void everyChangeOfAUserGetsANewToken() {
+    UserDetailsChangeTracker tracker = trackerWithSessionTimeout(3600);
+
+    tracker.markChanged(List.of("alice"));
+    String first = tracker.getChangeToken("alice");
+    tracker.markChanged(List.of("alice"));
+
+    assertNotNull(first);
+    assertNotEquals(first, tracker.getChangeToken("alice"));
+  }
+
+  @Test
+  void changesAreForgottenAfterTheSessionTimeout() {
+    UserDetailsChangeTracker tracker = trackerWithSessionTimeout(0);
+
+    tracker.markChanged(List.of("alice"));
+
+    assertNull(tracker.getChangeToken("alice"));
+  }
+
+  private static UserDetailsChangeTracker trackerWithSessionTimeout(int seconds) {
+    DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
+    when(config.getIntProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT)).thenReturn(seconds);
+    return new InMemoryUserDetailsChangeTracker(config);
+  }
+}

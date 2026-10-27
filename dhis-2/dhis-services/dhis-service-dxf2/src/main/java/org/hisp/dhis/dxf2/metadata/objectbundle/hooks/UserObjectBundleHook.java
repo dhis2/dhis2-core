@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -56,6 +57,7 @@ import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetailsChangeCollector;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingsService;
@@ -68,7 +70,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   public static final String USERNAME = "username";
-  public static final String INVALIDATE_SESSIONS_KEY = "shouldInvalidateUserSessions";
+  public static final String USER_DETAILS_CHANGED_KEY = "userDetailsChanged";
   public static final String PRE_UPDATE_USER_KEY = "preUpdateUser";
 
   private final UserService userService;
@@ -80,6 +82,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   private final UserSettingsService userSettingsService;
 
   private final DhisConfigurationProvider dhisConfig;
+
+  private final UserDetailsChangeCollector userDetailsChangeCollector;
 
   @Override
   public void validate(User user, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
@@ -180,7 +184,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     if (user == null) return;
 
     bundle.putExtras(user, PRE_UPDATE_USER_KEY, user);
-    bundle.putExtras(persisted, INVALIDATE_SESSIONS_KEY, userRolesUpdated(user, persisted));
+    bundle.putExtras(persisted, USER_DETAILS_CHANGED_KEY, userDetailsChanged(user, persisted));
 
     if (persisted.getAvatar() != null
         && (user.getAvatar() == null
@@ -197,20 +201,26 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     }
   }
 
-  private Boolean userRolesUpdated(User preUpdateUser, User persistedUser) {
-    Set<String> before =
-        preUpdateUser.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
-    Set<String> after =
-        persistedUser.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
+  /** Whether the update changes data held by the {@code UserDetails} of the user. */
+  private Boolean userDetailsChanged(User preUpdateUser, User persistedUser) {
+    return !uids(preUpdateUser.getUserRoles()).equals(uids(persistedUser.getUserRoles()))
+        || !uids(preUpdateUser.getOrganisationUnits())
+            .equals(uids(persistedUser.getOrganisationUnits()))
+        || !uids(preUpdateUser.getDataViewOrganisationUnits())
+            .equals(uids(persistedUser.getDataViewOrganisationUnits()))
+        || !uids(preUpdateUser.getTeiSearchOrganisationUnits())
+            .equals(uids(persistedUser.getTeiSearchOrganisationUnits()));
+  }
 
-    return !Objects.equals(before, after);
+  private static Set<String> uids(Collection<? extends IdentifiableObject> objects) {
+    return objects.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet());
   }
 
   @Override
   public void postUpdate(User persistedUser, ObjectBundle bundle) {
     final User preUpdateUser = (User) bundle.getExtras(persistedUser, PRE_UPDATE_USER_KEY);
-    final Boolean invalidateSessions =
-        (Boolean) bundle.getExtras(persistedUser, INVALIDATE_SESSIONS_KEY);
+    final Boolean userDetailsChanged =
+        (Boolean) bundle.getExtras(persistedUser, USER_DETAILS_CHANGED_KEY);
 
     if (!StringUtils.isEmpty(preUpdateUser.getPassword())) {
       userService.encodeAndSetPassword(persistedUser, preUpdateUser.getPassword());
@@ -222,12 +232,13 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
     updateUserSettings(persistedUser);
 
-    if (Boolean.TRUE.equals(invalidateSessions)) {
-      userService.invalidateUserSessions(persistedUser.getUsername());
+    if (Boolean.TRUE.equals(userDetailsChanged)) {
+      // Sessions of the user refresh their principal once the import has committed
+      userDetailsChangeCollector.usersChanged(Set.of(persistedUser.getId()));
     }
 
     bundle.removeExtras(persistedUser, PRE_UPDATE_USER_KEY);
-    bundle.removeExtras(persistedUser, INVALIDATE_SESSIONS_KEY);
+    bundle.removeExtras(persistedUser, USER_DETAILS_CHANGED_KEY);
   }
 
   @Override

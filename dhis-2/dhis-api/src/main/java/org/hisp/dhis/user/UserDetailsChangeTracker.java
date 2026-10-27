@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,43 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.Set;
+import java.util.Collection;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
- * Event published after a transaction that changed the user group memberships of users has
- * committed, so that their active sessions can be invalidated asynchronously, off the request
- * thread. The session principal holds the user group ids as they were at authentication, so without
- * this the sharing checks of an active session keep using the old memberships.
+ * Keeps track of the users whose {@link UserDetails} changed, so that sessions holding an older
+ * snapshot of their principal refresh it on their next request instead of being logged out.
  *
- * @param userIds the primary keys of the users that joined or left a user group
+ * <p>Every change is recorded as a new random token per user. A session remembers the token of the
+ * last change it has applied and refreshes its principal when the current token differs. Tokens are
+ * kept for the session timeout: a session that is still alive makes a request within that time
+ * after the change, so it always sees the token.
+ *
+ * <p>Changes must be recorded after the transaction that made them has committed. A refresh started
+ * after reading a token then always sees the changed data.
+ *
+ * <p>Two implementations exist, one per session backend: an in-memory map when sessions are kept in
+ * memory, and Redis when sessions are kept in Redis, so that all nodes of a cluster see the change.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public record UserGroupMembershipChangedEvent(@Nonnull Set<Long> userIds) {}
+public interface UserDetailsChangeTracker {
+
+  /**
+   * Records that the {@link UserDetails} of the given users changed.
+   *
+   * @param usernames the usernames of the users
+   */
+  void markChanged(@Nonnull Collection<String> usernames);
+
+  /**
+   * Returns the token of the latest change of the user, or null if the user did not change within
+   * the session timeout.
+   *
+   * @param username the username of the user
+   * @return the change token, or null
+   */
+  @CheckForNull
+  String getChangeToken(@Nonnull String username);
+}
