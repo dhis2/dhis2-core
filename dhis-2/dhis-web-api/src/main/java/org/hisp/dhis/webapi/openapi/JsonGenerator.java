@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -137,7 +138,15 @@ public class JsonGenerator {
   private final Format format;
   private final Language language;
 
-  private String indent = "";
+  /** Current object nesting depth (number of enclosing object levels). */
+  private int level = 0;
+
+  /**
+   * Lazy cache of indent strings, indexed by depth. {@code indentCache[n]} is {@code
+   * format.itemIndent.repeat(n)} once computed. Grows on demand.
+   */
+  private String[] indentCache;
+
   private boolean arrayItemLast = false;
   private boolean atLineStart = true;
   private boolean firstItemAtLevel = true;
@@ -168,10 +177,9 @@ public class JsonGenerator {
     if (format.isNewLineAfterObjectStart()) appendNewline();
     boolean outerFirst = firstItemAtLevel;
     firstItemAtLevel = true;
-    if (format.isNewLineBeforeItem()) indent += format.getItemIndent();
+    if (format.isNewLineBeforeItem()) level++;
     appendItems(addMembers);
-    if (format.isNewLineBeforeItem())
-      indent = indent.substring(0, indent.length() - format.getItemIndent().length());
+    if (format.isNewLineBeforeItem()) level--;
     boolean innerEmpty = firstItemAtLevel;
     firstItemAtLevel = outerFirst;
     if (innerEmpty) write(language.objectEmpty);
@@ -207,7 +215,9 @@ public class JsonGenerator {
     if (format.isNewLineAfterArrayStart()) appendNewline();
     boolean outerFirst = firstItemAtLevel;
     firstItemAtLevel = true;
+    if (format.isNewLineBeforeItem()) level++;
     appendItems(addElements);
+    if (format.isNewLineBeforeItem()) level--;
     boolean innerEmpty = firstItemAtLevel;
     firstItemAtLevel = outerFirst;
     if (innerEmpty) write(language.arrayEmpty);
@@ -322,7 +332,7 @@ public class JsonGenerator {
       write("null");
       return;
     }
-    language.appendEscapedBlock.escape(out, str, indent + format.getItemIndent());
+    language.appendEscapedBlock.escape(out, str, indentAt(level + 1));
     atLineStart = false;
     nothingWritten = false;
   }
@@ -345,7 +355,7 @@ public class JsonGenerator {
   private void appendMemberIndent() {
     if (!arrayItemLast && format.isNewLineBeforeItem()) {
       appendNewline();
-      out.appendAscii(indent);
+      out.appendAscii(indentAt(level));
       atLineStart = false;
       nothingWritten = false;
     }
@@ -353,6 +363,27 @@ public class JsonGenerator {
 
   private void finishItem() {
     arrayItemLast = false;
+  }
+
+  /**
+   * Returns the indent string for the given depth, lazily computing and caching it. For depths
+   * beyond the current cache capacity the cache array is grown. When {@code itemIndent} is empty
+   * (e.g. {@link Format#SMALL}) this short-circuits to {@code ""} without touching the cache.
+   */
+  private String indentAt(int level) {
+    String itemIndent = format.getItemIndent();
+    if (itemIndent.isEmpty() || level <= 0) return "";
+    if (indentCache == null) {
+      indentCache = new String[8];
+    } else if (level >= indentCache.length) {
+      indentCache = Arrays.copyOf(indentCache, Math.max(level + 1, indentCache.length * 2));
+    }
+    String cached = indentCache[level];
+    if (cached == null) {
+      cached = itemIndent.repeat(level);
+      indentCache[level] = cached;
+    }
+    return cached;
   }
 
   /*

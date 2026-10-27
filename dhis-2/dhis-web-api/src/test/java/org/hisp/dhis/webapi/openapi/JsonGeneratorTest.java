@@ -655,6 +655,44 @@ class JsonGeneratorTest {
     assertTrue(yaml.contains("just one line"), yaml);
   }
 
+  @Test
+  void testPretty_ArrayElementsIndentedOneLevelDeeper_JSON() {
+    // Regression: array elements were rendered at the parent object's indent level
+    // instead of one level deeper, producing:
+    //   {
+    //     "arr": [
+    //     1,
+    //     2
+    //     ]
+    //   }
+    // instead of the conventional layout.
+    String json =
+        generate(
+            PRETTY_PRINT,
+            JSON,
+            g -> {
+              g.addNumberMember("a", 1);
+              g.addArrayMember(
+                  "arr",
+                  () -> {
+                    g.addNumberMember(null, 1);
+                    g.addNumberMember(null, 2);
+                  });
+            });
+    int arrIndent = -1, firstElementIndent = -1, closingBracketIndent = -1;
+    for (String line : json.split("\n")) {
+      String trimmed = line.stripLeading();
+      if (trimmed.startsWith("\"arr\":")) arrIndent = leadingSpaces(line);
+      if (trimmed.equals("1,") || trimmed.equals("1")) firstElementIndent = leadingSpaces(line);
+      if (trimmed.equals("]")) closingBracketIndent = leadingSpaces(line);
+    }
+    assertTrue(arrIndent >= 0, json);
+    assertTrue(
+        firstElementIndent > arrIndent,
+        "array element must be indented deeper than the key: " + json);
+    assertEquals(arrIndent, closingBracketIndent, "closing ] must match the key indent: " + json);
+  }
+
   /*
    * Helper — mirrors OpenApiGenerator.generate, including the adjustFormat step
    */
