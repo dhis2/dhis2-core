@@ -38,8 +38,8 @@ import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -53,6 +53,8 @@ import org.hisp.dhis.cache.SoftCache;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.openapi.JsonGenerator.Format;
 import org.hisp.dhis.webapi.openapi.JsonGenerator.Language;
@@ -79,7 +81,7 @@ public class OpenApiController {
   private final ApplicationContext context;
 
   private static final SoftCache<Api> API_CACHE = new SoftCache<>();
-  private static final SoftCache<String> JSON_CACHE = new SoftCache<>();
+  private static final SoftCache<byte[]> JSON_CACHE = new SoftCache<>();
   private static final SoftCache<byte[]> HTML_CACHE = new SoftCache<>();
 
   /**
@@ -159,7 +161,7 @@ public class OpenApiController {
     if (notModified(request, response, generation)) return;
 
     OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path:/api/" + path));
-    getYamlWriter(response).write(generateCached(Language.YAML, scope, generation));
+    write(response, APPLICATION_X_YAML, generateCached(Language.YAML, scope, generation));
   }
 
   @OpenApi.Response(String.class)
@@ -173,7 +175,7 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    getYamlWriter(response).write(generateCached(Language.YAML, scoping, generation));
+    write(response, APPLICATION_X_YAML, generateCached(Language.YAML, scoping, generation));
   }
 
   /*
@@ -190,7 +192,7 @@ public class OpenApiController {
     if (notModified(request, response, generation)) return;
 
     OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path:/api/" + path));
-    getJsonWriter(response).write(generateCached(Language.JSON, scope, generation));
+    write(response, APPLICATION_JSON_VALUE, generateCached(Language.JSON, scope, generation));
   }
 
   @OpenApi.Response(JsonObject.class)
@@ -204,11 +206,11 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    getJsonWriter(response).write(generateCached(Language.JSON, scoping, generation));
+    write(response, APPLICATION_JSON_VALUE, generateCached(Language.JSON, scoping, generation));
   }
 
-  private static void writeHtml(HttpServletResponse response, byte[] bytes) {
-    response.setContentType(TEXT_HTML_VALUE + ";charset=UTF-8");
+  private static void write(HttpServletResponse response, String contentType, byte[] bytes) {
+    response.setContentType(contentType + ";charset=UTF-8");
     response.setHeader("ETag", E_TAG);
     response.setContentLength(bytes.length);
     try {
@@ -218,22 +220,8 @@ public class OpenApiController {
     }
   }
 
-  private PrintWriter getYamlWriter(HttpServletResponse response) {
-    return getWriter(response, APPLICATION_X_YAML);
-  }
-
-  private PrintWriter getJsonWriter(HttpServletResponse response) {
-    return getWriter(response, APPLICATION_JSON_VALUE);
-  }
-
-  private PrintWriter getWriter(HttpServletResponse response, String contentType) {
-    response.setContentType(contentType);
-    response.setHeader("ETag", E_TAG);
-    try {
-      return response.getWriter();
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
-    }
+  private static void writeHtml(HttpServletResponse response, byte[] bytes) {
+    write(response, TEXT_HTML_VALUE, bytes);
   }
 
   @Nonnull
@@ -248,16 +236,19 @@ public class OpenApiController {
     return HTML_CACHE.get(
         cacheKey,
         () -> {
-          String json = generateCached(Language.JSON, scoping, generation);
+          byte[] jsonBytesUtf8 = generateCached(Language.JSON, scoping, generation);
+          JsonObject json =
+              JsonMixed.of(
+                  JsonNode.of(jsonBytesUtf8, StandardCharsets.UTF_8, null, JsonNode.Index.AUTO));
           Api partial = extractCached(scoping, generation);
           Api full = extractCached(new OpenApiScopingParams(), new OpenApiGenerationParams());
           ApiStatistics stats = new ApiStatistics(full, partial);
-          return renderHTML(json, rendering, stats);
+          return renderHTML(json.as(OpenApiObject.class), rendering, stats);
         });
   }
 
   @Nonnull
-  private String generateCached(
+  private byte[] generateCached(
       Language language, OpenApiScopingParams scoping, OpenApiGenerationParams params) {
     String cacheKey =
         params.isSkipCache() ? null : scoping.getCacheKey() + params.getDocumentCacheKey();

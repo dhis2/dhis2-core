@@ -621,11 +621,11 @@ public class OpenApiRenderer {
   Rendering...
    */
 
-  public static byte[] renderHTML(String json, OpenApiRenderingParams params, ApiStatistics stats) {
+  public static byte[] renderHTML(
+      OpenApiObject json, OpenApiRenderingParams params, ApiStatistics stats) {
     ByteArrayOutputStream out = new ByteArrayOutputStream(16 * 1024);
     try (Appender appender = Appender.ofUTF8(out)) {
-      OpenApiRenderer renderer =
-          new OpenApiRenderer(JsonValue.of(json).as(OpenApiObject.class), params, stats, appender);
+      OpenApiRenderer renderer = new OpenApiRenderer(json, params, stats, appender);
       renderer.renderDocument();
     }
     return out.toByteArray();

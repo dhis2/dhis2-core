@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,50 +29,49 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-import com.fasterxml.jackson.core.io.JsonStringEncoder;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import org.hisp.dhis.jsontree.Appender;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 
-/**
- * A utility to generate JSON based on simple {@link Runnable} callbacks for nesting of arrays and
- * objects.
- *
- * @author Jan Bernitt
- */
 @RequiredArgsConstructor
 public class JsonGenerator {
+
   @Value
   @Builder(toBuilder = true)
   public static class Format {
     public static final Format PRETTY_PRINT = new Format(true, true, true, true, true, "  ");
-
     public static final Format SMALL = new Format(false, false, false, false, false, "");
 
-    /** Item being an object member or an array element */
     boolean newLineBeforeItem;
-
     boolean newLineAfterObjectStart;
     boolean newLineBeforeObjectEnd;
     boolean newLineAfterArrayStart;
     boolean newLineBeforeArrayEnd;
-
-    /** 1 level of indent */
     String itemIndent;
+  }
+
+  /**
+   * Escapes a potentially multi-line text value to a target {@link Appender}.
+   *
+   * <p>The {@code contentIndent} is the indent to prefix each line of a block-scalar with. It is
+   * only meaningful for languages that have a block-scalar syntax (currently YAML). Languages
+   * without one (JSON, which escapes newlines in the string itself) ignore the parameter.
+   */
+  @FunctionalInterface
+  public interface AppendTextBlock {
+    void escape(Appender out, String text, String contentIndent);
   }
 
   @Value
   @Builder(toBuilder = true)
   public static class Language {
-
     public static final Language JSON =
         new Language(
             "[",
@@ -87,13 +86,8 @@ public class JsonGenerator {
             "}",
             "",
             ",",
-            "\"",
-            "\"",
-            JsonGenerator::escapeJsonString,
-            "\"",
-            "\"",
-            false,
-            JsonGenerator::escapeJsonText,
+            Appender::appendJsonEscaped,
+            (out, text, contentIndent) -> out.appendJsonEscaped(text),
             UnaryOperator.identity());
 
     public static final Language YAML =
@@ -110,12 +104,7 @@ public class JsonGenerator {
             "",
             "{}",
             "",
-            "",
-            "",
             JsonGenerator::escapeYamlString,
-            "|-",
-            "",
-            true,
             JsonGenerator::escapeYamlText,
             format ->
                 format.toBuilder()
@@ -126,61 +115,45 @@ public class JsonGenerator {
                     .newLineAfterObjectStart(false)
                     .newLineBeforeObjectEnd(false)
                     .build());
-    // block array syntax
+
     String arrayStart;
     String arrayItemStart;
     String arrayEnd;
     String arrayEmpty;
-    // inline array syntax
     String arrayInlineStart;
     String arrayInlineItemSeparator;
     String arrayInlineEnd;
-    // block object syntax
     String objectStart;
     String objectItemStart;
     String objectEnd;
     String objectEmpty;
-    // object member syntax
     String objectItemSeparator;
-    // (inline) string literal syntax
-    String stringStart;
-    String stringEnd;
-    UnaryOperator<String> escapeString;
-    // (block) text block literal syntax
-    String textStart;
-    String textEnd;
-    boolean textIndent;
-    Function<String, List<String>> escapeText;
-    // initializer for language format defaults that differ from base format
+    BiConsumer<Appender, String> appendEscapedInline;
+    AppendTextBlock appendEscapedBlock;
     UnaryOperator<Format> adjustFormat;
   }
 
-  private static final JsonStringEncoder JSON_ESCAPE_STRING = JsonStringEncoder.getInstance();
-
-  private final StringBuilder out;
+  private final Appender out;
   private final Format format;
   private final Language language;
 
-  /** Current line indent (increased and decreased when entering/exiting a block) */
   private String indent = "";
-
-  /** was the last appended output an array item? */
   private boolean arrayItemLast = false;
+  private boolean atLineStart = true;
+  private boolean firstItemAtLevel = true;
+  private boolean nothingWritten = true;
 
   @Override
   public final String toString() {
-    return out.toString();
+    return format.toString();
   }
 
   final void addRootObject(Runnable addMembers) {
     addObjectMember(null, addMembers);
-    discardLastMemberSeparator(0, language.objectEmpty);
   }
 
   final void addObjectMember(String name, boolean condition, Runnable addMembers) {
-    if (condition) {
-      addObjectMember(name, addMembers);
-    }
+    if (condition) addObjectMember(name, addMembers);
   }
 
   final <E> void addObjectMember(String name, Collection<E> members, Consumer<E> forEach) {
@@ -191,27 +164,31 @@ public class JsonGenerator {
 
   final void addObjectMember(String name, Runnable addMembers) {
     appendMemberName(name);
-    out.append(language.objectStart);
+    write(language.objectStart);
     if (format.isNewLineAfterObjectStart()) appendNewline();
-    int length = out.length();
+    boolean outerFirst = firstItemAtLevel;
+    firstItemAtLevel = true;
     if (format.isNewLineBeforeItem()) indent += format.getItemIndent();
     appendItems(addMembers);
     if (format.isNewLineBeforeItem())
       indent = indent.substring(0, indent.length() - format.getItemIndent().length());
-    discardLastMemberSeparator(length, language.objectEmpty);
+    boolean innerEmpty = firstItemAtLevel;
+    firstItemAtLevel = outerFirst;
+    if (innerEmpty) write(language.objectEmpty);
     if (format.isNewLineBeforeObjectEnd()) {
       appendNewline();
       appendMemberIndent();
     }
-    out.append(language.objectEnd);
-    appendMemberSeparator();
+    write(language.objectEnd);
+    finishItem();
   }
 
-  /**
-   * Newlines for format purposes, only append one if the last character was not a newline already
-   */
   private void appendNewline() {
-    if (out.isEmpty() || out.charAt(out.length() - 1) != '\n') out.append('\n');
+    if (!atLineStart) {
+      out.appendAscii('\n');
+      atLineStart = true;
+      nothingWritten = false;
+    }
   }
 
   final void addArrayMember(String name, Collection<String> values) {
@@ -226,73 +203,64 @@ public class JsonGenerator {
 
   final void addArrayMember(String name, Runnable addElements) {
     appendMemberName(name);
-    out.append(language.arrayStart);
+    write(language.arrayStart);
     if (format.isNewLineAfterArrayStart()) appendNewline();
-    int lengthAfterStart = out.length();
+    boolean outerFirst = firstItemAtLevel;
+    firstItemAtLevel = true;
     appendItems(addElements);
-    discardLastMemberSeparator(lengthAfterStart, language.arrayEmpty);
+    boolean innerEmpty = firstItemAtLevel;
+    firstItemAtLevel = outerFirst;
+    if (innerEmpty) write(language.arrayEmpty);
     if (format.isNewLineBeforeArrayEnd()) {
       appendNewline();
       appendMemberIndent();
     }
-    out.append(language.arrayEnd);
-    appendMemberSeparator();
+    write(language.arrayEnd);
+    finishItem();
   }
 
-  /**
-   * Same as {@link #addArrayMember(String, Collection)} except that the array will be formatted as
-   * an inline array
-   */
   final void addInlineArrayMember(String name, Collection<String> values) {
     if (values.isEmpty()) return;
     appendMemberName(name);
-    out.append(language.arrayInlineStart);
+    write(language.arrayInlineStart);
     int i = 0;
     for (String value : values) {
-      if (i > 0) out.append(language.arrayInlineItemSeparator);
-      appendString(value);
+      if (i > 0) write(language.arrayInlineItemSeparator);
+      appendStringInline(value);
       i++;
     }
-    out.append(language.arrayInlineEnd);
-    appendMemberSeparator();
+    write(language.arrayInlineEnd);
+    finishItem();
   }
 
   final void addStringMember(String name, String value) {
     if (value != null) {
       appendMemberName(name);
-      appendString(value);
-      appendMemberSeparator();
+      appendStringInline(value);
+      finishItem();
     }
   }
 
   final void addStringMultilineMember(String name, String value) {
     if (value != null && !value.isEmpty()) {
       appendMemberName(name);
-      appendStringMultiline(value);
-      appendMemberSeparator();
+      appendStringBlock(value);
+      finishItem();
     }
   }
 
-  /**
-   * Only adds a member if the value is {@link Boolean#TRUE}.
-   *
-   * <p>The main reason is to omit members that already have a implied default of false and thereby
-   * stating this does not add information but increates the size of the document.
-   */
   final void addTrueMember(String name, Boolean value) {
     if (value == Boolean.TRUE) addBooleanMember(name, true);
   }
 
   final void addBooleanMember(String name, Boolean value) {
-    if (value != null) {
-      addBooleanMember(name, value.booleanValue());
-    }
+    if (value != null) addBooleanMember(name, value.booleanValue());
   }
 
   final void addBooleanMember(String name, boolean value) {
     appendMemberName(name);
-    out.append(value ? "true" : "false");
-    appendMemberSeparator();
+    write(value ? "true" : "false");
+    finishItem();
   }
 
   final void addNumberMember(String name, Number value) {
@@ -306,123 +274,140 @@ public class JsonGenerator {
   }
 
   final void addNumberMember(String name, Integer value) {
-    if (value != null) {
-      addNumberMember(name, value.intValue());
-    }
+    if (value != null) addNumberMember(name, value.intValue());
   }
 
   final void addNumberMember(String name, double value) {
     appendMemberName(name);
-    out.append(value);
-    appendMemberSeparator();
+    out.appendDouble(value);
+    atLineStart = false;
+    nothingWritten = false;
+    finishItem();
   }
 
   final void addNumberMember(String name, int value) {
     appendMemberName(name);
-    out.append(value);
-    appendMemberSeparator();
+    out.appendInt(value);
+    atLineStart = false;
+    nothingWritten = false;
+    finishItem();
   }
 
   final void addRawMember(String name, JsonValue value) {
-    if (value != null
-        && !value.isNull()
-        && !(value.isString() && value.as(JsonString.class).string("").isEmpty())) {
-      appendMemberName(name);
-      out.append(value.toJson());
-      appendMemberSeparator();
-    }
+    if (value == null || value.isUndefined()) return;
+    if (value.isString() && value.as(JsonString.class).string("").isEmpty()) return;
+    appendMemberName(name);
+    // The declaration is already valid JSON, so write it as-is rather than through
+    // appendJsonEscaped (which would quote the whole thing as a string literal).
+    writeEncoded(value.node().getDeclaration());
+    finishItem();
   }
 
   private void appendItems(Runnable items) {
-    if (items != null) {
-      items.run();
-    }
+    if (items != null) items.run();
   }
 
-  private StringBuilder appendString(String str) {
-    return str == null
-        ? out.append("null")
-        : out.append(language.stringStart)
-            .append(language.escapeString.apply(str))
-            .append(language.stringEnd);
-  }
-
-  private void appendStringMultiline(String str) {
+  private void appendStringInline(String str) {
     if (str == null) {
-      out.append("null");
+      write("null");
       return;
     }
-    out.append(language.textStart);
-    for (String line : language.escapeText.apply(str)) {
-      if (language.textIndent) {
-        out.append('\n').append(indent).append(format.itemIndent);
-      }
-      out.append(line);
+    language.appendEscapedInline.accept(out, str);
+    atLineStart = false;
+    nothingWritten = false;
+  }
+
+  private void appendStringBlock(String str) {
+    if (str == null) {
+      write("null");
+      return;
     }
-    out.append(language.textEnd);
+    language.appendEscapedBlock.escape(out, str, indent + format.getItemIndent());
+    atLineStart = false;
+    nothingWritten = false;
   }
 
   private void appendMemberName(String name) {
-    if (name == null && out.isEmpty()) return;
+    if (name == null && nothingWritten) return; // root: nothing to write here
+    if (!firstItemAtLevel) write(language.objectItemSeparator);
     appendMemberIndent();
+    firstItemAtLevel = false;
     if (name != null) {
       arrayItemLast = false;
-      appendString(name).append(language.objectItemStart);
+      appendStringInline(name);
+      write(language.objectItemStart);
     } else {
       arrayItemLast = !language.arrayItemStart.isEmpty();
-      out.append(language.arrayItemStart);
+      write(language.arrayItemStart);
     }
   }
 
   private void appendMemberIndent() {
     if (!arrayItemLast && format.isNewLineBeforeItem()) {
       appendNewline();
-      out.append(indent);
+      out.appendAscii(indent);
+      atLineStart = false;
+      nothingWritten = false;
     }
   }
 
-  private void appendMemberSeparator() {
+  private void finishItem() {
     arrayItemLast = false;
-    out.append(language.objectItemSeparator);
   }
 
-  private void discardLastMemberSeparator(int lengthAfterStart, String empty) {
-    if (out.length() > lengthAfterStart) {
-      out.setLength(out.length() - language.objectItemSeparator.length()); // discard last ,
-    } else {
-      out.append(empty);
+  /*
+   * Write helpers that keep atLineStart / nothingWritten in sync with what has actually been
+   * written. These replace the previous direct use of StringBuilder-specific methods
+   * (isEmpty, charAt, length) with state that is maintained alongside the writes.
+   */
+
+  private void write(CharSequence s) {
+    if (s.isEmpty()) return;
+    out.appendAscii(s);
+    atLineStart = s.charAt(s.length() - 1) == '\n';
+    nothingWritten = false;
+  }
+
+  private void writeEncoded(CharSequence s) {
+    if (s.isEmpty()) return;
+    out.appendEncoded(s);
+    atLineStart = s.charAt(s.length() - 1) == '\n';
+    nothingWritten = false;
+  }
+
+  private static void escapeYamlString(Appender out, String unescaped) {
+    if (unescaped.isEmpty()) return;
+    boolean quote =
+        Character.isDigit(unescaped.charAt(0))
+            || "true".equals(unescaped)
+            || "false".equals(unescaped)
+            || unescaped.contains("#")
+            || unescaped.startsWith("*");
+    if (quote) out.appendAscii('"');
+    out.appendEncoded(unescaped);
+    if (quote) out.appendAscii('"');
+  }
+
+  private static void escapeYamlText(Appender out, String text, String contentIndent) {
+    if (text.indexOf('\n') < 0) {
+      escapeYamlString(out, text);
+      return;
     }
-  }
-
-  private static List<String> escapeJsonText(String unescaped) {
-    return List.of(escapeJsonString(unescaped));
-  }
-
-  private static String escapeJsonString(String unescaped) {
-    return new String(JSON_ESCAPE_STRING.quoteAsString(unescaped));
-  }
-
-  private static String escapeYamlString(String unescaped) {
-    if (unescaped.isEmpty()) return unescaped;
-    if (Character.isDigit(unescaped.charAt(0))
-        || "true".equals(unescaped)
-        || "false".equals(unescaped)
-        || unescaped.contains("#")
-        || unescaped.startsWith("*")) return "\"" + unescaped + "\"";
-    return unescaped;
-  }
-
-  private static List<String> escapeYamlText(String unescaped) {
+    // block scalar in strip mode |- so trailing newlines are not preserved
+    out.appendAscii("|-\n");
     int start = 0;
-    int end = unescaped.indexOf('\n');
-    if (end < 0) return List.of(unescaped);
-    List<String> lines = new ArrayList<>();
-    while (end > 0 && end < unescaped.length()) {
-      lines.add(unescaped.substring(start, end));
+    int end;
+    while ((end = text.indexOf('\n', start)) >= 0) {
+      if (end > start) {
+        out.appendAscii(contentIndent);
+        out.appendEncoded(text, start, end);
+      }
+      out.appendAscii('\n');
       start = end + 1;
-      end = unescaped.indexOf('\n', start);
     }
-    lines.add(unescaped.substring(start));
-    return lines;
+    if (start < text.length()) {
+      out.appendAscii(contentIndent);
+      out.appendEncoded(text, start, text.length());
+    }
   }
 }
