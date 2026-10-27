@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -154,6 +155,7 @@ class DataIntegrityTrackedEntityAttributesDuplicatedUniqueValuesInOrgUnitControl
     trackedEntityWithValue(orgUnitA, scopedA, "321");
     TrackedEntity deleted = createTrackedEntity(orgUnitA, trackedEntityType);
     deleted.setDeleted(true);
+    manager.save(deleted);
     addValue(deleted, scopedA, "321");
 
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK, true);
@@ -170,17 +172,15 @@ class DataIntegrityTrackedEntityAttributesDuplicatedUniqueValuesInOrgUnitControl
   private TrackedEntity trackedEntityWithValue(
       OrganisationUnit orgUnit, TrackedEntityAttribute attribute, String value) {
     TrackedEntity trackedEntity = createTrackedEntity(orgUnit, trackedEntityType);
+    manager.save(trackedEntity);
     addValue(trackedEntity, attribute, value);
     return trackedEntity;
   }
 
   private void addValue(
       TrackedEntity trackedEntity, TrackedEntityAttribute attribute, String value) {
-    TrackedEntityAttributeValue attributeValue =
-        new TrackedEntityAttributeValue(attribute, trackedEntity, value);
-    trackedEntity.addAttributeValue(attributeValue);
-    manager.save(trackedEntity, false);
-    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(attributeValue);
-    manager.flush();
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(attribute, trackedEntity, value));
+    entityManager.refresh(trackedEntity);
   }
 }
