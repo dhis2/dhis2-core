@@ -42,15 +42,14 @@ import org.hisp.dhis.jsontree.Appender;
 import org.hisp.dhis.util.DateUtils;
 
 /**
- * CSV writer specifically tailored to the Gist API needs.
+ * A generic CSV writer.
  *
  * <p>Output is written through the given {@link Appender}, which the caller is responsible for
  * closing — typically via try-with-resources around {@link Appender#ofUTF8(java.io.OutputStream)}.
  * Output is UTF-8 regardless of platform default charset.
  *
- * <p>Format: CRLF record separators, {@code "} text qualifier, embedded quotes doubled. A field is
- * quoted when it contains the delimiter, a quote, CR or LF, or when it starts with a space or tab
- * (leading whitespace in an unquoted field would be trimmed by the reader).
+ * <p>Format: LF record separators, {@code "} as quotes, embedded quotes doubled. A field is quoted
+ * when it contains the delimiter, a quote, CR or LF.
  *
  * @author Jan Bernitt
  */
@@ -79,7 +78,7 @@ public final class CsvBuilder {
   }
 
   public CsvBuilder withDelimiter(char delimiter) {
-    return new CsvBuilder(out, delimiter, preferences);
+    return new CsvBuilder(out, delimiter, preferences.clone());
   }
 
   public CsvBuilder with(Preference preference) {
@@ -109,7 +108,7 @@ public final class CsvBuilder {
       int i = 0;
       for (String header : fields) {
         if (i > 0) out.appendAscii(delimiter);
-        writeField(header);
+        writeField(header, i == 0);
         i++;
       }
       endRecord();
@@ -120,13 +119,14 @@ public final class CsvBuilder {
       int i = 0;
       Object value = iter.next();
       if (value instanceof Object[] row) {
+        if (row.length == 0) continue;
         for (int c = 0; c < columns; c++) {
           if (i > 0) out.appendAscii(delimiter);
-          writeField(toCsvValue(row[c]));
+          writeField(toCsvValue(row[c]), i == 0);
           i++;
         }
       } else {
-        writeField(toCsvValue(value));
+        writeField(toCsvValue(value), true);
       }
       endRecord();
     }
@@ -136,41 +136,42 @@ public final class CsvBuilder {
     return !preferences.contains(Preference.EXPLICIT_NULLS);
   }
 
-  private void writeField(String value) {
-    if (value == null || value.isEmpty()) return;
-    int len = value.length();
-    if (!needsQuoting(value)) {
-      out.appendEncoded(value);
+  private void writeField(String value, boolean first) {
+    if (value == null) {
+      if (first) out.appendAscii("\"\"");
       return;
     }
+    String trimmed = value.trim();
+    if (trimmed.isEmpty()) {
+      if (first) out.appendAscii("\"\"");
+      return;
+    }
+    if (!needsQuoting(trimmed)) {
+      out.appendEncoded(trimmed);
+      return;
+    }
+    int len = trimmed.length();
     out.appendAscii('"');
     int start = 0;
     for (int i = 0; i < len; i++) {
-      if (value.charAt(i) == '"') {
-        if (i > start) out.appendEncoded(value, start, i);
+      if (trimmed.charAt(i) == '"') {
+        if (i > start) out.appendEncoded(trimmed, start, i);
         out.appendAscii('"');
         out.appendAscii('"');
         start = i + 1;
       }
     }
-    if (start < len) out.appendEncoded(value, start, len);
+    if (start < len) out.appendEncoded(trimmed, start, len);
     out.appendAscii('"');
   }
 
   private boolean needsQuoting(String value) {
     int len = value.length();
-    char first = value.charAt(0);
-    boolean needsQuoting = first == ' ' || first == '\t';
-    if (!needsQuoting) {
-      for (int i = 0; i < len; i++) {
-        char c = value.charAt(i);
-        if (c == delimiter || c == '"' || c == '\r' || c == '\n') {
-          needsQuoting = true;
-          break;
-        }
-      }
+    for (int i = 0; i < len; i++) {
+      char c = value.charAt(i);
+      if (c == delimiter || c == '"' || c == '\r' || c == '\n') return true;
     }
-    return needsQuoting;
+    return false;
   }
 
   private void endRecord() {

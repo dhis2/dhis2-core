@@ -58,7 +58,7 @@ import org.junit.jupiter.api.Test;
  * covered by {@link org.hisp.dhis.csv.CsvBuilderTest} and is exercised only lightly here to confirm
  * the pipeline is wired through — not to re-verify {@code CsvBuilder} itself.
  *
- * <p>Output ends each record with {@code \n} (CRLF, per the CSV writer's contract).
+ * <p>Output ends each record with {@code \n} (LF, per the CSV writer's contract).
  */
 class GistOutputCsvTest {
 
@@ -101,10 +101,10 @@ class GistOutputCsvTest {
   }
 
   @Test
-  void testObject_Empty() {
-    // No properties → header row is just CRLF; no columns → data row is also just CRLF
+  void testObject_EmptyDoesNotEmitLine() {
+    // No properties → header row is just LF; no columns → data row is not emitted
     GistObject.Output obj = new GistObject.Output(NO_UNWRAP, List.of(), new Object[0]);
-    assertEquals("\n\n", toCsv(obj));
+    assertEquals("\n", toCsv(obj));
   }
 
   @Test
@@ -266,7 +266,7 @@ class GistOutputCsvTest {
             "items",
             List.of(prop("a", String.class), prop("b", String.class)),
             Stream.<Object[]>of(new Object[] {null, "x"}, new Object[] {"y", null}));
-    assertEquals("a,b\n,x\ny,\n", toCsv(list));
+    assertEquals("a,b\n\"\",x\ny,\n", toCsv(list));
   }
 
   @Test

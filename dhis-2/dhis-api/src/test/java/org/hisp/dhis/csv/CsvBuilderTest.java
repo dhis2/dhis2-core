@@ -47,22 +47,7 @@ import org.junit.jupiter.api.Test;
  * Tests for {@link CsvBuilder}.
  *
  * <p>Focused on the writer's output, not on {@link CSV}'s reader — the two are covered separately
- * because they only need to agree on the common cases. The writer's contract is:
- *
- * <ul>
- *   <li>CRLF record separators
- *   <li>{@code "} as the text qualifier, embedded quotes doubled ({@code ""})
- *   <li>A field is quoted when it contains the delimiter, a quote, CR, or LF, or when it starts
- *       with a space or tab (leading whitespace in an unquoted field would be lost on read-back)
- *   <li>Fields are encoded as UTF-8, unconditionally
- * </ul>
- *
- * <p><b>Known limitation:</b> a field with <em>trailing</em> whitespace is written unquoted, and
- * the DHIS2 reader ({@link CSV}) trims unquoted fields, so trailing whitespace does not survive a
- * write-then-read cycle. This is {@code testTrailingSpace_CurrentBehaviour_NotQuoted} below. Fixing
- * it requires either quoting trailing-whitespace fields on write (a behaviour change from what
- * {@code com.csvreader.CsvWriter} produced) or preserving them on read (a reader change); both are
- * out of scope for the current migration.
+ * because they only need to agree on the common cases.
  */
 class CsvBuilderTest {
 
@@ -141,14 +126,14 @@ class CsvBuilderTest {
   @Test
   void testFieldStartingWithSpace_Quoted() {
     assertEquals(
-        "a\n\" hello\"\n",
+        "a\nhello\n",
         csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {" hello"}))));
   }
 
   @Test
-  void testFieldStartingWithTab_Quoted() {
+  void testFieldStartingWithTab_Trimmed() {
     assertEquals(
-        "a\n\"\thello\"\n",
+        "a\nhello\n",
         csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"\thello"}))));
   }
 
@@ -167,9 +152,9 @@ class CsvBuilderTest {
   }
 
   @Test
-  void testEmptyField_NotQuoted() {
+  void testEmptyField_IsQuoted() {
     assertEquals(
-        "a,b\n,2\n",
+        "a,b\n\"\",2\n",
         csv(b -> b.toRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {"", 2}))));
   }
 
@@ -183,7 +168,7 @@ class CsvBuilderTest {
   @Test
   void testTrailingSpace_CurrentBehaviour_NotQuoted() {
     assertEquals(
-        "a\nhello \n",
+        "a\nhello\n",
         csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello "}))));
   }
 
@@ -224,9 +209,9 @@ class CsvBuilderTest {
   // ====== Null handling ======
 
   @Test
-  void testNull_DefaultWritesEmpty() {
+  void testNull_DefaultWritesEmptyQuotes() {
     assertEquals(
-        "a,b\n,2\n",
+        "a,b\n\"\",2\n",
         csv(b -> b.toRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {null, 2}))));
   }
 
@@ -279,9 +264,10 @@ class CsvBuilderTest {
   }
 
   @Test
-  void testCollection_EmptyBecomesNull() {
+  void testCollection_EmptyBecomesEmptyQuotes() {
     assertEquals(
-        "a\n\n", csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {List.of()}))));
+        "a\n\"\"\n",
+        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {List.of()}))));
   }
 
   @Test
@@ -328,7 +314,7 @@ class CsvBuilderTest {
   @Test
   void testFieldValueIsEmptyObjectArray() {
     assertEquals(
-        "a\n\n",
+        "a\n\"\"\n",
         csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {new Object[0]}))));
   }
 

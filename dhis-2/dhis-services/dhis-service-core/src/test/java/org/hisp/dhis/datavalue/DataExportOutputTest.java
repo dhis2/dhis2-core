@@ -53,11 +53,8 @@ import org.junit.jupiter.api.Test;
  * parsed shape. CSV and XML tests compare against explicit expected output because the formatting
  * rules (quoting, line endings, attribute presence) are the contract being verified.
  *
- * <p>Note on CSV encoding: {@link DataExportOutput#toCsv} uses {@code new
- * PrintWriter(OutputStream)} which relies on the platform default charset, unlike the JSON and XML
- * paths which explicitly use UTF-8. The CSV tests here stick to ASCII content so this doesn’t
- * affect them; a separate ticket tracks migrating {@code toCsv} to {@link
- * org.hisp.dhis.jsontree.Appender#ofUTF8} for consistency.
+ * <p>Note on CSV encoding: {@link DataExportOutput#toCsv} uses UTF-8 via {@link
+ * org.hisp.dhis.jsontree.Appender#ofUTF8}.
  *
  * @author Jan Bernitt
  */
