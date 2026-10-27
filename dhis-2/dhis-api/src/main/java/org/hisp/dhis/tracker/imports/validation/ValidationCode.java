@@ -87,6 +87,9 @@ public enum ValidationCode {
   E1055("Default AttributeOptionCombo is not allowed as Program has non-default CategoryCombo."),
   E1056("Event date: `{0}` is before start date: `{1}` for AttributeOption: `{2}`."),
   E1057("Event date: `{0}` is after end date: `{1}` for AttributeOption: `{2}` in Program: `{3}`."),
+  E1058("Enrollment date: `{0}` is before start date: `{1}` for AttributeOption: `{2}`."),
+  E1059(
+      "Enrollment date: `{0}` is after end date: `{1}` for AttributeOption: `{2}` in Program: `{3}`."),
   E1063("TrackedEntity: `{0}`, does not exist."),
   E1064("Non-unique attribute value `{0}` for attribute `{1}`."),
   E1068("Could not find TrackedEntity: `{0}` linked to Enrollment."),
