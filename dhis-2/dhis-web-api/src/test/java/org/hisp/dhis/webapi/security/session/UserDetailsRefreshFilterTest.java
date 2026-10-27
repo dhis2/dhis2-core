@@ -53,6 +53,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
+import org.hisp.dhis.security.DhisAuthenticationToken;
+import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsChangeTracker;
@@ -63,7 +65,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -81,6 +85,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.util.SerializationUtils;
 
 /**
  * Unit test of {@link UserDetailsRefreshFilter}.
@@ -90,6 +95,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 class UserDetailsRefreshFilterTest {
 
   private static final String USERNAME = "alice";
+  private static final String USER_UID = "aliceUid001";
 
   private static final GrantedAuthority PASSWORD_FACTOR =
       FactorGrantedAuthority.fromAuthority(FactorGrantedAuthority.PASSWORD_AUTHORITY);
@@ -121,7 +127,7 @@ class UserDetailsRefreshFilterTest {
 
     doFilter(authentication);
 
-    verify(userService, never()).createUserDetailsByUsername(anyString());
+    verify(userService, never()).createUserDetailsSafe(anyString());
     assertSame(authentication, SecurityContextHolder.getContext().getAuthentication());
   }
 
@@ -132,14 +138,14 @@ class UserDetailsRefreshFilterTest {
 
     doFilter(passwordLogin(user("F_OLD")));
 
-    verify(userService, never()).createUserDetailsByUsername(anyString());
+    verify(userService, never()).createUserDetailsSafe(anyString());
   }
 
   @Test
   void refreshesPasswordLoginKeepingDetailsAndLoginFactor() throws Exception {
     when(tracker.getChangeToken(USERNAME)).thenReturn("token1");
     UserDetails refreshed = user("F_NEW");
-    when(userService.createUserDetailsByUsername(USERNAME)).thenReturn(refreshed);
+    when(userService.createUserDetailsSafe(USER_UID)).thenReturn(refreshed);
     UsernamePasswordAuthenticationToken login = passwordLogin(user("F_OLD"));
     login.setDetails("loginDetails");
 
@@ -160,7 +166,7 @@ class UserDetailsRefreshFilterTest {
   void refreshesOidcLoginKeepingClaimsAndClientRegistration() throws Exception {
     when(tracker.getChangeToken(USERNAME)).thenReturn("token1");
     UserDetails refreshed = user("F_NEW");
-    when(userService.createUserDetailsByUsername(USERNAME)).thenReturn(refreshed);
+    when(userService.createUserDetailsSafe(USER_UID)).thenReturn(refreshed);
     OidcIdToken idToken =
         new OidcIdToken("id", Instant.now(), Instant.now().plusSeconds(60), Map.of("sub", "s1"));
     DhisOidcUser oidcUser = new DhisOidcUser(user("F_OLD"), Map.of("sub", "s1"), "sub", idToken);
@@ -185,7 +191,7 @@ class UserDetailsRefreshFilterTest {
   @Test
   void storesTheTokenReadBeforeTheRebuild() throws Exception {
     when(tracker.getChangeToken(USERNAME)).thenReturn("token1");
-    when(userService.createUserDetailsByUsername(USERNAME))
+    when(userService.createUserDetailsSafe(USER_UID))
         .thenAnswer(
             call -> {
               // another change commits while the principal is being rebuilt
@@ -197,7 +203,7 @@ class UserDetailsRefreshFilterTest {
     assertEquals("token1", session.getAttribute(CHANGE_TOKEN_ATTRIBUTE));
 
     doFilter(SecurityContextHolder.getContext().getAuthentication());
-    verify(userService, times(2)).createUserDetailsByUsername(USERNAME);
+    verify(userService, times(2)).createUserDetailsSafe(USER_UID);
     assertEquals("token2", session.getAttribute(CHANGE_TOKEN_ATTRIBUTE));
   }
 
@@ -207,14 +213,14 @@ class UserDetailsRefreshFilterTest {
 
     doFilter(new TestingAuthenticationToken(user("F_OLD"), null, "F_OLD"));
 
-    verify(userService, never()).createUserDetailsByUsername(anyString());
+    verify(userService, never()).createUserDetailsSafe(anyString());
   }
 
   @Test
   void refreshesPrincipalOlderThanTheRefreshIntervalWithoutChange() throws Exception {
     filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
     UserDetails refreshed = user("F_NEW");
-    when(userService.createUserDetailsByUsername(USERNAME)).thenReturn(refreshed);
+    when(userService.createUserDetailsSafe(USER_UID)).thenReturn(refreshed);
     long refreshedAt = System.currentTimeMillis() - Duration.ofMinutes(16).toMillis();
     session.setAttribute(REFRESHED_AT_ATTRIBUTE, refreshedAt);
 
@@ -233,7 +239,7 @@ class UserDetailsRefreshFilterTest {
 
     doFilter(passwordLogin(user("F_OLD")));
 
-    verify(userService, never()).createUserDetailsByUsername(anyString());
+    verify(userService, never()).createUserDetailsSafe(anyString());
   }
 
   @Test
@@ -245,13 +251,13 @@ class UserDetailsRefreshFilterTest {
     doFilter(impersonation(user("F_OLD")));
 
     assertFalse(session.isInvalid());
-    verify(userService, never()).createUserDetailsByUsername(anyString());
+    verify(userService, never()).createUserDetailsSafe(anyString());
   }
 
   @Test
   void refreshIntervalEndsSessionOfDisabledUser() throws Exception {
     filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
-    when(userService.createUserDetailsByUsername(USERNAME))
+    when(userService.createUserDetailsSafe(USER_UID))
         .thenReturn(userBuilder("F_OLD").enabled(false).build());
     session.setAttribute(
         REFRESHED_AT_ATTRIBUTE, System.currentTimeMillis() - Duration.ofMinutes(16).toMillis());
@@ -280,13 +286,166 @@ class UserDetailsRefreshFilterTest {
       String scenario, boolean impersonating, UnaryOperator<UserDetailsImplBuilder> refreshed)
       throws Exception {
     when(tracker.getChangeToken(USERNAME)).thenReturn("token1");
-    when(userService.createUserDetailsByUsername(USERNAME))
+    when(userService.createUserDetailsSafe(USER_UID))
         .thenReturn(refreshed == null ? null : refreshed.apply(userBuilder("F_NEW")).build());
     UserDetails principal = user("F_OLD");
 
     doFilter(impersonating ? impersonation(principal) : passwordLogin(principal));
 
     assertTrue(session.isInvalid());
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  void deletedAccountCannotBecomeAnotherAccountWithTheSameUsername(boolean timer) throws Exception {
+    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
+    session.setAttribute(REFRESHED_AT_ATTRIBUTE, 0L);
+    if (!timer) {
+      when(tracker.getChangeToken(USERNAME)).thenReturn("replacement");
+    }
+    when(userService.createUserDetailsByUsername(USERNAME))
+        .thenReturn(userBuilder("ALL").uid("otherUid001").build());
+    when(userService.createUserDetailsSafe(USER_UID)).thenReturn(null);
+
+    doFilter(passwordLogin(user("F_OLD")));
+
+    assertTrue(session.isInvalid());
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  @Test
+  void renamedAccountKeepsItsIdentity() throws Exception {
+    when(tracker.getChangeToken(USERNAME)).thenReturn("renamed");
+    UserDetails renamed = userBuilder("F_NEW").username("renamed").build();
+    when(userService.createUserDetailsSafe(USER_UID)).thenReturn(renamed);
+
+    doFilter(passwordLogin(user("F_OLD")));
+
+    UserDetails principal = (UserDetails) savedAuthentication().getPrincipal();
+    assertEquals(USER_UID, principal.getUid());
+    assertEquals("renamed", principal.getUsername());
+    assertFalse(session.isInvalid());
+  }
+
+  @ParameterizedTest
+  @CsvSource({"OIDC,false", "OIDC,true", "LDAP,false", "LDAP,true", "LOCAL,false", "LOCAL,true"})
+  void refreshKeepsTheLoginProvidersEnrolmentPolicy(String provider, boolean timer)
+      throws Exception {
+    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
+    session.setAttribute(REFRESHED_AT_ATTRIBUTE, 0L);
+    if (!timer) {
+      when(tracker.getChangeToken(USERNAME)).thenReturn("token1");
+    }
+    UserDetails initial = userBuilder("F_OLD").externalAuth(!provider.equals("LOCAL")).build();
+    UserDetails refreshed =
+        userBuilder("F_NEW")
+            .externalAuth(provider.equals("LOCAL"))
+            .allRestrictions(Set.of("R_ENABLE_2FA"))
+            .build();
+    when(userService.createUserDetailsSafe(USER_UID)).thenReturn(refreshed);
+    Authentication login;
+    if (provider.equals("OIDC")) {
+      Map<String, Object> claims = Map.of("sub", "s1");
+      OidcIdToken idToken =
+          new OidcIdToken("id", Instant.now(), Instant.now().plusSeconds(60), claims);
+      DhisOidcUser principal = new DhisOidcUser(initial, claims, "sub", idToken);
+      login = new OAuth2AuthenticationToken(principal, principal.getAuthorities(), "keycloak");
+    } else {
+      login =
+          new DhisAuthenticationToken(
+              initial, null, initial.getAuthorities(), LoginMethod.valueOf(provider));
+    }
+
+    doFilter(login);
+
+    if (provider.equals("LOCAL")) {
+      assertTrue(session.isInvalid());
+      assertNull(SecurityContextHolder.getContext().getAuthentication());
+      return;
+    }
+    assertFalse(session.isInvalid());
+    assertEquals(Set.of("F_NEW"), authorityNames(savedAuthentication().getAuthorities()));
+    Authentication restored =
+        (Authentication)
+            SerializationUtils.deserialize(SerializationUtils.serialize(savedAuthentication()));
+    when(tracker.getChangeToken(USERNAME)).thenReturn("token2");
+    doFilter(restored);
+    assertFalse(session.isInvalid());
+    assertEquals(Set.of("F_NEW"), authorityNames(savedAuthentication().getAuthorities()));
+    if (provider.equals("LDAP")) {
+      assertEquals(
+          LoginMethod.LDAP,
+          assertInstanceOf(DhisAuthenticationToken.class, savedAuthentication()).getLoginMethod());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  void concurrentLogoutNeverAuthenticatesAReplacementSession(boolean replacement) throws Exception {
+    when(tracker.getChangeToken(USERNAME)).thenReturn("token1");
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setSession(session);
+    SecurityContext replacementContext = new SecurityContextImpl();
+    when(userService.createUserDetailsSafe(USER_UID))
+        .thenAnswer(
+            call -> {
+              session.invalidate();
+              if (replacement) {
+                request
+                    .getSession(true)
+                    .setAttribute(
+                        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                        replacementContext);
+              }
+              return user("F_NEW");
+            });
+    SecurityContextHolder.setContext(new SecurityContextImpl(passwordLogin(user("F_OLD"))));
+
+    filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+
+    assertTrue(session.isInvalid());
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+    if (replacement) {
+      assertSame(
+          replacementContext,
+          request
+              .getSession(false)
+              .getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY));
+      assertNull(replacementContext.getAuthentication());
+    } else {
+      assertNull(request.getSession(false));
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        CHANGE_TOKEN_ATTRIBUTE,
+        REFRESHED_AT_ATTRIBUTE,
+        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY
+      })
+  void concurrentLogoutDuringSessionWriteClearsAuthentication(String attribute) throws Exception {
+    session =
+        new MockHttpSession() {
+          @Override
+          public void setAttribute(String name, Object value) {
+            if (name.equals(attribute)) {
+              invalidate();
+            }
+            super.setAttribute(name, value);
+          }
+        };
+    when(tracker.getChangeToken(USERNAME)).thenReturn("token1");
+    when(userService.createUserDetailsSafe(USER_UID)).thenReturn(user("F_NEW"));
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setSession(session);
+    SecurityContextHolder.setContext(new SecurityContextImpl(passwordLogin(user("F_OLD"))));
+
+    filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+
+    assertTrue(session.isInvalid());
+    assertNull(request.getSession(false));
     assertNull(SecurityContextHolder.getContext().getAuthentication());
   }
 
@@ -314,7 +473,7 @@ class UserDetailsRefreshFilterTest {
   private static UsernamePasswordAuthenticationToken passwordLogin(UserDetails user) {
     List<GrantedAuthority> authorities = new ArrayList<>(user.getAuthorities());
     authorities.add(PASSWORD_FACTOR);
-    return UsernamePasswordAuthenticationToken.authenticated(user, null, authorities);
+    return new DhisAuthenticationToken(user, null, authorities, LoginMethod.LOCAL);
   }
 
   private static UserDetails user(String authority) {
@@ -323,6 +482,7 @@ class UserDetailsRefreshFilterTest {
 
   private static UserDetailsImplBuilder userBuilder(String authority) {
     return UserDetails.empty()
+        .uid(USER_UID)
         .username(USERNAME)
         .enabled(true)
         .accountNonExpired(true)

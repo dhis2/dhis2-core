@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.security.session;
 
 import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME;
+import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -45,6 +46,8 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.security.DhisAuthenticationToken;
+import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsChangeTracker;
@@ -59,8 +62,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -85,9 +86,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * <ul>
  *   <li>the session impersonates another user and that user changed, since a refresh could give the
  *       impersonating user authorities it was not allowed to impersonate
- *   <li>the user no longer exists, is disabled or expired, or must set up two-factor authentication
- *       before logging in, the same checks the login makes
+ *   <li>the user no longer exists, is disabled or expired, or a local-password login must set up
+ *       two-factor authentication before logging in
  * </ul>
+ *
+ * <p>Refresh resolves the original account by UID and writes only to the original session. A
+ * concurrent logout must never create an authenticated replacement session.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -108,9 +112,6 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
   /** Interval after which the principal is rebuilt in any case, zero or negative to never. */
   private final Duration refreshInterval;
 
-  private final SecurityContextRepository securityContextRepository =
-      new HttpSessionSecurityContextRepository();
-
   @Override
   protected void doFilterInternal(
       @Nonnull HttpServletRequest request,
@@ -119,13 +120,12 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     HttpSession session = request.getSession(false);
     if (session != null) {
-      refreshIfStale(request, response, session);
+      refreshIfStale(session);
     }
     filterChain.doFilter(request, response);
   }
 
-  private void refreshIfStale(
-      HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+  private void refreshIfStale(HttpSession session) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     UserDetails principal = getSessionPrincipal(authentication);
     if (principal == null) {
@@ -135,8 +135,15 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
     // change has committed, so the rebuilt principal includes every change up to this token. A
     // change committed while rebuilding writes a new token, which the next request picks up.
     String token = userDetailsChangeTracker.getChangeToken(principal.getUsername());
-    boolean changed = token != null && !token.equals(session.getAttribute(CHANGE_TOKEN_ATTRIBUTE));
-    if (!changed && !isRefreshDue(session)) {
+    boolean changed;
+    try {
+      changed = token != null && !token.equals(session.getAttribute(CHANGE_TOKEN_ATTRIBUTE));
+      if (!changed && !isRefreshDue(session)) {
+        return;
+      }
+    } catch (IllegalStateException ex) {
+      // The session was invalidated by a concurrent logout.
+      SecurityContextHolder.clearContext();
       return;
     }
 
@@ -148,20 +155,24 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
       return;
     }
 
-    UserDetails user = userService.createUserDetailsByUsername(principal.getUsername());
-    if (user == null || !canStayLoggedIn(user)) {
+    UserDetails user = userService.createUserDetailsSafe(principal.getUid());
+    if (user == null || !canStayLoggedIn(authentication, user)) {
       endSession(session, principal);
       return;
     }
 
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(createAuthentication(authentication, user));
-    SecurityContextHolder.setContext(context);
-    securityContextRepository.saveContext(context, request, response);
-    if (token != null) {
+    try {
       session.setAttribute(CHANGE_TOKEN_ATTRIBUTE, token);
+      session.setAttribute(REFRESHED_AT_ATTRIBUTE, System.currentTimeMillis());
+      session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, context);
+    } catch (IllegalStateException ex) {
+      // Never save through request.getSession(): it could create or return another session.
+      SecurityContextHolder.clearContext();
+      return;
     }
-    session.setAttribute(REFRESHED_AT_ATTRIBUTE, System.currentTimeMillis());
+    SecurityContextHolder.setContext(context);
     log.debug("Refreshed session principal of user '{}'", user.getUsername());
   }
 
@@ -177,7 +188,11 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
   private static void endSession(HttpSession session, UserDetails principal) {
     log.info("Ending session of changed user '{}'", principal.getUsername());
     SecurityContextHolder.clearContext();
-    session.invalidate();
+    try {
+      session.invalidate();
+    } catch (IllegalStateException ex) {
+      // A concurrent logout already invalidated this session.
+    }
   }
 
   @CheckForNull
@@ -198,9 +213,11 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
         .anyMatch(SwitchUserGrantedAuthority.class::isInstance);
   }
 
-  private static boolean canStayLoggedIn(UserDetails user) {
+  private static boolean canStayLoggedIn(Authentication authentication, UserDetails user) {
     boolean mustSetUpTwoFactor =
-        !user.isTwoFactorEnabled()
+        authentication instanceof DhisAuthenticationToken login
+            && login.getLoginMethod() == LoginMethod.LOCAL
+            && !user.isTwoFactorEnabled()
             && user.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
     return user.isEnabled() && user.isAccountNonExpired() && !mustSetUpTwoFactor;
   }
@@ -224,6 +241,10 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
       authentication =
           new OAuth2AuthenticationToken(
               principal, authorities, oauth2.getAuthorizedClientRegistrationId());
+    } else if (current instanceof DhisAuthenticationToken login) {
+      authentication =
+          new DhisAuthenticationToken(
+              user, current.getCredentials(), authorities, login.getLoginMethod());
     } else {
       authentication =
           UsernamePasswordAuthenticationToken.authenticated(

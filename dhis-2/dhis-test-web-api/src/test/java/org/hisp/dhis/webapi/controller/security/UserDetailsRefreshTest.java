@@ -39,10 +39,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.hisp.dhis.security.DhisAuthenticationToken;
+import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,6 +134,31 @@ class UserDetailsRefreshTest extends AuthenticationApiTestBase {
     assertTrue(userSession.isInvalid());
   }
 
+  @Test
+  void deletedUsersSessionCannotAuthenticateAsAReplacementWithTheSameUsername() {
+    User user = createUserWithAuth("recycleduser");
+    MockHttpSession userSession = loggedInSession(user);
+    commit();
+    assertEquals(200, hasAuthority(userSession).getStatus());
+
+    TestTransaction.start();
+    injectAdminIntoSecurityContext();
+    userService.deleteUser(user);
+    commit();
+
+    TestTransaction.start();
+    injectAdminIntoSecurityContext();
+    User replacement = createUserWithAuth("replacementuser", "ALL");
+    replacement.setUsername("recycleduser");
+    userService.updateUser(replacement);
+    assertNotEquals(user.getUid(), replacement.getUid());
+    commit();
+    userSession.setAttribute(UserDetailsRefreshFilter.REFRESHED_AT_ATTRIBUTE, 0L);
+
+    assertNotEquals(200, hasAuthority(userSession).getStatus());
+    assertTrue(userSession.isInvalid());
+  }
+
   private UserRole createRole(char uniqueCharacter) {
     UserRole role = createUserRole(uniqueCharacter, AUTHORITY);
     userService.addUserRole(role);
@@ -149,8 +177,8 @@ class UserDetailsRefreshTest extends AuthenticationApiTestBase {
   private MockHttpSession loggedInSession(User user) {
     UserDetails principal = userService.createUserDetails(user);
     return sessionWith(
-        UsernamePasswordAuthenticationToken.authenticated(
-            principal, null, principal.getAuthorities()));
+        new DhisAuthenticationToken(
+            principal, null, principal.getAuthorities(), LoginMethod.LOCAL));
   }
 
   private MockHttpSession impersonatingSession(User user) {
