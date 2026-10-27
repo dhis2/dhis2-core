@@ -84,7 +84,7 @@ class UserDetailsChangeListenerTest {
             .toList();
     when(userService.getUsernamesByUserRole(ROLE_UID)).thenReturn(usernames);
 
-    listener.onUserRoleAuthoritiesChanged(new UserRoleAuthoritiesChangedEvent(ROLE_UID));
+    listener.onUserRoleSecurityChanged(new UserRoleSecurityChangedEvent(ROLE_UID));
 
     assertAll(usernames.stream().map(name -> () -> assertNotNull(tracker.getChangeToken(name))));
     verify(userService, never()).invalidateUserSessions(anyString());

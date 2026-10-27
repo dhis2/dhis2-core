@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserRoleAuthoritiesChangedEvent;
+import org.hisp.dhis.user.UserRoleSecurityChangedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -72,7 +72,7 @@ public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
       // All members of the role are marked as changed asynchronously after the transaction has
       // committed, see UserDetailsChangeListener. Loading all members here would be O(members)
       // full entity loads on the request thread.
-      eventPublisher.publishEvent(new UserRoleAuthoritiesChangedEvent(UID.of(updatedUserRole)));
+      eventPublisher.publishEvent(new UserRoleSecurityChangedEvent(UID.of(updatedUserRole)));
     }
 
     bundle.removeExtras(updatedUserRole, USER_DETAILS_CHANGED_KEY);

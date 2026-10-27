@@ -69,10 +69,10 @@ public class UserDetailsChangeListener {
 
   @Async("userDetailsChangeTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
-  public void onUserRoleAuthoritiesChanged(UserRoleAuthoritiesChangedEvent event) {
+  public void onUserRoleSecurityChanged(UserRoleSecurityChangedEvent event) {
     List<String> usernames = userService.getUsernamesByUserRole(event.userRoleUid());
     log.info(
-        "Marking {} users as changed after authority change of user role '{}'",
+        "Marking {} users as changed after authority or restriction change of user role '{}'",
         usernames.size(),
         event.userRoleUid());
     Lists.partition(usernames, BATCH_SIZE).forEach(userDetailsChangeTracker::markChanged);

@@ -32,10 +32,9 @@ package org.hisp.dhis.user;
 import org.hisp.dhis.common.UID;
 
 /**
- * Event published after the authorities of a {@link UserRole} have changed, so that active sessions
- * of users with that role can be invalidated asynchronously, outside the updating transaction and
- * off the request thread.
+ * Event published after a {@link UserRole}'s authorities or restrictions change, so that member
+ * principals can be refreshed asynchronously after the updating transaction commits.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public record UserRoleAuthoritiesChangedEvent(UID userRoleUid) {}
+public record UserRoleSecurityChangedEvent(UID userRoleUid) {}

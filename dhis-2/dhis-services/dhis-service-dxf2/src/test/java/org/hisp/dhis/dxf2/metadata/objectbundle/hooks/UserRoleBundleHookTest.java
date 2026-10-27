@@ -41,7 +41,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserRoleAuthoritiesChangedEvent;
+import org.hisp.dhis.user.UserRoleSecurityChangedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,7 +79,7 @@ class UserRoleBundleHookTest {
     hook.preUpdate(update, existing, bundle);
     hook.postUpdate(update, bundle);
 
-    verify(eventPublisher).publishEvent(new UserRoleAuthoritiesChangedEvent(UID.of(ROLE_UID)));
+    verify(eventPublisher).publishEvent(new UserRoleSecurityChangedEvent(UID.of(ROLE_UID)));
     // the members of the role must never be loaded on the update path
     verify(update, never()).getUsers();
     verify(update, never()).getMembers();
@@ -94,7 +94,7 @@ class UserRoleBundleHookTest {
     hook.preUpdate(update, existing, bundle);
     hook.postUpdate(update, bundle);
 
-    verify(eventPublisher).publishEvent(new UserRoleAuthoritiesChangedEvent(UID.of(ROLE_UID)));
+    verify(eventPublisher).publishEvent(new UserRoleSecurityChangedEvent(UID.of(ROLE_UID)));
   }
 
   @Test
