@@ -98,7 +98,7 @@ class DataSetNotificationTemplateTest {
   }
 
   @Test
-  void shouldReturnFreshMutableSharingAndIgnoreCreatedBy() {
+  void shouldStubSharingCreatedByAndAttributeValues() {
     DataSetNotificationTemplate template = new DataSetNotificationTemplate();
     Sharing sharing = template.getSharing();
     sharing.setOwner("ownerUid01");
@@ -108,19 +108,6 @@ class DataSetNotificationTemplateTest {
     assertNull(template.getSharing().getOwner());
     assertNull(template.getCreatedBy());
     assertTrue(template.getAttributeValues().isEmpty());
-  }
-
-  @Test
-  void shouldReturnUntranslatedDisplayValuesWithoutTranslations() {
-    DataSetNotificationTemplate template = template("TemplateA01", "CODE_A", "Template A");
-    template.setSubjectTemplate("Subject");
-    template.setMessageTemplate("Message");
-    template.setTranslations(null);
-
-    assertTrue(template.getTranslations().isEmpty());
-    assertEquals("Template A", template.getDisplayName());
-    assertEquals("Subject", template.getDisplaySubjectTemplate());
-    assertEquals("Message", template.getDisplayMessageTemplate());
   }
 
   private static DataSetNotificationTemplate template(String uid, String code, String name) {

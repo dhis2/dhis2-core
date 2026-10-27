@@ -212,7 +212,7 @@ class DataSetNotificationTemplateStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldWriteAndReadEveryTemplateColumn() {
+  void shouldWriteAndReadTemplateColumns() {
     User admin = getAdminUser();
     UserGroup userGroup = createUserGroup('A', Set.of());
     userGroupStore.save(userGroup);
@@ -276,6 +276,8 @@ class DataSetNotificationTemplateStoreTest extends PostgresIntegrationTestBase {
 
     DataSetNotificationTemplate loaded = reload(template);
     assertEquals("TEMPLATE_B", loaded.getCode());
+    assertEquals("Template B", loaded.getName());
+    assertEquals("Message ".repeat(100), loaded.getMessageTemplate());
     assertEquals("Subject B", loaded.getSubjectTemplate());
     assertEquals(-3, loaded.getRelativeScheduledDays());
     assertEquals(DataSetNotificationTrigger.SCHEDULED_DAYS, loaded.getDataSetNotificationTrigger());
