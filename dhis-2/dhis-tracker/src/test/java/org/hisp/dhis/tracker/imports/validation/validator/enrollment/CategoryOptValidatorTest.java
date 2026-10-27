@@ -97,7 +97,7 @@ class CategoryOptValidatorTest extends TrackerTestBase {
   private static final Date ONE_YEAR_AFTER_ENROLLMENT = getDate(2022, 1, 1);
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     initServices();
 
     validator = new CategoryOptValidator(i18nManager);
