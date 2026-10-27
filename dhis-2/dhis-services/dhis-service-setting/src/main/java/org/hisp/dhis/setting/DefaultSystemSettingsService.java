@@ -86,6 +86,7 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   private SystemSettings allSettings;
 
   @Override
+  @NonTransactional
   public void registerObserver(
       @Nonnull Set<String> keys, @Nonnull SystemSettingsObserver observer) {
     for (String key : keys)
