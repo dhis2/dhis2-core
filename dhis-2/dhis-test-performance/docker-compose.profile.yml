@@ -36,11 +36,11 @@ services:
       sh -c '
         if [ ! -f /opt/async-profiler/bin/asprof ]; then
           echo "Downloading async-profiler..."
-          curl -fsSL -o /tmp/async-profiler.tar.gz https://github.com/async-profiler/async-profiler/releases/download/v4.4/async-profiler-4.4-linux-x64.tar.gz &&
+          curl -fsSL -o /tmp/async-profiler.tar.gz https://github.com/async-profiler/async-profiler/releases/download/v4.6/async-profiler-4.6-linux-x64.tar.gz &&
           mkdir -p /opt/async-profiler/bin /opt/async-profiler/lib &&
           tar -xzf /tmp/async-profiler.tar.gz -C /tmp &&
-          cp /tmp/async-profiler-4.4-linux-x64/bin/* /opt/async-profiler/bin/ &&
-          cp /tmp/async-profiler-4.4-linux-x64/lib/* /opt/async-profiler/lib/ &&
+          cp /tmp/async-profiler-4.6-linux-x64/bin/* /opt/async-profiler/bin/ &&
+          cp /tmp/async-profiler-4.6-linux-x64/lib/* /opt/async-profiler/lib/ &&
           chmod +x /opt/async-profiler/bin/asprof &&
           chmod +x /opt/async-profiler/bin/jfrconv &&
           echo "async-profiler installed to /opt/async-profiler"
