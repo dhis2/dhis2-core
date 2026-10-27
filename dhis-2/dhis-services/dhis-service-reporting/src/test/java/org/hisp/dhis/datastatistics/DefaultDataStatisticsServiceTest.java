@@ -31,9 +31,9 @@ package org.hisp.dhis.datastatistics;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.times;
@@ -133,7 +133,9 @@ class DefaultDataStatisticsServiceTest {
     firstCaller.start();
     assertTrue(computing.await(10, SECONDS), "First caller never started computing");
     secondCaller.start();
-    awaitBlocked(secondCaller);
+    await("second caller waiting for the first caller's computation")
+        .atMost(10, SECONDS)
+        .until(() -> secondCaller.getState() == Thread.State.BLOCKED);
     release.countDown();
     firstCaller.join(10_000);
     secondCaller.join(10_000);
@@ -151,16 +153,5 @@ class DefaultDataStatisticsServiceTest {
     verify(dataValueService, times(DATA_VALUE_QUERIES_PER_COMPUTATION))
         .getDataValueCountLastUpdatedAfter(any(Date.class), anyBoolean());
     assertSame(first, second);
-  }
-
-  /** Waits until the given thread is blocked waiting for the computation lock. */
-  private static void awaitBlocked(Thread thread) throws InterruptedException {
-    long deadline = System.nanoTime() + SECONDS.toNanos(10);
-    while (thread.getState() != Thread.State.BLOCKED) {
-      if (System.nanoTime() > deadline) {
-        fail("Second caller did not wait for the first caller's computation");
-      }
-      Thread.sleep(10);
-    }
   }
 }
