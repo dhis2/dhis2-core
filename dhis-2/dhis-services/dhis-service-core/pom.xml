@@ -136,7 +136,6 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-handler</artifactId>
-      <version>${netty-all.version}</version>
     </dependency>
     <dependency>
       <groupId>com.nimbusds</groupId>
