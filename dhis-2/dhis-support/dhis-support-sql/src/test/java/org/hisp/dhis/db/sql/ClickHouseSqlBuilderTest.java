@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -494,6 +494,19 @@ class ClickHouseSqlBuilderTest {
         and engine not in ('View', 'Materialized View');""";
 
     assertEquals(expected, sqlBuilder.tableExists("immunization"));
+  }
+
+  @Test
+  void testTablesExist() {
+    String expected =
+        """
+        select t.name as table_name \
+        from system.tables t \
+        where t.database = 'default' \
+        and t.name in ('immunization', 'vaccination') \
+        and engine not in ('View', 'Materialized View');""";
+
+    assertEquals(expected, sqlBuilder.tablesExist(List.of("immunization", "vaccination")));
   }
 
   @Test
