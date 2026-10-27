@@ -124,20 +124,6 @@ class CsvBuilderTest {
   }
 
   @Test
-  void testFieldStartingWithSpace_Quoted() {
-    assertEquals(
-        "a\nhello\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {" hello"}))));
-  }
-
-  @Test
-  void testFieldStartingWithTab_Trimmed() {
-    assertEquals(
-        "a\nhello\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"\thello"}))));
-  }
-
-  @Test
   void testFieldWithLF_Quoted() {
     assertEquals(
         "a\n\"line1\nline2\"\n",
@@ -156,20 +142,6 @@ class CsvBuilderTest {
     assertEquals(
         "a,b\n\"\",2\n",
         csv(b -> b.toRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {"", 2}))));
-  }
-
-  /**
-   * Pins down current (questionable) behaviour — see the class Javadoc.
-   *
-   * <p>If this test starts failing, someone has changed the writer to quote trailing-whitespace
-   * fields. That would fix the read-back data loss and should replace this test with an assertion
-   * that expects quoting.
-   */
-  @Test
-  void testTrailingSpace_CurrentBehaviour_NotQuoted() {
-    assertEquals(
-        "a\nhello\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello "}))));
   }
 
   // ====== Custom delimiter ======
@@ -373,6 +345,36 @@ class CsvBuilderTest {
             b ->
                 b.without(CsvBuilder.Preference.SKIP_HEADERS)
                     .toRows(List.of("a"), Stream.<Object[]>of(new Object[] {1}))));
+  }
+
+  // ====== Trimming ======
+
+  @Test
+  void testFieldStartingWithSpace_Trimmed() {
+    assertEquals(
+        "a\nhello\n",
+        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {" hello"}))));
+  }
+
+  @Test
+  void testFieldStartingWithTab_Trimmed() {
+    assertEquals(
+        "a\nhello\n",
+        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"\thello"}))));
+  }
+
+  @Test
+  void testTrailingSpace_Trimmed() {
+    assertEquals(
+        "a\nhello\n",
+        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello "}))));
+  }
+
+  @Test
+  void testTrailingTab_Trimmed() {
+    assertEquals(
+        "a\nhello\n",
+        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello\t"}))));
   }
 
   // ====== Helpers ======

@@ -48,8 +48,12 @@ import org.hisp.dhis.util.DateUtils;
  * closing — typically via try-with-resources around {@link Appender#ofUTF8(java.io.OutputStream)}.
  * Output is UTF-8 regardless of platform default charset.
  *
- * <p>Format: LF record separators, {@code "} as quotes, embedded quotes doubled. A field is quoted
- * when it contains the delimiter, a quote, CR or LF.
+ * <p>Format: LF record separators, {@code "} as quotes, embedded quotes doubled. Every field is
+ * trimmed of leading and trailing whitespace before being written, matching the behaviour of the
+ * previous {@code com.csvreader.CsvWriter} that this class replaces. A field is quoted when it
+ * contains the delimiter, a quote, CR or LF. A {@code null} or empty first field is written as
+ * {@code ""} rather than as an empty cell, so a row whose first field is empty is not misread as
+ * the end of input by line-based CSV readers (including DHIS2's own {@link CSV}).
  *
  * @author Jan Bernitt
  */
