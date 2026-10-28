@@ -405,60 +405,71 @@ public class JsonGenerator {
     nothingWritten = false;
   }
 
-  private static void escapeYamlString(Appender out, CharSequence unescaped) {
-    if (unescaped.isEmpty()) return;
-    boolean quote = needsYamlQuoting(unescaped);
-    if (quote) out.appendAscii('"');
-    out.appendEncoded(unescaped);
-    if (quote) out.appendAscii('"');
+  private static final char[] HEX = "0123456789ABCDEF".toCharArray();
+
+  private static void escapeYamlString(Appender out, CharSequence text) {
+    // Always emit YAML strings as double-quoted. Plain scalars have too many
+    // context-dependent rules (case-insensitive true/false/null/yes/no/on/off/~,
+    // leading indicators -, ?, :, #, *, &, !, |, >, %, @, `, [, ], {, }, comma,
+    // ": " and " #" separators at any position, leading/trailing whitespace) and
+    // getting any of them wrong silently changes the loaded type or makes the
+    // document un-parseable. Quoting makes the emitted type unambiguously a string.
+    // This is a machine-readable OpenAPI document, so prioritise correctness over
+    // human readability.
+    out.appendAscii('"');
+    int len = text.length();
+    int runStart = 0;
+    for (int i = 0; i < len; i++) {
+      char c = text.charAt(i);
+      if (needsYamlEscape(c)) {
+        if (i > runStart) out.appendEncoded(text, runStart, i);
+        writeYamlEscape(out, c);
+        runStart = i + 1;
+      }
+    }
+    if (runStart < len) out.appendEncoded(text, runStart, len);
+    out.appendAscii('"');
   }
 
-  private static boolean needsYamlQuoting(CharSequence value) {
-    int len = value.length();
-    // YAML trims whitespace after the `: ` separator before applying block indicators,
-    // so `key:   - item` is interpreted identically to `key: - item`.
-    int start = 0;
-    while (start < len && value.charAt(start) <= ' ') start++;
-    if (start == len) return false;
+  /**
+   * Whether a character must be escaped inside a YAML double-quoted scalar. Only structural
+   * characters need escaping — non-ASCII text (including supplementary-plane codepoints) is valid
+   * as-is inside a double-quoted YAML string and is handled by the Appender's UTF-8 encoding.
+   */
+  private static boolean needsYamlEscape(char c) {
+    return c < 0x20
+        || c == 0x7F
+        || c == '\\'
+        || c == '"'
+        || c == '\u0085' // NEL, a YAML line terminator
+        || c == '\u2028' // LS, a YAML line terminator
+        || c == '\u2029'; // PS, a YAML line terminator
+  }
 
-    char first = value.charAt(start);
-
-    // Block structure indicators (must be followed by whitespace or end-of-value to be
-    // structural, but quoting `-foo` anyway is safe and unambiguous).
-    if (first == '-' || first == '?' || first == ':') return true;
-
-    // Reserved / structural indicators that are invalid at the start of a plain scalar.
-    if (first == '#'
-        || first == '*'
-        || first == '&'
-        || first == '!'
-        || first == '|'
-        || first == '>'
-        || first == '\''
-        || first == '"'
-        || first == '%'
-        || first == '@'
-        || first == '`'
-        || first == '['
-        || first == ']'
-        || first == '{'
-        || first == '}'
-        || first == ',') return true;
-
-    // Values that read as other YAML scalar types.
-    if (Character.isDigit(first)) return true;
-    if ("true".contentEquals(value) || "false".contentEquals(value) || "null".contentEquals(value))
-      return true;
-
-    if (len == 1) return false;
-    // Comment trigger: " #" starts a comment mid-scalar.
-    int i = indexOf('#', start, value);
-    if (i > 0 && value.charAt(i - 1) == ' ') return true;
-
-    // Mapping separator mid-value: "Note: x" contains ": " which YAML would interpret
-    // as a mapping separator.
-    i = indexOf(':', start, value);
-    return i >= 0 && i + 1 < len && value.charAt(i + 1) == ' ';
+  /**
+   * Writes the YAML double-quoted escape sequence for the given character. Uses the short escapes
+   * where they exist ({@code \n}, {@code \t}, {@code \r}, {@code \0}, {@code \\}, {@code \"}) for
+   * readability, and {@code \\uXXXX} for everything else. No {@code String} is allocated — all
+   * output goes through {@link Appender#appendAscii(char)} one byte at a time, which is the
+   * cheapest path a byte sink can offer.
+   */
+  private static void writeYamlEscape(Appender out, char c) {
+    switch (c) {
+      case '\\' -> out.appendAscii("\\\\");
+      case '"' -> out.appendAscii("\\\"");
+      case '\n' -> out.appendAscii("\\n");
+      case '\t' -> out.appendAscii("\\t");
+      case '\r' -> out.appendAscii("\\r");
+      case '\0' -> out.appendAscii("\\0");
+      default -> {
+        out.appendAscii('\\');
+        out.appendAscii('u');
+        out.appendAscii(HEX[(c >> 12) & 0xF]);
+        out.appendAscii(HEX[(c >> 8) & 0xF]);
+        out.appendAscii(HEX[(c >> 4) & 0xF]);
+        out.appendAscii(HEX[c & 0xF]);
+      }
+    }
   }
 
   private static void escapeYamlText(Appender out, CharSequence text, String contentIndent) {

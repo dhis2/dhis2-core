@@ -531,8 +531,7 @@ class JsonGeneratorTest {
   void testString_PlainNoQuotes_YAML() {
     // Plain string — no quoting required
     String yaml = generate(SMALL, YAML, g -> g.addStringMember("a", "hello"));
-    assertTrue(yaml.contains("a: hello"), yaml);
-    assertFalse(yaml.contains("\"hello\""), yaml);
+    assertEquals("  \"a\": \"hello\"\n", yaml);
   }
 
   @Test
@@ -617,8 +616,8 @@ class JsonGeneratorTest {
     String[] lines = yaml.split("\n");
     int outerIndent = -1, innerIndent = -1, contentIndent = -1;
     for (String line : lines) {
-      if (line.contains("outer:")) outerIndent = leadingSpaces(line);
-      if (line.contains("inner:")) innerIndent = leadingSpaces(line);
+      if (line.contains("\"outer\":")) outerIndent = leadingSpaces(line);
+      if (line.contains("\"inner\":")) innerIndent = leadingSpaces(line);
       if (line.contains("line1")) contentIndent = leadingSpaces(line);
     }
     assertTrue(outerIndent >= 0, yaml);
@@ -650,7 +649,7 @@ class JsonGeneratorTest {
     String yaml = generate(PRETTY_PRINT, YAML, g -> g.addStringMultilineMember("a", "single line"));
     assertEquals(
         """
-        a: |-
+        "a": |-
           single line
       """,
         yaml);
@@ -661,7 +660,7 @@ class JsonGeneratorTest {
     String yaml = generate(PRETTY_PRINT, YAML, g -> g.addStringMultilineMember("desc", "?"));
     assertEquals(
         """
-        desc: |-
+        "desc": |-
           ?
       """,
         yaml);
@@ -673,7 +672,7 @@ class JsonGeneratorTest {
         generate(PRETTY_PRINT, YAML, g -> g.addStringMultilineMember("desc", "line1\nline2"));
     assertEquals(
         """
-        desc: |-
+        "desc": |-
           line1
           line2
       """,
@@ -706,15 +705,15 @@ class JsonGeneratorTest {
             });
     assertEquals(
         """
-        info: |-
+        "info": |-
           ?
-        paths:\s
-          /api/foo:\s
-            description: |-
+        "paths":\s
+          "/api/foo":\s
+            "description": |-
               Note: x
-            tags:\s
+            "tags":\s
               - "- not-a-tag"
-              - regular
+              - "regular"
       """,
         yaml);
   }
@@ -755,6 +754,18 @@ class JsonGeneratorTest {
         firstElementIndent > arrIndent,
         "array element must be indented deeper than the key: " + json);
     assertEquals(arrIndent, closingBracketIndent, "closing ] must match the key indent: " + json);
+  }
+
+  @Test
+  void testYaml_EmptyString_QuotedAsEmptyString() {
+    String yaml = generate(PRETTY_PRINT, YAML, g -> g.addStringMember("k", ""));
+    assertEquals("  \"k\": \"\"\n", yaml);
+  }
+
+  @Test
+  void testJson_EmptyString_QuotedAsEmptyString() {
+    String json = generate(SMALL, JSON, g -> g.addStringMember("k", ""));
+    assertEquals("{\"k\":\"\"}", json);
   }
 
   /*
