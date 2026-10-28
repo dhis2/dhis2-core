@@ -58,6 +58,9 @@ public enum ConfigurationKey {
   /** SQL view write enabled, can be 'on', 'off'. (default: off) */
   SYSTEM_SQL_VIEW_WRITE_ENABLED("system.sql_view_write_enabled", Constants.OFF, false),
 
+  /** JasperReports report designs enabled, can be 'on', 'off'. (default: off) */
+  JASPER_REPORTS_ENABLED("jasper.reports.enabled", Constants.OFF, false),
+
   /**
    * Disable server-side program rule execution, can be 'on', 'off'. <br>
    * (default: on)
@@ -392,6 +395,17 @@ public enum ConfigurationKey {
   CHANGELOG_AGGREGATE("changelog.aggregate", Constants.ON),
 
   /**
+   * Maximum number of seconds a statement reading the aggregate data value change log ({@code
+   * /api/audits/dataValue}, {@code /api/dataEntry/dataValueContext}) may run for a user who is not
+   * a superuser. A statement that runs longer is cancelled and the request fails with 409. {@code
+   * 0} disables the timeout. (default: 30)
+   *
+   * <p>Set this below any timeout in front of DHIS2, such as a reverse proxy or load balancer: a
+   * client that gives up does not cancel the statement.
+   */
+  CHANGELOG_AGGREGATE_QUERY_TIMEOUT("changelog.aggregate.query.timeout", "30", false),
+
+  /**
    * Enable/disable changelog/history log of tracker data values. <br>
    * (default: on)
    */
@@ -580,7 +594,16 @@ public enum ConfigurationKey {
   SWITCH_USER_ALLOW_LISTED_IPS(
       "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false),
 
-  MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false);
+  MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
+
+  /**
+   * Analytics table SQL hooks feature. When off (default), create/update of {@code
+   * AnalyticsTableHook} metadata is rejected, also for superusers importing with {@code
+   * skipValidation}, and scheduled hook SQL is not executed. High risk when enabled: stored SQL
+   * runs as the DHIS2 database role, and every stored hook runs from the next table generation.
+   * When enabled, only superusers can create or update hooks. Values: on/off.
+   */
+  ANALYTICS_TABLE_HOOKS_ENABLED("analytics.table_hooks.enabled", Constants.OFF, false);
 
   private final String key;
 

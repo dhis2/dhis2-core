@@ -343,7 +343,9 @@ public class User extends BaseIdentifiableObject implements MetadataObject, User
       return false;
     }
 
-    return authorities.containsAll(group.getAuthorities());
+    Set<String> roleAuthorities = group.getAuthorities();
+    return roleAuthorities == null
+        || roleAuthorities.stream().allMatch(a -> a != null && authorities.contains(a));
   }
 
   /**

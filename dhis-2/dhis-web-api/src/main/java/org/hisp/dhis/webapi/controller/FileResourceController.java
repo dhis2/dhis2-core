@@ -85,13 +85,11 @@ public class FileResourceController {
 
   @GetMapping(value = "/{uid}")
   public FileResource getFileResource(
-      @PathVariable String uid, @RequestParam(required = false) ImageFileDimension dimension)
+      @PathVariable String uid,
+      @RequestParam(required = false) ImageFileDimension dimension,
+      @CurrentUser User currentUser)
       throws WebMessageException {
-    FileResource fileResource = fileResourceService.getFileResource(uid);
-
-    if (fileResource == null) {
-      throw new WebMessageException(notFound(FileResource.class, uid));
-    }
+    FileResource fileResource = getAccessibleFileResource(uid, currentUser, true);
 
     FileResourceUtils.setImageFileDimensions(
         fileResource, MoreObjects.firstNonNull(dimension, ImageFileDimension.ORIGINAL));
@@ -106,22 +104,20 @@ public class FileResourceController {
       @RequestParam(required = false) ImageFileDimension dimension,
       @CurrentUser User currentUser)
       throws WebMessageException {
-    FileResource fileResource = fileResourceService.getFileResource(uid);
+    FileResource fileResource = getAccessibleFileResource(uid, currentUser, false);
 
-    if (fileResource == null) {
-      throw new WebMessageException(notFound(FileResource.class, uid));
-    }
-
-    FileResourceUtils.setImageFileDimensions(
-        fileResource, MoreObjects.firstNonNull(dimension, ImageFileDimension.ORIGINAL));
-
-    if (!checkSharing(fileResource, currentUser)) {
+    // These domains are served through the owning object's API rather than this endpoint.
+    FileResourceDomain domain = fileResource.getDomain();
+    if (domain == FileResourceDomain.DATA_VALUE || domain == FileResourceDomain.PUSH_ANALYSIS) {
       throw new WebMessageException(
           unauthorized(
               "You don't have access to fileResource '"
                   + uid
                   + "' or this fileResource is not available from this endpoint"));
     }
+
+    FileResourceUtils.setImageFileDimensions(
+        fileResource, MoreObjects.firstNonNull(dimension, ImageFileDimension.ORIGINAL));
 
     response.setContentType(fileResource.getContentType());
 
@@ -180,27 +176,27 @@ public class FileResourceController {
     return webMessage;
   }
 
-  /**
-   * Checks is the current user has access to view the fileResource.
-   *
-   * @return true if user has access, false if not.
-   */
-  private boolean checkSharing(FileResource fileResource, User currentUser) {
-    /*
-     * Serving DATA_VALUE and PUSH_ANALYSIS fileResources from this endpoint
-     * doesn't make sense So we will return false if the fileResource have
-     * either of these domains.
-     */
-    FileResourceDomain domain = fileResource.getDomain();
-    if (domain == FileResourceDomain.DATA_VALUE || domain == FileResourceDomain.PUSH_ANALYSIS) {
-      return false;
+  /** Resolves the file resource and authorizes the requested kind of read. */
+  private FileResource getAccessibleFileResource(String uid, User currentUser, boolean metadata)
+      throws WebMessageException {
+    FileResource fileResource = fileResourceService.getFileResource(uid);
+
+    if (fileResource == null) {
+      throw new WebMessageException(notFound(FileResource.class, uid));
     }
 
-    if (domain == FileResourceDomain.USER_AVATAR) {
-      return currentUser.isAuthorized("F_USER_VIEW")
-          || fileResource.equals(currentUser.getAvatar());
+    boolean allowed =
+        metadata
+            ? fileResourceService.canReadMetadata(currentUser, fileResource)
+            : fileResourceService.canRead(currentUser, fileResource);
+    if (!allowed) {
+      throw new WebMessageException(
+          unauthorized(
+              "You don't have access to fileResource '"
+                  + uid
+                  + "' or this fileResource is not available from this endpoint"));
     }
 
-    return true;
+    return fileResource;
   }
 }

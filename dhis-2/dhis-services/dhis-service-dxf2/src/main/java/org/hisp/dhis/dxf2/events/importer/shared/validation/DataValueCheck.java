@@ -54,6 +54,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -72,21 +73,15 @@ public class DataValueCheck implements Checker {
   private static final Set<String> VALID_IMAGE_FORMATS =
       ImmutableSet.<String>builder().add(ImageIO.getReaderFormatNames()).build();
 
+  private static final String CLEAR_VALUE_MARKER = "null";
+
   @Override
   public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
-    final Set<DataValue> dataValues = event.getDataValues();
-    final ImportSummary importSummary = new ImportSummary();
+    final ImportSummary importSummary = checkDataValues(event, ctx);
     final User user = ctx.getImportOptions().getUser();
 
-    for (DataValue dataValue : dataValues) {
-      if (!checkHasValidDataElement(importSummary, ctx, dataValue, event)
-          || !checkSerializeToJson(importSummary, ctx, dataValue)) {
-        importSummary.setStatus(ImportStatus.ERROR);
-        importSummary.setReference(event.getUid());
-        importSummary.incrementIgnored();
-
-        return importSummary;
-      }
+    if (importSummary.hasConflicts()) {
+      return importSummary;
     }
 
     if (!importSummary.hasConflicts()) {
@@ -101,6 +96,39 @@ public class DataValueCheck implements Checker {
       importSummary.incrementIgnored();
     }
 
+    return importSummary;
+  }
+
+  private ImportSummary checkDataValues(ImmutableEvent event, WorkContext ctx) {
+    final ImportSummary importSummary = new ImportSummary();
+    for (DataValue dataValue : event.getDataValues()) {
+      if (!checkHasValidDataElement(importSummary, ctx, dataValue, event)
+          || !checkSerializeToJson(importSummary, ctx, dataValue)) {
+        return importSummary
+            .setStatus(ImportStatus.ERROR)
+            .setReference(event.getUid())
+            .incrementIgnored();
+      }
+    }
+    return importSummary;
+  }
+
+  public ImportSummary checkFileResourceDataValues(ImmutableEvent event, WorkContext ctx) {
+    final ImportSummary importSummary = new ImportSummary();
+    // on an existing event, EventDataValueAggregator treats "null" as a request to clear the value
+    boolean persistedEvent = ctx.getPersistedProgramStageInstanceMap().containsKey(event.getUid());
+    for (DataValue dataValue : event.getDataValues()) {
+      DataElement dataElement = ctx.getDataElementMap().get(dataValue.getDataElement());
+      if (dataElement != null
+          && dataElement.isFileType()
+          && !(persistedEvent && CLEAR_VALUE_MARKER.equals(dataValue.getValue()))
+          && !checkHasValidDataElement(importSummary, ctx, dataValue, event)) {
+        return importSummary
+            .setStatus(ImportStatus.ERROR)
+            .setReference(event.getUid())
+            .incrementIgnored();
+      }
+    }
     return importSummary;
   }
 
@@ -184,14 +212,18 @@ public class DataValueCheck implements Checker {
 
       if (dataElement.hasOptionSet()) {
         status = validateOptionDataValue(dataElement, dataValue);
-      } else if (ValueType.FILE_RESOURCE == dataElement.getValueType()) {
-        status = validateFileResourceDataValue(dataValue, ctx, event);
-      } else if (ValueType.IMAGE == dataElement.getValueType()) {
-        status = validateImageDataValue(dataValue, ctx, event);
-      } else if (ValueType.ORGANISATION_UNIT == dataElement.getValueType()) {
-        status = validateOrgUnitDataValue(dataValue, ctx);
-      } else {
-        status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
+      }
+
+      if (status == null) {
+        if (ValueType.FILE_RESOURCE == dataElement.getValueType()) {
+          status = validateFileResourceDataValue(dataValue, ctx, event);
+        } else if (ValueType.IMAGE == dataElement.getValueType()) {
+          status = validateImageDataValue(dataValue, ctx, event);
+        } else if (ValueType.ORGANISATION_UNIT == dataElement.getValueType()) {
+          status = validateOrgUnitDataValue(dataValue, ctx);
+        } else if (!dataElement.hasOptionSet()) {
+          status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
+        }
       }
 
       if (status != null) {
@@ -231,7 +263,7 @@ public class DataValueCheck implements Checker {
       return "Value is not a valid file resource: " + value;
     }
 
-    return validateFileResourceOwnership(fileResource, event, ctx);
+    return validateFileResourceOwnership(fileResource, dataValue, event, ctx);
   }
 
   private String validateImageDataValue(
@@ -249,20 +281,33 @@ public class DataValueCheck implements Checker {
       return "Value is not a valid image file resource: " + value;
     }
 
-    return validateFileResourceOwnership(fileResource, event, ctx);
+    return validateFileResourceOwnership(fileResource, dataValue, event, ctx);
   }
 
   private String validateFileResourceOwnership(
-      FileResource fileResource, ImmutableEvent event, WorkContext ctx) {
-    if (fileResource.getFileResourceOwner() != null
-        && !fileResource.getFileResourceOwner().equals(event.getEvent())) {
+      FileResource fileResource, DataValue dataValue, ImmutableEvent event, WorkContext ctx) {
+    ProgramStageInstance persistedEvent =
+        ctx.getPersistedProgramStageInstanceMap().get(event.getUid());
+    String dataElementUid = ctx.getDataElementMap().get(dataValue.getDataElement()).getUid();
+    if (persistedEvent != null
+        && persistedEvent.getEventDataValues().stream()
+            .anyMatch(
+                saved ->
+                    dataElementUid.equals(saved.getDataElement())
+                        && dataValue.getValue().equals(saved.getValue()))) {
+      return null;
+    }
+
+    if (fileResource.getDomain() == FileResourceDomain.DATA_VALUE && fileResource.isAssigned()) {
       return "File resource is assigned to another item";
     }
 
-    if (fileResource.getFileResourceOwner() == null
-        && ctx.getImportOptions().getImportStrategy().isCreate()
-        && fileResource.isAssigned()) {
-      return "File resource is assigned to another item";
+    if (!ctx.getServiceDelegator()
+        .getFileResourceService()
+        .canAssign(ctx.getImportOptions().getUser(), fileResource, FileResourceDomain.DATA_VALUE)) {
+      return String.format(
+          "File resource with uid '%s' must be an unassigned DATA_VALUE file resource uploaded by the importing user",
+          fileResource.getUid());
     }
 
     return null;

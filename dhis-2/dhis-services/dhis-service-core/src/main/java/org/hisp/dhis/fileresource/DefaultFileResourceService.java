@@ -32,19 +32,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.document.Document;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.fileresource.FileResourceStore.DataValueFileReference;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
@@ -74,6 +82,10 @@ public class DefaultFileResourceService implements FileResourceService {
 
   private final ApplicationEventPublisher fileEventPublisher;
 
+  private final AclService aclService;
+
+  private final IdentifiableObjectManager idObjectManager;
+
   // -------------------------------------------------------------------------
   // FileResourceService implementation
   // -------------------------------------------------------------------------
@@ -100,6 +112,103 @@ public class DefaultFileResourceService implements FileResourceService {
         .stream()
         .filter(IS_ORPHAN_PREDICATE)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canRead(@Nonnull User user, @Nonnull FileResource fileResource) {
+    FileResourceDomain domain = fileResource.getDomain();
+    if (domain == null) {
+      return false;
+    }
+    if (user.isSuper() || fileResource.isCreatedBy(user)) {
+      return true;
+    }
+    String uid = fileResource.getUid();
+    switch (domain) {
+      case ICON:
+      case ORG_UNIT:
+        return true;
+      case USER_AVATAR:
+        return user.isAuthorized("F_USER_VIEW")
+            || fileResourceStore.findUsersByAvatarFileResource(uid).contains(user.getUid());
+      case MESSAGE_ATTACHMENT:
+        return fileResourceStore.findMessageAttachmentParticipants(uid).contains(user.getUid());
+      case DOCUMENT:
+        return canReadAnyDocument(user, fileResourceStore.findDocumentsByFileResource(uid));
+      case JOB_DATA:
+        return user.isAuthorized("F_SCHEDULING_ADMIN");
+      case DATA_VALUE:
+      case PUSH_ANALYSIS:
+      default:
+        return false;
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canReadMetadata(@Nonnull User user, @Nonnull FileResource fileResource) {
+    return fileResource.getDomain() == FileResourceDomain.DATA_VALUE || canRead(user, fileResource);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canReadDataValueFile(@Nonnull User user, @Nonnull FileResource fileResource) {
+    if (fileResource.getDomain() != FileResourceDomain.DATA_VALUE) {
+      return false;
+    }
+    if (canRead(user, fileResource)) {
+      return true;
+    }
+
+    Set<String> hierarchy = new HashSet<>();
+    user.getOrganisationUnits().forEach(orgUnit -> hierarchy.add(orgUnit.getUid()));
+    user.getDataViewOrganisationUnits().forEach(orgUnit -> hierarchy.add(orgUnit.getUid()));
+    List<DataValueFileReference> references =
+        fileResourceStore.findDataValueReferencesByFileResourceValue(fileResource.getUid()).stream()
+            .filter(ref -> isInHierarchy(ref.getOrgUnitPath(), hierarchy))
+            .collect(Collectors.toList());
+    if (references.isEmpty()) {
+      return false;
+    }
+
+    Set<String> comboUids = new HashSet<>();
+    for (DataValueFileReference ref : references) {
+      comboUids.add(ref.getCategoryOptionCombo());
+      comboUids.add(ref.getAttributeOptionCombo());
+    }
+    Set<String> readableCombos =
+        idObjectManager.getNoAcl(CategoryOptionCombo.class, comboUids).stream()
+            .filter(combo -> aclService.canDataRead(user, combo))
+            .map(CategoryOptionCombo::getUid)
+            .collect(Collectors.toSet());
+    return references.stream()
+        .anyMatch(
+            ref ->
+                readableCombos.contains(ref.getCategoryOptionCombo())
+                    && readableCombos.contains(ref.getAttributeOptionCombo()));
+  }
+
+  private static boolean isInHierarchy(String orgUnitPath, Set<String> orgUnitUids) {
+    for (String uid : orgUnitPath.split("/")) {
+      if (orgUnitUids.contains(uid)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean canAssign(
+      @Nonnull User user, @Nonnull FileResource fileResource, @Nonnull FileResourceDomain domain) {
+    return fileResource.getDomain() == domain
+        && !fileResource.isAssigned()
+        && (user.isSuper() || fileResource.isCreatedBy(user));
+  }
+
+  private boolean canReadAnyDocument(User user, List<String> documentUids) {
+    return idObjectManager.getNoAcl(Document.class, documentUids).stream()
+        .anyMatch(document -> aclService.canRead(user, document));
   }
 
   @Override

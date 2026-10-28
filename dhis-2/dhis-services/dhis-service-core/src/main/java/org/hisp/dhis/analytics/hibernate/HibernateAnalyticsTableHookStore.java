@@ -35,6 +35,8 @@ import org.hisp.dhis.analytics.AnalyticsTableHookStore;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -50,12 +52,16 @@ import org.springframework.stereotype.Repository;
 public class HibernateAnalyticsTableHookStore
     extends HibernateIdentifiableObjectStore<AnalyticsTableHook>
     implements AnalyticsTableHookStore {
+
+  private final DhisConfigurationProvider config;
+
   public HibernateAnalyticsTableHookStore(
       SessionFactory sessionFactory,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
-      AclService aclService) {
+      AclService aclService,
+      DhisConfigurationProvider config) {
     super(
         sessionFactory,
         jdbcTemplate,
@@ -64,6 +70,7 @@ public class HibernateAnalyticsTableHookStore
         currentUserService,
         aclService,
         false);
+    this.config = config;
   }
 
   @Override
@@ -95,7 +102,17 @@ public class HibernateAnalyticsTableHookStore
   }
 
   @Override
-  public void executeAnalyticsTableSqlHooks(List<AnalyticsTableHook> hooks) {
+  public int executeAnalyticsTableSqlHooks(List<AnalyticsTableHook> hooks) {
+    if (config.isDisabled(ConfigurationKey.ANALYTICS_TABLE_HOOKS_ENABLED)) {
+      for (AnalyticsTableHook hook : hooks) {
+        log.warn(
+            "Skipping analytics table hook '{}', '{}' - {} is off",
+            hook.getUid(),
+            hook.getName(),
+            ConfigurationKey.ANALYTICS_TABLE_HOOKS_ENABLED.getKey());
+      }
+      return 0;
+    }
     for (AnalyticsTableHook hook : hooks) {
       log.info(
           String.format(
@@ -103,5 +120,6 @@ public class HibernateAnalyticsTableHookStore
 
       jdbcTemplate.execute(hook.getSql());
     }
+    return hooks.size();
   }
 }

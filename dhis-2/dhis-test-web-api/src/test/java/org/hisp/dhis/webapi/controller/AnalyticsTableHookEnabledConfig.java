@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.config;
+package org.hisp.dhis.webapi.controller;
 
 import java.util.Properties;
-import org.testcontainers.containers.MinIOContainer;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 
 /**
- * Config provider for MinIO store usage. It extends the Postgres config to make use of that setup.
+ * Enables analytics table hooks for controller tests that exercise create/update.
  *
- * @author david mackessy
+ * @author Morten Svanæs
  */
-public class MinIOConfigurationProvider extends PostgresDhisConfigurationProvider {
-  private static final String S3_URL;
-  private static final String MINIO_USER = "testuser";
-  private static final String MINIO_PASSWORD = "testpassword";
-  private static final MinIOContainer MIN_IO_CONTAINER;
+@Configuration
+@Profile("analytics-table-hooks-enabled-test")
+public class AnalyticsTableHookEnabledConfig {
 
-  static {
-    MIN_IO_CONTAINER =
-        new MinIOContainer("minio/minio:RELEASE.2024-07-16T23-46-41Z")
-            .withUserName(MINIO_USER)
-            .withPassword(MINIO_PASSWORD);
-    MIN_IO_CONTAINER.start();
-    S3_URL = MIN_IO_CONTAINER.getS3URL();
-  }
-
-  public MinIOConfigurationProvider(Properties dhisConfig) {
-    setMinIOProperties(dhisConfig);
-  }
-
-  public void setMinIOProperties(Properties properties) {
-    properties.put("filestore.provider", "s3");
-    properties.put("filestore.container", "dhis2");
-    properties.put("filestore.location", "eu-west-1");
-    properties.put("filestore.endpoint", S3_URL);
-    properties.put("filestore.identity", MINIO_USER);
-    properties.put("filestore.secret", MINIO_PASSWORD);
-    this.properties = properties;
+  @Bean
+  @Primary
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
+    Properties properties = new Properties();
+    properties.put(ConfigurationKey.ANALYTICS_TABLE_HOOKS_ENABLED.getKey(), "on");
+    provider.addProperties(properties);
+    return provider;
   }
 }

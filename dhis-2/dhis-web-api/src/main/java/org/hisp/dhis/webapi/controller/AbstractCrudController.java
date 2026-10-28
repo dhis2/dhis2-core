@@ -1124,7 +1124,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return false;
   }
 
-  protected Patch diff(HttpServletRequest request) throws IOException, BadRequestException {
+  protected Patch diff(HttpServletRequest request)
+      throws IOException, BadRequestException, ConflictException {
     ObjectMapper mapper = isJson(request) ? jsonMapper : isXml(request) ? xmlMapper : null;
     if (mapper == null) {
       throw new BadRequestException("Unknown payload format.");

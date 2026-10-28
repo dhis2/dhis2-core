@@ -63,6 +63,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.DataValueCheck;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -100,6 +101,8 @@ public class EventManager {
 
   @Nonnull private final CurrentUserService currentUserService;
 
+  @Nonnull private final DataValueCheck dataValueCheck;
+
   private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";
 
   public ImportSummary updateEventDataValues(
@@ -108,6 +111,12 @@ public class EventManager {
     final ImportSummaries importSummaries = new ImportSummaries();
 
     executorsByPhase.get(EventProcessorPhase.UPDATE_PRE).execute(context, List.of(event));
+
+    ImportSummary validation =
+        dataValueCheck.checkFileResourceDataValues(new ImmutableEvent(event), context);
+    if (validation.hasConflicts()) {
+      return validation;
+    }
 
     for (EventDataValue de : eventDataValues) {
       eventPersistenceService.updateEventDataValues(de, event, context);
@@ -154,6 +163,12 @@ public class EventManager {
 
     if (ImportStrategyUtils.isInsert(workContext.getImportOptions().getImportStrategy())) {
       importSummaries.addImportSummaries(run(workContext, validEvents, checkersRunOnInsert));
+    } else {
+      importSummaries.addImportSummaries(
+          run(
+              workContext,
+              validEvents,
+              List.<Checker>of(dataValueCheck::checkFileResourceDataValues)));
     }
 
     // collect the UIDs of events that did not pass validation
@@ -181,7 +196,7 @@ public class EventManager {
           // save the entire batch in one transaction
           eventPersistenceService.save(workContext, eventsToInsert);
         } catch (Exception e) {
-          handleFailure(workContext, importSummaries, events, IMPORT_ERROR_STRING, CREATE);
+          handleFailure(workContext, importSummaries, eventsToInsert, IMPORT_ERROR_STRING, CREATE);
         }
       }
 
@@ -229,6 +244,9 @@ public class EventManager {
 
     if (ImportStrategyUtils.isUpdate(workContext.getImportOptions().getImportStrategy())) {
       importSummaries.addImportSummaries(run(workContext, events, checkersRunOnUpdate));
+    } else {
+      importSummaries.addImportSummaries(
+          run(workContext, events, List.<Checker>of(dataValueCheck::checkFileResourceDataValues)));
     }
 
     // collect the UIDs of events that did not pass validation
@@ -243,16 +261,16 @@ public class EventManager {
     }
 
     if (!workContext.getImportOptions().isDryRun()) {
+      List<Event> eventsToUpdate =
+          eventValidationFailedUids.isEmpty()
+              ? events
+              : events.stream()
+                  .filter(e -> !eventValidationFailedUids.contains(e.getEvent()))
+                  .collect(toList());
       try {
-        eventPersistenceService.update(
-            workContext,
-            eventValidationFailedUids.isEmpty()
-                ? events
-                : events.stream()
-                    .filter(e -> !eventValidationFailedUids.contains(e.getEvent()))
-                    .collect(toList()));
+        eventPersistenceService.update(workContext, eventsToUpdate);
       } catch (Exception e) {
-        handleFailure(workContext, importSummaries, events, IMPORT_ERROR_STRING, UPDATE);
+        handleFailure(workContext, importSummaries, eventsToUpdate, IMPORT_ERROR_STRING, UPDATE);
         log.error("Failed to update events: ", e);
       }
 

@@ -39,6 +39,7 @@ public enum ErrorCode {
   E1004("API query cannot be performed"),
   E1005("API query object not found"),
   E1006("API request not permitted for the current user"),
+  E1007("Feature is disabled by configuration, requires `{0} = on` in dhis.conf"),
 
   /* Basic metadata */
   E1100("Data element not found or not accessible: `{0}`"),
@@ -137,6 +138,11 @@ public enum ErrorCode {
   E2042("Min value must be specified"),
   E2043("Max value must be specified"),
   E2044("Max value must be greater than min value"),
+  E2050("User is not allowed to read data of the data value: `{0}`, `{1}`, `{2}`"),
+  E2051(
+      "An unpaged data value change log returns at most `{0}` entries to a user who is not a superuser, use paging"),
+  E2052(
+      "Data value change log pages end at entry `{0}` for a user who is not a superuser, use filters to read older entries"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
@@ -192,6 +198,7 @@ public enum ErrorCode {
   E3040("Could not resolve JwsAlgorithm from the JWK. Can not write a valid JWKSet"),
   E3041("User `{0}` is not allowed to change a user having the ALL authority"),
   E3042("Too many failed disable attempts. Please try again later"),
+  E3053("User `{0}` is not allowed to replicate a user lacking their dimension constraints"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
@@ -268,6 +275,8 @@ public enum ErrorCode {
   E4090("ProgramRuleVariable `{0}` is missing a source type"),
   E4091("ProgramRuleVariable `{0}` with source type `{1}` requires a program stage"),
   E4092("ProgramRuleVariable `{0}` with source type `{1}` requires a value type"),
+  E4094(
+      "Property `{0}` must refer to an unassigned `{1}` file resource uploaded by the current user, but was given `{2}`"),
 
   /* Metadata Validation (continued) */
   E4060("Object could not be deleted: {0}"),

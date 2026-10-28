@@ -28,9 +28,12 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.query.Order;
@@ -59,6 +62,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping(value = UserRoleSchemaDescriptor.API_ENDPOINT)
 public class UserRoleController extends AbstractCrudController<UserRole> {
   @Autowired private UserService userService;
+
+  private static final String LEGACY_PATCH_NOT_SUPPORTED =
+      "User roles can only be updated with PUT, JSON Patch or metadata import";
 
   @Override
   protected List<UserRole> getEntityList(
@@ -96,14 +102,7 @@ public class UserRoleController extends AbstractCrudController<UserRole> {
       throw new NotFoundException("User does not exist: " + pvUserId);
     }
 
-    if (!aclService.canUpdate(currentUser, userRole)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
-
-    if (!user.getUserRoles().contains(userRole)) {
-      user.getUserRoles().add(userRole);
-      userService.updateUser(user);
-    }
+    userService.addUserToRole(userRole, user, currentUser);
   }
 
   @DeleteMapping("/{id}/users/{userId}")
@@ -126,13 +125,35 @@ public class UserRoleController extends AbstractCrudController<UserRole> {
       throw new NotFoundException("User does not exist: " + pvUserId);
     }
 
-    if (!aclService.canUpdate(currentUser, userRole)) {
-      throw new ForbiddenException("You don't have the proper permissions to delete this object.");
-    }
+    userService.removeUserFromRole(userRole, user, currentUser);
+  }
 
-    if (user.getUserRoles().contains(userRole)) {
-      user.getUserRoles().remove(userRole);
-      userService.updateUser(user);
-    }
+  /**
+   * The legacy (non JSON Patch) PATCH writes straight to the store and skips the metadata import,
+   * and with it the checks for user roles in {@code SecurityCheck}.
+   */
+  @Override
+  public void partialUpdateObject(
+      String pvUid,
+      Map<String, String> rpParameters,
+      @CurrentUser User currentUser,
+      HttpServletRequest request)
+      throws ConflictException {
+    throw new ConflictException(LEGACY_PATCH_NOT_SUPPORTED);
+  }
+
+  /**
+   * The legacy property PATCH sets the property on the persistent object before the metadata import
+   * runs, so the change can be flushed even when the import rejects it.
+   */
+  @Override
+  public void updateObjectProperty(
+      String pvUid,
+      String pvProperty,
+      Map<String, String> rpParameters,
+      @CurrentUser User currentUser,
+      HttpServletRequest request)
+      throws ConflictException {
+    throw new ConflictException(LEGACY_PATCH_NOT_SUPPORTED);
   }
 }

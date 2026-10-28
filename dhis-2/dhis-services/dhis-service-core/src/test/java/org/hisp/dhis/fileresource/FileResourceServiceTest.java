@@ -39,10 +39,12 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
+import org.hisp.dhis.security.acl.AclService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,6 +70,10 @@ class FileResourceServiceTest {
 
   @Mock private Session session;
 
+  @Mock private AclService aclService;
+
+  @Mock private IdentifiableObjectManager idObjectManager;
+
   @Captor private ArgumentCaptor<FileSavedEvent> fileSavedEventCaptor;
 
   @Captor private ArgumentCaptor<ImageFileSavedEvent> imageFileSavedEventCaptor;
@@ -80,7 +86,12 @@ class FileResourceServiceTest {
   public void setUp() {
     subject =
         new DefaultFileResourceService(
-            fileResourceStore, sessionFactory, fileResourceContentStore, fileEventPublisher);
+            fileResourceStore,
+            sessionFactory,
+            fileResourceContentStore,
+            fileEventPublisher,
+            aclService,
+            idObjectManager);
   }
 
   @Test

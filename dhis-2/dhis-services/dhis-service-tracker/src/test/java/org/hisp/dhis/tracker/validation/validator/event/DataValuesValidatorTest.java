@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.validator.event;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertNoErrors;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -42,6 +43,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -58,12 +60,14 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -487,9 +491,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
-
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1084);
@@ -751,90 +752,140 @@ class DataValuesValidatorTest {
 
   @Test
   void failValidationWhenFileResourceIsAlreadyAssigned() {
-    DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
-        .thenReturn(validDataElement);
-
-    ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
-        .thenReturn(programStage);
-
-    FileResource fileResource = new FileResource();
-    fileResource.setAssigned(true);
-    DataValue validDataValue = dataValue("QX4LpiTZmUH");
-    when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
-    Event event =
-        Event.builder()
-            .event(CodeGenerator.generateUid())
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
-
+    FileResource fileResource = dataValueFile(true);
+    Event event = fileEvent(CodeGenerator.generateUid(), fileResource, ValueType.FILE_RESOURCE);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
+
+    validator.validate(reporter, bundle, event);
+    assertHasError(reporter, event, ValidationCode.E1009);
+
+    // An assigned resource without a recorded owner is not available for a new binding.
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    reporter = new Reporter(idSchemes);
+    validator.validate(reporter, bundle, event);
+    assertHasError(reporter, event, ValidationCode.E1009);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = ValueType.class,
+      names = {"FILE_RESOURCE", "IMAGE"})
+  void successValidationWhenEventAlreadyHoldsAssignedFileResource(ValueType valueType) {
+    FileResource fileResource = dataValueFile(true);
+    String uid = CodeGenerator.generateUid();
+    Event event = fileEvent(uid, fileResource, valueType);
+    org.hisp.dhis.program.ProgramStageInstance savedEvent =
+        new org.hisp.dhis.program.ProgramStageInstance();
+    savedEvent.setEventDataValues(
+        Set.of(new EventDataValue(dataElementUid, fileResource.getUid())));
+    when(preheat.getEvent(uid)).thenReturn(savedEvent);
+
+    validator.validate(reporter, bundle, event);
+
+    assertNoErrors(reporter);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = ValueType.class,
+      names = {"FILE_RESOURCE", "IMAGE"})
+  void failValidationWhenOnlyAnotherDataElementOfTheEventHoldsFileResource(ValueType valueType) {
+    FileResource fileResource = dataValueFile(true);
+    fileResource.setFileResourceOwner(CodeGenerator.generateUid());
+    String uid = CodeGenerator.generateUid();
+    Event event = fileEvent(uid, fileResource, valueType);
+    org.hisp.dhis.program.ProgramStageInstance savedEvent =
+        new org.hisp.dhis.program.ProgramStageInstance();
+    savedEvent.setEventDataValues(Set.of(new EventDataValue("otherField", fileResource.getUid())));
+    when(preheat.getEvent(uid)).thenReturn(savedEvent);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
 
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1009);
-
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
-
-    reporter = new Reporter(idSchemes);
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
   }
 
   @Test
   void validateFileResourceOwner() {
-    DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
-        .thenReturn(validDataElement);
-
-    ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
-        .thenReturn(programStage);
-
-    FileResource fileResource = new FileResource();
-    fileResource.setAssigned(true);
-    DataValue validDataValue = dataValue("QX4LpiTZmUH");
-    when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
-    Event event =
-        Event.builder()
-            .event(CodeGenerator.generateUid())
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
-
+    FileResource fileResource = dataValueFile(true);
+    Event event = fileEvent(CodeGenerator.generateUid(), fileResource, ValueType.FILE_RESOURCE);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
     validator.validate(reporter, bundle, event);
-
     assertHasError(reporter, event, ValidationCode.E1009);
 
-    event.setEvent("XYZ");
-    fileResource.setFileResourceOwner("ABC");
-
+    fileResource.setFileResourceOwner(CodeGenerator.generateUid());
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
-
     reporter = new Reporter(idSchemes);
+    validator.validate(reporter, bundle, event);
+    assertHasError(reporter, event, ValidationCode.E1009);
+
+    fileResource.setFileResourceOwner(event.getUid());
+    reporter = new Reporter(idSchemes);
+    validator.validate(reporter, bundle, event);
+    assertNoErrors(reporter);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = ValueType.class,
+      names = {"FILE_RESOURCE", "IMAGE"})
+  void failValidationWhenFileResourceIsOfAnotherDomain(ValueType valueType) {
+    FileResource fileResource = dataValueFile(false);
+    fileResource.setDomain(FileResourceDomain.DOCUMENT);
+    Event event = fileEvent(CodeGenerator.generateUid(), fileResource, valueType);
 
     validator.validate(reporter, bundle, event);
 
-    assertHasError(reporter, event, ValidationCode.E1009);
+    assertHasError(reporter, event, ValidationCode.E1004);
+  }
 
-    event.setEvent("ABC");
-    fileResource.setFileResourceOwner("ABC");
-
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
-
-    reporter = new Reporter(idSchemes);
+  @ParameterizedTest
+  @EnumSource(
+      value = ValueType.class,
+      names = {"FILE_RESOURCE", "IMAGE"})
+  void failValidationWhenFileResourceWasUploadedByAnotherUser(ValueType valueType) {
+    FileResource fileResource = dataValueFile(false);
+    fileResource.setCreatedBy(user(1L));
+    Event event = fileEvent(CodeGenerator.generateUid(), fileResource, valueType);
+    User importer = mock(User.class);
+    when(importer.getId()).thenReturn(2L);
+    when(bundle.getUser()).thenReturn(importer);
 
     validator.validate(reporter, bundle, event);
 
-    assertIsEmpty(reporter.getErrors());
+    assertHasError(reporter, event, ValidationCode.E1004);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = ValueType.class,
+      names = {"FILE_RESOURCE", "IMAGE"})
+  void successValidationWhenFileResourceWasUploadedByImporter(ValueType valueType) {
+    FileResource fileResource = dataValueFile(false);
+    fileResource.setCreatedBy(user(1L));
+    Event event = fileEvent(CodeGenerator.generateUid(), fileResource, valueType);
+    User importer = mock(User.class);
+    when(importer.getId()).thenReturn(1L);
+    when(bundle.getUser()).thenReturn(importer);
+
+    validator.validate(reporter, bundle, event);
+
+    assertNoErrors(reporter);
+  }
+
+  @Test
+  void successValidationWhenSuperuserImportsFileResourceOfAnotherUser() {
+    FileResource fileResource = dataValueFile(false);
+    fileResource.setCreatedBy(user(1L));
+    Event event = fileEvent(CodeGenerator.generateUid(), fileResource, ValueType.FILE_RESOURCE);
+    User importer = mock(User.class);
+    when(importer.isSuper()).thenReturn(true);
+    when(bundle.getUser()).thenReturn(importer);
+
+    validator.validate(reporter, bundle, event);
+
+    assertNoErrors(reporter);
   }
 
   @Test
@@ -1021,6 +1072,36 @@ class DataValuesValidatorTest {
     event.setUid(uid);
     event.setStatus(status);
     return event;
+  }
+
+  private FileResource dataValueFile(boolean assigned) {
+    FileResource fileResource = new FileResource();
+    fileResource.setUid("QX4LpiTZmUH");
+    fileResource.setDomain(FileResourceDomain.DATA_VALUE);
+    fileResource.setAssigned(assigned);
+    return fileResource;
+  }
+
+  private Event fileEvent(String uid, FileResource fileResource, ValueType valueType) {
+    DataElement fileDataElement = dataElement(valueType);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(fileDataElement);
+    ProgramStage programStage = programStage(fileDataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+    when(preheat.get(FileResource.class, fileResource.getUid())).thenReturn(fileResource);
+    return Event.builder()
+        .event(uid)
+        .programStage(idSchemes.toMetadataIdentifier(programStage))
+        .status(EventStatus.ACTIVE)
+        .dataValues(Set.of(dataValue(fileResource.getUid())))
+        .build();
+  }
+
+  private static User user(long id) {
+    User user = new User();
+    user.setId(id);
+    return user;
   }
 
   private DataElement dataElement(ValueType type) {

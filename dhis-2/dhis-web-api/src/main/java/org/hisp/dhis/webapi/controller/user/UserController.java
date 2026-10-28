@@ -66,6 +66,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -76,6 +77,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -88,11 +90,14 @@ import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.patch.Mutation;
+import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.SecurityService;
@@ -442,6 +447,8 @@ public class UserController extends AbstractCrudController<User> {
 
     validateCreateUser(existingUser, currentUser);
 
+    userService.checkCanReplicateUser(existingUser, currentUser);
+
     Map<String, String> auth = renderService.fromJson(request.getInputStream(), Map.class);
 
     String username = StringUtils.trimToNull(auth != null ? auth.get("username") : null);
@@ -673,6 +680,96 @@ public class UserController extends AbstractCrudController<User> {
   // -------------------------------------------------------------------------
   // PATCH
   // -------------------------------------------------------------------------
+
+  @Override
+  public void partialUpdateObject(
+      @PathVariable("uid") String pvUid,
+      @RequestParam Map<String, String> rpParameters,
+      @CurrentUser User currentUser,
+      HttpServletRequest request)
+      throws NotFoundException,
+          ForbiddenException,
+          BadRequestException,
+          ConflictException,
+          IOException,
+          JsonPatchException {
+    checkLegacyPatchUser(pvUid, currentUser);
+    super.partialUpdateObject(pvUid, rpParameters, currentUser, request);
+  }
+
+  /**
+   * The legacy PATCH routes change the persistent user before (property route) or without (whole
+   * object route) the checks of the user import, so the rights over the user are checked first: a
+   * user having the ALL authority can only be changed by such a user (E3041), and any other user
+   * only by someone allowed to modify it (see {@code UserService#checkCanChangeUser}).
+   */
+  private void checkLegacyPatchUser(String uid, User currentUser)
+      throws NotFoundException, ForbiddenException {
+    User target = userService.getUser(uid);
+    if (target == null) {
+      throw new NotFoundException(User.class, uid);
+    }
+    userService.checkCanChangeUser(target, currentUser);
+  }
+
+  /**
+   * The legacy whole object PATCH writes straight to the store, without the checks of the user
+   * import. It refuses arrays, but a single UID given for a collection of a user (roles, groups,
+   * organisation units, dimension constraints) is loaded and added by the patch, so such changes
+   * are rejected, as on the legacy property PATCH.
+   */
+  @Override
+  protected Patch diff(HttpServletRequest request)
+      throws IOException, BadRequestException, ConflictException {
+    Patch patch = super.diff(request);
+    for (Mutation mutation : patch.getMutations()) {
+      String name = mutation.getPath().split("\\.")[0];
+      Property property = getSchema().getProperty(name);
+      if (property != null
+          && property.isCollection()
+          && property.isIdentifiableObject()
+          && mutation.getValue() != null) {
+        throw legacyPatchOfCollectionRejected(name);
+      }
+    }
+    return patch;
+  }
+
+  private static ConflictException legacyPatchOfCollectionRejected(String property) {
+    return new ConflictException(
+        "The "
+            + property
+            + " of a user can only be changed with PUT, JSON Patch, metadata import or the"
+            + " collection endpoints");
+  }
+
+  /**
+   * The legacy property PATCH sets the property on the persistent user before the metadata import
+   * runs, so a change can be flushed even when the import rejects it. The collections of a user
+   * (roles, groups, organisation units, dimension constraints) are therefore not changed this way,
+   * so that the checks of the user import and of {@code UserService#checkCanChangeUserCollection}
+   * always apply to them.
+   */
+  @Override
+  public void updateObjectProperty(
+      @PathVariable("uid") String pvUid,
+      @PathVariable("property") String pvProperty,
+      @RequestParam Map<String, String> rpParameters,
+      @CurrentUser User currentUser,
+      HttpServletRequest request)
+      throws NotFoundException,
+          ConflictException,
+          ForbiddenException,
+          BadRequestException,
+          IOException,
+          JsonPatchException {
+    checkLegacyPatchUser(pvUid, currentUser);
+    Property property = getSchema().getProperty(pvProperty);
+    if (property != null && property.isCollection() && property.isIdentifiableObject()) {
+      throw legacyPatchOfCollectionRejected(pvProperty);
+    }
+    super.updateObjectProperty(pvUid, pvProperty, rpParameters, currentUser, request);
+  }
 
   @Override
   protected void prePatchEntity(User oldEntity, User newEntity) {

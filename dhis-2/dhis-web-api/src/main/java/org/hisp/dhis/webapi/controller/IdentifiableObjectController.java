@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -56,7 +57,9 @@ public class IdentifiableObjectController extends AbstractCrudController<Identif
   public List<IdentifiableObject> getEntity(String uid, WebOptions options) {
     Optional<IdentifiableObject> object = (Optional<IdentifiableObject>) manager.find(uid);
 
-    return object.isPresent() ? List.of(object.get()) : List.of();
+    return object.isPresent() && !(object.get() instanceof FileResource)
+        ? List.of(object.get())
+        : List.of();
   }
 
   @Override

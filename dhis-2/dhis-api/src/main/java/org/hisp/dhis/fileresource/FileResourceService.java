@@ -35,6 +35,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -45,6 +46,32 @@ public interface FileResourceService {
   List<FileResource> getFileResources(@Nonnull List<String> uids);
 
   List<FileResource> getOrphanedFileResources();
+
+  /**
+   * Decides whether the user may read the content of this file resource. File resources are not
+   * shareable themselves, so document sharing, conversation membership and domain-specific
+   * authorities decide access. Domains without an explicit rule are not readable.
+   */
+  boolean canRead(@Nonnull User user, @Nonnull FileResource fileResource);
+
+  /** Data value metadata is readable; other domains use the content authorization rule. */
+  boolean canReadMetadata(@Nonnull User user, @Nonnull FileResource fileResource);
+
+  /**
+   * Decides whether the user may read the content of a {@link FileResourceDomain#DATA_VALUE} file
+   * where it is not looked up through its data value, as by the data value audit API, which serves
+   * current and former values alike.
+   *
+   * <p>This is {@link #canRead(User, FileResource)}, or the file is the current or a former value
+   * of an aggregate data value of a file value type that the user may read: its organisation unit
+   * is in the user's data capture or data view hierarchy, and the user may read the data of its
+   * category option combo and attribute option combo. Any other domain is not readable here.
+   */
+  boolean canReadDataValueFile(@Nonnull User user, @Nonnull FileResource fileResource);
+
+  /** A new binding requires an unassigned file of the target domain uploaded by this user. */
+  boolean canAssign(
+      @Nonnull User user, @Nonnull FileResource fileResource, @Nonnull FileResourceDomain domain);
 
   void saveFileResource(FileResource fileResource, File file);
 

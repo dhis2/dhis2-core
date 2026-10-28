@@ -88,7 +88,8 @@ public class MetadataImportBasedOnSchemasTest extends ApiTest {
   public void postBasedOnSchema(String endpoint, String schema) {
     RestApiActions apiActions = new RestApiActions(endpoint);
 
-    // Contains conditionally required properties not marked as required
+    // Contains conditionally required properties not marked as required, or (analyticsTableHooks)
+    // is disabled by default and refused with E1007 unless analytics.table_hooks.enabled = on
     List<String> blacklistedEndpoints =
         Arrays.asList(
             "jobConfigurations",
@@ -100,7 +101,8 @@ public class MetadataImportBasedOnSchemasTest extends ApiTest {
             "programRuleVariables",
             "eventCharts",
             "programStages",
-            "programStageWorkingLists");
+            "programStageWorkingLists",
+            "analyticsTableHooks");
 
     List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties(schema);
 

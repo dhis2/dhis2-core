@@ -77,6 +77,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.notification.NotificationLevel;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -150,6 +153,8 @@ public abstract class AbstractEnrollmentService implements EnrollmentService {
   protected TrackedEntityAttributeService trackedEntityAttributeService;
 
   protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
+  protected FileResourceService fileResourceService;
 
   protected CurrentUserService currentUserService;
 
@@ -615,7 +620,7 @@ public abstract class AbstractEnrollmentService implements EnrollmentService {
     eventPublisher.publishEvent(new TrackerEnrollmentWebHookEvent(this, programInstance.getUid()));
 
     updateFeatureType(program, enrollment, programInstance);
-    updateAttributeValues(enrollment, importOptions);
+    updateAttributeValues(daoTrackedEntityInstance, enrollment, importOptions);
     updateDateFields(enrollment, programInstance);
     programInstance.setFollowup(enrollment.getFollowup());
     programInstance.setStoredBy(storedBy);
@@ -978,7 +983,7 @@ public abstract class AbstractEnrollmentService implements EnrollmentService {
       return importSummary;
     }
 
-    updateAttributeValues(enrollment, importOptions);
+    updateAttributeValues(programInstance.getEntityInstance(), enrollment, importOptions);
     updateDateFields(enrollment, programInstance);
 
     programInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
@@ -1313,7 +1318,7 @@ public abstract class AbstractEnrollmentService implements EnrollmentService {
 
     for (Attribute attribute : enrollment.getAttributes()) {
       attributeValueMap.put(attribute.getAttribute(), attribute.getValue());
-      validateAttributeType(attribute, importOptions, importConflicts);
+      validateAttributeType(trackedEntityInstance, attribute, importOptions, importConflicts);
     }
 
     List<String> errors =
@@ -1413,9 +1418,10 @@ public abstract class AbstractEnrollmentService implements EnrollmentService {
     }
   }
 
-  private void updateAttributeValues(Enrollment enrollment, ImportOptions importOptions) {
-    org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance =
-        teiService.getTrackedEntityInstance(enrollment.getTrackedEntityInstance());
+  private void updateAttributeValues(
+      TrackedEntityInstance trackedEntityInstance,
+      Enrollment enrollment,
+      ImportOptions importOptions) {
     Map<String, Attribute> attributeValueMap = Maps.newHashMap();
 
     for (Attribute attribute : enrollment.getAttributes()) {
@@ -1435,6 +1441,7 @@ public abstract class AbstractEnrollmentService implements EnrollmentService {
               if (!importOptions.isDryRun()) {
                 trackedEntityAttributeValueService.updateTrackedEntityAttributeValue(
                     value, importOptions.getUser());
+                assignFileResource(value.getAttribute(), newValue, trackedEntityInstance.getUid());
               }
               attributeValueMap.remove(value.getAttribute().getUid());
             });
@@ -1453,7 +1460,23 @@ public abstract class AbstractEnrollmentService implements EnrollmentService {
         if (!importOptions.isDryRun()) {
           trackedEntityAttributeValueService.addTrackedEntityAttributeValue(value);
           trackedEntityInstance.addAttributeValue(value);
+          assignFileResource(
+              attribute, enrollmentAttribute.getValue(), trackedEntityInstance.getUid());
         }
+      }
+    }
+  }
+
+  private void assignFileResource(
+      TrackedEntityAttribute attribute, String value, String trackedEntityUid) {
+    if (attribute.getValueType().isFile() && StringUtils.isNotEmpty(value)) {
+      FileResource fileResource = fileResourceService.getFileResource(value);
+      if (fileResource != null
+          && fileResource.getDomain() == FileResourceDomain.DATA_VALUE
+          && (!fileResource.isAssigned() || fileResource.getFileResourceOwner() == null)) {
+        fileResource.setAssigned(true);
+        fileResource.setFileResourceOwner(trackedEntityUid);
+        fileResourceService.updateFileResource(fileResource);
       }
     }
   }
@@ -1479,13 +1502,21 @@ public abstract class AbstractEnrollmentService implements EnrollmentService {
   }
 
   private void validateAttributeType(
-      Attribute attribute, ImportOptions importOptions, ImportConflicts importConflicts) {
+      TrackedEntityInstance trackedEntityInstance,
+      Attribute attribute,
+      ImportOptions importOptions,
+      ImportConflicts importConflicts) {
     // Cache is populated if it is a batch operation. Otherwise, it is not.
     TrackedEntityAttribute teAttribute =
         getTrackedEntityAttribute(importOptions.getIdSchemes(), attribute.getAttribute());
 
     if (teAttribute == null) {
       importConflicts.addConflict(ATTRIBUTE_ATTRIBUTE, "Does not point to a valid attribute.");
+      return;
+    }
+
+    if (teAttribute.getValueType().isFile() && StringUtils.isEmpty(attribute.getValue())) {
+      return;
     }
 
     String errorMessage =
@@ -1493,6 +1524,40 @@ public abstract class AbstractEnrollmentService implements EnrollmentService {
 
     if (errorMessage != null) {
       importConflicts.addConflict(ATTRIBUTE_VALUE, errorMessage);
+    }
+
+    if (teAttribute.getValueType().isFile() && StringUtils.isNotEmpty(attribute.getValue())) {
+      FileResource fileResource = fileResourceService.getFileResource(attribute.getValue());
+      if (fileResource == null) {
+        importConflicts.addConflict(
+            ATTRIBUTE_VALUE,
+            String.format("File resource with uid '%s' does not exist", attribute.getValue()));
+        return;
+      }
+      boolean savedFileValue =
+          trackedEntityInstance.getTrackedEntityAttributeValues().stream()
+              .anyMatch(
+                  saved ->
+                      teAttribute.getUid().equals(saved.getAttribute().getUid())
+                          && attribute.getValue().equals(saved.getValue()));
+
+      if (!savedFileValue) {
+        if (fileResource.getDomain() == FileResourceDomain.DATA_VALUE
+            && fileResource.isAssigned()) {
+          importConflicts.addConflict(
+              ATTRIBUTE_VALUE,
+              String.format(
+                  "File resource with uid '%s' has already been assigned to a different object",
+                  attribute.getValue()));
+        } else if (!fileResourceService.canAssign(
+            importOptions.getUser(), fileResource, FileResourceDomain.DATA_VALUE)) {
+          importConflicts.addConflict(
+              ATTRIBUTE_VALUE,
+              String.format(
+                  "File resource with uid '%s' must be an unassigned DATA_VALUE file resource uploaded by the importing user",
+                  attribute.getValue()));
+        }
+      }
     }
   }
 

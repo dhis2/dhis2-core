@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.validation.validator.AssertValidations.asser
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -43,6 +44,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -58,9 +61,12 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -144,6 +150,92 @@ class AttributeValidatorTest {
 
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = ValueType.class,
+      names = {"FILE_RESOURCE", "IMAGE"})
+  void shouldRequireOwnUnassignedDataValueFileForEnrollmentAttribute(ValueType valueType) {
+    FileResource fileResource = enrollmentFile(valueType);
+    fileResource.setDomain(FileResourceDomain.DOCUMENT);
+    User uploader = new User();
+    uploader.setId(1L);
+    fileResource.setCreatedBy(uploader);
+    User importer = mock(User.class);
+    when(importer.getId()).thenReturn(2L);
+    bundle.setUser(importer);
+
+    validator.validate(reporter, bundle, enrollment);
+    assertHasError(reporter, enrollment, ValidationCode.E1004);
+
+    reporter = new Reporter(preheat.getIdSchemes());
+    fileResource.setDomain(FileResourceDomain.DATA_VALUE);
+    validator.validate(reporter, bundle, enrollment);
+    assertHasError(reporter, enrollment, ValidationCode.E1004);
+
+    reporter = new Reporter(preheat.getIdSchemes());
+    when(importer.getId()).thenReturn(1L);
+    validator.validate(reporter, bundle, enrollment);
+    assertNoErrors(reporter);
+
+    reporter = new Reporter(preheat.getIdSchemes());
+    fileResource.setAssigned(true);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
+    validator.validate(reporter, bundle, enrollment);
+    assertHasError(reporter, enrollment, ValidationCode.E1009);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = ValueType.class,
+      names = {"FILE_RESOURCE", "IMAGE"})
+  void shouldOnlyTreatValueOfSamePersistedAttributeAsHeldByEnrollment(ValueType valueType) {
+    FileResource fileResource = enrollmentFile(valueType);
+    fileResource.setAssigned(true);
+    fileResource.setFileResourceOwner(CodeGenerator.generateUid());
+    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
+    TrackedEntityInstance savedTrackedEntity = new TrackedEntityInstance();
+    savedTrackedEntity.setUid(trackedEntity);
+    savedTrackedEntity.setTrackedEntityAttributeValues(
+        Set.of(
+            new TrackedEntityAttributeValue(
+                trackedEntityAttribute1, savedTrackedEntity, fileResource.getUid())));
+    when(preheat.getTrackedEntity(trackedEntity)).thenReturn(savedTrackedEntity);
+
+    validator.validate(reporter, bundle, enrollment);
+    assertHasError(reporter, enrollment, ValidationCode.E1009);
+
+    reporter = new Reporter(preheat.getIdSchemes());
+    savedTrackedEntity.setTrackedEntityAttributeValues(
+        Set.of(
+            new TrackedEntityAttributeValue(
+                trackedEntityAttribute, savedTrackedEntity, fileResource.getUid())));
+    fileResource.setFileResourceOwner(null);
+    validator.validate(reporter, bundle, enrollment);
+    assertNoErrors(reporter);
+  }
+
+  private FileResource enrollmentFile(ValueType valueType) {
+    trackedEntityAttribute.setValueType(valueType);
+    FileResource fileResource = new FileResource();
+    fileResource.setUid(CodeGenerator.generateUid());
+    fileResource.setDomain(FileResourceDomain.DATA_VALUE);
+    when(preheat.get(FileResource.class, fileResource.getUid())).thenReturn(fileResource);
+    when(enrollment.getTrackedEntity()).thenReturn(trackedEntity);
+    when(enrollment.getAttributes())
+        .thenReturn(
+            List.of(
+                Attribute.builder()
+                    .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+                    .valueType(ValueType.TEXT)
+                    .value(fileResource.getUid())
+                    .build()));
+    when(program.getProgramAttributes())
+        .thenReturn(
+            List.of(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, false)));
+    return fileResource;
   }
 
   @Test

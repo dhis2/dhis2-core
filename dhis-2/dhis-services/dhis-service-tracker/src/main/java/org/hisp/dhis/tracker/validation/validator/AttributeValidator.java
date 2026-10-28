@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.validation.ValidationCode.E1112;
 import static org.hisp.dhis.tracker.validation.validator.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.validateFileAssignment;
 
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +45,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -71,13 +73,14 @@ public abstract class AttributeValidator {
 
   protected void validateAttrValueType(
       Reporter reporter,
-      TrackerPreheat preheat,
+      TrackerBundle bundle,
       TrackerDto dto,
       Attribute attr,
       TrackedEntityAttribute teAttr) {
     checkNotNull(attr, ATTRIBUTE_CANT_BE_NULL);
     checkNotNull(teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL);
 
+    TrackerPreheat preheat = bundle.getPreheat();
     ValueType valueType = teAttr.getValueType();
 
     String error;
@@ -106,6 +109,8 @@ public abstract class AttributeValidator {
 
     if (error != null) {
       reporter.addError(dto, ValidationCode.E1007, valueType, error);
+    } else if (valueType.isFile()) {
+      validateFileAssignment(reporter, bundle, dto, attr.getValue(), teAttr);
     }
   }
 

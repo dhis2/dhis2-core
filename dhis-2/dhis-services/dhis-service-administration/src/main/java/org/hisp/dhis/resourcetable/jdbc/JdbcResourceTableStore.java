@@ -122,9 +122,9 @@ public class JdbcResourceTableStore implements ResourceTableStore {
             AnalyticsTablePhase.RESOURCE_TABLE_POPULATED, resourceTable.getTableType());
 
     if (!hooks.isEmpty()) {
-      analyticsTableHookService.executeAnalyticsTableSqlHooks(hooks);
+      int executed = analyticsTableHookService.executeAnalyticsTableSqlHooks(hooks);
 
-      log.info(String.format("Invoked resource table hooks: '%d'", hooks.size()));
+      log.info(String.format("Invoked resource table hooks: '%d'", executed));
     }
 
     // ---------------------------------------------------------------------
