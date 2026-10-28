@@ -121,7 +121,11 @@ public class HibernateDataExportStore implements DataExportStore {
   @Override
   @UsageTestOnly
   public List<DataExportValue> getAllDataValues() {
-    return exportValues(DataExportParams.builder().includeDeleted(false).build()).toList();
+    // closing the stream releases the connection when this is called outside a transaction
+    try (Stream<DataExportValue> values =
+        exportValues(DataExportParams.builder().includeDeleted(false).build())) {
+      return values.toList();
+    }
   }
 
   @Nonnull
