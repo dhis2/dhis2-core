@@ -107,12 +107,17 @@ public final class CsvBuilder {
     return skipHeaders ? with(Preference.SKIP_HEADERS) : without(Preference.SKIP_HEADERS);
   }
 
-  public void toRows(List<String> header, Stream<?> values) {
-    addHeaderRow(header);
-    addRows(header.size(), values);
-  }
-
-  public void addRows(int columns, Stream<?> values) {
+  public void toRows(List<String> fields, Stream<?> values) {
+    if (!preferences.contains(Preference.SKIP_HEADERS)) {
+      int i = 0;
+      for (String header : fields) {
+        if (i > 0) out.appendAscii(delimiter);
+        writeField(header, i == 0);
+        i++;
+      }
+      endRecord();
+    }
+    final int columns = fields.size();
     Iterator<?> iter = values.iterator();
     while (iter.hasNext()) {
       int i = 0;
@@ -126,18 +131,6 @@ public final class CsvBuilder {
         }
       } else {
         writeField(toCsvValue(value), true);
-      }
-      endRecord();
-    }
-  }
-
-  public void addHeaderRow(List<String> fields) {
-    if (!preferences.contains(Preference.SKIP_HEADERS)) {
-      int i = 0;
-      for (String header : fields) {
-        if (i > 0) out.appendAscii(delimiter);
-        writeField(header, i == 0);
-        i++;
       }
       endRecord();
     }
