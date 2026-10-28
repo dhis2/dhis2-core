@@ -41,6 +41,8 @@ public class SqlExceptionUtils {
 
   private static final String PG_COLUMN_NOT_EXISTING = "42703";
 
+  private static final String PG_UNION_DIFF_COLUMNS = "42601";
+
   public static final String ERR_MSG_TABLE_NOT_EXISTING =
       "Query failed, likely because the requested analytics table does not exist: ";
 
@@ -90,11 +92,41 @@ public class SqlExceptionUtils {
               .isPresent()
           || Optional.of(ex) // doris
               .map(SQLException::getMessage)
-              .filter(m -> m.contains("column") && m.contains("does not exist in the table"))
+              .filter(
+                  m -> m.contains("does not exist in the table") || m.contains("Unknown column"))
               .isPresent()
           || Optional.of(ex) // clickhouse
               .map(SQLException::getMessage)
-              .filter(m -> m.contains("Unknown column"))
+              .filter(m -> m.contains("Unknown column") || m.contains("UNKNOWN_IDENTIFIER"))
+              .isPresent();
+    }
+
+    return false;
+  }
+
+  /**
+   * Utility method to detect if the {@link SQLException} refers to a missing column in the table.
+   *
+   * @param ex a {@link SQLException} to analyze
+   * @return true if the error is a missing column error, false otherwise
+   */
+  public static boolean unionColumnsDontMatch(SQLException ex) {
+    if (ex != null) {
+      return (Optional.of(ex) // postgres
+                  .map(SQLException::getSQLState)
+                  .filter(PG_UNION_DIFF_COLUMNS::equals)
+                  .isPresent()
+              && Optional.of(ex) // postgres
+                  .map(SQLException::getMessage)
+                  .filter(m -> m.contains("query must have the same number of columns"))
+                  .isPresent())
+          || Optional.of(ex) // doris
+              .map(SQLException::getMessage)
+              .filter(m -> m.contains("Operands have unequal number of columns"))
+              .isPresent()
+          || Optional.of(ex) // clickhouse
+              .map(SQLException::getMessage)
+              .filter(m -> m.contains("Different number of columns"))
               .isPresent();
     }
 

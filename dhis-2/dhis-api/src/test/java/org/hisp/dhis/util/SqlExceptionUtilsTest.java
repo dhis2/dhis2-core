@@ -30,88 +30,188 @@
 package org.hisp.dhis.util;
 
 import static org.hisp.dhis.util.SqlExceptionUtils.columnDoesNotExist;
+import static org.hisp.dhis.util.SqlExceptionUtils.unionColumnsDontMatch;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.SQLException;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/** Unit tests for {@link SqlExceptionUtils#columnDoesNotExist(SQLException)}. */
+/** Unit tests for {@link SqlExceptionUtils}. */
 class SqlExceptionUtilsTest {
 
-  @Test
-  void testColumnDoesNotExistWithNullException() {
-    assertFalse(columnDoesNotExist(null));
+  /** Tests for {@link SqlExceptionUtils#columnDoesNotExist(SQLException)}. */
+  @Nested
+  class ColumnDoesNotExist {
+
+    @Test
+    void returnsFalseForNullException() {
+      assertFalse(columnDoesNotExist(null));
+    }
+
+    @Test
+    void returnsFalseForNullMessageAndNullSqlState() {
+      assertFalse(columnDoesNotExist(new SQLException()));
+    }
+
+    @Test
+    void returnsTrueForPostgresUndefinedColumn() {
+      assertTrue(
+          columnDoesNotExist(new SQLException("ERROR: column \"abc\" does not exist", "42703")));
+    }
+
+    @Test
+    void returnsTrueForPostgresSqlStateWithoutMessage() {
+      assertTrue(columnDoesNotExist(new SQLException(null, "42703")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"42P01", "42601", "42704", "4270", "XX000"})
+    void returnsFalseForOtherPostgresSqlStates(String sqlState) {
+      assertFalse(columnDoesNotExist(new SQLException("ERROR: something went wrong", sqlState)));
+    }
+
+    @Test
+    void returnsTrueForDorisColumnNotInTable() {
+      assertTrue(
+          columnDoesNotExist(
+              new SQLException(
+                  "errCode = 2, detailMessage = column 'abc' does not exist in the table")));
+    }
+
+    @Test
+    void returnsTrueForDorisUnknownColumn() {
+      assertTrue(
+          columnDoesNotExist(
+              new SQLException(
+                  "errCode = 2, detailMessage = Unknown column 'abc' in 'analytics'")));
+    }
+
+    @Test
+    void returnsTrueForClickHouseUnknownColumn() {
+      assertTrue(
+          columnDoesNotExist(
+              new SQLException(
+                  "Code: 47. DB::Exception: Unknown column 'abc' in table 'analytics'.")));
+    }
+
+    @Test
+    void returnsTrueForClickHouseUnknownIdentifier() {
+      assertTrue(
+          columnDoesNotExist(
+              new SQLException(
+                  "Code: 47. DB::Exception: Missing columns: 'abc'. (UNKNOWN_IDENTIFIER)")));
+    }
+
+    @Test
+    void returnsTrueForVendorMessageWithUnrelatedSqlState() {
+      assertTrue(columnDoesNotExist(new SQLException("Unknown column 'abc'", "42601")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+          "unknown column 'abc'",
+          "COLUMN 'abc' DOES NOT EXIST IN THE TABLE",
+          "unknown_identifier"
+        })
+    void matchingIsCaseSensitive(String message) {
+      assertFalse(columnDoesNotExist(new SQLException(message)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+          "",
+          "column 'abc' is ambiguous",
+          "column 'abc' does not exist",
+          "syntax error at or near \"select\"",
+          "Table 'analytics' does not exist in database 'dhis2'",
+          "Unknown table expression identifier 'analytics'"
+        })
+    void returnsFalseForUnrelatedMessages(String message) {
+      assertFalse(columnDoesNotExist(new SQLException(message, "42601")));
+    }
   }
 
-  @Test
-  void testColumnDoesNotExistWithNullMessageAndNullSqlState() {
-    assertFalse(columnDoesNotExist(new SQLException()));
-  }
+  /** Tests for {@link SqlExceptionUtils#unionColumnsDontMatch(SQLException)}. */
+  @Nested
+  class UnionColumnsDontMatch {
 
-  @Test
-  void testColumnDoesNotExistPostgres() {
-    SQLException ex = new SQLException("ERROR: column \"abc\" does not exist", "42703");
+    @Test
+    void returnsFalseForNullException() {
+      assertFalse(unionColumnsDontMatch(null));
+    }
 
-    assertTrue(columnDoesNotExist(ex));
-  }
+    @Test
+    void returnsFalseForNullMessageAndNullSqlState() {
+      assertFalse(unionColumnsDontMatch(new SQLException()));
+    }
 
-  @Test
-  void testColumnDoesNotExistPostgresSqlStateWithoutMessage() {
-    assertTrue(columnDoesNotExist(new SQLException(null, "42703")));
-  }
+    @Test
+    void returnsTrueForPostgresUnionColumnMismatch() {
+      assertTrue(
+          unionColumnsDontMatch(
+              new SQLException(
+                  "ERROR: each UNION query must have the same number of columns", "42601")));
+    }
 
-  @Test
-  void testColumnDoesNotExistPostgresMissingTableSqlState() {
-    SQLException ex = new SQLException("ERROR: relation \"abc\" does not exist", "42P01");
+    @Test
+    void returnsFalseForPostgresSqlStateWithoutMessage() {
+      assertFalse(unionColumnsDontMatch(new SQLException(null, "42601")));
+    }
 
-    assertFalse(columnDoesNotExist(ex));
-  }
+    @ParameterizedTest
+    @ValueSource(strings = {"42P01", "42703", "42602", "4260", "XX000"})
+    void returnsFalseForOtherPostgresSqlStates(String sqlState) {
+      assertFalse(unionColumnsDontMatch(new SQLException("ERROR: something went wrong", sqlState)));
+    }
 
-  @Test
-  void testColumnDoesNotExistDoris() {
-    SQLException ex =
-        new SQLException("errCode = 2, detailMessage = column 'abc' does not exist in the table");
+    @Test
+    void returnsTrueForDorisUnequalNumberOfColumns() {
+      assertTrue(
+          unionColumnsDontMatch(
+              new SQLException(
+                  "errCode = 2, detailMessage = Operands have unequal number of columns:"
+                      + " 'select a, b' has 2 columns, 'select a' has 1 column")));
+    }
 
-    assertTrue(columnDoesNotExist(ex));
-  }
+    @Test
+    void returnsTrueForClickHouseDifferentNumberOfColumns() {
+      assertTrue(
+          unionColumnsDontMatch(
+              new SQLException(
+                  "Code: 258. DB::Exception: Different number of columns in UNION elements:"
+                      + " a, b and a. (UNION_ALL_RESULT_STRUCTURES_MISMATCH)")));
+    }
 
-  @Test
-  void testColumnDoesNotExistDorisPartialMessage() {
-    assertFalse(columnDoesNotExist(new SQLException("column 'abc' is ambiguous")));
-    assertFalse(columnDoesNotExist(new SQLException("value does not exist in the table")));
-  }
+    @Test
+    void returnsTrueForVendorMessageWithUnrelatedSqlState() {
+      assertTrue(
+          unionColumnsDontMatch(new SQLException("Different number of columns in UNION", "42703")));
+    }
 
-  @Test
-  void testColumnDoesNotExistDorisIsCaseSensitive() {
-    assertFalse(columnDoesNotExist(new SQLException("Column 'abc' does not exist in the table")));
-  }
+    @ParameterizedTest
+    @ValueSource(
+        strings = {"operands have unequal number of columns", "different number of columns"})
+    void matchingIsCaseSensitive(String message) {
+      assertFalse(unionColumnsDontMatch(new SQLException(message)));
+    }
 
-  @Test
-  void testColumnDoesNotExistClickHouse() {
-    SQLException ex =
-        new SQLException(
-            "Code: 47. DB::Exception: Unknown column 'abc' in table 'analytics'. (UNKNOWN_IDENTIFIER)");
-
-    assertTrue(columnDoesNotExist(ex));
-  }
-
-  @Test
-  void testColumnDoesNotExistClickHouseIsCaseSensitive() {
-    assertFalse(columnDoesNotExist(new SQLException("unknown column 'abc'")));
-  }
-
-  @ParameterizedTest
-  @ValueSource(
-      strings = {
-        "",
-        "syntax error at or near \"select\"",
-        "Table 'analytics' does not exist in database 'dhis2'",
-        "Unknown table expression identifier 'analytics'"
-      })
-  void testColumnDoesNotExistWithUnrelatedMessages(String message) {
-    assertFalse(columnDoesNotExist(new SQLException(message, "42601")));
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+          "",
+          "Operands have unequal number of rows",
+          "Different number of rows",
+          "Table 'analytics' does not exist in database 'dhis2'",
+          "Unknown column 'abc' in table 'analytics'"
+        })
+    void returnsFalseForUnrelatedMessages(String message) {
+      assertFalse(unionColumnsDontMatch(new SQLException(message, "42703")));
+    }
   }
 }
