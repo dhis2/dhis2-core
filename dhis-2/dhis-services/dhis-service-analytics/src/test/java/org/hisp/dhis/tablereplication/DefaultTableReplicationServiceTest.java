@@ -41,6 +41,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -216,7 +217,7 @@ class DefaultTableReplicationServiceTest {
     assertEquals(ReplicaSyncOutcome.FULL, service.syncTrackedEntityAttributeValue(params));
     verify(store).replicateAnalyticsDatabaseTable(any());
     verify(store, never()).getTrackedEntityIdsUpdatedSince(any(), anyInt());
-    verify(settingsService).put(eq(KEY), any(Date.class));
+    verify(settingsService, times(2)).put(eq(KEY), any(Date.class));
   }
 
   @Test
@@ -227,7 +228,7 @@ class DefaultTableReplicationServiceTest {
 
     assertEquals(ReplicaSyncOutcome.FULL, service.syncTrackedEntityAttributeValue(params));
     verify(store).replicateAnalyticsDatabaseTable(any());
-    verify(settingsService).put(eq(KEY), any(Date.class));
+    verify(settingsService, times(2)).put(eq(KEY), any(Date.class));
   }
 
   @Test
@@ -261,16 +262,16 @@ class DefaultTableReplicationServiceTest {
     givenChangedTrackedEntities(200_000);
 
     assertEquals(ReplicaSyncOutcome.INCREMENTAL, service.syncTrackedEntityAttributeValue(params));
-    verify(store, times(40)).deleteRows(any(), eq("trackedentityid"), anyList());
-    verify(store, times(40)).replicateRows(any(), eq("trackedentityid"), anyList());
+    verify(store, times(200)).deleteRows(any(), eq("trackedentityid"), anyList());
+    verify(store, times(200)).replicateRows(any(), eq("trackedentityid"), anyList());
     verify(store, never()).replicateAnalyticsDatabaseTable(any());
     InOrder order = inOrder(store, settingsService);
     order
         .verify(store)
-        .deleteRows(any(), anyString(), eq(LongStream.rangeClosed(1, 5_000).boxed().toList()));
+        .deleteRows(any(), anyString(), eq(LongStream.rangeClosed(1, 1_000).boxed().toList()));
     order
         .verify(store)
-        .replicateRows(any(), anyString(), eq(LongStream.rangeClosed(1, 5_000).boxed().toList()));
+        .replicateRows(any(), anyString(), eq(LongStream.rangeClosed(1, 1_000).boxed().toList()));
     order.verify(settingsService).put(eq(KEY), any(Date.class));
   }
 
@@ -283,7 +284,7 @@ class DefaultTableReplicationServiceTest {
     assertEquals(ReplicaSyncOutcome.FULL, service.syncTrackedEntityAttributeValue(params));
     verify(store).replicateAnalyticsDatabaseTable(any());
     verify(store, never()).deleteRows(any(), anyString(), anyList());
-    verify(settingsService).put(eq(KEY), any(Date.class));
+    verify(settingsService, times(2)).put(eq(KEY), any(Date.class));
   }
 
   @Test
@@ -302,6 +303,29 @@ class DefaultTableReplicationServiceTest {
   }
 
   @Test
+  void failedFullCopyResetsWatermarkSoNextRunCopiesAgain() {
+    doThrow(new IllegalStateException("Doris unavailable"))
+        .when(store)
+        .replicateAnalyticsDatabaseTable(any());
+
+    assertThrows(IllegalStateException.class, () -> service.replicateTrackedEntityAttributeValue());
+
+    ArgumentCaptor<Date> watermark = ArgumentCaptor.forClass(Date.class);
+    verify(settingsService).put(eq(KEY), watermark.capture());
+    assertEquals(new Date(0L), watermark.getValue());
+  }
+
+  @Test
+  void fullCopyResetsWatermarkBeforeDroppingTable() {
+    service.replicateTrackedEntityAttributeValue();
+
+    InOrder order = inOrder(settingsService, store);
+    order.verify(settingsService).put(KEY, new Date(0L));
+    order.verify(store).replicateAnalyticsDatabaseTable(any());
+    order.verify(settingsService).put(eq(KEY), any(Date.class));
+  }
+
+  @Test
   void fullReplicationRecordsWatermarkTakenBeforeCopy() {
     Date[] copyStarted = new Date[1];
     doAnswer(
@@ -316,8 +340,9 @@ class DefaultTableReplicationServiceTest {
     service.replicateTrackedEntityAttributeValue();
 
     ArgumentCaptor<Date> watermark = ArgumentCaptor.forClass(Date.class);
-    verify(settingsService).put(eq(KEY), watermark.capture());
-    assertFalse(watermark.getValue().after(copyStarted[0]));
-    assertTrue(watermark.getValue().getTime() > 0);
+    verify(settingsService, times(2)).put(eq(KEY), watermark.capture());
+    Date recorded = watermark.getAllValues().get(1);
+    assertFalse(recorded.after(copyStarted[0]));
+    assertTrue(recorded.getTime() > 0);
   }
 }
