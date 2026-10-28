@@ -713,7 +713,7 @@ class JsonGeneratorTest {
             description: |-
               Note: x
             tags:\s
-              - - not-a-tag
+              - "- not-a-tag"
               - regular
       """,
         yaml);

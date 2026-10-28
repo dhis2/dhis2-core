@@ -40,7 +40,6 @@ import lombok.Value;
 import org.hisp.dhis.jsontree.Appender;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
-import org.hisp.dhis.jsontree.Text;
 
 @RequiredArgsConstructor
 public class JsonGenerator {
@@ -408,16 +407,58 @@ public class JsonGenerator {
 
   private static void escapeYamlString(Appender out, CharSequence unescaped) {
     if (unescaped.isEmpty()) return;
-    Text text = Text.of(unescaped);
-    boolean quote =
-        Character.isDigit(unescaped.charAt(0))
-            || text.contentEquals("true")
-            || text.contentEquals("false")
-            || text.contains("#")
-            || text.startsWith("*");
+    boolean quote = needsYamlQuoting(unescaped);
     if (quote) out.appendAscii('"');
     out.appendEncoded(unescaped);
     if (quote) out.appendAscii('"');
+  }
+
+  private static boolean needsYamlQuoting(CharSequence value) {
+    int len = value.length();
+    // YAML trims whitespace after the `: ` separator before applying block indicators,
+    // so `key:   - item` is interpreted identically to `key: - item`.
+    int start = 0;
+    while (start < len && value.charAt(start) <= ' ') start++;
+    if (start == len) return false;
+
+    char first = value.charAt(start);
+
+    // Block structure indicators (must be followed by whitespace or end-of-value to be
+    // structural, but quoting `-foo` anyway is safe and unambiguous).
+    if (first == '-' || first == '?' || first == ':') return true;
+
+    // Reserved / structural indicators that are invalid at the start of a plain scalar.
+    if (first == '#'
+        || first == '*'
+        || first == '&'
+        || first == '!'
+        || first == '|'
+        || first == '>'
+        || first == '\''
+        || first == '"'
+        || first == '%'
+        || first == '@'
+        || first == '`'
+        || first == '['
+        || first == ']'
+        || first == '{'
+        || first == '}'
+        || first == ',') return true;
+
+    // Values that read as other YAML scalar types.
+    if (Character.isDigit(first)) return true;
+    if ("true".contentEquals(value) || "false".contentEquals(value) || "null".contentEquals(value))
+      return true;
+
+    if (len == 1) return false;
+    // Comment trigger: " #" starts a comment mid-scalar.
+    int i = indexOf('#', start, value);
+    if (i > 0 && value.charAt(i - 1) == ' ') return true;
+
+    // Mapping separator mid-value: "Note: x" contains ": " which YAML would interpret
+    // as a mapping separator.
+    i = indexOf(':', start, value);
+    return i >= 0 && i + 1 < len && value.charAt(i + 1) == ' ';
   }
 
   private static void escapeYamlText(Appender out, CharSequence text, String contentIndent) {
@@ -427,21 +468,27 @@ public class JsonGenerator {
     // grammar, which rejects anything that starts with ?, :, -, [ ], { }, &, *, !, |, >, %,
     // @, `, #, or contains ": " or " #", or has leading/trailing whitespace. The block
     // scalar form has no such restrictions.
-    Text t = Text.of(text);
     out.appendAscii("|-\n");
     int start = 0;
     int end;
-    while ((end = t.indexOf('\n', start)) >= 0) {
+    while ((end = indexOf('\n', start, text)) >= 0) {
       if (end > start) {
         out.appendAscii(contentIndent);
-        out.appendEncoded(t, start, end);
+        out.appendEncoded(text, start, end);
       }
       out.appendAscii('\n');
       start = end + 1;
     }
-    if (start < t.length()) {
+    int len = text.length();
+    if (start < len) {
       out.appendAscii(contentIndent);
-      out.appendEncoded(t, start, t.length());
+      out.appendEncoded(text, start, len);
     }
+  }
+
+  private static int indexOf(int c, int start, CharSequence cs) {
+    int len = cs.length();
+    for (int i = start; i < len; i++) if (cs.charAt(i) == c) return i;
+    return -1;
   }
 }
