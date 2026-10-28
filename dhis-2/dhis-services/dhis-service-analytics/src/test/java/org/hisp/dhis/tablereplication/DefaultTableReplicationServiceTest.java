@@ -69,6 +69,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Tests the incremental sync of the analytics database copy of the tracked entity attribute value
@@ -91,6 +93,10 @@ class DefaultTableReplicationServiceTest {
 
   @Mock private SqlBuilder sqlBuilder;
 
+  @Mock private TransactionTemplate transactionTemplate;
+
+  private boolean inTransaction;
+
   private DefaultTableReplicationService service;
 
   private final AnalyticsTableUpdateParams params =
@@ -99,7 +105,19 @@ class DefaultTableReplicationServiceTest {
   @BeforeEach
   void setUp() {
     service =
-        new DefaultTableReplicationService(store, settingsService, idObjectManager, sqlBuilder);
+        new DefaultTableReplicationService(
+            store, settingsService, idObjectManager, sqlBuilder, transactionTemplate);
+    lenient()
+        .when(transactionTemplate.execute(any()))
+        .thenAnswer(
+            invocation -> {
+              inTransaction = true;
+              try {
+                return invocation.<TransactionCallback<?>>getArgument(0).doInTransaction(null);
+              } finally {
+                inTransaction = false;
+              }
+            });
     lenient().when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
     lenient().when(store.tableExists(any())).thenReturn(true);
   }
@@ -127,6 +145,20 @@ class DefaultTableReplicationServiceTest {
   private void givenChangedTrackedEntities(long count) {
     List<Long> ids = LongStream.rangeClosed(1, count).boxed().toList();
     when(store.getTrackedEntityIdsUpdatedSince(any(), anyInt())).thenReturn(ids);
+  }
+
+  @Test
+  void programsAreReadInsideTransaction() {
+    givenWatermark();
+    givenChangedTrackedEntities(0);
+    when(idObjectManager.getAllNoAcl(Program.class))
+        .thenAnswer(
+            invocation -> {
+              assertTrue(inTransaction, "programs must be read inside a transaction");
+              return List.of(trackerProgram("programA001", false));
+            });
+
+    assertEquals(ReplicaSyncOutcome.NO_CHANGES, service.syncTrackedEntityAttributeValue(params));
   }
 
   @Test
