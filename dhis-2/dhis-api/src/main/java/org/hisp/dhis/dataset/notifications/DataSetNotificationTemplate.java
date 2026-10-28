@@ -139,8 +139,8 @@ public class DataSetNotificationTemplate
   @Column(name = "name", nullable = false, length = 230)
   private String name;
 
-  @Column(name = "messagetemplate", nullable = false)
   @Type(type = "text")
+  @Column(name = "messagetemplate", nullable = false, columnDefinition = "text")
   private String messageTemplate;
 
   @Column(name = "subjecttemplate", length = 100)
