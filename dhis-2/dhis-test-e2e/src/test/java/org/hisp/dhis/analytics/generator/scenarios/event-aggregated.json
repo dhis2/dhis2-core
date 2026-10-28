@@ -629,6 +629,41 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "barePeDimensionLastUpdatedFilter",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2021;2022&filter=LAST_UPDATED:2017&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastUpdatedDimensionBarePeFilter",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=LAST_UPDATED:2017;2018&filter=pe:2022&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastUpdatedFilterOnly",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&filter=LAST_UPDATED:2017&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "nonadjacentYearDimensionLastUpdatedFilter",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2020;2022&filter=LAST_UPDATED:2018&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "nonadjacentMonthDimensionLastUpdatedFilter",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:202201;202203&filter=LAST_UPDATED:2018&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
