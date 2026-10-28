@@ -38,6 +38,7 @@ import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.experimental.UtilityClass;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -48,19 +49,19 @@ import org.hisp.dhis.period.PeriodDimension;
 @UtilityClass
 public class EventPeriodUtils {
   /**
-   * Returns true if all period items have no date field set or have the date field set to
-   * OCCURRED_DATE
+   * Returns true if all period items, of both the period dimension and the period filter, have no
+   * date field set or have the date field set to OCCURRED_DATE
    *
    * @param params the event query params
    * @return true if all period items have no date field set or have the date field set to
    *     OCCURRED_DATE
    */
   public static boolean hasAllDefaultPeriod(EventQueryParams params) {
-    DimensionalObject period = getPeriodDimension(params);
-    if (period == null) {
-      return true;
-    }
-    List<DimensionalItemObject> items = period.getItems();
+    List<DimensionalItemObject> items =
+        Stream.of(getPeriodDimension(params), params.getFilter(PERIOD_DIM_ID))
+            .filter(Objects::nonNull)
+            .flatMap(period -> period.getItems().stream())
+            .toList();
     for (DimensionalItemObject item : items) {
       PeriodDimension p = (PeriodDimension) item;
       // All periods must either have no dateField (default) or OCCURRED_DATE
