@@ -255,8 +255,8 @@ class DataSetNotificationTemplateStoreTest extends PostgresIntegrationTestBase {
     assertEquals("USER_GROUP", row.get("notificationrecipienttype"));
     assertEquals("COLLECTIVE_SUMMARY", row.get("sendstrategy"));
     assertEquals(userGroup.getId(), ((Number) row.get("usergroupid")).longValue());
-    assertEquals(true, row.get("notifyusersinhierarchyonly"));
-    assertEquals(false, row.get("notifyparentorganisationunitonly"));
+    assertTrue((Boolean) row.get("notifyusersinhierarchyonly"));
+    assertFalse((Boolean) row.get("notifyparentorganisationunitonly"));
     assertEquals(admin.getId(), ((Number) row.get("lastupdatedby")).longValue());
     assertEquals("[]", row.get("translations"));
     assertEquals(
