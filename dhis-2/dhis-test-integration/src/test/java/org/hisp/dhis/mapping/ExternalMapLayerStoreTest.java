@@ -89,8 +89,8 @@ class ExternalMapLayerStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("every property declared by ExternalMapLayer is written to its column")
-  void shouldWriteEveryExternalMapLayerColumn() {
+  @DisplayName("every ExternalMapLayer-specific property is written to its column")
+  void shouldWriteEveryExternalMapLayerSpecificColumn() {
     ExternalMapLayer layer = saveFullLayer();
 
     Map<String, Object> row =
@@ -149,8 +149,8 @@ class ExternalMapLayerStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("every property declared by ExternalMapLayer is read back from its column")
-  void shouldReadBackEveryExternalMapLayerProperty() {
+  @DisplayName("every ExternalMapLayer-specific property is read back from its column")
+  void shouldReadBackEveryExternalMapLayerSpecificProperty() {
     ExternalMapLayer layer = saveFullLayer();
 
     ExternalMapLayer reloaded = reload(layer);
@@ -211,8 +211,9 @@ class ExternalMapLayerStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("only name, url and the three enum properties are mapped not-null")
-  void shouldMapOnlyNameUrlAndEnumsNotNull() {
+  @DisplayName(
+      "name, url and the enums are not-null; the other ExternalMapLayer-specific properties are nullable")
+  void shouldMapNameUrlAndEnumsNotNullAndTheOthersNullable() {
     for (String property :
         new String[] {"name", "url", "mapService", "imageFormat", "mapLayerPosition"}) {
       assertFalse(isNullable(property), property + " is mapped nullable");

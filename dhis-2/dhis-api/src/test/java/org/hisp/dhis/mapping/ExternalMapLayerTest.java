@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.mapping;
 
-import static org.hisp.dhis.common.Locale.*;
+import static org.hisp.dhis.common.Locale.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
