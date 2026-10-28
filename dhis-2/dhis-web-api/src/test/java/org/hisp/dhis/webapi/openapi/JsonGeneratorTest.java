@@ -646,13 +646,77 @@ class JsonGeneratorTest {
   }
 
   @Test
-  void testString_NoNewline_UsesSingleLineForm_YAML() {
-    // A "multiline" member with no newline in the value should fall through to
-    // single-line escaping, not produce a block scalar
+  void testString_NoNewline_AlsoUsesBlockScalar_YAML() {
+    String yaml = generate(PRETTY_PRINT, YAML, g -> g.addStringMultilineMember("a", "single line"));
+    assertEquals(
+        """
+        a: |-
+          single line
+      """,
+        yaml);
+  }
+
+  @Test
+  void testYaml_SingleLineValue_Exact() {
+    String yaml = generate(PRETTY_PRINT, YAML, g -> g.addStringMultilineMember("desc", "?"));
+    assertEquals(
+        """
+        desc: |-
+          ?
+      """,
+        yaml);
+  }
+
+  @Test
+  void testYaml_MultilineValue_Exact() {
     String yaml =
-        generate(PRETTY_PRINT, YAML, g -> g.addStringMultilineMember("a", "just one line"));
-    assertFalse(yaml.contains("|-"), "single-line value used block scalar: " + yaml);
-    assertTrue(yaml.contains("just one line"), yaml);
+        generate(PRETTY_PRINT, YAML, g -> g.addStringMultilineMember("desc", "line1\nline2"));
+    assertEquals(
+        """
+        desc: |-
+          line1
+          line2
+      """,
+        yaml);
+  }
+
+  @Test
+  void testYaml_WholeDocument() {
+    String yaml =
+        generate(
+            PRETTY_PRINT,
+            YAML,
+            g -> {
+              g.addStringMultilineMember("info", "?");
+              g.addObjectMember(
+                  "paths",
+                  () -> {
+                    g.addObjectMember(
+                        "/api/foo",
+                        () -> {
+                          g.addStringMultilineMember("description", "Note: x");
+                          g.addArrayMember(
+                              "tags",
+                              () -> {
+                                g.addStringMember(null, "- not-a-tag");
+                                g.addStringMember(null, "regular");
+                              });
+                        });
+                  });
+            });
+    assertEquals(
+        """
+        info: |-
+          ?
+        paths:\s
+          /api/foo:\s
+            description: |-
+              Note: x
+            tags:\s
+              - - not-a-tag
+              - regular
+      """,
+        yaml);
   }
 
   @Test

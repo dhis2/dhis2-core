@@ -90,6 +90,7 @@ public class JsonGenerator {
             ",",
             Appender::appendJsonEscaped,
             (appender, text, contentIndent) -> appender.appendJsonEscaped(text),
+            "",
             UnaryOperator.identity());
 
     public static final Language YAML =
@@ -108,6 +109,7 @@ public class JsonGenerator {
             "",
             JsonGenerator::escapeYamlString,
             JsonGenerator::escapeYamlText,
+            "\n",
             format ->
                 format.toBuilder()
                     .itemIndent("  ")
@@ -132,6 +134,7 @@ public class JsonGenerator {
     String objectItemSeparator;
     BiConsumer<Appender, CharSequence> appendEscapedInline;
     AppendTextBlock appendEscapedBlock;
+    String documentEnd;
     UnaryOperator<Format> adjustFormat;
   }
 
@@ -155,6 +158,7 @@ public class JsonGenerator {
 
   final void addRootObject(Runnable addMembers) {
     addObjectMember(null, addMembers);
+    write(language.documentEnd);
   }
 
   final void addObjectMember(CharSequence name, boolean condition, Runnable addMembers) {
@@ -417,26 +421,27 @@ public class JsonGenerator {
   }
 
   private static void escapeYamlText(Appender out, CharSequence text, String contentIndent) {
+    // Block scalar in strip mode |- so trailing newlines are not preserved. Used for every
+    // addStringMultilineMember value regardless of whether the content contains a newline:
+    // a single-line value emitted as a plain scalar is subject to YAML's plain-scalar
+    // grammar, which rejects anything that starts with ?, :, -, [ ], { }, &, *, !, |, >, %,
+    // @, `, #, or contains ": " or " #", or has leading/trailing whitespace. The block
+    // scalar form has no such restrictions.
     Text t = Text.of(text);
-    if (t.indexOf('\n') < 0) {
-      escapeYamlString(out, text);
-      return;
-    }
-    // block scalar in strip mode |- so trailing newlines are not preserved
     out.appendAscii("|-\n");
     int start = 0;
     int end;
     while ((end = t.indexOf('\n', start)) >= 0) {
       if (end > start) {
         out.appendAscii(contentIndent);
-        out.appendEncoded(text, start, end);
+        out.appendEncoded(t, start, end);
       }
       out.appendAscii('\n');
       start = end + 1;
     }
-    if (start < text.length()) {
+    if (start < t.length()) {
       out.appendAscii(contentIndent);
-      out.appendEncoded(text, start, text.length());
+      out.appendEncoded(t, start, t.length());
     }
   }
 }
