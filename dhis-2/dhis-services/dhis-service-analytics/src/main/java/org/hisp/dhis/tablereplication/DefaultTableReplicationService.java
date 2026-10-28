@@ -47,6 +47,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
 @Service
@@ -82,6 +83,8 @@ public class DefaultTableReplicationService implements TableReplicationService {
 
   private final SqlBuilder sqlBuilder;
 
+  private final TransactionTemplate transactionTemplate;
+
   @Override
   public void replicateTrackedEntityAttributeValue() {
     Date syncStart = new Date();
@@ -95,7 +98,13 @@ public class DefaultTableReplicationService implements TableReplicationService {
       return ReplicaSyncOutcome.NOT_SUPPORTED;
     }
 
-    if (!hasProgramWithAnalyzableAttributes(params.getSkipPrograms())) {
+    // Program attributes are lazy collections, so read them inside a transaction; the analytics job
+    // thread has no session of its own
+    Boolean hasAttributes =
+        transactionTemplate.execute(
+            status -> hasProgramWithAnalyzableAttributes(params.getSkipPrograms()));
+
+    if (!Boolean.TRUE.equals(hasAttributes)) {
       return ReplicaSyncOutcome.NO_ANALYZABLE_ATTRIBUTES;
     }
 
