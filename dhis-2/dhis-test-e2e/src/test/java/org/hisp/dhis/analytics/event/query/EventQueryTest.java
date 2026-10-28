@@ -1250,4 +1250,25 @@ public class EventQueryTest extends AnalyticsApiTest {
         .body("status", equalTo("ERROR"))
         .body("errorCode", equalTo("E7224"));
   }
+
+  @Test
+  public void queryRejectsCategoryNotInProgramCategoryCombo() {
+    // Given: Implementing Partner is not part of the Child Programme category combo
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:ImspTQPwCqd")
+            .add("dimension=LFsZ8v5v7rq")
+            .add("startDate=2024-01-01")
+            .add("endDate=2026-12-31");
+
+    // When
+    ApiResponse response = analyticsEventActions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("errorCode", equalTo("E7268"));
+  }
 }
