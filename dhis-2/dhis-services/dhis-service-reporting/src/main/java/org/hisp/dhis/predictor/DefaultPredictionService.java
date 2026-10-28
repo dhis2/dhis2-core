@@ -274,7 +274,8 @@ public class DefaultPredictionService implements PredictionService {
             items,
             predictor.getOrganisationUnitDescendants().equals(DESCENDANTS),
             new PredictionDataValueFetcher(dataValueService, categoryService, currentUserOrgUnits),
-            new PredictionAnalyticsDataFetcher(analyticsService, categoryService));
+            new PredictionAnalyticsDataFetcher(
+                analyticsService, categoryService, preDis.isDisagPredictions()));
 
     PredictionWriter predictionWriter = new PredictionWriter(dataDumpService, predictionSummary);
 
