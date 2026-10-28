@@ -182,7 +182,7 @@ final class DataExportOutput {
                         dv.followUp() == null ? null : String.valueOf(dv.followUp()),
                         String.valueOf(dv.deleted())
                       });
-      new CsvBuilder(out).addRows(Arrays.asList(CSV_HEADER_ROW), rows);
+      new CsvBuilder(out).toRows(Arrays.asList(CSV_HEADER_ROW), rows);
     }
   }
 

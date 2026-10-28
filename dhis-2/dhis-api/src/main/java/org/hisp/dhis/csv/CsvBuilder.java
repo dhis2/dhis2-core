@@ -107,7 +107,7 @@ public final class CsvBuilder {
     return skipHeaders ? with(Preference.SKIP_HEADERS) : without(Preference.SKIP_HEADERS);
   }
 
-  public void addRows(List<String> header, Stream<?> values) {
+  public void toRows(List<String> header, Stream<?> values) {
     addHeaderRow(header);
     addRows(header.size(), values);
   }
