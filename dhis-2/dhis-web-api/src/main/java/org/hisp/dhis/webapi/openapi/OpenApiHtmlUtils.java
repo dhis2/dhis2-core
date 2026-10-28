@@ -136,25 +136,6 @@ final class OpenApiHtmlUtils {
     if (runStart < len) to.appendEncoded(text, runStart, len);
   }
 
-  /**
-   * Fast path used when the text does not contain any {@code &} and therefore cannot contain an
-   * HTML entity. Escape rules are identical to the general path — only the entity preservation
-   * branch is skipped.
-   */
-  private static void appendEscapedFast(Text text, int len, Appender to) {
-    for (int i = 0; i < len; i++) {
-      char c = text.charAt(i);
-      switch (c) {
-        case '<' -> to.appendAscii("&lt;", 0, 4);
-        case '>' -> to.appendAscii("&gt;", 0, 4);
-        case '"' -> to.appendAscii("&quot;", 0, 6);
-        case '\'' -> to.appendAscii("&#039;", 0, 6);
-        case '&' -> to.appendAscii("&amp;", 0, 5);
-        default -> to.appendEncoded(c);
-      }
-    }
-  }
-
   private static int findEndOfHtmlEntity(Text text, int i) {
     int len = text.length();
     if (i + 3 >= len) return -1; // can't be
