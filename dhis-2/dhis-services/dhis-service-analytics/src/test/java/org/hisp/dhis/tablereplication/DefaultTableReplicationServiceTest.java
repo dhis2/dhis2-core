@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tablereplication;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,6 +49,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -317,7 +319,7 @@ class DefaultTableReplicationServiceTest {
     doAnswer(
             invocation -> {
               copyStarted[0] = new Date();
-              Thread.sleep(5);
+              await().pollDelay(Duration.ofMillis(5)).until(() -> true);
               return null;
             })
         .when(store)

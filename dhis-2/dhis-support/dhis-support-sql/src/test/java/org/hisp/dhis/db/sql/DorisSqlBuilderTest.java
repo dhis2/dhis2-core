@@ -413,6 +413,13 @@ class DorisSqlBuilderTest {
   }
 
   @Test
+  void testDeleteFromWhere() {
+    assertEquals(
+        "delete from `vaccination` where `id` in (1,2);",
+        sqlBuilder.deleteFromWhere(getTableB(), "`id` in (1,2)"));
+  }
+
+  @Test
   void testInsertIntoSelectFromWithWhere() {
     String expected =
         """
