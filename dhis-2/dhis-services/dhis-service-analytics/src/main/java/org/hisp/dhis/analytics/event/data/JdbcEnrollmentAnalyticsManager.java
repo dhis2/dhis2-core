@@ -1110,11 +1110,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * @param params the {@link EventQueryParams}.
    */
   private void addEnrollmentValueCte(CteContext cteContext, EventQueryParams params) {
-    if (!params.hasValueProgramStage()) {
+    if (!params.hasValueProgramStage() || !params.hasValueDimension()) {
       return;
     }
 
-    DataElement dataElement = (DataElement) params.getValue();
+    DataElement dataElement = (DataElement) params.getValue().getDimensionalObject();
     QueryItem valueItem =
         new QueryItem(
             dataElement,

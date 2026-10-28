@@ -44,6 +44,7 @@ import com.google.common.collect.Sets;
 import java.util.stream.Collectors;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.jeasy.random.EasyRandom;
@@ -61,7 +62,7 @@ class BaseDimensionalObjectTest {
     BaseDimensionalObject target = new BaseDimensionalObject("test-dimension");
     target.setUid("uid-999999");
     target.setDimensionType(DimensionType.DATA_X);
-    target.setItems(Lists.newArrayList(buildDimensionalItemObject(), buildDimensionalItemObject()));
+    target.setItems(Lists.newArrayList(new DataElement("de-1"), new DataElement("de-2")));
     target.setFilter("test-filter");
     target.setLegendSet(
         new LegendSet(
@@ -139,10 +140,6 @@ class BaseDimensionalObjectTest {
     assertNull(baseDimensionalObject.getProgram());
     assertNull(baseDimensionalObject.getProgramStage());
     assertEquals("dimensionUid", baseDimensionalObject.getUid());
-  }
-
-  private DimensionalItemObject buildDimensionalItemObject() {
-    return rnd.nextObject(BaseDimensionalItemObject.class);
   }
 
   private Legend buildLegend() {

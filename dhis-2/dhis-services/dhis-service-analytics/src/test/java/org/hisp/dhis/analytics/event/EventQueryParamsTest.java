@@ -59,6 +59,7 @@ import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
@@ -221,7 +222,7 @@ class EventQueryParamsTest extends TestBase {
     EventQueryParams paramsA =
         new EventQueryParams.Builder()
             .withOrganisationUnits(List.of(ouA, ouB))
-            .withValue(deA)
+            .withValue(new Value(deA))
             .build();
 
     assertTrue(paramsA.hasValueDimension());
@@ -232,13 +233,13 @@ class EventQueryParamsTest extends TestBase {
     EventQueryParams paramsA =
         new EventQueryParams.Builder()
             .withOrganisationUnits(List.of(ouA, ouB))
-            .withValue(deA)
+            .withValue(new Value(deA))
             .build();
 
     EventQueryParams paramsB =
         new EventQueryParams.Builder()
             .withOrganisationUnits(List.of(ouA, ouB))
-            .withValue(deC)
+            .withValue(new Value(deC))
             .build();
 
     assertTrue(paramsA.hasNumericValueDimension());
@@ -255,13 +256,13 @@ class EventQueryParamsTest extends TestBase {
     EventQueryParams paramsA =
         new EventQueryParams.Builder()
             .withOrganisationUnits(List.of(ouA, ouB))
-            .withValue(boolElement)
+            .withValue(new Value(boolElement))
             .build();
 
     EventQueryParams paramsB =
         new EventQueryParams.Builder()
             .withOrganisationUnits(List.of(ouA, ouB))
-            .withValue(notBoolElement)
+            .withValue(new Value(notBoolElement))
             .build();
 
     assertTrue(paramsA.hasBooleanValueDimension());
@@ -273,13 +274,13 @@ class EventQueryParamsTest extends TestBase {
     EventQueryParams paramsA =
         new EventQueryParams.Builder()
             .withOrganisationUnits(List.of(ouA, ouB))
-            .withValue(deE)
+            .withValue(new Value(deE))
             .build();
 
     EventQueryParams paramsB =
         new EventQueryParams.Builder()
             .withOrganisationUnits(List.of(ouA, ouB))
-            .withValue(deA)
+            .withValue(new Value(deA))
             .build();
 
     assertTrue(paramsA.hasTextValueDimension());
