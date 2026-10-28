@@ -636,11 +636,6 @@ public class OpenApiRenderer {
   private final ApiStatistics stats;
   private final Appender html;
 
-  @Override
-  public String toString() {
-    return params.toString();
-  }
-
   private void renderDocument() {
     appendRaw("<!doctype html>");
     appendTag(

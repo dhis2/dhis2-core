@@ -79,36 +79,61 @@ final class OpenApiHtmlUtils {
    * HTML-escapes the provided text preserving any HTML entities that are contained, appending the
    * result to the given {@link Appender}.
    *
+   * <p>Unescaped content is written in contiguous runs via {@link
+   * Appender#appendEncoded(CharSequence, int, int)}. Writing runs rather than individual characters
+   * is required for correctness on byte-oriented sinks: a surrogate pair split across two
+   * single-char {@code appendEncoded(char)} calls is encoded as two {@code U+FFFD} because neither
+   * half is a complete codepoint on its own.
+   *
    * @param text "unsafe" text that should be inserted into HTML as "plain" text
    * @param to the target to append the escaped text to
    */
   public static void appendEscaped(@CheckForNull Text text, Appender to) {
     if (text == null || text.isEmpty()) return;
     int len = text.length();
-    if (text.indexOf('&') < 0) {
-      appendEscapedFast(text, len, to);
-      return;
-    }
+    int runStart = 0;
     for (int i = 0; i < len; i++) {
       char c = text.charAt(i);
       switch (c) {
-        case '<' -> to.appendAscii("&lt;", 0, 4);
-        case '>' -> to.appendAscii("&gt;", 0, 4);
-        case '"' -> to.appendAscii("&quot;", 0, 6);
-        case '\'' -> to.appendAscii("&#039;", 0, 6);
+        case '<' -> {
+          if (i > runStart) to.appendEncoded(text, runStart, i);
+          to.appendAscii("&lt;", 0, 4);
+          runStart = i + 1;
+        }
+        case '>' -> {
+          if (i > runStart) to.appendEncoded(text, runStart, i);
+          to.appendAscii("&gt;", 0, 4);
+          runStart = i + 1;
+        }
+        case '"' -> {
+          if (i > runStart) to.appendEncoded(text, runStart, i);
+          to.appendAscii("&quot;", 0, 6);
+          runStart = i + 1;
+        }
+        case '\'' -> {
+          if (i > runStart) to.appendEncoded(text, runStart, i);
+          to.appendAscii("&#039;", 0, 6);
+          runStart = i + 1;
+        }
         case '&' -> {
+          if (i > runStart) to.appendEncoded(text, runStart, i);
           int j = findEndOfHtmlEntity(text, i);
           if (j < 0) {
             to.appendAscii("&amp;", 0, 5);
+            runStart = i + 1;
           } else {
             // preserve the entity as-is
             to.appendAscii(text, i, j);
             i = j - 1; // compensate for the loop increment
+            runStart = j;
           }
         }
-        default -> to.appendEncoded(c);
+        default -> {
+          /* part of the pending run */
+        }
       }
     }
+    if (runStart < len) to.appendEncoded(text, runStart, len);
   }
 
   /**

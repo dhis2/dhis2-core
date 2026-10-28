@@ -153,11 +153,6 @@ public class JsonGenerator {
   private boolean firstItemAtLevel = true;
   private boolean nothingWritten = true;
 
-  @Override
-  public final String toString() {
-    return format.toString();
-  }
-
   final void addRootObject(Runnable addMembers) {
     addObjectMember(null, addMembers);
   }
