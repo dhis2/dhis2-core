@@ -49,10 +49,8 @@ import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.collection.CollectionUtils.concat;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
-import static org.hisp.dhis.feedback.ErrorCode.E7153;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
-import static org.hisp.dhis.util.SqlExceptionUtils.columnDoesNotExist;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
 
 import com.google.common.collect.Lists;
@@ -206,9 +204,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       } catch (BadSqlGrammarException ex) {
         if (relationDoesNotExist(ex.getSQLException())) {
           throw ex;
-        }
-        if (columnDoesNotExist(ex.getSQLException())) {
-          throw new QueryRuntimeException(E7153);
         }
 
         log.warn(ERR_MSG_SILENT_FALLBACK, ex);
