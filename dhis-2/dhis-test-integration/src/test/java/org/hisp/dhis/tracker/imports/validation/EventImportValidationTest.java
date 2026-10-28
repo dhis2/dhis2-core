@@ -57,6 +57,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
@@ -370,6 +371,20 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
             params, testSetup.fromJson("tracker/validations/events_combo-date-wrong.json"));
 
     assertHasOnlyErrors(importReport, ValidationCode.E1056, ValidationCode.E1057);
+  }
+
+  @Test
+  void shouldPassWhenOccurredAtIsWithinOpenDaysAfterCategoryOptionEndDate() throws IOException {
+    Program program = manager.get(Program.class, "rT3rvcn2vid");
+    program.setOpenDaysAfterCoEndDate(365);
+    manager.update(program);
+
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/validations/events_combo-date-wrong.json"));
+
+    assertHasOnlyErrors(importReport, ValidationCode.E1056);
   }
 
   @Test
