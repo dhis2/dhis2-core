@@ -591,6 +591,13 @@ public interface SqlBuilder {
   String insertIntoSelectFrom(Table intoTable, String fromTable, String whereClause);
 
   /**
+   * @param table the table to delete rows from.
+   * @param whereClause the condition selecting the rows to delete, without the where keyword.
+   * @return a delete from where statement.
+   */
+  String deleteFromWhere(Table table, String whereClause);
+
+  /**
    * Generates an SQL fragment that casts the given numeric expression to a decimal type.
    *
    * <p>This helper is used to force exact decimal arithmetic instead of allowing the database to

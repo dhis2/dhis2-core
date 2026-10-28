@@ -89,9 +89,7 @@ public class JdbcTableReplicationStore implements TableReplicationStore {
       return;
     }
 
-    String sql =
-        String.format(
-            "delete from %s where %s;", sqlBuilder.quote(table.getName()), inClause(column, ids));
+    String sql = sqlBuilder.deleteFromWhere(table, inClause(column, ids));
     log.debug("Delete rows SQL: '{}'", sql);
     jdbcTemplate.execute(sql);
   }

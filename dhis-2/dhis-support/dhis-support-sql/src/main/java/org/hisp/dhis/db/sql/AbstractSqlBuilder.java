@@ -190,6 +190,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   }
 
   @Override
+  public String deleteFromWhere(Table table, String whereClause) {
+    return "delete from " + quote(table.getName()) + " where " + whereClause + ";";
+  }
+
+  @Override
   public String insertIntoSelectFrom(Table intoTable, String fromTable, String whereClause) {
     String columns = toCommaSeparated(intoTable.getColumns(), col -> quote(col.getName()));
 
