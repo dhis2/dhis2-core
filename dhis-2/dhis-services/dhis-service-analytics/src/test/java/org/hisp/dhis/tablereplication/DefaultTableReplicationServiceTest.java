@@ -192,6 +192,18 @@ class DefaultTableReplicationServiceTest {
   }
 
   @Test
+  void programWithOnlyConfidentialAttributesDoesNothing() {
+    Program program = trackerProgram("programA001", false);
+    program.getTrackedEntityAttributes().forEach(attribute -> attribute.setConfidential(true));
+    givenPrograms(program);
+
+    assertEquals(
+        ReplicaSyncOutcome.NO_ANALYZABLE_ATTRIBUTES,
+        service.syncTrackedEntityAttributeValue(params));
+    verifyNoInteractions(store);
+  }
+
+  @Test
   void skippedProgramDoesNotCount() {
     givenPrograms(trackerProgram("programA001", false));
     AnalyticsTableUpdateParams skipping =

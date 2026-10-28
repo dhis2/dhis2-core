@@ -169,6 +169,6 @@ public class DefaultTableReplicationService implements TableReplicationService {
     return idObjectManager.getAllNoAcl(Program.class).stream()
         .filter(program -> !skipPrograms.contains(program.getUid()))
         .filter(Program::isRegistration)
-        .anyMatch(program -> !program.getAnalyzableTrackedEntityAttributes().isEmpty());
+        .anyMatch(program -> !program.getNonConfidentialTrackedEntityAttributes().isEmpty());
   }
 }
