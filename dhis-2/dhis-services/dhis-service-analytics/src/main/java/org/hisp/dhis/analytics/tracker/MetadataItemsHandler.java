@@ -70,6 +70,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
@@ -613,9 +614,10 @@ public class MetadataItemsHandler {
         .distinct()
         .forEach(dateField -> addDateFieldMetadataEntry(metadataItemMap, dateField, params));
 
-    // Source 2: timeDateRanges (available in query path where replacePeriodsWithDates()
-    // consumes periods and moves date field info to timeDateRanges)
-    params.getTimeDateRanges().keySet().stream()
+    // Source 2: timeDateRanges and filterTimeDateRanges (available in query path where
+    // replacePeriodsWithDates() consumes periods and moves date field info to them)
+    Stream.of(params.getTimeDateRanges(), params.getFilterTimeDateRanges())
+        .flatMap(dateRanges -> dateRanges.keySet().stream())
         .map(TimeField::name)
         .forEach(dateField -> addDateFieldMetadataEntry(metadataItemMap, dateField, params));
   }

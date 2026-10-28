@@ -964,8 +964,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     List<QueryItem> aggregateEventDateFilters = getAggregateEventDateFilters(params);
     Map<TimeField, List<DateRange>> eventTimeDateRanges = getAggregateEventTimeDateRanges(params);
+    Map<TimeField, List<DateRange>> eventFilterTimeDateRanges =
+        params.getFilterTimeDateRanges(EVENT_TIME_FIELDS);
 
-    if (aggregateEventDateFilters.isEmpty() && eventTimeDateRanges.isEmpty()) {
+    if (aggregateEventDateFilters.isEmpty()
+        && eventTimeDateRanges.isEmpty()
+        && eventFilterTimeDateRanges.isEmpty()) {
       return;
     }
 
@@ -987,6 +991,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                 .map(dateRange -> buildEventDateRangeSql(timeField, dateRange))
                 .filter(StringUtils::isNotBlank)
                 .forEach(eventFilters::add));
+
+    // Period filter ranges on the same time field are in the "OR" relation
+    eventFilterTimeDateRanges.forEach(
+        (timeField, dateRanges) ->
+            eventFilters.add(
+                dateRanges.stream()
+                    .map(dateRange -> buildEventDateRangeSql(timeField, dateRange))
+                    .collect(joining(") or (", "((", "))"))));
 
     if (eventFilters.isEmpty()) {
       return;
@@ -1042,10 +1054,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private String getBaseAggregationWhereClause(EventQueryParams params) {
-    if (!params.hasTimeDateRanges()) {
-      return getWhereClause(params);
-    }
-
     EventQueryParams sanitizedParams =
         new EventQueryParams.Builder(params).withoutTimeDateRanges(EVENT_TIME_FIELDS).build();
 
@@ -1054,7 +1062,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private boolean usesAggregateEventJoin(EventQueryParams params) {
     return !getAggregateEventDateFilters(params).isEmpty()
-        || !getAggregateEventTimeDateRanges(params).isEmpty();
+        || !getAggregateEventTimeDateRanges(params).isEmpty()
+        || !params.getFilterTimeDateRanges(EVENT_TIME_FIELDS).isEmpty();
   }
 
   private String buildAggregatedEnrollmentQueryWithCte(
