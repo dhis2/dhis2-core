@@ -583,6 +583,14 @@ public interface SqlBuilder {
   String insertIntoSelectFrom(Table intoTable, String fromTable);
 
   /**
+   * @param intoTable the table to insert rows into.
+   * @param fromTable the name of the table to select rows from, preferrably quoted.
+   * @param whereClause the condition restricting the selected rows, without the where keyword.
+   * @return in insert into select from statement with a where clause.
+   */
+  String insertIntoSelectFrom(Table intoTable, String fromTable, String whereClause);
+
+  /**
    * Generates an SQL fragment that casts the given numeric expression to a decimal type.
    *
    * <p>This helper is used to force exact decimal arithmetic instead of allowing the database to

@@ -400,6 +400,17 @@ class DorisSqlBuilderTest {
     assertEquals(expected, sqlBuilder.insertIntoSelectFrom(getTableB(), "`immunization`"));
   }
 
+  @Test
+  void testInsertIntoSelectFromWithWhere() {
+    String expected =
+        """
+        insert into `vaccination` (`id`,`facility_type`,`bcg_doses`) \
+        select `id`,`facility_type`,`bcg_doses` from `immunization` where `id` in (1,2);""";
+
+    assertEquals(
+        expected, sqlBuilder.insertIntoSelectFrom(getTableB(), "`immunization`", "`id` in (1,2)"));
+  }
+
   // Catalog
 
   @Test

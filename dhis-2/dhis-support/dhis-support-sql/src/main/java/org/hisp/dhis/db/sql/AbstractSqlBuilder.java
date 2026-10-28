@@ -186,6 +186,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 
   @Override
   public String insertIntoSelectFrom(Table intoTable, String fromTable) {
+    return insertIntoSelectFrom(intoTable, fromTable, null);
+  }
+
+  @Override
+  public String insertIntoSelectFrom(Table intoTable, String fromTable, String whereClause) {
     String columns = toCommaSeparated(intoTable.getColumns(), col -> quote(col.getName()));
 
     StringBuilder sql =
@@ -201,7 +206,13 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
       sql.append(columns).append(" ");
     }
 
-    return sql.append("from ").append(fromTable).append(";").toString();
+    sql.append("from ").append(fromTable);
+
+    if (whereClause != null) {
+      sql.append(" where ").append(whereClause);
+    }
+
+    return sql.append(";").toString();
   }
 
   @Override
