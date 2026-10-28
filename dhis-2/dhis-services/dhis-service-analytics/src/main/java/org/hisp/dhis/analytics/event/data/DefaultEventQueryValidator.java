@@ -52,6 +52,7 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -202,10 +203,10 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       return new ErrorMessage(ErrorCode.E7242);
     }
 
-    // Validate stage-specific categories and COGS
-    ErrorMessage stageSpecificDimError = validateStageSpecificDimensions(params);
-    if (stageSpecificDimError != null) {
-      return stageSpecificDimError;
+    // Validate categories and COGS
+    ErrorMessage categoryDimError = validateCategoryDimensions(params);
+    if (categoryDimError != null) {
+      return categoryDimError;
     }
 
     for (QueryItem item : params.getItemsAndItemFilters()) {
@@ -280,20 +281,23 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
   }
 
   /**
-   * Validates stage-specific dimensions (categories and COGS). Checks that the program stage
-   * belongs to the query's program.
+   * Validates category and COGS dimensions, with or without a stage prefix, against the columns of
+   * the analytics table. Checks that the program stage belongs to the query's program, that a
+   * category is part of the program's category combo, and that no COGS is used in an enrollment
+   * query, as the enrollment analytics table has no COGS columns.
    *
    * @param params the {@link EventQueryParams}.
    * @return an {@link ErrorMessage} if validation fails, null otherwise.
    */
-  private ErrorMessage validateStageSpecificDimensions(EventQueryParams params) {
+  private ErrorMessage validateCategoryDimensions(EventQueryParams params) {
     if (!params.hasProgram()) {
       return null;
     }
 
     Program program = params.getProgram();
+    Set<String> programCategories = getProgramCategoryUids(program);
 
-    // Check dimensions and filters for stage-specific categories/COGS
+    // Check dimensions and filters for categories/COGS
     List<DimensionalObject> dynamicDimensions =
         params.getDimensionsAndFilters(
             Set.of(DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET));
@@ -307,9 +311,33 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
           return new ErrorMessage(ErrorCode.E7245, dimProgramStage.getUid(), program.getUid());
         }
       }
+
+      if (dim.getDimensionType() == DimensionType.CATEGORY
+          && !programCategories.contains(dim.getDimensionName())) {
+        return new ErrorMessage(ErrorCode.E7268, dim.getDimensionName(), program.getUid());
+      }
+
+      if (dim.getDimensionType() == DimensionType.CATEGORY_OPTION_GROUP_SET
+          && params.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT) {
+        return new ErrorMessage(ErrorCode.E7269, dim.getDimensionName());
+      }
     }
 
     return null;
+  }
+
+  /**
+   * Returns the uids of the categories the analytics tables hold a column for: the data dimension
+   * categories of the program's category combo, or none for the default category combo.
+   */
+  private Set<String> getProgramCategoryUids(Program program) {
+    if (!program.hasNonDefaultCategoryCombo()) {
+      return Set.of();
+    }
+
+    return program.getCategoryCombo().getDataDimensionCategories().stream()
+        .map(Category::getUid)
+        .collect(Collectors.toSet());
   }
 
   /**
