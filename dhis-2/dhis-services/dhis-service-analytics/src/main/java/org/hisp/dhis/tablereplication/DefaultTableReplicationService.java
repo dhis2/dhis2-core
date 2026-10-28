@@ -38,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Table;
@@ -61,7 +62,11 @@ public class DefaultTableReplicationService implements TableReplicationService {
   /** Re-syncs tracked entities changed shortly before the last sync, see the design notes. */
   private static final Duration SYNC_OVERLAP = Duration.ofMinutes(30);
 
-  private static final int BATCH_SIZE = 5_000;
+  /**
+   * Doris limits delete statements to max_allowed_in_element_num_of_delete (default 1,024) in-list
+   * elements on some table models and versions, so batches stay below it.
+   */
+  private static final int BATCH_SIZE = 1_000;
 
   /** Above this number of changed tracked entities, the whole table is copied again instead. */
   private static final int MAX_INCREMENTAL_TRACKED_ENTITIES = 200_000;
@@ -86,13 +91,18 @@ public class DefaultTableReplicationService implements TableReplicationService {
   private final TransactionTemplate transactionTemplate;
 
   @Override
+  @NonTransactional
   public void replicateTrackedEntityAttributeValue() {
     Date syncStart = new Date();
+    // The copy drops and recreates the table first, so a failure leaves it incomplete; mark it as
+    // never synced until the copy succeeds, so the next continuous run copies the whole table again
+    settingsService.put(KEY_LAST_SYNC, new Date(0L));
     store.replicateAnalyticsDatabaseTable(TABLE_TRACKED_ENTIY_ATTRIBUTE_VALUE);
     settingsService.put(KEY_LAST_SYNC, syncStart);
   }
 
   @Override
+  @NonTransactional
   public ReplicaSyncOutcome syncTrackedEntityAttributeValue(AnalyticsTableUpdateParams params) {
     if (!sqlBuilder.supportsContinuousAnalytics()) {
       return ReplicaSyncOutcome.NOT_SUPPORTED;
