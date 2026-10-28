@@ -47,6 +47,8 @@ import static org.hisp.dhis.analytics.event.LabelMapper.getDateFieldLabel;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptionsAsFilter;
+import static org.hisp.dhis.analytics.event.data.queryitem.EventStatusFilterHandler.STAGE_EVENT_STATUS_LABELS;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
 import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems;
 import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
@@ -294,6 +296,7 @@ public class MetadataItemsHandler {
     addEnrollmentOuMetadata(metadataItemMap, params, includeDetails);
     addRegistrationOuMetadata(metadataItemMap, params, includeDetails);
     addProgramStatusMetadata(metadataItemMap, params);
+    addStageEventStatusMetadata(metadataItemMap, params);
 
     return metadataItemMap;
   }
@@ -718,6 +721,26 @@ public class MetadataItemsHandler {
       case COMPLETED -> "Completed";
       case CANCELLED -> "Cancelled";
     };
+  }
+
+  /**
+   * Adds a labelled metadata item for every event status requested through a stage-specific event
+   * status dimension or filter (e.g. {@code stageUid.EVENT_STATUS:ACTIVE;COMPLETED}).
+   *
+   * @param metadataItemMap the metadata item map.
+   * @param params the {@link EventQueryParams}.
+   */
+  private void addStageEventStatusMetadata(
+      Map<String, MetadataItem> metadataItemMap, EventQueryParams params) {
+    for (QueryItem item : params.getItemsAndItemFilters()) {
+      if (!EVENT_STATUS_COLUMN_NAME.equals(item.getItemId())) {
+        continue;
+      }
+
+      for (String status : item.getDimensionValues()) {
+        metadataItemMap.put(status, new MetadataItem(STAGE_EVENT_STATUS_LABELS.get(status)));
+      }
+    }
   }
 
   /**

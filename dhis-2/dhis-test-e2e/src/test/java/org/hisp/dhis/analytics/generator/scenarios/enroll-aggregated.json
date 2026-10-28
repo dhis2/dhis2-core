@@ -314,6 +314,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "stageEventStatusAsFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=pe:2022&filter=ou:ImspTQPwCqd,A03MvHHogjR.EVENT_STATUS:ACTIVE;COMPLETED&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
