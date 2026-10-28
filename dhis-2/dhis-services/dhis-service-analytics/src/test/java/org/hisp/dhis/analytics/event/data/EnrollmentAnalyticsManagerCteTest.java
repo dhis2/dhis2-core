@@ -51,7 +51,10 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
 import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
+import static org.hisp.dhis.test.TestBase.createCategory;
+import static org.hisp.dhis.test.TestBase.createCategoryOption;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
@@ -87,6 +90,7 @@ import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -417,6 +421,67 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(baseCteSql, containsString("ax.\"uidlevel2\""));
     // And no unqualified copy survives to be ambiguous against regous.
     assertThat(baseCteSql, not(containsString(", uidlevel2")));
+  }
+
+  /**
+   * Org unit group set columns are named after mixed-case uids. Stripping the table alias must not
+   * also drop the quotes, otherwise Postgres folds the bare name to lowercase and the column is not
+   * found.
+   */
+  @Test
+  void verifyAggregateEnrollmentQuotesOrgUnitGroupSetColumnInBaseCte() {
+    String generatedSql =
+        getAggregateEnrollmentSql(
+            new BaseDimensionalObject(
+                "uIuxlbV1vRT",
+                DimensionType.ORGANISATION_UNIT_GROUP_SET,
+                List.of(createOrganisationUnitGroup('A'))));
+    String baseCteSql = getBaseAggregationCteSql(generatedSql);
+
+    assertThat(baseCteSql, containsString(", \"uIuxlbV1vRT\""));
+    assertThat(baseCteSql, not(containsString(", uIuxlbV1vRT")));
+    assertThat(generatedSql, containsString("group by \"uIuxlbV1vRT\""));
+  }
+
+  /** Category columns are named after mixed-case uids, like org unit group set columns. */
+  @Test
+  void verifyAggregateEnrollmentQuotesCategoryColumnInBaseCte() {
+    CategoryOption categoryOption = createCategoryOption('A');
+    createCategory('A', categoryOption);
+
+    String generatedSql =
+        getAggregateEnrollmentSql(
+            new BaseDimensionalObject(
+                "LFsZ8v5v7rq", DimensionType.CATEGORY, List.of(categoryOption)));
+    String baseCteSql = getBaseAggregationCteSql(generatedSql);
+
+    assertThat(baseCteSql, containsString(", \"LFsZ8v5v7rq\""));
+    assertThat(baseCteSql, not(containsString(", LFsZ8v5v7rq")));
+    assertThat(generatedSql, containsString("group by \"LFsZ8v5v7rq\""));
+  }
+
+  private String getAggregateEnrollmentSql(BaseDimensionalObject dimension) {
+    EventQueryParams params =
+        new EventQueryParams.Builder(
+                createRequestParamsBuilder().withEndpointAction(AGGREGATE).build())
+            .addDimension(dimension)
+            .build();
+
+    String dimensionUid = dimension.getDimension();
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(new GridHeader(dimensionUid, dimensionUid, ValueType.TEXT, false, true));
+
+    subject.getEnrollments(params, grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    return noEof(sql.getValue());
+  }
+
+  private String getBaseAggregationCteSql(String generatedSql) {
+    return generatedSql.substring(
+        generatedSql.indexOf("enrollment_aggr_base as ("),
+        generatedSql.indexOf("select count(eb.enrollment) as value"));
   }
 
   @Test

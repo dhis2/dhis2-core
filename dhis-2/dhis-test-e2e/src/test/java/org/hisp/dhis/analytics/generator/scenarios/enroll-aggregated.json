@@ -321,6 +321,20 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "orgUnitGroupSetDimension",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=uIuxlbV1vRT,ou:ImspTQPwCqd,pe:2022;2023&totalPages=false",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "orgUnitGroupSetDimensionWithItems",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=uIuxlbV1vRT:jqBqIXoXpfy;nlX2VoouN63,ou:ImspTQPwCqd,pe:2022&totalPages=false",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

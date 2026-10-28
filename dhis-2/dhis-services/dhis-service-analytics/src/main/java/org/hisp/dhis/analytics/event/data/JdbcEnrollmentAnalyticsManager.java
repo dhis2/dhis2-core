@@ -757,10 +757,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     sb.addColumn(ENROLLMENT_COL, "ax", ENROLLMENT_COL);
     for (String column : Sets.newHashSet(columns)) {
       String stripped = SqlColumnParser.removeTableAlias(column);
-      sb.addColumn(
+      String projection =
           joinsRegistrationOu
               ? OrgUnitSqlCoordinator.preserveQualifierIfAmbiguous(column, stripped)
-              : stripped);
+              : stripped;
+      // Quoted so mixed-case uid columns (org unit group sets, categories) keep their case
+      sb.addColumn(projection.equals(stripped) ? quote(stripped) : projection);
     }
     OrgUnitSqlCoordinator.baseCteSelectColumn(params, sqlBuilder).ifPresent(sb::addColumn);
 
