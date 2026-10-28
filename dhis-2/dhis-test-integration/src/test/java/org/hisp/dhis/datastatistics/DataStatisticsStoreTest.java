@@ -71,6 +71,46 @@ class DataStatisticsStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
+  /** The count properties with their columns and getters. */
+  private static final List<CountColumn> COUNT_COLUMNS =
+      List.of(
+          new CountColumn("mapViews", "mapviews", DataStatistics::getMapViews),
+          new CountColumn(
+              "visualizationViews", "visualizationviews", DataStatistics::getVisualizationViews),
+          new CountColumn(
+              "eventReportViews", "eventreportviews", DataStatistics::getEventReportViews),
+          new CountColumn("eventChartViews", "eventchartviews", DataStatistics::getEventChartViews),
+          new CountColumn(
+              "eventVisualizationViews",
+              "eventvisualizationviews",
+              DataStatistics::getEventVisualizationViews),
+          new CountColumn("dashboardViews", "dashboardviews", DataStatistics::getDashboardViews),
+          new CountColumn(
+              "passiveDashboardViews",
+              "passivedashboardviews",
+              DataStatistics::getPassiveDashboardViews),
+          new CountColumn(
+              "dataSetReportViews", "datasetreportviews", DataStatistics::getDataSetReportViews),
+          new CountColumn("totalViews", "totalviews", DataStatistics::getTotalViews),
+          new CountColumn("savedMaps", "maps", DataStatistics::getSavedMaps),
+          new CountColumn(
+              "savedVisualizations", "visualizations", DataStatistics::getSavedVisualizations),
+          new CountColumn(
+              "savedEventReports", "eventreports", DataStatistics::getSavedEventReports),
+          new CountColumn("savedEventCharts", "eventcharts", DataStatistics::getSavedEventCharts),
+          new CountColumn(
+              "savedEventVisualizations",
+              "eventvisualizations",
+              DataStatistics::getSavedEventVisualizations),
+          new CountColumn("savedDashboards", "dashboards", DataStatistics::getSavedDashboards),
+          new CountColumn("savedIndicators", "indicators", DataStatistics::getSavedIndicators),
+          new CountColumn("savedDataValues", "datavalues", DataStatistics::getSavedDataValues),
+          new CountColumn("activeUsers", "active_users", DataStatistics::getActiveUsers),
+          new CountColumn("users", "users", DataStatistics::getUsers));
+
+  private record CountColumn(
+      String property, String column, Function<DataStatistics, Long> getter) {}
+
   private DataStatistics ds1;
 
   private DataStatistics ds2;
@@ -241,7 +281,8 @@ class DataStatisticsStoreTest extends PostgresIntegrationTestBase {
     assertEquals(1, generator.getDatabaseStructure().getIncrementSize());
     assertInstanceOf(NoopOptimizer.class, generator.getOptimizer());
 
-    Map<String, String> columns = new LinkedHashMap<>(COUNT_COLUMNS);
+    Map<String, String> columns = new LinkedHashMap<>();
+    COUNT_COLUMNS.forEach(count -> columns.put(count.property(), count.column()));
     columns.put("uid", "uid");
     columns.put("code", "code");
     columns.put("created", "created");
@@ -265,9 +306,10 @@ class DataStatisticsStoreTest extends PostgresIntegrationTestBase {
     }
     assertTrue(isNullable(persister, "code"), "code is mapped not-null");
     assertTrue(isNullable(persister, "lastUpdatedBy"), "lastUpdatedBy is mapped not-null");
-    for (String property : COUNT_COLUMNS.keySet()) {
-      assertTrue(isNullable(persister, property), property + " is mapped not-null");
-      assertInstanceOf(LongType.class, persister.getPropertyType(property), property);
+    for (CountColumn count : COUNT_COLUMNS) {
+      assertTrue(isNullable(persister, count.property()), count.property() + " is mapped not-null");
+      assertInstanceOf(
+          LongType.class, persister.getPropertyType(count.property()), count.property());
     }
     assertFalse(
         persister.getPropertyUpdateability()[persister.getPropertyIndex("created")],
@@ -309,17 +351,23 @@ class DataStatisticsStoreTest extends PostgresIntegrationTestBase {
             "select * from datastatistics where statisticsid = ?", statistics.getId());
     assertEquals(statistics.getUid(), row.get("uid"));
     assertEquals("STATS_A", row.get("code"));
+    assertEquals(date.getTime(), ((Date) row.get("created")).getTime());
+    assertEquals(statistics.getLastUpdated().getTime(), ((Date) row.get("lastupdated")).getTime());
     assertEquals(getAdminUser().getId(), ((Number) row.get("lastupdatedby")).longValue());
     Map<String, Long> expected = countsOf(statistics);
     COUNT_COLUMNS.forEach(
-        (property, column) ->
-            assertEquals(expected.get(property), ((Number) row.get(column)).longValue(), column));
+        count ->
+            assertEquals(
+                expected.get(count.property()),
+                ((Number) row.get(count.column())).longValue(),
+                count.column()));
 
     dbmsManager.clearSession();
     DataStatistics loaded = dataStatisticsStore.get(statistics.getId());
     assertEquals(statistics.getUid(), loaded.getUid());
     assertEquals("STATS_A", loaded.getCode());
     assertEquals(date.getTime(), loaded.getCreated().getTime());
+    assertEquals(statistics.getLastUpdated().getTime(), loaded.getLastUpdated().getTime());
     assertEquals(getAdminUser().getUid(), loaded.getLastUpdatedBy().getUid());
     assertEquals(expected, countsOf(loaded));
   }
@@ -339,55 +387,9 @@ class DataStatisticsStoreTest extends PostgresIntegrationTestBase {
     assertEquals(ds2.hashCode(), proxy.hashCode());
   }
 
-  private static final Map<String, String> COUNT_COLUMNS = countColumns();
-
-  private static Map<String, String> countColumns() {
-    Map<String, String> columns = new LinkedHashMap<>();
-    columns.put("mapViews", "mapviews");
-    columns.put("visualizationViews", "visualizationviews");
-    columns.put("eventReportViews", "eventreportviews");
-    columns.put("eventChartViews", "eventchartviews");
-    columns.put("eventVisualizationViews", "eventvisualizationviews");
-    columns.put("dashboardViews", "dashboardviews");
-    columns.put("passiveDashboardViews", "passivedashboardviews");
-    columns.put("dataSetReportViews", "datasetreportviews");
-    columns.put("totalViews", "totalviews");
-    columns.put("savedMaps", "maps");
-    columns.put("savedVisualizations", "visualizations");
-    columns.put("savedEventReports", "eventreports");
-    columns.put("savedEventCharts", "eventcharts");
-    columns.put("savedEventVisualizations", "eventvisualizations");
-    columns.put("savedDashboards", "dashboards");
-    columns.put("savedIndicators", "indicators");
-    columns.put("savedDataValues", "datavalues");
-    columns.put("activeUsers", "active_users");
-    columns.put("users", "users");
-    return columns;
-  }
-
   private static Map<String, Long> countsOf(DataStatistics statistics) {
-    Map<String, Function<DataStatistics, Long>> getters = new LinkedHashMap<>();
-    getters.put("mapViews", DataStatistics::getMapViews);
-    getters.put("visualizationViews", DataStatistics::getVisualizationViews);
-    getters.put("eventReportViews", DataStatistics::getEventReportViews);
-    getters.put("eventChartViews", DataStatistics::getEventChartViews);
-    getters.put("eventVisualizationViews", DataStatistics::getEventVisualizationViews);
-    getters.put("dashboardViews", DataStatistics::getDashboardViews);
-    getters.put("passiveDashboardViews", DataStatistics::getPassiveDashboardViews);
-    getters.put("dataSetReportViews", DataStatistics::getDataSetReportViews);
-    getters.put("totalViews", DataStatistics::getTotalViews);
-    getters.put("savedMaps", DataStatistics::getSavedMaps);
-    getters.put("savedVisualizations", DataStatistics::getSavedVisualizations);
-    getters.put("savedEventReports", DataStatistics::getSavedEventReports);
-    getters.put("savedEventCharts", DataStatistics::getSavedEventCharts);
-    getters.put("savedEventVisualizations", DataStatistics::getSavedEventVisualizations);
-    getters.put("savedDashboards", DataStatistics::getSavedDashboards);
-    getters.put("savedIndicators", DataStatistics::getSavedIndicators);
-    getters.put("savedDataValues", DataStatistics::getSavedDataValues);
-    getters.put("activeUsers", DataStatistics::getActiveUsers);
-    getters.put("users", DataStatistics::getUsers);
     Map<String, Long> counts = new LinkedHashMap<>();
-    getters.forEach((property, getter) -> counts.put(property, getter.apply(statistics)));
+    COUNT_COLUMNS.forEach(count -> counts.put(count.property(), count.getter().apply(statistics)));
     return counts;
   }
 
