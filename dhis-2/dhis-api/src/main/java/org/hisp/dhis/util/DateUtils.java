@@ -193,7 +193,7 @@ public class DateUtils {
   public static String toLongGmtDate(Date date) {
     if (date == null) return null;
     byte[] b = new byte[28];
-    toLongGmtDate(date, b);
+    toLongGmtDate(date.getTime(), b);
     return new String(b, US_ASCII);
   }
 
@@ -983,12 +983,11 @@ public class DateUtils {
   public static CharSequence toLongGmtDateText(Date date) {
     if (date == null) return null;
     byte[] b = new byte[28];
-    toLongGmtDate(date, b);
+    toLongGmtDate(date.getTime(), b);
     return new AsciiText(b);
   }
 
-  private static void toLongGmtDate(Date date, byte[] b) {
-    long ms = date.getTime();
+  private static void toLongGmtDate(long ms, byte[] b) {
     long epochDay = Math.floorDiv(ms, 86_400_000L);
     long msOfDay = ms - epochDay * 86_400_000L;
 
