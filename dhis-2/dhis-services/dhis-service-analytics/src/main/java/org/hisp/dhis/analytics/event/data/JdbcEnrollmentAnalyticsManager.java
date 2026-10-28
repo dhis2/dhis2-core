@@ -757,10 +757,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     sb.addColumn(ENROLLMENT_COL, "ax", ENROLLMENT_COL);
     for (String column : Sets.newHashSet(columns)) {
       String stripped = SqlColumnParser.removeTableAlias(column);
-      sb.addColumn(
+      String projection =
           joinsRegistrationOu
               ? OrgUnitSqlCoordinator.preserveQualifierIfAmbiguous(column, stripped)
-              : stripped);
+              : stripped;
+      // Quoted so mixed-case uid columns (org unit group sets, categories) keep their case
+      sb.addColumn(projection.equals(stripped) ? quote(stripped) : projection);
     }
     OrgUnitSqlCoordinator.baseCteSelectColumn(params, sqlBuilder).ifPresent(sb::addColumn);
 
@@ -934,8 +936,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     List<QueryItem> aggregateEventDateFilters = getAggregateEventDateFilters(params);
     Map<TimeField, List<DateRange>> eventTimeDateRanges = getAggregateEventTimeDateRanges(params);
+    Map<TimeField, List<DateRange>> eventFilterTimeDateRanges =
+        params.getFilterTimeDateRanges(EVENT_TIME_FIELDS);
 
-    if (aggregateEventDateFilters.isEmpty() && eventTimeDateRanges.isEmpty()) {
+    if (aggregateEventDateFilters.isEmpty()
+        && eventTimeDateRanges.isEmpty()
+        && eventFilterTimeDateRanges.isEmpty()) {
       return;
     }
 
@@ -957,6 +963,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                 .map(dateRange -> buildEventDateRangeSql(timeField, dateRange))
                 .filter(StringUtils::isNotBlank)
                 .forEach(eventFilters::add));
+
+    // Period filter ranges on the same time field are in the "OR" relation
+    eventFilterTimeDateRanges.forEach(
+        (timeField, dateRanges) ->
+            eventFilters.add(
+                dateRanges.stream()
+                    .map(dateRange -> buildEventDateRangeSql(timeField, dateRange))
+                    .collect(joining(") or (", "((", "))"))));
 
     if (eventFilters.isEmpty()) {
       return;
@@ -1023,12 +1037,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           withoutQueryItems(sanitizedParams, item -> aggregateEventDateFilters.contains(item));
     }
 
-    if (sanitizedParams.hasTimeDateRanges()) {
-      sanitizedParams =
-          new EventQueryParams.Builder(sanitizedParams)
-              .withoutTimeDateRanges(EVENT_TIME_FIELDS)
-              .build();
-    }
+    sanitizedParams =
+        new EventQueryParams.Builder(sanitizedParams)
+            .withoutTimeDateRanges(EVENT_TIME_FIELDS)
+            .build();
 
     return getWhereClause(sanitizedParams);
   }
@@ -1049,7 +1061,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private boolean usesAggregateEventJoin(EventQueryParams params) {
     return !getAggregateEventDateFilters(params).isEmpty()
-        || !getAggregateEventTimeDateRanges(params).isEmpty();
+        || !getAggregateEventTimeDateRanges(params).isEmpty()
+        || !params.getFilterTimeDateRanges(EVENT_TIME_FIELDS).isEmpty();
   }
 
   private String buildAggregatedEnrollmentQueryWithCte(
