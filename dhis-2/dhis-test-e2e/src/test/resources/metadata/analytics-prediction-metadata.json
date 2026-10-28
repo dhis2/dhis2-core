@@ -1,0 +1,284 @@
+{
+  "categoryOptions": [
+    {
+      "id": "PrdCoChild1",
+      "name": "Prediction test Child",
+      "shortName": "Prediction test Child",
+      "sharing": { "public": "rwrw----" }
+    },
+    {
+      "id": "PrdCoAdult1",
+      "name": "Prediction test Adult",
+      "shortName": "Prediction test Adult",
+      "sharing": { "public": "rwrw----" }
+    },
+    {
+      "id": "PrdCoDied01",
+      "name": "Prediction test Died",
+      "shortName": "Prediction test Died",
+      "sharing": { "public": "rwrw----" }
+    },
+    {
+      "id": "PrdCoSurvd1",
+      "name": "Prediction test Survived",
+      "shortName": "Prediction test Survived",
+      "sharing": { "public": "rwrw----" }
+    }
+  ],
+  "categories": [
+    {
+      "id": "PrdCatAge01",
+      "name": "Prediction test Age",
+      "shortName": "Prediction test Age",
+      "dataDimensionType": "DISAGGREGATION",
+      "dataDimension": true,
+      "categoryOptions": [{ "id": "PrdCoChild1" }, { "id": "PrdCoAdult1" }]
+    },
+    {
+      "id": "PrdCatOutcm",
+      "name": "Prediction test Outcome",
+      "shortName": "Prediction test Outcome",
+      "dataDimensionType": "ATTRIBUTE",
+      "dataDimension": true,
+      "categoryOptions": [{ "id": "PrdCoDied01" }, { "id": "PrdCoSurvd1" }]
+    }
+  ],
+  "categoryCombos": [
+    {
+      "id": "PrdCcGendAg",
+      "name": "Prediction test Gender and Age",
+      "dataDimensionType": "DISAGGREGATION",
+      "categories": [{ "id": "cX5k9anHEHd" }, { "id": "PrdCatAge01" }]
+    },
+    {
+      "id": "PrdCcOutcom",
+      "name": "Prediction test Outcome",
+      "dataDimensionType": "ATTRIBUTE",
+      "categories": [{ "id": "PrdCatOutcm" }]
+    }
+  ],
+  "categoryOptionCombos": [
+    {
+      "id": "PrdCocFemCh",
+      "name": "Female, Prediction test Child",
+      "categoryCombo": { "id": "PrdCcGendAg" },
+      "categoryOptions": [{ "id": "apsOixVZlf1" }, { "id": "PrdCoChild1" }]
+    },
+    {
+      "id": "PrdCocFemAd",
+      "name": "Female, Prediction test Adult",
+      "categoryCombo": { "id": "PrdCcGendAg" },
+      "categoryOptions": [{ "id": "apsOixVZlf1" }, { "id": "PrdCoAdult1" }]
+    },
+    {
+      "id": "PrdCocMalCh",
+      "name": "Male, Prediction test Child",
+      "categoryCombo": { "id": "PrdCcGendAg" },
+      "categoryOptions": [{ "id": "jRbMi0aBjYn" }, { "id": "PrdCoChild1" }]
+    },
+    {
+      "id": "PrdCocMalAd",
+      "name": "Male, Prediction test Adult",
+      "categoryCombo": { "id": "PrdCcGendAg" },
+      "categoryOptions": [{ "id": "jRbMi0aBjYn" }, { "id": "PrdCoAdult1" }]
+    },
+    {
+      "id": "PrdAocDied1",
+      "name": "Prediction test Died",
+      "categoryCombo": { "id": "PrdCcOutcom" },
+      "categoryOptions": [{ "id": "PrdCoDied01" }]
+    },
+    {
+      "id": "PrdAocSurvd",
+      "name": "Prediction test Survived",
+      "categoryCombo": { "id": "PrdCcOutcom" },
+      "categoryOptions": [{ "id": "PrdCoSurvd1" }]
+    }
+  ],
+  "programIndicators": [
+    {
+      "id": "PrdPiEnroll",
+      "name": "Prediction test Child Programme enrollments",
+      "shortName": "Prediction test enrollments",
+      "program": { "id": "IpHINAT79UW" },
+      "analyticsType": "ENROLLMENT",
+      "expression": "V{enrollment_count}",
+      "aggregationType": "COUNT",
+      "analyticsPeriodBoundaries": [
+        {
+          "id": "PrdPbEnrol1",
+          "boundaryTarget": "ENROLLMENT_DATE",
+          "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD"
+        },
+        {
+          "id": "PrdPbEnrol2",
+          "boundaryTarget": "ENROLLMENT_DATE",
+          "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD"
+        }
+      ]
+    },
+    {
+      "id": "PrdPiCasSex",
+      "name": "Prediction test cases by Gender",
+      "shortName": "Prediction test cases by Gender",
+      "program": { "id": "eBAyeGv0exc" },
+      "analyticsType": "EVENT",
+      "expression": "V{event_count}",
+      "aggregationType": "SUM",
+      "analyticsPeriodBoundaries": [
+        {
+          "id": "PrdPbCasSx1",
+          "boundaryTarget": "EVENT_DATE",
+          "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD"
+        },
+        {
+          "id": "PrdPbCasSx2",
+          "boundaryTarget": "EVENT_DATE",
+          "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD"
+        }
+      ],
+      "categoryCombo": { "id": "dPmavA0qloX" },
+      "attributeCombo": { "id": "bjDvmb4bfuf" },
+      "categoryMappingIds": ["gIgiL8ow0bi"]
+    },
+    {
+      "id": "PrdPiAdltSx",
+      "name": "Prediction test adult cases by Gender",
+      "shortName": "Prediction test adult cases by Gender",
+      "program": { "id": "eBAyeGv0exc" },
+      "analyticsType": "EVENT",
+      "expression": "V{event_count}",
+      "filter": "#{Zj7UnCAulEk.qrur9Dvnyt5} >= 15",
+      "aggregationType": "SUM",
+      "analyticsPeriodBoundaries": [
+        {
+          "id": "PrdPbAdlSx1",
+          "boundaryTarget": "EVENT_DATE",
+          "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD"
+        },
+        {
+          "id": "PrdPbAdlSx2",
+          "boundaryTarget": "EVENT_DATE",
+          "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD"
+        }
+      ],
+      "categoryCombo": { "id": "dPmavA0qloX" },
+      "attributeCombo": { "id": "bjDvmb4bfuf" },
+      "categoryMappingIds": ["gIgiL8ow0bi"]
+    },
+    {
+      "id": "PrdPiSexAge",
+      "name": "Prediction test cases by Gender and Age",
+      "shortName": "Prediction test cases by Gender and Age",
+      "program": { "id": "eBAyeGv0exc" },
+      "analyticsType": "EVENT",
+      "expression": "V{event_count}",
+      "aggregationType": "SUM",
+      "analyticsPeriodBoundaries": [
+        {
+          "id": "PrdPbSxAge1",
+          "boundaryTarget": "EVENT_DATE",
+          "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD"
+        },
+        {
+          "id": "PrdPbSxAge2",
+          "boundaryTarget": "EVENT_DATE",
+          "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD"
+        }
+      ],
+      "categoryCombo": { "id": "PrdCcGendAg" },
+      "attributeCombo": { "id": "bjDvmb4bfuf" },
+      "categoryMappingIds": ["gIgiL8ow0bi", "PrdMapAge01"]
+    },
+    {
+      "id": "PrdPiSexOut",
+      "name": "Prediction test cases by Gender with Outcome",
+      "shortName": "Prediction test cases by Gender with Outcome",
+      "program": { "id": "eBAyeGv0exc" },
+      "analyticsType": "EVENT",
+      "expression": "V{event_count}",
+      "aggregationType": "SUM",
+      "analyticsPeriodBoundaries": [
+        {
+          "id": "PrdPbSxOut1",
+          "boundaryTarget": "EVENT_DATE",
+          "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD"
+        },
+        {
+          "id": "PrdPbSxOut2",
+          "boundaryTarget": "EVENT_DATE",
+          "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD"
+        }
+      ],
+      "categoryCombo": { "id": "dPmavA0qloX" },
+      "attributeCombo": { "id": "PrdCcOutcom" },
+      "categoryMappingIds": ["gIgiL8ow0bi", "PrdMapOutcm"]
+    },
+    {
+      "id": "PrdPiOutcom",
+      "name": "Prediction test cases with Outcome",
+      "shortName": "Prediction test cases with Outcome",
+      "program": { "id": "eBAyeGv0exc" },
+      "analyticsType": "EVENT",
+      "expression": "V{event_count}",
+      "aggregationType": "SUM",
+      "analyticsPeriodBoundaries": [
+        {
+          "id": "PrdPbOutco1",
+          "boundaryTarget": "EVENT_DATE",
+          "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD"
+        },
+        {
+          "id": "PrdPbOutco2",
+          "boundaryTarget": "EVENT_DATE",
+          "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD"
+        }
+      ],
+      "categoryCombo": { "id": "bjDvmb4bfuf" },
+      "attributeCombo": { "id": "PrdCcOutcom" },
+      "categoryMappingIds": ["PrdMapOutcm"]
+    }
+  ],
+  "dataElements": [
+    {
+      "id": "PrdDeRbyGen",
+      "name": "Prediction test R by Gender",
+      "shortName": "Prediction test R by Gender",
+      "valueType": "INTEGER",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "categoryCombo": { "id": "dPmavA0qloX" }
+    },
+    {
+      "id": "PrdDeTbyGen",
+      "name": "Prediction test T by Gender with Outcome",
+      "shortName": "Prediction test T by Gender with Outcome",
+      "valueType": "INTEGER",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "categoryCombo": { "id": "dPmavA0qloX" }
+    }
+  ],
+  "dataSets": [
+    {
+      "id": "PrdDsDeflt1",
+      "sharing": { "public": "rwrw----" },
+      "name": "Prediction test data set",
+      "shortName": "Prediction test data set",
+      "periodType": "Monthly",
+      "categoryCombo": { "id": "bjDvmb4bfuf" },
+      "dataSetElements": [{ "dataElement": { "id": "PrdDeRbyGen" } }],
+      "organisationUnits": [{ "id": "DiszpKrYNg8" }]
+    },
+    {
+      "id": "PrdDsOutcom",
+      "sharing": { "public": "rwrw----" },
+      "name": "Prediction test data set with Outcome",
+      "shortName": "Prediction test data set with Outcome",
+      "periodType": "Monthly",
+      "categoryCombo": { "id": "PrdCcOutcom" },
+      "dataSetElements": [{ "dataElement": { "id": "PrdDeTbyGen" } }],
+      "organisationUnits": [{ "id": "DiszpKrYNg8" }]
+    }
+  ]
+}

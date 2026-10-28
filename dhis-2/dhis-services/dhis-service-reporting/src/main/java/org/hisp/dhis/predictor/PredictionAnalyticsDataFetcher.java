@@ -29,9 +29,10 @@
  */
 package org.hisp.dhis.predictor;
 
+import static java.lang.String.format;
+
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionItemType;
@@ -48,6 +50,8 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.dxf2.datavalue.DataValue;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
@@ -58,6 +62,15 @@ import org.hisp.dhis.program.ProgramIndicator;
  *
  * <p>This class can fetch values from analytics and return them for a list of organisation units.
  *
+ * <p>Program indicators with category mappings are fetched in data value set format, which returns
+ * the category option combo and attribute option combo (if any) of each value as mapped by the
+ * program indicator's category mappings. This is done for program indicators with a non-default
+ * attribute combo, so their values are predicted by their mapped attribute option combos. It is
+ * also done when making disaggregated predictions for program indicators with a non-default
+ * category combo, so their values can be included in the disaggregated predictions according to
+ * their category options. (When not making disaggregated predictions, values for different category
+ * option combos are summed.)
+ *
  * @author Jim Grace
  */
 @RequiredArgsConstructor
@@ -66,6 +79,9 @@ public class PredictionAnalyticsDataFetcher {
 
   private final CategoryService categoryService;
 
+  /** Whether we are generating disaggregated predictions. */
+  private final boolean disagPredictions;
+
   private Set<Period> periods;
 
   private Map<String, Period> periodLookup;
@@ -73,6 +89,8 @@ public class PredictionAnalyticsDataFetcher {
   private Set<DimensionalItemObject> attributeOptionItems;
 
   private Set<DimensionalItemObject> nonAttributeOptionItems;
+
+  private Set<DimensionalItemObject> categoryOptionItems;
 
   private Map<String, DimensionalItemObject> analyticsItemsLookup;
 
@@ -113,6 +131,10 @@ public class PredictionAnalyticsDataFetcher {
 
     values.addAll(getValuesInternal(orgUnits, nonAttributeOptionItems, false));
 
+    for (DimensionalItemObject item : categoryOptionItems) {
+      values.addAll(getCategoryOptionValues(orgUnits, item));
+    }
+
     return values;
   }
 
@@ -121,20 +143,39 @@ public class PredictionAnalyticsDataFetcher {
   // -------------------------------------------------------------------------
 
   /**
-   * Categorizes analytics items according to whether or not they are stored with an attribute
-   * option combo.
+   * Categorizes analytics items according to whether they are fetched with their mapped option
+   * combos, or else whether or not they are stored with an attribute option combo.
    */
   private void categorizeAnalyticsItems(Set<DimensionalItemObject> analyticsItems) {
     attributeOptionItems = new HashSet<>();
     nonAttributeOptionItems = new HashSet<>();
+    categoryOptionItems = new HashSet<>();
 
     for (DimensionalItemObject o : analyticsItems) {
-      if (hasAttributeOptions(o)) {
+      if (hasMappedOptionCombos(o)) {
+        categoryOptionItems.add(o);
+      } else if (hasAttributeOptions(o)) {
         attributeOptionItems.add(o);
       } else {
         nonAttributeOptionItems.add(o);
       }
     }
+  }
+
+  /**
+   * Checks to see if a dimensional item object is a program indicator whose values are needed by
+   * their mapped option combos: either it has a non-default attribute combo, or we are making
+   * disaggregated predictions and it has a non-default category combo.
+   */
+  private boolean hasMappedOptionCombos(DimensionalItemObject o) {
+    return o instanceof ProgramIndicator pi
+        && (isNonDefault(pi.getAttributeCombo())
+            || (disagPredictions && isNonDefault(pi.getCategoryCombo())));
+  }
+
+  /** Checks to see if a category combo is present and not the default. */
+  private boolean isNonDefault(CategoryCombo categoryCombo) {
+    return categoryCombo != null && !categoryCombo.isDefault();
   }
 
   /**
@@ -157,14 +198,10 @@ public class PredictionAnalyticsDataFetcher {
       return values;
     }
 
-    DataQueryParams.Builder paramsBuilder =
-        DataQueryParams.newBuilder()
-            .withPeriods(Lists.newArrayList(periods))
-            .withDataDimensionItems(Lists.newArrayList(dimensionItems))
-            .withOrganisationUnits(orgUnits);
+    DataQueryParams.Builder paramsBuilder = getParamsBuilder(orgUnits, dimensionItems);
 
     if (hasAttributeOptions) {
-      paramsBuilder.withAttributeOptionCombos(Collections.emptyList());
+      paramsBuilder.withAttributeOptionCombos(List.of());
     }
 
     Grid grid = analyticsService.getAggregatedDataValues(paramsBuilder.build());
@@ -183,23 +220,97 @@ public class PredictionAnalyticsDataFetcher {
       String dx = (String) row.get(dxInx);
       String ou = (String) row.get(ouInx);
       String ao = hasAttributeOptions ? (String) row.get(aoInx) : null;
-      Object vl = row.get(vlInx);
-
-      if (vl instanceof Number && !(vl instanceof Double)) {
-        vl = ((Number) vl).doubleValue();
-      }
 
       Period period = periodLookup.get(pe);
       DimensionalItemObject item = analyticsItemsLookup.get(dx);
       OrganisationUnit orgUnit = orgUnitLookup.get(ou);
-      CategoryOptionCombo attributeOptionCombo =
-          hasAttributeOptions
-              ? cocLookup.get(ao, () -> categoryService.getCategoryOptionCombo(ao))
-              : null;
+      CategoryOptionCombo attributeOptionCombo = lookUpCoc(ao);
+      Object value = getDoubleValue(row.get(vlInx));
 
-      values.add(new FoundDimensionItemValue(orgUnit, period, attributeOptionCombo, item, vl));
+      values.add(
+          new FoundDimensionItemValue(orgUnit, period, null, attributeOptionCombo, item, value));
     }
 
     return values;
+  }
+
+  /**
+   * Queries analytics for a program indicator's data by its mapped option combos.
+   *
+   * <p>This is queried as a data value set (the same way as aggregate data exchange) so analytics
+   * will return the category option combo and attribute option combo (if any) of each value. Each
+   * item is queried separately because in this format analytics may return the item's aggregate
+   * export data element instead of the item itself.
+   *
+   * <p>If the program indicator has no category combo, its values have no category option combo, so
+   * each value is used for every output category option combo. (The exception is if the program
+   * indicator has an aggregate export category option combo; then analytics returns that.)
+   *
+   * <p>If the program indicator has no attribute combo, its values have no attribute option combo.
+   * For an event program indicator, each value is given the default attribute option combo, the
+   * same as when it is fetched the usual way from a program without an attribute category combo.
+   * For an enrollment program indicator, each value is used for every attribute option combo, the
+   * same as when it is fetched the usual way. (The exception is if the program indicator has an
+   * aggregate export attribute option combo; then analytics returns that.)
+   */
+  private List<FoundDimensionItemValue> getCategoryOptionValues(
+      List<OrganisationUnit> orgUnits, DimensionalItemObject item) {
+    List<FoundDimensionItemValue> values = new ArrayList<>();
+
+    CategoryOptionCombo aocIfNone =
+        hasAttributeOptions(item) ? categoryService.getDefaultCategoryOptionCombo() : null;
+
+    DataValueSet dataValueSet =
+        analyticsService.getAggregatedDataValueSet(
+            getParamsBuilder(orgUnits, Set.of(item)).build());
+
+    for (DataValue dv : dataValueSet.getDataValues()) {
+      Period period = periodLookup.get(dv.getPeriod());
+      OrganisationUnit orgUnit = orgUnitLookup.get(dv.getOrgUnit());
+      CategoryOptionCombo categoryOptionCombo = lookUpCoc(dv.getCategoryOptionCombo());
+      CategoryOptionCombo attributeOptionCombo = lookUpCoc(dv.getAttributeOptionCombo());
+
+      if (attributeOptionCombo == null) {
+        attributeOptionCombo = aocIfNone;
+      }
+
+      Object value = Double.valueOf(dv.getValue());
+
+      values.add(
+          new FoundDimensionItemValue(
+              orgUnit, period, categoryOptionCombo, attributeOptionCombo, item, value));
+    }
+
+    return values;
+  }
+
+  /** Gets the analytics query parameters builder for some items. */
+  private DataQueryParams.Builder getParamsBuilder(
+      List<OrganisationUnit> orgUnits, Set<DimensionalItemObject> dimensionItems) {
+    return DataQueryParams.newBuilder()
+        .withPeriods(Lists.newArrayList(periods))
+        .withDataDimensionItems(Lists.newArrayList(dimensionItems))
+        .withOrganisationUnits(orgUnits);
+  }
+
+  /**
+   * Finds a category option combo from its UID (if not null), using a local cache.
+   *
+   * @throws IllegalStateException if the UID is not null and the category option combo is not found
+   */
+  private CategoryOptionCombo lookUpCoc(String uid) {
+    CategoryOptionCombo coc = cocLookup.get(uid, () -> categoryService.getCategoryOptionCombo(uid));
+
+    if (uid != null && coc == null) {
+      throw new IllegalStateException(
+          format("Can't find category option combo %s returned by analytics", uid));
+    }
+
+    return coc;
+  }
+
+  /** Converts any non-Double numeric value to Double. */
+  private Object getDoubleValue(Object value) {
+    return (value instanceof Number n && !(value instanceof Double)) ? n.doubleValue() : value;
   }
 }
