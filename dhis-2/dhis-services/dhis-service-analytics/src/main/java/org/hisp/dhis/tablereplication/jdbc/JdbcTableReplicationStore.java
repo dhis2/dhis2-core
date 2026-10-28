@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.tablereplication.jdbc;
 
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.db.model.Table;
@@ -52,6 +55,9 @@ public class JdbcTableReplicationStore implements TableReplicationStore {
   @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
+  @Qualifier("analyticsPostgresJdbcTemplate")
+  private final JdbcTemplate postgresJdbcTemplate;
+
   private final SqlBuilder sqlBuilder;
 
   @Override
@@ -64,6 +70,55 @@ public class JdbcTableReplicationStore implements TableReplicationStore {
     replicateTable(table);
 
     log.info("Analytics database table replicated: '{}' '{}'", tableName, clock.time());
+  }
+
+  @Override
+  public boolean tableExists(Table table) {
+    return !jdbcTemplate.queryForList(sqlBuilder.tableExists(table)).isEmpty();
+  }
+
+  @Override
+  public List<Long> getTrackedEntityIdsUpdatedSince(Date since, int limit) {
+    String sql = "select trackedentityid from trackedentity where lastupdated >= ? limit ?";
+    return postgresJdbcTemplate.queryForList(sql, Long.class, since, limit);
+  }
+
+  @Override
+  public void deleteRows(Table table, String column, List<Long> ids) {
+    if (ids.isEmpty()) {
+      return;
+    }
+
+    String sql =
+        String.format(
+            "delete from %s where %s;", sqlBuilder.quote(table.getName()), inClause(column, ids));
+    log.debug("Delete rows SQL: '{}'", sql);
+    jdbcTemplate.execute(sql);
+  }
+
+  @Override
+  public void replicateRows(Table table, String column, List<Long> ids) {
+    if (ids.isEmpty()) {
+      return;
+    }
+
+    String fromTable = sqlBuilder.qualifyTable(table.getName());
+    String sql = sqlBuilder.insertIntoSelectFrom(table, fromTable, inClause(column, ids));
+    log.debug("Replicate rows SQL: '{}'", sql);
+    jdbcTemplate.execute(sql);
+  }
+
+  /**
+   * Returns an in clause matching the given column against the given identifiers. The identifiers
+   * are numbers, so writing them as literals is safe.
+   *
+   * @param column the column name.
+   * @param ids the identifiers.
+   * @return an in clause.
+   */
+  private String inClause(String column, List<Long> ids) {
+    String values = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
+    return sqlBuilder.quote(column) + " in (" + values + ")";
   }
 
   /**
