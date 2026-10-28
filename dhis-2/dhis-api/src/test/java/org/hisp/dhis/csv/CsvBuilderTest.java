@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -375,6 +376,95 @@ class CsvBuilderTest {
     assertEquals(
         "a\nhello\n",
         csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello\t"}))));
+  }
+
+  @Test
+  void testBoolean_True() {
+    assertEquals(
+        "a\ntrue\n", csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {true}))));
+  }
+
+  @Test
+  void testBoolean_False() {
+    assertEquals(
+        "a\nfalse\n", csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {false}))));
+  }
+
+  @Test
+  void testNumber_Short() {
+    assertEquals(
+        "a\n42\n",
+        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {(short) 42}))));
+  }
+
+  @Test
+  void testNumber_Byte() {
+    assertEquals(
+        "a\n42\n", csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {(byte) 42}))));
+  }
+
+  @Test
+  void testNumber_Float() {
+    assertEquals(
+        "a\n1.5\n", csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {1.5f}))));
+  }
+
+  @Test
+  void testNumber_BigDecimal() {
+    // BigInteger/BigDecimal fall through to CharSequence rather than the primitive writers
+    assertEquals(
+        "a\n1.5\n",
+        csv(
+            b ->
+                b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {new BigDecimal("1.5")}))));
+  }
+
+  @Test
+  void testArray_FirstElementNumber_ContainsNonNumber_ProducesQuestionMark() {
+    // Documents current behaviour: the "few numbers" path is chosen based on the first
+    // element alone. Later non-numbers become "?" rather than their text value.
+    assertEquals(
+        "a\n1 ? 3\n",
+        csv(
+            b ->
+                b.toRows(
+                    List.of("a"), Stream.<Object[]>of(new Object[] {new Object[] {1, "x", 3}}))));
+  }
+
+  @Test
+  void testArray_FirstElementNumber_ContainsNull_ProducesQuestionMark() {
+    assertEquals(
+        "a\n1 ? 3\n",
+        csv(
+            b ->
+                b.toRows(
+                    List.of("a"), Stream.<Object[]>of(new Object[] {new Object[] {1, null, 3}}))));
+  }
+
+  @Test
+  void testArray_FirstElementNotNumber_FallsThroughToSummary() {
+    // If the first element is not a Number, the summary form is used regardless of the
+    // contents of the rest
+    assertEquals(
+        "a\n(3 elements)\n",
+        csv(
+            b ->
+                b.toRows(
+                    List.of("a"), Stream.<Object[]>of(new Object[] {new Object[] {"x", 2, 3}}))));
+  }
+
+  @Test
+  void testCollection_MixedFirstElementNumber_ContainsStrings_ProducesQuestionMark() {
+    assertEquals(
+        "a\n1 ? 3\n",
+        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {List.of(1, "x", 3)}))));
+  }
+
+  @Test
+  void testCollection_FirstElementNotNumber_FallsThroughToSummary() {
+    assertEquals(
+        "a\n(3 elements)\n",
+        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {List.of("x", 2, 3)}))));
   }
 
   // ====== Helpers ======
