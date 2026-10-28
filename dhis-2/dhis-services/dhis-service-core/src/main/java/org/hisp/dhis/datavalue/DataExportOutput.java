@@ -177,12 +177,12 @@ final class DataExportOutput {
                         dv.attributeOptionCombo() == null ? groupAoc : dv.attributeOptionCombo(),
                         dv.value(),
                         dv.storedBy(),
-                        dv.lastUpdated(),
+                        dv.lastUpdated().toString(),
                         dv.comment(),
                         dv.followUp() == null ? null : String.valueOf(dv.followUp()),
                         String.valueOf(dv.deleted())
                       });
-      new CsvBuilder(out).toRows(Arrays.asList(CSV_HEADER_ROW), rows);
+      new CsvBuilder(out).addRows(Arrays.asList(CSV_HEADER_ROW), rows);
     }
   }
 
@@ -229,8 +229,9 @@ final class DataExportOutput {
                 out.writeAttribute("attributeOptionCombo", dv.attributeOptionCombo());
               if (dv.value() != null) out.writeAttribute("value", dv.value());
               if (dv.storedBy() != null) out.writeAttribute("storedBy", dv.storedBy());
-              if (dv.created() != null) out.writeAttribute("created", dv.created());
-              if (dv.lastUpdated() != null) out.writeAttribute("lastUpdated", dv.lastUpdated());
+              if (dv.created() != null) out.writeAttribute("created", dv.created().toString());
+              if (dv.lastUpdated() != null)
+                out.writeAttribute("lastUpdated", dv.lastUpdated().toString());
               if (dv.comment() != null) out.writeAttribute("comment", dv.comment());
               if (Boolean.TRUE.equals(dv.followUp())) out.writeAttribute("followUp", "true");
               if (dv.deleted()) out.writeAttribute("deleted", "true");

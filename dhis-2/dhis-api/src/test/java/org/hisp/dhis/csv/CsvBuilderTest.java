@@ -55,14 +55,14 @@ class CsvBuilderTest {
 
   @Test
   void testEmptyStream_HeadersOnly() {
-    assertEquals("a,b\n", csv(b -> b.toRows(List.of("a", "b"), Stream.empty())));
+    assertEquals("a,b\n", csv(b -> b.addRows(List.of("a", "b"), Stream.empty())));
   }
 
   @Test
   void testSingleRow() {
     assertEquals(
         "a,b\n1,2\n",
-        csv(b -> b.toRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {1, 2}))));
+        csv(b -> b.addRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {1, 2}))));
   }
 
   @Test
@@ -71,7 +71,7 @@ class CsvBuilderTest {
         "a,b\n1,2\n3,4\n",
         csv(
             b ->
-                b.toRows(
+                b.addRows(
                     List.of("a", "b"),
                     Stream.<Object[]>of(new Object[] {1, 2}, new Object[] {3, 4}))));
   }
@@ -83,13 +83,13 @@ class CsvBuilderTest {
         csv(
             b ->
                 b.skipHeaders(true)
-                    .toRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {1, 2}))));
+                    .addRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {1, 2}))));
   }
 
   @Test
   void testNonArrayRow() {
     // A non-array value in the stream is treated as a single-field row
-    assertEquals("a\nhello\n", csv(b -> b.toRows(List.of("a"), Stream.of("hello"))));
+    assertEquals("a\nhello\n", csv(b -> b.addRows(List.of("a"), Stream.of("hello"))));
   }
 
   // ====== Quoting — triggers ======
@@ -98,7 +98,7 @@ class CsvBuilderTest {
   void testPlainField_NotQuoted() {
     assertEquals(
         "a\nhello\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello"}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello"}))));
   }
 
   @Test
@@ -106,42 +106,42 @@ class CsvBuilderTest {
     // Interior whitespace does not require quoting — the reader preserves it
     assertEquals(
         "a\nhello world\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello world"}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello world"}))));
   }
 
   @Test
   void testFieldWithDelimiter_Quoted() {
     assertEquals(
         "a\n\"x,y\"\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"x,y"}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"x,y"}))));
   }
 
   @Test
   void testFieldWithQuote_QuotedAndDoubled() {
     assertEquals(
         "a\n\"say \"\"hi\"\"\"\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"say \"hi\""}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"say \"hi\""}))));
   }
 
   @Test
   void testFieldWithLF_Quoted() {
     assertEquals(
         "a\n\"line1\nline2\"\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"line1\nline2"}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"line1\nline2"}))));
   }
 
   @Test
   void testFieldWithCR_Quoted() {
     assertEquals(
         "a\n\"line1\rline2\"\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"line1\rline2"}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"line1\rline2"}))));
   }
 
   @Test
   void testEmptyField_IsQuoted() {
     assertEquals(
         "a,b\n\"\",2\n",
-        csv(b -> b.toRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {"", 2}))));
+        csv(b -> b.addRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {"", 2}))));
   }
 
   // ====== Custom delimiter ======
@@ -153,7 +153,7 @@ class CsvBuilderTest {
         csv(
             b ->
                 b.withDelimiter(';')
-                    .toRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {1, 2}))));
+                    .addRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {1, 2}))));
   }
 
   @Test
@@ -164,7 +164,7 @@ class CsvBuilderTest {
         csv(
             b ->
                 b.withDelimiter(';')
-                    .toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"x,y"}))));
+                    .addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"x,y"}))));
   }
 
   @Test
@@ -175,7 +175,7 @@ class CsvBuilderTest {
         csv(
             b ->
                 b.withDelimiter(';')
-                    .toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"x;y"}))));
+                    .addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"x;y"}))));
   }
 
   // ====== Null handling ======
@@ -184,7 +184,7 @@ class CsvBuilderTest {
   void testNull_DefaultWritesEmptyQuotes() {
     assertEquals(
         "a,b\n\"\",2\n",
-        csv(b -> b.toRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {null, 2}))));
+        csv(b -> b.addRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {null, 2}))));
   }
 
   @Test
@@ -194,7 +194,7 @@ class CsvBuilderTest {
         csv(
             b ->
                 b.nullAsNull()
-                    .toRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {null, 2}))));
+                    .addRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {null, 2}))));
   }
 
   @Test
@@ -220,7 +220,7 @@ class CsvBuilderTest {
   @Test
   void testDate_Formatted() {
     Date date = Date.from(Instant.parse("2024-01-15T10:30:00Z"));
-    String out = csv(b -> b.toRows(List.of("when"), Stream.<Object[]>of(new Object[] {date})));
+    String out = csv(b -> b.addRows(List.of("when"), Stream.<Object[]>of(new Object[] {date})));
     assertTrue(out.startsWith("when\n"), out);
     String dataRow = out.substring("when\n".length());
     assertTrue(dataRow.endsWith("\n"), out);
@@ -232,21 +232,21 @@ class CsvBuilderTest {
   void testCollection_SingleElementIsUnwrapped() {
     assertEquals(
         "a\nhello\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {List.of("hello")}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {List.of("hello")}))));
   }
 
   @Test
   void testCollection_EmptyBecomesEmptyQuotes() {
     assertEquals(
         "a\n\"\"\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {List.of()}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {List.of()}))));
   }
 
   @Test
   void testCollection_FewNumbers_JoinedWithSpace() {
     assertEquals(
         "a\n1 2 3\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {List.of(1, 2, 3)}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {List.of(1, 2, 3)}))));
   }
 
   @Test
@@ -255,7 +255,7 @@ class CsvBuilderTest {
         "a\n(12 elements)\n",
         csv(
             b ->
-                b.toRows(
+                b.addRows(
                     List.of("a"),
                     Stream.<Object[]>of(
                         new Object[] {List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)}))));
@@ -268,7 +268,7 @@ class CsvBuilderTest {
         "a\n(3 elements)\n",
         csv(
             b ->
-                b.toRows(
+                b.addRows(
                     List.of("a"), Stream.<Object[]>of(new Object[] {List.of("x", "y", "z")}))));
   }
 
@@ -279,7 +279,7 @@ class CsvBuilderTest {
         "a\n1 2 3\n",
         csv(
             b ->
-                b.toRows(
+                b.addRows(
                     List.of("a"), Stream.<Object[]>of(new Object[] {new Object[] {1, 2, 3}}))));
   }
 
@@ -287,7 +287,7 @@ class CsvBuilderTest {
   void testFieldValueIsEmptyObjectArray() {
     assertEquals(
         "a\n\"\"\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {new Object[0]}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {new Object[0]}))));
   }
 
   // ====== UTF-8 ======
@@ -296,21 +296,21 @@ class CsvBuilderTest {
   void testUnicode_PlainField() {
     assertEquals(
         "a\nhéllo\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"héllo"}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"héllo"}))));
   }
 
   @Test
   void testUnicode_QuotedField() {
     assertEquals(
         "a\n\"héllo, wörld\"\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"héllo, wörld"}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"héllo, wörld"}))));
   }
 
   @Test
   void testUnicode_SupplementaryPlane() {
     // 😀 = U+1F600, 4 UTF-8 bytes
     assertEquals(
-        "a\n😀\n", csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"😀"}))));
+        "a\n😀\n", csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"😀"}))));
   }
 
   // ====== Chaining / preferences ======
@@ -323,7 +323,7 @@ class CsvBuilderTest {
             b ->
                 b.skipHeaders(true)
                     .nullAsNull()
-                    .toRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {null, 2}))));
+                    .addRows(List.of("a", "b"), Stream.<Object[]>of(new Object[] {null, 2}))));
   }
 
   @Test
@@ -333,7 +333,7 @@ class CsvBuilderTest {
         csv(
             b ->
                 b.with(CsvBuilder.Preference.EXPLICIT_NULLS)
-                    .toRows(List.of("a"), Stream.<Object[]>of(new Object[] {null}))));
+                    .addRows(List.of("a"), Stream.<Object[]>of(new Object[] {null}))));
   }
 
   @Test
@@ -344,7 +344,7 @@ class CsvBuilderTest {
         csv(
             b ->
                 b.without(CsvBuilder.Preference.SKIP_HEADERS)
-                    .toRows(List.of("a"), Stream.<Object[]>of(new Object[] {1}))));
+                    .addRows(List.of("a"), Stream.<Object[]>of(new Object[] {1}))));
   }
 
   // ====== Trimming ======
@@ -353,28 +353,28 @@ class CsvBuilderTest {
   void testFieldStartingWithSpace_Trimmed() {
     assertEquals(
         "a\nhello\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {" hello"}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {" hello"}))));
   }
 
   @Test
   void testFieldStartingWithTab_Trimmed() {
     assertEquals(
         "a\nhello\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"\thello"}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"\thello"}))));
   }
 
   @Test
   void testTrailingSpace_Trimmed() {
     assertEquals(
         "a\nhello\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello "}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello "}))));
   }
 
   @Test
   void testTrailingTab_Trimmed() {
     assertEquals(
         "a\nhello\n",
-        csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello\t"}))));
+        csv(b -> b.addRows(List.of("a"), Stream.<Object[]>of(new Object[] {"hello\t"}))));
   }
 
   // ====== Helpers ======

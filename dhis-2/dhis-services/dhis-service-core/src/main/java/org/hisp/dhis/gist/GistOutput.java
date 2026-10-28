@@ -64,13 +64,13 @@ public final class GistOutput {
     try (Appender csv = Appender.ofUTF8(out)) {
       // we cast so the values are columns not rows
       Stream<Object> singleRow = Stream.of((Object) obj.values());
-      new CsvBuilder(csv).toRows(obj.paths(), singleRow);
+      new CsvBuilder(csv).addRows(obj.paths(), singleRow);
     }
   }
 
   public static void toCsv(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
     try (Appender csv = Appender.ofUTF8(out)) {
-      new CsvBuilder(csv).skipHeaders(list.headless()).toRows(list.paths(), list.values());
+      new CsvBuilder(csv).skipHeaders(list.headless()).addRows(list.paths(), list.values());
     }
   }
 
