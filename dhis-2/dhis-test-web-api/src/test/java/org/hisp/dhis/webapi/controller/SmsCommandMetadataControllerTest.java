@@ -147,6 +147,24 @@ class SmsCommandMetadataControllerTest extends PostgresControllerIntegrationTest
   }
 
   @Test
+  void shouldPatchCommandName() {
+    importMetadata(command("Command A", "received A", "a"));
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/smsCommands/" + COMMAND_UID,
+            "[{'op':'replace','path':'/name','value':'Command patched'}]"));
+
+    JsonObject patched = getCommand();
+    assertEquals("Command patched", patched.getString("name").string());
+    assertEquals("received A", patched.getString("receivedMessage").string());
+    assertEquals("a", patched.getArray("smsCodes").getObject(0).getString("code").string());
+    assertEquals(
+        "+", patched.getArray("specialCharacters").getObject(0).getString("value").string());
+  }
+
+  @Test
   void shouldDeleteCommand() {
     importMetadata(command("Command A", "received A", "a"));
 

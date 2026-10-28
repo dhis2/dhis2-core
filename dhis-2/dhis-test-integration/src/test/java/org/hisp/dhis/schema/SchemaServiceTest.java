@@ -42,6 +42,7 @@ import org.hibernate.mapping.Column;
 import org.hibernate.mapping.PersistentClass;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
@@ -287,8 +288,17 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
   void shouldImportSmsCommandAfterTheTypesItReferences() {
     int order = schemaService.getSchema(SMSCommand.class).getOrder();
 
+    // The object bundle hook resolves the data elements, attributes and category option combos
+    // of the embedded codes from the database.
     for (Class<?> referenced :
-        List.of(DataSet.class, UserGroup.class, Program.class, ProgramStage.class)) {
+        List.of(
+            DataSet.class,
+            UserGroup.class,
+            Program.class,
+            ProgramStage.class,
+            DataElement.class,
+            TrackedEntityAttribute.class,
+            CategoryOptionCombo.class)) {
       assertTrue(
           order > schemaService.getSchema(referenced).getOrder(),
           referenced.getSimpleName() + " is not imported before SMSCommand");

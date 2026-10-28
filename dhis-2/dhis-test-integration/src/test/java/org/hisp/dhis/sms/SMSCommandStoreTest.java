@@ -255,7 +255,7 @@ class SMSCommandStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldMapCodesAndSpecialCharactersAsCascadedUniqueJoinTables() {
+  void shouldMapCodesAndSpecialCharactersAsCascadedJoinTables() {
     AbstractEntityPersister persister = persister();
     Map<String, List<String>> joinTables =
         Map.of(
