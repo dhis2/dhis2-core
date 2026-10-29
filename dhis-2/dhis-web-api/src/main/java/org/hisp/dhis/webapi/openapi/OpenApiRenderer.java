@@ -34,8 +34,8 @@ import static java.util.Map.entry;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.stripHtml;
-import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.markdownToHTML;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -46,6 +46,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.jsontree.Appender;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonNodeType;
@@ -620,26 +621,20 @@ public class OpenApiRenderer {
   Rendering...
    */
 
-  public static String renderHTML(String json, OpenApiRenderingParams params, ApiStatistics stats) {
-    OpenApiRenderer renderer =
-        new OpenApiRenderer(JsonValue.of(json).as(OpenApiObject.class), params, stats);
-    return renderer.renderHTML();
+  public static byte[] renderHTML(
+      OpenApiObject json, OpenApiRenderingParams params, ApiStatistics stats) {
+    ByteArrayOutputStream out = new ByteArrayOutputStream(16 * 1024);
+    try (Appender appender = Appender.ofUTF8(out)) {
+      OpenApiRenderer renderer = new OpenApiRenderer(json, params, stats, appender);
+      renderer.renderDocument();
+    }
+    return out.toByteArray();
   }
 
   private final OpenApiObject api;
   private final OpenApiRenderingParams params;
   private final ApiStatistics stats;
-  private final StringBuilder html = new StringBuilder();
-
-  @Override
-  public String toString() {
-    return html.toString();
-  }
-
-  public String renderHTML() {
-    renderDocument();
-    return toString();
-  }
+  private final Appender html;
 
   private void renderDocument() {
     appendRaw("<!doctype html>");
@@ -777,7 +772,7 @@ public class OpenApiRenderer {
         true,
         "",
         () -> {
-          appendSummary(null, "", renderSummary::run);
+          appendSummary(null, "", renderSummary);
           renderBody.run();
         });
   }
@@ -949,7 +944,7 @@ public class OpenApiRenderer {
                   appendTag("a", Map.of("href", url, "target", "_blank", "class", "gh"), "GH");
                 }
               });
-          appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
+          renderMarkdownTag("header", Map.of(), op.description(), op.parameterNames());
           renderLabelledValue("operationId", op.operationId());
           renderLabelledValue("since", op.x_since());
           renderLabelledValue("requires-authority", op.x_auth());
@@ -1074,8 +1069,7 @@ public class OpenApiRenderer {
         style,
         () -> {
           appendSummary(id, null, () -> renderParameterSummary(p));
-          String description = markdownToHTML(p.description(), parameterNames);
-          appendTag("article", Map.of("class", "desc"), description);
+          renderMarkdownTag(p.description(), parameterNames);
           renderLabelledValue("since", p.x_since());
           renderSchemaDetails(p.schema(), false, true);
         });
@@ -1132,11 +1126,20 @@ public class OpenApiRenderer {
     if (requestBody.required()) style += " required";
     renderMediaTypes(op.operationId(), style, content);
 
-    renderMarkdown(requestBody.description(), op.parameterNames());
+    renderMarkdownTag(requestBody.description(), op.parameterNames());
   }
 
-  private void renderMarkdown(String text, Set<Text> keywords) {
-    appendTag("article", Map.of("class", "desc"), markdownToHTML(text, keywords));
+  private void renderMarkdownTag(String markdown, Set<Text> keywords) {
+    renderMarkdownTag("article", Map.of("class", "desc"), markdown, keywords);
+  }
+
+  private void renderMarkdownTag(
+      CharSequence tag,
+      Map<CharSequence, CharSequence> attrs,
+      String markdown,
+      Set<Text> keywords) {
+    if (markdown == null || markdown.isBlank()) return;
+    appendTag(tag, attrs, () -> OpenApiMarkdown.markdownToHTML(markdown, keywords, html));
   }
 
   private void renderMediaTypes(
@@ -1183,7 +1186,7 @@ public class OpenApiRenderer {
         () -> {
           appendSummary(id, null, () -> renderResponseSummary(code, response));
           renderMediaTypes(id, "response", response.content());
-          renderMarkdown(response.description(), op.parameterNames());
+          renderMarkdownTag(response.description(), op.parameterNames());
         });
   }
 
@@ -1323,7 +1326,7 @@ public class OpenApiRenderer {
     } else if (schema.isWrapper()) {
       SchemaObject p0 = schema.properties().entries().stream().limit(1).toList().get(0);
       appendRaw("{");
-      appendEscaped(p0.getKey().toString());
+      appendEscaped(p0.getKey());
       appendRaw(":");
       renderSchemaSignatureType(p0);
       appendRaw("}");
@@ -1412,7 +1415,7 @@ public class OpenApiRenderer {
     if (schema.$type() != null) {
       Set<Text> names =
           schema.isObjectType() ? Set.copyOf(schema.properties().keys().toList()) : Set.of();
-      appendTag("header", markdownToHTML(schema.description(), names));
+      renderMarkdownTag("header", Map.of(), schema.description(), names);
       if (!skipDefault) renderLabelledValue("default", schema.$default(), "columns", 0);
       renderLabelledValue("enum", schema.$enum(), "columns", 0);
 
@@ -1464,11 +1467,11 @@ public class OpenApiRenderer {
               id,
               "",
               () -> {
-                appendCode("property", () -> appendEscaped(name.toString()));
+                appendCode("property", () -> appendEscaped(name));
                 appendCode("property secondary", ":");
                 renderSchemaSummary(type, false);
               });
-          appendTag("header", markdownToHTML(type.description(), Set.of()));
+          renderMarkdownTag("header", Map.of(), type.description(), Set.of());
           renderLabelledValue("since", type.x_since());
           renderSchemaDetails(type, false, false);
         });
@@ -1551,27 +1554,31 @@ public class OpenApiRenderer {
 
   private void appendTag(
       CharSequence name, Map<CharSequence, CharSequence> attributes, Runnable body) {
-    html.append('<').append(name);
+    html.appendAscii('<');
+    html.appendAscii(name);
     attributes.forEach(this::appendAttr);
     if (body == null) {
-      html.append("/>");
+      html.appendAscii("/>");
       return;
     }
-    html.append('>');
+    html.appendAscii('>');
     body.run();
-    html.append("</").append(name).append('>');
+    html.appendAscii("</");
+    html.appendAscii(name);
+    html.appendAscii('>');
   }
 
   private void appendAttr(CharSequence name, CharSequence value) {
     if (name == null || name.isEmpty()) return;
     boolean emptyValue = value == null || value.isEmpty();
-    if (emptyValue && isIgnoredWhenEmpty(name))
-      return; // optimisation to prevent rendering `class` without a value
-    html.append(' ').append(name);
+    if (emptyValue && isIgnoredWhenEmpty(name)) return;
+    html.appendAscii(' ');
+    html.appendAscii(name);
     if (!emptyValue) {
-      html.append('=').append('"');
+      html.appendAscii('=');
+      html.appendAscii('"');
       appendEscaped(value);
-      html.append('"');
+      html.appendAscii('"');
     }
   }
 
@@ -1589,7 +1596,7 @@ public class OpenApiRenderer {
   }
 
   private void appendRaw(CharSequence text) {
-    html.append(text);
+    html.appendEncoded(text, 0, text.length());
   }
 
   private void appendEscaped(Object text) {

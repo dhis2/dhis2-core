@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.openapi;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.webapi.openapi.JsonGenerator.Format.PRETTY_PRINT;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Modifier;
@@ -202,8 +203,9 @@ public class OpenApiTool implements ToolProvider {
           OpenApiGenerator.Info.DEFAULT.toBuilder().title("DHIS2 API - " + title).build();
       OpenApiGenerationParams params = new OpenApiGenerationParams();
       Language language = filename.endsWith(".json") ? Language.JSON : Language.YAML;
-      String doc = OpenApiGenerator.generate(language, api, PRETTY_PRINT, info, params);
-      Path output = Files.writeString(file, doc);
+      OpenApiGenerator.generate(
+          language, api, PRETTY_PRINT, info, params, new FileOutputStream(file.toFile()));
+      Path output = file;
       int controllers = api.getControllers().size();
       int endpoints = api.getControllers().stream().mapToInt(c -> c.getEndpoints().size()).sum();
       int schemas = api.getComponents().getSchemas().size();
