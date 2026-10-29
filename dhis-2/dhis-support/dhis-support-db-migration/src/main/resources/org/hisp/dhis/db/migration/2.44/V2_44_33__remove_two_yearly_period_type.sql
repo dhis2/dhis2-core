@@ -1,37 +1,61 @@
--- Remove the obsolete 'TwoYearly' period type, but only if nothing still uses it.
--- If it is still referenced, fail loudly so the operator can fix it manually.
+-- Remove the obsolete 'TwoYearly' period type, but only if nothing still
+-- references it via any of the known FK columns.  Otherwise fail loudly and
+-- leave the database untouched.
 
 DO $$
-    DECLARE
-        pt_id     BIGINT;
-        ds_count  INTEGER;
-        daw_count INTEGER;
-    BEGIN
-        SELECT periodtypeid
-        INTO pt_id
-        FROM periodtype
-        WHERE name = 'TwoYearly';
+DECLARE
+    pt_id     BIGINT;
+    cnt       INTEGER;
+    total     INTEGER := 0;
+    offending TEXT    := '';
+    -- [table, column] pairs that reference periodtype
+    checks    TEXT[][] := ARRAY[
+        ['dataset',                            'periodtypeid'],
+        ['dataapprovalworkflow',               'periodtypeid'],
+        ['configuration',                      'infrastructuralperiodtypeid'],
+        ['configuration_dataoutputperiodtype', 'periodtypeid'],
+        ['validationrule',                     'periodtypeid'],
+        ['predictor',                          'periodtypeid'],
+        ['program',                            'expiryperiodtypeid'],
+        ['programstage',                       'periodtypeid'],
+        ['periodboundary',                     'offsetperiodtypeid']
+        ];
+BEGIN
+    SELECT periodtypeid
+    INTO pt_id
+    FROM periodtype
+    WHERE name = 'TwoYearly';
 
-        -- Nothing to do if the period type is already gone.
-        IF NOT FOUND THEN
-            RAISE NOTICE 'periodtype ''TwoYearly'' does not exist - nothing to delete.';
-            RETURN;
-        END IF;
+    IF NOT FOUND THEN
+        RAISE NOTICE 'periodtype ''TwoYearly'' does not exist - nothing to delete.';
+        RETURN;
+    END IF;
 
-        -- Count remaining references --------------------------------------------------
-        SELECT COUNT(*) INTO ds_count  FROM dataset              WHERE periodtypeid = pt_id;
-        SELECT COUNT(*) INTO daw_count FROM dataapprovalworkflow WHERE periodtypeid = pt_id;
+    -- Count references in every known FK column --------------------------------
+    FOR i IN 1 .. array_length(checks, 1) LOOP
+            EXECUTE format('SELECT COUNT(*) FROM %I WHERE %I = $1',
+                           checks[i][1], checks[i][2])
+                INTO cnt
+                USING pt_id;
 
-        IF ds_count > 0 OR daw_count > 0 THEN
-            RAISE EXCEPTION
-                'Refusing to delete periodtype ''TwoYearly'' (id=%): still referenced by % dataset(s) and % dataapprovalworkflow(s).',
-                pt_id, ds_count, daw_count
-                USING HINT = 'Reassign dataset.periodtypeid / dataapprovalworkflow.periodtypeid to a valid periodtype, then re-run this migration. No rows were changed.';
-        END IF;
+            IF cnt > 0 THEN
+                offending := offending || format(E'\n  - %I.%I: %s row(s)',
+                                                 checks[i][1], checks[i][2], cnt);
+                total     := total + cnt;
+            END IF;
+        END LOOP;
 
-        -- Safe to delete: first the dependent period rows, then the type itself ------
-        DELETE FROM period     WHERE periodtypeid = pt_id;
-        DELETE FROM periodtype WHERE periodtypeid = pt_id;
+    -- Any reference => fail; nothing is deleted -------------------------------
+    IF total > 0 THEN
+        RAISE EXCEPTION
+            'Refusing to delete periodtype ''TwoYearly'' (id=%): still referenced by % row(s) in:%s',
+            pt_id, total, offending
+            USING HINT = 'Reassign or delete the referencing rows, then re-run this migration. No rows were changed.';
+    END IF;
 
-        RAISE NOTICE 'Deleted periodtype ''TwoYearly'' (id=%) and its period rows.', pt_id;
-    END $$;
+    -- Safe to delete: dependent period rows first, then the periodtype row ----
+    DELETE FROM period     WHERE periodtypeid = pt_id;
+    DELETE FROM periodtype WHERE periodtypeid = pt_id;
+
+    RAISE NOTICE 'Deleted periodtype ''TwoYearly'' (id=%) and its period rows.', pt_id;
+END $$;
