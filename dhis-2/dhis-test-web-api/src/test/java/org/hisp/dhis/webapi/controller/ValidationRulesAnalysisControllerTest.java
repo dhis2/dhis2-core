@@ -108,6 +108,12 @@ class ValidationRulesAnalysisControllerTest extends AbstractDataValueControllerT
   }
 
   @Test
+  void testAnalysis_NullRule() {
+    JsonError error = postAnalysis("'vr':['" + RULE_A + "',null]").error(HttpStatus.BAD_REQUEST);
+    assertEquals("vr must not contain null entries", error.getMessage());
+  }
+
+  @Test
   void testAnalysis_UnknownGroup() {
     JsonError error = postAnalysis("'vrg':'VrgAnalysisX'").error(HttpStatus.NOT_FOUND);
     assertTrue(error.getMessage().contains("VrgAnalysisX"), error.getMessage());
