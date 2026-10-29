@@ -181,6 +181,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
+  @Autowired private OrganisationUnitResolver organisationUnitResolver;
+
   private OrganisationUnit ouA;
 
   private OrganisationUnit ouB;
