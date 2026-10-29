@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,10 +52,16 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
@@ -63,6 +70,7 @@ import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
@@ -70,8 +78,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,6 +91,10 @@ class DefaultEventQueryPlannerTest extends TestBase {
   @Mock private QueryPlanner queryPlanner;
 
   @Mock private PartitionManager partitionManager;
+
+  @Spy
+  private FirstOrLastStagePeriodPlanner firstOrLastStagePeriodPlanner =
+      new FirstOrLastStagePeriodPlanner(new DefaultStageQueryItemClassifier());
 
   @InjectMocks private DefaultEventQueryPlanner eventQueryPlanner;
 
@@ -444,9 +459,68 @@ class DefaultEventQueryPlannerTest extends TestBase {
     assertThat(result.size(), greaterThanOrEqualTo(2));
   }
 
+  @ParameterizedTest
+  @EnumSource(
+      value = AggregationType.class,
+      names = {
+        "FIRST", "FIRST_AVERAGE_ORG_UNIT", "FIRST_FIRST_ORG_UNIT",
+        "LAST", "LAST_AVERAGE_ORG_UNIT", "LAST_LAST_ORG_UNIT"
+      })
+  void shouldPlanEachStageDatePeriodWithoutChangingTheRequest(AggregationType aggregationType) {
+    ProgramStage stage = createProgramStage('A', program);
+    QueryItem dateItem = createStageEventDateItem(stage, "202601", "202602");
+    dateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
+    dateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-02-28"));
+    EventQueryParams params = createStageDateAggregateParams(stage, dateItem, aggregationType);
+    mockQueryPlannerToReturnSameEventParams();
+
+    List<EventQueryParams> queries = eventQueryPlanner.planAggregateQuery(params);
+
+    assertEquals(2, queries.size());
+    assertEquals(
+        List.of("202601", "202602"),
+        queries.stream().map(q -> q.getFirstOrLastStagePeriod().period().getIsoDate()).toList());
+    assertTrue(queries.stream().allMatch(EventQueryParams::isMultipleQueries));
+    assertTrue(queries.stream().allMatch(EventQueryParams::isSkipPartitioning));
+    assertNull(params.getFirstOrLastStagePeriod());
+    assertNull(params.getStartDate());
+    assertNull(params.getEndDate());
+    assertEquals(List.of("202601", "202602"), dateItem.getDimensionValues());
+    assertEquals(2, dateItem.getFilters().size());
+  }
+
   // -------------------------------------------------------------------------
   // Helper methods
   // -------------------------------------------------------------------------
+
+  private QueryItem createStageEventDateItem(ProgramStage stage, String... periods) {
+    QueryItem item =
+        new QueryItem(
+            new BaseDimensionalItemObject("occurreddate"),
+            program,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    item.setProgramStage(stage);
+    for (String period : periods) {
+      item.addDimensionValue(period);
+    }
+    return item;
+  }
+
+  private EventQueryParams createStageDateAggregateParams(
+      ProgramStage stage, QueryItem stageDateItem, AggregationType aggregationType) {
+    return new EventQueryParams.Builder()
+        .withProgram(program)
+        .withProgramStage(stage)
+        .withValue(dataElementA)
+        .withEndpointItem(EndpointItem.EVENT)
+        .addItem(stageDateItem)
+        .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
+        .withOrganisationUnits(List.of(orgUnitA))
+        .build();
+  }
 
   private EventQueryParams createBasicEventQueryParams() {
     return new EventQueryParams.Builder()

@@ -35,6 +35,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -53,6 +54,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -666,7 +669,29 @@ class JdbcTrackedEntityStore {
           "occurredEndDate", timestampParameter(params.getProgramIncidentEndDate()));
     }
     if (!params.isIncludeDeleted()) {
-      sql.append(" and ").append(ENROLLMENT_ALIAS).append(".deleted is false");
+      sql.append(" and ").append(ENROLLMENT_ALIAS).append(".deleted is false ");
+    }
+
+    addEnrollmentAttributeOptionComboCondition(sql);
+  }
+
+  /**
+   * Restricts enrollments to those whose attribute option combo is readable by the current user,
+   * meaning the user has data read access to every one of its category options.
+   */
+  private void addEnrollmentAttributeOptionComboCondition(StringBuilder sql) {
+    if (!getCurrentUserDetails().isSuper()) {
+      sql.append(" and ")
+          .append(ENROLLMENT_ALIAS)
+          .append(".attributeoptioncomboid not in (")
+          .append(
+              "select cocco.categoryoptioncomboid from categoryoptioncombos_categoryoptions cocco ")
+          .append("inner join categoryoption co on co.categoryoptionid = cocco.categoryoptionid ")
+          .append("where not coalesce((")
+          .append(
+              JpaQueryUtils.generateSQlQueryForSharingCheck(
+                  "co.sharing", getCurrentUserDetails(), AclService.LIKE_READ_DATA))
+          .append("), false))");
     }
   }
 

@@ -2901,7 +2901,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"total\":1,\"pageCount\":1,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"2021\":{\"name\":\"2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"ZkbAXlQUYJG.eventstatus\":{\"name\":\"Event status\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"ZkbAXlQUYJG.eventstatus\":[]}}";
+        "{\"pager\":{\"total\":1,\"pageCount\":1,\"pageSize\":100,\"page\":1},\"items\":{\"ACTIVE\":{\"name\":\"Active\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"2021\":{\"name\":\"2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"ZkbAXlQUYJG.eventstatus\":{\"name\":\"Event status\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"ZkbAXlQUYJG.eventstatus\":[\"ACTIVE\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -4031,7 +4031,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
       // 3. Assert metaData.
       String expectedMetaData =
-          "{\"pager\":{\"page\":1,\"total\":12,\"pageSize\":10,\"pageCount\":2},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"pe\":{},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"2021\":{\"name\":\"2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"incidentdate\":{\"name\":\"Start of treatment date\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"incidentdate\":[\"2021\"]}}";
+          "{\"pager\":{\"page\":1,\"total\":27,\"pageSize\":10,\"pageCount\":3},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"pe\":{},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"2021\":{\"name\":\"2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"incidentdate\":{\"name\":\"Start of treatment date\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"incidentdate\":[\"2021\"]}}";
       String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
       assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -4062,15 +4062,15 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
       // Validate selected values for row index 3
       validateRowValueByName(response, actualHeaders, 3, "oucode", "OU_559");
-      validateRowValueByName(response, actualHeaders, 3, "incidentdate", "2022-03-08 12:27:48.401");
+      validateRowValueByName(response, actualHeaders, 3, "incidentdate", "2021-05-18 12:27:48.317");
 
       // Validate selected values for row index 6
       validateRowValueByName(response, actualHeaders, 6, "oucode", "OU_559");
-      validateRowValueByName(response, actualHeaders, 6, "incidentdate", "2021-10-22 12:27:48.61");
+      validateRowValueByName(response, actualHeaders, 6, "incidentdate", "2021-09-10 12:27:48.552");
 
       // Validate selected values for row index 9
       validateRowValueByName(response, actualHeaders, 9, "oucode", "OU_559");
-      validateRowValueByName(response, actualHeaders, 9, "incidentdate", "2021-09-10 12:27:48.552");
+      validateRowValueByName(response, actualHeaders, 9, "incidentdate", "2021-04-25 12:35:24.03");
     }
   }
 

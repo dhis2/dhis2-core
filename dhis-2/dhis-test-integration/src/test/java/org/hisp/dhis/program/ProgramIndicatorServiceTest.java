@@ -36,6 +36,7 @@ import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
 import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
@@ -70,7 +71,6 @@ import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -97,8 +97,6 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private ProgramStageDataElementService programStageDataElementService;
-
-  @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private ConstantService constantService;
 
@@ -272,8 +270,8 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
         new TrackedEntityAttributeValue(atA, trackedEntity, "1");
     TrackedEntityAttributeValue attributeValueB =
         new TrackedEntityAttributeValue(atB, trackedEntity, "2");
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
+    saveTrackedEntityAttributeValue(entityManager, attributeValueA);
+    saveTrackedEntityAttributeValue(entityManager, attributeValueB);
     // ---------------------------------------------------------------------
     // TrackedEntityDataValue
     // ---------------------------------------------------------------------

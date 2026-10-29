@@ -34,6 +34,7 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -54,12 +55,7 @@ final class PeriodOutput {
           root -> {
             root.addString("locale", types.locale().toString());
             root.addArray(
-                "periodTypes",
-                arr -> {
-                  for (PeriodTypes.PeriodTypeEntry.Output e : types.entries()) {
-                    arr.addObject(entry -> addEntry(entry, e));
-                  }
-                });
+                "periodTypes", arr -> arr.addObjects(types.entries(), PeriodOutput::addEntry));
           });
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
@@ -69,13 +65,7 @@ final class PeriodOutput {
   static void toJsonArray(@Nonnull PeriodTypes.Output types, @Nonnull OutputStream json) {
     try (json) {
       JsonBuilder.streamArray(
-          MINIMIZED,
-          json,
-          arr -> {
-            for (PeriodTypes.PeriodTypeEntry.Output e : types.entries()) {
-              arr.addObject(entry -> addEntry(entry, e));
-            }
-          });
+          MINIMIZED, json, arr -> arr.addObjects(types.entries(), PeriodOutput::addEntry));
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
@@ -107,37 +97,45 @@ final class PeriodOutput {
       eObj.addObject(
           "relativePeriods",
           rpMap -> {
+            // LabelsEncoder to prevent lambda allocation in a loop
+            LabelsEncoder encoder = new LabelsEncoder();
             for (Map.Entry<RelativePeriodEnum, PeriodTypes.Labels> rp :
                 relativePeriods.entrySet()) {
-              rpMap.addObject(
-                  rp.getKey().name(),
-                  rpObj -> {
-                    PeriodTypes.Labels val = rp.getValue();
-                    rpObj.addString("defaultName", val.defaultName());
-                    rpObj.addString("label", val.label());
-                    rpObj.addString("displayLabel", val.displayLabel());
-                    rpObj.addString("displayName", val.displayName());
-                    addTranslations(rpObj, val.translations());
-                  });
+              encoder.set(rp.getValue());
+              rpMap.addObject(rp.getKey().name(), encoder);
             }
           });
+    }
+  }
+
+  private static final class LabelsEncoder implements Consumer<JsonBuilder.JsonObjectBuilder> {
+    private PeriodTypes.Labels labels;
+
+    void set(PeriodTypes.Labels labels) {
+      this.labels = labels;
+    }
+
+    @Override
+    public void accept(JsonBuilder.JsonObjectBuilder rpObj) {
+      rpObj.addString("defaultName", labels.defaultName());
+      rpObj.addString("label", labels.label());
+      rpObj.addString("displayLabel", labels.displayLabel());
+      rpObj.addString("displayName", labels.displayName());
+      addTranslations(rpObj, labels.translations());
     }
   }
 
   private static void addTranslations(
       JsonBuilder.JsonObjectBuilder entry, List<Translation> translations) {
     if (translations == null || translations.isEmpty()) return;
+    // uses addObjects to prevent lambda in a loop allocation
     entry.addArray(
-        "translations",
-        arr -> {
-          for (Translation t : translations) {
-            arr.addObject(
-                translation ->
-                    translation
-                        .addString("locale", t.getLocale().toString())
-                        .addString("property", t.getProperty())
-                        .addString("value", t.getValue()));
-          }
-        });
+        "translations", arr -> arr.addObjects(translations, PeriodOutput::addTranslation));
+  }
+
+  private static void addTranslation(JsonBuilder.JsonObjectBuilder tObj, Translation t) {
+    tObj.addString("locale", t.getLocale().toString());
+    tObj.addString("property", t.getProperty());
+    tObj.addString("value", t.getValue());
   }
 }

@@ -496,6 +496,20 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "incidentDateEnrollmentOnEvents",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?dimension=ou:ImspTQPwCqd&dimension=INCIDENT_DATE:GE:2021-01-01:LT:2022-01-01&pageSize=100&totalPages=true&asc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "barePeDimensionLastUpdatedFilter",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2021&filter=LAST_UPDATED:2017&headers=psi,eventdate,lastupdated&totalPages=false&pageSize=100&page=1",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

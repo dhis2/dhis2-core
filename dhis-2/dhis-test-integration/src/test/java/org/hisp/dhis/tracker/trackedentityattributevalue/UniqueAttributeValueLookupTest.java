@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -211,8 +212,8 @@ class UniqueAttributeValueLookupTest extends PostgresIntegrationTestBase {
       OrganisationUnit orgUnit, TrackedEntityAttribute attribute, String value) {
     TrackedEntity trackedEntity = createTrackedEntity(orgUnit, trackedEntityType);
     manager.save(trackedEntity);
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(attribute, trackedEntity, value));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(attribute, trackedEntity, value));
     return trackedEntity;
   }
 }

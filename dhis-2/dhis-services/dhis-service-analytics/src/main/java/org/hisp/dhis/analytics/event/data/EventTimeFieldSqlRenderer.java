@@ -36,7 +36,6 @@ import static org.hisp.dhis.analytics.TimeField.ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
-import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -64,8 +63,8 @@ public class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
   @Getter private final Set<TimeField> allowedTimeFields = Set.of(LAST_UPDATED, SCHEDULED_DATE);
 
   @Override
-  protected String getAggregatedConditionForPeriods(EventQueryParams params) {
-    List<DimensionalItemObject> periods = params.getAllDimensionOrFilterItems(PERIOD_DIM_ID);
+  protected String getAggregatedConditionForPeriods(
+      EventQueryParams params, List<DimensionalItemObject> periods) {
 
     Optional<TimeField> timeField = getTimeField(params);
     StringBuilder sql = new StringBuilder();
