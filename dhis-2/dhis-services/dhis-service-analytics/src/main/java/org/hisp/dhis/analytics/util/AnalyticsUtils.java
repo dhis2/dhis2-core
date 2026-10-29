@@ -1244,6 +1244,7 @@ public final class AnalyticsUtils {
 
       if ((ex.getCause() instanceof SQLException sqlexception)
           && columnDoesNotExist(sqlexception)) {
+        log.error(E7154.getMessage(), ex);
         throw new QueryRuntimeException(E7154);
       }
       log.error(E7132.getMessage(), ex);
@@ -1273,6 +1274,7 @@ public final class AnalyticsUtils {
         throw ex;
       }
       if (columnDoesNotExist(sqlexception)) {
+        log.error(E7154.getMessage(), ex);
         throw new QueryRuntimeException(E7154);
       }
       log.info(ERR_MSG_SILENT_FALLBACK, ex);

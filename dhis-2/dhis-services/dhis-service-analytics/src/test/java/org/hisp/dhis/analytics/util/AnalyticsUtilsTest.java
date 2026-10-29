@@ -829,7 +829,9 @@ class AnalyticsUtilsTest extends TestBase {
 
   @Test
   void whenQueryRuntimeException_thenRethrow() {
-    QueryRuntimeException queryException = new QueryRuntimeException("Test error");
+    QueryRuntimeException queryException =
+        new QueryRuntimeException(
+            "Analytics tables are out of date. Ask your administrator to run a full analytics tables update.");
     Supplier<String> supplier =
         () -> {
           throw queryException;
@@ -839,7 +841,9 @@ class AnalyticsUtilsTest extends TestBase {
         assertThrows(
             QueryRuntimeException.class,
             () -> AnalyticsUtils.withExceptionHandling(supplier, false));
-    assertEquals("Test error", thrown.getMessage());
+    assertEquals(
+        "Analytics tables are out of date. Ask your administrator to run a full analytics tables update.",
+        thrown.getMessage());
   }
 
   @Test
@@ -847,7 +851,8 @@ class AnalyticsUtilsTest extends TestBase {
       "When an UncategorizedSQLException is thrown with a column not existing and multiple queries, then return empty")
   void whenUncategorizedSQLException_withColumnNotExisting_thenReturnEmpty() {
     SQLException sqlException =
-        new SQLException("Unknown column 'cX5k9anHEHd' in 'ax' in FILTER clause", "HY000");
+        new SQLException(
+            "Analytics tables are out of date. Ask your administrator to run a full analytics tables update.");
     UncategorizedSQLException uncategorizedSQLException =
         new UncategorizedSQLException("task", DUMMY_SQL, sqlException);
     Supplier<String> supplier =

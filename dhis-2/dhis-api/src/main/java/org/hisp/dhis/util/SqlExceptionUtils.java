@@ -93,7 +93,10 @@ public class SqlExceptionUtils {
           || Optional.of(ex) // doris
               .map(SQLException::getMessage)
               .filter(
-                  m -> m.contains("does not exist in the table") || m.contains("Unknown column"))
+                  m ->
+                      m.contains("does not exist in the table")
+                          || m.contains("Unknown column")
+                          || m.contains("unequal number of columns"))
               .isPresent()
           || Optional.of(ex) // clickhouse
               .map(SQLException::getMessage)
