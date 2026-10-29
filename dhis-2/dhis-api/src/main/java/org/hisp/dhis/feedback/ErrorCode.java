@@ -564,6 +564,8 @@ public enum ErrorCode {
   E7150("No periods found for subexpression query"),
   E7151("Too many combinations of columns or rows."),
   E7152("Periods as filter not supported with Indicator with period offset"),
+  E7153(
+      "Query would compute `{0}` indicator values, more than the max of `{1}`. Remove dimensions or dimension items, or move dimensions to filters"),
   /* Analytics outliers */
 
   E7180(

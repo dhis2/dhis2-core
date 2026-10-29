@@ -306,6 +306,14 @@ public non-sealed interface SystemSettings extends Settings {
     return asInt("keyAnalyticsMaxLimit", 100000);
   }
 
+  /**
+   * @return the max number of indicator values (indicators times dimension item permutations) an
+   *     analytics query may compute, 0 means unlimited
+   */
+  default int getAnalyticsMaxIndicatorPermutations() {
+    return asInt("keyAnalyticsMaxIndicatorPermutations", 1000000);
+  }
+
   default int getDataQualityMaxLimit() {
     return asInt("keyDataQualityMaxLimit", 500);
   }
