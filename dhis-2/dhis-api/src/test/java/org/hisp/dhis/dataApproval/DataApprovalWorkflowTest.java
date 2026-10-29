@@ -49,7 +49,6 @@ import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.SixMonthlyAprilPeriodType;
 import org.hisp.dhis.period.SixMonthlyNovemberPeriodType;
 import org.hisp.dhis.period.SixMonthlyPeriodType;
-import org.hisp.dhis.period.TwoYearlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.WeeklySaturdayPeriodType;
 import org.hisp.dhis.period.WeeklySundayPeriodType;
@@ -110,7 +109,6 @@ class DataApprovalWorkflowTest {
     DataSet financialJulDs = createDataSet("financialJulDs", new FinancialJulyPeriodType(), 5);
     DataSet financialOctDs = createDataSet("financialOctDs", new FinancialOctoberPeriodType(), 6);
     DataSet financialNovDs = createDataSet("financialNovDs", new FinancialNovemberPeriodType(), 7);
-    DataSet twoYearlyDs = createDataSet("twoYearlyDs", new TwoYearlyPeriodType(), 4);
     DataApprovalWorkflow workflow =
         new DataApprovalWorkflow("test workflow", new DailyPeriodType(), newHashSet());
     assertEquals("", workflow.getSqlCoEndDateExtension());
@@ -152,8 +150,6 @@ class DataApprovalWorkflowTest {
     assertEquals(" + 6 * INTERVAL '+ 1 year'", workflow.getSqlCoEndDateExtension());
     workflow.getDataSets().add(financialNovDs);
     assertEquals(" + 7 * INTERVAL '+ 1 year'", workflow.getSqlCoEndDateExtension());
-    workflow.getDataSets().add(twoYearlyDs);
-    assertEquals(" + 4 * INTERVAL '+ 2 years'", workflow.getSqlCoEndDateExtension());
   }
 
   // -------------------------------------------------------------------------
