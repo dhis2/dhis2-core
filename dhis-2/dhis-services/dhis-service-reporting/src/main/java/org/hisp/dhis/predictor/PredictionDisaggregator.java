@@ -35,6 +35,7 @@ import static org.hisp.dhis.system.util.MathUtils.addDoubleObjects;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +45,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
@@ -53,12 +55,15 @@ import org.hisp.dhis.period.Period;
 /**
  * Generator of disaggregated predictions.
  *
- * <p>If the predictor output category option combo (COC) is null, then all disaggregations (COCs)
- * of the output data element are computed independently, one prediction for each COC.
+ * <p>If the predictor output category option combo (COC) is null or default, and the output data
+ * element has a non-default category combo, then all disaggregations (COCs) of the output data
+ * element are computed independently, one prediction for each COC.
  *
  * <p>When making disaggregated predictions, values for any data elements in the expression (not
  * within data element operands) are fetched with all category option combos instead of summed at a
- * lower level. This allows them to be summed here with the COCs filtered as needed.
+ * lower level. This allows them to be summed here with the COCs filtered as needed. Other items may
+ * also have values with COCs, such as program indicators that have category combos. Values without
+ * COCs are always included.
  *
  * <p>For each disaggregated prediction, exclude any COC values where an option, or any other option
  * from the same category, is an option for the output data element and not present in the
@@ -102,7 +107,7 @@ public class PredictionDisaggregator {
   @Getter private final CategoryOptionCombo outputCombo;
 
   /** Whether we are generating disaggregated predictions. */
-  private final boolean disagPredictions;
+  @Getter private final boolean disagPredictions;
 
   /** The output category option combos. */
   private final Set<CategoryOptionCombo> outputCocs;
@@ -144,18 +149,30 @@ public class PredictionDisaggregator {
   }
 
   /**
-   * If this is a disaggregation prediction, then replaces each prediction context with a list of
-   * prediction contexts, one for each category option combination of the output data element.
+   * Gets the period value maps for evaluating predictions, from values that all have the same
+   * attribute option combo.
    *
-   * @param contexts list of disaggregation contexts
-   * @return possibly expanded list of disaggregation contexts
+   * <p>If this is not a disaggregation prediction, returns one period value map (for the output
+   * COC) with all the values. Otherwise, returns one period value map for each COC of the output
+   * data element, with the values that are allowed for that COC.
+   *
+   * @param values the values found for an attribute option combo
+   * @return map from each output COC to its period value map
    */
-  public List<PredictionContext> getDisaggregateContexts(List<PredictionContext> contexts) {
+  public Map<CategoryOptionCombo, MapMap<Period, DimensionalItemObject, Object>> getPeriodValueMaps(
+      List<FoundDimensionItemValue> values) {
+    Map<CategoryOptionCombo, MapMap<Period, DimensionalItemObject, Object>> maps =
+        new LinkedHashMap<>();
+
     if (!disagPredictions) {
-      return contexts;
+      maps.put(outputCombo, getPeriodValueMap(values));
+    } else {
+      for (CategoryOptionCombo coc : outputCocs) {
+        maps.put(coc, disaggregatePeriodValueMap(coc, values));
+      }
     }
 
-    return contexts.stream().map(this::disagregateContext).flatMap(Collection::stream).toList();
+    return maps;
   }
 
   // -------------------------------------------------------------------------
@@ -178,50 +195,41 @@ public class PredictionDisaggregator {
   }
 
   /**
-   * Disaggregates a prediction context into a list of prediction contexts, one for each output
-   * category option combo.
+   * Creates a period value map with all the values. If there are multiple values for the same
+   * period and item (with different COCs), they are summed.
    */
-  private List<PredictionContext> disagregateContext(PredictionContext context) {
-    return outputCocs.stream().map(coc -> getDisaggregatedContext(context, coc)).toList();
+  private MapMap<Period, DimensionalItemObject, Object> getPeriodValueMap(
+      List<FoundDimensionItemValue> values) {
+    MapMap<Period, DimensionalItemObject, Object> map = new MapMap<>();
+
+    for (FoundDimensionItemValue v : values) {
+      addIntoMap(map, v.getPeriod(), v.getDimensionalItemObject(), v.getValue());
+    }
+
+    return map;
   }
 
   /**
-   * Generates a disaggregated context from an existing context but with values for one particular
-   * disaggregation category option combination.
-   */
-  private PredictionContext getDisaggregatedContext(PredictionContext c, CategoryOptionCombo coc) {
-    MapMap<Period, DimensionalItemObject, Object> periodValueMap =
-        disaggregatePeriodValueMap(coc, c.getPeriodValueMap());
-
-    return new PredictionContext(
-        coc, c.getAttributeOptionCombo(), c.getOutputPeriod(), periodValueMap);
-  }
-
-  /**
-   * Creates a period value map with the data values that are allowed for the given output COC.
+   * Creates a period value map with the values that are allowed for the given output COC.
    *
-   * <p>Map values are created for each allowed data element operand and also for the data element
-   * to which it belongs, in case one or both are needed.
+   * <p>A value is allowed if it has no COC, or if its COC is allowed for the output COC. Values for
+   * the same period and item (with different COCs) are summed.
+   *
+   * <p>Data element operand values are also summed into the data element to which they belong, in
+   * case the data element itself is referenced in the predictor expression.
    */
   private MapMap<Period, DimensionalItemObject, Object> disaggregatePeriodValueMap(
-      CategoryOptionCombo coc, MapMap<Period, DimensionalItemObject, Object> periodValueMap) {
+      CategoryOptionCombo coc, List<FoundDimensionItemValue> values) {
     MapMap<Period, DimensionalItemObject, Object> disMap = new MapMap<>();
 
-    for (Map.Entry<Period, Map<DimensionalItemObject, Object>> e1 : periodValueMap.entrySet()) {
-      Period period = e1.getKey();
+    for (FoundDimensionItemValue v : values) {
+      if (v.getCategoryOptionCombo() == null || isAllowed(coc, v.getCategoryOptionCombo())) {
+        DimensionalItemObject item = v.getDimensionalItemObject();
 
-      for (Map.Entry<DimensionalItemObject, Object> e2 : e1.getValue().entrySet()) {
-        DimensionalItemObject item = e2.getKey();
-        Object value = e2.getValue();
+        addIntoMap(disMap, v.getPeriod(), item, v.getValue());
 
-        // All the DEs should have been converted to DEOs:
-        assert (item instanceof DataElementOperand);
-
-        DataElementOperand deo = (DataElementOperand) item;
-
-        if (isAllowed(coc, deo.getCategoryOptionCombo())) {
-          disMap.putEntry(period, item, value);
-          addIntoMap(disMap, period, deo.getDataElement(), value);
+        if (item instanceof DataElementOperand deo) {
+          addIntoMap(disMap, v.getPeriod(), deo.getDataElement(), v.getValue());
         }
       }
     }

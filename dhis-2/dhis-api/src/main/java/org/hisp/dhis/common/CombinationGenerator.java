@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,14 +70,18 @@ public class CombinationGenerator<T> {
    * Counts the total of possible combinations of non-empty lists within the current list of
    * "objects".
    *
-   * @return the total.
+   * @return the total, or {@link Long#MAX_VALUE} if the total does not fit in a long.
    */
-  public int countCombinations() {
-    int total = 1;
+  public long countCombinations() {
+    long total = 1;
     for (List<T> list : objects) {
       // Skip empty lists.
       if (!list.isEmpty()) {
-        total *= list.size();
+        try {
+          total = Math.multiplyExact(total, list.size());
+        } catch (ArithmeticException ex) {
+          return Long.MAX_VALUE;
+        }
       }
     }
 
