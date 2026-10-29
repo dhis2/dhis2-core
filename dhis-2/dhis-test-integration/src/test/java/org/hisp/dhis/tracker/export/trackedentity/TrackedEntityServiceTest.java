@@ -2606,6 +2606,175 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     assertIsEmpty(trackedEntityService.findTrackedEntities(operationParams));
   }
 
+  @Test
+  void shouldNotReturnProgramOwnerWhenUserHasNoDataReadAccessToProgram()
+      throws ForbiddenException, NotFoundException {
+    injectSecurityContextUser(superuser);
+    makeProgramDataInaccessible(programA);
+    injectSecurityContextUser(user);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    assertContainsOnly(Set.of(enrollmentB.getUid()), uids(trackedEntity.getEnrollments()));
+    assertContainsOnly(Set.of(programB.getUid()), programOwnerProgramUids(trackedEntity));
+  }
+
+  @Test
+  void shouldNotReturnProgramOwnerWhenEnrollmentAttributeOptionComboNotAccessible()
+      throws ForbiddenException, NotFoundException {
+    addAttributeOptionComboToEnrollment(enrollmentA, AccessStringHelper.DEFAULT);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    assertContainsOnly(Set.of(enrollmentB.getUid()), uids(trackedEntity.getEnrollments()));
+    assertContainsOnly(Set.of(programB.getUid()), programOwnerProgramUids(trackedEntity));
+  }
+
+  @Test
+  void shouldReturnProgramOwnerWhenEnrollmentAttributeOptionComboAccessible()
+      throws ForbiddenException, NotFoundException {
+    addAttributeOptionComboToEnrollment(enrollmentA, AccessStringHelper.READ_ONLY);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    assertContainsOnly(
+        Set.of(programA.getUid(), programB.getUid()), programOwnerProgramUids(trackedEntity));
+  }
+
+  @Test
+  void shouldReturnProgramOwnerWhenAtLeastOneEnrollmentAttributeOptionComboAccessible()
+      throws ForbiddenException, NotFoundException {
+    addAttributeOptionComboToEnrollment(enrollmentA, AccessStringHelper.DEFAULT);
+    injectSecurityContextUser(superuser);
+    Enrollment accessibleEnrollment = createEnrollment(programA, trackedEntityA, orgUnitA);
+    accessibleEnrollment.setStatus(EnrollmentStatus.COMPLETED);
+    manager.save(accessibleEnrollment);
+    injectSecurityContextUser(user);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    assertContainsOnly(
+        Set.of(programA.getUid(), programB.getUid()), programOwnerProgramUids(trackedEntity));
+  }
+
+  @Test
+  void shouldReturnProgramOwnerWhenTrackedEntityHasNoEnrollmentInAccessibleProgram()
+      throws ForbiddenException, NotFoundException {
+    Program programWithoutEnrollment = createProgramOwnedWithoutEnrollment(trackedEntityA);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    assertContainsOnly(
+        Set.of(programA.getUid(), programB.getUid(), programWithoutEnrollment.getUid()),
+        programOwnerProgramUids(trackedEntity));
+  }
+
+  @Test
+  void shouldReturnProgramOwnerWhenEnrollmentHiddenByOwnershipInProtectedProgram()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        trackedEntityA, programB, orgUnitB);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    assertContainsOnly(Set.of(enrollmentA.getUid()), uids(trackedEntity.getEnrollments()));
+    assertContainsOnly(
+        Set.of(programA.getUid(), programB.getUid()), programOwnerProgramUids(trackedEntity));
+    assertEquals(
+        orgUnitB.getUid(),
+        trackedEntity.getProgramOwners().stream()
+            .filter(po -> po.getProgram().getUid().equals(programB.getUid()))
+            .findFirst()
+            .orElseThrow()
+            .getOrganisationUnit()
+            .getUid());
+  }
+
+  @Test
+  void shouldOnlyReturnProgramOwnerWithoutEnrollmentWhenNoEnrollmentAttributeOptionComboAccessible()
+      throws ForbiddenException, NotFoundException {
+    addAttributeOptionComboToEnrollment(enrollmentA, AccessStringHelper.DEFAULT);
+    injectSecurityContextUser(superuser);
+    enrollmentB.setAttributeOptionCombo(enrollmentA.getAttributeOptionCombo());
+    manager.update(enrollmentB);
+    Program programWithoutEnrollment = createProgramOwnedWithoutEnrollment(trackedEntityA);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    assertIsEmpty(trackedEntity.getEnrollments());
+    assertContainsOnly(
+        Set.of(programWithoutEnrollment.getUid()), programOwnerProgramUids(trackedEntity));
+  }
+
+  @Test
+  void shouldNotReturnProgramOwnerWhenSoftDeletedEnrollmentAttributeOptionComboNotAccessible()
+      throws ForbiddenException, NotFoundException {
+    addAttributeOptionComboToEnrollment(enrollmentA, AccessStringHelper.DEFAULT);
+    injectSecurityContextUser(superuser);
+    manager.delete(enrollmentA);
+    injectSecurityContextUser(user);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    assertContainsOnly(Set.of(programB.getUid()), programOwnerProgramUids(trackedEntity));
+  }
+
+  @Test
+  void shouldReturnProgramOwnerWhenSoftDeletedEnrollmentAttributeOptionComboAccessible()
+      throws ForbiddenException, NotFoundException {
+    addAttributeOptionComboToEnrollment(enrollmentA, AccessStringHelper.READ_ONLY);
+    injectSecurityContextUser(superuser);
+    manager.delete(enrollmentA);
+    injectSecurityContextUser(user);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    assertContainsOnly(
+        Set.of(programA.getUid(), programB.getUid()), programOwnerProgramUids(trackedEntity));
+  }
+
+  /**
+   * Creates a program the user has data read access to, in which the tracked entity is owned but
+   * not enrolled. Leaves the user in the security context.
+   */
+  private Program createProgramOwnedWithoutEnrollment(TrackedEntity trackedEntity) {
+    injectSecurityContextUser(superuser);
+    Program program = createProgram('D', new HashSet<>(), orgUnitA);
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    program.setTrackedEntityType(trackedEntityTypeA);
+    program.setCategoryCombo(programA.getCategoryCombo());
+    program.getSharing().setPublicAccess(AccessStringHelper.FULL);
+    manager.save(program, false);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntity, program, orgUnitA);
+    injectSecurityContextUser(user);
+    return program;
+  }
+
+  private static Set<String> programOwnerProgramUids(TrackedEntity trackedEntity) {
+    return trackedEntity.getProgramOwners().stream()
+        .map(po -> po.getProgram().getUid())
+        .collect(Collectors.toSet());
+  }
+
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
     // depends on createTrackedEntityAttribute() prefixing with "Attribute"
     return attributes.stream()
