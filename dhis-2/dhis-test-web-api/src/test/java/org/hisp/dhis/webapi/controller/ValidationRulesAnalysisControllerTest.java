@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.hisp.dhis.http.HttpClientAdapter.HttpResponse;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
@@ -130,7 +129,7 @@ class ValidationRulesAnalysisControllerTest extends AbstractDataValueControllerT
   void testAnalysis_TooManyRules() {
     String uids =
         IntStream.rangeClosed(1, 51)
-            .mapToObj(i -> "'VrAnalys%03d'".formatted(i))
+            .mapToObj("'VrAnalys%03d'"::formatted)
             .collect(Collectors.joining(","));
     JsonError error = postAnalysis("'vr':[" + uids + "]").error(HttpStatus.BAD_REQUEST);
     assertEquals("At most 50 validation rules can be specified in vr", error.getMessage());
