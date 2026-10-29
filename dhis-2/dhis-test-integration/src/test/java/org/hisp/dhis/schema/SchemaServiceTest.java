@@ -34,10 +34,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import org.hibernate.mapping.Column;
+import org.hibernate.mapping.PersistentClass;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.hibernate.HibernateMetadata;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -189,5 +196,55 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(schema);
     assertEquals(MapView.class, schema.getKlass());
     assertTrue(schema.isEmbeddedObject());
+  }
+
+
+  /**
+   * Properties mapped to a text column must not be limited to the default column length in the
+   * schema, otherwise schema validation rejects values that the database accepts. This happens when
+   * a String field has {@code columnDefinition = "text"} but no {@code @Type(type = "text")}.
+   */
+  @Test
+  void testTextColumnPropertiesHaveNoMaxLength() {
+    List<String> violations = new ArrayList<>();
+
+    for (Schema schema : schemaService.getSchemas()) {
+      PersistentClass persistentClass =
+          HibernateMetadata.getMetadataImplementor().getEntityBinding(schema.getKlass().getName());
+
+      if (persistentClass == null) {
+        continue;
+      }
+
+      Iterator<?> propertyIterator = persistentClass.getPropertyClosureIterator();
+
+      while (propertyIterator.hasNext()) {
+        org.hibernate.mapping.Property hibernateProperty =
+            (org.hibernate.mapping.Property) propertyIterator.next();
+
+        if (hibernateProperty.getColumnSpan() != 1
+            || !(hibernateProperty.getColumnIterator().next() instanceof Column column)
+            || !"text".equalsIgnoreCase(column.getSqlType())) {
+          continue;
+        }
+
+        Property property = schema.getPersistedProperties().get(hibernateProperty.getName());
+
+        if (property != null
+            && String.class.equals(property.getKlass())
+            && property.getMax() != null
+            && property.getMax() == column.getLength()) {
+          violations.add(schema.getKlass().getSimpleName() + "." + property.getName());
+        }
+      }
+    }
+
+    assertTrue(violations.isEmpty(), "Text columns limited in schema: " + violations);
+  }
+
+  @Test
+  void testDashboardDescriptionHasNoMaxLength() {
+    Property property = schemaService.getSchema(Dashboard.class).getProperty("description");
+    assertEquals((double) Integer.MAX_VALUE, property.getMax());
   }
 }
