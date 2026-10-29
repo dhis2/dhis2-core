@@ -853,6 +853,9 @@ class JsonGeneratorTest {
   @Test
   void testYaml_Escape_LeadingAndTrailingSpaces() {
     // Plain scalars trim leading/trailing whitespace. Always-quote preserves it.
+    assertYamlEscapedAs("\" hello\"", " hello");
+    assertYamlEscapedAs("\"hello \"", "hello ");
+    assertYamlEscapedAs("\" both \"", " both ");
   }
 
   @Test
@@ -899,6 +902,6 @@ class JsonGeneratorTest {
    */
   private static void assertYamlEscapedAs(String expectedFragment, String value) {
     String yaml = generate(PRETTY_PRINT, YAML, g -> g.addStringMember("k", value));
-    assertTrue(yaml.contains(expectedFragment), "expected '" + expectedFragment + "' in: " + yaml);
+    assertEquals("  \"k\": %s\n".formatted(expectedFragment), yaml);
   }
 }
