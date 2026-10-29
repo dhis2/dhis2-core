@@ -1268,13 +1268,14 @@ public final class AnalyticsUtils {
         }
         throw ex;
       }
-      if (columnDoesNotExist(sqlexception)) {
-        log.error(E7154.getMessage(), ex);
-        throw new QueryRuntimeException(E7154);
-      }
       if (!isMultipleQueries) {
-        log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
-        throw ex;
+        if (columnDoesNotExist(sqlexception)) {
+          log.error(E7154.getMessage(), ex);
+          throw new QueryRuntimeException(E7154);
+        } else {
+          log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
+          throw ex;
+        }
       }
       log.info(ERR_MSG_SILENT_FALLBACK, ex);
     } else {
