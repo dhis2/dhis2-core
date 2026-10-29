@@ -565,6 +565,8 @@ public enum ErrorCode {
   E7151("Too many combinations of columns or rows."),
   E7152("Periods as filter not supported with Indicator with period offset"),
   E7153(
+      "Query would compute `{0}` indicator values, more than the max of `{1}`. Remove dimensions or dimension items, or move dimensions to filters"),
+  E7154(
       "Analytics tables are out of date. Ask your administrator to run a full analytics tables update."),
   /* Analytics outliers */
 

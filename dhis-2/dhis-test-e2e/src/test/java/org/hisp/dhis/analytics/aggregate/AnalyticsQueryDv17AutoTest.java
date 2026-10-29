@@ -228,6 +228,6 @@ public class AnalyticsQueryDv17AutoTest extends AnalyticsApiTest {
         .statusCode(409)
         .body("status", equalTo("ERROR"))
         .body("message", equalTo(expectedMessage))
-        .body("errorCode", equalTo("E7153"));
+        .body("errorCode", equalTo("E7154"));
   }
 }

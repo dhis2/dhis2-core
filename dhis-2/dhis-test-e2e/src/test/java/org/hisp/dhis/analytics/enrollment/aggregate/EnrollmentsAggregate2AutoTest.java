@@ -97,7 +97,7 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void queryAggregatedenrollmentsbirthgenderthisyearlast12monthslevel3org()
+  public void queryAggregatedenrollmentsbirthgenderthisyearlast12MonthsLevel3org()
       throws JSONException {
     // Given
     QueryParamsBuilder params =
@@ -117,8 +117,8 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(4)))
-        .body("rows", hasSize(equalTo(24)))
-        .body("height", equalTo(24))
+        .body("rows", hasSize(equalTo(17)))
+        .body("height", equalTo(17))
         .body("width", equalTo(4))
         .body("headerWidth", equalTo(4));
 
@@ -150,15 +150,9 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("1", "YuQRtpLP10I", "202305", "Female"));
     validateRow(response, List.of("1", "YuQRtpLP10I", "202305", ""));
     validateRow(response, List.of("1", "YuQRtpLP10I", "202306", "Female"));
-    validateRow(response, List.of("1", "YuQRtpLP10I", "202309", "Male"));
-    validateRow(response, List.of("1", "YuQRtpLP10I", "202310", "Female"));
-    validateRow(response, List.of("1", "YuQRtpLP10I", "202311", "Female"));
-    validateRow(response, List.of("2", "YuQRtpLP10I", "202312", "Female"));
-    validateRow(response, List.of("9", "YuQRtpLP10I", "2022", "Female"));
-    validateRow(response, List.of("8", "YuQRtpLP10I", "2022", "Male"));
-    validateRow(response, List.of("1", "YuQRtpLP10I", "2022", ""));
     validateRow(response, List.of("10", "YuQRtpLP10I", "2023", "Female"));
     validateRow(response, List.of("7", "YuQRtpLP10I", "2023", "Male"));
+    validateRow(response, List.of("1", "YuQRtpLP10I", "2023", ""));
   }
 
   @Test

@@ -40,7 +40,7 @@ import static org.hisp.dhis.common.DimensionConstants.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
-import static org.hisp.dhis.feedback.ErrorCode.E7153;
+import static org.hisp.dhis.feedback.ErrorCode.E7154;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
@@ -1244,7 +1244,7 @@ public final class AnalyticsUtils {
 
       if ((ex.getCause() instanceof SQLException sqlexception)
           && columnDoesNotExist(sqlexception)) {
-        throw new QueryRuntimeException(E7153);
+        throw new QueryRuntimeException(E7154);
       }
       log.error(E7132.getMessage(), ex);
       throw new QueryRuntimeException(E7132);
@@ -1269,7 +1269,7 @@ public final class AnalyticsUtils {
         throw ex;
       }
       if (columnDoesNotExist(sqlexception)) {
-        throw new QueryRuntimeException(E7153);
+        throw new QueryRuntimeException(E7154);
       }
       if (!isMultipleQueries) {
         log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
