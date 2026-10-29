@@ -528,8 +528,8 @@ class JsonGeneratorTest {
   }
 
   @Test
-  void testString_PlainNoQuotes_YAML() {
-    // Plain string — no quoting required
+  void testString_PlainStillQuotes_YAML() {
+    // Plain string — no quoting required but we quote all
     String yaml = generate(SMALL, YAML, g -> g.addStringMember("a", "hello"));
     assertEquals("  \"a\": \"hello\"\n", yaml);
   }
@@ -552,8 +552,7 @@ class JsonGeneratorTest {
 
   @Test
   void testString_HashInside_Quoted_YAML() {
-    // " #" would start a comment in YAML — the current heuristic quotes
-    // the whole value when it contains "#" anywhere
+    // " #" would start a comment in YAML, must be quoted
     String yaml = generate(SMALL, YAML, g -> g.addStringMember("a", "value # comment"));
     assertTrue(yaml.contains("\"value # comment\""), yaml);
   }
@@ -768,6 +767,113 @@ class JsonGeneratorTest {
     assertEquals("{\"k\":\"\"}", json);
   }
 
+  @Test
+  void testYaml_Escape_Backslash() {
+    assertYamlEscapedAs("\"\\\\\"", "\\");
+  }
+
+  @Test
+  void testYaml_Escape_DoubleQuote() {
+    assertYamlEscapedAs("\"\\\"\"", "\"");
+  }
+
+  @Test
+  void testYaml_Escape_Newline() {
+    assertYamlEscapedAs("\"\\n\"", "\n");
+  }
+
+  @Test
+  void testYaml_Escape_Tab() {
+    assertYamlEscapedAs("\"\\t\"", "\t");
+  }
+
+  @Test
+  void testYaml_Escape_CR() {
+    assertYamlEscapedAs("\"\\r\"", "\r");
+  }
+
+  @Test
+  void testYaml_Escape_Nul() {
+    assertYamlEscapedAs("\"\\0\"", "\0");
+  }
+
+  @Test
+  void testYaml_Escape_ControlChar_0001() {
+    assertYamlEscapedAs("\"\\u0001\"", "\u0001");
+  }
+
+  @Test
+  void testYaml_Escape_Del_007F() {
+    assertYamlEscapedAs("\"\\u007F\"", "\u007F");
+  }
+
+  @Test
+  void testYaml_Escape_Nel_0085() {
+    // U+0085 NEL is a YAML line terminator and must be escaped even inside a quoted scalar
+    assertYamlEscapedAs("\"\\u0085\"", "\u0085");
+  }
+
+  @Test
+  void testYaml_Escape_LineSeparator_2028() {
+    // U+2028 LS — Java's own source treats this as line terminator-adjacent, but
+    // inside a Java string literal it's just a char, and inside a YAML double-quoted
+    // scalar it must be escaped.
+    assertYamlEscapedAs("\"\\u2028\"", "\u2028");
+  }
+
+  @Test
+  void testYaml_Escape_ParagraphSeparator_2029() {
+    assertYamlEscapedAs("\"\\u2029\"", "\u2029");
+  }
+
+  @Test
+  void testYaml_Escape_MixedRunsAndEscapes() {
+    // Clean runs (a, b, c, d) are batch-written via appendEncoded; escapes are written
+    // as ASCII between them. A regression in run-tracking would either lose characters
+    // or add spurious escapes.
+    String value = "a\\b\"c\td";
+    assertYamlEscapedAs("\"a\\\\b\\\"c\\td\"", value);
+  }
+
+  @Test
+  void testYaml_Escape_NonAsciiPassthrough() {
+    // BMP non-ASCII is written as raw UTF-8 bytes inside the quotes, not \\u-escaped
+    assertYamlEscapedAs("\"é\"", "é");
+    assertYamlEscapedAs("\"日本語\"", "日本語");
+  }
+
+  @Test
+  void testYaml_Escape_SupplementaryPlane_Passthrough() {
+    // 😀 U+1F600 — surrogate pair in Java, one 4-byte UTF-8 sequence in output.
+    // A per-char appendEncoded(char) path would emit two U+FFFD; the run-batched
+    // appendEncoded(CharSequence, int, int) path preserves it.
+    assertYamlEscapedAs("\"😀\"", "😀");
+  }
+
+  @Test
+  void testYaml_Escape_LeadingAndTrailingSpaces() {
+    // Plain scalars trim leading/trailing whitespace. Always-quote preserves it.
+  }
+
+  @Test
+  void testYaml_PlainAsciiString_StillQuoted() {
+    // Always-quote means even plain values get quotes — the point is uniformity, not
+    // minimum-quoting. Verifies we are not silently skipping the quote for safe values.
+    assertYamlEscapedAs("\"hello world\"", "hello world");
+  }
+
+  @Test
+  void testYaml_ColonNoFollowingSpace() {
+    // "a:b" would be ambiguous as a plain scalar in some contexts; quoting makes it
+    // unambiguous. Under always-quote this is a consequence, not a special case.
+    assertYamlEscapedAs("\"a:b\"", "a:b");
+  }
+
+  @Test
+  void testYaml_Escape_EmptyString() {
+    assertYamlEscapedAs("\"\"", "");
+  }
+
   /*
    * Helper — mirrors OpenApiGenerator.generate, including the adjustFormat step
    */
@@ -784,5 +890,15 @@ class JsonGeneratorTest {
     JsonGenerator gen = new JsonGenerator(out, language.getAdjustFormat().apply(format), language);
     gen.addRootObject(() -> body.accept(gen));
     return out.toString();
+  }
+
+  /**
+   * Asserts that the YAML output of a single-member object {@code k: <value>} contains the expected
+   * escaped form. Uses {@code contains} rather than exact match so the test is independent of the
+   * leading indent that YAML pretty-print adds to top-level members.
+   */
+  private static void assertYamlEscapedAs(String expectedFragment, String value) {
+    String yaml = generate(PRETTY_PRINT, YAML, g -> g.addStringMember("k", value));
+    assertTrue(yaml.contains(expectedFragment), "expected '" + expectedFragment + "' in: " + yaml);
   }
 }
