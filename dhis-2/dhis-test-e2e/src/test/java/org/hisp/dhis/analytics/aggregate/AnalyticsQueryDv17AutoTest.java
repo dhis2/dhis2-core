@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.aggregate;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
@@ -201,5 +202,32 @@ public class AnalyticsQueryDv17AutoTest extends AnalyticsApiTest {
     // Validate row exists with values from original row index 0
     validateRowExists(
         response, actualHeaders, Map.of("dx", "pi22070Not1", "pe", "2022", "value", "6"));
+  }
+
+  @Test
+  void testAggregateAnalyticsWhenNewDimensionIsSpecified() {
+    // Given new dimension MMMu9s5a52V (not exported)
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add(
+                "dimension=MMMu9s5a52V:MAs88nJc9nL,dx:M62VHgYT2n0,ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN")
+            .add("filter=pe:THIS_YEAR");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    assertOutOfDateColumnResponse(
+        response,
+        "Analytics tables are out of date. Ask your administrator to run a full analytics tables update.");
+  }
+
+  private void assertOutOfDateColumnResponse(ApiResponse response, String expectedMessage) {
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("message", equalTo(expectedMessage))
+        .body("errorCode", equalTo("E7154"));
   }
 }
