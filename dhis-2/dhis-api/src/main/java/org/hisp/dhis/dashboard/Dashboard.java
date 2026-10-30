@@ -110,7 +110,9 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject,
   @Column(name = "name", nullable = false, length = 230)
   private String name;
 
-  @Setter private String description;
+  @Type(type = "text")
+  @Column(name = "description", columnDefinition = "text")
+  private String description;
 
   @JoinTable(
       name = "dashboard_items",

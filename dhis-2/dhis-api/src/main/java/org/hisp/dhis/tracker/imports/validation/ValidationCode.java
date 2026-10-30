@@ -43,6 +43,8 @@ public enum ValidationCode {
   E1000("User: `{0}` has no capture scope access to OrganisationUnit: `{1}`."),
   E1001("User: `{0}` has no data write access to TrackedEntityType: `{1}`."),
   E1002("TrackedEntity: `{0}`, already exists."),
+  E1004(
+      "File resource: `{0}` must be an unassigned file resource of domain DATA_VALUE uploaded by the importing user."),
   E1005("Could not find TrackedEntityType: `{0}`."),
   E1006("Attribute: `{0}` does not exist."),
   E1007("Error validating attribute value type: `{0}`; Error: `{1}`."),

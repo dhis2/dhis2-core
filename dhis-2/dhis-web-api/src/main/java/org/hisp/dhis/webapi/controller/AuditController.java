@@ -33,13 +33,16 @@ import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.audit.Audit;
 import org.hisp.dhis.audit.AuditOperationType;
@@ -49,6 +52,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.input.PagedParams;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
@@ -61,22 +65,29 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.tracker.audit.TrackedEntityAudit;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.HttpHeaders;
@@ -85,6 +96,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -115,12 +127,18 @@ public class AuditController {
   @GetMapping("/files/{uid}")
   public void getFileAudit(
       @OpenApi.Param({UID.class, FileResource.class}) @PathVariable String uid,
-      HttpServletResponse response)
-      throws WebMessageException {
+      HttpServletResponse response,
+      @CurrentUser UserDetails currentUser)
+      throws WebMessageException, ForbiddenException {
     FileResource fileResource = fileResourceService.getFileResource(uid);
 
     if (fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE) {
       throw new WebMessageException(notFound("No file found with uid '" + uid + "'"));
+    }
+
+    if (!fileResourceService.canReadDataValueFile(currentUser, fileResource)) {
+      throw new ForbiddenException(
+          String.format("File resource not found or not accessible: %s", uid));
     }
 
     FileResourceStorageStatus storageStatus = fileResource.getStorageStatus();
@@ -149,16 +167,23 @@ public class AuditController {
   }
 
   @GetMapping("dataValue")
-  public RootNode getAggregateDataValueChangelog(DataValueChangelogQueryParams params) {
+  public RootNode getAggregateDataValueChangelog(
+      DataValueChangelogQueryParams params, HttpServletRequest request) throws ConflictException {
     String fields = params.fields();
 
     if (fields.isEmpty()) fields = "*";
 
     List<DataValueChangelog> entries = dataValueChangelogService.getChangelogEntries(params);
-    Pager pager = params.paged().toPager(params, dataValueChangelogService::countEntries);
+    PagedParams paged = params.paged();
 
     RootNode rootNode = NodeUtils.createMetadata();
-    if (pager != null) rootNode.addChild(NodeUtils.createPager(pager));
+    if (paged.isPaged()) {
+      // a paged read has one more entry than the page when there is a next page
+      boolean hasNextPage = entries.size() > paged.pageSize();
+      if (hasNextPage) entries = entries.subList(0, paged.pageSize());
+      Integer total = params.totalPages() ? dataValueChangelogService.countEntries(params) : null;
+      rootNode.addChild(createPager(paged, total, hasNextPage, getRequestURL(request)));
+    }
     CollectionNode trackedEntityAttributeValueAudits =
         rootNode.addChild(new CollectionNode("dataValueAudits", true));
     trackedEntityAttributeValueAudits.addChildren(
@@ -167,6 +192,38 @@ public class AuditController {
             .getChildren());
 
     return rootNode;
+  }
+
+  /**
+   * The pager of the tracker exports: {@code total} and {@code pageCount} only with {@code
+   * totalPages=true}, {@code prevPage} and {@code nextPage} links only when there is such a page.
+   */
+  private static Node createPager(
+      PagedParams paged, @CheckForNull Integer total, boolean hasNextPage, String requestUrl) {
+    Pager totals = total == null ? null : paged.toPager(total);
+    // a pager with totals reports the last page for a page beyond it
+    int page = totals == null ? paged.page() : totals.getPage();
+    String prevPage = page > 1 ? getPageLink(requestUrl, page - 1) : null;
+    String nextPage = hasNextPage ? getPageLink(requestUrl, page + 1) : null;
+    if (totals != null) {
+      totals.setPrevPage(prevPage);
+      totals.setNextPage(nextPage);
+      return NodeUtils.createPager(totals);
+    }
+    ComplexNode pager = new ComplexNode("pager");
+    pager.setMetadata(true);
+    pager.addChild(new SimpleNode("page", page));
+    pager.addChild(new SimpleNode("pageSize", paged.pageSize()));
+    pager.addChild(new SimpleNode("prevPage", prevPage));
+    pager.addChild(new SimpleNode("nextPage", nextPage));
+    return pager;
+  }
+
+  private static String getPageLink(String requestUrl, int page) {
+    return UriComponentsBuilder.fromUriString(requestUrl)
+        .replaceQueryParam("page", page)
+        .build()
+        .toUriString();
   }
 
   @GetMapping("dataApproval")
