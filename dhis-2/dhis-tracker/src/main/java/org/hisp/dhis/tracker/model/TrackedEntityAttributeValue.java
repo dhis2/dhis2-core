@@ -177,7 +177,7 @@ public class TrackedEntityAttributeValue implements Serializable {
   @JsonProperty
   @EqualsAndHashCode.Include
   public String getValue() {
-    if (Boolean.FALSE.equals(getAttribute().getConfidential())) {
+    if (!getAttribute().isConfidentialBool()) {
       return getPlainValue();
     }
     String encrypted = getEncryptedValue();

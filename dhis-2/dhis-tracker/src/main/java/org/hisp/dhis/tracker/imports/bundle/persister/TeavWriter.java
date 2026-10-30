@@ -232,7 +232,7 @@ final class TeavWriter {
    */
   @CheckForNull
   private String encryptedValue(TrackedEntityAttributeValue value) {
-    if (Boolean.FALSE.equals(value.getAttribute().getConfidential()) || value.getValue() == null) {
+    if (!value.getAttribute().isConfidentialBool() || value.getValue() == null) {
       return null;
     }
     return encryptor.encrypt(value.getValue());
