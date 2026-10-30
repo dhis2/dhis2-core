@@ -34,6 +34,12 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SqlExceptionUtils {
+  private static final String PG_TABLE_NOT_EXISTING = "42P01";
+
+  private static final String PG_COLUMN_NOT_EXISTING = "42703";
+
+  private static final String PG_UNION_DIFF_COLUMNS = "42601";
+
   public static final String ERR_MSG_TABLE_NOT_EXISTING =
       "Query failed, likely because the requested analytics table does not exist: ";
 
@@ -52,7 +58,48 @@ public class SqlExceptionUtils {
    */
   public static boolean relationDoesNotExist(SQLException ex) {
     if (ex != null) {
-      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
+      return Optional.of(ex)
+          .map(SQLException::getSQLState)
+          .filter(PG_TABLE_NOT_EXISTING::equals)
+          .isPresent();
+    }
+
+    return false;
+  }
+
+  /**
+   * Utility method to detect if the {@link SQLException} refers to a missing column in the table.
+   *
+   * @param ex a {@link SQLException} to analyze
+   * @return true if the error is a missing column error, false otherwise
+   */
+  public static boolean columnDoesNotExist(SQLException ex) {
+    if (ex != null) {
+      return Optional.of(ex)
+          .map(SQLException::getSQLState)
+          .filter(PG_COLUMN_NOT_EXISTING::equals)
+          .isPresent();
+    }
+
+    return false;
+  }
+
+  /**
+   * Utility method to detect if the {@link SQLException} refers to a missing column in the table.
+   *
+   * @param ex a {@link SQLException} to analyze
+   * @return true if the error is a missing column error, false otherwise
+   */
+  public static boolean unionColumnsDontMatch(SQLException ex) {
+    if (ex != null) {
+      return (Optional.of(ex)
+              .map(SQLException::getSQLState)
+              .filter(PG_UNION_DIFF_COLUMNS::equals)
+              .isPresent()
+          && Optional.of(ex)
+              .map(SQLException::getMessage)
+              .filter(m -> m.contains("query must have the same number of columns"))
+              .isPresent());
     }
 
     return false;

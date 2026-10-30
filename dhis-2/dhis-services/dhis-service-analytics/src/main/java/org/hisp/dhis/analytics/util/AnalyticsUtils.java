@@ -39,18 +39,22 @@ import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
+import static org.hisp.dhis.feedback.ErrorCode.E7154;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SQL_SYNTAX_ERROR;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING;
+import static org.hisp.dhis.util.SqlExceptionUtils.columnDoesNotExist;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
+import static org.hisp.dhis.util.SqlExceptionUtils.unionColumnsDontMatch;
 import static org.springframework.util.Assert.isTrue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -115,9 +119,11 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.util.Assert;
 
 /**
@@ -1156,20 +1162,18 @@ public class AnalyticsUtils {
       Supplier<T> supplier, boolean isMultipleQueries) {
     try {
       return Optional.ofNullable(supplier.get());
-    } catch (BadSqlGrammarException ex) {
-      if (relationDoesNotExist(ex.getSQLException())) {
-        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
-        throw ex;
-      }
-      if (!isMultipleQueries) {
-        log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
-        throw ex;
-      }
-      log.info(ERR_MSG_SILENT_FALLBACK, ex);
+    } catch (UncategorizedSQLException | BadSqlGrammarException usq) {
+      handleDataAccessException(usq, isMultipleQueries);
     } catch (QueryRuntimeException ex) {
       log.error("Internal runtime exception", ex);
       throw ex;
     } catch (DataIntegrityViolationException ex) {
+      if ((ex.getCause() instanceof SQLException sqlexception)
+          && (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception))) {
+        log.error(E7154.getMessage(), ex);
+        throw new QueryRuntimeException(E7154);
+      }
+
       log.error(E7132.getMessage(), ex);
       throw new QueryRuntimeException(E7132);
     } catch (DataAccessResourceFailureException ex) {
@@ -1178,6 +1182,33 @@ public class AnalyticsUtils {
     }
 
     return Optional.empty();
+  }
+
+  private static void handleDataAccessException(DataAccessException ex, boolean isMultipleQueries) {
+    if (ex.getCause() instanceof SQLException sqlexception) {
+      if (relationDoesNotExist(sqlexception)) {
+        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        // This if condition is needed because the Apache Doris JDBC driver
+        // throws UncategorizedSQLException when a table does not exist
+        if (ex instanceof UncategorizedSQLException) {
+          // rethrow as BadSqlGrammarException for consistent handling
+          throw new BadSqlGrammarException("", "", sqlexception);
+        }
+        throw ex;
+      }
+      if (!isMultipleQueries) {
+        if (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception)) {
+          log.error(E7154.getMessage(), ex);
+          throw new QueryRuntimeException(E7154);
+        } else {
+          log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
+          throw ex;
+        }
+      }
+      log.info(ERR_MSG_SILENT_FALLBACK, ex);
+    } else {
+      throw ex;
+    }
   }
 
   /**
