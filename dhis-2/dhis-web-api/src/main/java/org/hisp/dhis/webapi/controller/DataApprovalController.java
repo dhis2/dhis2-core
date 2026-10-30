@@ -108,15 +108,17 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     entity = DataApprovalWorkflow.class,
     classifiers = {"team:platform", "purpose:metadata"})
 @Controller
-@RequestMapping("/api/dataApprovals")
+@RequestMapping("/api")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataApprovalController {
 
-  private static final String STATUS_PATH = "/status";
+  private static final String APPROVALS_PATH = "/dataApprovals";
+
+  private static final String STATUS_PATH = APPROVALS_PATH + "/status";
 
   private static final String ACCEPTANCES_PATH = "/dataAcceptances";
 
-  private static final String MULTIPLE_APPROVALS_PATH = "/multiple";
+  private static final String MULTIPLE_APPROVALS_PATH = APPROVALS_PATH + "/multiple";
 
   @Autowired private DataApprovalService dataApprovalService;
 
@@ -142,7 +144,7 @@ public class DataApprovalController {
   // Get
   // -------------------------------------------------------------------------
 
-  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = APPROVALS_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   @ResponseStatus(HttpStatus.OK)
   public DataApprovalPermissions getApprovalPermissions(
@@ -169,7 +171,7 @@ public class DataApprovalController {
   }
 
   @GetMapping(
-      value = {MULTIPLE_APPROVALS_PATH, "/approvals"},
+      value = {MULTIPLE_APPROVALS_PATH, APPROVALS_PATH + "/approvals"},
       produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   @ResponseStatus(HttpStatus.OK)
@@ -331,7 +333,9 @@ public class DataApprovalController {
         .build();
   }
 
-  @GetMapping(value = "/categoryOptionCombos", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(
+      value = APPROVALS_PATH + "/categoryOptionCombos",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   @ResponseStatus(HttpStatus.OK)
   public List<Map<String, Object>> getApprovalByCategoryOptionCombos(
@@ -401,7 +405,7 @@ public class DataApprovalController {
   // -------------------------------------------------------------------------
 
   @RequiresAuthority(anyOf = {F_APPROVE_DATA, F_APPROVE_DATA_LOWER_LEVELS})
-  @PostMapping
+  @PostMapping(APPROVALS_PATH)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void saveApproval(
       @OpenApi.Param({UID.class, DataSet.class}) @RequestParam(required = false) String ds,
@@ -433,13 +437,13 @@ public class DataApprovalController {
     dataApprovalService.approveData(dataApprovalList);
   }
 
-  @PostMapping("/approvals")
+  @PostMapping(APPROVALS_PATH + "/approvals")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void saveApprovalBatch(@RequestBody ApprovalsDto approvals) throws WebMessageException {
     dataApprovalService.approveData(getDataApprovalList(approvals));
   }
 
-  @PostMapping("/unapprovals")
+  @PostMapping(APPROVALS_PATH + "/unapprovals")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeApprovalBatch(@RequestBody ApprovalsDto approvals) throws WebMessageException {
     dataApprovalService.unapproveData(getDataApprovalList(approvals));
@@ -500,7 +504,7 @@ public class DataApprovalController {
   // -------------------------------------------------------------------------
 
   @RequiresAuthority(anyOf = {F_APPROVE_DATA, F_APPROVE_DATA_LOWER_LEVELS})
-  @DeleteMapping
+  @DeleteMapping(APPROVALS_PATH)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeApproval(
       @OpenApi.Param({UID[].class, DataSet.class}) @RequestParam(required = false) Set<String> ds,
