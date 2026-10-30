@@ -29,16 +29,40 @@
  */
 package org.hisp.dhis.reservedvalue;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
 /**
+ * Counter for a SEQUENTIAL text pattern segment, one row per owner and key.
+ *
+ * <p>Rows are written only by the {@code incrementSequentialCounter()} database function, which
+ * upserts and increments the counter atomically. Do not persist or update counters through this
+ * entity.
+ *
  * @author Stian Sandvold
  */
+@Entity
+@Table(
+    name = "sequentialnumbercounter",
+    uniqueConstraints = @UniqueConstraint(columnNames = {"owneruid", "key"}))
 public class SequentialNumberCounter {
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "id")
   private int id;
 
+  @Column(name = "owneruid", nullable = false)
   private String ownerUid;
 
+  @Column(name = "key", nullable = false)
   private String key;
 
+  @Column(name = "counter")
   private int counter;
 
   public SequentialNumberCounter() {
