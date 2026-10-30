@@ -198,7 +198,6 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     assertTrue(schema.isEmbeddedObject());
   }
 
-
   /**
    * Properties mapped to a text column must not be limited to the default column length in the
    * schema, otherwise schema validation rejects values that the database accepts. This happens when
