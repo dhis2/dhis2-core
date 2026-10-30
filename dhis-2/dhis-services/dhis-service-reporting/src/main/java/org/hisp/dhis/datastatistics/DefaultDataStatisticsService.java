@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,10 @@ import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -103,6 +106,19 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
    */
   private final Cache<DataSummary> dataCountsCache;
 
+  /**
+   * Guards the computation of {@link #overviewCache} so that concurrent callers on a cache miss
+   * wait for a single computation instead of each running the queries. Acquired before any
+   * transaction is started, so waiting callers do not hold a database connection.
+   */
+  private final Object overviewLock = new Object();
+
+  /** Same as {@link #overviewLock}, for {@link #dataCountsCache}. */
+  private final Object dataCountsLock = new Object();
+
+  /** Runs the cache computations in a read-only transaction, joining the caller's if present. */
+  private final TransactionTemplate readOnlyTransaction;
+
   static final ZoneId SERVER_ZONE = ZoneId.systemDefault();
 
   public DefaultDataStatisticsService(
@@ -114,7 +130,8 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
       StatisticsProvider statisticsProvider,
       EventVisualizationStore eventVisualizationStore,
       SystemService systemService,
-      CacheProvider cacheProvider) {
+      CacheProvider cacheProvider,
+      PlatformTransactionManager transactionManager) {
     this.dataStatisticsStore = dataStatisticsStore;
     this.dataStatisticsEventStore = dataStatisticsEventStore;
     this.userService = userService;
@@ -125,6 +142,8 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     this.systemService = systemService;
     this.overviewCache = cacheProvider.createSystemStatisticsOverviewCache();
     this.dataCountsCache = cacheProvider.createSystemStatisticsDataCountsCache();
+    this.readOnlyTransaction = new TransactionTemplate(transactionManager);
+    this.readOnlyTransaction.setReadOnly(true);
   }
 
   // -------------------------------------------------------------------------
@@ -249,6 +268,7 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
    * @return A DataSummary object containing the system statistics summary.
    */
   @Override
+  @Transactional(propagation = Propagation.SUPPORTS)
   public DataSummary getSystemStatisticsSummary() {
     DataSummary overview = getSystemStatisticsOverview();
     DataSummary dataCounts = getSystemStatisticsDataCounts();
@@ -268,13 +288,23 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   }
 
   @Override
+  @Transactional(propagation = Propagation.SUPPORTS)
   public DataSummary getSystemStatisticsOverview() {
-    return overviewCache.get("overview", key -> computeSystemStatisticsOverview());
+    synchronized (overviewLock) {
+      return overviewCache.get(
+          "overview",
+          key -> readOnlyTransaction.execute(status -> computeSystemStatisticsOverview()));
+    }
   }
 
   @Override
+  @Transactional(propagation = Propagation.SUPPORTS)
   public DataSummary getSystemStatisticsDataCounts() {
-    return dataCountsCache.get("dataCounts", key -> computeSystemStatisticsDataCounts());
+    synchronized (dataCountsLock) {
+      return dataCountsCache.get(
+          "dataCounts",
+          key -> readOnlyTransaction.execute(status -> computeSystemStatisticsDataCounts()));
+    }
   }
 
   private DataSummary computeSystemStatisticsOverview() {
