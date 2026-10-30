@@ -29,6 +29,16 @@
  */
 package org.hisp.dhis.datastatistics;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.util.Date;
 
 /**
@@ -37,15 +47,26 @@ import java.util.Date;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
+@Entity
+@Table(name = "datastatisticsevent")
 public class DataStatisticsEvent {
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "eventid")
   private int id;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "eventtype")
   private DataStatisticsEventType eventType;
 
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "timestamp")
   private Date timestamp;
 
+  @Column(name = "username")
   private String username;
 
+  @Column(name = "favoriteuid")
   private String favoriteUid;
 
   public DataStatisticsEvent() {}
