@@ -414,7 +414,7 @@
     <dependency>
       <groupId>org.mock-server</groupId>
       <artifactId>mockserver-client-java-no-dependencies</artifactId>
-      <version>9.1.0</version>
+      <version>9.2.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
