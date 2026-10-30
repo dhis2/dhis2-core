@@ -48,6 +48,7 @@ import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SQL_SYNTAX_ERROR;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING;
 import static org.hisp.dhis.util.SqlExceptionUtils.columnDoesNotExist;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
+import static org.hisp.dhis.util.SqlExceptionUtils.unionColumnsDontMatch;
 import static org.springframework.util.Assert.isTrue;
 
 import com.google.common.collect.Lists;
@@ -1242,7 +1243,7 @@ public final class AnalyticsUtils {
         throw new BadSqlGrammarException("", "", sqlexception);
       }
       if ((ex.getCause() instanceof SQLException sqlexception)
-          && columnDoesNotExist(sqlexception)) {
+          && (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception))) {
         log.error(E7154.getMessage(), ex);
         throw new QueryRuntimeException(E7154);
       }
@@ -1269,7 +1270,7 @@ public final class AnalyticsUtils {
         throw ex;
       }
       if (!isMultipleQueries) {
-        if (columnDoesNotExist(sqlexception)) {
+        if (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception)) {
           log.error(E7154.getMessage(), ex);
           throw new QueryRuntimeException(E7154);
         } else {

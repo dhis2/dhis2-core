@@ -41,10 +41,13 @@ import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY_POINT;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.Database.POSTGRESQL;
+import static org.hisp.dhis.feedback.ErrorCode.E7132;
+import static org.hisp.dhis.feedback.ErrorCode.E7154;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -117,6 +120,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
 
@@ -862,6 +868,215 @@ class AnalyticsUtilsTest extends TestBase {
 
     Optional<String> result = AnalyticsUtils.withExceptionHandling(supplier, true);
     assertFalse(result.isPresent());
+  }
+
+  /**
+   * SQL exceptions signalling a missing column or a UNION with a different number of columns, for
+   * each supported analytics database.
+   */
+  private static Stream<SQLException> columnMismatchSqlExceptions() {
+    return Stream.of(
+        new SQLException("column ax.\"cX5k9anHEHd\" does not exist", "42703"),
+        new SQLException("each UNION query must have the same number of columns", "42601"),
+        new SQLException("Unknown column 'cX5k9anHEHd' in 'ax' in FILTER clause", "HY000"),
+        new SQLException("Column 'cX5k9anHEHd' does not exist in the table", "HY000"),
+        new SQLException(
+            "errCode = 2, detailMessage = Operands have unequal number of columns", "HY000"),
+        new SQLException(
+            "Code: 47. DB::Exception: Unknown expression identifier `cX5k9anHEHd`."
+                + " (UNKNOWN_IDENTIFIER)"),
+        new SQLException(
+            "Code: 258. DB::Exception: Different number of columns in UNION elements"));
+  }
+
+  private static Stream<Arguments> outdatedAnalyticsTableSqlExceptions() {
+    return columnMismatchSqlExceptions()
+        .flatMap(e -> Stream.of(Arguments.of(e, true), Arguments.of(e, false)));
+  }
+
+  /**
+   * Same SQL exceptions as above, each wrapped in both {@link DataAccessException} types handled by
+   * {@code handleDataAccessException}.
+   */
+  private static Stream<Arguments> columnMismatchDataAccessExceptions() {
+    return columnMismatchSqlExceptions()
+        .flatMap(
+            e ->
+                Stream.of(
+                    Arguments.of(new UncategorizedSQLException("task", DUMMY_SQL, e)),
+                    Arguments.of(new BadSqlGrammarException("task", DUMMY_SQL, e))));
+  }
+
+  @ParameterizedTest
+  @MethodSource("columnMismatchDataAccessExceptions")
+  @DisplayName(
+      "When a single query fails with a missing column or UNION column mismatch, then throw E7154")
+  void whenDataAccessException_withColumnMismatch_andSingleQuery_thenThrowE7154(
+      DataAccessException ex) {
+    Supplier<String> supplier =
+        () -> {
+          throw ex;
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+
+    assertEquals(E7154, thrown.getErrorCode());
+    assertEquals(E7154.getMessage(), thrown.getMessage());
+  }
+
+  @ParameterizedTest
+  @MethodSource("columnMismatchDataAccessExceptions")
+  @DisplayName(
+      "When one of multiple queries fails with a missing column or UNION column mismatch, then fall back silently")
+  void whenDataAccessException_withColumnMismatch_andMultipleQueries_thenReturnEmpty(
+      DataAccessException ex) {
+    Supplier<String> supplier =
+        () -> {
+          throw ex;
+        };
+
+    Optional<String> result = AnalyticsUtils.withExceptionHandling(supplier, true);
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  @DisplayName(
+      "When a single query fails with an unrelated SQL syntax error, then rethrow the original exception")
+  void whenBadSqlGrammarException_withUnrelatedSyntaxError_andSingleQuery_thenRethrow() {
+    SQLException sqlException = new SQLException("syntax error at or near \"from\"", "42601");
+    BadSqlGrammarException ex = new BadSqlGrammarException("task", DUMMY_SQL, sqlException);
+    Supplier<String> supplier =
+        () -> {
+          throw ex;
+        };
+
+    BadSqlGrammarException thrown =
+        assertThrows(
+            BadSqlGrammarException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+
+    assertSame(ex, thrown);
+  }
+
+  @ParameterizedTest
+  @MethodSource("outdatedAnalyticsTableSqlExceptions")
+  @DisplayName(
+      "When a DataIntegrityViolationException is caused by a missing column or UNION column mismatch, then throw E7154")
+  void whenDataIntegrityViolation_withColumnMismatch_thenThrowE7154(
+      SQLException sqlException, boolean isMultipleQueries) {
+    DataIntegrityViolationException ex =
+        new DataIntegrityViolationException("Data integrity violation", sqlException);
+    Supplier<String> supplier =
+        () -> {
+          throw ex;
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, isMultipleQueries));
+
+    assertEquals(E7154, thrown.getErrorCode());
+    assertEquals(E7154.getMessage(), thrown.getMessage());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  @DisplayName(
+      "When a DataIntegrityViolationException has a Postgres 42601 syntax error unrelated to UNION, then throw E7132")
+  void whenDataIntegrityViolation_withUnrelatedSyntaxError_thenThrowE7132(
+      boolean isMultipleQueries) {
+    SQLException sqlException = new SQLException("syntax error at or near \"from\"", "42601");
+    Supplier<String> supplier =
+        () -> {
+          throw new DataIntegrityViolationException("Data integrity violation", sqlException);
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, isMultipleQueries));
+
+    assertEquals(E7132, thrown.getErrorCode());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  @DisplayName(
+      "When a DataIntegrityViolationException is caused by a division by zero, then throw E7132")
+  void whenDataIntegrityViolation_withDivisionByZero_thenThrowE7132(boolean isMultipleQueries) {
+    SQLException sqlException = new SQLException("division by zero", "22012");
+    Supplier<String> supplier =
+        () -> {
+          throw new DataIntegrityViolationException("Data integrity violation", sqlException);
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, isMultipleQueries));
+
+    assertEquals(E7132, thrown.getErrorCode());
+  }
+
+  @Test
+  @DisplayName(
+      "When a DataIntegrityViolationException mentions a missing column but the cause is not a SQLException, then throw E7132")
+  void whenDataIntegrityViolation_withNonSqlExceptionCause_thenThrowE7132() {
+    Supplier<String> supplier =
+        () -> {
+          throw new DataIntegrityViolationException(
+              "Unknown column 'cX5k9anHEHd'",
+              new IllegalStateException("Unknown column 'cX5k9anHEHd'"));
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+
+    assertEquals(E7132, thrown.getErrorCode());
+  }
+
+  @Test
+  @DisplayName("When a DataIntegrityViolationException has no cause, then throw E7132")
+  void whenDataIntegrityViolation_withoutCause_thenThrowE7132() {
+    Supplier<String> supplier =
+        () -> {
+          throw new DataIntegrityViolationException("Data integrity violation");
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+
+    assertEquals(E7132, thrown.getErrorCode());
+  }
+
+  @Test
+  @DisplayName(
+      "When a DataIntegrityViolationException is caused by a missing table, then the table check takes precedence over E7154")
+  void whenDataIntegrityViolation_withTableAndColumnNotExisting_thenThrowBadSqlGrammar() {
+    // Message matches both the ClickHouse "missing table" and "missing column" patterns
+    SQLException sqlException =
+        new SQLException(
+            "Unknown table expression identifier 'analytics_2024'; Unknown column 'cX5k9anHEHd'");
+    Supplier<String> supplier =
+        () -> {
+          throw new DataIntegrityViolationException("Data integrity violation", sqlException);
+        };
+
+    BadSqlGrammarException thrown =
+        assertThrows(
+            BadSqlGrammarException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+
+    assertSame(sqlException, thrown.getSQLException());
   }
 
   @ParameterizedTest
