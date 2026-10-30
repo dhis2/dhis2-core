@@ -62,9 +62,11 @@ public class SqlSeeder {
   private SqlSeeder() {}
 
   /**
-   * Applies every {@code .sql} file in {@link #SEED_DIR}, ordered by file name. Each file is sent
-   * as a single multi-statement query, which PostgreSQL applies atomically.
+   * Applies every {@code .sql} file in {@code path}, ordered by file name. Each file is sent as a
+   * single multi-statement query, which PostgreSQL applies atomically.
    *
+   * @param path the directory holding the scripts, relative to the module root, such as {@link
+   *     #SEED_DIR} or {@link #SEED_DIR_AFTER}
    * @return the number of scripts applied
    * @throws IllegalStateException if the scripts cannot be listed, read or applied
    */
@@ -72,7 +74,7 @@ public class SqlSeeder {
     // Checked before the directory is looked at, so that disabling seeding cannot fail on a
     // missing directory.
     if (!Optional.ofNullable(TestConfiguration.get().shouldApplySeedScripts()).orElse(true)) {
-      logger.info("SQL seeding is disabled by db.seed.enabled=false; skipping {}", SEED_DIR);
+      logger.info("SQL seeding is disabled by db.seed.enabled=false; skipping {}", path);
       return 0;
     }
 
