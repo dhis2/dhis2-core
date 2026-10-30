@@ -1,0 +1,59 @@
+# Copyright (c) 2004-2026, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: users_with_no_organisation_units
+description: Users who have no data capture organisation unit assigned.
+section: Users
+section_order: 8
+summary_sql: >-
+  SELECT COUNT(*) as value,
+    100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM userinfo), 0) as percent
+    FROM userinfo
+    WHERE userinfoid NOT IN (SELECT DISTINCT userinfoid FROM usermembership);
+details_sql: >
+  SELECT uid,
+  username as name,
+  'disabled:' || disabled as comment
+  from userinfo
+  WHERE userinfoid NOT IN (SELECT DISTINCT userinfoid FROM usermembership);
+details_id_type: users
+severity: WARNING
+introduction: >
+  Users are ordinarily expected to have at least one data capture organisation unit assigned.
+  A user with none may be invisible to org-unit-scoped user searches (for example the
+  "assign user" pickers in the Tracker Capture and Event Capture apps, or any request using the
+  userOrgUnits/orgUnitBoundary query parameters), even to a user with the ALL authority, since
+  those searches match on a common organisation unit connection between the viewer and the
+  target user. This can happen, for example, when a user is created via the user replication
+  ("clone user") endpoint if the source user's organisation units were not correctly carried
+  over.
+recommendation: >
+  Using the list of users provided by the details query, assign at least one data capture
+  organisation unit to each affected user, or confirm the missing assignment is intentional
+  (for example a service account that is not expected to capture data). Affected users can be
+  updated directly by UID (e.g. via the API) even though they may not appear in org-unit-scoped
+  user list searches.

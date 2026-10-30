@@ -44,6 +44,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
 
 /**
  * @author Chau Thu Tran
@@ -59,6 +61,8 @@ public class TrackedEntityType extends BaseNameableObject implements MetadataObj
 
   private String formName;
 
+  private String trackedEntityTypesLabel;
+
   /**
    * Property indicating minimum number of attributes required to fill before search is triggered
    */
@@ -67,8 +71,14 @@ public class TrackedEntityType extends BaseNameableObject implements MetadataObj
   /** Property indicating maximum number of TE to return after search */
   private int maxTeiCountToReturn = 0;
 
-  /** Property indicating whether to allow (read) audit log or not */
+  /**
+   * Property indicating whether to allow audit logs (read, search and delete audits and breaking
+   * the glass)
+   */
   private boolean allowAuditLog;
+
+  /** Property indicating whether change logging is enabled. */
+  private boolean enableChangeLog;
 
   // -------------------------------------------------------------------------
   // Constructor
@@ -114,6 +124,24 @@ public class TrackedEntityType extends BaseNameableObject implements MetadataObj
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getTrackedEntityTypesLabel() {
+    return trackedEntityTypesLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "trackedEntityTypesLabel", key = "TRACKED_ENTITY_TYPES_LABEL")
+  public String getDisplayTrackedEntityTypesLabel() {
+    return getTranslation("TRACKED_ENTITY_TYPES_LABEL", getTrackedEntityTypesLabel());
+  }
+
+  public void setTrackedEntityTypesLabel(String trackedEntityTypesLabel) {
+    this.trackedEntityTypesLabel = trackedEntityTypesLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public int getMinAttributesRequiredToSearch() {
     return minAttributesRequiredToSearch;
   }
@@ -140,6 +168,16 @@ public class TrackedEntityType extends BaseNameableObject implements MetadataObj
 
   public void setAllowAuditLog(boolean allowAuditLog) {
     this.allowAuditLog = allowAuditLog;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isEnableChangeLog() {
+    return enableChangeLog;
+  }
+
+  public void setEnableChangeLog(boolean enableChangeLog) {
+    this.enableChangeLog = enableChangeLog;
   }
 
   // -------------------------------------------------------------------------

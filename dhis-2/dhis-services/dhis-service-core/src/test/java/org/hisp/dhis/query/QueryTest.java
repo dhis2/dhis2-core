@@ -30,6 +30,8 @@
 package org.hisp.dhis.query;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.query.operators.MatchMode;
@@ -47,5 +49,17 @@ class QueryTest {
     query.add(Filters.like("name", "anc", MatchMode.ANYWHERE));
     query.add(Filters.eq("code", "anc"));
     assertEquals(3, query.getFilters().size());
+  }
+
+  @Test
+  void allowsDbPredicateWhenRootIsAnd() {
+    Query<?> query = Query.of(DataElement.class);
+    assertTrue(query.allowsDbPredicate());
+  }
+
+  @Test
+  void doesNotAllowDbPredicateWhenRootIsOr() {
+    Query<?> query = Query.of(DataElement.class, Junction.Type.OR);
+    assertFalse(query.allowsDbPredicate());
   }
 }

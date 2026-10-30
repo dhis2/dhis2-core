@@ -45,13 +45,13 @@ import org.locationtech.jts.geom.Geometry;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @OpenApi.Shared(name = "TrackerTrackedEntity")
-@OpenApi.Identifiable(as = org.hisp.dhis.trackedentity.TrackedEntity.class)
+@OpenApi.Identifiable(as = org.hisp.dhis.tracker.model.TrackedEntity.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrackedEntity {
-  @OpenApi.Property({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class})
+  @OpenApi.Property({UID.class, org.hisp.dhis.tracker.model.TrackedEntity.class})
   @JsonProperty
   private UID trackedEntity;
 
@@ -74,8 +74,6 @@ public class TrackedEntity {
   @JsonProperty private boolean potentialDuplicate;
 
   @JsonProperty private Geometry geometry;
-
-  @JsonProperty private String storedBy;
 
   @JsonProperty private User createdBy;
 

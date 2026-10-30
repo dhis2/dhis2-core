@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,43 +30,50 @@
 package org.hisp.dhis.datavalue;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.IdProperty;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 
 /**
  * Support for bulk data value export.
  *
- * @author Lars Helge Overland
+ * @author Jan Bernitt
  */
 public interface DataExportStore {
 
-  enum EncodeType {
-    DE,
-    OU,
-    COC
-  }
+  /*
+  Decode support
+   */
+  @CheckForNull
+  UID getAttributeOptionCombo(
+      @CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions);
 
   /**
-   * Fetches a mapping from the given UIDs for the given {@link EncodeType} to their identifier of
-   * the given {@link IdScheme}
+   * Resolves the default attribute option combo for an export that is scoped to data set(s), but
+   * only when every given data set uses the default attribute category combo.
    *
-   * @param type what object (table)
-   * @param to unknown identifier and requested (result map value)
-   * @param ids known identifiers (result map key)
-   * @return a mapping from the known to the unknown identifier
+   * <p>In that case the only valid attribute option combo is the default one, so it can be applied
+   * as an explicit filter. This allows the export query to skip the (expensive) per-row attribute
+   * option combo data-sharing check that would otherwise scan the entire {@code
+   * categoryoptioncombo} table.
+   *
+   * @param dataSets the data sets that scope the export
+   * @return the UID of the default {@link org.hisp.dhis.category.CategoryOptionCombo} when every
+   *     given data set uses the default attribute {@link org.hisp.dhis.category.CategoryCombo};
+   *     {@code null} when any given data set uses a non-default attribute category combo, or when
+   *     none of the given data sets exist
    */
-  @Nonnull
-  Map<String, String> getIdMapping(
-      @Nonnull EncodeType type, @Nonnull IdProperty to, @Nonnull Stream<UID> ids);
+  @CheckForNull
+  UID getDefaultAttributeOptionComboForDataSets(@Nonnull Stream<UID> dataSets);
+
+  /*
+  Export
+   */
 
   @CheckForNull
-  DataExportValue getDataValue(@Nonnull DataEntryKey key);
+  DataExportValue exportValue(@Nonnull DataValueKey key);
 
   /**
    * Returns data values for the given data export parameters.
@@ -74,7 +81,46 @@ public interface DataExportStore {
    * @param params the data export parameters.
    * @return a list of data values.
    */
-  Stream<DataExportValue> getDataValues(DataExportStoreParams params);
+  @Nonnull
+  Stream<DataExportValue> exportValues(@Nonnull DataExportParams params);
+
+  /*
+  Validation support
+   */
+
+  /**
+   * @param dataSets scope of the check
+   * @return The UIDs of the given datasets that the current user does not have data read access to.
+   *     Meaning, if the current user has access to all given datasets an empty list should be
+   *     returned.
+   */
+  @Nonnull
+  List<String> getDataSetsNoDataReadAccess(@Nonnull Stream<UID> dataSets);
+
+  /**
+   * @param attributeOptionCombos requested attribute option combos
+   * @return the UIDs of the given combos that are not option combos of an attribute category combo
+   *     or the default category combo (invalid as attribute option combos). Empty for superusers.
+   */
+  @Nonnull
+  List<String> getAocNotOfAttributeCombo(@Nonnull Stream<UID> attributeOptionCombos);
+
+  /**
+   * @param attributeOptionCombos requested attribute option combos
+   * @return the UIDs of the given combos the current user may not read data for: combos with a
+   *     category option the user cannot read data of, and combos that are not option combos of an
+   *     attribute category combo or the default category combo. The default combo is always
+   *     readable (no sharing guards on default). Empty for superusers.
+   */
+  @Nonnull
+  List<String> getAocNoDataReadAccess(@Nonnull Stream<UID> attributeOptionCombos);
+
+  @Nonnull
+  List<String> getOrgUnitsNotInUserHierarchy(@Nonnull Stream<UID> orgUnits);
+
+  /*
+  Test support
+  */
 
   /**
    * Returns all DataValues.

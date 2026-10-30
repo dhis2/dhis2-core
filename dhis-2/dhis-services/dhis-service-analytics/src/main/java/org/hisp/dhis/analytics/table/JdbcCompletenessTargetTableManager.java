@@ -52,6 +52,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -118,7 +119,8 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      ConfigurationService configurationService) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -131,7 +133,8 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        sqlBuilder);
+        sqlBuilder,
+        configurationService);
   }
 
   @Override

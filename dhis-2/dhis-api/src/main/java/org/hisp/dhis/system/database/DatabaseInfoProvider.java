@@ -34,7 +34,11 @@ package org.hisp.dhis.system.database;
  */
 @FunctionalInterface
 public interface DatabaseInfoProvider {
-
+  /**
+   * Returns information about the database.
+   *
+   * @return a {@link DatabaseInfo}.
+   */
   DatabaseInfo getDatabaseInfo();
 
   default boolean isInMemory() {

@@ -50,6 +50,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.embedded.EmbeddedDashboard;
 import org.hisp.dhis.dashboard.embedded.EmbeddedOptions;
 import org.hisp.dhis.dashboard.embedded.EmbeddedProvider;
+import org.hisp.dhis.dashboard.embedded.EmbeddedSecurity;
 import org.hisp.dhis.dashboard.embedded.FilterOptions;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
@@ -110,6 +111,8 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
 
   private EventVisualization evzB;
 
+  private EventVisualization evzC;
+
   private Document dcA;
 
   @BeforeEach
@@ -119,9 +122,13 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     Program program = createProgram('Y', null, null);
     objectManager.save(program);
     evzB = createEventVisualization("A", program);
+    evzC = createEventVisualization("C", program);
+    evzC.setType(PIVOT_TABLE);
+
     visualizationService.save(vzA);
     visualizationService.save(vzB);
     eventVisualizationService.save(evzB);
+    eventVisualizationService.save(evzC);
     dcA = new Document("A", "url", false, null);
     Document dcB = new Document("B", "url", false, null);
     Document dcC = new Document("C", "url", false, null);
@@ -172,7 +179,8 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
         new EmbeddedDashboard(
             EmbeddedProvider.SUPERSET,
             UUID_A,
-            new EmbeddedOptions(true, true, new FilterOptions(true, true))));
+            new EmbeddedOptions(true, true, new FilterOptions(true, true)),
+            new EmbeddedSecurity(true)));
   }
 
   @Test
@@ -189,12 +197,15 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, dashboardService.getDashboard(dCId).getItems().size());
 
     Dashboard rdC = dashboardService.getDashboard(dCId);
-    assertNotNull(rdC.getEmbedded());
-    assertEquals(EmbeddedProvider.SUPERSET, rdC.getEmbedded().getProvider());
-    assertEquals(UUID_A, rdC.getEmbedded().getId());
-    assertNotNull(rdC.getEmbedded().getOptions());
-    assertTrue(rdC.getEmbedded().getOptions().isHideChartControls());
-    assertTrue(rdC.getEmbedded().getOptions().isHideChartControls());
+    EmbeddedDashboard reC = rdC.getEmbedded();
+    assertNotNull(reC);
+    assertEquals(EmbeddedProvider.SUPERSET, reC.getProvider());
+    assertEquals(UUID_A, reC.getId());
+    assertNotNull(reC.getOptions());
+    assertTrue(reC.getOptions().isHideChartControls());
+    assertTrue(reC.getOptions().isHideChartControls());
+    assertNotNull(reC.getSecurity());
+    assertTrue(reC.getSecurity().isRestrictOrgUnitHierarchy());
   }
 
   @Test
@@ -260,6 +271,9 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     result = dashboardService.search("Z");
     assertEquals(0, result.getVisualizationCount());
     assertEquals(0, result.getResourceCount());
+    result = dashboardService.search("C");
+    assertEquals(1, result.getEventVisualizationCount());
+    assertEquals(1, result.getResourceCount());
   }
 
   @Test

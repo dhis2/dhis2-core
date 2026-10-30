@@ -30,7 +30,7 @@
 package org.hisp.dhis.period.comparator;
 
 import java.util.Comparator;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 
 /**
@@ -39,11 +39,11 @@ import org.hisp.dhis.period.PeriodType;
  *
  * @author Lars Helge Overland
  */
-public class AscendingPeriodComparator implements Comparator<Period> {
+public class AscendingPeriodComparator implements Comparator<PeriodDimension> {
   public static final AscendingPeriodComparator INSTANCE = new AscendingPeriodComparator();
 
   @Override
-  public int compare(Period period1, Period period2) {
+  public int compare(PeriodDimension period1, PeriodDimension period2) {
     PeriodType a = period1.getPeriodType();
     PeriodType b = period2.getPeriodType();
 

@@ -144,7 +144,6 @@ class JdbcTrackedEntityEventsAnalyticsTableManagerTest {
                 json_strip_nulls(json_build_object(
                 'value', l1.eventdatavalues -> l1.keys ->> 'value',
                 'created', l1.eventdatavalues -> l1.keys ->> 'created',
-                'storedBy', l1.eventdatavalues -> l1.keys ->> 'storedBy',
                 'lastUpdated', l1.eventdatavalues -> l1.keys ->> 'lastUpdated',
                 'providedElsewhere', l1.eventdatavalues -> l1.keys -> 'providedElsewhere',
                 'value_name', (select ou.name

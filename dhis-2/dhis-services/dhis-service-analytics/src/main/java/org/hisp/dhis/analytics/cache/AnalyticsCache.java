@@ -165,6 +165,10 @@ public class AnalyticsCache {
    * @param ttlInSeconds the time to live (expiration time) in seconds.
    */
   public void put(String key, Grid grid, long ttlInSeconds) {
+    if (ttlInSeconds <= 0) {
+      // Do not cache if TTL is zero or negative
+      return;
+    }
     queryCache.put(key, getGridClone(grid), ttlInSeconds);
   }
 

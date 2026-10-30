@@ -155,8 +155,8 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
                   CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
 
           try {
-            DataExportParams params =
-                DataExportParams.builder().lastUpdated(lastUpdatedAfter).build();
+            DataExportParams.Input params =
+                DataExportParams.Input.builder().lastUpdated(lastUpdatedAfter).build();
             dataExportPipeline.exportAsJsonSync(params, request.getBody());
           } catch (ConflictException ex) {
             throw new IllegalStateException(ex);

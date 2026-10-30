@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -73,6 +74,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -103,6 +105,66 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
     assertTrue(userById.exists());
     assertEquals(id, userById.getId());
+  }
+
+  @Test
+  @DisplayName(
+      "GET single object: fields under a PropertyTransformer-controlled nested collection never"
+          + " change the response, however they're requested (DHIS2-21856)")
+  void testGetObjectPropertyTransformerFieldsAreInvariant() {
+    User user = makeUser("H");
+    user.setEmail("h@h.org");
+    userService.addUser(user);
+    UserGroup group = createUserGroup('H', Set.of(user));
+    manager.save(group);
+    manager.flush();
+
+    // UserPropertyTransformer always serializes id/code/name/displayName/username and nothing
+    // else -- verified against a live server to be byte-identical for "users", "users[href]" and
+    // "users[*]". This only pins output correctness; it can't detect the N+1 this ticket actually
+    // fixes (LinkService.generateLinks reflectively touching the real Hibernate collection before
+    // field-filtering runs), because that bug is invisible in the JSON response by construction --
+    // see FieldPathHelperPropertyTransformerPruningTest for the real regression guard, which
+    // asserts on the field-path list itself rather than on JSON content.
+    JsonObject baseline =
+        GET("/userGroups/{id}?fields=id,users", group.getUid())
+            .content(HttpStatus.OK)
+            .getArray("users")
+            .getObject(0);
+
+    for (String fields : List.of("users[href]", "users[*]", "users[id,name]")) {
+      JsonObject userInGroup =
+          GET("/userGroups/{id}?fields=id,{fields}", group.getUid(), fields)
+              .content(HttpStatus.OK)
+              .getArray("users")
+              .getObject(0);
+      assertEquals(baseline.toJson(), userInGroup.toJson());
+    }
+  }
+
+  @Test
+  @DisplayName(
+      "GET single object: href is still generated for a nested collection without a"
+          + " PropertyTransformer when explicitly requested (regression guard for the"
+          + " DHIS2-21856 hasHref rewrite)")
+  void testGetObjectHrefGeneratedForNonTransformerNestedCollection() {
+    UserRole role = createUserRole('H', "ALL");
+    manager.save(role);
+    User user = makeUser("H");
+    user.setEmail("h@h.org");
+    user.getUserRoles().add(role);
+    userService.addUser(user);
+    manager.flush();
+
+    JsonObject userRole =
+        GET("/users/{id}?fields=userRoles[*]", user.getUid())
+            .content(HttpStatus.OK)
+            .getArray("userRoles")
+            .getObject(0);
+
+    String href = userRole.getString("href").string();
+    assertNotNull(href);
+    assertTrue(href.endsWith("/userRoles/" + role.getUid()));
   }
 
   @Test
@@ -229,8 +291,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "/users/" + id + "/translations",
                     "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}")
                 .content(HttpStatus.CONFLICT));
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1107);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E1107);
     assertEquals("Object type `User` is not translatable", error.getMessage());
   }
 
@@ -259,7 +320,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     JsonTranslation translation = translations.get(0, JsonTranslation.class);
     assertEquals("sv", translation.getLocale());
     assertEquals("name", translation.getProperty());
-    assertEquals("name sv", translation.getValue());
+    assertEquals("name sv", translation.value());
   }
 
   @Test
@@ -286,12 +347,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn 1'},{'locale':'sv', 'property':'name', 'value':'namn2'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1106);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E1106);
     assertEquals(
-        String.format(
-            "There are duplicate translation records for property `name` and locale `sv` on DataSet `%s`",
-            id),
+        "There are duplicate translation records for property `name` and locale `sv`",
         error.getMessage());
     assertEquals("name", error.getErrorProperties().get(0));
   }
@@ -303,8 +361,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "User with id notanid could not be found.",
-        PUT("/users/notanid/translations", translations).content(HttpStatus.NOT_FOUND));
+        "User with id notanid0001 could not be found.",
+        PUT("/users/notanid0001/translations", translations).content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -327,8 +385,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'locale':'en', 'property':'name'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
 
     assertEquals("Missing required property `value`", error.getMessage());
   }
@@ -353,8 +410,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'locale':'en', 'value':'namn 1'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
 
     assertEquals("Missing required property `property`", error.getMessage());
   }
@@ -379,8 +435,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'property':'name', 'value':'namn 1'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
 
     assertEquals("Missing required property `locale`", error.getMessage());
   }
@@ -444,7 +499,13 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         HttpStatus.OK,
         PUT(
             "/users/" + peterUserId,
-            Body(oldPeter.getString("firstName").node().replaceWith("\"Fry\"").getDeclaration()),
+            Body(
+                oldPeter
+                    .getString("firstName")
+                    .node()
+                    .replaceWith("\"Fry\"")
+                    .getDeclaration()
+                    .toString()),
             ContentType(MediaType.APPLICATION_JSON)));
     JsonUser newPeter = GET("/users/{id}", peterUserId).content().as(JsonUser.class);
     assertEquals("Fry", newPeter.getFirstName());
@@ -479,12 +540,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSetAsFavorite_NotFavoritable() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Objects of this class cannot be set as favorite",
-        POST("/users/" + getAdminUid() + "/favorite").content(HttpStatus.CONFLICT));
+    assertStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE, POST("/users/" + getAdminUid() + "/favorite"));
   }
 
   @Test
@@ -493,8 +549,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map with id xyz could not be found.",
-        POST("/maps/xyz/favorite").content(HttpStatus.NOT_FOUND));
+        "Map with id m1234567890 could not be found.",
+        POST("/maps/m1234567890/favorite").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -515,12 +571,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testRemoveAsFavorite_NotFavoritable() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Objects of this class cannot be set as favorite",
-        DELETE("/users/xyz/favorite").content(HttpStatus.CONFLICT));
+    assertStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE, DELETE("/users/u1234567890/favorite"));
   }
 
   @Test
@@ -529,8 +580,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map with id xyz could not be found.",
-        DELETE("/maps/xyz/favorite").content(HttpStatus.NOT_FOUND));
+        "Map with id m1234567890 could not be found.",
+        DELETE("/maps/m1234567890/favorite").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -563,8 +614,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map with id xyz could not be found.",
-        POST("/maps/xyz/subscriber").content(HttpStatus.NOT_FOUND));
+        "Map with id m1234567890 could not be found.",
+        POST("/maps/m1234567890/subscriber").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -587,8 +638,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map with id xyz could not be found.",
-        DELETE("/maps/xyz/subscriber").content(HttpStatus.NOT_FOUND));
+        "Map with id m1234567890 could not be found.",
+        DELETE("/maps/m1234567890/subscriber").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -598,7 +649,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         409,
         "ERROR",
         "Objects of this class cannot be subscribed to",
-        DELETE("/users/xyz/subscriber").content(HttpStatus.CONFLICT));
+        DELETE("/users/u1234567890/subscriber").content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -607,9 +658,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "OrganisationUnit with id xyz could not be found.",
+        "OrganisationUnit with id ou123456789 could not be found.",
         PUT(
-                "/organisationUnits/xyz",
+                "/organisationUnits/ou123456789",
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}")
             .content(HttpStatus.NOT_FOUND));
   }
@@ -721,7 +772,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
     assertWebMessage(
         "OK", 200, "OK", null, DELETE("/organisationUnits/" + ouId).content(HttpStatus.OK));
-    assertEquals(0, GET("/organisationUnits").content().getArray("organisationUnits").size());
+    assertEquals(
+        0, GET("/organisationUnits?gist=false").content().getArray("organisationUnits").size());
   }
 
   @Test
@@ -730,8 +782,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "OrganisationUnit with id xyz could not be found.",
-        DELETE("/organisationUnits/xyz").content(HttpStatus.NOT_FOUND));
+        "OrganisationUnit with id ou123456789 could not be found.",
+        DELETE("/organisationUnits/ou123456789").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -773,14 +825,6 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     manager.flush();
     manager.clear();
     switchToAdminUser();
-
-    // TODO: MAS: This tests fails because it will update the acting user's usergroups and then fail
-    // in the test:
-    // This should be the only case for using getCurrentUserGroupInfo() in the code.
-    // Hence we have to keep it until this is fixed in a separate PR.
-    // InternalHibernateGenericStoreImpl.getSharingPredicates()
-    // if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size())
-    // we need to make sure that user in session is updated when user groups change.
 
     // Add 2 new users and remove existing user from the created group
     assertStatus(
@@ -839,6 +883,95 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testReplaceCollectionItemsJson_NonOwned_OnlyDifferenceIsApplied() {
+    String ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'OU A', 'shortName':'OUA', 'openingDate':'2020-01-01'}"));
+    String dsA = postMonthlyDataSet("Apple Data", "AD");
+    String dsB = postMonthlyDataSet("Banana Data", "BD");
+    String dsC = postMonthlyDataSet("Cherry Data", "CD");
+    String path = "/organisationUnits/" + ouId + "/dataSets";
+
+    assertReplaceStats(path, 2, 0, dsA, dsB);
+    assertCollectionIds("/organisationUnits/" + ouId, "dataSets", dsA, dsB);
+
+    // unchanged: nothing is removed and re-added
+    assertReplaceStats(path, 0, 0, dsA, dsB);
+    assertCollectionIds("/organisationUnits/" + ouId, "dataSets", dsA, dsB);
+
+    // one swapped: only dsA is removed and only dsC is added
+    assertReplaceStats(path, 1, 1, dsB, dsC);
+    assertCollectionIds("/organisationUnits/" + ouId, "dataSets", dsB, dsC);
+
+    assertReplaceStats(path, 0, 2);
+    assertCollectionIds("/organisationUnits/" + ouId, "dataSets");
+  }
+
+  @Test
+  void testReplaceCollectionItemsJson_Owned_OnlyDifferenceIsApplied() {
+    String ouA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'OU A', 'shortName':'OUA', 'openingDate':'2020-01-01'}"));
+    String ouB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'OU B', 'shortName':'OUB', 'openingDate':'2020-01-01'}"));
+    String dsId = postMonthlyDataSet("Apple Data", "AD");
+    String path = "/dataSets/" + dsId + "/organisationUnits";
+
+    assertReplaceStats(path, 1, 0, ouA);
+    assertReplaceStats(path, 0, 0, ouA);
+    assertReplaceStats(path, 1, 1, ouB);
+    assertCollectionIds("/dataSets/" + dsId, "organisationUnits", ouB);
+  }
+
+  private String postMonthlyDataSet(String name, String shortName) {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataSets/",
+            "{'name':'" + name + "', 'shortName':'" + shortName + "', 'periodType':'Monthly'}"));
+  }
+
+  private void assertReplaceStats(String path, int updated, int deleted, String... ids) {
+    // each HTTP request normally gets its own session, so do not let a stale inverse collection
+    // from the previous request leak into this one
+    manager.flush();
+    manager.clear();
+    String items = String.join(",", Arrays.stream(ids).map(id -> "{'id':'" + id + "'}").toList());
+    JsonStats stats =
+        PUT(path, "{'identifiableObjects':[" + items + "]}")
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class)
+            .getResponse()
+            .as(JsonTypeReport.class)
+            .getStats();
+    assertEquals(updated, stats.getUpdated(), "updated");
+    assertEquals(deleted, stats.getDeleted(), "deleted");
+  }
+
+  private void assertCollectionIds(String objectPath, String property, String... expected) {
+    manager.flush();
+    manager.clear();
+    JsonList<JsonIdentifiableObject> items =
+        GET(objectPath + "?fields=" + property + "[id]")
+            .content(HttpStatus.OK)
+            .getList(property, JsonIdentifiableObject.class);
+    assertEquals(
+        Set.of(expected),
+        Set.copyOf(items.toList(JsonIdentifiableObject::getId)),
+        property + " of " + objectPath);
+  }
+
+  @Test
   void testAddCollectionItem_Owned() {
     String userId = getCurrentUser().getUid();
     // first create an object which has a collection
@@ -894,14 +1027,6 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     manager.clear();
     switchToAdminUser();
 
-    // TODO: MAS: This tests fails because it will update the acting user's usergroups and then fail
-    // in the test:
-    // This should be the only case for using getCurrentUserGroupInfo() in the code.
-    // Hence we have to keep it until this is fixed in a separate PR.
-    // InternalHibernateGenericStoreImpl.getSharingPredicates()
-    // if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size())
-    // we need to make sure that user in session is updated when user groups change.
-
     String groupId =
         assertStatus(
             HttpStatus.CREATED,
@@ -930,7 +1055,6 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         GET("/programs/{id}", programId).content().as(JsonIdentifiableObject.class);
     assertTrue(program.exists());
     assertEquals("rwrw----", program.getSharing().getPublic().string());
-    assertFalse(program.getSharing().isExternal(), "programs cannot be external");
   }
 
   @Test
@@ -1032,8 +1156,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Program with id doesNotExist could not be found.",
-        PUT("/programs/doesNotExist/sharing", "{}").content(HttpStatus.NOT_FOUND));
+        "Program with id doesNotExt1 could not be found.",
+        PUT("/programs/doesNotExt1/sharing", "{}").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -1093,25 +1217,23 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
             .as(JsonImportSummary.class);
     assertEquals(
         "Invalid UID `11111111111` for property `DataSet`",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4014)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E4014).getMessage());
   }
 
   @Test
   void testUpdateObjectWithInvalidUid() {
     DataSet dataSet = createDataSet('A');
     dataSet.setPeriodType(PeriodType.getPeriodTypeByName("Monthly"));
-    dataSet.setUid("11111111111");
+    dataSet.setUid("ds123456789");
     manager.save(dataSet);
 
     PUT(
-            "/dataSets/11111111111",
-            "{'id':'11111111111','name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}")
+            "/dataSets/ds123456789",
+            "{'id':'ds123456789','name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}")
         .content(HttpStatus.OK);
 
     JsonIdentifiableObject response =
-        GET("/dataSets/11111111111").content().as(JsonIdentifiableObject.class);
+        GET("/dataSets/ds123456789").content().as(JsonIdentifiableObject.class);
     assertEquals("My data set", response.getName());
   }
 
@@ -1137,7 +1259,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     manager.save(dataElementGroup);
 
     JsonMixed response =
-        GET("/dataElements?filter=dataElementGroups.id:in:[%s]&rootJunction=OR"
+        GET("/dataElements?filter=dataElementGroups.id:in:[%s]&rootJunction=OR&gist=false"
                 .formatted(dataElementGroup.getUid()))
             .content();
     assertFalse(response.getArray("dataElements").isEmpty());
@@ -2160,5 +2282,292 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     // Verify the relationships persist correctly
     assertEquals(indicatorId, indicators.getObject(0).getString("id").string());
     assertEquals(groupSetId, groupSets.getObject(0).getString("id").string());
+  }
+
+  // -------------------------------------------------------------------------
+  // IndicatorGroupSet tests
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testIndicatorGroupSetCanBeCreatedSuccessfully() {
+    // Create an IndicatorGroupSet with simple properties
+    String indicatorGroupSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroupSets/",
+                """
+            {
+                'name': 'Test Indicator Group Set',
+                'shortName': 'TIGS',
+                'description': 'A test indicator group set',
+                'code': 'TEST_IGS',
+                'compulsory': false
+            }
+            """));
+
+    // Verify the indicator group set was created correctly
+    JsonObject indicatorGroupSet =
+        GET("/indicatorGroupSets/" + indicatorGroupSetId)
+            .content(HttpStatus.OK)
+            .as(JsonObject.class);
+    assertNotNull(indicatorGroupSet);
+    assertEquals("Test Indicator Group Set", indicatorGroupSet.getString("name").string());
+    assertEquals("TIGS", indicatorGroupSet.getString("shortName").string());
+    assertEquals("A test indicator group set", indicatorGroupSet.getString("description").string());
+    assertEquals("TEST_IGS", indicatorGroupSet.getString("code").string());
+    assertFalse(indicatorGroupSet.getBoolean("compulsory").booleanValue());
+
+    // Verify that collections are present and empty upon creation
+    assertEquals(0, indicatorGroupSet.getArray("indicatorGroups").size());
+  }
+
+  @Test
+  void testIndicatorGroupSetCanBeCreatedWithMembers() {
+    // Create IndicatorType first (required for indicators)
+    String indicatorTypeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorTypes/",
+                """
+            {
+                'name': 'Test Indicator Type',
+                'factor': 100
+            }
+            """));
+
+    // Create Indicators
+    String indicator1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Indicator 1',
+                'shortName': 'IND1',
+                'indicatorType': {
+                    'id': '%s'
+                },
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    String indicator2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Indicator 2',
+                'shortName': 'IND2',
+                'indicatorType': {
+                    'id': '%s'
+                },
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    // Create IndicatorGroups
+    String indicatorGroup1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Indicator Group 1',
+                'shortName': 'IG1',
+                'indicators': [
+                    {'id': '%s'}
+                ]
+            }
+            """
+                    .formatted(indicator1Id)));
+
+    String indicatorGroup2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Indicator Group 2',
+                'shortName': 'IG2',
+                'indicators': [
+                    {'id': '%s'}
+                ]
+            }
+            """
+                    .formatted(indicator2Id)));
+
+    // Create IndicatorGroupSet with members
+    String indicatorGroupSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroupSets/",
+                """
+            {
+                'name': 'Test IGS with Members',
+                'shortName': 'TIGSM',
+                'compulsory': true,
+                'indicatorGroups': [
+                    {'id': '%s'},
+                    {'id': '%s'}
+                ]
+            }
+            """
+                    .formatted(indicatorGroup1Id, indicatorGroup2Id)));
+
+    // Verify indicator group set has the members
+    JsonObject indicatorGroupSet =
+        GET("/indicatorGroupSets/" + indicatorGroupSetId)
+            .content(HttpStatus.OK)
+            .as(JsonObject.class);
+    assertTrue(indicatorGroupSet.getBoolean("compulsory").booleanValue());
+
+    JsonArray indicatorGroups = indicatorGroupSet.getArray("indicatorGroups");
+    assertNotNull(indicatorGroups);
+    assertEquals(2, indicatorGroups.size());
+  }
+
+  @Test
+  void testIndicatorGroupSetSupportsTranslations() {
+    // Create IndicatorGroupSet
+    String indicatorGroupSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroupSets/",
+                """
+            {
+                'name': 'IGS with Translations',
+                'shortName': 'IGSWT'
+            }
+            """));
+
+    // Add translations
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        PUT(
+            "/indicatorGroupSets/" + indicatorGroupSetId + "/translations",
+            """
+            {
+                'translations': [
+                    {
+                        'locale': 'sv',
+                        'property': 'name',
+                        'value': 'IGS med översättningar'
+                    },
+                    {
+                        'locale': 'fr',
+                        'property': 'name',
+                        'value': 'IGS avec traductions'
+                    }
+                ]
+            }
+            """));
+
+    // Verify translations were added
+    JsonArray translations =
+        GET("/indicatorGroupSets/" + indicatorGroupSetId + "/translations")
+            .content()
+            .getArray("translations");
+    assertEquals(2, translations.size());
+
+    // Check that translations include the expected locales
+    Set<String> locales =
+        Set.of(
+            translations.get(0, JsonTranslation.class).getLocale(),
+            translations.get(1, JsonTranslation.class).getLocale());
+    assertTrue(locales.contains("sv"));
+    assertTrue(locales.contains("fr"));
+  }
+
+  @Test
+  @DisplayName("Should filter programIndicators by displayInForm without 500 error")
+  void testProgramIndicatorsFilterByDisplayInForm() {
+    // Create a Program first (required for ProgramIndicators)
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                """
+            {
+                'name': 'Test Program',
+                'shortName': 'TP',
+                'programType': 'WITH_REGISTRATION'
+            }
+            """));
+
+    // Create ProgramIndicators
+    String indicator1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programIndicators/",
+                """
+            {
+                'name': 'Test Indicator 1',
+                'shortName': 'TI1',
+                'program': {'id': '%s'},
+                'expression': '1',
+                'displayInForm': true
+            }
+            """
+                    .formatted(programId)));
+
+    String indicator2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programIndicators/",
+                """
+            {
+                'name': 'Test Indicator 2',
+                'shortName': 'TI2',
+                'program': {'id': '%s'},
+                'expression': '1',
+                'displayInForm': false
+            }
+            """
+                    .formatted(programId)));
+
+    // Test 1: Filter by displayInForm:eq:true (should not return 500 error)
+    JsonList<JsonIdentifiableObject> resultsTrue =
+        GET("/programIndicators?fields=id,name,displayInForm&filter=displayInForm:eq:true")
+            .content(HttpStatus.OK)
+            .getList("programIndicators", JsonIdentifiableObject.class);
+    assertEquals(1, resultsTrue.size());
+    assertEquals(indicator1Id, resultsTrue.get(0).getId());
+
+    // Test 2: Filter by displayInForm:eq:false
+    JsonList<JsonIdentifiableObject> resultsFalse =
+        GET("/programIndicators?fields=id,name,displayInForm&filter=displayInForm:eq:false")
+            .content(HttpStatus.OK)
+            .getList("programIndicators", JsonIdentifiableObject.class);
+    assertEquals(1, resultsFalse.size());
+    assertEquals(indicator2Id, resultsFalse.get(0).getId());
+  }
+
+  @Test
+  @DisplayName("CateogryOption displayFormName should fallback to name if not set")
+  void testCategoryOptionDisplayFormName() {
+    String catOption1 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions/", "{'name':'CategoryOption1', 'shortName':'CATOPT1'}"));
+
+    JsonObject categoryOption =
+        GET("/categoryOptions/" + catOption1).content(HttpStatus.OK).as(JsonObject.class);
+    assertEquals("CategoryOption1", categoryOption.getString("displayFormName").string());
   }
 }

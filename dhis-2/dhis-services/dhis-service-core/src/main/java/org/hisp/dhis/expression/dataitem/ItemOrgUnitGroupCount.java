@@ -32,6 +32,7 @@ package org.hisp.dhis.expression.dataitem;
 import static java.lang.String.format;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 
+import java.util.Map;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
@@ -68,14 +69,13 @@ public class ItemOrgUnitGroupCount implements ExpressionItem {
 
   @Override
   public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
-    Integer count = visitor.getParams().getOrgUnitCountMap().get(ctx.uid0.getText());
+    Map<String, Integer> orgUnitCountMap = visitor.getParams().getOrgUnitCountMap();
 
-    if (count == null) // Shouldn't happen for a valid expression.
-    {
-      throw new ParserExceptionWithoutContext(
-          format("Cannot find count for organisation unit: %s", ctx.uid0.getText()));
-    }
+    // The count map is absent for an organisation unit whose subtree contains no members of the
+    // group (the analytics org unit target aggregation returns no row for it), so a missing entry
+    // means a count of zero rather than an error.
+    Integer count = orgUnitCountMap != null ? orgUnitCountMap.get(ctx.uid0.getText()) : null;
 
-    return count.doubleValue();
+    return count != null ? count.doubleValue() : 0d;
   }
 }

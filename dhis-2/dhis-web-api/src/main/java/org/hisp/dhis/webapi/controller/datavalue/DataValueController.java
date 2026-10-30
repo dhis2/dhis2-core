@@ -44,17 +44,18 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -186,7 +187,7 @@ public class DataValueController {
           String co,
       @OpenApi.Param({UID.class, CategoryCombo.class}) @RequestParam(required = false) String cc,
       @OpenApi.Param({UID.class, CategoryOption.class}) @RequestParam(required = false) String cp,
-      @OpenApi.Param({UID.class, Period.class}) @RequestParam String pe,
+      @OpenApi.Param({Period.class}) @RequestParam String pe,
       @OpenApi.Param({UID.class, OrganisationUnit.class}) @RequestParam String ou,
       @OpenApi.Param({UID.class, DataSet.class}) @RequestParam(required = false) UID ds,
       @RequestParam(required = false) String comment,
@@ -195,15 +196,29 @@ public class DataValueController {
       @RequestParam(required = false) MultipartFile file)
       throws IOException, ConflictException, BadRequestException {
 
-    FileResource fr = null;
-    if (file != null) fr = fileResourceUtils.saveFileResource(file, FileResourceDomain.DATA_VALUE);
-
-    String value = fr == null ? "" /*=delete*/ : fr.getUid();
+    if (file == null) {
+      // "" as value => delete (old behaviour kept for backwards compatibility)
+      saveDataValue(de, co, cc, cp, pe, ou, ds, "", comment, followUp, force);
+      return new WebMessage(Status.OK, HttpStatus.ACCEPTED);
+    }
+    // value of the DV is the UID of the FR
+    String value = CodeGenerator.generateUid();
+    // save DV first as it might cause validation issue throwing an exception
     saveDataValue(de, co, cc, cp, pe, ou, ds, value, comment, followUp, force);
-
-    WebMessage response = new WebMessage(Status.OK, HttpStatus.ACCEPTED);
-    if (fr != null) response.setResponse(new FileResourceWebMessageResponse(fr));
-    return response;
+    // if we make it here DV is saved, now save the FR
+    try {
+      FileResource fr =
+          fileResourceUtils.saveFileResource(value, file, FileResourceDomain.DATA_VALUE);
+      return new WebMessage(Status.OK, HttpStatus.ACCEPTED)
+          .setResponse(new FileResourceWebMessageResponse(fr));
+    } catch (Exception ex) {
+      // in case we fail to save the FR => delete the DV as well
+      deleteDataValue(
+          DataValueQueryParams.builder().de(de).co(co).cc(cc).cp(cp).pe(pe).ou(ou).build(),
+          ds,
+          true);
+      throw ex;
+    }
   }
 
   // ---------------------------------------------------------------------
@@ -248,7 +263,7 @@ public class DataValueController {
     if (dataValue == null) throw new NotFoundException("Data value does not exist");
 
     Set<UID> notReadable =
-        dataEntryService.getNotReadableOptionCombos(
+        dataEntryService.getNotReadableCategoryOptions(
             List.of(dataValue.categoryOptionCombo(), dataValue.attributeOptionCombo()));
     if (!notReadable.isEmpty())
       throw new ForbiddenException(
@@ -284,7 +299,7 @@ public class DataValueController {
         dataEntryService.decodeGroupKeepUnspecified(
             new DataEntryGroup.Input(
                 values.stream().map(DataValueFollowUpRequest::toDataEntryValue).toList()));
-    List<DataEntryKey> nonExisting =
+    List<DataValueKey> nonExisting =
         update.values().stream()
             .filter(dv -> dv.deleted() != Boolean.TRUE && dv.value() == null)
             .map(DataEntryValue::toKey)

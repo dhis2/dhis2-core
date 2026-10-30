@@ -110,6 +110,7 @@ class ProgramTest {
     assertEquals(original.getAccessLevel(), copy.getAccessLevel());
     assertEquals(original.getAnalyticsDataElements(), copy.getAnalyticsDataElements());
     assertEquals(original.getCategoryCombo(), copy.getCategoryCombo());
+    assertEquals(original.getEnrollmentCategoryCombo(), copy.getEnrollmentCategoryCombo());
     assertEquals(original.getCategoryMappings(), copy.getCategoryMappings());
     assertEquals(original.getCompleteEventsExpiryDays(), copy.getCompleteEventsExpiryDays());
     assertEquals(original.getDataElements(), copy.getDataElements());
@@ -138,10 +139,19 @@ class ProgramTest {
     assertEquals(original.getTrackedEntityType(), copy.getTrackedEntityType());
     assertEquals(original.getTranslations(), copy.getTranslations());
     assertEquals(original.getDisplayEnrollmentLabel(), copy.getDisplayEnrollmentLabel());
+    assertEquals(original.getDisplayEnrollmentsLabel(), copy.getDisplayEnrollmentsLabel());
     assertEquals(original.getDisplayFollowUpLabel(), copy.getDisplayFollowUpLabel());
     assertEquals(original.getDisplayNoteLabel(), copy.getDisplayNoteLabel());
+    assertEquals(original.getDisplayNotesLabel(), copy.getDisplayNotesLabel());
     assertEquals(original.getDisplayOrgUnitLabel(), copy.getDisplayOrgUnitLabel());
     assertEquals(original.getDisplayRelationshipLabel(), copy.getDisplayRelationshipLabel());
+    assertEquals(original.getDisplayRelationshipsLabel(), copy.getDisplayRelationshipsLabel());
+    assertEquals(
+        original.getDisplayTrackedEntityAttributeLabel(),
+        copy.getDisplayTrackedEntityAttributeLabel());
+    assertEquals(
+        original.getDisplayTrackedEntityAttributesLabel(),
+        copy.getDisplayTrackedEntityAttributesLabel());
 
     // check empty
     assertTrue(copy.getProgramAttributes().isEmpty());
@@ -186,8 +196,8 @@ class ProgramTest {
     assertTrue(copy.getAnalyticsDataElements().isEmpty());
     assertTrue(copy.getCategoryMappings().isEmpty());
     assertTrue(copy.getDataElements().isEmpty());
-    assertTrue(copy.getNonConfidentialTrackedEntityAttributes().isEmpty());
-    assertTrue(copy.getNonConfidentialTrackedEntityAttributesWithLegendSet().isEmpty());
+    assertTrue(copy.getAnalyzableTrackedEntityAttributes().isEmpty());
+    assertTrue(copy.getAnalyzableTrackedEntityAttributesWithLegendSet().isEmpty());
     assertTrue(copy.getNotificationTemplates().isEmpty());
     assertTrue(copy.getOrganisationUnits().isEmpty());
     assertTrue(copy.getProgramAttributes().isEmpty());
@@ -232,7 +242,7 @@ class ProgramTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(Program.class);
-    assertEquals(63, allClassFieldsIncludingInherited.length);
+    assertEquals(69, allClassFieldsIncludingInherited.length);
   }
 
   public static boolean notEqualsOrBothNull(String original, String copy) {
@@ -245,6 +255,8 @@ class ProgramTest {
     p.setAccessLevel(AccessLevel.OPEN);
     p.setAutoFields();
     p.setCategoryCombo(new CategoryCombo("cat combo", DataDimensionType.ATTRIBUTE));
+    p.setEnrollmentCategoryCombo(
+        new CategoryCombo("enrollment cat combo", DataDimensionType.ATTRIBUTE));
     p.setCategoryMappings(Set.of(ProgramCategoryMapping.builder().id("UjaiJ5yiruk").build()));
     p.setCode(CodeGenerator.generateCode(CodeGenerator.UID_CODE_SIZE));
     p.setCompleteEventsExpiryDays(22);
@@ -284,13 +296,19 @@ class ProgramTest {
     p.setUseFirstStageDuringRegistration(false);
     p.setUserRoles(Collections.emptySet());
     p.setEnrollmentLabel("Enrollment label");
+    p.setEnrollmentsLabel("Enrollments label");
     p.setNoteLabel("Note label");
+    p.setNotesLabel("Notes label");
     p.setFollowUpLabel("Follow Up Label");
     p.setOrgUnitLabel("Org Unit Label");
     p.setTrackedEntityAttributeLabel("Tracked Entity Attribute Label");
+    p.setTrackedEntityAttributesLabel("Tracked Entity Attributes Label");
     p.setProgramStageLabel("Program Stage Label");
+    p.setProgramStagesLabel("Program stages label");
     p.setEventLabel("Event Label");
+    p.setEventsLabel("Events Label");
     p.setRelationshipLabel("Relationship Label");
+    p.setRelationshipsLabel("Relationships Label");
 
     return p;
   }

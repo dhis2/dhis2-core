@@ -38,8 +38,10 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UIDConnection;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.period.Period;
 
 /**
  * DB support for the bulk data value import (AKA data entry).
@@ -48,38 +50,6 @@ import org.hisp.dhis.common.ValueType;
  * @since 2.43
  */
 public interface DataEntryStore {
-
-  /*
-  Decode support
-   */
-
-  /** Tables for which ID property values may have to be resolved to UID */
-  enum DecodeType {
-    DS,
-    DE,
-    OU,
-    COC
-  }
-
-  /**
-   * Fetches a mapping between the provided IDs (that used the provided {@code idsProperty}) and the
-   * UID of the same object.
-   *
-   * <p>For example, when {@code idsProperty} is CODE, the result looks like:
-   *
-   * <pre>
-   * {code1} => {uid1}
-   * {code2} => {uid2}
-   * </pre>
-   *
-   * @param type the target object type or table
-   * @param from the known ID property (values given by ids)
-   * @param ids the IDs to map from property to UID
-   * @return a map from given ID to the corresponding UID (does not include entries for input IDs
-   *     that do not exist and thus do not have a corresponding UID)
-   */
-  Map<String, String> getIdMapping(
-      @Nonnull DecodeType type, @Nonnull IdProperty from, @Nonnull Stream<String> ids);
 
   /**
    * Fetches the IDs of the categories of the DS's CC (as used for AOCs).
@@ -105,14 +75,10 @@ public interface DataEntryStore {
    *   ...
    * </pre>
    *
-   * The parts of the key are ordered A,B,C because that is the alphabetical order of the category
-   * codes. This allows the caller to take input in form of C=CO (codes) and do the same
-   * alphabetically ordered concatenation to get a lookup key for the result map.
-   *
    * @param dataSet the dataset for context
    * @param attributeOptions the identifier of a category option that is concatenated into a key
    * @return A map from a concatenated key to an AOC UID. The key is composed of the options of the
-   *     AOC in alphabetical order of the categories
+   *     AOC
    */
   Map<Set<String>, String> getDataSetAocIdMapping(
       @Nonnull UID dataSet, @Nonnull IdProperty attributeOptions);
@@ -184,7 +150,7 @@ public interface DataEntryStore {
       @Nonnull UID orgUnit,
       @CheckForNull UID categoryOptionCombo,
       @CheckForNull UID attributeOptionCombo,
-      @Nonnull String period);
+      @Nonnull Period period);
 
   /**
    * Find the datasets a data element can be used with to allow grouping data values into groups of
@@ -200,7 +166,11 @@ public interface DataEntryStore {
   Import support
    */
 
-  int deleteByKeys(List<DataEntryKey> keys);
+  int countScope(@Nonnull DataEntryGroup.Scope scope);
+
+  int deleteScope(@Nonnull DataEntryGroup.Scope scope);
+
+  int deleteByKeys(List<DataValueKey> keys);
 
   int upsertValues(List<DataEntryValue> values);
 
@@ -271,15 +241,17 @@ public interface DataEntryStore {
   List<String> getOrgUnitsNotInUserHierarchy(UID user, Stream<UID> orgUnits);
 
   /**
-   * Checks that all the provided OUs are valid to use with the AOC.
+   * Checks that all the provided OUs (values) are valid to use with the AOC (key).
    *
    * <p>For an OU to be valid it must be identical or a descended of at least one of the OUs linked
    * to each CO that is linked to the provided AOC.
    *
-   * @return the OUs of the provided set that are not in the AOC hierarchy and thus illegal to use.
-   *     Meaning in a successful check the result is empty.
+   * @param ouAocPairs OU-AOC pairs to check (from data values)
+   * @return the first OU-AOC pair found that is invalid (no specific testing order). Meaning in a
+   *     successful check the result is null.
    */
-  List<String> getOrgUnitsNotInAocHierarchy(UID attrOptionCombo, Stream<UID> orgUnits);
+  @CheckForNull
+  UIDConnection getOrgUnitsNotInAocHierarchy(Stream<UIDConnection> ouAocPairs);
 
   /**
    * Checks that all provided OUs are explicitly linked to the given DS and thus a valid target for
@@ -293,16 +265,16 @@ public interface DataEntryStore {
   List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits);
 
   /**
-   * Checks that all given COCs belong to the CC used by the DE. This CC might be overridden by the
-   * DE-DS connection.
+   * Checks that all given COCs belong to the CC used by the DEs (CC might be overridden by the
+   * DE-DS connection) and returns the first that can NOT be used.
    *
    * @param dataSet DS to check (scope)
-   * @param dataElement DE to check (scope)
-   * @param optionCombos COCs to check
-   * @return all COCs that are not connected to the CC for the given DS-DE combination and thus
-   *     illegal to use. Meaning in a successful check the result is empty.
+   * @param deCocPairs DE-COC pairs to check (from data values)
+   * @return the first DE-COC pair found that is invalid in the context of the given DS (no specific
+   *     testing order). Meaning in a successful check the result null.
    */
-  List<String> getCocNotInDataSet(UID dataSet, UID dataElement, Stream<UID> optionCombos);
+  @CheckForNull
+  UIDConnection getCocNotInDataSet(UID dataSet, Stream<UIDConnection> deCocPairs);
 
   /**
    * Checks that all given AOCs belong to the CC defined by the given DS.

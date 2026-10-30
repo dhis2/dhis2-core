@@ -40,12 +40,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -73,8 +73,8 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
     final User userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
-    testSetup.importTrackerData("tracker/single_te.json");
-    testSetup.importTrackerData("tracker/single_enrollment.json");
+    testSetup.importTrackerData("tracker/one_te.json");
+    testSetup.importTrackerData("tracker/one_enrollment.json");
     manager.flush();
   }
 
@@ -108,6 +108,8 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
     TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     testSetup.importTrackerData("tracker/event_with_updated_data_values.json", params);
+
+    clearSession();
 
     List<TrackerEvent> updatedEvents = manager.getAll(TrackerEvent.class);
     assertEquals(1, updatedEvents.size());

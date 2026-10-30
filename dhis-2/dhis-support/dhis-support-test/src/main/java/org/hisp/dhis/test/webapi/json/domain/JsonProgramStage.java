@@ -31,6 +31,7 @@ package org.hisp.dhis.test.webapi.json.domain;
 
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 
 /**
  * @author David Mackessy
@@ -43,5 +44,17 @@ public interface JsonProgramStage extends JsonObject, JsonIdentifiableObject {
 
   default JsonList<JsonProgramStageDataElement> getProgramStageDataElements() {
     return getList("programStageDataElements", JsonProgramStageDataElement.class);
+  }
+
+  default JsonString getProgramStageLabel() {
+    return getString("programStageLabel");
+  }
+
+  default JsonString getEventLabel() {
+    return getString("eventLabel");
+  }
+
+  default JsonString getEventsLabel() {
+    return getString("eventsLabel");
   }
 }

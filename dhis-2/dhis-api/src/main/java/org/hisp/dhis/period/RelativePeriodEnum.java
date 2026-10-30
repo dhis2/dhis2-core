@@ -29,54 +29,78 @@
  */
 package org.hisp.dhis.period;
 
+import static org.hisp.dhis.period.PeriodTypeEnum.BI_MONTHLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.BI_WEEKLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.DAILY;
+import static org.hisp.dhis.period.PeriodTypeEnum.MONTHLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.YEARLY;
+
+import java.util.EnumSet;
+import java.util.Set;
 import org.apache.commons.lang3.EnumUtils;
 
 public enum RelativePeriodEnum {
-  TODAY,
-  YESTERDAY,
-  LAST_3_DAYS,
-  LAST_7_DAYS,
-  LAST_14_DAYS,
-  LAST_30_DAYS,
-  LAST_60_DAYS,
-  LAST_90_DAYS,
-  LAST_180_DAYS,
-  THIS_MONTH,
-  LAST_MONTH,
-  THIS_BIMONTH,
-  LAST_BIMONTH,
-  THIS_QUARTER,
-  LAST_QUARTER,
-  THIS_SIX_MONTH,
-  LAST_SIX_MONTH,
-  WEEKS_THIS_YEAR,
-  MONTHS_THIS_YEAR,
-  BIMONTHS_THIS_YEAR,
-  QUARTERS_THIS_YEAR,
-  THIS_YEAR,
-  MONTHS_LAST_YEAR,
-  QUARTERS_LAST_YEAR,
-  LAST_YEAR,
-  LAST_5_YEARS,
-  LAST_10_YEARS,
-  LAST_12_MONTHS,
-  LAST_6_MONTHS,
-  LAST_3_MONTHS,
-  LAST_6_BIMONTHS,
-  LAST_4_QUARTERS,
-  LAST_2_SIXMONTHS,
-  THIS_FINANCIAL_YEAR,
-  LAST_FINANCIAL_YEAR,
-  LAST_5_FINANCIAL_YEARS,
-  LAST_10_FINANCIAL_YEARS,
-  THIS_WEEK,
-  LAST_WEEK,
-  THIS_BIWEEK,
-  LAST_BIWEEK,
-  LAST_4_WEEKS,
-  LAST_4_BIWEEKS,
-  LAST_12_WEEKS,
-  LAST_52_WEEKS;
+  // The order is the display order: relative periods are listed in this order
+  // within their period type (e.g. in /api/periodTypes)
+  TODAY(DAILY),
+  YESTERDAY(DAILY),
+  LAST_3_DAYS(DAILY),
+  LAST_7_DAYS(DAILY),
+  LAST_14_DAYS(DAILY),
+  LAST_30_DAYS(DAILY),
+  LAST_60_DAYS(DAILY),
+  LAST_90_DAYS(DAILY),
+  LAST_180_DAYS(DAILY),
+  THIS_WEEK(PeriodTypeEnum.WEEKLY_TYPES),
+  LAST_WEEK(PeriodTypeEnum.WEEKLY_TYPES),
+  LAST_4_WEEKS(PeriodTypeEnum.WEEKLY_TYPES),
+  LAST_12_WEEKS(PeriodTypeEnum.WEEKLY_TYPES),
+  LAST_52_WEEKS(PeriodTypeEnum.WEEKLY_TYPES),
+  WEEKS_THIS_YEAR(PeriodTypeEnum.WEEKLY_TYPES),
+  THIS_BIWEEK(BI_WEEKLY),
+  LAST_BIWEEK(BI_WEEKLY),
+  LAST_4_BIWEEKS(BI_WEEKLY),
+  THIS_MONTH(MONTHLY),
+  LAST_MONTH(MONTHLY),
+  LAST_3_MONTHS(MONTHLY),
+  LAST_6_MONTHS(MONTHLY),
+  LAST_12_MONTHS(MONTHLY),
+  MONTHS_THIS_YEAR(MONTHLY),
+  MONTHS_LAST_YEAR(MONTHLY),
+  THIS_BIMONTH(BI_MONTHLY),
+  LAST_BIMONTH(BI_MONTHLY),
+  LAST_6_BIMONTHS(BI_MONTHLY),
+  BIMONTHS_THIS_YEAR(BI_MONTHLY),
+  THIS_QUARTER(PeriodTypeEnum.QUARTERLY_TYPES),
+  LAST_QUARTER(PeriodTypeEnum.QUARTERLY_TYPES),
+  LAST_4_QUARTERS(PeriodTypeEnum.QUARTERLY_TYPES),
+  QUARTERS_THIS_YEAR(PeriodTypeEnum.QUARTERLY_TYPES),
+  QUARTERS_LAST_YEAR(PeriodTypeEnum.QUARTERLY_TYPES),
+  THIS_SIX_MONTH(PeriodTypeEnum.SIX_MONTHLY_TYPES),
+  LAST_SIX_MONTH(PeriodTypeEnum.SIX_MONTHLY_TYPES),
+  LAST_2_SIXMONTHS(PeriodTypeEnum.SIX_MONTHLY_TYPES),
+  THIS_FINANCIAL_YEAR(PeriodTypeEnum.FINANCIAL_YEARLY_TYPES),
+  LAST_FINANCIAL_YEAR(PeriodTypeEnum.FINANCIAL_YEARLY_TYPES),
+  LAST_5_FINANCIAL_YEARS(PeriodTypeEnum.FINANCIAL_YEARLY_TYPES),
+  LAST_10_FINANCIAL_YEARS(PeriodTypeEnum.FINANCIAL_YEARLY_TYPES),
+  THIS_YEAR(YEARLY),
+  LAST_YEAR(YEARLY),
+  LAST_5_YEARS(YEARLY),
+  LAST_10_YEARS(YEARLY);
+
+  private final EnumSet<PeriodTypeEnum> appliesTo;
+
+  RelativePeriodEnum(PeriodTypeEnum type) {
+    this(Set.of(type));
+  }
+
+  RelativePeriodEnum(Set<PeriodTypeEnum> appliesTo) {
+    this.appliesTo = EnumSet.copyOf(appliesTo);
+  }
+
+  public boolean appliesTo(PeriodTypeEnum type) {
+    return appliesTo.contains(type);
+  }
 
   public static boolean contains(String value) {
     return EnumUtils.isValidEnum(RelativePeriodEnum.class, value);

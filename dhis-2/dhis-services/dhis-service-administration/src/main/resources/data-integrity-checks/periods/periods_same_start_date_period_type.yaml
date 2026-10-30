@@ -26,7 +26,7 @@
 #
 ---
   name: periods_same_start_date_period_type
-  description: Periods with the same start date and period type.
+  description: Periods with the same start date and period type
   section: Periods
   section_order: 1
   summary_sql: >-

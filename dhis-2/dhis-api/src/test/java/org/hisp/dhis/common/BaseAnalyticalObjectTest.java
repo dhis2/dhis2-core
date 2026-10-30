@@ -30,6 +30,7 @@
 package org.hisp.dhis.common;
 
 import static org.hisp.dhis.common.AnalyticsType.EVENT;
+import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
@@ -42,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.dataelement.DataElement;
@@ -54,6 +56,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -179,6 +182,23 @@ class BaseAnalyticalObjectTest {
     assertNotNull(baseDimensionalObject.getProgramStage());
     assertEquals(
         dataElementDimension.getDataElement().getValueType(), baseDimensionalObject.getValueType());
+  }
+
+  @Test
+  void testGetDimensionalObjectForRelativePeriod() {
+    final int TWELVE_MONTHS = 12;
+    String period = "LAST_12_MONTHS";
+    String dimensionUid = "pe";
+
+    Visualization visualization = new Visualization("anyName");
+    visualization.setRawPeriods(List.of(period));
+
+    DimensionalObject result =
+        visualization.getDimensionalObject(dimensionUid, new Date(), null, true, null, null, null);
+
+    assertEquals(PERIOD, result.getDimensionType());
+    assertEquals(dimensionUid, result.getDimension());
+    assertEquals(TWELVE_MONTHS, result.getItems().size());
   }
 
   @Test

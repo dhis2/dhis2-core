@@ -42,6 +42,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -54,6 +55,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -98,7 +100,12 @@ import org.hisp.dhis.user.sharing.Sharing;
 @JacksonXmlRootElement(localName = "section", namespace = DxfNamespaces.DXF_2_0)
 @Setter
 @Entity
-@Table(name = "section")
+@Table(
+    name = "section",
+    uniqueConstraints =
+        @UniqueConstraint(
+            name = "key_sectionnamedataset",
+            columnNames = {"name", "datasetid"}))
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Section extends BaseLinkableObject implements IdentifiableObject, MetadataObject {
 
@@ -113,7 +120,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @Column(unique = true, length = 50)
   private String code;
 
-  @Column(nullable = false, unique = true, length = 230)
+  @Column(nullable = false, length = 230)
   private String name;
 
   @Column(updatable = false)
@@ -123,16 +130,17 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @Temporal(TemporalType.TIMESTAMP)
   private Date lastUpdated;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "lastupdatedby")
   private User lastUpdatedBy;
 
+  @Type(type = "text")
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "datasetid", nullable = false)
   private DataSet dataSet;
 
@@ -263,14 +271,14 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataSet getDataSet() {
     return dataSet;
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "dataElements", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "dataElement", namespace = DxfNamespaces.DXF_2_0)
   public List<DataElement> getDataElements() {

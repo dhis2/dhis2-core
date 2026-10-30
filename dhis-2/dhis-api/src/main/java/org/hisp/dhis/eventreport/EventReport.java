@@ -43,7 +43,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.analytics.EventDataType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
@@ -53,7 +57,9 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.FavoritableObject;
 import org.hisp.dhis.common.FontSize;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -68,6 +74,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.ObjectUtils;
 
 /**
@@ -79,7 +86,11 @@ import org.hisp.dhis.util.ObjectUtils;
  */
 @JacksonXmlRootElement(localName = "eventReport", namespace = DxfNamespaces.DXF_2_0)
 public class EventReport extends BaseAnalyticalObject
-    implements EventAnalyticalObject, MetadataObject {
+    implements EventAnalyticalObject, MetadataObject, FavoritableObject {
+
+  /** Users who have marked this object as a favorite. */
+  @Getter @Setter @JsonProperty private Set<String> favorites = new HashSet<>();
+
   /** Program. Required. */
   private Program program;
 
@@ -127,6 +138,15 @@ public class EventReport extends BaseAnalyticalObject
 
   /** Indicates rendering of empty rows for the table. */
   private boolean hideNaData;
+
+  /** Indicates whether to hide columns with no data values. */
+  private boolean hideEmptyColumns;
+
+  /** Fixes (or not) the pivot table column headers. */
+  private boolean fixColumnHeaders;
+
+  /** Fixes (or not) the pivot table row headers. */
+  private boolean fixRowHeaders;
 
   /** Indicates rendering of empty rows for the table. */
   private boolean showHierarchy;
@@ -225,7 +245,7 @@ public class EventReport extends BaseAnalyticalObject
 
   @Override
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Program getProgram() {
     return program;
@@ -248,7 +268,7 @@ public class EventReport extends BaseAnalyticalObject
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElement getDataElementValueDimension() {
     return dataElementValueDimension;
@@ -390,6 +410,36 @@ public class EventReport extends BaseAnalyticalObject
     this.hideNaData = hideNaData;
   }
 
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isHideEmptyColumns() {
+    return hideEmptyColumns;
+  }
+
+  public void setHideEmptyColumns(boolean hideEmptyColumns) {
+    this.hideEmptyColumns = hideEmptyColumns;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isFixColumnHeaders() {
+    return fixColumnHeaders;
+  }
+
+  public void setFixColumnHeaders(boolean fixColumnHeaders) {
+    this.fixColumnHeaders = fixColumnHeaders;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isFixRowHeaders() {
+    return fixRowHeaders;
+  }
+
+  public void setFixRowHeaders(boolean fixRowHeaders) {
+    this.fixRowHeaders = fixRowHeaders;
+  }
+
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -515,5 +565,17 @@ public class EventReport extends BaseAnalyticalObject
 
   public void setLegacy(final boolean legacy) {
     this.legacy = legacy;
+  }
+
+  @Override
+  public boolean setAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.add(user.getUid());
+  }
+
+  @Override
+  public boolean removeAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.remove(user.getUid());
   }
 }

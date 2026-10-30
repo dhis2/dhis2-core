@@ -30,13 +30,13 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import static org.hisp.dhis.fieldfiltering.FieldFilterParams.*;
+import static org.hisp.dhis.webapi.controller.security.ImpersonateUserController.hasAllowListedIp;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -45,6 +45,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -54,9 +55,10 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.interpretation.InterpretationService;
@@ -72,6 +74,7 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
@@ -86,6 +89,8 @@ import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
@@ -97,6 +102,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -118,52 +124,36 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/me")
 @RequiredArgsConstructor
 public class MeController {
+  @Nonnull private final ContextService contextService;
+  @Nonnull private final DhisConfigurationProvider config;
   @Nonnull private final UserService userService;
-
   @Nonnull private final UserControllerUtils userControllerUtils;
-
-  @Nonnull protected ContextService contextService;
-
   @Nonnull private final RenderService renderService;
-
   @Nonnull private final FieldFilterService fieldFilterService;
-
   @Nonnull private final org.hisp.dhis.fieldfilter.FieldFilterService oldFieldFilterService;
-
   @Nonnull private final IdentifiableObjectManager manager;
-
   @Nonnull private final PasswordManager passwordManager;
-
   @Nonnull private final MessageService messageService;
-
   @Nonnull private final InterpretationService interpretationService;
-
   @Nonnull private final NodeService nodeService;
-
   @Nonnull private final PasswordValidationService passwordValidationService;
-
   @Nonnull private final ProgramService programService;
-
   @Nonnull private final DataSetService dataSetService;
-
   @Nonnull private final AclService aclService;
-
   @Nonnull private final DataApprovalLevelService approvalLevelService;
-
   @Nonnull private final FileResourceService fileResourceService;
-
   @Nonnull private ApiTokenService apiTokenService;
 
   @GetMapping
   @OpenApi.Response(MeDto.class)
   @OpenApi.EntityType(MeDto.class)
   public @ResponseBody ResponseEntity<JsonNode> getCurrentUser(
-      @CurrentUser(required = true) User user, GetObjectParams params) {
+      @CurrentUser(required = true) User user, GetObjectParams params, HttpServletRequest request) {
 
-    List<String> fields = params.getFields();
-    if (fields == null || fields.isEmpty()) fields = List.of("*");
+    String fields = params.getFields();
+    if (fields == null || fields.isEmpty()) fields = "*";
 
-    if (fieldsContains("access", fields)) {
+    if (fields.contains("access") || fields.contains("*") || fields.contains(":all")) {
       Access access = aclService.getAccess(user, user);
       user.setAccess(access);
     }
@@ -171,53 +161,67 @@ public class MeController {
     List<String> programs =
         programService.getCurrentUserPrograms().stream().map(IdentifiableObject::getUid).toList();
 
+    // Use the service path so managed-group PKs are batch-resolved (one SQL) instead of
+    // UserDetails.fromUser walking User.getManagedGroups() (lazy N+1 per membership group).
+    UserDetails userDetails = userService.createUserDetails(user);
+
     List<String> dataSets =
-        dataSetService.getUserDataRead(UserDetails.fromUser(user)).stream()
+        dataSetService.getUserDataRead(userDetails).stream()
             .map(IdentifiableObject::getUid)
             .toList();
 
     List<ApiToken> patTokens = apiTokenService.getAllOwning(user);
 
+    // Filter userGroups and userRoles based on ACL read access
+    Set<UserGroup> filteredUserGroups =
+        user.getGroups().stream()
+            .filter(group -> aclService.canRead(userDetails, group))
+            .collect(Collectors.toSet());
+
+    Set<UserRole> filteredUserRoles =
+        user.getUserRoles().stream()
+            .filter(role -> aclService.canRead(userDetails, role))
+            .collect(Collectors.toSet());
+
+    int settingsStart = fields.indexOf("settings[");
     Set<String> settingKeys =
-        fields.stream()
-            .filter(f -> f.startsWith("settings["))
-            .findFirst()
-            .map(f -> Set.of(f.substring(9, f.length() - 1).split(",")))
-            .orElse(Set.of());
+        settingsStart < 0
+            ? Set.of()
+            : Set.of(
+                fields.substring(settingsStart + 9, fields.indexOf(']', settingsStart)).split(","));
     UserSettings settings = UserSettings.getCurrentSettings();
     JsonMap<JsonMixed> s =
         settingKeys.isEmpty() ? settings.toJson(false) : settings.toJson(true, settingKeys);
-    MeDto meDto = new MeDto(user, s, programs, dataSets, patTokens);
-    determineUserImpersonation(meDto);
+    MeDto meDto =
+        new MeDto(user, s, programs, dataSets, patTokens, filteredUserGroups, filteredUserRoles);
+    determineUserImpersonation(meDto, user.getAllAuthorities(), request);
 
     ObjectNode jsonNodes = fieldFilterService.toObjectNodes(of(meDto, fields)).get(0);
 
     return ResponseEntity.ok(jsonNodes);
   }
 
-  private void determineUserImpersonation(MeDto meDto) {
+  private void determineUserImpersonation(
+      MeDto meDto, Set<String> allAuthorities, HttpServletRequest request) {
     Authentication current = SecurityContextHolder.getContext().getAuthentication();
 
-    Authentication original = null;
     // iterate over granted authorities and find the 'switch user' authority
     Collection<? extends GrantedAuthority> authorities = current.getAuthorities();
     for (GrantedAuthority auth : authorities) {
       // check for switch user type of authority
-      if (auth instanceof SwitchUserGrantedAuthority) {
-        original = ((SwitchUserGrantedAuthority) auth).getSource();
-        meDto.setImpersonation(original.getName());
-      }
-    }
-  }
-
-  private boolean fieldsContains(String key, List<String> fields) {
-    for (String field : fields) {
-      if (field.contains(key) || field.equals("*") || field.startsWith(":")) {
-        return true;
+      if (auth instanceof SwitchUserGrantedAuthority userGrantedAuthority) {
+        meDto.setImpersonation(userGrantedAuthority.getSource().getName());
       }
     }
 
-    return false;
+    String remoteAddr = request.getRemoteAddr();
+    boolean enabled = config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
+    if (enabled
+        && (allAuthorities.contains(Authorities.ALL.name())
+            || allAuthorities.contains(Authorities.F_IMPERSONATE_USER.name()))
+        && hasAllowListedIp(remoteAddr, config)) {
+      meDto.setCanImpersonate(true);
+    }
   }
 
   @GetMapping("/dataApprovalWorkflows")
@@ -230,12 +234,11 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PutMapping(value = "", consumes = APPLICATION_JSON_VALUE)
   public void updateCurrentUser(
+      @RequestParam(defaultValue = "*") String fields,
       HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser(required = true) User currentUser)
       throws ConflictException, IOException {
-
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     User user = renderService.fromJson(request.getInputStream(), User.class);
 
@@ -245,7 +248,8 @@ public class MeController {
         && user.getEmail() != null
         && !currentUser.getVerifiedEmail().equals(user.getEmail())) {
       throw new ConflictException(
-          "Email address cannot be changed, when email-based 2FA is enabled, please disable 2FA first");
+          "Email address cannot be changed, when email-based 2FA is enabled, please disable 2FA"
+              + " first");
     }
 
     merge(currentUser, user);
@@ -254,25 +258,7 @@ public class MeController {
       throw new ConflictException("Invalid format for WhatsApp value '" + user.getWhatsApp() + "'");
     }
 
-    FileResource avatar = currentUser.getAvatar();
-    if (avatar != null) {
-      FileResource fileResource = fileResourceService.getFileResource(avatar.getUid());
-      if (fileResource == null) {
-        throw new ConflictException("File does not exist");
-      }
-
-      if (!fileResource.getCreatedBy().getUid().equals(currentUser.getUid())) {
-        throw new ConflictException("Not the owner of the file");
-      }
-
-      currentUser.setAvatar(fileResource);
-    }
-
     manager.update(currentUser);
-
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-    }
 
     CollectionNode collectionNode =
         oldFieldFilterService.toCollectionNode(
@@ -287,11 +273,36 @@ public class MeController {
         response.getOutputStream());
   }
 
+  /**
+   * Removes the avatar (profile picture) for the current user. This endpoint allows users to remove
+   * their profile picture without requiring special authorities to access the /users endpoint.
+   *
+   * @param currentUser the currently authenticated user
+   */
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
+  @DeleteMapping(value = "/avatar")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeAvatar(@CurrentUser(required = true) User currentUser) {
+    FileResource avatar = currentUser.getAvatar();
+
+    if (avatar != null) {
+      // Mark the file resource as unassigned so it can be cleaned up
+      FileResource fileResource = fileResourceService.getFileResource(avatar.getUid());
+      if (fileResource != null) {
+        fileResource.setAssigned(false);
+        fileResourceService.updateFileResource(fileResource);
+      }
+
+      currentUser.setAvatar(null);
+      manager.update(currentUser);
+    }
+  }
+
   @GetMapping(
       value = {"/authorization", "/authorities"},
       produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Set<String>> getAuthorities(
-      @CurrentUser(required = true) User currentUser) {
+      @CurrentUser(required = true) UserDetails currentUser) {
     return ResponseEntity.ok().cacheControl(noStore()).body(currentUser.getAllAuthorities());
   }
 
@@ -299,7 +310,7 @@ public class MeController {
       value = {"/authorization/{authority}", "/authorities/{authority}"},
       produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Boolean> hasAuthority(
-      @PathVariable String authority, @CurrentUser(required = true) User currentUser) {
+      @PathVariable String authority, @CurrentUser(required = true) UserDetails currentUser) {
     return ResponseEntity.ok().cacheControl(noStore()).body(currentUser.isAuthorized(authority));
   }
 
@@ -348,7 +359,7 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = "text/*")
   public @ResponseBody RootNode verifyPasswordText(
-      @RequestBody String password, @CurrentUser(required = true) User currentUser)
+      @RequestBody String password, @CurrentUser(required = true) UserDetails currentUser)
       throws ConflictException {
     return verifyPasswordInternal(password, currentUser);
   }
@@ -356,7 +367,7 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/validatePassword", consumes = "text/*")
   public @ResponseBody RootNode validatePasswordText(
-      @RequestBody String password, @CurrentUser(required = true) User currentUser)
+      @RequestBody String password, @CurrentUser(required = true) UserDetails currentUser)
       throws ConflictException {
     return validatePasswordInternal(password, currentUser);
   }
@@ -364,7 +375,7 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = APPLICATION_JSON_VALUE)
   public @ResponseBody RootNode verifyPasswordJson(
-      @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
+      @RequestBody Map<String, String> body, @CurrentUser(required = true) UserDetails currentUser)
       throws ConflictException {
     return verifyPasswordInternal(body.get("password"), currentUser);
   }
@@ -399,7 +410,7 @@ public class MeController {
   // Supportive methods
   // ------------------------------------------------------------------------------------------------
 
-  private RootNode verifyPasswordInternal(String password, User currentUser)
+  private RootNode verifyPasswordInternal(String password, UserDetails currentUser)
       throws ConflictException {
     if (password == null) {
       throw new ConflictException("Required attribute 'password' missing or null.");
@@ -413,7 +424,7 @@ public class MeController {
     return rootNode;
   }
 
-  private RootNode validatePasswordInternal(String password, User currentUser)
+  private RootNode validatePasswordInternal(String password, UserDetails currentUser)
       throws ConflictException {
     if (password == null) {
       throw new ConflictException("Required attribute 'password' missing or null.");
@@ -434,7 +445,7 @@ public class MeController {
     return rootNode;
   }
 
-  private void merge(User currentUser, User user) {
+  private void merge(User currentUser, User user) throws ConflictException {
     currentUser.setFirstName(stringWithDefault(user.getFirstName(), currentUser.getFirstName()));
     currentUser.setSurname(stringWithDefault(user.getSurname(), currentUser.getSurname()));
     currentUser.setEmail(stringWithDefault(user.getEmail(), currentUser.getEmail()));
@@ -445,7 +456,18 @@ public class MeController {
         stringWithDefault(user.getIntroduction(), currentUser.getIntroduction()));
     currentUser.setGender(stringWithDefault(user.getGender(), currentUser.getGender()));
 
-    currentUser.setAvatar(user.getAvatar() != null ? user.getAvatar() : currentUser.getAvatar());
+    FileResource newAvatar = null;
+    if (user.getAvatar() != null) {
+      newAvatar = fileResourceService.getFileResource(user.getAvatar().getUid());
+      if (newAvatar == null) {
+        throw new ConflictException("File does not exist");
+      }
+
+      if (!newAvatar.getCreatedBy().getUid().equals(currentUser.getUid())) {
+        throw new ConflictException("Not the owner of the file");
+      }
+    }
+    currentUser.setAvatar(newAvatar != null ? newAvatar : currentUser.getAvatar());
 
     currentUser.setSkype(stringWithDefault(user.getSkype(), currentUser.getSkype()));
     currentUser.setFacebookMessenger(

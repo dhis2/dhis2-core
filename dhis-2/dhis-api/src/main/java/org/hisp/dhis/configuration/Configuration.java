@@ -35,9 +35,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -90,6 +92,9 @@ public class Configuration implements Serializable {
   private OrganisationUnitLevel facilityOrgUnitLevel;
 
   private Set<String> corsWhitelist = new HashSet<>();
+
+  /** Set of periods used in data output (analytics). */
+  private Set<PeriodType> dataOutputPeriodTypes = new LinkedHashSet<>();
 
   // -------------------------------------------------------------------------
   // Constructor
@@ -167,7 +172,7 @@ public class Configuration implements Serializable {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public IndicatorGroup getInfrastructuralIndicators() {
     return infrastructuralIndicators;
@@ -178,7 +183,7 @@ public class Configuration implements Serializable {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElementGroup getInfrastructuralDataElements() {
     return infrastructuralDataElements;
@@ -257,5 +262,15 @@ public class Configuration implements Serializable {
   @JsonProperty
   public Set<String> getCorsAllowlist() {
     return getCorsWhitelist(); // just an alias
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Set<PeriodType> getDataOutputPeriodTypes() {
+    return dataOutputPeriodTypes;
+  }
+
+  public void setDataOutputPeriodTypes(Set<PeriodType> dataOutputPeriodTypes) {
+    this.dataOutputPeriodTypes = dataOutputPeriodTypes;
   }
 }

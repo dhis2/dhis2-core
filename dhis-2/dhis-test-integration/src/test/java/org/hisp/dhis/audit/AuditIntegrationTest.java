@@ -30,10 +30,10 @@
 package org.hisp.dhis.audit;
 
 import static org.awaitility.Awaitility.await;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,8 +44,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
 import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
 import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
@@ -55,9 +56,13 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataDumpService;
-import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.DataEntrySummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -66,14 +71,12 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.route.Route;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.junit.jupiter.api.Disabled;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -95,7 +98,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
       override.put("audit.database", "true");
       override.put("audit.metadata", "CREATE");
       override.put("audit.tracker", "CREATE");
-      override.put("audit.aggregate", "CREATE");
+      override.put("audit.aggregate", "UPDATE");
       PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
           new PostgresDhisConfigurationProvider(null);
       postgresDhisConfigurationProvider.addProperties(override);
@@ -109,9 +112,8 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
 
-  @Autowired private TrackedEntityAttributeValueService attributeValueService;
-
   @Autowired private DataDumpService dataDumpService;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private PeriodService periodService;
 
@@ -136,7 +138,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
     AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(dataElement.getUid())).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
@@ -149,7 +151,9 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
   @MethodSource("provideAuthSchemes")
   void testSaveRoute(AuthScheme authScheme) {
     Route route = new Route();
-    route.setUid(BASE_UID);
+    // each parameterized run needs its own UID: audits are written asynchronously
+    // outside the test transaction, so audits for a shared UID leak between runs
+    route.setUid(CodeGenerator.generateUid());
     route.setName("foo");
     route.setAuth(authScheme);
     route.setUrl("http://stub");
@@ -161,7 +165,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
           return null;
         });
     AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(route.getUid())).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     assertFalse(audits.get(0).getData().contains("passw0rd"));
@@ -179,7 +183,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute, trackedEntityType);
     manager.save(trackedEntity);
     AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(trackedEntity.getUid())).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
@@ -190,38 +194,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testSaveTrackedAttributeValue() {
-    OrganisationUnit ou = createOrganisationUnit('A');
-    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
-    manager.save(ou);
-    manager.save(attribute);
-
-    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
-    manager.save(trackedEntityType);
-
-    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute, trackedEntityType);
-    manager.save(trackedEntity);
-    TrackedEntityAttributeValue dataValue =
-        createTrackedEntityAttributeValue('A', trackedEntity, attribute);
-    attributeValueService.addTrackedEntityAttributeValue(dataValue);
-    AuditAttributes attributes = new AuditAttributes();
-    attributes.put("attribute", attribute.getUid());
-    attributes.put("trackedEntity", trackedEntity.getUid());
-    AuditQuery query = AuditQuery.builder().auditAttributes(attributes).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
-    List<Audit> audits = auditService.getAudits(query);
-    assertEquals(1, audits.size());
-    Audit audit = audits.get(0);
-    assertEquals(TrackedEntityAttributeValue.class.getName(), audit.getKlass());
-    assertEquals(attribute.getUid(), audit.getAttributes().get("attribute"));
-    assertEquals(trackedEntity.getUid(), audit.getAttributes().get("trackedEntity"));
-    assertNotNull(audit.getData());
-  }
-
-  @Test
-  @Disabled(
-      "DV audit via hibernate events no longer works with native SQL upserts - waiting for decision on goal with DV audits")
-  void testSaveAggregateDataValue() {
+  void testSaveAggregateDataValue() throws ConflictException {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
@@ -249,23 +222,48 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     manager.save(orgUnitB);
     manager.save(orgUnitC);
     manager.save(orgUnitD);
-    CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
-    categoryService.addCategoryOptionCombo(optionCombo);
-    DataValue dataValueA = createDataValue(dataElementA, periodA, orgUnitA, "1", optionCombo);
-    DataValue dataValueB = createDataValue(dataElementB, periodB, orgUnitB, "2", optionCombo);
-    DataValue dataValueC = createDataValue(dataElementC, periodC, orgUnitC, "3", optionCombo);
-    DataValue dataValueD = createDataValue(dataElementD, periodD, orgUnitD, "4", optionCombo);
-    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
+
+    DataSet ds = createDataSet('A', periodService.getPeriodType(PeriodTypeEnum.MONTHLY));
+    ds.addDataSetElement(dataElementA);
+    ds.addDataSetElement(dataElementB);
+    ds.addDataSetElement(dataElementC);
+    ds.addDataSetElement(dataElementD);
+    ds.addOrganisationUnit(orgUnitA);
+    ds.addOrganisationUnit(orgUnitB);
+    ds.addOrganisationUnit(orgUnitC);
+    ds.addOrganisationUnit(orgUnitD);
+    manager.save(ds);
+
+    List<DataEntryValue> values =
+        List.of(
+            createDataValue(dataElementA, periodA, orgUnitA, "1"),
+            createDataValue(dataElementB, periodB, orgUnitB, "2"),
+            createDataValue(dataElementC, periodC, orgUnitC, "3"),
+            createDataValue(dataElementD, periodD, orgUnitD, "4"));
+
+    DataEntrySummary summary =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(),
+            new DataEntryGroup(values),
+            RecordingJobProgress.transitory());
+
+    assertEquals(4, summary.succeeded());
+
     AuditAttributes attributes = new AuditAttributes();
     attributes.put("dataElement", dataElementA.getUid());
     AuditQuery query = AuditQuery.builder().auditAttributes(attributes).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
-    assertEquals(DataValue.class.getName(), audit.getKlass());
     assertEquals(dataElementA.getUid(), audit.getAttributes().get("dataElement"));
     assertNotNull(audit.getData());
+  }
+
+  public static DataEntryValue createDataValue(
+      DataElement dataElement, Period period, OrganisationUnit source, String value) {
+    return new DataEntryValue(
+        0, UID.of(dataElement), UID.of(source), null, null, period, value, null, null, null);
   }
 
   @Test
@@ -279,7 +277,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     programStage.addDataElement(dataElement, 0);
     manager.save(programStage);
     AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(programStage.getUid())).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
@@ -315,7 +313,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
           return null;
         });
     AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(dataSet.getUid())).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
@@ -326,9 +324,5 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     assertNotNull(deserializeProgramStage.get("dataSetElements"));
     List<String> uids = (List<String>) deserializeProgramStage.get("dataSetElements");
     assertEquals(1, uids.size());
-  }
-
-  private void addDataValues(DataValue... values) {
-    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

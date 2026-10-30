@@ -30,6 +30,8 @@
 package org.hisp.dhis.datastatistics.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -39,19 +41,21 @@ import org.hisp.dhis.datastatistics.DataStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsStore;
 import org.hisp.dhis.datastatistics.EventInterval;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
+ * @author Jason P. Pickering
  */
 @Slf4j
 @Repository("org.hisp.dhis.datastatistics.DataStatisticsStore")
 public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectStore<DataStatistics>
     implements DataStatisticsStore {
+
   public HibernateDataStatisticsStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -67,173 +71,217 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
   @Override
   public List<AggregatedStatistics> getSnapshotsInInterval(
       EventInterval eventInterval, Date startDate, Date endDate) {
-    final String sql = getQuery(eventInterval, startDate, endDate);
 
-    log.debug("Get snapshots SQL: " + sql);
+    final String sql = getQuery(eventInterval);
 
-    return jdbcTemplate.query(
-        sql,
-        (resultSet, i) -> {
-          AggregatedStatistics ads = new AggregatedStatistics();
+    log.debug("Get snapshots SQL: {}", sql);
 
-          ads.setYear(resultSet.getInt("yr"));
+    PreparedStatementSetter pss =
+        ps -> {
+          ps.setTimestamp(1, new java.sql.Timestamp(startDate.getTime()));
+          ps.setTimestamp(2, new java.sql.Timestamp(endDate.getTime()));
+        };
 
-          if (eventInterval == EventInterval.DAY) {
-            ads.setDay(resultSet.getInt("day"));
-            ads.setMonth(resultSet.getInt("mnt"));
-          } else if (eventInterval == EventInterval.WEEK) {
-            ads.setWeek(resultSet.getInt("week"));
-          } else if (eventInterval == EventInterval.MONTH) {
-            ads.setMonth(resultSet.getInt("mnt"));
-          }
-
-          ads.setMapViews(resultSet.getInt("mapViews"));
-          ads.setVisualizationViews(resultSet.getInt("visualizationViews"));
-          ads.setEventReportViews(resultSet.getInt("eventReportViews"));
-          ads.setEventChartViews(resultSet.getInt("eventChartViews"));
-          ads.setEventVisualizationViews(resultSet.getInt("eventVisualizationViews"));
-          ads.setDashboardViews(resultSet.getInt("dashboardViews"));
-          ads.setPassiveDashboardViews(resultSet.getInt("passiveDashboardViews"));
-          ads.setDataSetReportViews(resultSet.getInt("dataSetReportViews"));
-          ads.setTotalViews(resultSet.getInt("totalViews"));
-          ads.setAverageViews(resultSet.getInt("averageViews"));
-          ads.setAverageMapViews(resultSet.getInt("averageMapViews"));
-          ads.setAverageVisualizationViews(resultSet.getInt("averageVisualizationViews"));
-          ads.setAverageEventReportViews(resultSet.getInt("averageEventReportViews"));
-          ads.setAverageEventChartViews(resultSet.getInt("averageEventChartViews"));
-          ads.setAverageEventVisualizationViews(resultSet.getInt("averageEventVisualizationViews"));
-          ads.setAverageDashboardViews(resultSet.getInt("averageDashboardViews"));
-          ads.setAveragePassiveDashboardViews(resultSet.getInt("averagePassiveDashboardViews"));
-          ads.setSavedMaps(resultSet.getInt("savedMaps"));
-          ads.setSavedVisualizations(resultSet.getInt("savedVisualizations"));
-          ads.setSavedEventReports(resultSet.getInt("savedEventReports"));
-          ads.setSavedEventCharts(resultSet.getInt("savedEventCharts"));
-          ads.setSavedEventVisualizations(resultSet.getInt("savedEventVisualizations"));
-          ads.setSavedDashboards(resultSet.getInt("savedDashboards"));
-          ads.setSavedIndicators(resultSet.getInt("savedIndicators"));
-          ads.setSavedDataValues(resultSet.getInt("savedDataValues"));
-          ads.setActiveUsers(resultSet.getInt("activeUsers"));
-          ads.setUsers(resultSet.getInt("users"));
-
-          return ads;
-        });
+    return jdbcTemplate.query(sql, pss, (rs, i) -> mapAggregatedStatistics(rs, eventInterval));
   }
 
-  private String getQuery(EventInterval eventInterval, Date startDate, Date endDate) {
-    String sql;
+  private static String byYearSql() {
+    return """
+        WITH filtered AS (
+            SELECT *
+            FROM datastatistics
+            WHERE created >= ? AND created <= ?
+        ),
+        bucketed AS (
+            SELECT date_trunc('year', created) AS period, *
+            FROM filtered
+        )
+        SELECT period,
+               EXTRACT(YEAR FROM period)::int AS yr,
+               %s
+        FROM bucketed
+        GROUP BY period, yr
+        ORDER BY period
+        """
+        .formatted(COMMON_SELECT_LIST);
+  }
 
-    if (eventInterval == EventInterval.DAY) {
-      sql = getDaySql(startDate, endDate);
-    } else if (eventInterval == EventInterval.WEEK) {
-      sql = getWeekSql(startDate, endDate);
-    } else if (eventInterval == EventInterval.MONTH) {
-      sql = getMonthSql(startDate, endDate);
-    } else if (eventInterval == EventInterval.YEAR) {
-      sql = getYearSql(startDate, endDate);
-    } else {
-      sql = getDaySql(startDate, endDate);
+  private static String byMonthSql() {
+    return """
+        WITH filtered AS (
+            SELECT *
+            FROM datastatistics
+            WHERE created >= ? AND created <= ?
+        ),
+        bucketed AS (
+            SELECT date_trunc('month', created) AS period, *
+            FROM filtered
+        )
+        SELECT period,
+               EXTRACT(YEAR  FROM period)::int AS yr,
+               EXTRACT(MONTH FROM period)::int AS mnt,
+               %s
+        FROM bucketed
+        GROUP BY period, yr, mnt
+        ORDER BY period
+        """
+        .formatted(COMMON_SELECT_LIST);
+  }
+
+  private static String byWeekSql() {
+    return """
+        WITH filtered AS (
+            SELECT *
+            FROM datastatistics
+            WHERE created >= ? AND created <= ?
+        ),
+        bucketed AS (
+            SELECT date_trunc('week', created) AS period, *
+            FROM filtered
+        )
+        SELECT period,
+               EXTRACT(ISOYEAR FROM period)::int AS isoyear,
+               EXTRACT(WEEK    FROM period)::int AS wk,
+               %s
+        FROM bucketed
+        GROUP BY period, isoyear, wk
+        ORDER BY period
+        """
+        .formatted(COMMON_SELECT_LIST);
+  }
+
+  private static String byDaySql() {
+    return """
+        WITH filtered AS (
+            SELECT *
+            FROM datastatistics
+            WHERE created >= ? AND created <= ?
+        ),
+        bucketed AS (
+            SELECT date_trunc('day', created) AS period, *
+            FROM filtered
+        )
+        SELECT period,
+               EXTRACT(YEAR  FROM period)::int AS yr,
+               EXTRACT(MONTH FROM period)::int AS mnt,
+               EXTRACT(DAY   FROM period)::int AS day,
+               %s
+        FROM bucketed
+        GROUP BY period, yr, mnt, day
+        ORDER BY period
+        """
+        .formatted(COMMON_SELECT_LIST);
+  }
+
+  private String getQuery(EventInterval interval) {
+    return switch (interval) {
+      case WEEK -> byWeekSql();
+      case MONTH -> byMonthSql();
+      case YEAR -> byYearSql();
+      default -> byDaySql();
+    };
+  }
+
+  static final String COMMON_SELECT_LIST =
+      """
+        COALESCE(SUM(mapviews), 0)::bigint                AS mapViews,
+        COALESCE(SUM(visualizationviews), 0)::bigint      AS visualizationViews,
+        COALESCE(SUM(eventreportviews), 0)::bigint        AS eventReportViews,
+        COALESCE(SUM(eventchartviews), 0)::bigint         AS eventChartViews,
+        COALESCE(SUM(eventvisualizationviews), 0)::bigint AS eventVisualizationViews,
+        COALESCE(SUM(dashboardviews), 0)::bigint          AS dashboardViews,
+        COALESCE(SUM(passivedashboardviews), 0)::bigint   AS passiveDashboardViews,
+        COALESCE(SUM(datasetreportviews), 0)::bigint      AS dataSetReportViews,
+        COALESCE(MAX(active_users), 0)                    AS activeUsers,
+        COALESCE(SUM(totalviews)::double precision              / NULLIF(MAX(active_users), 0), 0) AS averageViews,
+        COALESCE(SUM(mapviews)::double precision                / NULLIF(MAX(active_users), 0), 0) AS averageMapViews,
+        COALESCE(SUM(visualizationviews)::double precision      / NULLIF(MAX(active_users), 0), 0) AS averageVisualizationViews,
+        COALESCE(SUM(eventreportviews)::double precision        / NULLIF(MAX(active_users), 0), 0) AS averageEventReportViews,
+        COALESCE(SUM(eventchartviews)::double precision         / NULLIF(MAX(active_users), 0), 0) AS averageEventChartViews,
+        COALESCE(SUM(eventvisualizationviews)::double precision / NULLIF(MAX(active_users), 0), 0) AS averageEventVisualizationViews,
+        COALESCE(SUM(dashboardviews)::double precision          / NULLIF(MAX(active_users), 0), 0) AS averageDashboardViews,
+        COALESCE(SUM(passivedashboardviews)::double precision   / NULLIF(MAX(active_users), 0), 0) AS averagePassiveDashboardViews,
+        COALESCE(SUM(totalviews),0)::bigint              AS totalViews,
+        COALESCE(SUM(maps),0)::bigint                    AS savedMaps,
+        COALESCE(SUM(visualizations),0)::bigint          AS savedVisualizations,
+        COALESCE(SUM(eventreports),0)::bigint            AS savedEventReports,
+        COALESCE(SUM(eventcharts),0)::bigint             AS savedEventCharts,
+        COALESCE(SUM(eventvisualizations),0)::bigint     AS savedEventVisualizations,
+        COALESCE(SUM(dashboards),0)::bigint              AS savedDashboards,
+        COALESCE(SUM(indicators),0)::bigint              AS savedIndicators,
+        COALESCE(SUM(datavalues),0)::bigint              AS savedDataValues,
+        COALESCE(MAX(users),0)::bigint                           AS users
+        """;
+
+  private static Integer getNullableInt(ResultSet rs, String column) throws SQLException {
+    int value = rs.getInt(column);
+    return rs.wasNull() ? null : value;
+  }
+
+  private static AggregatedStatistics mapAggregatedStatistics(ResultSet rs, EventInterval interval)
+      throws SQLException {
+
+    Period p = mapPeriod(rs, interval);
+
+    return new AggregatedStatistics(
+        p.year(),
+        p.month(),
+        p.week(),
+        p.day(),
+        rs.getLong("mapViews"),
+        rs.getLong("visualizationViews"),
+        rs.getLong("eventReportViews"),
+        rs.getLong("eventChartViews"),
+        rs.getLong("eventVisualizationViews"),
+        rs.getLong("dashboardViews"),
+        rs.getLong("passiveDashboardViews"),
+        rs.getLong("dataSetReportViews"),
+        rs.getLong("totalViews"),
+        rs.getDouble("averageViews"),
+        rs.getDouble("averageMapViews"),
+        rs.getDouble("averageVisualizationViews"),
+        rs.getDouble("averageEventReportViews"),
+        rs.getDouble("averageEventChartViews"),
+        rs.getDouble("averageEventVisualizationViews"),
+        rs.getDouble("averageDashboardViews"),
+        rs.getDouble("averagePassiveDashboardViews"),
+        rs.getLong("savedMaps"),
+        rs.getLong("savedVisualizations"),
+        rs.getLong("savedEventReports"),
+        rs.getLong("savedEventCharts"),
+        rs.getLong("savedEventVisualizations"),
+        rs.getLong("savedDashboards"),
+        rs.getLong("savedIndicators"),
+        rs.getLong("savedDataValues"),
+        rs.getLong("activeUsers"),
+        rs.getLong("users"));
+  }
+
+  private record Period(Integer year, Integer month, Integer week, Integer day) {}
+
+  private static Period mapPeriod(ResultSet rs, EventInterval interval) throws SQLException {
+    Integer year = null;
+    Integer month = null;
+    Integer week = null;
+    Integer day = null;
+
+    switch (interval) {
+      case YEAR -> year = getNullableInt(rs, "yr");
+      case MONTH -> {
+        year = getNullableInt(rs, "yr");
+        month = getNullableInt(rs, "mnt");
+      }
+      case WEEK -> {
+        year = getNullableInt(rs, "isoyear");
+        week = getNullableInt(rs, "wk");
+      }
+      case DAY -> {
+        year = getNullableInt(rs, "yr");
+        month = getNullableInt(rs, "mnt");
+        day = getNullableInt(rs, "day");
+      }
     }
 
-    return sql;
-  }
-
-  /**
-   * Creating a SQL for retrieving aggregated data with group by YEAR.
-   *
-   * @param start start date
-   * @param end end date
-   * @return SQL string
-   */
-  private String getYearSql(Date start, Date end) {
-    return "select extract(year from created) as yr, "
-        + getCommonSql(start, end)
-        + "group by yr order by yr;";
-  }
-
-  /**
-   * Creating a SQL for retrieving aggregated data with group by YEAR, MONTH.
-   *
-   * @param start start date
-   * @param end end date
-   * @return SQL string
-   */
-  private String getMonthSql(Date start, Date end) {
-    return "select extract(year from created) as yr, "
-        + "extract(month from created) as mnt, "
-        + getCommonSql(start, end)
-        + "group by yr, mnt order by yr, mnt;";
-  }
-
-  /**
-   * Creating a SQL for retrieving aggregated data with group by YEAR, WEEK. Ignoring week 53.
-   *
-   * @param start start date
-   * @param end end date
-   * @return SQL string
-   */
-  private String getWeekSql(Date start, Date end) {
-    return "select extract(year from created) as yr, "
-        + "extract(week from created) as week, "
-        + getCommonSql(start, end)
-        + "and extract(week from created) < 53 "
-        + "group by yr, week order by yr, week;";
-  }
-
-  /**
-   * Creating a SQL for retrieving aggregated data with group by YEAR, DAY.
-   *
-   * @param start start date
-   * @param end end date
-   * @return SQL string
-   */
-  private String getDaySql(Date start, Date end) {
-    return "select extract(year from created) as yr, "
-        + "extract(month from created) as mnt,"
-        + "extract(day from created) as day, "
-        + getCommonSql(start, end)
-        + "group by yr, mnt, day order by yr, mnt, day;";
-  }
-
-  /**
-   * Part of SQL witch is always the same in the different intervals YEAR, MONTH, WEEK and DAY.
-   *
-   * @param start start date
-   * @param end end date
-   * @return SQL string
-   */
-  private String getCommonSql(Date start, Date end) {
-    return "cast(round(cast(sum(mapviews) as numeric),0) as int) as mapViews,"
-        + "cast(round(cast(sum(visualizationviews) as numeric),0) as int) as visualizationViews,"
-        + "cast(round(cast(sum(eventreportviews) as numeric),0) as int) as eventReportViews, "
-        + "cast(round(cast(sum(eventchartviews) as numeric),0) as int) as eventChartViews,"
-        + "cast(round(cast(sum(eventvisualizationviews) as numeric),0) as int) as eventVisualizationViews,"
-        + "cast(round(cast(sum(dashboardviews) as numeric),0) as int) as dashboardViews, "
-        + "cast(round(cast(sum(passivedashboardviews) as numeric),0) as int) as passiveDashboardViews, "
-        + "cast(round(cast(sum(datasetreportviews) as numeric),0) as int) as dataSetReportViews, "
-        + "max(active_users) as activeUsers,"
-        + "coalesce(sum(totalviews)/nullif(max(active_users), 0), 0) as averageViews,"
-        + "coalesce(sum(mapviews)/nullif(max(active_users), 0), 0) as averageMapViews, "
-        + "coalesce(sum(visualizationviews)/nullif(max(active_users), 0), 0) as averageVisualizationViews, "
-        + "coalesce(sum(eventreportviews)/nullif(max(active_users), 0), 0) as averageEventReportViews, "
-        + "coalesce(sum(eventchartviews)/nullif(max(active_users), 0), 0) as averageEventChartViews, "
-        + "coalesce(sum(eventvisualizationviews)/nullif(max(active_users), 0), 0) as averageEventVisualizationViews, "
-        + "coalesce(sum(dashboardviews)/nullif(max(active_users), 0), 0) as averageDashboardViews, "
-        + "coalesce(sum(passivedashboardviews)/nullif(max(active_users), 0), 0) as averagePassiveDashboardViews, "
-        + "cast(round(cast(sum(totalviews) as numeric),0) as int) as totalViews,"
-        + "cast(round(cast(sum(maps) as numeric),0) as int) as savedMaps,"
-        + "cast(round(cast(sum(visualizations) as numeric),0) as int) as savedVisualizations,"
-        + "cast(round(cast(sum(eventreports) as numeric),0) as int) as savedEventReports,"
-        + "cast(round(cast(sum(eventcharts) as numeric),0) as int) as savedEventCharts,"
-        + "cast(round(cast(sum(eventvisualizations) as numeric),0) as int) as savedEventVisualizations,"
-        + "cast(round(cast(sum(dashboards) as numeric),0) as int) as savedDashboards, "
-        + "cast(round(cast(sum(indicators) as numeric),0) as int) as savedIndicators,"
-        + "cast(round(cast(sum(datavalues) as numeric),0) as int) as savedDataValues,"
-        + "max(users) as users from datastatistics "
-        + "where created >= '"
-        + DateUtils.toLongDate(start)
-        + "' "
-        + "and created <= '"
-        + DateUtils.toLongDate(end)
-        + "' ";
+    return new Period(year, month, week, day);
   }
 }

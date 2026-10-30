@@ -43,7 +43,6 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -274,7 +273,7 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
   @Test
   public void queryRandomquery12() throws JSONException {
 
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -299,8 +298,8 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         8,
-        17,
-        14); // Pass runtime flag, row count, and expected header counts
+        18,
+        15); // Pass runtime flag, row count, and expected header counts
 
     List<Map<String, Object>> actualHeaders =
         response.extractList("headers", Map.class).stream()
@@ -336,8 +335,6 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,

@@ -31,9 +31,9 @@ package org.hisp.dhis.startup;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Locale;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;

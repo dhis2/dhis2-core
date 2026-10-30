@@ -43,6 +43,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -62,6 +63,7 @@ import org.springframework.stereotype.Component;
 public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<JobConfiguration> {
 
   private final JobConfigurationService jobConfigurationService;
+  private final ProgramService programService;
 
   @Override
   public void validate(

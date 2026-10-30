@@ -1,0 +1,173 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.webapi.security.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.jwk.JWKSet;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.security.oauth2.OAuth2Constants;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.security.oauth2.server.authorization.oidc.OidcClientRegistration;
+import org.springframework.security.oauth2.server.authorization.oidc.converter.OidcClientRegistrationRegisteredClientConverter;
+import org.springframework.security.oauth2.server.authorization.oidc.converter.RegisteredClientOidcClientRegistrationConverter;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
+
+/**
+ * Support for inline JWKS in OIDC Dynamic Client Registration (DCR).
+ *
+ * <p>This allows clients to register their public keys directly in the registration request,
+ * instead of hosting them at a URL. The keys are stored in the database as a JSON string in the
+ * client settings JSONB column, and exposed back as an Java object in the client info response.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Slf4j
+final class InlineJwksClientMetadataConfig {
+
+  public static final String CLIENT_INLINE_JWKS = "client.inline.jwks";
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+  /** Converter used when registering a new client '/connect/register' (DCR POST). */
+  public static class RegisteredClientConverter
+      implements Converter<OidcClientRegistration, RegisteredClient> {
+
+    private final OidcClientRegistrationRegisteredClientConverter delegate =
+        new OidcClientRegistrationRegisteredClientConverter();
+
+    private final Duration refreshTokenTtl;
+
+    public RegisteredClientConverter(Duration refreshTokenTtl) {
+      this.refreshTokenTtl = refreshTokenTtl;
+    }
+
+    @Override
+    public RegisteredClient convert(OidcClientRegistration reg) {
+      // Let SAS map standard fields first
+      RegisteredClient rc = delegate.convert(reg);
+
+      // Copy current client settings so we can add our own.
+      // Override the SAS default of requireAuthorizationConsent(true) — DCR-registered clients
+      // are first-party (e.g. Android app) authenticating with their own DHIS2 server,
+      // so no end-user consent prompt is needed.
+      // requireProofKey(true) is SAS 7's builder default but is set explicitly: DCR-registered
+      // authorization-code clients (Android devices) must use S256 PKCE (PR-H).
+      ClientSettings.Builder cs = ClientSettings.withSettings(rc.getClientSettings().getSettings());
+      cs.requireAuthorizationConsent(false);
+      cs.requireProofKey(true);
+      Map<String, Object> claims = reg.getClaims();
+
+      // Accept optional "token_endpoint_auth_signing_alg": "RS256"
+      Object alg = claims.get("token_endpoint_auth_signing_alg");
+      if (alg instanceof String s && SignatureAlgorithm.from(s) != null) {
+        cs.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.from(s));
+      }
+
+      // Copy, convert and validate the inline JWKS into a JSON string
+      Object jwks = claims.get("jwks");
+      if (jwks != null) {
+        try {
+          String jwksJson = OBJECT_MAPPER.writeValueAsString(jwks);
+          // Validation
+          JWKSet.parse(jwksJson);
+          cs.setting(CLIENT_INLINE_JWKS, jwksJson);
+        } catch (Exception e) {
+          throw new IllegalArgumentException("Invalid inline 'jwks' in registration", e);
+        }
+      } else {
+        throw new IllegalArgumentException("'jwks' must be provided in registration");
+      }
+
+      // The SAS delegate leaves token settings at framework defaults: refresh token TTL 60
+      // minutes with reuseRefreshTokens(true), i.e. no rotation and no expiry extension on
+      // refresh, which forces re-authentication one hour after the initial login. DCR-registered
+      // clients are long-lived native apps (Android devices), so use the configured TTL
+      // (oauth2.server.dcr.refresh-token-ttl) and rotate the refresh token on every use, as
+      // required for public clients by OAuth 2.1. Rotation makes the TTL a sliding window.
+      TokenSettings tokenSettings =
+          TokenSettings.withSettings(rc.getTokenSettings().getSettings())
+              .refreshTokenTimeToLive(refreshTokenTtl)
+              .reuseRefreshTokens(false)
+              .build();
+
+      // SAS 7 forbids "scope" on DCR requests; assign the server-side first-party defaults
+      // (openid, profile, username — see OAuth2Constants.DCR_DEFAULT_SCOPES) so authorize and
+      // token requests have usable scopes. Defense-in-depth: any scopes that somehow arrive on
+      // the registration are filtered against the allowed-client-scope set.
+      RegisteredClient.Builder builder =
+          RegisteredClient.from(rc).clientSettings(cs.build()).tokenSettings(tokenSettings);
+      if (rc.getScopes() == null || rc.getScopes().isEmpty()) {
+        OAuth2Constants.DCR_DEFAULT_SCOPES.forEach(builder::scope);
+      } else {
+        builder.scopes(
+            scopes -> scopes.removeIf(scope -> !OAuth2Constants.isAllowedClientScope(scope)));
+      }
+      return builder.build();
+    }
+  }
+
+  /** Converter used when reading a client. Puts custom settings back into claims. */
+  public static class ClientRegistrationConverter
+      implements Converter<RegisteredClient, OidcClientRegistration> {
+
+    private final RegisteredClientOidcClientRegistrationConverter delegate =
+        new RegisteredClientOidcClientRegistrationConverter();
+
+    @Override
+    public OidcClientRegistration convert(RegisteredClient rc) {
+      OidcClientRegistration out = delegate.convert(rc);
+
+      Map<String, Object> claims = new HashMap<>(out.getClaims());
+      var settings = rc.getClientSettings();
+
+      var alg = settings.getTokenEndpointAuthenticationSigningAlgorithm();
+      if (alg != null) {
+        claims.put("token_endpoint_auth_signing_alg", alg.getName());
+      }
+
+      Object inline = settings.getSetting(CLIENT_INLINE_JWKS);
+      if (inline instanceof String s && !s.isBlank()) {
+        try {
+          claims.put("jwks", OBJECT_MAPPER.readValue(s, Map.class));
+        } catch (Exception ignore) {
+          log.error("Failed to parse stored inline JWKS for client {}", rc.getClientId());
+          // ignore, should not happen since we validate on input
+        }
+      }
+
+      return OidcClientRegistration.withClaims(claims).build();
+    }
+  }
+}

@@ -77,7 +77,7 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"},\"YuQRtpLP10I\":{\"name\":\"Badjia\"}},\"dimensions\":{\"pe\":[\"2023\",\"2022\"],\"ou\":[\"YuQRtpLP10I\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"},\"YuQRtpLP10I\":{\"name\":\"Badjia\"}},\"dimensions\":{\"pe\":[\"2023\",\"2022\"],\"ou\":[\"YuQRtpLP10I\"],\"A03MvHHogjR.cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -97,7 +97,7 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void queryAggregatedenrollmentsbirthgenderthisyearlast12monthslevel3org()
+  public void queryAggregatedenrollmentsbirthgenderthisyearlast12MonthsLevel3org()
       throws JSONException {
     // Given
     QueryParamsBuilder params =
@@ -117,14 +117,14 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(4)))
-        .body("rows", hasSize(equalTo(24)))
-        .body("height", equalTo(24))
+        .body("rows", hasSize(equalTo(17)))
+        .body("height", equalTo(17))
         .body("width", equalTo(4))
         .body("headerWidth", equalTo(4));
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"202208\":{\"name\":\"August 2022\"},\"202307\":{\"name\":\"July 2023\"},\"2023\":{\"name\":\"2023\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"YuQRtpLP10I\":{\"name\":\"Badjia\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"202211\":{\"name\":\"November 2022\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"}},\"dimensions\":{\"pe\":[\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\",\"202307\",\"2023\"],\"ou\":[\"YuQRtpLP10I\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}\n";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"202208\":{\"name\":\"August 2022\"},\"202307\":{\"name\":\"July 2023\"},\"2023\":{\"name\":\"2023\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"YuQRtpLP10I\":{\"name\":\"Badjia\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"202211\":{\"name\":\"November 2022\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"}},\"dimensions\":{\"pe\":[\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\",\"202307\",\"2023\"],\"ou\":[\"YuQRtpLP10I\"],\"A03MvHHogjR.cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}\n";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -150,15 +150,9 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("1", "YuQRtpLP10I", "202305", "Female"));
     validateRow(response, List.of("1", "YuQRtpLP10I", "202305", ""));
     validateRow(response, List.of("1", "YuQRtpLP10I", "202306", "Female"));
-    validateRow(response, List.of("1", "YuQRtpLP10I", "202309", "Male"));
-    validateRow(response, List.of("1", "YuQRtpLP10I", "202310", "Female"));
-    validateRow(response, List.of("1", "YuQRtpLP10I", "202311", "Female"));
-    validateRow(response, List.of("2", "YuQRtpLP10I", "202312", "Female"));
-    validateRow(response, List.of("9", "YuQRtpLP10I", "2022", "Female"));
-    validateRow(response, List.of("8", "YuQRtpLP10I", "2022", "Male"));
-    validateRow(response, List.of("1", "YuQRtpLP10I", "2022", ""));
     validateRow(response, List.of("10", "YuQRtpLP10I", "2023", "Female"));
     validateRow(response, List.of("7", "YuQRtpLP10I", "2023", "Male"));
+    validateRow(response, List.of("1", "YuQRtpLP10I", "2023", ""));
   }
 
   @Test
@@ -188,7 +182,7 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"},\"2023\":{\"name\":\"2023\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"}},\"dimensions\":{\"pe\":[\"2023\"],\"ou\":[\"kJq2mPyFEHo\",\"O6uvpzGd5pu\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"},\"2023\":{\"name\":\"2023\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"}},\"dimensions\":{\"pe\":[\"2023\"],\"ou\":[\"kJq2mPyFEHo\",\"O6uvpzGd5pu\"],\"A03MvHHogjR.cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

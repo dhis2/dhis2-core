@@ -441,4 +441,59 @@ public class DefaultCacheProvider implements CacheProvider {
             .forceInMemory()
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
   }
+
+  /**
+   * Cache for CORS whitelist to avoid database lookups on every HTTP request. Expires after 5
+   * minutes to pick up configuration changes.
+   */
+  @Override
+  public <V> Cache<V> createCorsWhitelistCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.corsWhitelistCache.name())
+            .expireAfterWrite(5, MINUTES)
+            .withInitialCapacity((int) getActualSize(SIZE_1))
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1))));
+  }
+
+  @Override
+  public <V> Cache<V> createNotificationTemplateCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.notificationTemplateCache.name())
+            .expireAfterAccess(12, HOURS)
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_100))));
+  }
+
+  @Override
+  public <V> Cache<V> createSystemStatisticsOverviewCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.systemStatisticsOverview.name())
+            .expireAfterWrite(5, MINUTES)
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(1)));
+  }
+
+  @Override
+  public <V> Cache<V> createSystemStatisticsDataCountsCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.systemStatisticsDataCounts.name())
+            .expireAfterWrite(30, MINUTES)
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(1)));
+  }
+
+  @Override
+  public <V> Cache<V> createDataSummarySessionGaugesCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.dataSummarySessionGauges.name())
+            .expireAfterWrite(60, TimeUnit.SECONDS)
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(1)));
+  }
 }

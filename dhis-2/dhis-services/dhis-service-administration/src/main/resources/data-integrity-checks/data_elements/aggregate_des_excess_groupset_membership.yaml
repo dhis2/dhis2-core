@@ -26,7 +26,7 @@
 #
 ---
 name: data_elements_violating_exclusive_group_sets
-description: Data elements which belong to multiple groups in a group set.
+description: Data elements which belong to multiple groups in a group set
 section: Data elements (aggregate)
 section_order: 10
 summary_sql: >-

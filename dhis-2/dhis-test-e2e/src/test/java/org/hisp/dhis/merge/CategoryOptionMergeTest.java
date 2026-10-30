@@ -63,7 +63,7 @@ class CategoryOptionMergeTest extends ApiTest {
   private final String targetUid = "UIDCatOpt3A";
 
   @BeforeAll
-  public void before() {
+  void before() {
     userActions = new UserActions();
     loginActions = new LoginActions();
     categoryOptionApiActions = new RestApiActions("categoryOptions");
@@ -83,7 +83,7 @@ class CategoryOptionMergeTest extends ApiTest {
   }
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     loginActions.loginAsSuperUser();
     setupMetadata();
   }

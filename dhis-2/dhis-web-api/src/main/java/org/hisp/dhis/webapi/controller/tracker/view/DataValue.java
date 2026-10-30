@@ -52,8 +52,6 @@ public class DataValue {
 
   @JsonProperty private Instant updatedAt;
 
-  @JsonProperty private String storedBy;
-
   @JsonProperty private boolean providedElsewhere;
 
   @OpenApi.Property({UID.class, DataElement.class})

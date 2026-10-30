@@ -32,7 +32,6 @@ package org.hisp.dhis.analytics.common.params.dimension;
 import static java.util.Objects.nonNull;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.STATIC;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.byForeignType;
@@ -63,6 +62,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityHeaderProvider;
 import org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityStaticField;
@@ -183,6 +183,13 @@ public class DimensionParam implements UidObject {
   }
 
   /**
+   * @return true if this DimensionParam is a query item backed by an option set.
+   */
+  public boolean hasOptionSet() {
+    return isQueryItem() && queryItem.hasOptionSet();
+  }
+
+  /**
    * Returns the type of the current {@link DimensionParam} instance.
    *
    * @return the respective {@link DimensionParamObjectType}.
@@ -275,10 +282,9 @@ public class DimensionParam implements UidObject {
         "incidentdate"),
     OCCURREDDATE("Occurred Date", DATETIME, DimensionParamObjectType.PERIOD),
     LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD, TrackedEntityStaticField.LAST_UPDATED),
-    LASTUPDATEDBYDISPLAYNAME("Last Updated By", TEXT, STATIC),
+    LASTUPDATEDBYDISPLAYNAME("Last updated by", TEXT, STATIC),
     CREATED("Created", DATETIME, DimensionParamObjectType.PERIOD),
-    CREATEDBYDISPLAYNAME("Created By", TEXT, STATIC),
-    STOREDBY("Stored By", TEXT, STATIC),
+    CREATEDBYDISPLAYNAME("Created by", TEXT, STATIC),
     ENROLLMENT_STATUS("Enrollment Status", TEXT, STATIC, null, "enrollmentstatus"),
     PROGRAM_STATUS(
         "Program Status",
@@ -287,7 +293,20 @@ public class DimensionParam implements UidObject {
         null,
         "enrollmentstatus",
         "programstatus"), /* this enum is an alias for ENROLLMENT_STATUS */
-    EVENT_STATUS("Event Status", TEXT, STATIC, null, "status", "eventstatus");
+    EVENT_STATUS("Event Status", TEXT, STATIC, null, "status", "eventstatus"),
+
+    EVENT_DATE(
+        "Event Date", DATETIME, DimensionParamObjectType.PERIOD, null, "occurreddate", "eventdate"),
+
+    SCHEDULED_DATE(
+        "Scheduled Date",
+        DATETIME,
+        DimensionParamObjectType.PERIOD,
+        null,
+        "scheduleddate",
+        "scheduleddate"),
+
+    OU("Organisation unit", TEXT, ORGANISATION_UNIT, null, "ou", "ou");
 
     private final String headerColumnName;
 
@@ -380,11 +399,13 @@ public class DimensionParam implements UidObject {
       // Finally check if the value matches the column name.
       return Stream.<BiPredicate<StaticDimension, String>>of(
               // First checks if the value matches the name.
-              (sd, v) -> equalsIgnoreCase(sd.name(), v),
+              (sd, v) -> Strings.CI.equals(sd.name(), v),
               // Then checks if the value matches the normalized name.
-              (sd, v) -> equalsIgnoreCase(sd.normalizedName(), v),
+              (sd, v) -> Strings.CI.equals(sd.normalizedName(), v),
+              // Then checks if the normalized input matches the normalized name.
+              (sd, v) -> Strings.CI.equals(sd.normalizedName(), normalizeInput(v)),
               // And finally checks if the value matches the column name.
-              (sd, v) -> equalsIgnoreCase(sd.columnName, v))
+              (sd, v) -> Strings.CI.equals(sd.columnName, v))
           .map(
               predicate ->
                   Arrays.stream(StaticDimension.values())
@@ -395,6 +416,10 @@ public class DimensionParam implements UidObject {
           .findFirst();
     }
 
+    private static String normalizeInput(String value) {
+      return value == null ? null : value.toLowerCase().replace("_", "");
+    }
+
     @Override
     public String getAlias() {
       return Optional.ofNullable(teStaticField)
@@ -402,11 +427,16 @@ public class DimensionParam implements UidObject {
           .orElse(name());
     }
 
+    /**
+     * The display label of this dimension. Falls back to the header column name so a dimension
+     * without a backing {@link TrackedEntityStaticField} still reads as a label rather than as the
+     * raw enum constant.
+     */
     @Override
     public String getFullName() {
       return Optional.ofNullable(teStaticField)
           .map(TrackedEntityStaticField::getFullName)
-          .orElse(name());
+          .orElseGet(() -> StringUtils.isNotBlank(headerColumnName) ? headerColumnName : name());
     }
 
     @Override

@@ -34,7 +34,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
-import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -57,18 +57,18 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonDiff.Mode;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
@@ -175,13 +175,15 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   @MethodSource("getEnrollment")
   void shouldGetEnrollmentWithNotes(BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
-    assertNotEmpty(enrollment.getNotes(), "test expects an enrollment with notes");
+    assertNotEmpty(
+        trackerObjects.findEnrollment(UID.of(enrollment)).orElseThrow().getNotes(),
+        "test expects an enrollment with notes");
 
     JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "notes");
 
     JsonNote note = jsonEnrollment.getNotes().get(0);
     assertEquals("f9423652692", note.getNote());
-    assertEquals("enrollment comment value", note.getValue());
+    assertEquals("enrollment comment value", note.value());
   }
 
   @ParameterizedTest
@@ -198,12 +200,27 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertHasOnlyMembers(jsonEnrollment, "attributes");
     JsonAttribute attribute = jsonEnrollment.getAttributes().get(0);
     assertEquals(ptea.getUid(), attribute.getAttribute());
-    assertEquals("Frank PTEA", attribute.getValue());
+    assertEquals("Frank PTEA", attribute.value());
     assertEquals(ValueType.TEXT.name(), attribute.getValueType());
     assertHasMember(attribute, "createdAt");
     assertHasMember(attribute, "updatedAt");
     assertHasMember(attribute, "displayName");
     assertHasMember(attribute, "code");
+  }
+
+  @ParameterizedTest
+  @MethodSource("getEnrollment")
+  void shouldGetEnrollmentWithAttributeOptionCombo(
+      BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
+    Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
+    assertNotNull(
+        enrollment.getAttributeOptionCombo(),
+        "test expects an enrollment with an attribute option combo");
+
+    JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "attributeOptionCombo");
+    assertHasOnlyMembers(jsonEnrollment, "attributeOptionCombo");
+    assertEquals(
+        enrollment.getAttributeOptionCombo().getUid(), jsonEnrollment.getAttributeOptionCombo());
   }
 
   @Test
@@ -413,7 +430,7 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
                   eventDataValue.getDataElement());
           assertEquals(
               eventDataValue.getValue(),
-              jsonDataValue.getValue(),
+              jsonDataValue.value(),
               "data value for data element " + eventDataValue.getDataElement());
         },
         () -> assertHasMember(jsonEvent, "status"),

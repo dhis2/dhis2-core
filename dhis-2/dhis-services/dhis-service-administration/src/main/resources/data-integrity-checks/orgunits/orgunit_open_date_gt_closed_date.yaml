@@ -26,7 +26,7 @@
 #
 ---
 name: orgunits_openingdate_gt_closeddate
-description: Organisation units which have an opening date later than the closed date.
+description: Organisation units which have an opening date after the closed date
 section: Organisation units
 summary_sql: >-
   with orgunit_future_opening_date as (select uid,name,openingdate,closeddate

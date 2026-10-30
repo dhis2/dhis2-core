@@ -39,6 +39,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.DataDimensionItem;
@@ -53,7 +54,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -66,7 +67,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/visualizations")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
 public class VisualizationController
-    extends AbstractCrudController<Visualization, GetObjectListParams> {
+    extends AbstractCrudController<Visualization, GetObjectListParams>
+    implements FavoritableOperations<Visualization> {
+
   private final LegendSetService legendSetService;
 
   private final DimensionService dimensionService;
@@ -162,8 +165,8 @@ public class VisualizationController
           }
 
           if (isNotEmpty(visualization.getPeriods())) {
-            for (Period period : visualization.getPeriods()) {
-              period.setName(i18nFormat.formatPeriod(period));
+            for (PeriodDimension period : visualization.getPeriods()) {
+              period.setName(i18nFormat.formatPeriod(period.getPeriod()));
             }
           }
 
@@ -189,8 +192,8 @@ public class VisualizationController
       I18nFormat i18nFormat = i18nManager.getI18nFormat();
 
       if (isNotEmpty(visualization.getPeriods())) {
-        for (Period period : visualization.getPeriods()) {
-          period.setName(i18nFormat.formatPeriod(period));
+        for (PeriodDimension period : visualization.getPeriods()) {
+          period.setName(i18nFormat.formatPeriod(period.getPeriod()));
         }
       }
 
@@ -202,6 +205,7 @@ public class VisualizationController
     List<DataDimensionItem> dataDimensionItems = new ArrayList<>();
 
     visualization.getDataDimensionItems().stream()
+        .filter(Objects::nonNull)
         .filter(ddi -> ddi.getExpressionDimensionItem() != null)
         .forEach(
             ddi -> {

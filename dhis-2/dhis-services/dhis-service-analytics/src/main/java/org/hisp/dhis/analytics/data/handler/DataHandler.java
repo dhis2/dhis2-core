@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValueObject;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.hasPeriod;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isPeriodInPeriods;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.buildYearToDateRows;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.getPeriodOffsetRow;
@@ -99,10 +100,12 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItem;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
+import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE;
 import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
 import static org.hisp.dhis.commons.util.DebugUtils.getStackTrace;
 import static org.hisp.dhis.commons.util.SystemUtils.getCpuCores;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType.values;
+import static org.hisp.dhis.feedback.ErrorCode.E7153;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
 import static org.hisp.dhis.system.grid.GridUtils.getGridIndexByDimensionItem;
 import static org.hisp.dhis.system.util.MathUtils.getWithin;
@@ -117,6 +120,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -157,6 +161,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.util.Timer;
@@ -174,6 +179,9 @@ public class DataHandler {
   private static final int MAX_QUERIES = 8;
 
   private static final int PERCENT = 100;
+
+  /** Indicator computations of at least this many values are logged with their duration. */
+  private static final long LOG_INDICATOR_VALUES_MIN = 10_000;
 
   private final EventAggregateService eventAggregatedService;
 
@@ -296,11 +304,59 @@ public class DataHandler {
     return expressionDimensionItems.stream().map(edi -> edi.toIndicator()).collect(toList());
   }
 
+  /**
+   * Indicator values are computed for every permutation of dimension items, which are all held in
+   * memory, whether or not there is data for them. Rejects the query before that work starts when
+   * the number of indicator values would exceed the given max.
+   *
+   * @param permutations the number of dimension item permutations.
+   * @param indicatorCount the number of indicators.
+   * @param maxIndicatorValues the max number of indicator values, 0 means unlimited.
+   * @param dimensions describes the permuted dimensions for the log, only called on rejection.
+   * @throws IllegalQueryException if the max is exceeded.
+   */
+  static void checkIndicatorPermutationLimit(
+      long permutations, int indicatorCount, int maxIndicatorValues, Supplier<String> dimensions) {
+    if (maxIndicatorValues <= 0 || indicatorCount <= 0) {
+      return;
+    }
+
+    long indicatorValues = multiplySaturated(permutations, indicatorCount);
+
+    if (indicatorValues > maxIndicatorValues) {
+      log.warn(
+          "Analytics query rejected, would compute {} indicator values ({} permutations x {} indicators), max is {}, dimensions: {}",
+          indicatorValues,
+          permutations,
+          indicatorCount,
+          maxIndicatorValues,
+          dimensions.get());
+
+      throwIllegalQueryEx(E7153, indicatorValues, maxIndicatorValues);
+    }
+  }
+
   private void addIndicatorValues(
       DataQueryParams dataQueryParams,
       DataQueryParams dataSourceParams,
       List<Indicator> indicators,
       Grid grid) {
+    // Defensive: callers only invoke this with at least one indicator, but never materialise the
+    // dimension cartesian (getDimensionItemPermutations below) when there is nothing to compute.
+    if (indicators.isEmpty()) {
+      return;
+    }
+
+    long permutations = dataSourceParams.countDimensionItemPermutations();
+
+    checkIndicatorPermutationLimit(
+        permutations,
+        indicators.size(),
+        settingsProvider.getCurrentSettings().getAnalyticsMaxIndicatorPermutations(),
+        () -> describeDimensionItemCounts(dataSourceParams));
+
+    long startNanos = System.nanoTime();
+
     // Try to get filters periods from dimension (pe), or else fall back
     // to "startDate/endDate" periods
     List<Period> filterPeriods =
@@ -341,6 +397,39 @@ public class DataHandler {
             dataQueryParams, grid, dataSourceParams, indicator, dimensionItems, value);
       }
     }
+
+    long indicatorValues = multiplySaturated(permutations, indicators.size());
+
+    if (indicatorValues >= LOG_INDICATOR_VALUES_MIN) {
+      log.debug(
+          "Analytics indicator values: {} ({} permutations x {} indicators) in {} ms, dimensions: {}",
+          indicatorValues,
+          permutations,
+          indicators.size(),
+          (System.nanoTime() - startNanos) / 1_000_000,
+          describeDimensionItemCounts(dataSourceParams));
+    }
+  }
+
+  /**
+   * Returns {@code permutations * indicatorCount}, i.e. the number of indicator values to compute,
+   * for non-negative values, or {@link Long#MAX_VALUE} on overflow.
+   */
+  private static long multiplySaturated(long permutations, int indicatorCount) {
+    return indicatorCount > 0 && permutations > Long.MAX_VALUE / indicatorCount
+        ? Long.MAX_VALUE
+        : permutations * indicatorCount;
+  }
+
+  /**
+   * Describes the dimensions which are permuted for indicator values, as dimension identifier and
+   * number of items, e.g. {@code ou=37 pe=12 Ao6D1EaxLEI=6}.
+   */
+  static String describeDimensionItemCounts(DataQueryParams params) {
+    return params.getDimensions().stream()
+        .filter(d -> !DataQueryParams.DIMENSION_PERMUTATION_IGNORE_DIMS.contains(d.getDimension()))
+        .map(d -> d.getDimension() + "=" + d.getItems().size())
+        .collect(Collectors.joining(" "));
   }
 
   /**
@@ -371,7 +460,9 @@ public class DataHandler {
         permutationDimensionItemValueMap.getOrDefault(permKey, new ArrayList<>());
 
     List<Period> periods =
-        !filterPeriods.isEmpty() ? filterPeriods : List.of((Period) getPeriodItem(dimensionItems));
+        !filterPeriods.isEmpty()
+            ? filterPeriods
+            : List.of(((PeriodDimension) getPeriodItem(dimensionItems)).getPeriod());
 
     OrganisationUnit unit = (OrganisationUnit) getOrganisationUnitItem(dimensionItems);
 
@@ -726,9 +817,28 @@ public class DataHandler {
           .addValue(params.isSkipRounding() ? value : getRoundedValueObject(params, value));
 
       if (params.isIncludeNumDen()) {
-        grid.addValue(actual).addValue(target).addValue(PERCENT).addNullValues(2);
+        int multiplier = isRateMetric(metric) ? PERCENT : 1;
+        int divisor = 1;
+        double factor = (double) multiplier / divisor;
+
+        grid.addValue(actual)
+            .addValue(target)
+            .addValue(factor)
+            .addValue(multiplier)
+            .addValue(divisor);
       }
     }
+  }
+
+  /**
+   * Indicates whether the given metric is a percentage rate, as opposed to a count of reports.
+   *
+   * @param metric the {@link ReportingRateMetric}.
+   * @return true if the metric is {@link ReportingRateMetric#REPORTING_RATE} or {@link
+   *     ReportingRateMetric#REPORTING_RATE_ON_TIME}.
+   */
+  private boolean isRateMetric(ReportingRateMetric metric) {
+    return metric == REPORTING_RATE || metric == REPORTING_RATE_ON_TIME;
   }
 
   private boolean satisfiesMeasureCriteria(DataQueryParams params, Double value) {

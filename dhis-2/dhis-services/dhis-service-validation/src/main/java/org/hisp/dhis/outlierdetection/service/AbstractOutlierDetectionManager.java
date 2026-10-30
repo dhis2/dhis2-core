@@ -45,12 +45,16 @@ import org.hisp.dhis.period.PeriodType;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Manager for database queries related to outlier data detection (Z-Score, modified Z-Score,
  * Min-Max values).
  */
 public abstract class AbstractOutlierDetectionManager {
+  // Safety valve to prevent long-running queries for running forever.
+  private static final String STATEMENT_TIMEOUT_SQL = "SET LOCAL statement_timeout = '10min'";
+
   private final NamedParameterJdbcTemplate jdbcTemplate;
   private final OutlierSqlStatementProcessor sqlStatementProcessor;
 
@@ -66,11 +70,14 @@ public abstract class AbstractOutlierDetectionManager {
    * @param request the {@link OutlierDetectionRequest}.
    * @return list of the OutlierValue instances for api response
    */
+  @Transactional(readOnly = true)
   public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
     String sql = sqlStatementProcessor.getSqlStatement(request);
     SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
     Calendar calendar = PeriodType.getCalendar();
     boolean modifiedZ = request.getAlgorithm() == MOD_Z_SCORE;
+
+    jdbcTemplate.getJdbcTemplate().execute(STATEMENT_TIMEOUT_SQL);
 
     return withExceptionHandling(
             () -> jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ)))

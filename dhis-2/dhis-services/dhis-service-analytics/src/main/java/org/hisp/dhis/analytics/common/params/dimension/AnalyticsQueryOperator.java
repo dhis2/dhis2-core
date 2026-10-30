@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.analytics.common.params.dimension;
 
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.hisp.dhis.feedback.ErrorCode.E2035;
 
 import java.util.Arrays;
@@ -37,6 +36,7 @@ import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
 
@@ -44,7 +44,7 @@ import org.hisp.dhis.common.QueryOperator;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsQueryOperator {
 
-  /* special cases for which we want to use the negated operator directly rather than the negate method */
+  /* Special cases for which we want to use the negated operator directly rather than the negate method. */
   private static final Map<QueryOperator, QueryOperator> NEGATIVE_OPERATOR_MAP =
       Map.of(
           QueryOperator.EQ, QueryOperator.NEQ,
@@ -56,6 +56,7 @@ public class AnalyticsQueryOperator {
           QueryOperator.NILIKE, QueryOperator.ILIKE);
 
   private final QueryOperator queryOperator;
+
   private final boolean negated;
 
   public AnalyticsQueryOperator negate() {
@@ -73,16 +74,15 @@ public class AnalyticsQueryOperator {
    * @return the operator
    */
   public static AnalyticsQueryOperator ofString(String operator) {
-    // If the operator starts with !, will call this method again removing the ! and then negate the
-    // result.
+    // If operator starts with !, call this method again removing the ! and then negate the result
     if (operator.startsWith("!")) {
       AnalyticsQueryOperator parsedOperator = ofStringInternal(operator.substring(1)).negate();
-      /* returns from the negate map if present */
+      // Returns from the negate map if present
       if (NEGATIVE_OPERATOR_MAP.containsKey(parsedOperator.getQueryOperator())) {
         return AnalyticsQueryOperator.of(
             NEGATIVE_OPERATOR_MAP.get(parsedOperator.getQueryOperator()));
       }
-      /* otherwise, return the negated operator */
+      // Otherwise, return the negated operator
       return parsedOperator;
     }
     return ofStringInternal(operator);
@@ -90,7 +90,7 @@ public class AnalyticsQueryOperator {
 
   private static AnalyticsQueryOperator ofStringInternal(String operator) {
     return Arrays.stream(QueryOperator.values())
-        .filter(queryOperator -> equalsIgnoreCase(queryOperator.name(), operator))
+        .filter(queryOperator -> Strings.CI.equals(queryOperator.name(), operator))
         .findFirst()
         .map(AnalyticsQueryOperator::of)
         .orElseThrow(() -> new IllegalQueryException(E2035, operator));

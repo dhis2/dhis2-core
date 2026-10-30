@@ -42,9 +42,7 @@ import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.test.webapi.ControllerWithApiTokenAuthTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -111,7 +109,6 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
     hibernateService.flushSession();
 
     token.addIpToAllowedList("192.168.2.1");
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     apiTokenService.update(token);
 
     String errorMessage =
@@ -122,7 +119,6 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
     token.addIpToAllowedList("127.0.0.1");
 
     injectAdminIntoSecurityContext();
-    UserDetails currentUserDetails2 = CurrentUserUtil.getCurrentUserDetails();
     apiTokenService.update(token);
 
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);

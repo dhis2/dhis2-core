@@ -69,6 +69,7 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
@@ -113,7 +114,8 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       ColumnMapper columnMapper,
-      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
+      ConfigurationService configurationService) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -127,7 +129,8 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
         analyticsTableSettings,
         periodDataProvider,
         columnMapper,
-        sqlBuilder);
+        sqlBuilder,
+        configurationService);
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
 
@@ -216,7 +219,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
         getAllTrackedEntityAttributes(trackedEntityType, programsByTetUid)
-            .filter(tea -> !tea.isConfidentialBool())
+            .filter(tea -> !tea.getSkipAnalytics())
             .toList();
 
     params.addExtraParam(
@@ -329,7 +332,9 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
 
     List<TrackedEntityAttribute> attributes =
         ((List<TrackedEntityAttribute>)
-            params.getExtraParam(trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES));
+                params.getExtraParam(
+                    trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES))
+            .stream().filter(tea -> !tea.getSkipAnalytics()).toList();
 
     if (isNotEmpty(attributes)) {
       attributes.forEach(
@@ -417,11 +422,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
                     .name("coordinates")
                     .dataType(TEXT)
                     .selectExpression("te.coordinates")
-                    .build(),
-                AnalyticsTableColumn.builder()
-                    .name("storedby")
-                    .dataType(VARCHAR_255)
-                    .selectExpression("te.storedby")
                     .build(),
                 AnalyticsTableColumn.builder()
                     .name("potentialduplicate")

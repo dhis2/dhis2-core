@@ -48,7 +48,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -193,15 +192,11 @@ public class DataSetReportController {
     return dataSet;
   }
 
-  private List<Period> getAndValidatePeriods(List<String> pe) throws WebMessageException {
+  private List<Period> getAndValidatePeriods(List<String> pe) {
     List<Period> periods = new ArrayList<>();
 
     for (String p : pe) {
-      Period period = PeriodType.getPeriodFromIsoString(p);
-
-      if (period == null) {
-        throw new WebMessageException(conflict("Period does not exist: " + pe));
-      }
+      Period period = Period.of(p);
 
       periods.add(periodService.reloadPeriod(period));
     }

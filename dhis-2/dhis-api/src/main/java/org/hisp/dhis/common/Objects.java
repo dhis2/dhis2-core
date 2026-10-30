@@ -29,101 +29,47 @@
  */
 package org.hisp.dhis.common;
 
-import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementGroupSet;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.eventvisualization.EventVisualization;
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorGroup;
-import org.hisp.dhis.indicator.IndicatorGroupSet;
-import org.hisp.dhis.indicator.IndicatorType;
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.report.Report;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.validation.ValidationRule;
-import org.hisp.dhis.visualization.Visualization;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
+@Getter
+@RequiredArgsConstructor
 public enum Objects {
-  CONSTANT("constant", Constant.class),
-  DATAELEMENT("dataElement", DataElement.class),
-  EXTENDEDDATAELEMENT("extendedDataElement", DataElement.class),
-  DATAELEMENTGROUP("dataElementGroup", DataElementGroup.class),
-  DATAELEMENTGROUPSET("dataElementGroupSet", DataElementGroupSet.class),
-  INDICATORTYPE("indicatorType", IndicatorType.class),
-  INDICATOR("indicator", Indicator.class),
-  INDICATORGROUP("indicatorGroup", IndicatorGroup.class),
-  INDICATORGROUPSET("indicatorGroupSet", IndicatorGroupSet.class),
-  DATASET("dataSet", DataSet.class),
-  ORGANISATIONUNIT("organisationUnit", OrganisationUnit.class),
-  ORGANISATIONUNITGROUP("organisationUnitGroup", OrganisationUnitGroup.class),
-  ORGANISATIONUNITGROUPSET("organisationUnitGroupSet", OrganisationUnitGroupSet.class),
-  ORGANISATIONUNITLEVEL("organisationUnitLevel", OrganisationUnitLevel.class),
-  VALIDATIONRULE("validationRule", ValidationRule.class),
-  PERIOD("period", Period.class),
-  DATAVALUE("dataValue", DataValue.class),
-  USER("user", User.class),
-  USERGROUP("userGroup", UserGroup.class),
-  VISUALIZATION("visualization", Visualization.class),
-  EVENTVISUALIZATION("eventVisualization", EventVisualization.class),
-  REPORT("report", Report.class),
-  MAP("map", Map.class),
-  DASHBOARD("dashboard", Dashboard.class),
-  PROGRAM("program", Program.class),
-  TRACKEDENTITY("trackedEntity", TrackedEntity.class),
-  ENROLLMENT("enrollment", Enrollment.class),
-  EVENT("event", TrackerEvent.class), // Event includes tracker and single events
-  TRACKEREVENT("trackerevent", TrackerEvent.class),
-  SINGLEEVENT("singleevent", SingleEvent.class),
-  TRACKEDENTITYATTRIBUTE("trackedEntityAttribute", TrackedEntityAttribute.class),
-  EXPRESSIONDIMENSIONITEM("expressionDimensionItem", ExpressionDimensionItem.class);
+  CONSTANT("constant"),
+  DATAELEMENT("dataElement"),
+  EXTENDEDDATAELEMENT("extendedDataElement"),
+  DATAELEMENTGROUP("dataElementGroup"),
+  DATAELEMENTGROUPSET("dataElementGroupSet"),
+  INDICATORTYPE("indicatorType"),
+  INDICATOR("indicator"),
+  INDICATORGROUP("indicatorGroup"),
+  INDICATORGROUPSET("indicatorGroupSet"),
+  DATASET("dataSet"),
+  ORGANISATIONUNIT("organisationUnit"),
+  ORGANISATIONUNITGROUP("organisationUnitGroup"),
+  ORGANISATIONUNITGROUPSET("organisationUnitGroupSet"),
+  ORGANISATIONUNITLEVEL("organisationUnitLevel"),
+  VALIDATIONRULE("validationRule"),
+  PERIOD("period"),
+  DATAVALUE("dataValue"),
+  USER("user"),
+  USERGROUP("userGroup"),
+  VISUALIZATION("visualization"),
+  EVENTVISUALIZATION("eventVisualization"),
+  REPORT("report"),
+  MAP("map"),
+  DASHBOARD("dashboard"),
+  PROGRAM("program"),
+  TRACKEDENTITY("trackedEntity"),
+  ENROLLMENT("enrollment"),
+  EVENT("event"), // Event includes tracker and single events
+  TRACKEREVENT("trackerevent"),
+  SINGLEEVENT("singleevent"),
+  TRACKEDENTITYATTRIBUTE("trackedEntityAttribute"),
+  EXPRESSIONDIMENSIONITEM("expressionDimensionItem");
 
-  private String value;
-
-  // This field is only used in tests
-  @Deprecated private Class<?> clazz;
-
-  Objects(String value, Class<?> clazz) {
-    this.value = value;
-    this.clazz = clazz;
-  }
-
-  @Deprecated
-  public static Objects fromClass(Class<?> clazz) throws IllegalAccessException {
-    if (clazz == null) {
-      throw new NullPointerException();
-    }
-
-    for (Objects obj : Objects.values()) {
-      if (obj.clazz.equals(clazz)) {
-        return obj;
-      }
-    }
-
-    throw new IllegalAccessException(
-        "No item found in enum Objects for class '" + clazz.getSimpleName() + "'. ");
-  }
-
-  public String getValue() {
-    return value;
-  }
+  private final String value;
 }

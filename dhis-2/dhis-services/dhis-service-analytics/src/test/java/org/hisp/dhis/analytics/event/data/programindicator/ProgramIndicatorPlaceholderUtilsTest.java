@@ -185,7 +185,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
                   + "row_number() over (partition by enrollment order by occurreddate desc) as rn "
                   + "from %s "
                   + "where \"created\" is not null ",
-              eventTable);
+              eventTable.toLowerCase());
       assertCteSqlMatches(expectedCteKey, expectedCteSql);
       String alias = assertPlaceholderMapped(placeholder, expectedCteKey, variableAliasMap);
       // Verify result SQL
@@ -308,7 +308,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
                   + "row_number() over (partition by enrollment order by occurreddate desc) as rn "
                   + "from %s "
                   + "where \"occurreddate\" is not null ",
-              eventTable);
+              eventTable.toLowerCase());
       assertCteSqlMatches(expectedCteKey1, expectedCteSql);
       assertCteSqlMatches(expectedCteKey2, expectedCteSql);
     }
@@ -370,7 +370,8 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
       assertFalse(cteDef.isVariable());
       assertEquals(expectedTargetRank, cteDef.getTargetRank());
       assertCteSqlMatches(
-          expectedCteKey, getExpectedPsdeSql(deUid, expectedOrderBy, eventTable, psUid));
+          expectedCteKey,
+          getExpectedPsdeSql(deUid, expectedOrderBy, eventTable.toLowerCase(), psUid));
       String alias = assertPlaceholderMapped(placeholderString, expectedCteKey, psdeAliasMap);
       // Verify result SQL
       assertEquals("someFunction(coalesce(" + alias + ".value, 0))", result);
@@ -401,7 +402,8 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
       assertEquals(expectedTargetRank, cteDef.getTargetRank());
 
       assertCteSqlMatches(
-          expectedCteKey, getExpectedPsdeSql(deUid, expectedOrderBy, eventTable, psUid));
+          expectedCteKey,
+          getExpectedPsdeSql(deUid, expectedOrderBy, eventTable.toLowerCase(), psUid));
       String alias = assertPlaceholderMapped(placeholderString, expectedCteKey, psdeAliasMap);
       assertEquals("coalesce(" + alias + ".value, 0)", result);
     }
@@ -430,7 +432,8 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
           assertCteCreated(expectedCteKey, PROGRAM_STAGE_DATE_ELEMENT, "enrollment");
       assertEquals(expectedTargetRank, cteDef.getTargetRank());
       assertCteSqlMatches(
-          expectedCteKey, getExpectedPsdeSql(deUid, expectedOrderBy, eventTable, psUid));
+          expectedCteKey,
+          getExpectedPsdeSql(deUid, expectedOrderBy, eventTable.toLowerCase(), psUid));
       // Verify alias map and result
       String alias = assertPlaceholderMapped(placeholderString, expectedCteKey, psdeAliasMap);
       assertEquals("coalesce(" + alias + ".value, 0)", result);
@@ -645,10 +648,10 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
           "__psde_cte_placeholder__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='programInd1')";
       // Malformed: Missing required key (e.g., deUid) - *SHOULD NOT MATCH* the defined pattern
       String malformedPlaceholder3 =
-          "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', offset='0', boundaryHash='noboundaries', piUid='programInd1')";
+          "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', offset='0', boundaryHash='noboundaries', piUid='programInd1', replaceNulls='true')";
       // Malformed: Extra comma
       String malformedPlaceholder4 =
-          "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1',, deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='programInd1')";
+          "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1',, deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='programInd1', replaceNulls='true')";
 
       String rawSql1 = "someFunction(" + malformedPlaceholder1;
       String rawSql2 = "someFunction(" + malformedPlaceholder2 + ")";
@@ -1109,7 +1112,8 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     @Test
     void testProcessD2FunctionPlaceholders_ParsesAndGeneratesCorrectCteKey() {
       ProgramIndicator programIndicator = mock(ProgramIndicator.class);
-      when(programIndicator.getProgram()).thenReturn(mock(Program.class));
+      Program program = createProgram('A');
+      when(programIndicator.getProgram()).thenReturn(program);
 
       // Define expected values "embedded" in the placeholder
       String funcName = "countIfValue";
@@ -1258,7 +1262,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
   private String buildPsDePlaceholder(
       String psUid, String deUid, int offset, String boundaryHash, String piUid) {
     return String.format(
-        "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s')",
+        "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s', replaceNulls='true')",
         psUid, deUid, offset, boundaryHash, piUid);
   }
 
@@ -1312,7 +1316,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     return String.format(
         "select enrollment, count(%s) as value from analytics_event_%s "
             + "where ps = '%s' and %s is not null and %s = %s group by enrollment",
-        quotedDeUid, piUid, psUid, quotedDeUid, quotedDeUid, valueSql);
+        quotedDeUid, piUid.toLowerCase(), psUid, quotedDeUid, quotedDeUid, valueSql);
   }
 
   private String generateTestSqlHash(String sql) {

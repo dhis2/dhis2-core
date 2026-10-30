@@ -32,11 +32,15 @@ package org.hisp.dhis.analytics.enrollment.aggregate;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
+import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -76,7 +80,7 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"},\"2023\":{\"name\":\"2023\"}},\"dimensions\":{\"pe\":[\"2023\"],\"ou\":[\"DiszpKrYNg8\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}\n";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"},\"2023\":{\"name\":\"2023\"}},\"dimensions\":{\"pe\":[\"2023\"],\"ou\":[\"DiszpKrYNg8\"],\"A03MvHHogjR.cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}\n";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -171,7 +175,7 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"},\"2023\":{\"name\":\"2023\"},\"A03MvHHogjR.bx6fsa0t90x\":{\"name\":\"MCH BCG dose\"}},\"dimensions\":{\"pe\":[\"2023\"],\"ou\":[\"DiszpKrYNg8\"],\"A03MvHHogjR.bx6fsa0t90x\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"},\"2023\":{\"name\":\"2023\"},\"A03MvHHogjR.bx6fsa0t90x\":{\"name\":\"MCH BCG dose\"}},\"dimensions\":{\"pe\":[\"2023\"],\"ou\":[\"DiszpKrYNg8\"],\"A03MvHHogjR.bx6fsa0t90x\":[],\"A03MvHHogjR.cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -227,7 +231,7 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"202208\":{\"name\":\"August 2022\"},\"202307\":{\"name\":\"July 2023\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"202211\":{\"name\":\"November 2022\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"}},\"dimensions\":{\"pe\":[\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\",\"202307\"],\"ou\":[\"DiszpKrYNg8\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}\n";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"202208\":{\"name\":\"August 2022\"},\"202307\":{\"name\":\"July 2023\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"202211\":{\"name\":\"November 2022\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"}},\"dimensions\":{\"pe\":[\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\",\"202307\"],\"ou\":[\"DiszpKrYNg8\"],\"A03MvHHogjR.cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}\n";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -249,5 +253,169 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("4", "DiszpKrYNg8", "202301", "Male"));
     validateRow(response, List.of("1", "DiszpKrYNg8", "202302", "Male"));
     validateRow(response, List.of("1", "DiszpKrYNg8", "202305", "Female"));
+  }
+
+  @Test
+  public void orgUnitGroupSetDimension() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("totalPages=false")
+            .add("dimension=uIuxlbV1vRT,ou:ImspTQPwCqd,pe:2022;2023");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        10,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"nlX2VoouN63\":{\"name\":\"Eastern Area\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"jqBqIXoXpfy\":{\"name\":\"Southern Area\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"},\"uIuxlbV1vRT\":{\"name\":\"Area\"},\"J40PpdN4Wkk\":{\"name\":\"Northern Area\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"b0EsAxm8Nge\":{\"name\":\"Western Area\"},\"pe\":{},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"pe\":[\"2022\",\"2023\"],\"ou\":[\"ImspTQPwCqd\"],\"uIuxlbV1vRT\":[\"J40PpdN4Wkk\",\"jqBqIXoXpfy\",\"b0EsAxm8Nge\",\"nlX2VoouN63\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "uIuxlbV1vRT", "Area", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("value", "1942", "ou", "ImspTQPwCqd", "uIuxlbV1vRT", "b0EsAxm8Nge", "pe", "2023"));
+
+    // Validate row exists with values from original row index 3
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("value", "2335", "ou", "ImspTQPwCqd", "uIuxlbV1vRT", "J40PpdN4Wkk", "pe", "2023"));
+
+    // Validate row exists with values from original row index 6
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("value", "1163", "ou", "ImspTQPwCqd", "uIuxlbV1vRT", "", "pe", "2022"));
+
+    // Validate row exists with values from original row index 9
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("value", "962", "ou", "ImspTQPwCqd", "uIuxlbV1vRT", "nlX2VoouN63", "pe", "2023"));
+  }
+
+  @Test
+  public void orgUnitGroupSetDimensionWithItems() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("totalPages=false")
+            .add("dimension=uIuxlbV1vRT:jqBqIXoXpfy;nlX2VoouN63,ou:ImspTQPwCqd,pe:2022");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        2,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"nlX2VoouN63\":{\"name\":\"Eastern Area\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"jqBqIXoXpfy\":{\"name\":\"Southern Area\"},\"2022\":{\"name\":\"2022\"},\"uIuxlbV1vRT\":{\"name\":\"Area\"}},\"dimensions\":{\"pe\":[\"2022\"],\"ou\":[\"ImspTQPwCqd\"],\"uIuxlbV1vRT\":[\"jqBqIXoXpfy\",\"nlX2VoouN63\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "uIuxlbV1vRT", "Area", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("value", "1333", "ou", "ImspTQPwCqd", "uIuxlbV1vRT", "nlX2VoouN63", "pe", "2022"));
+
+    // Validate row exists with values from original row index 1
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("value", "2722", "ou", "ImspTQPwCqd", "uIuxlbV1vRT", "jqBqIXoXpfy", "pe", "2022"));
   }
 }

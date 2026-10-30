@@ -29,28 +29,42 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.apache.commons.lang3.StringUtils.replace;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
+import static org.hisp.dhis.analytics.QueryKey.isNoValue;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.feedback.ErrorCode.E7229;
 import static org.hisp.dhis.feedback.ErrorCode.E7234;
+import static org.hisp.dhis.feedback.ErrorCode.E7247;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsComparable;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Strings;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
+import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.stereotype.Service;
@@ -59,6 +73,12 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.analytics.event.EventQueryValidator")
 @RequiredArgsConstructor
 public class DefaultEventQueryValidator implements EventQueryValidator {
+
+  private static final String REGISTRATION_OU_DIMENSION =
+      TrackerOrgUnitDimension.REGISTRATION_OU.getDimensionName();
+
+  private static final Set<String> REGISTRATION_OU_SORT_ITEMS =
+      Set.of(ColumnHeader.REGISTRATION_OU.getItem(), ColumnHeader.REGISTRATION_OU_NAME.getItem());
 
   private final SystemSettingsProvider settingsProvider;
 
@@ -86,23 +106,44 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     if (params == null) {
       throw new IllegalQueryException(ErrorCode.E7100);
     }
-    if (!params.hasOrganisationUnits()) {
+    if (!params.hasOrganisationUnits()
+        && !params.hasEnrollmentOu()
+        && !params.hasRegistrationOuRestriction()) {
       return new ErrorMessage(ErrorCode.E7200);
+    }
+    Optional<String> enrollmentOuSortColumn = params.getEnrollmentOuSortColumn();
+    if (enrollmentOuSortColumn.isPresent() && !params.hasEnrollmentOu()) {
+      return new ErrorMessage(ErrorCode.E7246, enrollmentOuSortColumn.get());
     }
     if (!params.getDuplicateDimensions().isEmpty()) {
       return new ErrorMessage(ErrorCode.E7201, params.getDuplicateDimensions());
     }
+    ErrorMessage registrationOuSortError = validateRegistrationOuSorting(params);
+    if (registrationOuSortError != null) {
+      return registrationOuSortError;
+    }
+
+    // Check for duplicate stage dimension identifiers (must be before E7202 check)
+    // This applies to both EVENT and ENROLLMENT queries
+    Set<String> duplicateStageDimensions = params.getDuplicateStageDimensionIdentifiers();
+    if (!duplicateStageDimensions.isEmpty()) {
+      return new ErrorMessage(ErrorCode.E7243, duplicateStageDimensions.iterator().next());
+    }
+
     if (!params.getDuplicateQueryItems().isEmpty()) {
       return new ErrorMessage(ErrorCode.E7202, params.getDuplicateQueryItems());
     }
     if (params.hasValueDimension()
-        && params.getDimensionalObjectItems().contains(params.getValue())) {
+        && params.getItems().stream()
+            .anyMatch(item -> !item.hasLegendSet() && params.getValue().equals(item.getItem()))) {
       return new ErrorMessage(ErrorCode.E7203);
     }
     if (params.hasAggregationType() && !(params.hasValueDimension() || params.isAggregateData())) {
       return new ErrorMessage(ErrorCode.E7204);
     }
-    if (!params.hasPeriods() && (params.getStartDate() == null || params.getEndDate() == null)) {
+    if (!params.hasPeriods()
+        && (params.getStartDate() == null || params.getEndDate() == null)
+        && !hasDateQueryItem(params)) {
       return new ErrorMessage(ErrorCode.E7205);
     }
     if (params.getStartDate() != null
@@ -136,6 +177,37 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       return new ErrorMessage(ErrorCode.E7214);
     }
 
+    // Only an explicit stage= parameter conflicts with stage-specific dimensions.
+    // A stage inferred from value=stageUid.dataElementUid remains valid.
+    if (params.hasProgramStage() && !params.hasStageInValue() && params.hasStageSpecificItem()) {
+      return new ErrorMessage(ErrorCode.E7241);
+    }
+
+    if (params.getEndpointItem() != null
+        && params.getEndpointItem().equals(RequestTypeAware.EndpointItem.EVENT)) {
+      // Stage-prefixed dimensions must all use the same stage for EVENT queries
+      Set<ProgramStage> distinctStages = params.getDistinctStages();
+      if (distinctStages.size() > 1) {
+        String stages =
+            distinctStages.stream()
+                .map(ProgramStage::getUid)
+                .sorted()
+                .collect(Collectors.joining(", "));
+        return new ErrorMessage(ErrorCode.E7244, stages);
+      }
+    }
+
+    // Only event-level period dimensions conflict with stage-specific date dimensions.
+    if (params.hasStageDateItem() && hasExplicitPeriodDimension(params)) {
+      return new ErrorMessage(ErrorCode.E7242);
+    }
+
+    // Validate stage-specific categories and COGS
+    ErrorMessage stageSpecificDimError = validateStageSpecificDimensions(params);
+    if (stageSpecificDimError != null) {
+      return stageSpecificDimError;
+    }
+
     for (QueryItem item : params.getItemsAndItemFilters()) {
       if (item.hasLegendSet() && item.hasOptionSet()) {
         return new ErrorMessage(ErrorCode.E7215, item.getItemId());
@@ -143,7 +215,8 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
         return new ErrorMessage(ErrorCode.E7216, item.getItemId());
       } else {
         for (QueryFilter filter : item.getFilters()) {
-          ErrorMessage error = validateQueryFilter(filter, item.getValueType());
+          ErrorMessage error =
+              validateQueryFilter(filter, item.getValueType(), item.hasOptionSet());
           if (error != null) {
             return error;
           }
@@ -156,28 +229,112 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
   }
 
   /**
+   * Rejects sorting by a registration organisation unit column when REGISTRATION_OU is not a
+   * dimension. Both columns are projected only for the dimension, so {@code registrationouname}
+   * would order by an alias that is not in the select list, and {@code registrationou} would fall
+   * back to the raw analytics column and order by the organisation unit the tracked entity was
+   * registered in rather than the requested ancestor. A dimension named without organisation units
+   * still projects both columns, so it is enough.
+   */
+  private ErrorMessage validateRegistrationOuSorting(EventQueryParams params) {
+    if (!params.isSorting() || params.hasRegistrationOuDimension()) {
+      return null;
+    }
+
+    return ListUtils.union(params.getAsc(), params.getDesc()).stream()
+        .map(QueryItem::getItemId)
+        .filter(REGISTRATION_OU_SORT_ITEMS::contains)
+        .findFirst()
+        .map(item -> new ErrorMessage(ErrorCode.E7262, item, REGISTRATION_OU_DIMENSION))
+        .orElse(null);
+  }
+
+  private boolean hasDateQueryItem(EventQueryParams params) {
+    return params.getItemsAndItemFilters().stream()
+        .anyMatch(
+            item ->
+                EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId())
+                    || EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME.equals(item.getItemId())
+                    || EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME.equals(
+                        item.getItemId())
+                    || EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME.equals(item.getItemId())
+                    || EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME.equals(item.getItemId())
+                    || EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME.equals(item.getItemId())
+                    || EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME.equals(item.getItemId())
+                    || EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME.equals(
+                        item.getItemId())
+                    || EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(
+                        item.getItemId())
+                    || EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME.equals(
+                        item.getItemId())
+                    || EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME.equals(
+                        item.getItemId()));
+  }
+
+  /**
+   * Checks if the query contains a period dimension that conflicts with a stage-specific date
+   * dimension.
+   */
+  private boolean hasExplicitPeriodDimension(EventQueryParams params) {
+    return EventPeriodUtils.hasConflictingStageDatePeriodDimension(params);
+  }
+
+  /**
+   * Validates stage-specific dimensions (categories and COGS). Checks that the program stage
+   * belongs to the query's program.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return an {@link ErrorMessage} if validation fails, null otherwise.
+   */
+  private ErrorMessage validateStageSpecificDimensions(EventQueryParams params) {
+    if (!params.hasProgram()) {
+      return null;
+    }
+
+    Program program = params.getProgram();
+
+    // Check dimensions and filters for stage-specific categories/COGS
+    List<DimensionalObject> dynamicDimensions =
+        params.getDimensionsAndFilters(
+            Set.of(DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET));
+
+    for (DimensionalObject dim : dynamicDimensions) {
+      if (dim.getProgramStage() != null) {
+        ProgramStage dimProgramStage = dim.getProgramStage();
+
+        // Validate that the stage belongs to the program
+        if (!dimProgramStage.getProgram().equals(program)) {
+          return new ErrorMessage(ErrorCode.E7245, dimProgramStage.getUid(), program.getUid());
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Validates the full {@link QueryFilter} based on the associated item's {@link ValueType}.
    *
    * @param filter the {@link QueryFilter}.
    * @param valueType the {@link ValueType}.
    * @return the validation {@link ErrorMessage}, or null if no error is found.
    */
-  private ErrorMessage validateQueryFilter(QueryFilter filter, ValueType valueType) {
+  ErrorMessage validateQueryFilter(QueryFilter filter, ValueType valueType, boolean isOptionSet) {
     String filterValue = trimToEmpty(filter.getFilter());
     ErrorMessage errorMessage = null;
 
     if (filter.getOperator().isIn()) {
-      // A filter value may contain multiple options, ie.: 1;0;NV.
+      // A filter value may contain multiple options, ie.: 1;0;D2__NOVALUE.
       Set<String> filterValues = Set.of(filterValue.split(";"));
 
       for (String f : filterValues) {
-        errorMessage = validateFilterValue(IN, valueType, f);
+        errorMessage = validateFilterValue(IN, valueType, f, isOptionSet);
         if (errorMessage != null) {
           return errorMessage;
         }
       }
     } else {
-      errorMessage = validateFilterValue(filter.getOperator(), valueType, filterValue);
+      errorMessage = validateFilterValue(filter.getOperator(), valueType, filterValue, isOptionSet);
     }
 
     return errorMessage;
@@ -192,10 +349,17 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
    * @return the validation {@link ErrorMessage}, or null if no error is found.
    */
   private ErrorMessage validateFilterValue(
-      QueryOperator operator, ValueType valueType, String filterValue) {
-    if (!operator.isNullAllowed() && filterValue.contains(NV)) {
+      QueryOperator operator, ValueType valueType, String filterValue, boolean isOptionSet) {
+    // The reserved no-value keyword may only be used with option set dimensions.
+    if (NO_VALUE.equals(filterValue) && !isOptionSet) {
+      return new ErrorMessage(E7247, NO_VALUE);
+    }
+
+    boolean noValue = isNoValue(filterValue, isOptionSet);
+
+    if (!operator.isNullAllowed() && noValue) {
       return new ErrorMessage(E7229, operator.getValue());
-    } else if (!filterValue.contains(NV)
+    } else if (!noValue
         && !valueIsComparable(convertFilterValue(valueType, filterValue), valueType)) {
       return new ErrorMessage(E7234, filterValue, valueType);
     }
@@ -235,7 +399,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
    * @return the value with the correct separators.
    */
   private String replaceDateTimeSeparators(String dateTime) {
-    return replace(dateTime, ".", ":", 2);
+    return Strings.CS.replace(dateTime, ".", ":", 2);
   }
 
   @Override

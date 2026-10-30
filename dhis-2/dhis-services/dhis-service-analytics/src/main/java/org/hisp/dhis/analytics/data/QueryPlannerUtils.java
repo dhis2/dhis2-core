@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.data;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -43,7 +44,7 @@ import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.ObjectUtils;
 
@@ -146,7 +147,8 @@ public class QueryPlannerUtils {
       getAggregationTypeDataElementMap(
           List<DimensionalItemObject> dataElements,
           AnalyticsAggregationType aggregationType,
-          String periodType) {
+          String periodType,
+          Map<String, PeriodType> dataElementPeriodTypes) {
     PeriodType aggregationPeriodType = PeriodType.getPeriodTypeByName(periodType);
 
     ListMap<AnalyticsAggregationType, DimensionalItemObject> map = new ListMap<>();
@@ -159,8 +161,10 @@ public class QueryPlannerUtils {
               aggregationType,
               AnalyticsAggregationType.fromAggregationType(de.getAggregationType()));
 
+      PeriodType dePeriodType = dataElementPeriodTypes.get(de.getUid());
+
       AnalyticsAggregationType analyticsAggregationType =
-          getAggregationType(aggType, de.getValueType(), aggregationPeriodType, de.getPeriodType());
+          getAggregationType(aggType, de.getValueType(), aggregationPeriodType, dePeriodType);
 
       map.putValue(analyticsAggregationType, de);
     }
@@ -180,9 +184,9 @@ public class QueryPlannerUtils {
     ListMap<Integer, DimensionalItemObject> map = new ListMap<>();
 
     for (DimensionalItemObject period : periods) {
-      Period pe = (Period) period;
+      PeriodDimension pe = (PeriodDimension) period;
 
-      map.putValue(pe.getDaysInPeriod(), pe);
+      map.putValue(pe.getPeriod().getDaysInPeriod(), pe);
     }
 
     return map;
@@ -256,9 +260,14 @@ public class QueryPlannerUtils {
    * @return a {@link ListMap} of period type and data elements.
    */
   public static ListMap<PeriodType, DimensionalItemObject> getPeriodTypeDataElementMap(
-      Collection<DimensionalItemObject> dataElements) {
+      Collection<DimensionalItemObject> dataElements,
+      Map<String, PeriodType> dataElementPeriodTypes) {
     ListMap<PeriodType, DimensionalItemObject> map = new ListMap<>();
-    dataElements.forEach(de -> map.putValue(((DataElement) de).getPeriodType(), de));
+    dataElements.forEach(
+        item -> {
+          DataElement de = (DataElement) item;
+          map.putValue(dataElementPeriodTypes.get(de.getUid()), de);
+        });
     return map;
   }
 

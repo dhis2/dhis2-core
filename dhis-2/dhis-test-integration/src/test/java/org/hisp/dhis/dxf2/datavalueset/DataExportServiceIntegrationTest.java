@@ -51,6 +51,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.time.DateUtils;
 import org.awaitility.Awaitility;
 import org.hisp.dhis.attribute.Attribute;
@@ -64,13 +65,13 @@ import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
@@ -78,7 +79,8 @@ import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueChangelogService;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -127,7 +129,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private DataExportService dataExportService;
   @Autowired private DataExportStore dataExportStore;
 
-  @Autowired private DataValueAuditService dataValueAuditService;
+  @Autowired private DataValueChangelogService dataValueChangelogService;
 
   @Autowired private DataEntryPipeline dataEntryPipeline;
 
@@ -138,6 +140,8 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private AttributeService attributeService;
 
   private CategoryOptionCombo ocDef;
+
+  private CategoryCombo categoryComboA;
 
   private CategoryOption categoryOptionA;
 
@@ -177,7 +181,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     categoryOptionB.getCategories().add(categoryA);
     categoryService.addCategoryOption(categoryOptionB);
     categoryService.addCategoryOption(categoryOptionA);
-    CategoryCombo categoryComboA = createCategoryCombo('A', categoryA);
+    categoryComboA = createCategoryCombo('A', categoryA);
     CategoryCombo categoryComboDef = categoryService.getDefaultCategoryCombo();
     ocDef = categoryService.getDefaultCategoryOptionCombo();
     ocDef.setCode("OC_DEF_CODE");
@@ -281,8 +285,12 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private ImportSummary importXml(InputStream json) {
+    return importXml(json, new ImportOptions());
+  }
+
+  private ImportSummary importXml(InputStream json, ImportOptions options) {
     try {
-      return dataEntryPipeline.importXml(json, new ImportOptions(), transitory());
+      return dataEntryPipeline.importXml(json, options, transitory());
     } catch (BadRequestException ex) {
       fail("Bad input", ex);
       return null;
@@ -413,7 +421,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     Date todaysDate = new Date();
     // Confirm that no dataValue exists for these params
     CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
-    assertNull(dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
+    assertNull(dataExportService.exportValue(new DataValueKey(deA, peA, ouA, cc, cc)));
 
     // import data value, ignoring created date supplied - create (value = 20, comment = null,
     // created = "1988-12-21T23:59:38.000+0000")
@@ -421,7 +429,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 0, summary);
 
     // get newly-created data value
-    DataExportValue dv2 = dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc));
+    DataExportValue dv2 = dataExportService.exportValue(new DataValueKey(deA, peA, ouA, cc, cc));
     assertNotNull(dv2);
     assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.created()));
   }
@@ -444,7 +452,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 0, summary);
 
     // check newly-updated data value
-    DataExportValue dv2 = dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc));
+    DataExportValue dv2 = dataExportService.exportValue(new DataValueKey(deA, peA, ouA, cc, cc));
     assertNotNull(dv2);
     assertEquals("new comment", dv2.comment());
     assertEquals("22", dv2.value());
@@ -455,7 +463,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
       throws ConflictException {
     // Confirm that no dataValue exists for these params
     CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
-    assertNull(dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
+    assertNull(dataExportService.exportValue(new DataValueKey(deA, peA, ouA, cc, cc)));
 
     // import data value, ignoring last updated date supplied (this is always the case now)
     // but still good to confirm that by a test
@@ -463,7 +471,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 0, summary);
 
     // get newly-created data value
-    DataExportValue dv = dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc));
+    DataExportValue dv = dataExportService.exportValue(new DataValueKey(deA, peA, ouA, cc, cc));
     assertNotNull(dv);
     Date lastUpdated = dv.lastUpdated();
     assertTrue(
@@ -476,7 +484,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
       throws ConflictException {
     // Confirm that no dataValue exists for these params
     CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
-    assertNull(dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
+    assertNull(dataExportService.exportValue(new DataValueKey(deA, peA, ouA, cc, cc)));
 
     // import data value for first time - create (value = 20, comment = null, lastUpdated =
     // "1988-12-21T23:59:38.000+0000")
@@ -489,14 +497,14 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 0, summary);
 
     // check newly-updated data value
-    DataExportValue dv2 = dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc));
+    DataExportValue dv2 = dataExportService.exportValue(new DataValueKey(deA, peA, ouA, cc, cc));
     assertNotNull(dv2);
     assertEquals("new comment", dv2.comment());
     assertEquals("22", dv2.value());
   }
 
   /**
-   * Import 12 data values where 4 are marked as deleted. Deleted values should count as imports
+   * Import 12 data values where 4 are marked as deleted. Deleted values should count as ignored
    * when there are no existing non-deleted matching values.
    */
   @Test
@@ -505,7 +513,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
 
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
   }
 
@@ -517,7 +525,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportReverseDeletedValuesXml() {
     assertDataValuesCount(0);
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
 
     // Reverse deletion and update
@@ -528,14 +536,14 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   /**
-   * Import 12 data values where 4 are marked as deleted. Then import 12 data values which reverse
-   * deletion of the 4 values, ignore 4 unchanged values and add 4 values.
+   * Import 12 data values where 4 are marked as deleted (so they are ignored). Then import 12 data
+   * values which reverse deletion of the ignored 4 values (8 updates + 4 inserts).
    */
   @Test
   void testImportAddAndReverseDeletedValuesXml() {
     assertDataValuesCount(0);
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
 
     // Reverse deletion and update
@@ -613,7 +621,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
         "mismatch in dataValues values");
 
     for (DataExportValue dv : dataValues)
-      assertEquals(1, dataValueAuditService.getDataValueAudits(dv).size());
+      assertEquals(1, dataValueChangelogService.getChangelogEntries(dv).size());
   }
 
   @Test
@@ -631,7 +639,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
         "mismatch in dataValues values");
 
     for (DataExportValue dv : dataValues)
-      assertEquals(1, dataValueAuditService.getDataValueAudits(dv).size());
+      assertEquals(1, dataValueChangelogService.getChangelogEntries(dv).size());
   }
 
   @Test
@@ -647,7 +655,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     for (DataExportValue dv : dataValues)
       assertEquals(
-          1, dataValueAuditService.getDataValueAudits(dv).size(), "should be a CREATE audit");
+          1, dataValueChangelogService.getChangelogEntries(dv).size(), "should be a CREATE audit");
   }
 
   @Test
@@ -766,7 +774,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
             getDataValue("DE_C", "201202", "OU_B", "10012"));
 
     DataEntryGroup.Ids ids =
-        new DataEntryGroup.Ids().dataElements(IdProperty.CODE).orgUnits(IdProperty.CODE);
+        DataEntryGroup.Ids.of(null, null, IdProperty.CODE, IdProperty.CODE, null, null, null, null);
     DataEntrySummary summary =
         dataEntryService.upsertGroup(
             new DataEntryGroup.Options(),
@@ -898,7 +906,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportConflict conflict = summary.getConflicts().iterator().next();
     assertEquals(ErrorCode.E8128, conflict.getErrorCode());
     assertEquals(
-        "Value #[0, 1] all affect the same data value: `DataEntryKey[dataElement=jH26dja2f30, orgUnit=DiszpKrYNg8, categoryOptionCombo=null, attributeOptionCombo=null, period=201201]`",
+        "Value #[0, 1] all affect the same data value: `DataValueKey[dataElement=jH26dja2f30, orgUnit=DiszpKrYNg8, categoryOptionCombo=null, attributeOptionCombo=null, period=201201]`",
         conflict.getValue());
   }
 
@@ -990,6 +998,28 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(ErrorCode.E8022, conflict.getErrorCode());
     assertEquals(
         "Data set pBOMPrpg1QX not usable with org unit(s): `[j7Hg26FpoIa]`", conflict.getValue());
+  }
+
+  @Test
+  void testImportForceDeleteDataValuesWithOrgUnitOutsideHierarchy() {
+    assertDataValuesCount(0);
+
+    ImportOptions options = new ImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetE.xml"), options);
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+
+    // now with force (tests runs as superuser)
+    options = new ImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+    options.setForce(true);
+    summary = importXml(readFile("dxf2/datavalueset/dataValueSetE.xml"), options);
+
+    assertEquals(ImportStatus.SUCCESS, summary.getStatus());
+    assertEquals(3, summary.getImportCount().getIgnored());
+    assertEquals(0, summary.getImportCount().getDeleted());
+    assertDataValuesCount(0);
   }
 
   @Test
@@ -1145,7 +1175,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     for (DataExportValue dv : dataValues)
       assertEquals(
           2,
-          dataValueAuditService.getDataValueAudits(dv).size(),
+          dataValueChangelogService.getChangelogEntries(dv).size(),
           "expected data value update(s) to be audited");
   }
 
@@ -1303,5 +1333,33 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
         () -> assertEquals(deleted, totals.getDeleted(), "unexpected deleted count"),
         () -> assertEquals(ignored, totals.getIgnored(), "unexpected ignored count"),
         () -> assertNotEquals(ImportStatus.ERROR, summary.getStatus(), summary.getDescription()));
+  }
+
+  @Test
+  void testGetDefaultAttributeOptionComboForDataSets_AllDefaultCc() {
+    // dsA uses the default attribute category combo => the default AOC is returned
+    UID expected = UID.of(categoryService.getDefaultCategoryOptionCombo().getUid());
+
+    assertEquals(
+        expected,
+        dataExportStore.getDefaultAttributeOptionComboForDataSets(Stream.of(UID.of(dsA.getUid()))));
+  }
+
+  @Test
+  void testGetDefaultAttributeOptionComboForDataSets_NonDefaultCc() {
+    DataSet dsNonDefault = createDataSet('N', new MonthlyPeriodType());
+    dsNonDefault.setCategoryCombo(categoryComboA);
+    dataSetService.addDataSet(dsNonDefault);
+
+    // one of the data sets uses a non-default attribute category combo => no fast path
+    assertNull(
+        dataExportStore.getDefaultAttributeOptionComboForDataSets(
+            Stream.of(UID.of(dsA.getUid()), UID.of(dsNonDefault.getUid()))));
+  }
+
+  @Test
+  void testGetDefaultAttributeOptionComboForDataSets_NoDataSetExists() {
+    assertNull(
+        dataExportStore.getDefaultAttributeOptionComboForDataSets(Stream.of(UID.generate())));
   }
 }

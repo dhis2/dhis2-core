@@ -25,19 +25,19 @@
     </class>
 
     <sql-query name="getRandomGeneratedValuesNotAvailableNamedQuery">
-        <![CDATA[ SELECT value
+        <![CDATA[ SELECT LOWER(value)
         FROM
         trackedentityattributevalue teav
         WHERE
         teav.trackedentityattributeid = :teaId
         and LOWER(teav.value) in (:values)
         UNION
-        SELECT value FROM reservedvalue rs
+        SELECT LOWER(value) FROM reservedvalue rv
         WHERE
-        rs.ownerObject = :ownerObject
-        and rs.ownerUid = :ownerUid
-        and rs.key = :key
-        and LOWER(rs.value) in (:values)
+        rv.ownerObject = :ownerObject
+        and rv.ownerUid = :ownerUid
+        and rv.key = :key
+        and LOWER(rv.value) in (:values)
         ]]>
     </sql-query>
 </hibernate-mapping>

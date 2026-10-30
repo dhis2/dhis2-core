@@ -43,13 +43,13 @@ import org.hisp.dhis.relationship.RelationshipType;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @OpenApi.Shared(name = "TrackerRelationship")
-@OpenApi.Identifiable(as = org.hisp.dhis.relationship.Relationship.class)
+@OpenApi.Identifiable(as = org.hisp.dhis.tracker.model.Relationship.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Relationship {
-  @OpenApi.Property({UID.class, org.hisp.dhis.relationship.Relationship.class})
+  @OpenApi.Property({UID.class, org.hisp.dhis.tracker.model.Relationship.class})
   @JsonProperty
   private UID relationship;
 
@@ -66,6 +66,8 @@ public class Relationship {
   @JsonProperty private Instant updatedAt;
 
   @JsonProperty private boolean bidirectional;
+
+  @JsonProperty private boolean deleted;
 
   @JsonProperty private RelationshipItem from;
 

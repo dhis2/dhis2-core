@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
@@ -58,8 +58,8 @@ public class SendSmsJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
-    SmsJobParameters params = (SmsJobParameters) config.getJobParameters();
+  public void execute(JobEntry config, JobProgress progress) {
+    SmsJobParameters params = (SmsJobParameters) config.parameters();
     OutboundSms sms = new OutboundSms();
     sms.setSubject(params.getSmsSubject());
     sms.setMessage(params.getMessage());

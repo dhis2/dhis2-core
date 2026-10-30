@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.preheat;
 
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasProperty;
@@ -83,8 +82,20 @@ class SchemaToDataFetcherTest extends TestBase {
   }
 
   @Test
-  void verifyInput() {
-    assertThat(subject.fetch(null), hasSize(0));
+  void verifyNullSchemaReturnsEmpty() {
+    assertThat(subject.fetch(null, List.of()), hasSize(0));
+  }
+
+  @Test
+  void verifyEmptyImportReturnsEmpty() {
+    Schema schema =
+        createSchema(
+            DataElement.class,
+            "dataElement",
+            Stream.of(createUniqueProperty(String.class, "code", true, true)).toList());
+
+    assertThat(subject.fetch(schema, List.of()), hasSize(0));
+    verify(entityManager, times(0)).createQuery(anyString());
   }
 
   @Test
@@ -100,19 +111,25 @@ class SchemaToDataFetcherTest extends TestBase {
                     createProperty(Date.class, "created", true, true),
                     createProperty(Date.class, "lastUpdated", true, true),
                     createProperty(Integer.class, "int", true, true))
-                .collect(toList()));
+                .toList());
 
-    mockSession("SELECT code,id from " + schema.getKlass().getSimpleName());
+    mockSession();
 
     List<Object[]> l = new ArrayList<>();
-
     l.add(new Object[] {"abc", 123456});
     l.add(new Object[] {"bce", 123888});
     l.add(new Object[] {"def", 123999});
 
     when(query.getResultList()).thenReturn(l);
 
-    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
+    DataElement de1 = new DataElement("de1");
+    de1.setCode("abc");
+    DataElement de2 = new DataElement("de2");
+    de2.setCode("bce");
+    DataElement de3 = new DataElement("de3");
+    de3.setCode("def");
+
+    List<DataElement> result = (List<DataElement>) subject.fetch(schema, List.of(de1, de2, de3));
 
     assertThat(result, hasSize(3));
 
@@ -133,19 +150,25 @@ class SchemaToDataFetcherTest extends TestBase {
             Stream.of(
                     createUniqueProperty(String.class, "url", true, true),
                     createUniqueProperty(String.class, "code", true, true))
-                .collect(toList()));
+                .toList());
 
-    mockSession("SELECT code,url from " + schema.getKlass().getSimpleName());
+    mockSession();
 
     List<Object[]> l = new ArrayList<>();
-
     l.add(new Object[] {"abc", "http://ok"});
     l.add(new Object[] {"bce", "http://-exception"});
     l.add(new Object[] {"def", "http://also-ok"});
 
     when(query.getResultList()).thenReturn(l);
 
-    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
+    DummyDataElement d1 = new DummyDataElement();
+    d1.setCode("abc");
+    DummyDataElement d2 = new DummyDataElement();
+    d2.setCode("bce");
+    DummyDataElement d3 = new DummyDataElement();
+    d3.setCode("def");
+
+    List<DataElement> result = (List<DataElement>) subject.fetch(schema, List.of(d1, d2, d3));
 
     assertThat(result, hasSize(2));
 
@@ -166,19 +189,25 @@ class SchemaToDataFetcherTest extends TestBase {
                     createProperty(String.class, "name", true, true),
                     createUniqueProperty(String.class, "url", true, true),
                     createProperty(String.class, "code", true, true))
-                .collect(toList()));
+                .toList());
 
-    mockSession("SELECT url from " + schema.getKlass().getSimpleName());
+    mockSession();
 
     List<Object> l = new ArrayList<>();
-
     l.add("http://ok");
     l.add("http://is-ok");
     l.add("http://also-ok");
 
     when(query.getResultList()).thenReturn(l);
 
-    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
+    DummyDataElement d1 = new DummyDataElement();
+    d1.setUrl("http://ok");
+    DummyDataElement d2 = new DummyDataElement();
+    d2.setUrl("http://is-ok");
+    DummyDataElement d3 = new DummyDataElement();
+    d3.setUrl("http://also-ok");
+
+    List<DataElement> result = (List<DataElement>) subject.fetch(schema, List.of(d1, d2, d3));
 
     assertThat(result, hasSize(3));
 
@@ -191,10 +220,80 @@ class SchemaToDataFetcherTest extends TestBase {
   }
 
   @Test
+  void verifyLargeImportSetIsBatchedToStayUnderPostgresParameterLimit() {
+    Schema schema =
+        createSchema(
+            DummyDataElement.class,
+            "dummyDataElement",
+            Stream.of(
+                    createProperty(String.class, "name", true, true),
+                    createUniqueProperty(String.class, "url", true, true),
+                    createProperty(String.class, "code", true, true))
+                .toList());
+
+    mockSession();
+    when(query.getResultList()).thenReturn(List.of("http://found"));
+
+    // 25_000 exceeds the internal 20_000 batch size so batching is triggered (25_000 / 20_000 = 2
+    // batches)
+    List<DummyDataElement> toImport = new ArrayList<>(25_000);
+    for (int i = 0; i < 25_000; i++) {
+      DummyDataElement d = new DummyDataElement();
+      d.setUrl("http://example.com/" + i);
+      toImport.add(d);
+    }
+
+    List<? extends IdentifiableObject> result = subject.fetch(schema, toImport);
+
+    verify(entityManager, times(2)).createQuery(anyString());
+    // the same value returned by both batches is deduplicated to one result
+    assertThat(result, hasSize(1));
+  }
+
+  @Test
+  void verifyBatchedPathDeduplicatesMultiColumnRowsAcrossPerPropertyQueries() {
+    Schema schema =
+        createSchema(
+            DummyDataElement.class,
+            "dummyDataElement",
+            Stream.of(
+                    createUniqueProperty(String.class, "url", true, true),
+                    createUniqueProperty(String.class, "code", true, true))
+                .toList());
+
+    mockSession();
+    // Every per-property query returns the same row. Without dedup we'd see 4 copies (one per
+    // createQuery call); the LinkedHashSet<List<Object>> in runBatchedQueries collapses it to 1.
+    // Column order matches the alphabetical iteration of unique properties: code, url.
+    List<Object[]> sharedRow = new ArrayList<>();
+    sharedRow.add(new Object[] {"cx", "http://x"});
+    when(query.getResultList()).thenReturn(sharedRow);
+
+    // 25_000 distinct urls AND 25_000 distinct codes -> each property partitioned into
+    // 20_000 + 5_000 batches -> 2 properties * 2 batches = 4 createQuery calls.
+    List<DummyDataElement> toImport = new ArrayList<>(25_000);
+    for (int i = 0; i < 25_000; i++) {
+      DummyDataElement d = new DummyDataElement();
+      d.setUrl("http://example.com/" + i);
+      d.setCode("c" + i);
+      toImport.add(d);
+    }
+
+    List<? extends IdentifiableObject> result = subject.fetch(schema, toImport);
+
+    verify(entityManager, times(4)).createQuery(anyString());
+    assertThat(result, hasSize(1));
+    assertThat(
+        result,
+        IsIterableContainingInAnyOrder.containsInAnyOrder(
+            allOf(hasProperty("url", is("http://x")), hasProperty("code", is("cx")))));
+  }
+
+  @Test
   void verifyNoSqlWhenUniquePropertiesListIsEmpty() {
     Schema schema = createSchema(SMSCommand.class, "smsCommand", Lists.newArrayList());
 
-    subject.fetch(schema);
+    subject.fetch(schema, List.of());
 
     verify(entityManager, times(0)).createQuery(anyString());
   }
@@ -208,16 +307,17 @@ class SchemaToDataFetcherTest extends TestBase {
             Stream.of(
                     createProperty(String.class, "name", true, true),
                     createProperty(String.class, "id", true, true))
-                .collect(toList()));
+                .toList());
 
-    subject.fetch(schema);
+    subject.fetch(schema, List.of());
 
     verify(entityManager, times(0)).createQuery(anyString());
   }
 
-  private void mockSession(String hql) {
-    when(entityManager.createQuery(hql)).thenReturn(query);
+  private void mockSession() {
+    when(entityManager.createQuery(anyString())).thenReturn(query);
     when(query.setHint(any(), any())).thenReturn(query);
+    when(query.setParameter(anyString(), any())).thenReturn(query);
   }
 
   private Schema createSchema(

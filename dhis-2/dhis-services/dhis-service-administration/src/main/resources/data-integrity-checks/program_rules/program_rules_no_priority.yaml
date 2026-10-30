@@ -26,7 +26,7 @@
 #
 ---
 name: program_rules_no_priority
-description: Program rules with no priority.
+description: Program rules without priorities
 section: Program rules
 section_order: 4
 summary_sql: >-
@@ -37,12 +37,12 @@ summary_sql: >-
     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM programrule),0) as percent
     FROM program_rules_no_priority;
 details_sql: >-
-     SELECT a.uid,a.name,NULL AS comment,
-     array_agg(COALESCE(b.name,'NULL') || ':' || COALESCE(b.uid,'NULL')) as refs  
-     from programrule a
-     LEFT OUTER JOIN program b on a.programid = b.programid
-     where priority IS NULL
-     GROUP BY a.uid,a.name;
+    SELECT a.uid,a.name,NULL AS comment,
+    array_agg(COALESCE(b.name,'NULL') || ':' || COALESCE(b.uid,'NULL')) as refs  
+    from programrule a
+    LEFT OUTER JOIN program b on a.programid = b.programid
+    where priority IS NULL
+    GROUP BY a.uid,a.name;
 details_id_type: programRules
 severity: WARNING
 introduction: >

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,17 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
-import static java.util.stream.Collectors.toMap;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
+import static java.lang.System.currentTimeMillis;
+import static java.util.function.Function.identity;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import jakarta.persistence.EntityManager;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -47,21 +47,20 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hisp.dhis.common.IdProperty;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
-import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportParams.Order;
 import org.hisp.dhis.datavalue.DataExportStore;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataExportValue;
-import org.hisp.dhis.hibernate.RawNativeQuery;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.sql.NativeSQL;
+import org.hisp.dhis.sql.QueryBuilder;
+import org.hisp.dhis.sql.SQL;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.util.DateUtils;
 import org.intellij.lang.annotations.Language;
 import org.springframework.stereotype.Repository;
 
@@ -72,35 +71,9 @@ public class HibernateDataExportStore implements DataExportStore {
 
   private final EntityManager entityManager;
 
-  @Nonnull
-  @Override
-  public Map<String, String> getIdMapping(
-      @Nonnull EncodeType type, @Nonnull IdProperty to, @Nonnull Stream<UID> identifiers) {
-    if (to == IdProperty.UID)
-      return identifiers.distinct().collect(toMap(UID::getValue, UID::getValue));
-    String[] ids =
-        identifiers.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
-    if (ids.length == 0) return Map.of();
-    @Language("sql")
-    String sqlTemplate =
-        """
-      SELECT t.uid, ${property}
-      FROM ${table} t
-      JOIN unnest(:ids) AS input(id) ON t.uid = input.id
-      """;
-    String tableName =
-        switch (type) {
-          case DE -> "dataelement";
-          case OU -> "organisationunit";
-          case COC -> "categoryoptioncombo";
-        };
-    String sql = replace(sqlTemplate, Map.of("table", tableName, "property", columnName("t", to)));
-    return createNativeRawQuery(sql).setUnnestParameter("ids", ids).listAsStringsMap();
-  }
-
   @Override
   @CheckForNull
-  public DataExportValue getDataValue(@Nonnull DataEntryKey key) {
+  public DataExportValue exportValue(@Nonnull DataValueKey key) {
     String sql =
         """
       SELECT
@@ -109,6 +82,7 @@ public class HibernateDataExportStore implements DataExportStore {
         ou.uid AS ou,
         coc.uid AS coc,
         aoc.uid AS aoc,
+        de.valuetype,
         dv.value,
         dv.comment,
         dv.followup,
@@ -129,10 +103,10 @@ public class HibernateDataExportStore implements DataExportStore {
         AND (cast(:coc as text) IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
         AND (cast(:aoc as text) IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
       LIMIT 1""";
-    return createNativeRawQuery(sql)
+    return createQuery(sql)
         .setParameter("de", key.dataElement())
         .setParameter("ou", key.orgUnit())
-        .setParameter("pe", key.period())
+        .setParameter("pe", key.period().getIsoDate())
         .setParameter("coc", key.categoryOptionCombo())
         .setParameter("aoc", key.attributeOptionCombo())
         .stream()
@@ -144,19 +118,93 @@ public class HibernateDataExportStore implements DataExportStore {
   @Override
   @UsageTestOnly
   public List<DataExportValue> getAllDataValues() {
-    return getDataValues(new DataExportStoreParams().setIncludeDeleted(false)).toList();
+    return exportValues(DataExportParams.builder().includeDeleted(false).build()).toList();
   }
 
+  @Nonnull
   @Override
-  public Stream<DataExportValue> getDataValues(DataExportStoreParams params) {
+  public Stream<DataExportValue> exportValues(@Nonnull DataExportParams params) {
+    SQL.QueryAPI api = NativeSQL.of(getSession());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    // the AOCs the user can read data for are resolved upfront so the planner sees a known, small
+    // list instead of guessing the size of a sharing-filtered set of all category option combos;
+    // superusers are not restricted (they must be able to find invalid data), for everyone else
+    // this also applies to explicit AOCs, as a second line behind the service's E2011 check
+    long[] aocAllowed =
+        currentUser.isSuper()
+            ? null
+            : getAllowedAocIds(api, currentUser, params.getAttributeOptionCombos());
+    if (aocAllowed != null && aocAllowed.length == 0) return Stream.empty();
+    return createExportQuery(params, api, currentUser, aocAllowed).stream()
+        .map(DataExportValue::of);
+  }
+
+  /**
+   * @param aocAllowed internal ids of the AOCs the values are limited to, null for no limit; must
+   *     not be empty (an empty list would erase the filter)
+   */
+  static QueryBuilder createExportQuery(
+      DataExportParams params,
+      SQL.QueryAPI api,
+      UserDetails currentUser,
+      @CheckForNull long[] aocAllowed) {
+    if (aocAllowed != null && aocAllowed.length == 0)
+      throw new IllegalArgumentException("AOC limit must not be empty");
+    boolean isSuper = currentUser.isSuper();
     String sql =
         """
+      WITH
+      de_ids AS (
+        SELECT dataelementid
+        FROM (
+                (SELECT cast(NULL as bigint) AS dataelementid WHERE false)
+          UNION (SELECT de.dataelementid FROM dataelement de WHERE de.uid = ANY(:de))
+          UNION (SELECT dse.dataelementid FROM datasetelement dse \
+            JOIN dataset ds ON dse.datasetid = ds.datasetid WHERE ds.uid = ANY(:ds))
+          UNION (SELECT degm.dataelementid FROM dataelementgroupmembers degm \
+            JOIN dataelementgroup deg ON degm.dataelementgroupid = deg.dataelementgroupid WHERE deg.uid = ANY(:deg))
+        ) de_all
+        WHERE dataelementid IS NOT NULL
+      ),
+      pe_ids AS (
+        SELECT periodid
+        FROM period
+        WHERE 1=1
+          AND iso = ANY(:pe)
+          AND startDate >= :start
+          AND endDate <= :end
+          AND startdate <= :includedDate
+          AND enddate >= :includedDate
+          AND periodtypeid IN (SELECT periodtypeid FROM periodtype WHERE name = ANY(:pt))
+      ),
+      ou_ids AS (
+        SELECT organisationunitid
+        FROM (
+          (SELECT cast(NULL as bigint) AS organisationunitid WHERE false)
+          UNION (SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = ANY(:ou))
+          UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm \
+                 JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid \
+                 WHERE oug.uid = ANY(:ougSuper))
+          UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm \
+                 JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid \
+                 JOIN organisationunit ou ON ougm.organisationunitid = ou.organisationunitid \
+                 WHERE oug.uid = ANY(:oug) AND ou.uid = ANY(:capture))
+        ) ou_all
+        WHERE organisationunitid IS NOT NULL
+      ),
+      ou_with_descendants_ids AS (
+        SELECT DISTINCT ou.organisationunitid
+        FROM ou_ids
+        JOIN organisationunit root USING (organisationunitid)
+        JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
+      ),
       SELECT
         de.uid AS deid,
         pe.iso,
         ou.uid AS ouid,
         coc.uid AS cocid,
         aoc.uid AS aocid,
+        de.valuetype,
         dv.value,
         dv.comment,
         dv.followup,
@@ -165,98 +213,276 @@ public class HibernateDataExportStore implements DataExportStore {
         dv.lastupdated,
         dv.deleted
       FROM datavalue dv
+      JOIN de_ids ON dv.dataelementid = de_ids.dataelementid
+      JOIN pe_ids ON dv.periodid = pe_ids.periodid
+      JOIN ou_ids ON dv.sourceid = ou_ids.organisationunitid
+      JOIN ou_with_descendants_ids ON dv.sourceid = ou_with_descendants_ids.organisationunitid
       JOIN dataelement de ON dv.dataelementid = de.dataelementid
       JOIN period pe ON dv.periodid = pe.periodid
-      JOIN periodtype pt ON pe.periodtypeid = pt.periodtypeid
       JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
       JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-      WHERE 1=1 -- filters use null-erasure...
-        AND dv.dataelementid = ANY(:de)
-        AND pe.iso = ANY(:pe)
-        AND pe.startDate >= :start
-        AND pe.endDate <= :end
-        AND pe.startdate <= :includedDate AND pe.enddate >= :includedDate
-        AND pt.name = ANY(:pt)
-        AND dv.sourceid = ANY(:ou)
-        AND ou.hierarchylevel = :level
-        AND ou.hierarchylevel >= :minLevel
-        AND ou.path LIKE ANY(:path)
-        AND dv.categoryoptioncomboid = ANY(:coc)
-        AND dv.categoryoptioncomboid = ANY(:aoc)
+      WHERE 1=1
+        AND coc.uid = ANY(:coc)
+        AND aoc.uid = ANY(:aoc)
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
-        -- access check below must be 1 line for erasure
-        AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:access))
-      ORDER BY ou.path, pe.startdate, pe.enddate, dv.created, deid
-      """;
-    Set<OrganisationUnit> units = params.getAllOrganisationUnits();
-    boolean descendants = params.isIncludeDescendantsForOrganisationUnits();
-    String[] path =
-        !descendants
-            ? new String[0]
-            : units.stream().map(ou -> ou.getStoredPath() + "%").toArray(String[]::new);
-    Date lastUpdated = null;
-    if (params.hasLastUpdatedDuration())
-      lastUpdated = DateUtils.nowMinusDuration(params.getLastUpdatedDuration());
-    if (params.hasLastUpdated()) lastUpdated = params.getLastUpdated();
+        AND ou.hierarchylevel = :level
+        AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)""";
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    String accessSql =
-        currentUser.isSuper()
-                || params.isOrderForSync()
-                || !params.getAttributeOptionCombos().isEmpty()
-            ? null // explicit AOCs mean they are already sharing checked
-            : generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
-    return createNativeRawQuery(sql)
-        .setInOrAnyParameter("de", getIds(params.getAllDataElements()))
-        .setInOrAnyParameter("pe", params.getPeriods(), Period::getIsoDate)
-        .setInOrAnyParameter("pt", params.getPeriodTypes(), PeriodType::getName)
+    Date lastUpdated = params.getLastUpdated();
+    if (lastUpdated == null && params.getLastUpdatedDuration() != null)
+      lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
+
+    boolean descendants = params.isIncludeDescendants();
+    List<Order> orders = params.getOrders();
+    if (isEmpty(orders)) orders = List.of(Order.PE, Order.CREATED, Order.DE);
+
+    List<UID> oug = params.getOrganisationUnitGroups();
+    Set<String> ouCapture = currentUser.getUserOrgUnitIds();
+    if (oug == null || oug.isEmpty() || isSuper) ouCapture = Set.of();
+    return SQL.of(sql, api)
+        .setParameter("ds", params.getDataSets())
+        .setParameter("de", params.getDataElements())
+        .setParameter("deg", params.getDataElementGroups())
+        .setParameter("pe", params.getPeriods(), Period::getIsoDate)
+        .setParameter("pt", params.getPeriodTypes(), PeriodType::getName)
         .setParameter("start", params.getStartDate())
         .setParameter("end", params.getEndDate())
         .setParameter("includedDate", params.getIncludedDate())
-        .setInOrAnyParameter("path", path)
-        .setInOrAnyParameter("ou", descendants ? null : getIds(units))
-        .setParameter("level", descendants ? null : params.getOrgUnitLevel())
-        .setParameter("minLevel", descendants ? params.getOrgUnitLevel() : null)
-        .setInOrAnyParameter("coc", getIds(params.getCategoryOptionCombos()))
-        .setInOrAnyParameter("aoc", getIds(params.getAttributeOptionCombos()))
+        .setParameter("ou", params.getOrganisationUnits())
+        .setParameter("oug", isSuper ? List.of() : oug)
+        .setParameter("capture", ouCapture, identity())
+        .setParameter("ougSuper", isSuper ? oug : List.of())
+        .setParameter("level", params.getOrgUnitLevel())
+        .setParameter("coc", params.getCategoryOptionCombos())
+        .setParameter("aoc", params.getAttributeOptionCombos())
         .setParameter("lastUpdated", lastUpdated)
         .setParameter("deleted", params.isIncludeDeleted() ? null : false)
-        .setDynamicClause("access", accessSql)
-        .eraseOrder("ou.path", !params.isOrderByOrgUnitPath())
-        .eraseOrder("pe.startdate", !params.isOrderByPeriod() && !params.isOrderForSync())
-        .eraseOrder("pe.enddate", !params.isOrderByPeriod())
-        .eraseOrder("dv.created", !params.isOrderForSync())
-        .eraseOrder("deid", !params.isOrderForSync())
+        .setParameter("aocAllowed", aocAllowed)
         .eraseNullParameterLines()
-        .eraseNullJoinLine("pt", "pt")
+        // keep params below even when null
+        .eraseJoinLine("de_ids", !params.hasDataElementFilters())
+        .eraseJoinLine("pe_ids", !params.hasPeriodFilters())
+        .eraseJoinLine("ou_with_descendants_ids", !descendants || !params.hasOrgUnitFilters())
+        .eraseJoinLine("ou_ids", descendants || !params.hasOrgUnitFilters())
+        .useEqualsOverInForParameters("de", "pe", "pt", "ou", "path", "coc", "aoc")
         .setLimit(params.getLimit())
         .setOffset(params.getOffset())
-        .stream()
-        .map(DataExportValue::of);
+        .setOrders(
+            orders,
+            Map.ofEntries(
+                Map.entry(Order.OU, "ou.path"),
+                Map.entry(Order.PE, "pe.startdate, pe.enddate"),
+                Map.entry(Order.CREATED, "dv.created"),
+                Map.entry(Order.DE, "deid"),
+                Map.entry(Order.AOC, "aocid")));
   }
 
-  private static Long[] getIds(Collection<? extends IdentifiableObject> objects) {
-    return objects == null || objects.isEmpty()
-        ? null
-        : objects.stream().map(IdentifiableObject::getId).toArray(Long[]::new);
+  @CheckForNull
+  @Override
+  public UID getAttributeOptionCombo(
+      @CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions) {
+    String sql =
+        """
+        SELECT coc.uid
+        FROM categoryoptioncombo coc
+        INNER JOIN categorycombos_optioncombos c_coc ON c_coc.categoryoptioncomboid = coc.categoryoptioncomboid
+        INNER JOIN categorycombo cc ON cc.categorycomboid = c_coc.categorycomboid
+        INNER JOIN categoryoptioncombos_categoryoptions coc_co ON coc_co.categoryoptioncomboid = coc.categoryoptioncomboid
+        INNER JOIN categoryoption co ON co.categoryoptionid = coc_co.categoryoptionid
+        WHERE 1=1
+        AND cc.uid = :cc
+        AND cc.name = :name
+        AND co.uid = ANY (:co)
+        GROUP BY coc.uid
+        HAVING COUNT(DISTINCT co.uid) = :n""";
+    List<UID> co = categoryOptions.toList();
+    return createQuery(sql)
+        .setParameter("cc", categoryCombo == null ? null : categoryCombo.getValue())
+        .setParameter("name", categoryCombo == null ? "default" : null)
+        .setParameter("co", co)
+        .setParameter("n", co.size())
+        .eraseNullParameterLines()
+        .stream(String.class)
+        .map(UID::of)
+        .findFirst()
+        .orElse(null);
+  }
+
+  @CheckForNull
+  @Override
+  public UID getDefaultAttributeOptionComboForDataSets(@Nonnull Stream<UID> dataSets) {
+    // Returns the default category option combo UID only when at least one of the given data sets
+    // exists and every existing one uses the default attribute category combo. A data set with a
+    // missing or non-default attribute category combo yields no row (=> null), disabling the
+    // fast-path so the regular per-row AOC data-sharing check is used instead.
+    String sql =
+        """
+        SELECT coc.uid
+        FROM categoryoptioncombo coc
+        JOIN categorycombos_optioncombos ccoc ON ccoc.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
+        WHERE cc.name = 'default'
+          AND EXISTS (
+            SELECT 1 FROM dataset ds
+            WHERE ds.uid = ANY(:ds)
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM dataset ds
+            LEFT JOIN categorycombo dscc ON dscc.categorycomboid = ds.categorycomboid
+            WHERE ds.uid = ANY(:ds)
+              AND (dscc.name IS NULL OR dscc.name <> 'default')
+          )""";
+    return createQuery(sql)
+        .setParameter("ds", dataSets)
+        .useEqualsOverInForParameters("ds")
+        .eraseNullParameterLines()
+        .stream(String.class)
+        .map(UID::of)
+        .findFirst()
+        .orElse(null);
+  }
+
+  @Override
+  @Nonnull
+  public List<String> getDataSetsNoDataReadAccess(@Nonnull Stream<UID> dataSets) {
+    UserDetails user = getCurrentUserDetails();
+    if (user.isSuper()) return List.of();
+    String accessSql = generateSQlQueryForSharingCheck("ds.sharing", user, LIKE_READ_DATA);
+    String sql =
+        """
+      SELECT ds.uid
+      FROM dataset ds
+      WHERE ds.uid = ANY(:ds)
+        AND NOT (:access)""";
+    return createQuery(sql)
+        .setParameter("ds", dataSets)
+        .setDynamicClause("access", accessSql)
+        .useEqualsOverInForParameters("ds")
+        .stream(String.class)
+        .toList();
+  }
+
+  /**
+   * @return internal ids of the option combos of attribute category combos for which the user can
+   *     read data of every category option, plus the default combo (no sharing guards on default),
+   *     limited to the explicitly requested AOCs if there are any
+   */
+  private static long[] getAllowedAocIds(
+      SQL.QueryAPI api, UserDetails user, @CheckForNull List<UID> attributeOptionCombos) {
+    // a single bigint column comes back as a plain number per row, not as an Object[] row
+    return createAllowedAocQuery(api, user, attributeOptionCombos).stream(Number.class)
+        .mapToLong(Number::longValue)
+        .toArray();
+  }
+
+  static QueryBuilder createAllowedAocQuery(
+      SQL.QueryAPI api, UserDetails user, @CheckForNull List<UID> attributeOptionCombos) {
+    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_READ_DATA);
+    String sql =
+        """
+      SELECT DISTINCT ccoc.categoryoptioncomboid
+      FROM categorycombos_optioncombos ccoc
+      JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
+      JOIN categoryoptioncombo aoc ON aoc.categoryoptioncomboid = ccoc.categoryoptioncomboid
+      WHERE (cc.name = 'default'
+          OR cc.datadimensiontype = 'ATTRIBUTE'
+          AND NOT EXISTS (
+            SELECT 1
+            FROM categoryoptioncombos_categoryoptions coc_co
+            JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
+            WHERE coc_co.categoryoptioncomboid = ccoc.categoryoptioncomboid
+              AND NOT (:access)))
+        AND aoc.uid = ANY(:aoc)""";
+    return SQL.of(sql, api)
+        .setParameter("aoc", attributeOptionCombos)
+        .setDynamicClause("access", accessSql)
+        .eraseNullParameterLines()
+        .eraseNullParameterJoinLine("aoc", "aoc")
+        .useEqualsOverInForParameters("aoc");
   }
 
   @Nonnull
-  private static String columnName(String alias, IdProperty id) {
-    return switch (id.name()) {
-      case UID -> alias + ".uid";
-      case NAME -> alias + ".name";
-      case CODE -> alias + ".code";
-      case ATTR ->
-          "jsonb_extract_path_text(%s.attributeValues, '%s', 'value')"
-              .formatted(alias, id.attributeId());
-    };
+  @Override
+  public List<String> getAocNotOfAttributeCombo(@Nonnull Stream<UID> attributeOptionCombos) {
+    if (getCurrentUserDetails().isSuper()) return List.of();
+    String sql =
+        """
+      SELECT coc.uid
+      FROM categoryoptioncombo coc
+      WHERE coc.uid = ANY (:coc)
+        AND NOT EXISTS (
+          SELECT 1
+          FROM categorycombos_optioncombos ccoc
+          JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
+          WHERE ccoc.categoryoptioncomboid = coc.categoryoptioncomboid
+            AND (cc.name = 'default' OR cc.datadimensiontype = 'ATTRIBUTE'))""";
+    return createQuery(sql)
+        .setParameter("coc", attributeOptionCombos)
+        .useEqualsOverInForParameters("coc")
+        .stream(String.class)
+        .toList();
   }
 
-  private RawNativeQuery createNativeRawQuery(@Language("SQL") String sql) {
-    return new RawNativeQuery(sql, getSession());
+  @Nonnull
+  @Override
+  public List<String> getAocNoDataReadAccess(@Nonnull Stream<UID> attributeOptionCombos) {
+    UserDetails user = getCurrentUserDetails();
+    if (user.isSuper()) return List.of();
+    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_READ_DATA);
+    String sql =
+        """
+      SELECT coc.uid
+      FROM categoryoptioncombo coc
+      WHERE coc.uid = ANY (:coc)
+        AND NOT EXISTS (
+          SELECT 1
+          FROM categorycombos_optioncombos ccoc
+          JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
+          WHERE ccoc.categoryoptioncomboid = coc.categoryoptioncomboid
+            AND (cc.name = 'default'
+              OR cc.datadimensiontype = 'ATTRIBUTE'
+              AND NOT EXISTS (
+                SELECT 1
+                FROM categoryoptioncombos_categoryoptions aoc_co
+                JOIN categoryoption co ON aoc_co.categoryoptionid = co.categoryoptionid
+                WHERE aoc_co.categoryoptioncomboid = coc.categoryoptioncomboid
+                  AND NOT (:access))))""";
+    return createQuery(sql)
+        .setParameter("coc", attributeOptionCombos)
+        .setDynamicClause("access", accessSql)
+        .useEqualsOverInForParameters("coc")
+        .stream(String.class)
+        .toList();
+  }
+
+  @Nonnull
+  @Override
+  public List<String> getOrgUnitsNotInUserHierarchy(@Nonnull Stream<UID> orgUnits) {
+    UserDetails user = getCurrentUserDetails();
+    if (user.isSuper()) return List.of();
+    String sql =
+        """
+      SELECT ou.uid
+      FROM organisationunit ou
+      WHERE ou.uid = ANY(:ou)
+        AND NOT EXISTS(
+          SELECT 1
+          FROM organisationunit parent
+          WHERE parent.uid = ANY(:parent)
+            AND (ou.path = parent.path OR ou.path LIKE parent.path || '/%')
+      )""";
+    return createQuery(sql)
+        .setParameter("ou", orgUnits)
+        .setParameter("parent", user.getUserOrgUnitIds(), identity())
+        .useEqualsOverInForParameters("ou")
+        .stream(String.class)
+        .toList();
+  }
+
+  private QueryBuilder createQuery(@Language("sql") String sql) {
+    return SQL.of(sql, NativeSQL.of(getSession()));
   }
 
   private Session getSession() {

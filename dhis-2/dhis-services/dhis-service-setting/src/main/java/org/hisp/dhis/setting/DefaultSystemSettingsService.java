@@ -32,10 +32,13 @@ package org.hisp.dhis.setting;
 import static org.hisp.dhis.setting.SystemSettings.isConfidential;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -76,8 +79,19 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   private final @Qualifier("tripleDesStringEncryptor") PBEStringEncryptor pbeStringEncryptor;
   private final TransactionTemplate transactionTemplate;
 
+  private final Map<String, List<SystemSettingsObserver>> observersByKey =
+      new ConcurrentHashMap<>();
+
   /** The "cache" for the current settings */
   private SystemSettings allSettings;
+
+  @Override
+  @NonTransactional
+  public void registerObserver(
+      @Nonnull Set<String> keys, @Nonnull SystemSettingsObserver observer) {
+    for (String key : keys)
+      observersByKey.computeIfAbsent(key, k -> new ArrayList<>()).add(observer);
+  }
 
   @Override
   @NonTransactional
@@ -126,10 +140,9 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   public void putAll(@Nonnull Map<String, String> settings)
       throws NotFoundException, BadRequestException {
     if (settings.isEmpty()) return;
-    validateAll(settings);
 
     Set<String> deletes = new HashSet<>();
-    for (Map.Entry<String, String> e : settings.entrySet()) {
+    for (Map.Entry<String, String> e : validateAll(settings).entrySet()) {
       String key = e.getKey();
       String value = e.getValue();
       if (value == null || value.isEmpty()) {
@@ -137,13 +150,27 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
       } else {
         systemSettingStore.put(
             key, isConfidential(key) ? pbeStringEncryptor.encrypt(value) : value);
+        notifyObservers(key, value);
       }
     }
     deleteAll(deletes);
     allSettings = null; // invalidate
   }
 
-  private void validateAll(@Nonnull Map<String, String> settings)
+  private void notifyObservers(String key, String value) {
+    List<SystemSettingsObserver> keyObservers = observersByKey.get(key);
+    if (keyObservers == null) return;
+    for (SystemSettingsObserver o : keyObservers) {
+      try {
+        o.onSystemSettingChange(key, value);
+      } catch (Exception ex) {
+        log.error("SystemSettingsObserver threw exception", ex);
+      }
+    }
+  }
+
+  @Nonnull
+  private Map<String, String> validateAll(@Nonnull Map<String, String> settings)
       throws NotFoundException, BadRequestException {
     Set<String> allowed = SystemSettings.keysWithDefaults();
     List<String> illegal =
@@ -151,18 +178,26 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
     if (!illegal.isEmpty())
       throw new NotFoundException("Setting does not exist: " + String.join(",", illegal));
     SystemSettings empty = SystemSettings.of(Map.of());
+    Map<String, String> formatted = new HashMap<>(settings.size());
     for (Map.Entry<String, String> e : settings.entrySet()) {
-      if (!empty.isValid(e.getKey(), e.getValue()))
+      try {
+        formatted.put(e.getKey(), empty.format(e.getKey(), e.getValue()));
+      } catch (IllegalArgumentException ex) {
         throw new BadRequestException(
             "Not a valid value for setting %s: %s".formatted(e.getKey(), e.getValue()));
+      }
     }
+    return formatted;
   }
 
   @Override
   @Transactional
   public void deleteAll(@Nonnull Set<String> keys) {
     if (keys.isEmpty()) return;
-    if (systemSettingStore.delete(keys) > 0) allSettings = null; // invalidate
+    if (systemSettingStore.delete(keys) > 0) {
+      allSettings = null; // invalidate
+      for (String key : keys) notifyObservers(key, null);
+    }
   }
 
   private String decrypt(String key, String value) {

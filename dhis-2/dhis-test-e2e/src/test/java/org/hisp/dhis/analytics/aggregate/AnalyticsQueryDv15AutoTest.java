@@ -32,13 +32,18 @@ package org.hisp.dhis.analytics.aggregate;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dependsOn.DependsOn;
+import org.hisp.dhis.test.e2e.dependsOn.Resource;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
@@ -57,6 +62,7 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
 
   @Test
   public void subExpressionIndicator() throws JSONException {
+
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
@@ -122,21 +128,134 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
     // Then
     response
         .validate()
-        .statusCode(200)
-        .body("headers", hasSize(equalTo(0)))
-        .body("rows", hasSize(equalTo(0)))
-        .body("height", equalTo(0))
-        .body("width", equalTo(0))
-        .body("headerWidth", equalTo(0));
+        .statusCode(409)
+        .body(
+            "message",
+            equalTo("Periods as filter not supported with Indicator with period offset"));
+  }
 
-    // Assert metaData.
+  @Test
+  @DependsOn(
+      files = {"ind-subexpression-no-offset.json"},
+      delete = true)
+  public void subExpressionIndicatorWithPeriodAndOrgUnitAsFilter(List<Resource> dependencies) {
+    String indicatorUid = dependencies.get(0).uid();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:Rp268JB6Ne4;cDw53Ej8rju;iPcreOldeV9;jjtzkzrmG7s,pe:2021")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:" + indicatorUid);
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(2)))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(2));
+
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows. Three of the four facilities reported ANC 1st visit in 2021.
+    validateRow(response, List.of(indicatorUid, "3.0"));
+  }
+
+  @Test
+  public void weeklyStartingOnMonday() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:USER_ORGUNIT")
+            .add("skipData=false")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add("dimension=dx:HS9zqaBdOQ4,pe:THIS_WEEK")
+            .add("relativePeriodDate=2022-02-01");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"cDw53Ej8rju\":{\"uid\":\"cDw53Ej8rju\",\"code\":\"OU_278371\",\"name\":\"Afro Arab Clinic\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"KjElpUc6jeX\":{\"uid\":\"KjElpUc6jeX\",\"name\":\"Expected Pregnancies\",\"dimensionItemType\":\"INDICATOR\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\",\"indicatorType\":{\"name\":\"Number (Factor 1)\",\"displayName\":\"Number (Factor 1)\",\"factor\":1,\"number\":true}},\"iPcreOldeV9\":{\"uid\":\"iPcreOldeV9\",\"code\":\"OU_278379\",\"name\":\"Benguema MI Room\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"dx\":{\"uid\":\"dx\",\"name\":\"Data\",\"dimensionType\":\"DATA_X\"},\"pe\":{\"uid\":\"pe\",\"name\":\"Period\",\"dimensionType\":\"PERIOD\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"Rp268JB6Ne4\":{\"uid\":\"Rp268JB6Ne4\",\"code\":\"OU_651071\",\"name\":\"Adonkia CHP\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"2021\":{\"uid\":\"2021\",\"code\":\"2021\",\"name\":\"2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-01-01T00:00:00.000\",\"endDate\":\"2021-12-31T00:00:00.000\"},\"jjtzkzrmG7s\":{\"uid\":\"jjtzkzrmG7s\",\"code\":\"OU_278384\",\"name\":\"Banana Island MCHP\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"dx\":[\"KjElpUc6jeX\"],\"pe\":[\"2021\"],\"ou\":[\"Rp268JB6Ne4\",\"cDw53Ej8rju\",\"jjtzkzrmG7s\",\"iPcreOldeV9\"],\"co\":[]}}";
+        "{\"items\":{\"HS9zqaBdOQ4\":{\"name\":\"IDSR Plague\"},\"THIS_WEEK\":{\"name\":\"This week\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2022W5\":{\"name\":\"Week 5 - 2022-01-31 - 2022-02-06\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"ou\":{\"name\":\"Organisation unit\"},\"HllvX50cXC0\":{\"name\":\"default\"}},\"dimensions\":{\"dx\":[\"HS9zqaBdOQ4\"],\"pe\":[\"2022W5\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"HllvX50cXC0\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
-    // Assert headers.
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "numerator",
+        "Numerator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "denominator",
+        "Denominator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "factor", "Factor", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "multiplier",
+        "Multiplier",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
 
-    // Assert rows.
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "HS9zqaBdOQ4"),
+            Map.entry("pe", "2022W5"),
+            Map.entry("value", "466"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
   }
 }

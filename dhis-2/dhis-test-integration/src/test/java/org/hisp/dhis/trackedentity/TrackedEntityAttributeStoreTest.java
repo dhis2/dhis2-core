@@ -31,8 +31,6 @@ package org.hisp.dhis.trackedentity;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -42,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -51,10 +50,12 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
+@Transactional
 class TrackedEntityAttributeStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeService attributeService;
@@ -203,17 +204,15 @@ class TrackedEntityAttributeStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void verifyGetTrackedEntityAttributesByTrackedEntityTypes() {
-    Set<TrackedEntityAttribute> trackedEntityAttributes =
-        attributeService.getTrackedEntityAttributesByTrackedEntityTypes();
-    assertThat(trackedEntityAttributes, hasSize(20));
-  }
+  void shouldReturnOnlyAttributeUidWhenSkipSynchronizationSetToTrue() {
+    attributeW.setSkipSynchronization(true);
+    attributeService.addTrackedEntityAttribute(attributeW);
+    attributeService.addTrackedEntityAttribute(attributeY);
 
-  @Test
-  void verifyGetTrackedEntityAttributesInProgram() {
-    Set<String> trackedEntityAttributes =
-        attributeService.getTrackedEntityAttributesInProgram(programB);
-    assertThat(trackedEntityAttributes.size(), is(20));
+    Set<UID> uids =
+        attributeService.getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue();
+
+    assertEquals(Set.of(UID.of(attributeW.getUid())), uids);
   }
 
   private List<ProgramTrackedEntityAttribute> createProgramAttributes(Program program) {

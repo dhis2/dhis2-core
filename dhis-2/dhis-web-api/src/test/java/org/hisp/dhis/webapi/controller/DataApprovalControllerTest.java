@@ -51,7 +51,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -94,7 +93,7 @@ class DataApprovalControllerTest {
 
   private String periodAIso = "202310";
 
-  private Period periodA = PeriodType.getPeriodFromIsoString(periodAIso);
+  private Period periodA = Period.of(periodAIso);
 
   @Mock private OrganisationUnit orgUnitA;
 

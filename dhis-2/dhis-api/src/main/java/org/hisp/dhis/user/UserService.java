@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -43,11 +42,13 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.security.core.session.SessionInformation;
@@ -199,12 +200,28 @@ public interface UserService {
   void deleteUser(User user);
 
   /**
+   * Deletes the user with the given UID, like {@link #deleteUser(User)}.
+   *
+   * @param uid the UID of the user to delete.
+   * @return true if the user was deleted, false if no user has the UID.
+   */
+  boolean deleteUser(@Nonnull UID uid);
+
+  /**
    * Checks if the given user represents the last user with ALL authority.
    *
    * @param user the user.
    * @return true if the given user represents the last user with ALL authority.
    */
   boolean isLastSuperUser(User user);
+
+  /**
+   * Handles the user query parameters by setting defaults and processing specific fields such as
+   * organisation units and user roles.
+   *
+   * @param params the {@link UserQueryParams}.
+   */
+  void handleUserQueryParams(UserQueryParams params);
 
   /**
    * Returns a list of users based on the given query parameters. The default order of last name and
@@ -320,19 +337,13 @@ public interface UserService {
   void setLastLogin(String username);
 
   /**
-   * Returns the number of active users since the given number of days.
+   * Returns the number of users whose last login is on or after each of the given dates. All counts
+   * are computed in a single query.
    *
-   * @param days the number of days.
+   * @param sinceDates the last login cutoff dates.
+   * @return the user counts in the same order as the given dates.
    */
-  int getActiveUsersCount(int days);
-
-  /**
-   * Returns the number of active users since the given date.
-   *
-   * @param since the date to check for active users.
-   * @return the number of active users since the given date.
-   */
-  int getActiveUsersCount(Date since);
+  List<Integer> getActiveUsersCounts(List<Date> sinceDates);
 
   /**
    * Checks if the user account is not expired.
@@ -405,14 +416,88 @@ public interface UserService {
   List<ErrorReport> validateUserCreateOrUpdateAccess(User user, UserDetails currentUser);
 
   /**
-   * Validate that the current user are allowed to create or modify properties of the given user
-   * role.
+   * Validate that the current user is allowed to create or modify properties of the given user
+   * role. Besides the checks for the ALL authority, the resulting role may only carry authorities
+   * the current user holds. An update without authorities ({@code null}) keeps the stored
+   * authorities, so those are checked then.
    *
-   * @param user the User.
+   * @param role the user role.
    * @param currentUser the current User.
    * @return a list of ErrorReport.
    */
-  List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole user, UserDetails currentUser);
+  List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, UserDetails currentUser);
+
+  /**
+   * Validate that the current user is allowed to delete the given user role. Only a user having the
+   * ALL authority may delete a role carrying the ALL authority.
+   *
+   * @param role the user role.
+   * @param currentUser the current User.
+   * @return a list of ErrorReport.
+   */
+  List<ErrorReport> validateUserRoleDelete(UserRole role, UserDetails currentUser);
+
+  /**
+   * Validate that the current user is allowed to change the sharing of the given object. Changing
+   * the sharing of a user role is an update of the role, so {@link #validateUserRoleCreateOrUpdate}
+   * applies to it; other objects have no extra rule here.
+   *
+   * @param object the object whose sharing is changed.
+   * @param currentUser the current User.
+   * @return a list of ErrorReport; empty when the change is allowed.
+   */
+  List<ErrorReport> validateSharingUpdate(
+      @Nonnull IdentifiableObject object, @Nonnull UserDetails currentUser);
+
+  /**
+   * Checks that the current user may add and remove the given items to and from a collection of
+   * each of the given users, such as their roles, groups or organisation units. The rules are those
+   * of a user update: the current user needs rights over each user (see {@link
+   * #canCurrentUserCanModify}), may only add roles they are allowed to grant (holding every
+   * authority of the role), may only add or remove groups whose members they may change, and may
+   * only add organisation units within their own hierarchy. The items are checked once for all
+   * users.
+   *
+   * @param users the users whose collection is changed.
+   * @param itemType the type of the items of the collection.
+   * @param additions the items about to be added.
+   * @param deletions the items about to be removed.
+   * @param currentUser the current User.
+   * @throws ForbiddenException if the current user may not make the change.
+   */
+  void checkCanChangeUserCollection(
+      @Nonnull Collection<User> users,
+      @Nonnull Class<?> itemType,
+      @Nonnull Collection<? extends IdentifiableObject> additions,
+      @Nonnull Collection<? extends IdentifiableObject> deletions,
+      @Nonnull UserDetails currentUser)
+      throws ForbiddenException;
+
+  /**
+   * Adds the given user to the given user role. The current user needs write access to the role,
+   * rights over the user (see {@link #canCurrentUserCanModify}), and must be allowed to grant the
+   * role (holding every authority of the role).
+   *
+   * @param role the user role.
+   * @param user the user.
+   * @param currentUser the current User.
+   * @throws ForbiddenException if the current user may not add the user to the role.
+   */
+  void addUserToRole(@Nonnull UserRole role, @Nonnull User user, @Nonnull UserDetails currentUser)
+      throws ForbiddenException;
+
+  /**
+   * Removes the given user from the given user role. The current user needs write access to the
+   * role and rights over the user (see {@link #canCurrentUserCanModify}).
+   *
+   * @param role the user role.
+   * @param user the user.
+   * @param currentUser the current User.
+   * @throws ForbiddenException if the current user may not remove the user from the role.
+   */
+  void removeUserFromRole(
+      @Nonnull UserRole role, @Nonnull User user, @Nonnull UserDetails currentUser)
+      throws ForbiddenException;
 
   /**
    * @param inDays number of days to include
@@ -483,6 +568,26 @@ public interface UserService {
   UserDetails createUserDetailsSafe(@Nonnull String userUid);
 
   /**
+   * Creates {@link UserDetails} for the user with the given username. The user lookup and details
+   * creation happen within a single transaction, ensuring lazy collections are accessible.
+   *
+   * @param username the username to look up
+   * @return the {@link UserDetails} or {@code null} if no user with the given username exists
+   */
+  @CheckForNull
+  UserDetails createUserDetailsByUsername(@Nonnull String username);
+
+  /**
+   * Creates {@link UserDetails} for the user with the given OpenID. The user lookup and details
+   * creation happen within a single transaction, ensuring lazy collections are accessible.
+   *
+   * @param openId the OpenID to look up
+   * @return the {@link UserDetails} or {@code null} if no user with the given OpenID exists
+   */
+  @CheckForNull
+  UserDetails createUserDetailsByOpenId(@Nonnull String openId);
+
+  /**
    * It creates a CurrentUserDetailsImpl object from a User object. It also fetches the users locked
    * and credentials expired status.
    *
@@ -544,7 +649,19 @@ public interface UserService {
   List<SessionInformation> listSessions(UserDetails principal);
 
   /**
-   * Invalidate all sessions for all users WARNING: This does not work when using Redis sessions.
+   * Lists every session known to the session registry, including expired sessions.
+   *
+   * <p>Works for both the in-memory registry and the Redis-backed registry. Under Redis, principals
+   * are resolved from usernames rather than {@code SessionRegistry#getAllPrincipals()}, which is
+   * unsupported there.
+   *
+   * @return all session information entries
+   */
+  List<SessionInformation> listAllSessions();
+
+  /**
+   * Invalidate all sessions for all users. Works for both in-memory and Redis-backed session
+   * registries.
    */
   void invalidateAllSessions();
 
@@ -554,6 +671,14 @@ public interface UserService {
    * @param username the username of the user account.
    */
   void invalidateUserSessions(String username);
+
+  /**
+   * Returns the usernames of all users that are members of the user role with the given UID.
+   *
+   * @param roleUid the UID of the user role.
+   * @return a list of usernames.
+   */
+  List<String> getUsernamesByUserRole(@Nonnull UID roleUid);
 
   /**
    * Register a account recovery attempt for the given user account.
@@ -858,7 +983,9 @@ public interface UserService {
    * @param password the password for the new user
    * @return the newly created user replica
    * @throws ConflictException if validation fails
+   * @throws ForbiddenException if the current user lacks permission to manage any of the source
+   *     user's groups
    */
   User replicateUser(User existingUser, String username, String password)
-      throws ConflictException, NotFoundException, BadRequestException;
+      throws ConflictException, NotFoundException, BadRequestException, ForbiddenException;
 }

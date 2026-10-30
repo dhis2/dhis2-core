@@ -58,10 +58,10 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.datavalue.DeflatedDataValueParams;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -165,8 +165,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       predicateList.add(root -> builder.lessThanOrEqualTo(root.get(LAST_UPATED), endDate));
     }
 
-    return getCount(
-            builder, newJpaParameters().addPredicates(predicateList).count(builder::countDistinct))
+    return getCount(builder, newJpaParameters().addPredicates(predicateList).count(builder::count))
         .intValue();
   }
 
@@ -226,7 +225,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   // -------------------------------------------------------------------------
 
   @Override
-  public List<DeflatedDataValue> getDeflatedDataValues(DataExportStoreParams params) {
+  public List<DeflatedDataValue> getDeflatedDataValues(DeflatedDataValueParams params) {
     SqlHelper sqlHelper = new SqlHelper(true);
 
     StringBuilder sql = new StringBuilder();
@@ -268,7 +267,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   /** getDeflatedDataValues - Adds SELECT clause and starts FROM clause. */
-  private void getDdvSelectFrom(DataExportStoreParams params, StringBuilder sql) {
+  private void getDdvSelectFrom(DeflatedDataValueParams params, StringBuilder sql) {
     sql.append(
             """
             select dv.dataelementid, dv.periodid, dv.sourceid, \
@@ -280,7 +279,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Chooses data elements and data element operands. */
   private void getDdvDataElementsAndOperands(
-      DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
+      DeflatedDataValueParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     List<Long> deIds = new ArrayList<>();
     List<Long> cocIds = new ArrayList<>();
     getDdvDataElementLists(params, deIds, cocIds);
@@ -303,9 +302,15 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Chooses periods. */
   private void getDdvPeriods(
-      DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
+      DeflatedDataValueParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasPeriods()) {
-      String periodIdList = getPeriodIds(params.getPeriods());
+      Set<Period> periods = params.getPeriods();
+      String periodIdList = getPeriodIds(periods);
+      if (periodIdList.isEmpty() && !periods.isEmpty()) {
+        where.append(sqlHelper.whereAnd()).append(" 1=2 ");
+        // can never be true
+        return;
+      }
 
       where
           .append(sqlHelper.whereAnd())
@@ -353,7 +358,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Chooses organisation units. */
   private void getDdvOrgUnits(
-      DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
+      DeflatedDataValueParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     if (params.needsOrgUnitDetails()) {
       sql.append(" join organisationunit ou on ou.organisationunitid = dv.sourceid");
     }
@@ -395,7 +400,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Chooses attribute option combinations. */
   private void getDdvAttributeOptionCombos(
-      DataExportStoreParams params, StringBuilder where, SqlHelper sqlHelper) {
+      DeflatedDataValueParams params, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasAttributeOptionCombos()) {
       String aocIdList = getCommaDelimitedString(getIdentifiers(params.getAttributeOptionCombos()));
 
@@ -409,7 +414,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Adds user dimension constraints. */
   private void getDdvDimensionConstraints(
-      DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
+      DeflatedDataValueParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasCogDimensionConstraints() || params.hasCoDimensionConstraints()) {
       sql.append(
           " join categoryoptioncombos_categoryoptions cc on dv.attributeoptioncomboid = cc.categoryoptioncomboid");
@@ -443,7 +448,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Adds LastUpdated constraint. */
   private void getDdvLastUpdated(
-      DataExportStoreParams params, StringBuilder where, SqlHelper sqlHelper) {
+      DeflatedDataValueParams params, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasLastUpdated()) {
       where
           .append(sqlHelper.whereAnd())
@@ -454,14 +459,14 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Adds deleted constraint. */
   private void getDdvIncludeDeleted(
-      DataExportStoreParams params, StringBuilder where, SqlHelper sqlHelper) {
+      DeflatedDataValueParams params, StringBuilder where, SqlHelper sqlHelper) {
     if (!params.isIncludeDeleted()) {
       where.append(sqlHelper.whereAnd()).append("dv.deleted is false");
     }
   }
 
   /** getDeflatedDataValues - Adds ORDER BY. */
-  private void getDdvOrderBy(DataExportStoreParams params, StringBuilder sql) {
+  private void getDdvOrderBy(DeflatedDataValueParams params, StringBuilder sql) {
     if (params.isOrderByOrgUnitPath()) {
       sql.append(" order by ou.path");
     }
@@ -483,7 +488,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
    * is populated.
    */
   private void getDdvDataElementLists(
-      DataExportStoreParams params, List<Long> deIds, List<Long> cocIds) {
+      DeflatedDataValueParams params, List<Long> deIds, List<Long> cocIds) {
     // Get a collection of unique DataElement ids.
     Collection<Long> dataElementIds =
         union(

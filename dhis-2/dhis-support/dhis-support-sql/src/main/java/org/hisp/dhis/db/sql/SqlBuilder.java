@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,11 @@ public interface SqlBuilder {
    * @return the {@link Database}.
    */
   Database getDatabase();
+
+  /**
+   * @return true if database supports high performance queries.
+   */
+  boolean isHighPerformance();
 
   // Data types
 
@@ -205,6 +210,29 @@ public interface SqlBuilder {
    * @return true if the DBMS requires indexes for analytics tables for performance.
    */
   boolean requiresIndexesForAnalytics();
+
+  /**
+   * @return true if the DBMS supports continuous (incremental latest-partition) analytics table
+   *     updates.
+   */
+  boolean supportsContinuousAnalytics();
+
+  /**
+   * @return true if analytics tables must be created with a real unique key for continuous
+   *     analytics table updates to work correctly on this DBMS. When true, the natural key column
+   *     of the affected analytics table types (e.g. {@code event}, {@code id}) is passed as the
+   *     table's primary key so the DBMS can use it for both deduplication on insert and DELETE
+   *     statements that join back to operational tables.
+   */
+  boolean requiresUniqueKeyAnalyticsTables();
+
+  /**
+   * The percentile_cont function is a statistical function that calculates the continuous
+   * percentile value for a given set of data.
+   *
+   * @return true if the DBMS supports the percentile_cont function.
+   */
+  boolean supportsPercentileCont();
 
   // Utilities
 
@@ -526,6 +554,16 @@ public interface SqlBuilder {
   String tableExists(String name);
 
   /**
+   * Only meaningful for engines where {@link #requiresUniqueKeyAnalyticsTables()} is true, which
+   * may have main tables predating the introduction of unique-key analytics tables.
+   *
+   * @param name the table name.
+   * @return a statement which returns the table's create statement, which can be inspected to
+   *     determine the table's key model.
+   */
+  String showCreateTable(String name);
+
+  /**
    * @param table the {@link Table}.
    * @return a count rows statement.
    */
@@ -543,4 +581,48 @@ public interface SqlBuilder {
    * @return in insert into select from statement.
    */
   String insertIntoSelectFrom(Table intoTable, String fromTable);
+
+  /**
+   * Generates an SQL fragment that casts the given numeric expression to a decimal type.
+   *
+   * <p>This helper is used to force exact decimal arithmetic instead of allowing the database to
+   * promote intermediate results to floating-point types (e.g. {@code DOUBLE}), which can cause
+   * rounding or equality mismatches across different engines.
+   *
+   * @param expr the SQL expression to cast (e.g. a column or computation)
+   * @param precision the total number of digits for the decimal type
+   * @param scale the number of fractional digits (digits to the right of the decimal point)
+   * @return an SQL fragment representing the decimal cast of {@code expr}
+   */
+  String castDecimal(String expr, int precision, int scale);
+
+  /**
+   * Produces a SQL literal of type {@code DECIMAL(precision, scale)} from a plain numeric string
+   * literal.
+   *
+   * <p>By default, numeric literals such as {@code 14.5454545455} are parsed as {@code DOUBLE} by
+   * most SQL engines. Casting them explicitly to a decimal type ensures consistent precision and
+   * avoids binary floating-point rounding artifacts during equality or comparison operations.
+   *
+   * @param literal the numeric literal as a string (without quotes or type information)
+   * @param precision the total number of digits for the decimal type
+   * @param scale the number of fractional digits (digits to the right of the decimal point)
+   * @return an SQL fragment that casts {@code literal} to {@code DECIMAL(precision, scale)}
+   */
+  String decimalLiteral(String literal, int precision, int scale);
+
+  /**
+   * Returns an SQL expression that yields {@code NULL} when {@code column} holds an empty string,
+   * and the column value otherwise. This normalises empty text to {@code NULL} so that absent and
+   * empty text values are treated the same way across analytics databases.
+   *
+   * <p>The default returns the column unchanged. Engines that store empty strings where other
+   * engines store {@code NULL} (ClickHouse) override this to wrap the column in a {@code nullif}.
+   *
+   * @param column the text SQL column or expression.
+   * @return a NULL-normalising SQL fragment.
+   */
+  default String nullIfEmpty(String column) {
+    return column;
+  }
 }

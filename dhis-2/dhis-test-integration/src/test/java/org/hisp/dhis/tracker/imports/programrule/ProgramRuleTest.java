@@ -45,6 +45,10 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -65,6 +69,7 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +94,10 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
   @Autowired private ProgramRuleVariableService programRuleVariableService;
 
   @Autowired private ConstantService constantService;
+
+  @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private OrganisationUnitGroupService organisationUnitGroupService;
 
   private Program program;
 
@@ -126,6 +135,12 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
     programRuleVariableService.addProgramRuleVariable(programRuleVariable2);
     constantService.saveConstant(constant());
+  }
+
+  @BeforeEach
+  void setupUser() {
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
@@ -397,6 +412,59 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldNotImportEventWhenAnErrorIsTriggeredByATeaValueSavedInDbAndPayloadHasOnlyTheEvent()
+      throws IOException {
+    ImportReport report =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            testSetup.fromJson("tracker/programrule/te_with_attribute_enrollment.json"));
+    assertNoErrors(report);
+
+    errorProgramRuleWithD2HasValue();
+    report =
+        trackerImportService.importTracker(
+            new TrackerImportParams(), testSetup.fromJson("tracker/programrule/event.json"));
+
+    assertHasOnlyErrors(report, E1300);
+  }
+
+  @Test
+  void shouldImportCompletedEventWhenOnCompleteErrorRuleIsNotTriggeredBecauseTeaSavedInDbHasValue()
+      throws IOException {
+    ImportReport report =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            testSetup.fromJson("tracker/programrule/te_with_attribute_enrollment.json"));
+    assertNoErrors(report);
+
+    onCompleteErrorProgramRuleWhenTeaHasNoValue();
+    report =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            testSetup.fromJson("tracker/programrule/completed_event.json"));
+
+    assertNoErrors(report);
+  }
+
+  @Test
+  void shouldNotImportCompletedEventWhenOnCompleteErrorRuleIsTriggeredBecauseTeaHasNoValue()
+      throws IOException {
+    ImportReport report =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            testSetup.fromJson("tracker/programrule/te_enrollment.json"));
+    assertNoErrors(report);
+
+    onCompleteErrorProgramRuleWhenTeaHasNoValue();
+    report =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            testSetup.fromJson("tracker/programrule/completed_event.json"));
+
+    assertHasOnlyErrors(report, E1300);
+  }
+
+  @Test
   void shouldImportWithNoWarningsWhenDataElementHasNoValue() throws IOException {
     showErrorWhenVariableHasValueRule();
     TrackerObjects trackerObjects =
@@ -413,6 +481,96 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
     showErrorWhenVariableHasValueRule();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/programrule/te_enrollment_event_with_null_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertNoErrorsAndNoWarnings(importReport);
+  }
+
+  @Test
+  void shouldImportWithNoWarningsWhenUserIsInUserGroup() throws IOException {
+    injectSecurityContextUser(userService.getUser("lPaILkLkgOM"));
+    showErrorWhenUserNotInGroupRule("xfHoY6IZSWI");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertNoErrorsAndNoWarnings(importReport);
+  }
+
+  @Test
+  void shouldnotImportWhenUserIsNotInUserGroup() throws IOException {
+    injectSecurityContextUser(userService.getUser("lPaILkLkgOM"));
+    showErrorWhenUserNotInGroupRule("ruTop9IZjHu");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertHasOnlyErrors(importReport, E1300);
+  }
+
+  @Test
+  void shouldNotImportUserIsNotPresentInAnyUserGroup() throws IOException {
+    showErrorWhenUserNotInGroupRule("ruTop9IZjHu");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertHasOnlyErrors(importReport, E1300);
+  }
+
+  @Test
+  void shouldNotImportWhenEventOrgUnitIsInOrgUnitGroup() throws IOException {
+    OrganisationUnitGroup group = orgUnitGroupContaining("h4w96yEMlzO");
+    showErrorWhenOrgUnitInGroupRule(group.getUid());
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertHasOnlyErrors(importReport, E1300);
+  }
+
+  @Test
+  void shouldImportWhenEventOrgUnitIsNotInOrgUnitGroup() throws IOException {
+    OrganisationUnitGroup group = orgUnitGroupContaining(/* no members */ );
+    showErrorWhenOrgUnitInGroupRule(group.getUid());
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertNoErrorsAndNoWarnings(importReport);
+  }
+
+  @Test
+  void shouldNotImportWhenEventOrgUnitIsInOrgUnitGroupIdentifiedByCode() throws IOException {
+    OrganisationUnitGroup group = orgUnitGroupContaining("h4w96yEMlzO");
+    showErrorWhenOrgUnitInGroupRule(group.getCode());
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertHasOnlyErrors(importReport, E1300);
+  }
+
+  @Test
+  void shouldImportWhenEventOrgUnitIsNotInOrgUnitGroupIdentifiedByCode() throws IOException {
+    OrganisationUnitGroup group = orgUnitGroupContaining(/* no members */ );
+    showErrorWhenOrgUnitInGroupRule(group.getCode());
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
@@ -479,6 +637,17 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
     programRuleService.updateProgramRule(programRule);
   }
 
+  private void onCompleteErrorProgramRuleWhenTeaHasNoValue() {
+    ProgramRule programRule =
+        createProgramRule('O', program, null, "!d2:hasValue(#{ProgramRuleVariableB})");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction =
+        createProgramRuleAction(programRule, ProgramRuleActionType.ERRORONCOMPLETE, null, null);
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
+  }
+
   private void showErrorWhenVariableHasValueRule() {
     ProgramRule programRule =
         createProgramRule(
@@ -500,6 +669,40 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
     programRuleActionService.addProgramRuleAction(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);
+  }
+
+  private void showErrorWhenUserNotInGroupRule(String userGroup) {
+    ProgramRule programRule =
+        createProgramRule(
+            'M', program, programStageOnInsert, "!d2:inUserGroup('" + userGroup + "')");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction =
+        createProgramRuleAction(programRule, SHOWERROR, null, null);
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
+  }
+
+  private void showErrorWhenOrgUnitInGroupRule(String orgUnitGroupUid) {
+    ProgramRule programRule =
+        createProgramRule(
+            'N', program, programStageOnInsert, "d2:inOrgUnitGroup('" + orgUnitGroupUid + "')");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction =
+        createProgramRuleAction(programRule, SHOWERROR, null, null);
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
+  }
+
+  private OrganisationUnitGroup orgUnitGroupContaining(String... orgUnitUids) {
+    OrganisationUnitGroup group = createOrganisationUnitGroup('N');
+    for (String uid : orgUnitUids) {
+      OrganisationUnit ou = organisationUnitService.getOrganisationUnit(uid);
+      group.addOrganisationUnit(ou);
+    }
+    organisationUnitGroupService.addOrganisationUnitGroup(group);
+    return group;
   }
 
   private void storeProgramRule(

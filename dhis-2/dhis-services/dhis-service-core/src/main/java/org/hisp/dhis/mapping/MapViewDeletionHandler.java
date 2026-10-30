@@ -42,7 +42,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -67,8 +66,6 @@ public class MapViewDeletionHandler
     whenDeleting(DataElement.class, this::deleteDataElement);
     whenDeleting(DataSet.class, this::deleteDataSet);
     whenDeleting(ProgramIndicator.class, this::deleteProgramIndicator);
-    whenDeleting(Period.class, this::deletePeriod);
-    whenVetoing(Period.class, this::allowDeletePeriod);
     whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
     whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
     // special

@@ -44,8 +44,10 @@ import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextCo
 import static org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -61,6 +63,18 @@ import org.hisp.dhis.feedback.ErrorCode;
 @NoArgsConstructor(access = PRIVATE)
 public class DimensionIdentifierHelper {
   public static final Character DIMENSION_SEPARATOR = '.';
+
+  /**
+   * Stage-scoped static dimensions that should support short format headers (e.g.,
+   * programStageUid.eventdate instead of programUid.programStageUid.eventdate).
+   */
+  public static final List<StaticDimension> SUPPORTED_EVENT_STATIC_DIMENSIONS =
+      List.of(
+          StaticDimension.EVENT_DATE,
+          StaticDimension.SCHEDULED_DATE,
+          StaticDimension.EVENT_STATUS,
+          StaticDimension.OUNAME,
+          StaticDimension.OU);
 
   /**
    * A map of static dimensions and an extractor function that will return the display name of the
@@ -292,5 +306,113 @@ public class DimensionIdentifierHelper {
    */
   public static boolean isDataElement(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return isOfType(dimensionIdentifier, DATA_ELEMENT) && dimensionIdentifier.isEventDimension();
+  }
+
+  /**
+   * Checks if the dimension is an event-level static dimension matching the given type.
+   *
+   * @param dimId the dimension identifier to check
+   * @param dimension the static dimension type to match
+   * @return true if it's an event-level dimension of the specified type
+   */
+  public static boolean isEventLevelStaticDimension(
+      DimensionIdentifier<DimensionParam> dimId, StaticDimension dimension) {
+    return dimId.isEventDimension()
+        && dimId.getDimension().isStaticDimension()
+        && dimId.getDimension().getStaticDimension() == dimension;
+  }
+
+  /**
+   * Checks if the dimension is an event-level static dimension matching any of the given types.
+   *
+   * @param dimId the dimension identifier to check
+   * @param dimensions the collection of static dimension types to match
+   * @return true if it's an event-level dimension of any specified type
+   */
+  public static boolean isEventLevelStaticDimension(
+      DimensionIdentifier<DimensionParam> dimId, Collection<StaticDimension> dimensions) {
+    return dimId.isEventDimension()
+        && dimId.getDimension().isStaticDimension()
+        && dimensions.contains(dimId.getDimension().getStaticDimension());
+  }
+
+  /**
+   * Returns the stage scoped name an event level dimension is addressed by, which is the program
+   * stage uid, a dot, and the dimension's own name: {@code A03MvHHogjR.ou}, {@code
+   * A03MvHHogjR.eventdate}, {@code A03MvHHogjR.UXz7xuGCEhU}. This is the form a request uses and
+   * the form a response reports it under, shorter than the fully resolved key, which also carries
+   * the program the stage belongs to. Empty for any dimension that is not event level.
+   *
+   * <p>An org unit reaches here in two shapes: as a static dimension when it carries no items, and
+   * as a dimensional object once org unit resolution has run over its items. Both are named {@code
+   * ou}.
+   *
+   * @param dimId the dimension identifier.
+   * @return the stage scoped name, or empty when the dimension is not event level.
+   */
+  public static Optional<String> getEventLevelName(DimensionIdentifier<DimensionParam> dimId) {
+    return eventLevelDimensionName(dimId)
+        .map(
+            name ->
+                dimId.getProgramStage().getElement().getUid() + DIMENSION_IDENTIFIER_SEP + name);
+  }
+
+  /**
+   * Returns the stage scoped key a request addresses an event level dimension by, which unlike
+   * {@link #getEventLevelName} keeps the stage offset: {@code A03MvHHogjR[1].ou}. A request
+   * addresses a specific occurrence of a repeatable stage, so the offset is part of the dimension's
+   * identity and two offsets of one stage are two different dimensions. The response name drops the
+   * offset, which is why identity and naming are answered separately.
+   *
+   * @param dimId the dimension identifier.
+   * @return the stage scoped request key, or empty when the dimension is not event level.
+   */
+  public static Optional<String> getEventLevelRequestKey(
+      DimensionIdentifier<DimensionParam> dimId) {
+    return eventLevelDimensionName(dimId)
+        .map(name -> dimId.getProgramStage() + DIMENSION_IDENTIFIER_SEP + name);
+  }
+
+  /** Returns an event level dimension's own name, without any stage prefix. */
+  private static Optional<String> eventLevelDimensionName(
+      DimensionIdentifier<DimensionParam> dimId) {
+    if (isEventLevelStaticDimension(dimId, SUPPORTED_EVENT_STATIC_DIMENSIONS)) {
+      return Optional.of(dimId.getDimension().getStaticDimension().getHeaderName());
+    }
+
+    if (isEventLevelOrgUnitObject(dimId)) {
+      return Optional.of(ORGUNIT_DIM_ID);
+    }
+
+    if (isDataElement(dimId)) {
+      return Optional.of(dimId.getDimension().getUid());
+    }
+
+    return Optional.empty();
+  }
+
+  /**
+   * Whether the dimension is an event level org unit that went through org unit resolution and so
+   * carries a dimensional object rather than a static dimension.
+   *
+   * @param dimId the dimension identifier.
+   * @return true when the dimension is an event level org unit dimensional object.
+   */
+  public static boolean isEventLevelOrgUnitObject(DimensionIdentifier<DimensionParam> dimId) {
+    return dimId.isEventDimension() && isOrgUnitObject(dimId);
+  }
+
+  /**
+   * Whether the dimension is an org unit that went through org unit resolution and so carries a
+   * dimensional object rather than a static dimension. This is the shape an org unit arrives in
+   * once it has items; without items it stays a static dimension.
+   *
+   * @param dimId the dimension identifier.
+   * @return true when the dimension is an org unit dimensional object.
+   */
+  public static boolean isOrgUnitObject(DimensionIdentifier<DimensionParam> dimId) {
+    return dimId.getDimension().isDimensionalObject()
+        && dimId.getDimension().getDimensionParamObjectType()
+            == DimensionParamObjectType.ORGANISATION_UNIT;
   }
 }

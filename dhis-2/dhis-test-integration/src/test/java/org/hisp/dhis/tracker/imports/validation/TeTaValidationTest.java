@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.imports.validation;
 
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.getTrackedEntityAttributeValues;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,14 +43,13 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -66,8 +66,6 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
-
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -92,7 +90,7 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
             "application/pdf",
             0,
             "d41d8cd98f00b204e9800998ecf8427e",
-            FileResourceDomain.DOCUMENT);
+            FileResourceDomain.DATA_VALUE);
     fileResource.setUid("Jzf6hHNP7jx");
     File file = File.createTempFile("file-resource", "test");
     fileResourceService.asyncSaveFileResource(fileResource, file);
@@ -106,8 +104,9 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
     assertEquals(1, trackedEntities.size());
     TrackedEntity trackedEntity = trackedEntities.get(0);
     List<TrackedEntityAttributeValue> attributeValues =
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+        getTrackedEntityAttributeValues(entityManager, trackedEntity);
     assertEquals(1, attributeValues.size());
+    manager.clear();
     fileResource = fileResourceService.getFileResource(fileResource.getUid());
     assertTrue(fileResource.isAssigned());
   }
@@ -121,7 +120,7 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
             "application/pdf",
             0,
             "d41d8cd98f00b204e9800998ecf8427e",
-            FileResourceDomain.DOCUMENT);
+            FileResourceDomain.DATA_VALUE);
     fileResource.setUid("Jzf6hHNP7jx");
     File file = File.createTempFile("file-resource", "test");
     fileResourceService.asyncSaveFileResource(fileResource, file);
@@ -135,8 +134,9 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
     assertEquals(1, trackedEntities.size());
     TrackedEntity trackedEntity = trackedEntities.get(0);
     List<TrackedEntityAttributeValue> attributeValues =
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+        getTrackedEntityAttributeValues(entityManager, trackedEntity);
     assertEquals(1, attributeValues.size());
+    manager.clear();
     fileResource = fileResourceService.getFileResource(fileResource.getUid());
     assertTrue(fileResource.isAssigned());
     trackerObjects =

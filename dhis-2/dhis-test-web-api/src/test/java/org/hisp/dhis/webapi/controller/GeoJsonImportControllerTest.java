@@ -129,7 +129,7 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("KAR", unit.getString("code").string());
     assertEquals(
         "[[[[-12.644405338,9.013335116],[-12.6461979,9.0122874],[-12.644405338,9.013335116]]]]",
-        unit.getObject("geometry").getArray("coordinates").node().getDeclaration());
+        unit.getObject("geometry").getArray("coordinates").toJson());
   }
 
   @Test
@@ -563,7 +563,10 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
 
   private void assertGeometryAttributeIsNotNull(String attributeId, String uid) {
     JsonObject unit =
-        GET("/organisationUnits/{uid}/gist?fields=geometry,{attr}~rename(geo2)", uid, attributeId)
+        GET(
+                "/organisationUnits/{uid}/gist?fields=geometry,{attr}~rename(geo2)~attribute(true)",
+                uid,
+                attributeId)
             .content();
     JsonObject geometry = unit.getObject("geo2");
     assertTrue(geometry.exists() && geometry.isObject(), uid + " has no geometry");

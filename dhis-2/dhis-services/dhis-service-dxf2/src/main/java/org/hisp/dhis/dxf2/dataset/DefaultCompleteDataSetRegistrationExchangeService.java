@@ -51,7 +51,6 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -102,7 +101,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService")
 public class DefaultCompleteDataSetRegistrationExchangeService
     implements CompleteDataSetRegistrationExchangeService {
-  private static final int CACHE_MISS_THRESHOLD = 500;
 
   private static final Set<IdScheme> EXPORT_ID_SCHEMES =
       Set.of(IdScheme.UID, IdScheme.NAME, IdScheme.CODE);
@@ -411,10 +409,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     MetadataCallables metaDataCallables =
         new MetadataCallables(cfg, this.idObjManager, this.periodService, this.categoryService);
 
-    if (importOptions.isPreheatCacheDefaultFalse()) {
-      caches.preheat(idObjManager, cfg);
-    }
-
     // ---------------------------------------------------------------------
     // Perform import
     // ---------------------------------------------------------------------
@@ -466,8 +460,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       // ---------------------------------------------------------------------
 
       MetadataProperties mdProps = initMetaDataProperties(cdsr, mdCallables, mdCaches);
-
-      heatCaches(mdCaches, config);
 
       // ---------------------------------------------------------------------
       // Meta-data validation
@@ -781,7 +773,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     if (!dsPeType.equals(peType)) {
       throw new ImportConflictException(
           new ImportConflict(
-              props.period.getUid(),
+              props.period.getIsoDate(),
               String.format(
                   "Period type of period: %s is not equal to the period type of data set: %s",
                   props.period.getIsoDate(), props.dataSet.getPeriodType())));
@@ -797,45 +789,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
               String.format(
                   "Data set %s is not assigned to organisation unit %s",
                   props.dataSet.getUid(), props.orgUnit.getUid())));
-    }
-  }
-
-  private void heatCaches(MetadataCaches caches, ImportConfig config) {
-    if (!caches.getDataSets().isCacheLoaded() && exceedsThreshold(caches.getDataSets())) {
-      caches
-          .getDataSets()
-          .load(
-              idObjManager.getAll(DataSet.class), ds -> ds.getPropertyValue(config.getDsScheme()));
-
-      log.info("Data set cache heated after cache miss threshold reached");
-    }
-
-    if (!caches.getOrgUnits().isCacheLoaded() && exceedsThreshold(caches.getOrgUnits())) {
-      caches
-          .getOrgUnits()
-          .load(
-              idObjManager.getAll(OrganisationUnit.class),
-              ou -> ou.getPropertyValue(config.getOuScheme()));
-
-      log.info("Org unit cache heated after cache miss threshold reached");
-    }
-
-    // TODO Consider need for checking/re-heating attrOptCombo and period
-    // caches
-
-    if (!caches.getAttrOptionCombos().isCacheLoaded()
-        && exceedsThreshold(caches.getAttrOptionCombos())) {
-      caches
-          .getAttrOptionCombos()
-          .load(
-              idObjManager.getAll(CategoryOptionCombo.class),
-              aoc -> aoc.getPropertyValue(config.getAocScheme()));
-
-      log.info("Attribute option combo cache heated after cache miss threshold reached");
-    }
-
-    if (!caches.getPeriods().isCacheLoaded() && exceedsThreshold(caches.getPeriods())) {
-      caches.getPeriods().load(idObjManager.getAll(Period.class), pe -> pe.getPropertyValue(null));
     }
   }
 
@@ -858,10 +811,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         cache.getPeriods().get(pe, callables.getPeriodCallable().setId(pe)),
         cache.getOrgUnits().get(ou, callables.getOrgUnitCallable().setId(ou)),
         cache.getAttrOptionCombos().get(aoc, callables.getOptionComboCallable().setId(aoc)));
-  }
-
-  private static boolean exceedsThreshold(CachingMap<?, ?> cachingMap) {
-    return cachingMap.getCacheMissCount() > CACHE_MISS_THRESHOLD;
   }
 
   // -----------------------------------------------------------------

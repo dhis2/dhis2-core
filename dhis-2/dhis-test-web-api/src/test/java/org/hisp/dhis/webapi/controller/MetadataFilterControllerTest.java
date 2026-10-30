@@ -83,7 +83,7 @@ class MetadataFilterControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilter_attributeEq() {
     JsonArray units =
-        GET("/organisationUnits?filter={attr}:eq:test", attrId)
+        GET("/organisationUnits?filter={attr}:eq:test&gist=false", attrId)
             .content()
             .getArray("organisationUnits");
     assertEquals(1, units.size());

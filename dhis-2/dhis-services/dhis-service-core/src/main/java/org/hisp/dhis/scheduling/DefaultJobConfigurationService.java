@@ -48,6 +48,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,8 +62,11 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
@@ -124,7 +128,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Transactional
   public int createDefaultJobs() {
     int created = 0;
-    Set<String> jobIds = jobConfigurationStore.getAllIds();
+    Set<UID> jobIds = jobConfigurationStore.getAllIds();
     for (JobType t : JobType.values()) {
       Defaults defaults = t.getDefaults();
       if (defaults != null && !jobIds.contains(defaults.uid())) {
@@ -143,7 +147,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     JobConfiguration config = new JobConfiguration(job.name(), type);
     config.setCronExpression(job.cronExpression());
     config.setDelay(job.delay());
-    config.setUid(job.uid());
+    config.setUid(job.uid().getValue());
     config.setSchedulingType(
         job.delay() != null ? SchedulingType.FIXED_DELAY : SchedulingType.CRON);
     jobConfigurationStore.save(config, actingUser, false);
@@ -172,11 +176,17 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional
-  public int rescheduleStaleJobs(int timeoutMinutes) {
-    if (timeoutMinutes <= 0) {
-      timeoutMinutes = settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
-    }
-    return jobConfigurationStore.rescheduleStaleJobs(timeoutMinutes);
+  public int rescheduleStaleJobs() {
+    EnumSet<JobType> analyticsJobs =
+        EnumSet.of(JobType.ANALYTICS_TABLE, JobType.CONTINUOUS_ANALYTICS_TABLE);
+    EnumSet<JobType> otherJobs = EnumSet.allOf(JobType.class);
+    otherJobs.removeAll(analyticsJobs);
+    int ttlOthers = settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
+    int reset = jobConfigurationStore.rescheduleStaleJobs(ttlOthers, otherJobs);
+    int ttlAnalytics =
+        settingsProvider.getCurrentSettings().getJobsRescheduleAnalyticsAfterMinutes();
+    reset += jobConfigurationStore.rescheduleStaleJobs(ttlAnalytics, analyticsJobs);
+    return reset;
   }
 
   @Override
@@ -224,34 +234,30 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public List<JobConfiguration> getDueJobConfigurations(
-      int dueInNextSeconds, boolean includeWaiting) {
+  @IndirectTransactional
+  public List<JobEntry> getDueJobConfigurations(int dueInNextSeconds, boolean includeWaiting) {
     Instant now = Instant.now();
     Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
     Duration maxCronDelay =
         Duration.ofHours(settingsProvider.getCurrentSettings().getJobsMaxCronDelayHours());
-    return jobConfigurationStore
-        .getDueJobConfigurations(includeWaiting)
+    return jobConfigurationStore.getDueJobConfigurations(includeWaiting).stream()
         .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay))
         .toList();
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<JobConfiguration> getStaleConfigurations(int staleForSeconds) {
-    if (staleForSeconds <= 0) {
-      staleForSeconds = 60 * settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
-    }
+  public List<JobEntry> getStaleConfigurations(int staleForSeconds) throws BadRequestException {
+    if (staleForSeconds <= 0)
+      throw new BadRequestException("Stale timeout must be a positive number");
     return jobConfigurationStore.getStaleConfigurations(staleForSeconds);
   }
 
   @Nonnull
   @Override
-  @Transactional(readOnly = true)
+  @IndirectTransactional
   public List<JobRunErrors> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
-    return jobConfigurationStore
-        .findJobRunErrors(params)
+    return jobConfigurationStore.findJobRunErrors(params).stream()
         .map(json -> errorEntryWithMessages(json, params))
         .toList();
   }

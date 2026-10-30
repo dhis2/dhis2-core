@@ -33,7 +33,7 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.Pager;
 
@@ -41,6 +41,7 @@ import org.hisp.dhis.common.Pager;
  * @author Zubair Asghar
  */
 @Data
+@Accessors(chain = true)
 @NoArgsConstructor
 public class IconQueryParams {
 
@@ -56,32 +57,4 @@ public class IconQueryParams {
   private boolean paging = true;
   private int pageSize = Pager.DEFAULT_PAGE_SIZE;
   private int page = 1;
-
-  public boolean hasCreatedStartDate() {
-    return createdStartDate != null;
-  }
-
-  public boolean hasCreatedEndDate() {
-    return createdEndDate != null;
-  }
-
-  public boolean hasLastUpdatedStartDate() {
-    return lastUpdatedStartDate != null;
-  }
-
-  public boolean hasLastUpdatedEndDate() {
-    return lastUpdatedEndDate != null;
-  }
-
-  public boolean hasKeywords() {
-    return keywords != null && !keywords.isEmpty();
-  }
-
-  public boolean hasKeys() {
-    return keys != null && !keys.isEmpty();
-  }
-
-  public boolean hasSearch() {
-    return StringUtils.isNotEmpty(search);
-  }
 }

@@ -59,7 +59,8 @@ class InQueryCteFilterTest {
   @Test
   void testNullValueInFilter() {
     InQueryCteFilter inQueryCteFilter =
-        new InQueryCteFilter("name", "NV", true, new CteDefinition("select", "cteDefinition"));
+        new InQueryCteFilter(
+            "name", "D2__NOVALUE", true, true, new CteDefinition("select", "cteDefinition"));
     String actual = inQueryCteFilter.getSqlFilter(0);
     String exp1 = "_0.enrollment is not null and";
     String exp2 = "_0.name is null";
@@ -82,7 +83,6 @@ class InQueryCteFilterTest {
     InQueryCteFilter inQueryCteFilter = createFilter("name", "O'Connor;Smith-Jones", true);
     String actual = inQueryCteFilter.getSqlFilter(0);
     String expectedEnding = "_0.name in ('O''Connor','Smith-Jones')";
-    System.out.println(actual);
     assertTrue(
         actual.endsWith(expectedEnding), () -> "Expected string to end with: " + expectedEnding);
   }
@@ -128,6 +128,6 @@ class InQueryCteFilterTest {
 
   private InQueryCteFilter createFilter(String field, String filter, boolean isText) {
     return new InQueryCteFilter(
-        field, filter, isText, new CteDefinition("programStageUid", "cteDefinition"));
+        field, filter, isText, false, new CteDefinition("programStageUid", "cteDefinition"));
   }
 }

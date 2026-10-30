@@ -30,7 +30,6 @@
 package org.hisp.dhis.period.hibernate;
 
 import jakarta.persistence.EntityManager;
-import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -41,20 +40,14 @@ import javax.annotation.Nonnull;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StatelessSession;
-import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Persistence for {@link Period} and {@link PeriodType}.
@@ -76,23 +69,22 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 @Repository
 @Slf4j
-public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Period>
-    implements PeriodStore {
-
-  private final Map<String, Long> periodIdByIsoPeriod = new ConcurrentHashMap<>();
+public class HibernatePeriodStore extends HibernateGenericStore<Period> implements PeriodStore {
 
   private final DataSource dataSource;
+  private final Map<String, Long> periodIdByIsoPeriod = new ConcurrentHashMap<>();
 
   public HibernatePeriodStore(
       EntityManager entityManager,
       DataSource dataSource,
       JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Period.class, aclService, false);
+      ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Period.class, false);
     this.dataSource = dataSource;
+  }
 
-    transientIdentifiableProperties = true;
+  private <R> R runAutoJoinTransaction(Function<StatelessSession, R> query) {
+    return runAutoJoinTransaction(dataSource, getSession().getSessionFactory(), query);
   }
 
   @Override
@@ -114,22 +106,23 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
    * transaction context.
    */
   @Override
-  public void save(@Nonnull Period period, @Nonnull UserDetails userDetails, boolean clearSharing) {
+  public void save(Period period) {
     String sql1 = "SELECT periodid FROM period WHERE iso = :iso";
     String sql2 =
         """
-      INSERT INTO period (periodid, periodtypeid, startdate, enddate, iso)
-      VALUES (nextval('hibernate_sequence'),
-        (SELECT periodtypeid FROM periodtype WHERE name = :type), :start, :end, :iso)""";
+        INSERT INTO period (periodid, periodtypeid, startdate, enddate, iso)
+        VALUES (nextval('hibernate_sequence'),
+          (SELECT periodtypeid FROM periodtype WHERE name = :type), :start, :end, :iso)""";
     String isoDate = period.getIsoDate();
     Object id =
         runAutoJoinTransaction(
             session -> {
               Object pk =
                   getSingleResult(session.createNativeQuery(sql1).setParameter("iso", isoDate));
-              if (pk != null) return pk;
-              session
-                  .createNativeQuery(sql2)
+              if (pk != null) {
+                return pk;
+              }
+              nativeSynchronizedQuery(session, sql2)
                   .setParameter("type", period.getPeriodType().getName())
                   .setParameter("start", period.getStartDate())
                   .setParameter("end", period.getEndDate())
@@ -148,16 +141,12 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   public void delete(@Nonnull Period period) {
     String isoDate = period.getIsoDate();
     int deleted =
-        getSession()
-            .createNativeQuery("DELETE FROM period where iso = :iso")
+        nativeSynchronizedQuery("DELETE FROM period where iso = :iso")
             .setParameter("iso", isoDate)
             .executeUpdate();
-    if (deleted > 0) periodIdByIsoPeriod.remove(isoDate);
-  }
-
-  @Override
-  public void update(@Nonnull Period object, @Nonnull UserDetails userDetails) {
-    throw new UnsupportedOperationException("Periods are never updated.");
+    if (deleted > 0) {
+      periodIdByIsoPeriod.remove(isoDate);
+    }
   }
 
   @Override
@@ -216,7 +205,9 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   @CheckForNull
   public Period reloadPeriod(Period period) {
     Long id = getPeriodId(period);
-    if (id == null) return null;
+    if (id == null) {
+      return null;
+    }
     period.setId(id); // link the transient instance by supplying the persisted ID
     return period;
   }
@@ -224,7 +215,9 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   @CheckForNull
   private Long getPeriodId(Period period) {
     Long cachedId = periodIdByIsoPeriod.get(period.getIsoDate());
-    if (cachedId != null) return cachedId;
+    if (cachedId != null) {
+      return cachedId;
+    }
     String isoDate = period.getIsoDate();
     String sql = "select periodid from period p where p.iso = :iso";
     NativeQuery<?> q = getSession().createNativeQuery(sql).setParameter("iso", isoDate);
@@ -244,79 +237,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   }
 
   // -------------------------------------------------------------------------
-  // PeriodType (do not use generic store which is linked to Period)
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void addPeriodType(PeriodType periodType) {
-    String name = periodType.getName();
-    String sql1 = "SELECT periodtypeid from periodtype where name = :name";
-    String sql2 =
-        """
-      INSERT INTO periodtype (periodtypeid, name)
-      VALUES (nextval('hibernate_sequence'), :name)""";
-    Object id =
-        runAutoJoinTransaction(
-            session -> {
-              Object pk =
-                  getSingleResult(session.createNativeQuery(sql1).setParameter("name", name));
-              if (pk != null) return pk;
-              session.createNativeQuery(sql2).setParameter("name", name).executeUpdate();
-              return session.createNativeQuery("SELECT lastval()").uniqueResult();
-            });
-    if (id instanceof Number n) {
-      int periodTypeId = n.intValue();
-      periodType.setId(periodTypeId);
-      return;
-    }
-    throw new IllegalStateException("Failed to upsert period type: " + name);
-  }
-
-  @Override
-  public List<PeriodType> getAllPeriodTypes() {
-    return getSession().createNativeQuery("select * from periodtype", PeriodType.class).list();
-  }
-
-  private <R> R runAutoJoinTransaction(Function<StatelessSession, R> query) {
-    boolean active = TransactionSynchronizationManager.isActualTransactionActive();
-    boolean readOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
-
-    if (active && !readOnly) {
-      // run in existing TX (for visibility)
-      Connection borrowedConnection = DataSourceUtils.getConnection(dataSource);
-      StatelessSession session =
-          getSession().getSessionFactory().openStatelessSession(borrowedConnection);
-      return query.apply(session);
-    }
-
-    // run in new TX
-    StatelessSession session = getSession().getSessionFactory().openStatelessSession();
-
-    Transaction transaction = null;
-    try {
-      transaction = session.beginTransaction();
-      R result = query.apply(session);
-      transaction.commit();
-      return result;
-    } catch (RuntimeException e) {
-      // Handle rollback for self-managed transactions
-      if (transaction != null && transaction.isActive()) transaction.rollback();
-      throw e;
-    } finally {
-      try {
-        session.close();
-      } catch (Exception e) {
-        log.error("Session close error", e);
-      }
-    }
-  }
-
-  // -------------------------------------------------------------------------
   // RelativePeriods (do not use generic store which is linked to Period)
   // -------------------------------------------------------------------------
 
-  @Override
-  public void deleteRelativePeriods(RelativePeriods relativePeriods) {
-    getSession().delete(relativePeriods);
-  }
 }

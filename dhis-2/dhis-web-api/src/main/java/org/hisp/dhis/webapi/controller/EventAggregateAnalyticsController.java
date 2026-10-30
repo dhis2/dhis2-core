@@ -64,10 +64,10 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.util.PeriodCriteriaUtils;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
@@ -224,7 +224,7 @@ public class EventAggregateAnalyticsController {
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public AnalyticsDimensionsPagingWrapper<ObjectNode> getAggregateDimensions(
       @RequestParam String programStageId,
-      @RequestParam(defaultValue = "*") List<String> fields,
+      @RequestParam(defaultValue = "*") String fields,
       DimensionsCriteria dimensionsCriteria,
       HttpServletResponse response) {
     configResponseForJson(response);

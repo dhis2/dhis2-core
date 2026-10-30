@@ -74,11 +74,9 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
 
   private static final Set<String> IGNORED_SCHEMAS =
       Set.of(
-          "externalFileResource", // can't POST files
           "categoryOptionCombo", // can't POST/create a new COC, should use /metadata
           "identifiableObject", // depends on files
           "dashboard", // uses JSONB functions (improve test setup)
-          "pushanalysis", // uses dashboards (see above)
           "metadataVersion", // no POST endpoint
           "softDeletableObject", // depends on programInstance (see above)
           "relationship", // generator insufficient for embedded fields
@@ -89,6 +87,7 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
           "jobConfiguration", // API requires configurable=true
           "messageConversation", // needs recipients (not a required field)
           "programRuleAction", // needs DataElement and TrackedEntityAttribute
+          "programRuleVariable", // needs DataElement and TrackedEntityAttribute
           "validationRule", // generator insufficient (embedded fields)
           "programStage", // body request does not include mandatory field programId
           "programStageWorkingList", // same reason as programStage
@@ -96,7 +95,8 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
           "predictor", // NPE in preheat when creating objects
           "aggregateDataExchange", // required JSONB objects not working,
           "oauth2Authorization", // Read-only
-          "oauth2AuthorizationConsent" // Read-only
+          "oauth2AuthorizationConsent", // Read-only
+          "analyticsTableHook" // disabled by default (analytics.table_hooks.enabled)
           );
 
   /**
@@ -253,7 +253,8 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
                     .getObject("attributeValues")
                     .node()
                     .replaceWith("[{\"value\":\"42\", \"attribute\":{\"id\":\"" + attrId + "\"}}]")
-                    .getDeclaration()),
+                    .getDeclaration()
+                    .toString()),
             ContentType(MediaType.APPLICATION_JSON)));
     assertEquals(
         "42",
@@ -262,7 +263,7 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
             .as(JsonIdentifiableObject.class)
             .getAttributeValues()
             .get(0)
-            .getValue());
+            .value());
   }
 
   private boolean isExcludedFromTest(JsonSchema schema) {

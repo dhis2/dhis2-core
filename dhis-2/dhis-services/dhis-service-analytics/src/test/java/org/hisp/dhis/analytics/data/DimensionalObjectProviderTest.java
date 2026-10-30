@@ -93,7 +93,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.DailyPeriodType;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettings;
@@ -358,6 +358,110 @@ class DimensionalObjectProviderTest {
   }
 
   @Test
+  void testGetOrgUnitDimensionUidWithLevelTreatsExplicitOrgUnitsAsBoundaries() {
+    // Given
+    OrganisationUnit boundary = createOrganisationUnit('A');
+    OrganisationUnit level2Ou1 = createOrganisationUnit('B');
+    OrganisationUnit level2Ou2 = createOrganisationUnit('C');
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, boundary.getUid()))
+        .thenReturn(boundary);
+    when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("2")).thenReturn(2);
+    when(organisationUnitService.getOrganisationUnitsAtLevels(List.of(2), List.of(boundary)))
+        .thenReturn(new ArrayList<>(asList(level2Ou1, level2Ou2)));
+
+    List<String> itemsUid = List.of("LEVEL-2", boundary.getUid());
+
+    // When
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true, true);
+
+    // Then
+    assertEquals(List.of(level2Ou1.getUid(), level2Ou2.getUid()), result);
+  }
+
+  @Test
+  void testGetOrgUnitDimensionUidWithLevelKeepsExplicitOrgUnitsWithUnionSemantics() {
+    // Given
+    OrganisationUnit ou = createOrganisationUnit('A');
+    OrganisationUnit level2Ou1 = createOrganisationUnit('B');
+    OrganisationUnit level2Ou2 = createOrganisationUnit('C');
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, ou.getUid())).thenReturn(ou);
+    when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("2")).thenReturn(2);
+    when(organisationUnitService.getOrganisationUnitsAtLevels(List.of(2), List.of(ou)))
+        .thenReturn(new ArrayList<>(asList(level2Ou1, level2Ou2)));
+
+    List<String> itemsUid = List.of("LEVEL-2", ou.getUid());
+
+    // When
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true, false);
+
+    // Then
+    assertEquals(List.of(ou.getUid(), level2Ou1.getUid(), level2Ou2.getUid()), result);
+  }
+
+  @Test
+  void testGetOrgUnitDimensionUidWithUnionSemanticsIsNotEmptyWhenLevelYieldsNoMembers() {
+    // Given an org unit below the requested level, so the level expansion yields nothing
+    OrganisationUnit ou = createOrganisationUnit('A');
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, ou.getUid())).thenReturn(ou);
+    when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("1")).thenReturn(1);
+    when(organisationUnitService.getOrganisationUnitsAtLevels(List.of(1), List.of(ou)))
+        .thenReturn(new ArrayList<>());
+
+    List<String> itemsUid = List.of("LEVEL-1", ou.getUid());
+
+    // When
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true, false);
+
+    // Then
+    assertEquals(List.of(ou.getUid()), result);
+  }
+
+  @Test
+  void testGetOrgUnitDimensionUidWithGroupTreatsExplicitOrgUnitsAsBoundaries() {
+    // Given
+    OrganisationUnitGroup group = createOrganisationUnitGroup('A');
+    OrganisationUnit boundary = createOrganisationUnit('A');
+    OrganisationUnit member1 = createOrganisationUnit('B');
+    OrganisationUnit member2 = createOrganisationUnit('C');
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, boundary.getUid()))
+        .thenReturn(boundary);
+    when(idObjectManager.getObject(OrganisationUnitGroup.class, UID, group.getUid()))
+        .thenReturn(group);
+    when(organisationUnitService.getOrganisationUnits(List.of(group), List.of(boundary)))
+        .thenReturn(new ArrayList<>(asList(member1, member2)));
+
+    List<String> itemsUid = List.of("OU_GROUP-" + group.getUid(), boundary.getUid());
+
+    // When
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true, true);
+
+    // Then
+    assertEquals(List.of(member1.getUid(), member2.getUid()), result);
+  }
+
+  @Test
+  void testGetOrgUnitDimensionUidWithoutLevelsOrGroupsReturnsExplicitOrgUnits() {
+    // Given
+    OrganisationUnit ou1 = createOrganisationUnit('A');
+    OrganisationUnit ou2 = createOrganisationUnit('B');
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, ou1.getUid())).thenReturn(ou1);
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, ou2.getUid())).thenReturn(ou2);
+
+    List<String> itemsUid = List.of(ou1.getUid(), ou2.getUid());
+
+    // When
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true, true);
+
+    // Then
+    assertEquals(List.of(ou1.getUid(), ou2.getUid()), result);
+  }
+
+  @Test
   void testGetDimensionWhenOrgUnitsAreNotFound() {
     List<String> nonExistingItemsUid = List.of("LEVEL-Achv9EO3hR1", "OU_GROUP-Blhv9EO3hR1");
 
@@ -419,15 +523,15 @@ class DimensionalObjectProviderTest {
     String fiveYearsAgo = Integer.toString(currentYear - 5);
 
     List<DimensionalItemObject> refPeriods = dimensionalObject.getItems();
-    assertDailyPeriod(lastYear, "LAST_UPDATED", (Period) refPeriods.get(0));
-    assertDailyPeriod(fiveYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(1));
-    assertDailyPeriod(fourYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(2));
-    assertDailyPeriod(threeYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(3));
-    assertDailyPeriod(twoYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(4));
-    assertDailyPeriod(lastYear, "SCHEDULED_DATE", (Period) refPeriods.get(5));
+    assertDailyPeriod(lastYear, "LAST_UPDATED", (PeriodDimension) refPeriods.get(0));
+    assertDailyPeriod(fiveYearsAgo, "SCHEDULED_DATE", (PeriodDimension) refPeriods.get(1));
+    assertDailyPeriod(fourYearsAgo, "SCHEDULED_DATE", (PeriodDimension) refPeriods.get(2));
+    assertDailyPeriod(threeYearsAgo, "SCHEDULED_DATE", (PeriodDimension) refPeriods.get(3));
+    assertDailyPeriod(twoYearsAgo, "SCHEDULED_DATE", (PeriodDimension) refPeriods.get(4));
+    assertDailyPeriod(lastYear, "SCHEDULED_DATE", (PeriodDimension) refPeriods.get(5));
   }
 
-  private void assertDailyPeriod(String year, String dateField, Period period) {
+  private void assertDailyPeriod(String year, String dateField, PeriodDimension period) {
     assertInstanceOf(YearlyPeriodType.class, period.getPeriodType());
     assertEquals(year, period.getIsoDate());
     assertEquals(dateField, period.getDateField());
@@ -453,11 +557,11 @@ class DimensionalObjectProviderTest {
     assertEquals("2021-05-01_2021-06-01", refDimensionKeywords.getKeywords().get(0).getKey());
 
     List<DimensionalItemObject> refPeriods = dimensionalObject.getItems();
-    assertInstanceOf(DailyPeriodType.class, ((Period) refPeriods.get(0)).getPeriodType());
-    assertEquals("20210501", ((Period) refPeriods.get(0)).getIsoDate());
-    assertEquals("LAST_UPDATED", ((Period) refPeriods.get(0)).getDateField());
-    assertEquals("2021-05-01", ((Period) refPeriods.get(0)).getStartDateString());
-    assertEquals("2021-06-01", ((Period) refPeriods.get(0)).getEndDateString());
+    assertInstanceOf(DailyPeriodType.class, ((PeriodDimension) refPeriods.get(0)).getPeriodType());
+    assertEquals("20210501", ((PeriodDimension) refPeriods.get(0)).getIsoDate());
+    assertEquals("LAST_UPDATED", ((PeriodDimension) refPeriods.get(0)).getDateField());
+    assertEquals("2021-05-01", ((PeriodDimension) refPeriods.get(0)).getStartDateString());
+    assertEquals("2021-06-01", ((PeriodDimension) refPeriods.get(0)).getEndDateString());
   }
 
   @Test

@@ -296,7 +296,6 @@
       "publicAccess": "rw------",
       "valueType": "INTEGER",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {

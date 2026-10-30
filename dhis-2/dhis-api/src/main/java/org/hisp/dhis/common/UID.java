@@ -89,13 +89,17 @@ public final class UID implements Serializable {
     return new UID(value);
   }
 
+  public static UID of(@Nonnull CharSequence value) {
+    return of(value.toString());
+  }
+
   @CheckForNull
   public static UID ofNullable(@CheckForNull String value) {
     return value == null ? null : of(value);
   }
 
   public static UID of(@CheckForNull UidObject object) {
-    return object == null ? null : new UID(object.getUid());
+    return object == null ? null : object.getUID();
   }
 
   public static Set<UID> of(@Nonnull String... values) {
@@ -107,11 +111,11 @@ public final class UID implements Serializable {
   }
 
   public static Set<UID> of(@Nonnull UidObject... objects) {
-    return Stream.of(objects).map(obj -> UID.of(obj.getUid())).collect(toUnmodifiableSet());
+    return Stream.of(objects).map(UidObject::getUID).collect(toUnmodifiableSet());
   }
 
   public static Set<UID> of(@Nonnull Stream<? extends UidObject> s) {
-    return s.map(el -> UID.of(el.getUid())).collect(Collectors.toSet());
+    return s.map(UidObject::getUID).collect(Collectors.toSet());
   }
 
   public static Set<String> toValueSet(Collection<UID> uids) {
@@ -125,5 +129,9 @@ public final class UID implements Serializable {
   public static <T extends IdentifiableObject> Set<String> toUidValueSet(
       @Nonnull Collection<T> elements) {
     return elements.stream().map(IdentifiableObject::getUid).collect(toUnmodifiableSet());
+  }
+
+  public boolean isDefaultOptionCombo() {
+    return "HllvX50cXC0".equals(value);
   }
 }

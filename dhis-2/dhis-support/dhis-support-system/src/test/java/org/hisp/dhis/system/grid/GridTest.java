@@ -241,6 +241,23 @@ class GridTest {
   }
 
   @Test
+  void testSubstituteMetaDataWhenSourceColumnHasNulls() {
+    Grid grid = new ListGrid();
+    grid.addRow();
+    grid.addValue(null);
+    grid.addValue(null);
+    grid.addValue(21);
+
+    Map<Object, Object> metaData = Map.of();
+
+    Grid result = grid.substituteMetaData(0, 1, metaData);
+
+    assertNull(result.getValue(0, 0));
+    assertNull(result.getValue(0, 1));
+    assertEquals(21, result.getValue(0, 2));
+  }
+
+  @Test
   void testSubstituteMetaDataForIndexA() {
     Map<Object, Object> metaData = new HashMap<>();
     metaData.put(11, "Eleven");
@@ -632,6 +649,38 @@ class GridTest {
     assertEquals(l3, lists.get(0));
     assertEquals(l1, lists.get(1));
     assertEquals(l2, lists.get(2));
+  }
+
+  @Test
+  void testGridRowComparatorWithNumberValuesAsStringsDesc() {
+    List<List<Object>> lists = new ArrayList<>();
+    List<Object> l1 = List.of("b", "b", "50");
+    List<Object> l2 = List.of("c", "c", "400");
+    List<Object> l3 = List.of("a", "a", "100");
+    lists.add(l1);
+    lists.add(l2);
+    lists.add(l3);
+    Comparator<List<Object>> comparator = new ListGrid.GridRowComparator(2, -1);
+    Collections.sort(lists, comparator);
+    assertEquals(l1, lists.get(0));
+    assertEquals(l3, lists.get(1));
+    assertEquals(l2, lists.get(2));
+  }
+
+  @Test
+  void testGridRowComparatorWithNumberValuesAsStringsAsc() {
+    List<List<Object>> lists = new ArrayList<>();
+    List<Object> l1 = List.of("b", "b", "50");
+    List<Object> l2 = List.of("c", "c", "400");
+    List<Object> l3 = List.of("a", "a", "100");
+    lists.add(l1);
+    lists.add(l2);
+    lists.add(l3);
+    Comparator<List<Object>> comparator = new ListGrid.GridRowComparator(2, 1);
+    Collections.sort(lists, comparator);
+    assertEquals(l2, lists.get(0));
+    assertEquals(l3, lists.get(1));
+    assertEquals(l1, lists.get(2));
   }
 
   @Test

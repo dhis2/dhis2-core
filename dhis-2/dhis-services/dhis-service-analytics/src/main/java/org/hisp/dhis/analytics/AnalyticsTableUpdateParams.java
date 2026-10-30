@@ -42,7 +42,6 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.util.DateUtils;
 
 /**
@@ -65,14 +64,14 @@ public class AnalyticsTableUpdateParams {
   /** Indicates whether to skip update of analytics tables, outliers stats columns. */
   private final boolean skipOutliers;
 
+  /** Indicates whether to refresh the period resource table before analytics table update. */
+  private final boolean refreshPeriodResourceTable;
+
   /** Analytics table types to skip. */
   @Builder.Default private final Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
   /** Analytics table programs to skip. */
   @Builder.Default private final Set<String> skipPrograms = new HashSet<>();
-
-  /** Job ID. */
-  private final JobConfiguration jobId;
 
   /** Start time for update process. */
   @Builder.Default private final Date startTime = new Date();
@@ -138,6 +137,7 @@ public class AnalyticsTableUpdateParams {
     return MoreObjects.toStringHelper(this)
         .add("last years", lastYears)
         .add("skip resource tables", skipResourceTables)
+        .add("refresh period resource table", refreshPeriodResourceTable)
         .add("skip table types", skipTableTypes)
         .add("skip programs", skipPrograms)
         .add("skip outliers statistics", skipOutliers)
@@ -178,6 +178,9 @@ public class AnalyticsTableUpdateParams {
   }
 
   public AnalyticsTableUpdateParams withLatestPartition() {
-    return this.toBuilder().lastYears(AnalyticsTablePartition.LATEST_PARTITION).build();
+    return this.toBuilder()
+        .lastYears(AnalyticsTablePartition.LATEST_PARTITION)
+        .refreshPeriodResourceTable(true)
+        .build();
   }
 }

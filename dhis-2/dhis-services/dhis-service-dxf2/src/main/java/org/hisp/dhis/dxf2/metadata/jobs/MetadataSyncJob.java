@@ -46,18 +46,20 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.util.ExceptionUtils;
-import org.springframework.retry.support.RetryTemplate;
+import org.springframework.core.retry.RetryException;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * This is the runnable that takes care of the Metadata Synchronization. Leverages Spring
- * RetryTemplate to exhibit retries. The retries are configurable through the dhis.conf.
+ * This is the runnable that takes care of the Metadata Synchronization. Leverages Spring Framework
+ * core {@link RetryTemplate} to exhibit retries. The retries are configurable through the
+ * dhis.conf.
  *
  * @author anilkumk
  * @author David Katuscak <katuscak.d@gmail.com>
@@ -100,30 +102,43 @@ public class MetadataSyncJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     log.info("Metadata Sync cron Job started");
 
     try {
-      MetadataSyncJobParameters params = (MetadataSyncJobParameters) config.getJobParameters();
-      retryTemplate.execute(
-          retryContext -> {
-            metadataRetryContext.setRetryContext(retryContext);
-            clearFailedVersionSettings();
-            runSyncTask(metadataRetryContext, params, progress);
-            return null;
-          },
-          retryContext -> {
-            log.info("Metadata Sync failed! Sending mail to Admin");
-            updateMetadataVersionFailureDetails(metadataRetryContext);
-            metadataSyncPostProcessor.sendFailureMailToAdmin(metadataRetryContext);
-            return null;
-          });
+      MetadataSyncJobParameters params = (MetadataSyncJobParameters) config.parameters();
+      executeSyncWithRetry(params, progress);
     } catch (Exception e) {
       String helpfulMessage = ExceptionUtils.getHelpfulMessage(e);
       String customMessage =
           "Exception occurred while executing metadata sync task." + helpfulMessage;
       log.error(customMessage, e);
     }
+  }
+
+  private void executeSyncWithRetry(MetadataSyncJobParameters params, JobProgress progress) {
+    try {
+      metadataRetryContext.reset();
+      retryTemplate.execute(
+          () -> {
+            metadataRetryContext.beginAttempt();
+            clearFailedVersionSettings();
+            runSyncTask(metadataRetryContext, params, progress);
+            return null;
+          });
+    } catch (RetryException ex) {
+      metadataRetryContext.setLastThrowable(exhaustionCause(ex));
+      log.info("Metadata Sync failed! Sending mail to Admin");
+      updateMetadataVersionFailureDetails(metadataRetryContext);
+      metadataSyncPostProcessor.sendFailureMailToAdmin(metadataRetryContext);
+    }
+  }
+
+  private static Throwable exhaustionCause(RetryException ex) {
+    if (ex.getLastException() != null) {
+      return ex.getLastException();
+    }
+    return ex.getCause() != null ? ex.getCause() : ex;
   }
 
   protected void runSyncTask(
@@ -202,7 +217,7 @@ public class MetadataSyncJob implements Job {
   }
 
   private void updateMetadataVersionFailureDetails(MetadataRetryContext retryContext) {
-    Object version = retryContext.getRetryContext().getAttribute(VERSION_KEY);
+    Object version = retryContext.getAttribute(VERSION_KEY);
 
     if (version != null) {
       MetadataVersion metadataVersion = (MetadataVersion) version;

@@ -36,7 +36,9 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
+import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.supportsCustomLabel;
 import static org.hisp.dhis.analytics.orgunit.OrgUnitHelper.getActiveOrganisationUnits;
 import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems;
@@ -54,6 +56,7 @@ import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.MetadataInfo;
+import org.hisp.dhis.analytics.common.NoValueDimensions;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -87,7 +90,6 @@ public class MetadataParamsHandler {
    *
    * @param grid the current {@link Grid}.
    * @param contextParams the {@link ContextParams}.
-   * @param contextParams the total of rows found for the current query.
    * @param rowsCount the total of rows found.
    */
   public void handle(
@@ -112,11 +114,14 @@ public class MetadataParamsHandler {
                   addDimensionIdentifierToItemsIfNeeded(dimensionIdentifier, items));
 
       getUserOrganisationUnitItems(user, userOrgUnitMetaDataKeys).forEach(items::putAll);
+
       MetadataInfo metadataInfo = new MetadataInfo();
       metadataInfo.put(ITEMS.getKey(), items);
 
-      metadataInfo.put(
-          DIMENSIONS.getKey(), new MetadataDimensionsHandler().handle(grid, commonParsed));
+      Map<String, List<String>> dimensions =
+          new MetadataDimensionsHandler().handle(grid, commonParsed);
+      addNoValueToDimensions(dimensions, commonParsed);
+      metadataInfo.put(DIMENSIONS.getKey(), dimensions);
 
       // Org. Units.
       boolean hierarchyMeta = commonRequest.isHierarchyMeta();
@@ -149,6 +154,39 @@ public class MetadataParamsHandler {
   }
 
   /**
+   * Appends the no-value keyword to the dimension item list of every option-set dimension whose
+   * filter explicitly contains the keyword (filter-scoped). Only {@code metaData.dimensions} is
+   * affected; rows and {@code metaData.items} are unchanged.
+   *
+   * @param dimensions the dimension items map.
+   * @param commonParsed the {@link CommonParsedParams}.
+   */
+  private void addNoValueToDimensions(
+      Map<String, List<String>> dimensions, CommonParsedParams commonParsed) {
+    for (DimensionIdentifier<DimensionParam> dimensionIdentifier :
+        commonParsed.getDimensionIdentifiers()) {
+      DimensionParam dimension = dimensionIdentifier.getDimension();
+
+      if (isFilteredByNoValue(dimension)) {
+        QueryItem item = dimension.getQueryItem();
+        NoValueDimensions.append(dimensions, getItemUid(item), item.getItemId());
+      }
+    }
+  }
+
+  /**
+   * Indicates whether the dimension is option-set-backed and filtered by the reserved no-value
+   * keyword. The filter values live in the {@link DimensionParam} items (not in {@link
+   * QueryItem#getFilters()}).
+   */
+  private boolean isFilteredByNoValue(DimensionParam dimension) {
+    return dimension.hasOptionSet()
+        && dimension.getItems().stream()
+            .flatMap(item -> item.getValues().stream())
+            .anyMatch(NO_VALUE::equals);
+  }
+
+  /**
    * Adds an extra entry to metadata items if needed, i.e. if the dimension identifier is a date
    * dimension which supports custom labels (enrollmentdate, occurreddate) and for any specified
    * dimension identifier that has a prefix.
@@ -173,6 +211,19 @@ public class MetadataParamsHandler {
             .filter(entry -> isSameDimension(dimId, entry))
             .map(entry -> asEntryWithFullPrefix(dimId, entry))
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+
+    // For event-level data elements, also add short format (stageUid.dimensionUid) to match
+    // headers that use this format
+    if (isDataElement(dimId)) {
+      String shortFormatKey =
+          dimId.getProgramStage().getElement().getUid() + DOT + dimId.getDimension().getUid();
+
+      items.putAll(
+          items.entrySet().stream()
+              .filter(entry -> isSameDimension(dimId, entry))
+              .map(entry -> Map.entry(shortFormatKey, entry.getValue()))
+              .collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+    }
   }
 
   /**
@@ -261,6 +312,10 @@ public class MetadataParamsHandler {
    * @return the {@link QueryItem} uid with a prefix (if applicable).
    */
   static String getItemUid(QueryItem item) {
+    if (item.hasCustomHeader()) {
+      return item.getCustomHeader().headerKey(item.getCustomHeader().key());
+    }
+
     String uid = item.getItem().getUid();
 
     if (item.hasProgramStage()) {

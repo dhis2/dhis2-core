@@ -52,6 +52,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.tracker.export.FilterParser;
 
@@ -396,6 +397,42 @@ public class RequestParamsValidator {
   public static void validateMandatoryProgram(UID program) throws BadRequestException {
     if (program == null) {
       throw new BadRequestException("Program is mandatory");
+    }
+  }
+
+  /**
+   * Validates that event UIDs and data element filter cannot be specified simultaneously.
+   *
+   * @param filter data element filter string
+   * @param eventIds set of event UIDs
+   * @throws BadRequestException if both are non-empty
+   */
+  public static void validateEventIdsAndFilter(String filter, Set<UID> eventIds)
+      throws BadRequestException {
+    if (!CollectionUtils.isEmpty(eventIds) && !StringUtils.isEmpty(filter)) {
+      throw new BadRequestException("Event UIDs and filters can not be specified at the same time");
+    }
+  }
+
+  /**
+   * Validates that {@code updatedWithin} (a duration string) is not combined with {@code
+   * updatedAfter} / {@code updatedBefore}, and that the duration string is parseable.
+   *
+   * @param updatedWithin duration string, may be null
+   * @param updatedAfter start of update date range, may be null
+   * @param updatedBefore end of update date range, may be null
+   * @throws BadRequestException if the parameters are used in an invalid combination
+   */
+  public static void validateUpdateDurationParams(
+      String updatedWithin, Object updatedAfter, Object updatedBefore) throws BadRequestException {
+    if (updatedWithin != null && (updatedAfter != null || updatedBefore != null)) {
+      throw new BadRequestException(
+          "Last updated from and/or to and last updated duration cannot be specified"
+              + " simultaneously");
+    }
+
+    if (updatedWithin != null && DateUtils.getDuration(updatedWithin) == null) {
+      throw new BadRequestException("Duration is not valid: " + updatedWithin);
     }
   }
 }

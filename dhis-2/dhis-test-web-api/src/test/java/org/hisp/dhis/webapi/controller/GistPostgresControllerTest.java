@@ -96,4 +96,29 @@ class GistPostgresControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals("Surnameadmin", user0.getString("surname").string());
     assertEquals(getAdminUid(), user0.getString("id").string());
   }
+
+  /** Only superusers skip sharing; a user holding any other authority sees shared objects only. */
+  @Test
+  void testAccess_SharingAppliesToUserWithoutAllAuthority() {
+    String privateSetId = createDataSet("private set", "--------");
+    String publicSetId = createDataSet("public set", "r-------");
+
+    switchToNewUser("viewer", "Test_skipSharingCheck");
+
+    assertEquals(0, getDataSetsWithId(privateSetId).size());
+    assertEquals(1, getDataSetsWithId(publicSetId).size());
+  }
+
+  private String createDataSet(String name, String publicAccess) {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataSets/",
+            "{'name':'%s','shortName':'%s','periodType':'Monthly','sharing':{'public':'%s'}}"
+                .formatted(name, name, publicAccess)));
+  }
+
+  private JsonArray getDataSetsWithId(String id) {
+    return GET("/dataSets/gist?fields=id&headless=true&filter=id:eq:{id}", id).content();
+  }
 }

@@ -33,6 +33,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import org.hisp.dhis.query.operators.EqualOperator;
 import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.query.operators.Operator;
 
@@ -104,5 +105,15 @@ public final class Filter {
 
   public boolean isMentions() {
     return "mentions".equals(path) && operator instanceof InOperator;
+  }
+
+  /**
+   * @return true when this filter is suitable for specialized DB predicate handling (for example a
+   *     correlated EXISTS predicate).
+   */
+  public boolean supportsDbPredicate() {
+    return !isVirtual()
+        && !isAttribute()
+        && (operator instanceof EqualOperator<?> || operator instanceof InOperator<?>);
   }
 }

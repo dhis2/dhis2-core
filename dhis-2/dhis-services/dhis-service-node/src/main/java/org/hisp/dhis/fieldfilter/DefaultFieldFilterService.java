@@ -30,26 +30,23 @@
 package org.hisp.dhis.fieldfilter;
 
 import static java.beans.Introspector.decapitalize;
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
@@ -81,7 +78,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -150,34 +146,24 @@ public class DefaultFieldFilterService implements FieldFilterService {
     transformers = transformerBuilder.build();
 
     baseIdentifiableIdProperty =
-        schemaService.getDynamicSchema(BaseIdentifiableObject.class).getProperty("id");
+        schemaService.getSchema(BaseIdentifiableObject.class).getProperty("id");
   }
 
   @Override
   public CollectionNode toCollectionNode(Class<?> wrapper, FieldFilterParams params) {
-    String fields = params.getFields() == null ? "" : Joiner.on(",").join(params.getFields());
+    String fields = params.getFields();
+    if (fields == null) fields = "";
 
-    Schema rootSchema = schemaService.getDynamicSchema(wrapper);
+    Schema rootSchema = schemaService.getSchema(wrapper);
 
     CollectionNode collectionNode = new CollectionNode(rootSchema.getCollectionName());
     collectionNode.setNamespace(rootSchema.getNamespace());
 
     List<?> objects = params.getObjects();
 
-    if (params.getSkipSharing()) {
-      final List<String> fieldList =
-          CollectionUtils.isEmpty(params.getFields())
-              ? Collections.singletonList("*")
-              : params.getFields();
-      // excludes must be preserved (e.g. when field collections like
-      // :owner are used, which is not expanded by modify filter)
-      fields =
-          Stream.concat(
-                  fieldParser.modifyFilter(fieldList, SHARING_FIELDS).stream(),
-                  SHARING_FIELDS.stream())
-              .filter(org.apache.commons.lang3.StringUtils::isNotBlank)
-              .distinct()
-              .collect(Collectors.joining(","));
+    if (params.isSkipSharing()) {
+      if (fields.isEmpty()) fields = "*";
+      fields += "," + String.join(",", SHARING_FIELDS);
     }
 
     if (params.getObjects().isEmpty() || objects.stream().allMatch(Objects::isNull)) {
@@ -185,8 +171,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
     }
 
     FieldMap fieldMap = new FieldMap();
-    Schema schema =
-        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(objects.get(0)));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(objects.get(0)));
 
     if (StringUtils.isEmpty(fields)) {
       for (Property property : schema.getProperties()) {
@@ -226,7 +211,8 @@ public class DefaultFieldFilterService implements FieldFilterService {
       final FieldFilterParams params,
       final String collectionName,
       final String namespace) {
-    final String fields = params.getFields() == null ? "" : Joiner.on(",").join(params.getFields());
+    String fields = params.getFields();
+    if (fields == null) fields = "";
 
     final CollectionNode collectionNode = new CollectionNode(collectionName);
     collectionNode.setNamespace(namespace);
@@ -272,7 +258,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
       Object object,
       UserDetails userDetails,
       Defaults defaults) {
-    Schema schema = schemaService.getDynamicSchema(klass);
+    Schema schema = schemaService.getSchema(klass);
     return buildNode(fieldMap, klass, object, userDetails, schema.getName(), defaults);
   }
 
@@ -329,7 +315,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
       UserDetails userDetails,
       String nodeName,
       Defaults defaults) {
-    Schema schema = schemaService.getDynamicSchema(klass);
+    Schema schema = schemaService.getSchema(klass);
 
     ComplexNode complexNode = new ComplexNode(nodeName);
     complexNode.setNamespace(schema.getNamespace());
@@ -379,10 +365,10 @@ public class DefaultFieldFilterService implements FieldFilterService {
         continue;
       }
 
-      Object returnValue = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      Object returnValue = safeInvoke(object, property.getGetterMethod());
 
       Class<?> propertyClass = property.getKlass();
-      Schema propertySchema = schemaService.getDynamicSchema(propertyClass);
+      Schema propertySchema = schemaService.getSchema(propertyClass);
 
       if (property.hasPropertyTransformer()) {
         PropertyTransformer propertyTransformer =
@@ -399,7 +385,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
         if (returnValue != null) {
           returnValue = propertyTransformer.transform(returnValue);
           propertyClass = returnValue.getClass();
-          propertySchema = schemaService.getDynamicSchema(propertyClass);
+          propertySchema = schemaService.getSchema(propertyClass);
           updateFields(fieldValue, propertyTransformer.getKlass());
         }
       }
@@ -411,7 +397,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
           && !property.isIdentifiableObject()) {
         // try to retrieve schema from concrete class
         propertyClass = returnValue.getClass();
-        propertySchema = schemaService.getDynamicSchema(propertyClass);
+        propertySchema = schemaService.getSchema(propertyClass);
       }
 
       if (returnValue == null && property.isCollection()) {
@@ -443,7 +429,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
               }
             }
           } else if (!property.isSimple()) {
-            FieldMap map = getFullFieldMap(schemaService.getDynamicSchema(property.getItemKlass()));
+            FieldMap map = getFullFieldMap(schemaService.getSchema(property.getItemKlass()));
 
             for (Object collectionObject : collection) {
               Node node =
@@ -493,8 +479,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
               // if it has a transformer, re-get the schema (the
               // item klass has probably changed)
               Schema sch =
-                  schemaService.getDynamicSchema(
-                      HibernateProxyUtils.getRealClass(collectionObject));
+                  schemaService.getSchema(HibernateProxyUtils.getRealClass(collectionObject));
               node =
                   buildNode(
                       fieldValue,
@@ -558,7 +543,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
       return;
     }
 
-    Schema schema = schemaService.getDynamicSchema(klass);
+    Schema schema = schemaService.getSchema(klass);
     List<String> cleanupFields = Lists.newArrayList();
 
     for (String fieldKey : Sets.newHashSet(fieldMap.keySet())) {
@@ -677,11 +662,11 @@ public class DefaultFieldFilterService implements FieldFilterService {
     Schema schema;
 
     if (currentProperty.hasPropertyTransformer()) {
-      schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+      schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
     } else if (currentProperty.isCollection()) {
-      schema = schemaService.getDynamicSchema(currentProperty.getItemKlass());
+      schema = schemaService.getSchema(currentProperty.getItemKlass());
     } else {
-      schema = schemaService.getDynamicSchema(currentProperty.getKlass());
+      schema = schemaService.getSchema(currentProperty.getKlass());
     }
 
     for (String field : fields) {
@@ -691,7 +676,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
         continue;
       }
 
-      Object returnValue = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      Object returnValue = safeInvoke(object, property.getGetterMethod());
 
       SimpleNode simpleNode = new SimpleNode(field, returnValue);
       simpleNode.setAttribute(property.isAttribute());
@@ -706,9 +691,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
   private boolean isBaseIdentifiableObjectIdOnly(
       @Nonnull Object object, @Nonnull List<String> fields) {
-    return fields.size() == 1
-        && fields.get(0).equals("id")
-        && object instanceof BaseIdentifiableObject;
+    return fields.size() == 1 && fields.get(0).equals("id") && object instanceof IdentifiableObject;
   }
 
   private ComplexNode createBaseIdentifiableObjectIdNode(

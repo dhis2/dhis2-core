@@ -29,19 +29,26 @@
  */
 package org.hisp.dhis.period;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+@Getter
 @RequiredArgsConstructor
 public enum PeriodTypeEnum {
   BI_MONTHLY("BiMonthly"),
   BI_WEEKLY("BiWeekly"),
   DAILY("Daily"),
+  FINANCIAL_FEB("FinancialFeb"),
   FINANCIAL_APRIL("FinancialApril"),
   FINANCIAL_JULY("FinancialJuly"),
-  FINANCIAL_NOV("FinancialNov"),
+  FINANCIAL_AUG("FinancialAug"),
   FINANCIAL_SEP("FinancialSep"),
   FINANCIAL_OCT("FinancialOct"),
+  FINANCIAL_NOV("FinancialNov"),
   MONTHLY("Monthly"),
   QUARTERLY("Quarterly"),
   QUARTERLY_NOV("QuarterlyNov"),
@@ -53,8 +60,52 @@ public enum PeriodTypeEnum {
   WEEKLY_SATURDAY("WeeklySaturday"),
   WEEKLY_SUNDAY("WeeklySunday"),
   WEEKLY_THURSDAY("WeeklyThursday"),
+  WEEKLY_FRIDAY("WeeklyFriday"),
   WEEKLY_WEDNESDAY("WeeklyWednesday"),
   YEARLY("Yearly");
 
-  @Getter private final String name;
+  @JsonValue private final String name;
+
+  // to avoid defensive copy on of(...) lookup
+  private static final PeriodTypeEnum[] values = values();
+
+  @JsonCreator
+  public static PeriodTypeEnum of(@Nonnull String name) {
+    for (PeriodTypeEnum e : values) if (e.name.equalsIgnoreCase(name)) return e;
+    for (PeriodTypeEnum e : values) if (e.name().equalsIgnoreCase(name)) return e;
+    throw new IllegalArgumentException("Invalid period type name: " + name);
+  }
+
+  public static final Set<PeriodTypeEnum> WEEKLY_TYPES =
+      Set.of(
+          WEEKLY, WEEKLY_WEDNESDAY, WEEKLY_THURSDAY, WEEKLY_FRIDAY, WEEKLY_SATURDAY, WEEKLY_SUNDAY);
+
+  public static final Set<PeriodTypeEnum> QUARTERLY_TYPES = Set.of(QUARTERLY, QUARTERLY_NOV);
+
+  public static final Set<PeriodTypeEnum> SIX_MONTHLY_TYPES =
+      Set.of(SIX_MONTHLY, SIX_MONTHLY_APRIL, SIX_MONTHLY_NOV);
+
+  public static final Set<PeriodTypeEnum> FINANCIAL_YEARLY_TYPES =
+      Set.of(
+          FINANCIAL_FEB,
+          FINANCIAL_APRIL,
+          FINANCIAL_JULY,
+          FINANCIAL_AUG,
+          FINANCIAL_SEP,
+          FINANCIAL_OCT,
+          FINANCIAL_NOV);
+
+  /**
+   * Parses an ISO period to extract its type.
+   *
+   * @param isoPeriod a ISO period (any format)
+   * @return the type of the period
+   * @throws IllegalArgumentException if the given ISO period is formally invalid. This does not
+   *     detect semantically invalid periods, like for example a quarterly period for a 5th quarter,
+   *     but it would detect a two digit quarter.
+   */
+  @Nonnull
+  public static PeriodTypeEnum ofIsoPeriod(String isoPeriod) {
+    return Period.Input.of(isoPeriod).type();
+  }
 }

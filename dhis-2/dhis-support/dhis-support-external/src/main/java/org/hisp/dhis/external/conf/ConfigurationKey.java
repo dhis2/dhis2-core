@@ -62,6 +62,9 @@ public enum ConfigurationKey {
   /** SQL view write enabled, can be 'on', 'off'. (default: off) */
   SYSTEM_SQL_VIEW_WRITE_ENABLED("system.sql_view_write_enabled", Constants.OFF, false),
 
+  /** JasperReports report designs enabled, can be 'on', 'off'. (default: off) */
+  JASPER_REPORTS_ENABLED("jasper.reports.enabled", Constants.OFF, false),
+
   /**
    * Set the maximum size for the cache instance to be built. If set to 0, no caching will take
    * place. Cannot be a negative value. (default: 0).
@@ -95,9 +98,6 @@ public enum ConfigurationKey {
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
-  /** Analytics JDBC driver class. */
-  ANALYTICS_CONNECTION_DRIVER_CLASS("analytics.connection.driver_class", "", false),
-
   /** Database connection URL. */
   CONNECTION_URL("connection.url", "", false),
 
@@ -118,15 +118,6 @@ public enum ConfigurationKey {
 
   /** Database password (sensitive). */
   CONNECTION_PASSWORD("connection.password", "", true),
-
-  /** Database host (hostname or IP). Applies to ClickHouse. */
-  CONNECTION_HOST("connection.host", "", false),
-
-  /** Database port number. Applies to ClickHouse. */
-  CONNECTION_PORT("connection.port", "5432", false),
-
-  /** Database port number. Applies to ClickHouse. */
-  CONNECTION_DATABASE("connection.database", "", false),
 
   /** Analytics Database password (sensitive). */
   ANALYTICS_CONNECTION_PASSWORD("analytics.connection.password", "", true),
@@ -211,15 +202,15 @@ public enum ConfigurationKey {
 
   /**
    * Seconds a Connection can remain pooled but unused before being discarded. Zero means idle
-   * connections never expire (default: 7200).
+   * connections never expire (default: 600).
    */
-  CONNECTION_POOL_MAX_IDLE_TIME("connection.pool.max_idle_time", "7200", false),
+  CONNECTION_POOL_MAX_IDLE_TIME("connection.pool.max_idle_time", "600", false),
 
   /**
    * Seconds a Connection can remain pooled but unused before being discarded. Zero means idle
-   * connections never expire (default: 7200).
+   * connections never expire (default: 600).
    */
-  ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME("analytics.connection.pool.max_idle_time", "7200", false),
+  ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME("analytics.connection.pool.max_idle_time", "600", false),
 
   /** Minimum number of idle connections to maintain (default: 10). */
   CONNECTION_POOL_MIN_IDLE("connection.pool.min_idle", "10", false),
@@ -408,7 +399,7 @@ public enum ConfigurationKey {
    */
   META_DATA_SYNC_RETRY("metadata.sync.retry", "3", false),
 
-  /** Sets up {@see RetryTemplate} retry frequency. (default: 30000) */
+  /** Sets up Spring Framework core {@code RetryTemplate} backoff delay. (default: 30000) */
   META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC(
       "metadata.sync.retry.time.frequency.millisec", "30000", false),
 
@@ -466,6 +457,21 @@ public enum ConfigurationKey {
 
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
+  /**
+   * Maximum number of seconds a tracker export request may spend fetching data before it is
+   * canceled and fails with 504. The budget is shared by every database query and object store read
+   * of one request but covers only the time they run, not the wait for a connection, which the pool
+   * bounds separately via {@code connection.pool.timeout} and answers with a 503. {@code 0}
+   * disables the timeout. (default: 600)
+   *
+   * <p>Because the underlying JDBC timeout has whole second granularity and the remaining budget is
+   * rounded up, a request can take up to one second longer than this value.
+   *
+   * <p>Set this below any timeout in front of DHIS2, such as a reverse proxy or load balancer. If
+   * the proxy times out first it returns its own 504 while the query is never cancelled.
+   */
+  TRACKER_EXPORT_TIMEOUT("tracker.export.timeout", "600", false),
+
   /** Use unlogged tables during analytics export. (default: ON) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 
@@ -480,6 +486,15 @@ public enum ConfigurationKey {
    * identifiers. Experimental.
    */
   ANALYTICS_TABLE_SKIP_COLUMN("analytics.table.skip_column", "", false),
+
+  /**
+   * Analytics table SQL hooks feature. When off (default), create/update of {@code
+   * AnalyticsTableHook} metadata is rejected, also for superusers importing with {@code
+   * skipValidation}, and scheduled hook SQL is not executed. High risk when enabled: stored SQL
+   * runs as the DHIS2 database role, and every stored hook runs from the next table generation.
+   * When enabled, only superusers can create or update hooks. Values: on/off.
+   */
+  ANALYTICS_TABLE_HOOKS_ENABLED("analytics.table_hooks.enabled", Constants.OFF, false),
 
   /**
    * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded Artemis which lives in
@@ -539,10 +554,20 @@ public enum ConfigurationKey {
   LOGGING_FILE_MAX_ARCHIVES("logging.file.max_archives", "1"),
 
   /**
-   * Adds a hashed (SHA-256) session_id to each log line. Useful for tracking which user is
-   * responsible for the logging line.
+   * Adds a hashed (SHA-256) session ID to the MDC ({@code sessionId} key). Include it in log output
+   * via {@code %X{sessionId}} in the log4j2 pattern layout.
    */
-  LOGGING_REQUEST_ID_ENABLED("logging.request_id.enabled", Constants.ON, false),
+  LOGGING_SESSION_ID("logging.session_id", Constants.ON, false),
+
+  /**
+   * Enables SQL query logging via a datasource proxy. All {@code logging.query.*} keys below
+   * require this to be enabled.
+   */
+  LOGGING_QUERY("logging.query", Constants.OFF, false),
+
+  /** Threshold in milliseconds for logging slow queries at WARN level. */
+  LOGGING_QUERY_SLOW_THRESHOLD(
+      "logging.query.slow_threshold", String.valueOf(SECONDS.toMillis(1)), false),
 
   /** Base URL to the DHIS 2 instance. */
   SERVER_BASE_URL("server.base.url", "", false),
@@ -555,6 +580,18 @@ public enum ConfigurationKey {
 
   /** Enable secure settings if system is deployed on HTTPS, can be 'off', 'on'. */
   SERVER_HTTPS("server.https", Constants.OFF),
+
+  /** Prepends SQL comments with MDC context (controller, method, request_id, session_id). */
+  MONITORING_SQL_CONTEXT("monitoring.sql.context", Constants.OFF, false),
+
+  /**
+   * Comma-separated MDC keys to include in SQL comments. Uses the same key names as log4j2 {@code
+   * %X{key}} patterns. Supported keys: {@code controller}, {@code method}, {@code requestId},
+   * {@code sessionId}. Adding {@code requestId} or {@code sessionId} produces unique SQL per
+   * request, which prevents PgJDBC from promoting queries to server-side prepared statements.
+   * Invalid keys cause a startup failure.
+   */
+  MONITORING_SQL_CONTEXT_KEYS("monitoring.sql.context.keys", "controller,method", false),
 
   /** DHIS2 API monitoring. */
   MONITORING_API_ENABLED("monitoring.api.enabled", Constants.OFF, false),
@@ -574,6 +611,13 @@ public enum ConfigurationKey {
   /** CPU monitoring. (default: off) */
   MONITORING_CPU_ENABLED("monitoring.cpu.enabled", Constants.OFF, false),
 
+  /**
+   * JMX monitoring: expose selected statistics (user statistics) and HikariCP connection pool
+   * MBeans, for monitoring tools that consume JMX rather than Prometheus, such as Glowroot.
+   * (default: off)
+   */
+  MONITORING_JMX_ENABLED("monitoring.jmx.enabled", Constants.OFF, false),
+
   /** AppHub base URL. (default: https://apps.dhis2.org). */
   APPHUB_BASE_URL("apphub.base.url", "https://apps.dhis2.org", false),
 
@@ -587,10 +631,15 @@ public enum ConfigurationKey {
   CHANGELOG_AGGREGATE("changelog.aggregate", Constants.ON),
 
   /**
-   * Enable/disable changelog/history log of tracker data values. <br>
-   * (default: on)
+   * Maximum number of seconds a statement reading the aggregate data value change log ({@code
+   * /api/audits/dataValue}, {@code /api/dataEntry/dataValueContext}) may run for a user who is not
+   * a superuser. A statement that runs longer is cancelled and the request fails with 409. {@code
+   * 0} disables the timeout. (default: 30)
+   *
+   * <p>Set this below any timeout in front of DHIS2, such as a reverse proxy or load balancer: a
+   * client that gives up does not cancel the statement.
    */
-  CHANGELOG_TRACKER("changelog.tracker", Constants.ON),
+  CHANGELOG_AGGREGATE_QUERY_TIMEOUT("changelog.aggregate.query.timeout", "30", false),
 
   /** Use in-memory queue before sending audits into the Artemis queue. (default: off). */
   AUDIT_USE_IN_MEMORY_QUEUE_ENABLED(
@@ -613,6 +662,9 @@ public enum ConfigurationKey {
 
   /** Sets the audit matrix for tracker. (default: none). */
   AUDIT_TRACKER_MATRIX("audit.tracker", "", false),
+
+  /** Sets the audit matrix for API. (default: none). */
+  AUDIT_API_MATRIX("audit.api", "", false),
 
   /** Enable OIDC. (default: off). */
   OIDC_OAUTH2_LOGIN_ENABLED("oidc.oauth2.login.enabled", Constants.OFF, false),
@@ -674,19 +726,6 @@ public enum ConfigurationKey {
 
   /** WSO2 IdP specific parameters. Enable logout */
   OIDC_PROVIDER_WSO2_ENABLE_LOGOUT("oidc.provider.wso2.enable_logout", Constants.ON, false),
-
-  /** Database debugging feature. Defines threshold for logging of slow queries in the log. */
-  SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS(
-      "slow.query.logging.threshold.time", String.valueOf(SECONDS.toMillis(1)), false),
-
-  /** Database debugging feature. Enables logging of all SQL queries to the log. */
-  ENABLE_QUERY_LOGGING("enable.query.logging", Constants.OFF, false),
-
-  /** Database debugging feature. Defines database logging before/after methods */
-  METHOD_QUERY_LOGGING_ENABLED("method.query.logging.enabled", Constants.OFF, false),
-
-  /** Database debugging feature. Enable time query logging. */
-  ELAPSED_TIME_QUERY_LOGGING_ENABLED("elapsed.time.query.logging.enabled", Constants.OFF, false),
 
   /**
    * Database datasource pool type. Supported pool types are: hikari (default), c3p0 (deprecated),
@@ -752,9 +791,11 @@ public enum ConfigurationKey {
 
   /** The list of IP address from which you will be calling the user impersonation feature. */
   SWITCH_USER_ALLOW_LISTED_IPS(
-      "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false),
+      "switch_user_allow_listed_ips",
+      "localhost,127.0.0.1,[0:0:0:0:0:0:0:1],0:0:0:0:0:0:0:1",
+      false),
 
-  /** Maximun size for files uploaded as fileResources. */
+  /** Maximum size for files uploaded as fileResources. */
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
 
   /** CSRF feature. Enable or disable the feature. (sensitive) */
@@ -787,7 +828,7 @@ public enum ConfigurationKey {
    */
   ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false),
 
-  /** Enable OAuth2 authentication server. (default: off) */
+  /** Enable OAuth2 Spring Authorization Server (SAS). (default: off) */
   OAUTH2_SERVER_ENABLED("oauth2.server.enabled", Constants.OFF, false),
 
   /** Path to the JWT keystore file. */
@@ -806,6 +847,14 @@ public enum ConfigurationKey {
   OAUTH2_JWT_KEYSTORE_GENERATE_IF_MISSING(
       "oauth2.server.jwt.keystore.generate-if-missing", "true", false),
 
+  /**
+   * Refresh token time-to-live in seconds for clients registered through OIDC Dynamic Client
+   * Registration (e.g. Android devices). Refresh tokens are rotated on every use, so this is a
+   * sliding window: each refresh issues a new refresh token valid for this duration. (default: 30
+   * days)
+   */
+  OAUTH2_SERVER_DCR_REFRESH_TOKEN_TTL("oauth2.server.dcr.refresh-token-ttl", "2592000", false),
+
   /** Ehcache monitoring. (default: off) */
   MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false),
 
@@ -813,7 +862,50 @@ public enum ConfigurationKey {
 
   // Enable saved requests, this will save the URL the user tries to access before they are logged
   // in, and redirect to that URL after they are logged in.
-  LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false);
+  LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false),
+
+  // OIDC internal provider configuration for DHIS2 when Authorization Server is enabled, with
+  // property: (OAUTH2_SERVER_ENABLED)
+  OIDC_DHIS2_INTERNAL_CLIENT_ID("oidc.provider.dhis2.client_id", "dhis2-internal", false),
+  OIDC_DHIS2_INTERNAL_CLIENT_SECRET("oidc.provider.dhis2.client_secret", "secret", false),
+  OIDC_DHIS2_INTERNAL_MAPPING_CLAIM("oidc.provider.dhis2.mapping_claim", "username", false),
+  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "", false),
+
+  /** Whether static resource caching is enabled. (default: true) */
+  STATIC_CACHE_ENABLED("dhis2.static.cache.enabled", Constants.ON, false),
+
+  /**
+   * Default max-age in seconds for static resources (JS, CSS, images, fonts). (default: 3600
+   * seconds = 1 hour)
+   */
+  STATIC_CACHE_DEFAULT_MAX_AGE_SECONDS("dhis2.static.cache.default_max_age", "3600", false),
+
+  /**
+   * Max-age in seconds for HTML entry points (index.html, plugin.html). (default: 300 seconds = 5
+   * minutes)
+   */
+  STATIC_CACHE_HTML_MAX_AGE_SECONDS("dhis2.static.cache.html_max_age", "300", false),
+
+  /**
+   * Max-age in seconds for immutable/hashed static resources. (default: 31536000 seconds = 1 year)
+   */
+  STATIC_CACHE_IMMUTABLE_MAX_AGE_SECONDS("dhis2.static.cache.immutable_max_age", "31536000", false),
+
+  /**
+   * Comma-separated Ant-style patterns for paths that should always get no-cache headers. (default:
+   * common HTML entry points and manifests)
+   */
+  STATIC_CACHE_ALWAYS_NO_CACHE_PATTERNS(
+      "dhis2.static.cache.always_no_cache_patterns",
+      "**/*.html,**/index.*,**/manifest.*,**/config.*,**/plugin.html",
+      false),
+
+  /** Force no-store on all static resources (dev mode). (default: off) */
+  STATIC_CACHE_DEV_MODE_FORCE_NO_CACHE(
+      "dhis2.static.cache.dev_mode_force_no_cache", Constants.OFF, false),
+
+  /** Whether HTML cache-busting rewrite is enabled. (default: on) */
+  STATIC_CACHE_HTML_REWRITE_ENABLED("dhis2.static.cache.html_rewrite_enabled", Constants.ON, false);
 
   private final String key;
 

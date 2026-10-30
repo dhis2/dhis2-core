@@ -149,7 +149,7 @@ public interface DataEntryService {
    * @throws ConflictException in case of validation errors
    * @throws BadRequestException in case the submitted key is formally invalid
    */
-  boolean deleteValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryKey key)
+  boolean deleteValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataValueKey key)
       throws ConflictException, BadRequestException;
 
   /**
@@ -190,8 +190,8 @@ public interface DataEntryService {
    * @throws ConflictException when the data set is not provided and a data set cannot be determined
    *     automatically without ambiguity
    */
-  LockStatus getEntryStatus(@CheckForNull UID dataSet, @Nonnull DataEntryKey key)
+  LockStatus getEntryStatus(@CheckForNull UID dataSet, @Nonnull DataValueKey key)
       throws ConflictException;
 
-  Set<UID> getNotReadableOptionCombos(Collection<UID> optionCombos);
+  Set<UID> getNotReadableCategoryOptions(Collection<UID> optionCombos);
 }

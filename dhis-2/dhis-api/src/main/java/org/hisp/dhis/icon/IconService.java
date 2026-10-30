@@ -94,7 +94,8 @@ public interface IconService {
    *
    * @param key key of the icon to find
    * @return custom icon associated to the key, if found
-   * @throws NotFoundException if no icon exists with the provided key
+   * @throws NotFoundException if no icon exists with the provided key, or its image is not an
+   *     {@link org.hisp.dhis.fileresource.FileResourceDomain#ICON} file resource
    */
   @Nonnull
   Icon getIcon(@Nonnull String key) throws NotFoundException;
@@ -110,24 +111,28 @@ public interface IconService {
   /**
    * Persists the provided icon to the database
    *
+   * <p>A custom icon (no origin) may only use an unassigned {@link
+   * org.hisp.dhis.fileresource.FileResourceDomain#ICON} file resource uploaded by the current user;
+   * see {@link org.hisp.dhis.fileresource.FileResourceService#canAssign}.
+   *
    * @param request details the icon to be created
    * @param origin in case the icon represents a variant of a {@link DefaultIcon}
    * @throws BadRequestException when an icon already exists with the same key or the file resource
    *     id is not specified
    * @throws NotFoundException when no file resource with the provided id exists
-   * @throws BadRequestException when another icon with the same key already exists
+   * @throws ConflictException when the file resource may not be used as the image of this icon
    * @return the created and persisted {@link Icon}
    */
   @Nonnull
   Icon addIcon(@Nonnull AddIconRequest request, @CheckForNull DefaultIcon origin)
-      throws BadRequestException, NotFoundException;
+      throws BadRequestException, NotFoundException, ConflictException;
 
   /**
    * Updated the provided icon
    *
    * @param request the icon to be updated
    */
-  void updateIcon(@Nonnull String key, @Nonnull UpdateIconRequest request)
+  void updateIcon(@CheckForNull String key, @Nonnull UpdateIconRequest request)
       throws BadRequestException, NotFoundException;
 
   /**
@@ -137,7 +142,7 @@ public interface IconService {
    * @throws BadRequestException when icon key is not specified
    * @throws NotFoundException when no icon with the provided key exists
    */
-  void deleteIcon(@Nonnull String key) throws BadRequestException, NotFoundException;
+  void deleteIcon(@CheckForNull String key) throws BadRequestException, NotFoundException;
 
   /**
    * @return number of icons deleted because they were not custom but refer to a non-existing {@link

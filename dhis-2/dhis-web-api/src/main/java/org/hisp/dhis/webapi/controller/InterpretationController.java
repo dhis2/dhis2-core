@@ -39,6 +39,7 @@ import java.util.Iterator;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -52,7 +53,6 @@ import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
@@ -233,11 +233,7 @@ public class InterpretationController
       return conflict("Data set does not exist or is not accessible: " + dataSetUid);
     }
 
-    Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
-
-    if (period == null) {
-      return conflict("Period identifier not valid: " + isoPeriod);
-    }
+    Period period = Period.of(isoPeriod);
 
     OrganisationUnit orgUnit = idObjectManager.get(OrganisationUnit.class, orgUnitUid);
 
@@ -308,12 +304,12 @@ public class InterpretationController
   @Override
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public WebMessage deleteObject(
-      @PathVariable String uid,
+      @PathVariable UID uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException {
-    Interpretation interpretation = interpretationService.getInterpretation(uid);
+    Interpretation interpretation = interpretationService.getInterpretation(uid.getValue());
 
     if (interpretation == null) {
       return notFound("Interpretation does not exist: " + uid);

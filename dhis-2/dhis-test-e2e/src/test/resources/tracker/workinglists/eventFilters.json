@@ -4,7 +4,7 @@
   "name": "TA event program events",
   "eventQueryCriteria": {
     "organisationUnit": "O6uvpzGd5pu",
-    "eventStatus": "COMPLETED",
+    "status": "COMPLETED",
     "eventDate": {
       "startDate": "2014-05-01",
       "endDate": "2019-03-20",
@@ -49,7 +49,6 @@
           "type": "RELATIVE"
         }
       }
-    ],
-    "programStatus": "ACTIVE"
+    ]
   }
 }

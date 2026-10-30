@@ -36,7 +36,6 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -51,12 +50,12 @@ public class StubDriver implements Driver {
   }
 
   @Override
-  public boolean acceptsURL(String url) throws SQLException {
+  public boolean acceptsURL(String url) {
     return url.equals("jdbc:fake:db");
   }
 
   @Override
-  public DriverPropertyInfo[] getPropertyInfo(String s, Properties properties) throws SQLException {
+  public DriverPropertyInfo[] getPropertyInfo(String s, Properties properties) {
     return new DriverPropertyInfo[0];
   }
 
@@ -76,7 +75,7 @@ public class StubDriver implements Driver {
   }
 
   @Override
-  public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+  public Logger getParentLogger() {
     return null;
   }
 }

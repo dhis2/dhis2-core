@@ -31,6 +31,12 @@ package org.hisp.dhis.merge.dataelement;
 
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsNonNull;
+import static org.hisp.dhis.common.input.InputUtils.decodeInput;
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ_ONLY;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createSingleEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -68,9 +74,9 @@ import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
-import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.datavalue.DataValueChangelog;
+import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
+import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
@@ -97,19 +103,15 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.SingleEventStore;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.TrackerEventStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -120,7 +122,6 @@ import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.PageParams;
@@ -129,6 +130,12 @@ import org.hisp.dhis.tracker.export.event.EventChangeLog;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.SingleEventStore;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.model.TrackerEventStore;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -182,10 +189,11 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataExportStore dataExportStore;
   @Autowired private DataDumpService dataDumpService;
-  @Autowired private DataValueAuditStore dataValueAuditStore;
+  @Autowired private DataValueChangelogStore dataValueChangelogStore;
   @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
   @Autowired private SingleEventChangeLogService singleEventChangeLogService;
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+  @Autowired private ProgramService programService;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -226,6 +234,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     categoryService.addCategoryOptionCombo(coc1);
 
     program = createProgram('q');
+    program.setEnableChangeLog(true);
     identifiableObjectManager.save(program);
 
     User user = userService.getUserByUsername("admin");
@@ -327,14 +336,17 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "EventVisualization references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void eventVisualizationMergeTest() throws ConflictException {
     // given
+    Program program1 = createProgram('A', null, null);
+    programService.addProgram(program1);
+
     // event visualizations
-    EventVisualization ev1 = createEventVisualization('1', null);
+    EventVisualization ev1 = createEventVisualization('1', program1);
     ev1.setDataElementValueDimension(deTarget);
-    EventVisualization ev2 = createEventVisualization('2', null);
+    EventVisualization ev2 = createEventVisualization('2', program1);
     ev2.setDataElementValueDimension(deSource1);
-    EventVisualization ev3 = createEventVisualization('3', null);
+    EventVisualization ev3 = createEventVisualization('3', program1);
     ev3.setDataElementValueDimension(deSource2);
-    EventVisualization ev4 = createEventVisualization('4', null);
+    EventVisualization ev4 = createEventVisualization('4', program1);
     ev4.setDataElementValueDimension(deRandom);
 
     identifiableObjectManager.save(List.of(ev1, ev2, ev3, ev4));
@@ -361,14 +373,17 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "EventVisualization references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void eventVisualizationMergeDeleteSourcesTest() throws ConflictException {
     // given
+    Program program1 = createProgram('A', null, null);
+    programService.addProgram(program1);
+
     // min max data elements
-    EventVisualization ev5 = createEventVisualization('5', null);
+    EventVisualization ev5 = createEventVisualization('5', program1);
     ev5.setDataElementValueDimension(deTarget);
-    EventVisualization ev6 = createEventVisualization('6', null);
+    EventVisualization ev6 = createEventVisualization('6', program1);
     ev6.setDataElementValueDimension(deSource1);
-    EventVisualization ev7 = createEventVisualization('7', null);
+    EventVisualization ev7 = createEventVisualization('7', program1);
     ev7.setDataElementValueDimension(deSource2);
-    EventVisualization ev8 = createEventVisualization('8', null);
+    EventVisualization ev8 = createEventVisualization('8', program1);
     ev8.setDataElementValueDimension(deRandom);
 
     identifiableObjectManager.save(List.of(ev5, ev6, ev7, ev8));
@@ -2793,11 +2808,11 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   // ------------------------
-  // -- DataValueAudit --
+  // -- DataValueChangelog --
   // ------------------------
   @Test
   @DisplayName(
-      "DataValueAudits with references to source DataElements are not changed or deleted when sources not deleted")
+      "DataValueChangelogs with references to source DataElements are not changed or deleted when sources not deleted")
   void dataValueAuditMergeTest() throws ConflictException, BadRequestException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2819,13 +2834,14 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
-    DataValueAuditQueryParams sourceDvaQueryParams =
+    DataValueChangelogQueryParams sourceDvaQueryParams =
         getQueryParams(List.of(deSource1, deSource2), List.of(p1));
-    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(List.of(deTarget), List.of(p1));
+    DataValueChangelogQueryParams targetDvaQueryParams =
+        getQueryParams(List.of(deTarget), List.of(p1));
 
-    List<DataValueAudit> sourceAudits =
-        dataValueAuditStore.getDataValueAudits(sourceDvaQueryParams);
-    List<DataValueAudit> targetItems = dataValueAuditStore.getDataValueAudits(targetDvaQueryParams);
+    List<DataValueChangelog> sourceAudits =
+        dataValueChangelogStore.getEntries(sourceDvaQueryParams);
+    List<DataValueChangelog> targetItems = dataValueChangelogStore.getEntries(targetDvaQueryParams);
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
@@ -2838,7 +2854,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataValueAudits with references to source DataElements are deleted when sources are deleted")
+      "DataValueChangelogs with references to source DataElements are deleted when sources are deleted")
   void dataValueAuditMergeDeleteTest() throws ConflictException, BadRequestException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2861,13 +2877,14 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
-    DataValueAuditQueryParams sourceDvaQueryParams =
+    DataValueChangelogQueryParams sourceDvaQueryParams =
         getQueryParams(List.of(deSource1, deSource2), List.of(p1));
-    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(List.of(deTarget), List.of(p1));
+    DataValueChangelogQueryParams targetDvaQueryParams =
+        getQueryParams(List.of(deTarget), List.of(p1));
 
-    List<DataValueAudit> sourceAudits =
-        dataValueAuditStore.getDataValueAudits(sourceDvaQueryParams);
-    List<DataValueAudit> targetItems = dataValueAuditStore.getDataValueAudits(targetDvaQueryParams);
+    List<DataValueChangelog> sourceAudits =
+        dataValueChangelogStore.getEntries(sourceDvaQueryParams);
+    List<DataValueChangelog> targetItems = dataValueChangelogStore.getEntries(targetDvaQueryParams);
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
@@ -2896,6 +2913,8 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     identifiableObjectManager.save(enrollment);
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntity, program, ou1);
     ProgramStage stage = createProgramStage('s', program);
+    stage.getSharing().setPublicAccess(READ_ONLY);
+    program.getProgramStages().add(stage);
     identifiableObjectManager.save(stage);
     TrackerEvent e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
@@ -3003,6 +3022,8 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     identifiableObjectManager.save(enrollment);
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntity, program, ou1);
     ProgramStage stage = createProgramStage('s', program);
+    stage.getSharing().setPublicAccess(READ_ONLY);
+    program.getProgramStages().add(stage);
     identifiableObjectManager.save(stage);
     TrackerEvent e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
@@ -3049,13 +3070,29 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void addEventChangeLog(TrackerEvent event, DataElement dataElement, String currentValue) {
-    trackerEventChangeLogService.addEventChangeLog(
-        event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
+    entityManager.persist(
+        new org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLog(
+            event,
+            dataElement,
+            null,
+            "",
+            currentValue,
+            CREATE,
+            new java.util.Date(),
+            getAdminUser().getUsername()));
   }
 
   private void addEventChangeLog(SingleEvent event, DataElement dataElement, String currentValue) {
-    singleEventChangeLogService.addEventChangeLog(
-        event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
+    entityManager.persist(
+        new org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLog(
+            event,
+            dataElement,
+            null,
+            "",
+            currentValue,
+            CREATE,
+            new java.util.Date(),
+            getAdminUser().getUsername()));
   }
 
   private DataEntryValue.Input createDataValue(DataElement de, String value, Period p) {
@@ -3063,9 +3100,18 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
         de.getUid(), ou1.getUid(), coc1.getUid(), coc1.getUid(), p.getIsoDate(), value, null);
   }
 
-  private DataValueAuditQueryParams getQueryParams(
+  private DataValueChangelogQueryParams getQueryParams(
       List<DataElement> dataElements, List<Period> periods) {
-    return new DataValueAuditQueryParams().setDataElements(dataElements).setPeriods(periods);
+    return decodeInput(
+            DataValueChangelogQueryParams.class,
+            name ->
+                switch (name) {
+                  case "de" ->
+                      dataElements.stream().map(DataElement::getUid).toArray(String[]::new);
+                  case "pe" -> periods.stream().map(Period::getIsoDate).toArray(String[]::new);
+                  default -> null;
+                })
+        .to(DataValueChangelogQueryParams.class);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(

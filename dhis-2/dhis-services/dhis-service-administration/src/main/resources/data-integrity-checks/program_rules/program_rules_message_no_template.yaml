@@ -26,7 +26,7 @@
 #
 ---
 name: program_rules_message_no_template
-description: Program rules actions which should send or schedule a message without a message template.
+description: Program rules actions which should send or schedule a message without a message template
 section: Program rules
 section_order: 4
 summary_sql: >-

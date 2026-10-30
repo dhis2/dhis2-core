@@ -90,7 +90,7 @@ class GistTransformControllerTest extends AbstractGistControllerTest {
     JsonObject gist = GET(url, getAdminUid(), getAdminUid()).content();
     assertTrue(gist.getArray("userGroups").getObject(0).getBoolean("users").booleanValue());
     // member(id) with a user that is not a member
-    gist = GET(url, getAdminUid(), "non-existing-user-uid").content();
+    gist = GET(url, getAdminUid(), "notAUserUid").content();
     assertFalse(gist.getArray("userGroups").getObject(0).getBoolean("users").booleanValue());
   }
 
@@ -101,7 +101,7 @@ class GistTransformControllerTest extends AbstractGistControllerTest {
     JsonObject gist = GET(url, getAdminUid(), getAdminUid()).content();
     assertFalse(gist.getArray("userGroups").getObject(0).getBoolean("users").booleanValue());
     // not-member(id) with a user that is not a member
-    gist = GET(url, getAdminUid(), "non-existing-user-uid").content();
+    gist = GET(url, getAdminUid(), "notAUserUid").content();
     assertTrue(gist.getArray("userGroups").getObject(0).getBoolean("users").booleanValue());
   }
 

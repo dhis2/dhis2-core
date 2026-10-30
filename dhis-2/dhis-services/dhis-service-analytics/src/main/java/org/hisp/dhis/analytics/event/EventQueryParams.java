@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -36,17 +38,24 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
 import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
@@ -54,11 +63,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
@@ -73,6 +82,7 @@ import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfo;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.common.AnalyticsDateFilter;
@@ -83,7 +93,9 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
@@ -94,7 +106,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -105,6 +117,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 
 /**
@@ -131,6 +144,33 @@ public class EventQueryParams extends DataQueryParams {
 
   public static final String TRACKER_COORDINATE_FIELD = "TRACKER";
 
+  public record GeometrySource(String coordinateField, String source) {}
+
+  /** The stage date and reporting period for one planned first/last value query. */
+  public record FirstOrLastStagePeriod(QueryItem dateItem, PeriodDimension period) {
+    /** The analytics column of the stage date, such as occurreddate or scheduleddate. */
+    public String dateColumn() {
+      return dateItem.getItemId();
+    }
+
+    /** The program stage whose events are ranked. */
+    public ProgramStage programStage() {
+      return dateItem.getProgramStage();
+    }
+
+    /** The last day of the reporting period, used as the selection cutoff. */
+    public Date endDate() {
+      return period.getEndDate();
+    }
+
+    /** The ISO identifier of the reporting period, used as the row label. */
+    public String isoPeriod() {
+      return period.getIsoDate();
+    }
+  }
+
+  @Getter private FirstOrLastStagePeriod firstOrLastStagePeriod;
+
   /** The query items. */
   private List<QueryItem> items = new ArrayList<>();
 
@@ -148,6 +188,9 @@ public class EventQueryParams extends DataQueryParams {
 
   /** The incoming "value" param from the request. */
   private String requestValue;
+
+  /** The program stage the "value" data element is read from in enrollment aggregate queries. */
+  private ProgramStage valueProgramStage;
 
   /** Program indicators specified as dimensional items of the data dimension. */
   private List<ProgramIndicator> itemProgramIndicators = new ArrayList<>();
@@ -216,6 +259,9 @@ public class EventQueryParams extends DataQueryParams {
    */
   private List<String> coordinateFields;
 
+  /** The ordered source labels for resolved coordinate fields. */
+  private List<GeometrySource> geometrySources = List.of();
+
   /** Bounding box for events to include in clustering. */
   private String bbox;
 
@@ -246,6 +292,20 @@ public class EventQueryParams extends DataQueryParams {
    */
   @Getter protected Map<TimeField, List<DateRange>> timeDateRanges = new EnumMap<>(TimeField.class);
 
+  /**
+   * Date ranges of period filters that carry a time field, applied in "AND" with {@link
+   * #timeDateRanges}. Only populated when the query has both a period dimension and a period
+   * filter.
+   */
+  @Getter
+  protected Map<TimeField, List<DateRange>> filterTimeDateRanges = new EnumMap<>(TimeField.class);
+
+  /**
+   * Date ranges of period filters without a time field, applied in "AND" on the default time
+   * column. Only populated when the query has both a period dimension and a period filter.
+   */
+  @Getter protected List<DateRange> filterDateRanges = new ArrayList<>();
+
   /** Flag to enable enhanced OR conditions. */
   @Getter protected boolean enhancedCondition = false;
 
@@ -256,6 +316,30 @@ public class EventQueryParams extends DataQueryParams {
   @Getter protected boolean multipleQueries = false;
 
   @Getter protected List<OrganisationUnit> userOrgUnits = new ArrayList<>();
+
+  /**
+   * Org units when ENROLLMENT_OU is used as a dimension, already expanded from any keyword form and
+   * therefore carrying their hierarchy level.
+   */
+  private List<OrganisationUnit> enrollmentOuDimensionItems = new ArrayList<>();
+
+  /** Org units when ENROLLMENT_OU is used as a filter. */
+  private List<OrganisationUnit> enrollmentOuFilterItems = new ArrayList<>();
+
+  /**
+   * Org units when REGISTRATION_OU is used as a dimension, already expanded from any keyword form
+   * and therefore carrying their hierarchy level.
+   */
+  private List<OrganisationUnit> registrationOuDimensionItems = new ArrayList<>();
+
+  /** Org units when REGISTRATION_OU is used as a filter. */
+  private List<OrganisationUnit> registrationOuFilterItems = new ArrayList<>();
+
+  /**
+   * Whether REGISTRATION_OU was named as a dimension, independently of whether it carries items. A
+   * dimension without items projects the output columns without restricting any rows.
+   */
+  private boolean registrationOuDimensionRequested = false;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -291,6 +375,8 @@ public class EventQueryParams extends DataQueryParams {
     params.itemFilters = new ArrayList<>(this.itemFilters);
     params.value = this.value;
     params.requestValue = this.requestValue;
+    params.valueProgramStage = this.valueProgramStage;
+    params.firstOrLastStagePeriod = this.firstOrLastStagePeriod;
     params.itemProgramIndicators = new ArrayList<>(this.itemProgramIndicators);
     params.programIndicator = this.programIndicator;
     params.option = this.option;
@@ -314,6 +400,7 @@ public class EventQueryParams extends DataQueryParams {
     params.aggregateData = this.aggregateData;
     params.clusterSize = this.clusterSize;
     params.coordinateFields = this.coordinateFields;
+    params.geometrySources = new ArrayList<>(this.geometrySources);
     params.bbox = this.bbox;
     params.includeClusterPoints = this.includeClusterPoints;
     params.enrollmentStatus = new LinkedHashSet<>(this.enrollmentStatus);
@@ -321,7 +408,9 @@ public class EventQueryParams extends DataQueryParams {
     params.dataIdScheme = this.dataIdScheme;
     params.periodType = this.periodType;
     params.explainOrderId = this.explainOrderId;
-    params.timeDateRanges = this.timeDateRanges;
+    params.timeDateRanges = copyOf(this.timeDateRanges);
+    params.filterTimeDateRanges = copyOf(this.filterTimeDateRanges);
+    params.filterDateRanges = new ArrayList<>(this.filterDateRanges);
     params.skipPartitioning = this.skipPartitioning;
     params.enhancedCondition = this.enhancedCondition;
     params.endpointItem = this.endpointItem;
@@ -332,6 +421,11 @@ public class EventQueryParams extends DataQueryParams {
     params.userOrgUnits = this.userOrgUnits;
     params.outputFormat = this.outputFormat;
     params.piDisagInfo = this.piDisagInfo;
+    params.enrollmentOuDimensionItems = new ArrayList<>(this.enrollmentOuDimensionItems);
+    params.enrollmentOuFilterItems = new ArrayList<>(this.enrollmentOuFilterItems);
+    params.registrationOuDimensionItems = new ArrayList<>(this.registrationOuDimensionItems);
+    params.registrationOuFilterItems = new ArrayList<>(this.registrationOuFilterItems);
+    params.registrationOuDimensionRequested = this.registrationOuDimensionRequested;
     return params;
   }
 
@@ -569,6 +663,14 @@ public class EventQueryParams extends DataQueryParams {
     }
   }
 
+  /**
+   * Returns the cache key component for an org unit item. The level is included for org units as it
+   * determines which uidlevel column is used in the SQL.
+   */
+  private static String getOrgUnitKeyComponent(DimensionalItemObject item) {
+    return item instanceof OrganisationUnit ou ? ou.getUid() + ":" + ou.getLevel() : item.getUid();
+  }
+
   /** Returns a unique key representing this query. The key is suitable for caching. */
   @Override
   public String getKey() {
@@ -579,12 +681,36 @@ public class EventQueryParams extends DataQueryParams {
     headers.forEach(header -> key.add("headers", "[" + header + "]"));
     itemProgramIndicators.forEach(e -> key.add("itemProgramIndicator", e.getUid()));
     eventStatus.forEach(status -> key.add("eventStatus", "[" + status + "]"));
-    asc.forEach(e -> e.getItem().getUid());
-    desc.forEach(e -> e.getItem().getUid());
+    asc.forEach(e -> key.add("asc", "[" + e.getItem().getUid() + "]"));
+    desc.forEach(e -> key.add("desc", "[" + e.getItem().getUid() + "]"));
+
+    if (hasRegistrationOu()) {
+      key.add("registrationOuDimensionRequested", registrationOuDimensionRequested);
+      registrationOuDimensionItems.forEach(
+          ou -> key.add("registrationOuDimension", ou.getUid() + ":" + ou.getLevel()));
+      registrationOuFilterItems.forEach(
+          ou -> key.add("registrationOuFilter", ou.getUid() + ":" + ou.getLevel()));
+    }
+
+    // Period filters applied in "AND" with the period dimension are stored outside the filters.
+    if (hasFilterDateRanges()) {
+      key.add("filterTimeDateRanges", filterTimeDateRanges);
+      key.add("filterDateRanges", filterDateRanges);
+    }
+
+    // Enrollment OU selections are also stored outside the generic dimensions and filters.
+    if (hasEnrollmentOu()) {
+      enrollmentOuDimensionItems.forEach(
+          ou -> key.add("enrollmentOuDimension", getOrgUnitKeyComponent(ou)));
+      enrollmentOuFilterItems.forEach(
+          ou -> key.add("enrollmentOuFilter", getOrgUnitKeyComponent(ou)));
+    }
 
     return key.addIgnoreNull("value", value, () -> value.getUid())
         .addIgnoreNull("requestValue", requestValue)
+        .addIgnoreNull("valueProgramStage", valueProgramStage, () -> valueProgramStage.getUid())
         .addIgnoreNull("programIndicator", programIndicator, () -> programIndicator.getUid())
+        .addIgnoreNull("programStage", programStage, () -> programStage.getUid())
         .addIgnoreNull("organisationUnitMode", organisationUnitMode)
         .addIgnoreNull("page", page)
         .addIgnoreNull("pageSize", pageSize)
@@ -599,6 +725,7 @@ public class EventQueryParams extends DataQueryParams {
         .addIgnoreNull("aggregateData", aggregateData)
         .addIgnoreNull("clusterSize", clusterSize)
         .addIgnoreNull("coordinateFields", coordinateFields)
+        .addIgnoreNull("geometrySources", geometrySources.isEmpty() ? null : geometrySources)
         .addIgnoreNull("bbox", bbox)
         .addIgnoreNull("includeClusterPoints", includeClusterPoints)
         .addIgnoreNull("enrollmentStatus", enrollmentStatus)
@@ -620,11 +747,35 @@ public class EventQueryParams extends DataQueryParams {
    *
    * <p>When heterogeneous date fields are specified, set a specific start/date pair for each of
    * them.
+   *
+   * <p>When both a period dimension and a period filter are present, the filter periods are kept
+   * apart in {@link #filterTimeDateRanges} and {@link #filterDateRanges}, so they can be applied in
+   * "AND" with the dimension periods.
    */
   void replacePeriodsWithDates() {
-    List<Period> periods = asTypedList(getDimensionOrFilterItems(PERIOD_DIM_ID));
+    List<PeriodDimension> dimensionPeriods = asTypedList(getDimensionOptions(PERIOD_DIM_ID));
+    List<PeriodDimension> filterPeriods = asTypedList(getFilterOptions(PERIOD_DIM_ID));
 
-    for (Period period : periods) {
+    if (dimensionPeriods.isEmpty()) {
+      addPeriodDates(filterPeriods);
+    } else {
+      addPeriodDates(dimensionPeriods);
+      addFilterPeriodDates(filterPeriods);
+    }
+
+    // Sorting lists of data ranges.
+    Stream.of(timeDateRanges.values(), filterTimeDateRanges.values(), List.of(filterDateRanges))
+        .flatMap(Collection::stream)
+        .forEach(ranges -> ranges.sort(Comparator.comparing(DateRange::getStartDate)));
+
+    removeDimensionOrFilter(PERIOD_DIM_ID);
+
+    // Also extract dates from stage date QueryItems (stageId.EVENT_DATE, stageId.SCHEDULED_DATE)
+    extractDatesFromStageDateItems();
+  }
+
+  private void addPeriodDates(List<PeriodDimension> periods) {
+    for (PeriodDimension period : periods) {
       Date start = period.getStartDate();
       Date end = period.getEndDate();
       DateRange dateRange = new DateRange(start, end);
@@ -639,27 +790,96 @@ public class EventQueryParams extends DataQueryParams {
       } else {
         Optional<AnalyticsDateFilter> optDateFilter = AnalyticsDateFilter.of(period.getDateField());
 
-        if (optDateFilter.isPresent()) {
-          TimeField timeField = optDateFilter.get().getTimeField();
+        optDateFilter.ifPresent(
+            dateFilter -> addDateRange(timeDateRanges, dateFilter.getTimeField(), dateRange));
+      }
+    }
+  }
 
-          if (timeDateRanges.containsKey(timeField)) {
-            List<DateRange> dateRanges = timeDateRanges.get(timeField);
-            dateRanges.add(dateRange);
-            timeDateRanges.replace(timeField, dateRanges);
-          } else {
-            List<DateRange> dateRanges = new ArrayList<>();
-            dateRanges.add(dateRange);
-            timeDateRanges.put(timeField, dateRanges);
+  /**
+   * Collects the date ranges of period filters, which apply in "AND" with the period dimension.
+   * Periods without a date field are collected in {@link #filterDateRanges}.
+   */
+  private void addFilterPeriodDates(List<PeriodDimension> periods) {
+    for (PeriodDimension period : periods) {
+      DateRange dateRange = new DateRange(period.getStartDate(), period.getEndDate());
+
+      if (isBlank(period.getDateField())) {
+        filterDateRanges.add(dateRange);
+      } else {
+        AnalyticsDateFilter.of(period.getDateField())
+            .ifPresent(
+                dateFilter ->
+                    addDateRange(filterTimeDateRanges, dateFilter.getTimeField(), dateRange));
+      }
+    }
+  }
+
+  /** Copies the given date ranges, so the copy can be changed without affecting the original. */
+  private static Map<TimeField, List<DateRange>> copyOf(
+      Map<TimeField, List<DateRange>> dateRanges) {
+    Map<TimeField, List<DateRange>> copy = new EnumMap<>(TimeField.class);
+    dateRanges.forEach((timeField, ranges) -> copy.put(timeField, new ArrayList<>(ranges)));
+    return copy;
+  }
+
+  private static void addDateRange(
+      Map<TimeField, List<DateRange>> dateRanges, TimeField timeField, DateRange dateRange) {
+    dateRanges.computeIfAbsent(timeField, key -> new ArrayList<>()).add(dateRange);
+  }
+
+  /**
+   * Extracts start/end dates from stage-scoped date QueryItems (e.g., stageId.EVENT_DATE:201910 or
+   * stageId.SCHEDULED_DATE:THIS_YEAR). These items store their period constraints as comparison
+   * operator filters (GE, GT, LE, LT, EQ). This is needed for partition selection.
+   */
+  private void extractDatesFromStageDateItems() {
+    for (QueryItem item : getItemsAndItemFilters()) {
+      if (item.hasProgramStage() && isStageDateItem(item)) {
+        Date start = null;
+        Date end = null;
+
+        for (QueryFilter filter : item.getFilters()) {
+          Date filterDate = DateUtils.parseDate(filter.getFilter());
+          if (filterDate != null) {
+            switch (filter.getOperator()) {
+              case GE, GT -> start = filterDate;
+              case LE, LT -> end = filterDate;
+              case EQ -> {
+                start = filterDate;
+                end = filterDate;
+              }
+              default -> {}
+            }
           }
+        }
+
+        if (start != null || end != null) {
+          setDates(start, end);
         }
       }
     }
+  }
 
-    // Sorting lists of data ranges.
-    for (List<DateRange> ranges : timeDateRanges.values()) {
-      ranges.sort(Comparator.comparing(DateRange::getStartDate));
-    }
-    removeDimensionOrFilter(PERIOD_DIM_ID);
+  /**
+   * Returns the latest end date, including the end dates of stage date item filters. The dates are
+   * resolved on a copy, so this object is left unchanged.
+   */
+  public Date getLatestEndDateIncludingStageDates() {
+    EventQueryParams copy = new Builder(this).build();
+    copy.extractDatesFromStageDateItems();
+    return copy.getLatestEndDate();
+  }
+
+  /**
+   * Checks if the QueryItem is a stage date item (EVENT_DATE or SCHEDULED_DATE).
+   *
+   * @param item the QueryItem to check
+   * @return true if the item is a stage date item
+   */
+  private boolean isStageDateItem(QueryItem item) {
+    String itemId = item.getItemId();
+    return OCCURRED_DATE_COLUMN_NAME.equals(itemId) || SCHEDULED_DATE_COLUMN_NAME.equals(itemId);
   }
 
   /**
@@ -689,6 +909,87 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean hasStageInValue() {
     return isNotBlank(requestValue) && requestValue.contains(DIMENSION_IDENTIFIER_SEP);
+  }
+
+  /**
+   * Returns true if any query item is a stage-specific dimension identifier. This includes only the
+   * special dimensions: stageUid.EVENT_DATE, stageUid.SCHEDULED_DATE, stageUid.EVENT_STATUS, and
+   * stageUid.ou. Regular data elements with a stage prefix (e.g., stageUid.dataElementUid) are NOT
+   * considered stage-specific dimension identifiers.
+   */
+  public boolean hasStageSpecificItem() {
+    return getItemsAndItemFilters().stream()
+        .anyMatch(item -> item.hasProgramStage() && isStageSpecificDimension(item));
+  }
+
+  /**
+   * Returns the program stage of stage-specific dimension identifiers requested without items (e.g.
+   * {@code stageUid.EVENT_STATUS}). Such items carry no filter, so no per-item stage condition is
+   * rendered for them and the stage must be restricted at query level. Stage-specific items in a
+   * single query always share one stage.
+   */
+  public Optional<ProgramStage> getStageOfStageSpecificItemsWithoutFilter() {
+    return getItemsAndItemFilters().stream()
+        .filter(item -> item.hasProgramStage() && isStageSpecificDimension(item))
+        .filter(item -> !item.hasFilter())
+        .map(QueryItem::getProgramStage)
+        .findFirst();
+  }
+
+  /**
+   * Returns true if the item is a stage-specific dimension identifier (EVENT_DATE, SCHEDULED_DATE,
+   * ou, or EVENT_STATUS). These are special dimensions that can be prefixed with a program stage.
+   */
+  private boolean isStageSpecificDimension(QueryItem item) {
+    String itemId = item.getItemId();
+    return OCCURRED_DATE_COLUMN_NAME.equals(itemId)
+        || SCHEDULED_DATE_COLUMN_NAME.equals(itemId)
+        || OU_COLUMN_NAME.equals(itemId)
+        || EVENT_STATUS_COLUMN_NAME.equals(itemId);
+  }
+
+  /**
+   * Returns true if any query item is a stage-specific date dimension (EVENT_DATE or
+   * SCHEDULED_DATE).
+   */
+  public boolean hasStageDateItem() {
+    return getItemsAndItemFilters().stream()
+        .anyMatch(item -> item.hasProgramStage() && isStageDateItem(item));
+  }
+
+  /**
+   * Returns duplicate stage dimension identifiers (stageUid.itemId combinations). A duplicate
+   * occurs when the same stage and identifier are used more than once. Items with different offsets
+   * (e.g., stageUid[0].itemId vs stageUid[-1].itemId) are not considered duplicates.
+   */
+  public Set<String> getDuplicateStageDimensionIdentifiers() {
+    Map<String, Long> counts =
+        getItemsAndItemFilters().stream()
+            .filter(QueryItem::hasProgramStage)
+            .map(
+                item -> {
+                  String key = item.getProgramStage().getUid() + "." + item.getItemId();
+                  // Include offset in key when explicitly set (not default)
+                  if (item.hasRepeatableStageParams()
+                      && !item.getRepeatableStageParams().isDefaultObject()) {
+                    key += "." + item.getRepeatableStageParams().getIndex();
+                  }
+                  return key;
+                })
+            .collect(groupingBy(Function.identity(), counting()));
+
+    return counts.entrySet().stream()
+        .filter(e -> e.getValue() > 1)
+        .map(Map.Entry::getKey)
+        .collect(toSet());
+  }
+
+  /** Returns all distinct program stages from items that have a stage prefix. */
+  public Set<ProgramStage> getDistinctStages() {
+    return getItemsAndItemFilters().stream()
+        .filter(QueryItem::hasProgramStage)
+        .map(QueryItem::getProgramStage)
+        .collect(toSet());
   }
 
   /**
@@ -885,6 +1186,10 @@ public class EventQueryParams extends DataQueryParams {
     return piDisagInfo != null;
   }
 
+  public boolean hasFirstOrLastStagePeriod() {
+    return firstOrLastStagePeriod != null;
+  }
+
   public boolean isPiDisagDimension(String dimension) {
     return hasPiDisagInfo() && piDisagInfo.isPiDisagDimension(dimension);
   }
@@ -902,6 +1207,16 @@ public class EventQueryParams extends DataQueryParams {
     }
 
     return children;
+  }
+
+  @Override
+  public boolean hasOrganisationUnits() {
+    if (super.hasOrganisationUnits()) {
+      return true;
+    }
+
+    return getItemsAndItemFilters().stream()
+        .anyMatch(item -> item.hasProgramStage() && OU_COLUMN_NAME.equals(item.getItemId()));
   }
 
   public boolean isSorting() {
@@ -944,6 +1259,77 @@ public class EventQueryParams extends DataQueryParams {
     return MapUtils.isNotEmpty(getTimeDateRanges());
   }
 
+  /** Returns true if period filters must be applied in "AND" with the period dimension. */
+  public boolean hasFilterDateRanges() {
+    return MapUtils.isNotEmpty(filterTimeDateRanges) || isNotEmpty(filterDateRanges);
+  }
+
+  public Map<TimeField, List<DateRange>> getTimeDateRanges(Set<TimeField> timeFields) {
+    return selectDateRanges(getTimeDateRanges(), timeFields);
+  }
+
+  public Map<TimeField, List<DateRange>> getFilterTimeDateRanges(Set<TimeField> timeFields) {
+    return selectDateRanges(filterTimeDateRanges, timeFields);
+  }
+
+  private static Map<TimeField, List<DateRange>> selectDateRanges(
+      Map<TimeField, List<DateRange>> dateRanges, Set<TimeField> timeFields) {
+    Map<TimeField, List<DateRange>> matchingRanges = new EnumMap<>(TimeField.class);
+
+    timeFields.forEach(
+        timeField -> {
+          List<DateRange> ranges = dateRanges.get(timeField);
+          if (ranges != null && !ranges.isEmpty()) {
+            matchingRanges.put(timeField, List.copyOf(ranges));
+          }
+        });
+
+    return matchingRanges;
+  }
+
+  /** Returns true if multiple time dimensions are active (have date ranges or constraints). */
+  public boolean hasMultipleTimeDimensions() {
+    return getActiveTimeDimensions().size() > 1;
+  }
+
+  /**
+   * Returns the set of time dimensions that are actively used in this query. A time dimension is
+   * considered active if it has date ranges defined.
+   */
+  public Set<TimeField> getActiveTimeDimensions() {
+    return timeDateRanges.keySet();
+  }
+
+  /** Returns true if the specified time dimension is active in this query. */
+  public boolean hasActiveTimeDimension(TimeField timeField) {
+    return timeDateRanges.containsKey(timeField) && isNotEmpty(timeDateRanges.get(timeField));
+  }
+
+  /**
+   * Returns a new EventQueryParams containing only the specified time dimension, removing all other
+   * time dimensions. Used for query splitting.
+   */
+  public EventQueryParams withSingleTimeDimension(TimeField timeField) {
+    EventQueryParams params = new EventQueryParams.Builder(this).build();
+
+    // Clear all time dimensions except the specified one
+    Map<TimeField, List<DateRange>> singleTimeDimension = new EnumMap<>(TimeField.class);
+    if (timeDateRanges.containsKey(timeField)) {
+      singleTimeDimension.put(timeField, timeDateRanges.get(timeField));
+    }
+    params.timeDateRanges = singleTimeDimension;
+
+    // Set the legacy timeField for backward compatibility
+    params.timeField = timeField.name();
+
+    return params;
+  }
+
+  /** Returns the number of active time dimensions in this query. */
+  public int getActiveTimeDimensionCount() {
+    return getActiveTimeDimensions().size();
+  }
+
   /**
    * Checks if a value dimension exists.
    *
@@ -984,6 +1370,17 @@ public class EventQueryParams extends DataQueryParams {
     return hasValueDimension()
         && value instanceof ValueTypedDimensionalItemObject
         && ((ValueTypedDimensionalItemObject) value).getValueType().isText();
+  }
+
+  /**
+   * Checks if a value dimension with a date value type exists.
+   *
+   * @return true if a value dimension with a date value type exists, false if not.
+   */
+  public boolean hasDateValueDimension() {
+    return hasValueDimension()
+        && value instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value).getValueType().isDate();
   }
 
   @Override
@@ -1061,6 +1458,84 @@ public class EventQueryParams extends DataQueryParams {
     return dataIdScheme != null;
   }
 
+  public boolean hasEnrollmentOuDimension() {
+    return isNotEmpty(enrollmentOuDimensionItems);
+  }
+
+  /** Returns true if REGISTRATION_OU was named as a dimension, with or without items. */
+  public boolean hasRegistrationOuDimension() {
+    return registrationOuDimensionRequested;
+  }
+
+  public boolean hasRegistrationOuFilter() {
+    return isNotEmpty(registrationOuFilterItems);
+  }
+
+  /** Returns true if REGISTRATION_OU was named at all, as a dimension or as a filter. */
+  public boolean hasRegistrationOu() {
+    return hasRegistrationOuDimension() || hasRegistrationOuFilter();
+  }
+
+  /**
+   * Returns true if the REGISTRATION_OU dimension carries org units, which is the condition for the
+   * aggregate disaggregation column to exist. A dimension named without org units projects the
+   * query output columns but has nothing to group by.
+   */
+  public boolean hasRegistrationOuAggregateColumn() {
+    return isNotEmpty(registrationOuDimensionItems);
+  }
+
+  /**
+   * Returns true if REGISTRATION_OU restricts the query, i.e. carries org units as a dimension or
+   * as a filter. A dimension named without items does not restrict anything and so does not count
+   * as an organisation unit condition.
+   */
+  public boolean hasRegistrationOuRestriction() {
+    return isNotEmpty(registrationOuDimensionItems) || isNotEmpty(registrationOuFilterItems);
+  }
+
+  public List<OrganisationUnit> getRegistrationOuDimensionItems() {
+    return registrationOuDimensionItems;
+  }
+
+  public List<OrganisationUnit> getRegistrationOuFilterItems() {
+    return registrationOuFilterItems;
+  }
+
+  /** Returns the REGISTRATION_OU org units from both the dimension and the filter. */
+  public List<OrganisationUnit> getAllRegistrationOuItems() {
+    return ListUtils.union(registrationOuDimensionItems, registrationOuFilterItems);
+  }
+
+  public boolean hasEnrollmentOuFilter() {
+    return isNotEmpty(enrollmentOuFilterItems);
+  }
+
+  public boolean hasEnrollmentOu() {
+    return hasEnrollmentOuDimension() || hasEnrollmentOuFilter();
+  }
+
+  /** Returns the first sort item that reads an enrollment org unit column, if any. */
+  public Optional<String> getEnrollmentOuSortColumn() {
+    return Stream.concat(asc.stream(), desc.stream())
+        .map(QueryItem::getItemId)
+        .filter(TrackerOrgUnitDimension.ENROLLMENT_OU.outputColumns()::contains)
+        .findFirst();
+  }
+
+  public List<OrganisationUnit> getEnrollmentOuDimensionItems() {
+    return enrollmentOuDimensionItems;
+  }
+
+  public List<OrganisationUnit> getEnrollmentOuFilterItems() {
+    return enrollmentOuFilterItems;
+  }
+
+  /** Returns all enrollment OU items from both dimension and filter. */
+  public List<OrganisationUnit> getAllEnrollmentOuItems() {
+    return ListUtils.union(enrollmentOuDimensionItems, enrollmentOuFilterItems);
+  }
+
   /**
    * Returns a negative integer in case of ascending sort order, a positive in case of descending
    * sort order and 0 in case of no sort order.
@@ -1073,9 +1548,14 @@ public class EventQueryParams extends DataQueryParams {
     return DESC == sortOrder ? 1 : 0;
   }
 
-  /** Returns true when parameters are incoming from analytics enrollments/aggregate entry point */
+  /** Returns true when the request is incoming from analytics enrollments/aggregate end point. */
   public boolean isAggregatedEnrollments() {
-    return endpointAction == EndpointAction.AGGREGATE && endpointItem == EndpointItem.ENROLLMENT;
+    return endpointAction == EndpointAction.AGGREGATE && endpointItem == ENROLLMENT;
+  }
+
+  /** Returns true when the request is incoming from analytics events/aggregate end point. */
+  public boolean isAggregatedEvents() {
+    return endpointAction == AGGREGATE && endpointItem == EndpointItem.EVENT;
   }
 
   @Override
@@ -1119,6 +1599,14 @@ public class EventQueryParams extends DataQueryParams {
 
   public String getRequestValue() {
     return requestValue;
+  }
+
+  public ProgramStage getValueProgramStage() {
+    return valueProgramStage;
+  }
+
+  public boolean hasValueProgramStage() {
+    return valueProgramStage != null;
   }
 
   public List<ProgramIndicator> getItemProgramIndicators() {
@@ -1203,12 +1691,24 @@ public class EventQueryParams extends DataQueryParams {
     return endpointAction == QUERY;
   }
 
+  public boolean isEnrollmentAggregateQuery() {
+    return endpointAction == AGGREGATE && endpointItem == ENROLLMENT;
+  }
+
   public Long getClusterSize() {
     return clusterSize;
   }
 
   public List<String> getCoordinateFields() {
     return coordinateFields;
+  }
+
+  public List<GeometrySource> getGeometrySources() {
+    return geometrySources;
+  }
+
+  public boolean hasGeometrySources() {
+    return isNotEmpty(geometrySources);
   }
 
   public String getBbox() {
@@ -1279,8 +1779,23 @@ public class EventQueryParams extends DataQueryParams {
     }
 
     public Builder withPeriods(List<? extends DimensionalItemObject> periods, String periodType) {
+      return withPeriods(periods, periodType, null);
+    }
+
+    /**
+     * Sets the period dimension with the given display name, which is used as the period header
+     * label.
+     */
+    public Builder withPeriods(
+        List<? extends DimensionalItemObject> periods,
+        String periodType,
+        String dimensionDisplayName) {
       this.params.setDimensionOptions(
-          PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), asList(periods));
+          PERIOD_DIM_ID,
+          DimensionType.PERIOD,
+          periodType.toLowerCase(),
+          dimensionDisplayName,
+          asList(periods));
       this.params.periodType = periodType;
       return this;
     }
@@ -1333,6 +1848,11 @@ public class EventQueryParams extends DataQueryParams {
       return this;
     }
 
+    public Builder removeItemFilters() {
+      this.params.itemFilters.clear();
+      return this;
+    }
+
     public Builder addItemFilter(QueryItem item) {
       this.params.itemFilters.add(item);
       return this;
@@ -1355,6 +1875,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withRequestValue(String requestValue) {
       this.params.requestValue = requestValue;
+      return this;
+    }
+
+    public Builder withValueProgramStage(ProgramStage valueProgramStage) {
+      this.params.valueProgramStage = valueProgramStage;
       return this;
     }
 
@@ -1523,6 +2048,11 @@ public class EventQueryParams extends DataQueryParams {
       return this;
     }
 
+    public Builder withGeometrySources(List<GeometrySource> geometrySources) {
+      this.params.geometrySources = geometrySources == null ? List.of() : geometrySources;
+      return this;
+    }
+
     public Builder withBbox(String bbox) {
       this.params.bbox = bbox;
       return this;
@@ -1543,6 +2073,19 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withStartEndDatesForPeriods() {
       this.params.replacePeriodsWithDates();
+      return this;
+    }
+
+    public Builder withFirstOrLastStagePeriod(QueryItem dateItem, PeriodDimension period) {
+      this.params.firstOrLastStagePeriod = new FirstOrLastStagePeriod(dateItem, period);
+      return this;
+    }
+
+    public Builder withoutTimeDateRanges(Set<TimeField> timeFields) {
+      if (timeFields != null) {
+        timeFields.forEach(this.params.getTimeDateRanges()::remove);
+        timeFields.forEach(this.params.filterTimeDateRanges::remove);
+      }
       return this;
     }
 
@@ -1611,6 +2154,27 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withPiDisagInfo(PiDisagInfo piDisagInfo) {
       this.params.piDisagInfo = piDisagInfo;
+      return this;
+    }
+
+    public Builder withEnrollmentOuDimension(List<OrganisationUnit> items) {
+      this.params.enrollmentOuDimensionItems = new ArrayList<>(items);
+      return this;
+    }
+
+    public Builder withEnrollmentOuFilter(List<OrganisationUnit> items) {
+      this.params.enrollmentOuFilterItems = new ArrayList<>(items);
+      return this;
+    }
+
+    public Builder withRegistrationOuDimension(List<OrganisationUnit> items) {
+      this.params.registrationOuDimensionItems = new ArrayList<>(items);
+      this.params.registrationOuDimensionRequested = true;
+      return this;
+    }
+
+    public Builder withRegistrationOuFilter(List<OrganisationUnit> items) {
+      this.params.registrationOuFilterItems = new ArrayList<>(items);
       return this;
     }
 

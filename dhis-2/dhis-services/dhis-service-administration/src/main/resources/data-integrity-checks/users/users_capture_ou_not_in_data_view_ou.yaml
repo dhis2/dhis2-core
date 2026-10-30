@@ -26,7 +26,7 @@
 #
 ---
 name: users_capture_ou_not_in_data_view_ou
-description: Users who have a data capture organisation unit which is not in their data view organisation unit hierarchy.
+description: Users which have a data capture organisation unit which is not in their data view organisation unit hierarchy
 section: Users
 section_order: 1
 summary_sql: >-

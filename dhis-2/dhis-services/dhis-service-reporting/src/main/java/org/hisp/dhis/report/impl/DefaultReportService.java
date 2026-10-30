@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.report.impl;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
 import java.io.OutputStream;
@@ -41,6 +40,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +51,7 @@ import net.sf.jasperreports.engine.JasperReport;
 import org.apache.commons.io.IOUtils;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsWeeklyStartKey;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -62,6 +63,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.report.Report;
@@ -168,12 +170,21 @@ public class DefaultReportService implements ReportService {
         if (report.hasRelativePeriods()) {
           AnalyticsFinancialYearStartKey financialYearStart =
               settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
+          AnalyticsWeeklyStartKey weeklyStart =
+              settingsProvider.getCurrentSettings().getAnalyticsWeeklyStart();
 
-          List<Period> relativePeriods =
-              report.getRelatives().getRelativePeriods(reportDate, null, false, financialYearStart);
+          List<PeriodDimension> relativePeriods =
+              report
+                  .getRelatives()
+                  .getRelativePeriods(reportDate, null, false, financialYearStart, weeklyStart);
 
           String periodString =
-              getCommaDelimitedString(getIdentifiers(periodService.reloadPeriods(relativePeriods)));
+              relativePeriods.stream()
+                  .map(PeriodDimension::getPeriod)
+                  .map(periodService::reloadPeriod)
+                  .filter(p -> p.getId() != 0)
+                  .map(p -> "" + p.getId())
+                  .collect(Collectors.joining(","));
           String isoPeriodString =
               getCommaDelimitedString(IdentifiableObjectUtils.getUids(relativePeriods));
 
@@ -240,16 +251,22 @@ public class DefaultReportService implements ReportService {
     if (report != null && report.hasRelativePeriods()) {
       AnalyticsFinancialYearStartKey financialYearStart =
           settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
+      AnalyticsWeeklyStartKey weeklyStart =
+          settingsProvider.getCurrentSettings().getAnalyticsWeeklyStart();
 
       if (calendar.isIso8601()) {
-        for (Period period :
-            report.getRelatives().getRelativePeriods(date, format, true, financialYearStart)) {
+        for (PeriodDimension period :
+            report
+                .getRelatives()
+                .getRelativePeriods(date, format, true, financialYearStart, weeklyStart)) {
           periods.add(period.getIsoDate());
         }
       } else {
         periods =
             IdentifiableObjectUtils.getLocalPeriodIdentifiers(
-                report.getRelatives().getRelativePeriods(date, format, true, financialYearStart),
+                report
+                    .getRelatives()
+                    .getRelativePeriods(date, format, true, financialYearStart, weeklyStart),
                 calendar);
       }
     }

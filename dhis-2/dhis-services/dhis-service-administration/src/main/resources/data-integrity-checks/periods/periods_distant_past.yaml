@@ -26,7 +26,7 @@
 #
 ---
   name: periods_distant_past
-  description: Periods which are in the distant past.
+  description: Periods which are in the distant past
   section: Periods
   section_order: 3
   summary_sql: >-

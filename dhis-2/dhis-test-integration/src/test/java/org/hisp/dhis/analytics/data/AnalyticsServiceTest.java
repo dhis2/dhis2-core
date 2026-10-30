@@ -76,7 +76,6 @@ import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryInput;
 import org.hisp.dhis.datavalue.DataEntryValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.Expression;
@@ -90,6 +89,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettings;
@@ -127,27 +127,27 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   private Category catDef;
 
-  private Period peJan;
+  private PeriodDimension peJan;
 
-  private Period peFeb;
+  private PeriodDimension peFeb;
 
-  private Period peMar;
+  private PeriodDimension peMar;
 
-  private Period peApr;
+  private PeriodDimension peApr;
 
-  private Period peMay;
+  private PeriodDimension peMay;
 
-  private Period peJun;
+  private PeriodDimension peJun;
 
-  private Period peJul;
+  private PeriodDimension peJul;
 
-  private Period peAug;
+  private PeriodDimension peAug;
 
-  private Period peSep;
+  private PeriodDimension peSep;
 
-  private Period quarter;
+  private PeriodDimension quarter;
 
-  private Period year;
+  private PeriodDimension year;
 
   private DataElement deA;
 
@@ -202,8 +202,6 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private DataValueService dataValueService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -260,7 +258,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws Exception {
-
+    createPeriodTypes();
     setUpMetadata();
     setUpDataValues();
     setUpValidation();
@@ -288,29 +286,29 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     catDef.setUid("cat12345def");
     categoryService.updateCategory(catDef);
 
-    peJan = createPeriod("2017-01");
-    peFeb = createPeriod("2017-02");
-    peMar = createPeriod("2017-03");
-    peApr = createPeriod("2017-04");
-    peMay = createPeriod("2017-05");
-    peJun = createPeriod("2017-06");
-    peJul = createPeriod("2017-07");
-    peAug = createPeriod("2017-08");
-    peSep = createPeriod("2017-09");
+    peJan = PeriodDimension.of(createPeriod("2017-01"));
+    peFeb = PeriodDimension.of(createPeriod("2017-02"));
+    peMar = PeriodDimension.of(createPeriod("2017-03"));
+    peApr = PeriodDimension.of(createPeriod("2017-04"));
+    peMay = PeriodDimension.of(createPeriod("2017-05"));
+    peJun = PeriodDimension.of(createPeriod("2017-06"));
+    peJul = PeriodDimension.of(createPeriod("2017-07"));
+    peAug = PeriodDimension.of(createPeriod("2017-08"));
+    peSep = PeriodDimension.of(createPeriod("2017-09"));
 
     // These periods don't need to be persisted:
-    quarter = createPeriod("2017Q1");
-    year = createPeriod("2017");
+    quarter = PeriodDimension.of(createPeriod("2017Q1"));
+    year = PeriodDimension.of(createPeriod("2017"));
 
-    periodService.addPeriod(peJan);
-    periodService.addPeriod(peFeb);
-    periodService.addPeriod(peMar);
-    periodService.addPeriod(peApr);
-    periodService.addPeriod(peMay);
-    periodService.addPeriod(peJun);
-    periodService.addPeriod(peJul);
-    periodService.addPeriod(peAug);
-    periodService.addPeriod(peSep);
+    periodService.addPeriod(peJan.getPeriod());
+    periodService.addPeriod(peFeb.getPeriod());
+    periodService.addPeriod(peMar.getPeriod());
+    periodService.addPeriod(peApr.getPeriod());
+    periodService.addPeriod(peMay.getPeriod());
+    periodService.addPeriod(peJun.getPeriod());
+    periodService.addPeriod(peJul.getPeriod());
+    periodService.addPeriod(peAug.getPeriod());
+    periodService.addPeriod(peSep.getPeriod());
 
     deA = createDataElement('A');
     deB = createDataElement('B');
@@ -497,19 +495,19 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     validationRuleService.saveValidationRule(validationRuleB);
 
     ValidationResult resultAA =
-        new ValidationResult(validationRuleA, peJan, ouA, optionComboA, 1.0, 2.0, 3);
+        new ValidationResult(validationRuleA, peJan.getPeriod(), ouA, optionComboA, 1.0, 2.0, 3);
     ValidationResult resultAB =
-        new ValidationResult(validationRuleA, peJan, ouA, optionComboB, 1.0, 2.0, 3);
+        new ValidationResult(validationRuleA, peJan.getPeriod(), ouA, optionComboB, 1.0, 2.0, 3);
     ValidationResult resultBA =
-        new ValidationResult(validationRuleA, peJan, ouB, optionComboA, 1.0, 2.0, 3);
+        new ValidationResult(validationRuleA, peJan.getPeriod(), ouB, optionComboA, 1.0, 2.0, 3);
     ValidationResult resultBB =
-        new ValidationResult(validationRuleA, peJan, ouB, optionComboB, 1.0, 2.0, 3);
+        new ValidationResult(validationRuleA, peJan.getPeriod(), ouB, optionComboB, 1.0, 2.0, 3);
     ValidationResult resultBAB =
-        new ValidationResult(validationRuleB, peJan, ouA, optionComboB, 1.0, 2.0, 3);
+        new ValidationResult(validationRuleB, peJan.getPeriod(), ouA, optionComboB, 1.0, 2.0, 3);
     ValidationResult resultBBB =
-        new ValidationResult(validationRuleB, peFeb, ouB, optionComboB, 1.0, 2.0, 3);
+        new ValidationResult(validationRuleB, peFeb.getPeriod(), ouB, optionComboB, 1.0, 2.0, 3);
     ValidationResult resultBBA =
-        new ValidationResult(validationRuleB, peFeb, ouB, optionComboA, 1.0, 2.0, 3);
+        new ValidationResult(validationRuleB, peFeb.getPeriod(), ouB, optionComboA, 1.0, 2.0, 3);
 
     Date today = new Date();
     resultAA.setCreated(today);
@@ -559,6 +557,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @AfterAll
   void tearDown() {
+    cleanPeriodTypes();
     for (AnalyticsTableService service : analyticsTableServices) {
       service.dropTables();
     }
@@ -1024,7 +1023,6 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
         inA, "( #{" + deE.getUid() + "}.yearToDate() + [periodInYear] ).periodOffset(-1)");
     withIndicator(
         inB, "( #{" + deE.getUid() + "}.yearToDate() + [periodInYear] ).periodOffset(-2)");
-
     assertDataValues(
         Map.of(
             "indicatorAA-ouabcdefghA-201706",

@@ -34,12 +34,29 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import org.hibernate.mapping.Column;
+import org.hibernate.mapping.PersistentClass;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
+import org.hisp.dhis.hibernate.HibernateMetadata;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.message.Message;
+import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -48,9 +65,12 @@ import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -114,7 +134,7 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
   void testCanScanJobParameters() {
     JobParameters parameters =
         new AnalyticsJobParameters(10, new HashSet<>(), new HashSet<>(), true, true);
-    Schema schema = schemaService.getDynamicSchema(parameters.getClass());
+    Schema schema = schemaService.getSchema(parameters.getClass());
 
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
@@ -127,7 +147,7 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     configuration.setJobParameters(
         new AnalyticsJobParameters(10, new HashSet<>(), new HashSet<>(), true, true));
 
-    Schema schema = schemaService.getDynamicSchema(configuration.getClass());
+    Schema schema = schemaService.getSchema(configuration.getClass());
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
 
@@ -137,7 +157,7 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     Object jobParameters = ReflectionUtils.invokeMethod(configuration, property.getGetterMethod());
     assertNotNull(jobParameters);
 
-    schema = schemaService.getDynamicSchema(jobParameters.getClass());
+    schema = schemaService.getSchema(jobParameters.getClass());
 
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
@@ -146,7 +166,7 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testBulkSmsGatewayConfig() {
-    Schema schema = schemaService.getDynamicSchema(BulkSmsGatewayConfig.class);
+    Schema schema = schemaService.getSchema(BulkSmsGatewayConfig.class);
     Property isDefault = schema.getProperty("isDefault");
     assertEquals(PropertyType.BOOLEAN, isDefault.getPropertyType());
     assertNotNull(isDefault.getGetterMethod(), "getter is null");
@@ -155,15 +175,108 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDashboardItemTextTranslatable() {
-    Schema schema = schemaService.getDynamicSchema(DashboardItem.class);
+    Schema schema = schemaService.getSchema(DashboardItem.class);
     Property text = schema.getProperty("text");
     assertTrue(text.isTranslatable());
   }
 
   @Test
   void testCategoryComboTranslatable() {
-    Schema schema = schemaService.getDynamicSchema(CategoryCombo.class);
+    Schema schema = schemaService.getSchema(CategoryCombo.class);
     Property categoryCombo = schema.getProperty("name");
     assertTrue(categoryCombo.isTranslatable());
+  }
+
+  @Test
+  void testDashboardItemTextContentLength() {
+    Schema schema = schemaService.getSchema(DashboardItem.class);
+    Property text = schema.getProperty("text");
+    assertEquals(Integer.MAX_VALUE, text.getLength());
+  }
+
+  @Test
+  void tesMessageTextContentLength() {
+    Schema schema = schemaService.getSchema(Message.class);
+    Property text = schema.getProperty("text");
+    assertEquals(Integer.MAX_VALUE, text.getLength());
+  }
+
+  @Test
+  void testMapViewSchemaRegistered() {
+    Schema schema = schemaService.getSchema(MapView.class);
+    assertNotNull(schema);
+    assertEquals(MapView.class, schema.getKlass());
+    assertTrue(schema.isEmbeddedObject());
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      classes = {
+        CategoryOption.class,
+        DataElement.class,
+        DataSet.class,
+        ExpressionDimensionItem.class,
+        Indicator.class,
+        OptionGroup.class,
+        OrganisationUnit.class,
+        OrganisationUnitGroup.class,
+        ProgramIndicator.class,
+        TrackedEntityAttribute.class
+      })
+  void testDimensionItemTypeIsSchemaProperty(Class<?> klass) {
+    Schema schema = schemaService.getSchema(klass);
+    assertNotNull(schema);
+    Property property = schema.getProperty("dimensionItemType");
+    assertNotNull(property, "dimensionItemType is not a property of " + klass.getSimpleName());
+    assertTrue(property.isReadable());
+  }
+
+  /**
+   * Properties mapped to a text column must not be limited to the default column length in the
+   * schema, otherwise schema validation rejects values that the database accepts. This happens when
+   * a String field has {@code columnDefinition = "text"} but no {@code @Type(type = "text")}.
+   */
+  @Test
+  void testTextColumnPropertiesHaveNoMaxLength() {
+    List<String> violations = new ArrayList<>();
+
+    for (Schema schema : schemaService.getSchemas()) {
+      PersistentClass persistentClass =
+          HibernateMetadata.getMetadataImplementor().getEntityBinding(schema.getKlass().getName());
+
+      if (persistentClass == null) {
+        continue;
+      }
+
+      Iterator<?> propertyIterator = persistentClass.getPropertyClosureIterator();
+
+      while (propertyIterator.hasNext()) {
+        org.hibernate.mapping.Property hibernateProperty =
+            (org.hibernate.mapping.Property) propertyIterator.next();
+
+        if (hibernateProperty.getColumnSpan() != 1
+            || !(hibernateProperty.getColumnIterator().next() instanceof Column column)
+            || !"text".equalsIgnoreCase(column.getSqlType())) {
+          continue;
+        }
+
+        Property property = schema.getPersistedProperties().get(hibernateProperty.getName());
+
+        if (property != null
+            && String.class.equals(property.getKlass())
+            && property.getMax() != null
+            && property.getMax() == column.getLength()) {
+          violations.add(schema.getKlass().getSimpleName() + "." + property.getName());
+        }
+      }
+    }
+
+    assertTrue(violations.isEmpty(), "Text columns limited in schema: " + violations);
+  }
+
+  @Test
+  void testDashboardDescriptionHasNoMaxLength() {
+    Property property = schemaService.getSchema(Dashboard.class).getProperty("description");
+    assertEquals((double) Integer.MAX_VALUE, property.getMax());
   }
 }

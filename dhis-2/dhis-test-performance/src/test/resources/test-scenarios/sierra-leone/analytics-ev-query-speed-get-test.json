@@ -1,0 +1,46 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/analytics/events/query/eBAyeGv0exc?dimension=ou:ImspTQPwCqd,eMyVanycQSC,qrur9Dvnyt5:GE:5:LE:10,oZg33kd9taw,fWIAEtYVEGk,msodh3rEMJa&headers=eventdate,ouname,eMyVanycQSC,qrur9Dvnyt5,oZg33kd9taw,fWIAEtYVEGk,msodh3rEMJa&totalPages=false&eventDate=LAST_10_YEARS&displayProperty=NAME&outputType=EVENT&pageSize=1000&page=1&includeMetadataDetails=true&stage=Zj7UnCAulEk&relativePeriodDate=2023-11-01",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 95,
+          "max": 255,
+          "mean": 185
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT&dimension=A03MvHHogjR.UXz7xuGCEhU&dimension=p2Zxg0wcPQ3&dimension=cejWyOfXge6&outputType=EVENT&stage=A03MvHHogjR&enrollmentDate=THIS_MONTH&programStatus=ACTIVE,COMPLETED&eventDate=LAST_MONTH,LAST_12_MONTHS&eventStatus=SCHEDULE&lastUpdated=LAST_12_MONTHS,LAST_5_YEARS,LAST_10_YEARS&headers=ouname,A03MvHHogjR.UXz7xuGCEhU,enrollmentdate,scheduleddate,incidentdate,programstatus,eventdate,eventstatus,p2Zxg0wcPQ3,lastupdated,cejWyOfXge6&paging=false&outputIdScheme=CODE&relativePeriodDate=2022-07-01",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 80,
+          "max": 230,
+          "mean": 150
+        }
+      ],
+      "version": {
+        "min": 39
+      }
+    },
+    {
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?dimension=ou:O6uvpzGd5pu,eMyVanycQSC,qrur9Dvnyt5-Yf6UHoPkdS6:IN:TvM2MQgD7Jd,tUdBD1JDxpn:GT:21,sGna2pquXOO,Kswd1r4qWLh,gWxh7DiRmG7,x7PaHGvgWY2:GT:20,XCMi7Wvnplm:GE:22,hlPt8H4bUOQ,Thkx2BnO5Kq,Y7hKDSuqEtH,K6uUAvq500H:IN:D303,msodh3rEMJa,oZg33kd9taw,GieVkTxp4HH-TBxGTceyzwy:IN:wgbW2ZQnlIc,HS8QXAJtuKV,fWIAEtYVEGk,SWfdB5lX0fk,vV9UWAZohSf-OrkEzxZEH4X&headers=eventdate,ouname,eMyVanycQSC,qrur9Dvnyt5,tUdBD1JDxpn,sGna2pquXOO,Kswd1r4qWLh,gWxh7DiRmG7,x7PaHGvgWY2,XCMi7Wvnplm,hlPt8H4bUOQ,Thkx2BnO5Kq,Y7hKDSuqEtH,K6uUAvq500H,msodh3rEMJa,oZg33kd9taw,GieVkTxp4HH,HS8QXAJtuKV,fWIAEtYVEGk,SWfdB5lX0fk,vV9UWAZohSf&totalPages=false&eventDate=THIS_YEAR&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=Zj7UnCAulEk&relativePeriodDate=2022-07-01",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 130,
+          "max": 350,
+          "mean": 240
+        }
+      ],
+      "version": {
+        "min": 39
+      }
+    }
+  ]
+}

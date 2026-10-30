@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
+import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_VALUE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 
 import java.util.LinkedHashMap;
@@ -50,11 +52,14 @@ import org.hisp.dhis.program.ProgramStage;
  */
 @Slf4j
 public class CteContext {
+  public static final String EVENT_PROGRAM_INDICATOR_CANDIDATES = "event_pi_candidates";
+
   private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
-  public static final String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
 
   /** The type of analytics query being executed. This can be either EVENT or ENROLLMENT. */
   @Getter private final EndpointItem endpointItem;
+
+  @Getter private String eventProgramIndicatorSourceTable;
 
   public CteDefinition getDefinitionByItemUid(String itemUid) {
     return cteDefinitions.get(itemUid);
@@ -79,13 +84,61 @@ public class CteContext {
       String cteDefinition,
       int offset,
       boolean isRowContext) {
+    addCte(programStage, item, cteDefinition, offset, isRowContext, hasActualValueFilter(item));
+  }
+
+  /**
+   * Adds a CTE definition to the context.
+   *
+   * @param programStage The program stage
+   * @param item The query item
+   * @param cteDefinition The CTE definition (the SQL query)
+   * @param offset The calculated offset
+   * @param isRowContext Whether the CTE is a row context
+   * @param hasFilter Whether the query item has a filter requiring non-null CTE values
+   */
+  public void addCte(
+      ProgramStage programStage,
+      QueryItem item,
+      String cteDefinition,
+      int offset,
+      boolean isRowContext,
+      boolean hasFilter) {
+    addCte(programStage, item, cteDefinition, offset, isRowContext, hasFilter, false);
+  }
+
+  /**
+   * Adds a CTE definition to the context.
+   *
+   * @param programStage The program stage
+   * @param item The query item
+   * @param cteDefinition The CTE definition (the SQL query)
+   * @param offset The calculated offset
+   * @param isRowContext Whether the CTE is a row context
+   * @param hasFilter Whether the query item has a filter requiring non-null CTE values
+   * @param hasValueName Whether the CTE exposes the display-name column as value_name
+   */
+  public void addCte(
+      ProgramStage programStage,
+      QueryItem item,
+      String cteDefinition,
+      int offset,
+      boolean isRowContext,
+      boolean hasFilter,
+      boolean hasValueName) {
     String key = computeKey(item);
     if (cteDefinitions.containsKey(key)) {
       cteDefinitions.get(key).getOffsets().add(offset);
     } else {
       var cteDef =
           new CteDefinition(
-              programStage.getUid(), item.getItemId(), cteDefinition, offset, isRowContext);
+              programStage.getUid(),
+              item.getItemId(),
+              cteDefinition,
+              offset,
+              isRowContext,
+              hasFilter,
+              hasValueName);
       cteDefinitions.put(key, cteDef);
     }
   }
@@ -107,18 +160,13 @@ public class CteContext {
   }
 
   /**
-   * Adds a special "exists" CTE definition to the context. This CTE definition is required when a
-   * non-aggregated query has the flag "rowContext" set to true
+   * Adds the CTE reading the "value" data element of an enrollment aggregate query. It must be
+   * added after the base aggregate CTE, which it reads from.
    *
-   * @param programStage the ProgramStage object
-   * @param item the QueryItem object
-   * @param cteDefinition the CTE definition (the SQL query)
+   * @param cteDefinition The CTE definition (the SQL query)
    */
-  public void addExistsCte(ProgramStage programStage, QueryItem item, String cteDefinition) {
-    var cteDef =
-        new CteDefinition(programStage.getUid(), item.getItemId(), cteDefinition, -999, false)
-            .setExists(true);
-    cteDefinitions.put(programStage.getUid(), cteDef);
+  public void addEnrollmentValueCte(String cteDefinition) {
+    cteDefinitions.put(ENROLLMENT_VALUE, CteDefinition.forEnrollmentValue(cteDefinition));
   }
 
   /**
@@ -128,16 +176,21 @@ public class CteContext {
    * @param cteDefinition The CTE definition (the SQL query)
    * @param functionRequiresCoalesce Whether the function requires to be "wrapped" in coalesce to
    *     avoid null values (e.g. avg, sum)
+   * @param joinColumn The column exposed by the CTE for joining it back to the outer query
    */
   public void addProgramIndicatorCte(
-      ProgramIndicator programIndicator, String cteDefinition, boolean functionRequiresCoalesce) {
+      ProgramIndicator programIndicator,
+      String cteDefinition,
+      boolean functionRequiresCoalesce,
+      String joinColumn) {
     cteDefinitions.put(
         programIndicator.getUid(),
         CteDefinition.forProgramIndicator(
             programIndicator.getUid(),
             programIndicator.getAnalyticsType(),
             cteDefinition,
-            functionRequiresCoalesce));
+            functionRequiresCoalesce,
+            joinColumn));
   }
 
   /**
@@ -232,10 +285,41 @@ public class CteContext {
     }
   }
 
+  /**
+   * Registers a {@link CteDefinition.CteType#D2_RELATIONSHIP_COUNT} CTE. No-op if a CTE with the
+   * same key was already registered, so multiple PIs (or multiple references inside one PI) for the
+   * same relationship type share a single CTE.
+   */
+  public void addRelationshipCountCte(String key, CteDefinition cteDefinition) {
+    if (cteDefinition != null
+        && key != null
+        && cteDefinition.getCteType() == CteDefinition.CteType.D2_RELATIONSHIP_COUNT) {
+      cteDefinitions.putIfAbsent(key, cteDefinition);
+    } else {
+      log.warn("Attempted to add invalid relationship count CTE definition for key: {}", key);
+    }
+  }
+
   public void addShadowCte(String tableName, String sql, CteDefinition.CteType cteType) {
     // Use a simple CteDefinition for shadow CTEs
     CteDefinition shadowCte = CteDefinition.forShadowTable(tableName, sql, cteType);
     cteDefinitions.put(tableName, shadowCte);
+  }
+
+  public void useEventProgramIndicatorCandidateSource() {
+    eventProgramIndicatorSourceTable = EVENT_PROGRAM_INDICATOR_CANDIDATES;
+  }
+
+  public void addEventProgramIndicatorCandidatesCte(String sql) {
+    addShadowCte(
+        EVENT_PROGRAM_INDICATOR_CANDIDATES,
+        sql,
+        CteDefinition.CteType.EVENT_PROGRAM_INDICATOR_CANDIDATES);
+  }
+
+  public boolean hasEventProgramIndicatorCtes() {
+    return cteDefinitions.values().stream()
+        .anyMatch(def -> def.getCteType() == CteDefinition.CteType.PROGRAM_INDICATOR_EVENT);
   }
 
   public CteDefinition getBaseAggregatedCte() {
@@ -301,6 +385,30 @@ public class CteContext {
     return definition.isProgramStage() || definition.isProgramIndicator() || definition.isFilter();
   }
 
+  /**
+   * Checks if the item has filters that carry at least one actual value. No-value filters require
+   * special handling - they must NOT be pushed into the CTE and must NOT trigger INNER JOIN
+   * optimization, because their semantics require checking whether the most recent event's value is
+   * null, rather than finding events with null values.
+   *
+   * @param item the query item
+   * @return true if the item has a filter with at least one actual value
+   */
+  private boolean hasActualValueFilter(QueryItem item) {
+    if (!item.hasFilter()) {
+      return false;
+    }
+    // Check if any filter carries an actual value
+    return item.getFilters().stream()
+        .anyMatch(
+            filter -> {
+              List<String> filterItems =
+                  org.hisp.dhis.common.QueryFilter.getFilterItems(filter.getFilter());
+              // Return true if there is at least one actual value
+              return filterItems.stream().anyMatch(v -> !item.isNoValue(v));
+            });
+  }
+
   public Set<String> getCteKeys() {
     return cteDefinitions.keySet();
   }
@@ -338,6 +446,10 @@ public class CteContext {
    */
   public boolean isEventsAnalytics() {
     return endpointItem == EndpointItem.EVENT;
+  }
+
+  public boolean isEnrollmentAnalytics() {
+    return endpointItem == EndpointItem.ENROLLMENT;
   }
 
   public boolean containsCte(String cteName) {

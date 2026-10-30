@@ -41,6 +41,7 @@ import java.util.GregorianCalendar;
 import java.util.HashSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -49,10 +50,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
+@Transactional
 class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramIndicatorService programIndicatorService;
@@ -62,6 +65,8 @@ class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
   @Autowired private ProgramService programService;
 
   @Autowired private TrackedEntityAttributeService attributeService;
+
+  @Autowired private SystemSettingsService systemSettingsService;
 
   private Program programA;
 
@@ -75,6 +80,9 @@ class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
+
+    systemSettingsService.clearCurrentSettings();
+
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
 
@@ -128,7 +136,9 @@ class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
   void testCreationDate() {
     assertEquals("created", getSql("V{creation_date}"));
     assertEquals(
-        "(select created from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and created is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) order by occurreddate desc limit 1 )",
+        "FUNC_CTE_VAR( type='vCreationDate', column='created', piUid='"
+            + piB.getUid()
+            + "', psUid='null', offset='0')",
         getSqlEnrollment("V{creation_date}"));
   }
 
@@ -143,7 +153,9 @@ class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
   void testDueDate() {
     assertEquals("scheduleddate", getSql("V{due_date}"));
     assertEquals(
-        "(select scheduleddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and scheduleddate is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) order by occurreddate desc limit 1 )",
+        "FUNC_CTE_VAR( type='vDueDate', column='scheduleddate', piUid='"
+            + piB.getUid()
+            + "', psUid='null', offset='0')",
         getSqlEnrollment("V{due_date}"));
   }
 
@@ -161,7 +173,7 @@ class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
 
   @Test
   void testEnrollmentStatus() {
-    assertEquals("pistatus", getSql("V{enrollment_status}"));
+    assertEquals("enrollmentstatus", getSql("V{enrollment_status}"));
     assertEquals("enrollmentstatus", getSqlEnrollment("V{enrollment_status}"));
   }
 
@@ -169,7 +181,9 @@ class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
   void testEventStatus() {
     assertEquals("eventstatus", getSql("V{event_status}"));
     assertEquals(
-        "(select eventstatus from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and eventstatus is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) order by occurreddate desc limit 1 )",
+        "FUNC_CTE_VAR( type='vEventStatus', column='eventstatus', piUid='"
+            + piB.getUid()
+            + "', psUid='null', offset='0')",
         getSqlEnrollment("V{event_status}"));
   }
 
@@ -200,7 +214,9 @@ class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
   void testExecutionDate() {
     assertEquals("occurreddate", getSql("V{execution_date}"));
     assertEquals(
-        "(select occurreddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date )  and eventstatus IN ('COMPLETED', 'ACTIVE') order by occurreddate desc limit 1 )",
+        "FUNC_CTE_VAR( type='vEventDate', column='occurreddate', piUid='"
+            + piB.getUid()
+            + "', psUid='null', offset='0')",
         getSqlEnrollment("V{execution_date}"));
   }
 
@@ -208,7 +224,9 @@ class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
   void testEventDate() {
     assertEquals("occurreddate", getSql("V{event_date}"));
     assertEquals(
-        "(select occurreddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date )  and eventstatus IN ('COMPLETED', 'ACTIVE') order by occurreddate desc limit 1 )",
+        "FUNC_CTE_VAR( type='vEventDate', column='occurreddate', piUid='"
+            + piB.getUid()
+            + "', psUid='null', offset='0')",
         getSqlEnrollment("V{event_date}"));
   }
 
@@ -216,7 +234,9 @@ class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
   void testScheduledDate() {
     assertEquals("scheduleddate", getSql("V{scheduled_date}"));
     assertEquals(
-        "(select scheduleddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and scheduleddate is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date )  and eventstatus = 'SCHEDULE' order by occurreddate desc limit 1 )",
+        "FUNC_CTE_VAR( type='vScheduledDate', column='scheduleddate', piUid='"
+            + piB.getUid()
+            + "', psUid='null', offset='0')",
         getSqlEnrollment("V{scheduled_date}"));
   }
 

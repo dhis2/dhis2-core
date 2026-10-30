@@ -56,56 +56,53 @@ pipeline {
 
         stage('Run api tests') {
             environment {
-                RP_UUID = credentials('report-portal-access-uuid')
-                RP_ENABLE = 'true'
-                RP_ATTRIBUTES = "version:${env.GIT_BRANCH};"
                 DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
             }
 
-              stages {
-                  stage('Build Docker image') {
-                      steps {
-                          withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-                              withMaven(options: [artifactsPublisher(disabled: true)]) {
-                                  sh "mvn --batch-mode --no-transfer-progress -Dpackaging.type=jar -DskipTests -Dmaven.test.skip=true \
-                                          --file dhis-2/dhis-web-server/pom.xml --activate-profiles embedded,jibBuild jib:build \
-                                          -Djib.to.image=${DOCKER_IMAGE_NAME_FULL} \
-                                          -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
-                              }
-                          }
-                      }
-                  }
+            stages {
+                stage('Build Docker image') {
+                    steps {
+                        withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+                            withMaven(options: [artifactsPublisher(disabled: true)]) {
+                                sh "mvn --batch-mode --no-transfer-progress -Dpackaging.type=jar -DskipTests -Dmaven.test.skip=true \
+                                        --file dhis-2/dhis-web-server/pom.xml --activate-profiles embedded,jibBuild generate-resources jib:build \
+                                        -Djib.to.image=${DOCKER_IMAGE_NAME_FULL} \
+                                        -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
+                            }
+                        }
+                    }
+                }
 
-                  stage('Run tests') {
-                      steps {
-                          script {
-                              dir("dhis-2/dhis-test-e2e") {
-                                  sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
-                                  sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker compose --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
-                              }
-                          }
-                      }
+                stage('Run tests') {
+                    steps {
+                        script {
+                            dir("dhis-2/dhis-test-e2e") {
+                                sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
+                                sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker compose --ansi never --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
+                            }
+                        }
+                    }
 
-                      post {
-                          always {
-                              script {
-                                  dir("dhis-2/dhis-test-e2e") {
-                                      archiveArtifacts artifacts: "coverage.csv", allowEmptyArchive: true
-                                  }
-                              }
-                          }
+                    post {
+                        always {
+                            script {
+                                dir("dhis-2/dhis-test-e2e") {
+                                    archiveArtifacts artifacts: "coverage.csv", allowEmptyArchive: true
+                                }
+                            }
+                        }
 
-                          failure {
-                              script {
-                                  dir("dhis-2/dhis-test-e2e") {
-                                      sh "docker compose logs web > web-logs.txt"
-                                      archiveArtifacts artifacts: "web-logs.txt"
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
+                        failure {
+                            script {
+                                dir("dhis-2/dhis-test-e2e") {
+                                    sh "docker compose logs web > web-logs.txt"
+                                    archiveArtifacts artifacts: "web-logs.txt"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         stage('Sync WAR') {
@@ -120,8 +117,9 @@ pipeline {
         stage('Publish image') {
             environment {
                 // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
-                BASE_IMAGE = "tomcat:10.1.30-jre17"
+                BASE_IMAGE = "tomcat:10.1.48-jre17"
                 IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
+                ARCHITECTURES = 'amd64 arm64'
             }
 
             steps {
@@ -158,6 +156,7 @@ pipeline {
                 MIN_READY_SECONDS = "240"
                 CORE_RESOURCES_REQUESTS_MEMORY = "2500Mi"
                 PUBLIC = "true"
+                ALLOW_SUSPEND = "false"
             }
 
             steps {
@@ -188,7 +187,7 @@ pipeline {
 
                             dir('scripts/instances') {
                                 description = "DHIS 2 development branch ${env.GIT_BRANCH}"
-                                sh "./findByName.sh play dev${branch} | jq --exit-status 'has(\"id\")' && ./restart.sh \$(./findByName.sh play dev${branch} | jq '.instances[] | select(.stackName==\"dhis2-core\") | .id') || ./deploy-dhis2.sh play dev${branch} ${description}"
+                                sh "./findByName.sh play dev${branch} | jq --exit-status 'has(\"id\")' && ./restart.sh \$(./findByName.sh play dev${branch} | jq '.instances[] | select(.stackName==\"dhis2-v2\") | .id') || ./deploy-dhis2.sh play dev${branch} ${description}"
                                 timeout(5) {
                                     waitFor.statusOk("${env.INSTANCE_URL}${branch}")
                                 }
@@ -211,11 +210,23 @@ pipeline {
 
         failure {
             script {
-                slack.sendMessage(
-                    '#ff0000',
-                    slack.buildUrl() + "\nLatest run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
-                    'team-backend'
-                )
+                if (buildLog.getLines().contains('There are test failures')) {
+                    currentBuild.description = 'Test failures'
+                    def prevHadSameFailure = currentBuild.previousBuild?.description?.contains('Test failures')
+                    if (!prevHadSameFailure) {
+                        slack.sendMessage(
+                            '#ff0000',
+                            slack.buildUrl() + "\nLatest test run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
+                            'core-test-failures'
+                        )
+                    }
+                } else {
+                    slack.sendMessage(
+                        '#ff0000',
+                        slack.buildUrl() + "\nBuild on ${GIT_BRANCH} failed. :x:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
+                        'core-ci-failures'
+                    )
+                }
             }
         }
 

@@ -30,14 +30,19 @@
 package org.hisp.dhis.datavalue;
 
 import static org.hisp.dhis.feedback.DataEntrySummary.toConflict;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dataset.DataSetCompletion;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -68,6 +73,7 @@ public class DataEntryPipeline {
 
   private final DataEntryService service;
   private final SystemSettingsProvider settings;
+  private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
   public ImportSummary importXml(InputStream in, ImportOptions options, JobProgress progress)
       throws BadRequestException {
@@ -107,18 +113,31 @@ public class DataEntryPipeline {
     return importInputGroups(groups, options, progress);
   }
 
-  @Nonnull
-  public ImportSummary importInputGroups(
-      @CheckForNull List<DataEntryGroup.Input> inputs,
+  private ImportSummary importInputGroups(
+      @CheckForNull List<DataEntryGroup.Input> groups,
       @Nonnull ImportOptions options,
       @Nonnull JobProgress progress) {
+    ImportSummary summary =
+        importInputGroups(
+            groups,
+            options.getDataEntryOptions(),
+            options.getImportStrategy().isDelete(),
+            progress);
+    summary.setImportOptions(options);
+    return summary;
+  }
+
+  @Nonnull
+  public ImportSummary importInputGroups(
+      @CheckForNull List<DataEntryGroup.Input> groups,
+      @Nonnull DataEntryGroup.Options options,
+      boolean delete,
+      @Nonnull JobProgress progress) {
     // when parsing fails the input is null, this forces abort because of failed stage before
-    inputs = progress.nonNullStagePostCondition(inputs);
+    groups = progress.nonNullStagePostCondition(groups);
 
     try {
-      ImportSummary summary = importAutoSplitAndMerge(inputs, options, progress);
-      summary.setImportOptions(options);
-      return summary;
+      return importAutoSplitAndMerge(groups, options, delete, progress);
     } catch (BadRequestException | ConflictException ex) {
       ImportSummary summary = new ImportSummary(ImportStatus.ERROR);
       summary.addConflict(toConflict(IntStream.of(-1), ex.getCode(), ex.getArgs()));
@@ -131,7 +150,10 @@ public class DataEntryPipeline {
    * the same DS should be merged into a single group.
    */
   private ImportSummary importAutoSplitAndMerge(
-      List<DataEntryGroup.Input> inputs, ImportOptions options, JobProgress progress)
+      List<DataEntryGroup.Input> inputs,
+      DataEntryGroup.Options options,
+      boolean delete,
+      JobProgress progress)
       throws BadRequestException, ConflictException {
     List<DataEntryGroup> groups = new ArrayList<>();
     for (DataEntryGroup.Input input : inputs) {
@@ -166,9 +188,7 @@ public class DataEntryPipeline {
           progress.nonNullStagePostCondition(progress.runStage(() -> mergeGroups(preMerge)));
     }
 
-    DataEntryGroup.Options opt =
-        new DataEntryGroup.Options(options.isDryRun(), options.isAtomic(), options.isForce());
-    return importGroups(mergedGroups, opt, progress, options.getImportStrategy().isDelete());
+    return importGroups(mergedGroups, options, progress, delete);
   }
 
   /**
@@ -181,10 +201,8 @@ public class DataEntryPipeline {
     DataEntryGroup g1 = groups.get(0);
     for (int i = 1; i < groups.size(); i++) {
       DataEntryGroup g2 = groups.get(i);
-      if (g1.dataSet() != null && g1.dataSet().equals(g2.dataSet())) {
-        if (!(g1.values() instanceof ArrayList<DataEntryValue>))
-          g1 = new DataEntryGroup(g1.dataSet(), new ArrayList<>(g1.values()));
-        g1.values().addAll(g2.values());
+      if (g1.canMergeWith(g2)) {
+        g1 = g1.mergedWith(g2);
       } else {
         merged.add(g1);
         g1 = g2;
@@ -200,8 +218,9 @@ public class DataEntryPipeline {
       DataEntryGroup.Options options,
       JobProgress progress,
       boolean delete) {
-    DataEntrySummary summary = new DataEntrySummary(0, 0, 0, List.of());
+    DataEntrySummary summary = new DataEntrySummary(0, 0, 0, 0, List.of());
     List<ImportConflict> conflicts = new ArrayList<>();
+    List<DataSetCompletion> markComplete = new ArrayList<>(groups.size());
     for (DataEntryGroup g : groups) {
       try {
         // further stages happen within the service method...
@@ -209,6 +228,8 @@ public class DataEntryPipeline {
             delete
                 ? service.deleteGroup(options, g, progress)
                 : service.upsertGroup(options, g, progress);
+        DataSetCompletion c = g.completion();
+        if (c != null && res.ignored() == 0) markComplete.add(c);
         summary = summary.mergedWith(res);
       } catch (ConflictException ex) {
         conflicts.add(
@@ -217,7 +238,14 @@ public class DataEntryPipeline {
         if (options.atomic()) return toImportSummary(summary, delete, conflicts);
       }
     }
-    return toImportSummary(summary, delete, conflicts);
+    boolean completionSuccessful =
+        options.dryRun() || completeDataSetSlices(markComplete, progress);
+    String dataSetComplete = "false";
+    if (completionSuccessful
+        && groups.size() == markComplete.size()
+        && markComplete.stream().map(DataSetCompletion::completed).distinct().count() == 1)
+      dataSetComplete = toMediumDate(markComplete.get(0).completed());
+    return toImportSummary(summary, delete, conflicts).setDataSetComplete(dataSetComplete);
   }
 
   @Nonnull
@@ -235,5 +263,23 @@ public class DataEntryPipeline {
       conflicts.forEach(c -> res.addRejected(c.getIndexes()));
     }
     return res;
+  }
+
+  private boolean completeDataSetSlices(List<DataSetCompletion> completions, JobProgress progress) {
+    if (completions.isEmpty()) return false;
+    AtomicBoolean success = new AtomicBoolean(true);
+    progress.startingStage("Completing datasets", completions.size(), SKIP_ITEM);
+    progress.runStage(
+        completions,
+        DataSetCompletion::toString,
+        c -> {
+          try {
+            completeDataSetRegistrationService.importCompletion(c);
+          } catch (Exception ex) {
+            success.set(false);
+            throw new RuntimeException(ex);
+          }
+        });
+    return success.get();
   }
 }

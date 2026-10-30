@@ -31,6 +31,9 @@ package org.hisp.dhis.common;
 
 import static java.util.Objects.requireNonNull;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import java.io.Serializable;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
@@ -42,7 +45,8 @@ import javax.annotation.Nonnull;
  * @author Jan Bernitt
  * @since 2.43
  */
-public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
+public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId)
+    implements Serializable {
 
   public static final IdProperty UID = new IdProperty(Name.UID, null);
   public static final IdProperty CODE = new IdProperty(Name.CODE, null);
@@ -54,6 +58,24 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
       throw new IllegalArgumentException("When property is ATTR the attributeId must be non-null");
     if (name != Name.ATTR && attributeId != null)
       throw new IllegalArgumentException("When property is not ATTR the attributeId must be null");
+  }
+
+  public static IdProperty of(@CheckForNull IdentifiableProperty property) {
+    if (property == null) return UID;
+    return switch (property) {
+      case ID, UID -> UID;
+      case CODE -> CODE;
+      case NAME -> NAME;
+      case ATTRIBUTE ->
+          throw new IllegalArgumentException("Attribute must be used with the attribute ID");
+      case UUID ->
+          throw new UnsupportedOperationException("UUID is not supported for this operation");
+    };
+  }
+
+  @Nonnull
+  public static IdProperty of(@Nonnull UID attributeId) {
+    return new IdProperty(Name.ATTR, attributeId);
   }
 
   public static IdProperty of(@CheckForNull IdScheme scheme) {
@@ -71,6 +93,55 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
     };
   }
 
+  /**
+   * Parse an ID scheme input with fallback.
+   *
+   * @param scheme the scheme to use
+   * @param orElseScheme the fallback in case the scheme is undefined
+   * @return the input as object, {@link #UID} in case both are undefined
+   */
+  @Nonnull
+  public static IdProperty of(@CheckForNull String scheme, @CheckForNull String orElseScheme) {
+    IdProperty orElse = of(orElseScheme);
+    return scheme == null ? orElse : of(scheme);
+  }
+
+  /**
+   * Parse an ID scheme input (same format as {@link IdScheme#from(String)})
+   *
+   * @param scheme user input
+   * @return the input as object, {@link UID} in case input is undefined
+   */
+  @Nonnull
+  public static IdProperty of(@CheckForNull String scheme) {
+    if (scheme == null) return UID;
+    String type = scheme.toUpperCase();
+    return switch (type) {
+      case "ID", "UID" -> UID;
+      case "CODE" -> CODE;
+      case "NAME" -> NAME;
+      default -> {
+        if (type.length() == 21 && type.startsWith("ATTRIBUTE:"))
+          yield new IdProperty(Name.ATTR, org.hisp.dhis.common.UID.of(scheme.substring(10)));
+        throw new IllegalArgumentException(
+            "Invalid ID scheme: %s%n\tUse UID, CODE, NAME, ATTRIBUTE:<uid>".formatted(scheme));
+      }
+    };
+  }
+
+  /**
+   * @apiNote When creating an {@link IdProperty} from a nullable {@link String} the output must
+   *     also be nullable to allow implementing the fallback logic of a common {@link IdProperty}.
+   *     This is why this factory method is used to deserialize from JSON.
+   * @param scheme as provided by user input
+   * @return input as {@link IdProperty} or null for null input
+   */
+  @JsonCreator
+  @CheckForNull
+  public static IdProperty ofNullable(@CheckForNull String scheme) {
+    return scheme == null ? null : of(scheme);
+  }
+
   public enum Name {
     UID,
     CODE,
@@ -80,5 +151,16 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
 
   public boolean isNotUID() {
     return name != Name.UID;
+  }
+
+  @Override
+  @JsonValue
+  public String toString() {
+    return switch (name) {
+      case CODE -> "CODE";
+      case NAME -> "NAME";
+      case UID -> "UID";
+      case ATTR -> "ATTRIBUTE:%s".formatted(attributeId);
+    };
   }
 }

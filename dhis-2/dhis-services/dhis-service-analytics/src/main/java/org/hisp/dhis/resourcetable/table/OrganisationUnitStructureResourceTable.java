@@ -199,7 +199,7 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
    * @return true if the expectation is matched, false otherwise.
    */
   private static boolean isOrgUnitLevelValid(OrganisationUnit unit, int level) {
-    boolean isLevelCorrect = unit.getLevel() == level && unit.getHierarchyLevel() == level;
+    boolean isLevelCorrect = unit.getLevel() == level;
     boolean hasParent = unit.getParent() != null;
     return isLevelCorrect
         && ((hasParent && level > ROOT_LEVEL) || (level == ROOT_LEVEL && !hasParent));

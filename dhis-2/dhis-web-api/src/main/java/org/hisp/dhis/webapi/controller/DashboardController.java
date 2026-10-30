@@ -35,6 +35,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemType;
@@ -65,7 +66,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/dashboards")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class DashboardController extends AbstractCrudController<Dashboard, GetObjectListParams> {
+public class DashboardController extends AbstractCrudController<Dashboard, GetObjectListParams>
+    implements FavoritableOperations<Dashboard> {
+
   @Autowired private DashboardService dashboardService;
 
   @Autowired private CascadeSharingService cascadeSharingService;
@@ -106,10 +109,10 @@ public class DashboardController extends AbstractCrudController<Dashboard, GetOb
 
   @GetMapping("/{uid}/metadata")
   public ResponseEntity<MetadataExportParams> getDataSetWithDependencies(
-      @PathVariable("uid") String dashboardId,
+      @PathVariable("uid") UID dashboardId,
       @RequestParam(required = false, defaultValue = "false") boolean download)
       throws WebMessageException {
-    Dashboard dashboard = dashboardService.getDashboard(dashboardId);
+    Dashboard dashboard = dashboardService.getDashboard(dashboardId.getValue());
 
     if (dashboard == null) {
       throw new WebMessageException(notFound("Dashboard not found for uid: " + dashboardId));
@@ -125,12 +128,12 @@ public class DashboardController extends AbstractCrudController<Dashboard, GetOb
 
   @PostMapping("cascadeSharing/{uid}")
   public @ResponseBody CascadeSharingReport cascadeSharing(
-      @PathVariable("uid") String dashboardId,
+      @PathVariable("uid") UID dashboardId,
       @RequestParam(required = false) boolean dryRun,
       @RequestParam(required = false) boolean atomic,
       @CurrentUser UserDetails currentUser)
       throws WebMessageException {
-    Dashboard dashboard = dashboardService.getDashboard(dashboardId);
+    Dashboard dashboard = dashboardService.getDashboard(dashboardId.getValue());
 
     if (dashboard == null) {
       throw new WebMessageException(notFound("Dashboard not found for uid: " + dashboardId));

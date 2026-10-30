@@ -34,7 +34,7 @@ import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
@@ -65,6 +65,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.category.CategoryCombo;
@@ -76,6 +78,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.FavoritableObject;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -88,16 +91,18 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.visualization.Icon.IconType;
 import org.springframework.util.Assert;
 
 @JacksonXmlRootElement(localName = "visualization", namespace = DXF_2_0)
-public class Visualization extends BaseAnalyticalObject implements MetadataObject {
+public class Visualization extends BaseAnalyticalObject
+    implements FavoritableObject, MetadataObject {
 
   public static final String REPORTING_MONTH_COLUMN_NAME = "reporting_month_name";
 
@@ -136,6 +141,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   // -------------------------------------------------------------------------
   // Common attributes
   // -------------------------------------------------------------------------
+
+  @Getter @Setter @JsonProperty private Set<String> favorites = new HashSet<>();
 
   /** The type of this visualization object. */
   private VisualizationType type;
@@ -214,7 +221,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   // Non-persisted attributes, used for internal operation/rendering phase
   // -------------------------------------------------------------------------
 
-  private transient List<Period> relativePeriodsList = new ArrayList<>();
+  private transient List<PeriodDimension> relativePeriodsList = new ArrayList<>();
 
   /** The name of the visualization. */
   private transient String visualizationPeriodName;
@@ -262,7 +269,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
       List<DataElement> dataElements,
       List<Indicator> indicators,
       List<ReportingRate> reportingRates,
-      List<Period> periods,
+      List<PeriodDimension> periods,
       List<OrganisationUnit> organisationUnits,
       boolean doIndicators,
       boolean doPeriods,
@@ -271,7 +278,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     addAllDataDimensionItems(dataElements);
     addAllDataDimensionItems(indicators);
     addAllDataDimensionItems(reportingRates);
-    this.periods = periods;
+    setPeriods(periods);
     this.organisationUnits = organisationUnits;
 
     if (doIndicators) {
@@ -437,11 +444,11 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   }
 
   @JsonIgnore
-  public List<Period> getRelativePeriodsList() {
+  public List<PeriodDimension> getRelativePeriodsList() {
     return relativePeriodsList;
   }
 
-  public void setRelativePeriodsList(List<Period> relativePeriodsList) {
+  public void setRelativePeriodsList(List<PeriodDimension> relativePeriodsList) {
     this.relativePeriodsList = relativePeriodsList;
   }
 
@@ -653,6 +660,18 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     keepAxesReadingCompatibility(this);
   }
 
+  @Override
+  public boolean setAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.add(user.getUid());
+  }
+
+  @Override
+  public boolean removeAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.remove(user.getUid());
+  }
+
   /**
    * Returns the list of DimensionDescriptor held internally to the current Visualization object.
    * See {@link #addDimensionDescriptor}.
@@ -698,9 +717,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
       List<OrganisationUnit> organisationUnitsAtLevel,
       List<OrganisationUnit> organisationUnitsInGroups,
       I18nFormat format) {
-    verify(
-        (periods != null && !periods.isEmpty()) || hasRelativePeriods(),
-        "Must contain periods or relative periods");
+    verify(hasPeriods() || hasRelativePeriods(), "Must contain periods or relative periods");
 
     this.relativePeriodDate = periodDate;
     this.relativeOrganisationUnit = organisationUnit;
@@ -912,18 +929,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     } else {
       return organisationUnits;
     }
-  }
-
-  public List<Period> getAllPeriods() {
-    List<Period> list = new ArrayList<>(relativePeriodsList);
-
-    for (Period period : periods) {
-      if (!list.contains(period)) {
-        list.add(period);
-      }
-    }
-
-    return list;
   }
 
   // -------------------------------------------------------------------------
@@ -1169,14 +1174,28 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
     for (String dimension : rowDimensions) {
       String dimensionId = getDimensionIdentifierFor(dimension, getDimensionDescriptors());
-      String name = defaultIfEmpty(metaData.get(dimensionId).getName(), dimensionId);
-      String col = defaultIfEmpty(COLUMN_NAMES.get(dimensionId), dimensionId);
+      String name = extractDimensionName(metaData, dimensionId);
+      String col = defaultIfBlank(COLUMN_NAMES.get(dimensionId), dimensionId);
 
       grid.addHeader(new GridHeader(name + " ID", col + "id", TEXT, true, true));
       grid.addHeader(new GridHeader(name, col + "name", TEXT, false, true));
       grid.addHeader(new GridHeader(name + " code", col + "code", TEXT, true, true));
       grid.addHeader(new GridHeader(name + " description", col + "description", TEXT, true, true));
     }
+  }
+
+  /**
+   * It returns the name of the dimension uid present in the given map, or the dimension uid itself
+   * if the name is blank.
+   *
+   * @param metaData the map of uid-items.
+   * @param dimensionId the dimension uid.
+   * @return the name or the UID.
+   */
+  static String extractDimensionName(Map<String, MetadataItem> metaData, String dimensionId) {
+    return metaData.get(dimensionId) != null
+        ? defaultIfBlank(metaData.get(dimensionId).getName(), dimensionId)
+        : dimensionId;
   }
 
   /** Indicates whether this visualization is multidimensional. */
@@ -1217,7 +1236,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     StringBuilder sb = new StringBuilder();
 
     for (DimensionalItemObject object : objects) {
-      if (object instanceof Period) {
+      if (object instanceof PeriodDimension) {
         sb.append(object.getName()).append(NAME_SEP);
       } else {
         sb.append(object != null ? (object.getShortName() + NAME_SEP) : EMPTY);

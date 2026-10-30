@@ -69,12 +69,14 @@ public class SimpleDimension implements Serializable {
     LAST_UPDATED_DATE("lastUpdated", PERIOD),
     CREATED("created", PERIOD),
     CREATED_DATE("createdDate", PERIOD),
-    COMPLETED_DATE("completedDate", PERIOD),
+    COMPLETED("completed", PERIOD),
     EVENT_STATUS("eventStatus", DATA_X),
     PROGRAM_STATUS("programStatus", DATA_X),
     CREATED_BY("createdBy", DATA_X),
     LAST_UPDATED_BY("lastUpdatedBy", DATA_X),
-    OU("ou", ORGANISATION_UNIT);
+    OU("ou", ORGANISATION_UNIT),
+    ENROLLMENT_OU("enrollmentOu", ORGANISATION_UNIT),
+    REGISTRATION_OU("registrationOu", ORGANISATION_UNIT);
 
     private final String dimension;
 

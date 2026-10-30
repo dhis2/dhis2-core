@@ -761,7 +761,7 @@ class ValidationResultStoreTest extends PostgresIntegrationTestBase {
             validationResultBB,
             validationResultBC));
     ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
-    request.setPe(periodA.getUid());
+    request.setPe(periodA.getIsoDate());
     validationResultStore.delete(request);
     assertEqualSets(
         asList(validationResultBA, validationResultBB, validationResultBC),
@@ -822,7 +822,7 @@ class ValidationResultStoreTest extends PostgresIntegrationTestBase {
     ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
     request.setOu(singletonList(sourceA.getUid()));
     request.setVr(singletonList(validationRuleA.getUid()));
-    request.setPe(periodA.getUid());
+    request.setPe(periodA.getIsoDate());
     request.setNotificationSent(true);
     validationResultStore.delete(request);
     // Ou, Vr and Pe match all As but notificationSent matches only AB

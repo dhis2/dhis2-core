@@ -30,6 +30,10 @@
 package org.hisp.dhis.program;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createSingleEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -43,14 +47,17 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageQueryParams;
-import org.hisp.dhis.program.message.ProgramMessageRecipients;
-import org.hisp.dhis.program.message.ProgramMessageStatus;
-import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.program.message.ProgramMessage;
+import org.hisp.dhis.tracker.program.message.ProgramMessageQueryParams;
+import org.hisp.dhis.tracker.program.message.ProgramMessageRecipients;
+import org.hisp.dhis.tracker.program.message.ProgramMessageStatus;
+import org.hisp.dhis.tracker.program.message.ProgramMessageStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,9 +131,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     TrackedEntity trackedEntityB = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityB);
 
-    enrollmentA = new Enrollment(new Date(), new Date(), trackedEntityB, programA);
-    enrollmentA.setUid(CodeGenerator.generateUid());
-    enrollmentA.setOrganisationUnit(orgUnitA);
+    enrollmentA = createEnrollment(programA, trackedEntityB, orgUnitA);
 
     eventA = createEvent(stageA, enrollmentA, orgUnitA);
     eventA.setScheduledDate(new Date());

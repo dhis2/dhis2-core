@@ -1,0 +1,180 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.tracker.acl;
+
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
+import java.util.List;
+import java.util.Objects;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.UserDetails;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Service for fetching tracker programs (i.e., programs that require registration). ACL validations
+ * are performed automatically based on the currently logged-in user.
+ */
+@Service("org.hisp.dhis.tracker.acl.TrackerProgramService")
+@RequiredArgsConstructor
+public class TrackerProgramService {
+
+  @Nonnull private final ProgramService programService;
+  @Nonnull private final ProgramStageService programStageService;
+  @Nonnull private final AclService aclService;
+
+  /**
+   * Returns the tracker program associated with the provided UID if it exists and the user has data
+   * read access to it.
+   */
+  @Transactional(readOnly = true)
+  public @Nonnull Program getTrackerProgramWithDataReadAccess(@Nonnull UID programUid)
+      throws BadRequestException, ForbiddenException {
+    Program program = getTrackerProgram(programUid);
+
+    if (!aclService.canDataRead(getCurrentUserDetails(), program)) {
+      throw new ForbiddenException(
+          String.format(
+              "Current user doesn't have data read access to the provided program %s.",
+              programUid));
+    }
+
+    return program;
+  }
+
+  /**
+   * Returns the tracker program associated with the provided UID if it exists and the user has data
+   * write access to it.
+   */
+  @Transactional(readOnly = true)
+  public @Nonnull Program getTrackerProgramWithDataWriteAccess(@Nonnull UID programUid)
+      throws BadRequestException, ForbiddenException {
+    Program program = getTrackerProgram(programUid);
+
+    if (!aclService.canDataWrite(getCurrentUserDetails(), program)) {
+      throw new ForbiddenException(
+          String.format(
+              "Current user doesn't have data write access to the provided program %s.",
+              programUid));
+    }
+
+    return program;
+  }
+
+  private Program getTrackerProgram(UID programUid) throws BadRequestException {
+    Program program = programService.getProgram(programUid.getValue());
+    if (program == null) {
+      throw new BadRequestException(
+          String.format("Provided program, %s, does not exist.", programUid));
+    }
+    if (program.isWithoutRegistration()) {
+      throw new BadRequestException(
+          String.format("Provided program, %s, is not a tracker program.", programUid));
+    }
+
+    return program;
+  }
+
+  /** Retrieves the list of tracker programs accessible to the current user. */
+  @Transactional(readOnly = true)
+  public @Nonnull List<Program> getTrackerProgramsWithDataReadAccess() {
+    UserDetails user = getCurrentUserDetails();
+
+    return programService.getAllPrograms().stream()
+        .filter(p -> p.isRegistration() && aclService.canDataRead(user, p))
+        .filter(
+            p ->
+                aclService.canRead(user, p.getTrackedEntityType())
+                    && aclService.canDataRead(user, p.getTrackedEntityType()))
+        .toList();
+  }
+
+  /**
+   * Retrieves the list of tracker programs accessible to the current user that match the given
+   * tracked entity type. It is assumed that the user has access to the supplied trackedEntityType.
+   */
+  @Transactional(readOnly = true)
+  public @Nonnull List<Program> getTrackerProgramsWithDataReadAccess(
+      @Nonnull TrackedEntityType trackedEntityType) {
+    UserDetails user = getCurrentUserDetails();
+
+    return programService.getAllPrograms().stream()
+        .filter(
+            p ->
+                p.isRegistration()
+                    && Objects.equals(p.getTrackedEntityType().getUid(), trackedEntityType.getUid())
+                    && aclService.canDataRead(user, p))
+        .toList();
+  }
+
+  /**
+   * Retrieves the list of tracker programs, the current user can write to, that match the given
+   * tracked entity type. It is assumed that the user has access to the supplied trackedEntityType.
+   */
+  @Transactional(readOnly = true)
+  public @Nonnull List<Program> getTrackerProgramsWithDataWriteAccess(
+      @Nonnull TrackedEntityType trackedEntityType) {
+    UserDetails user = getCurrentUserDetails();
+
+    return programService.getProgramsByTrackedEntityType(trackedEntityType).stream()
+        .filter(p -> p.isRegistration() && aclService.canDataWrite(user, p))
+        .toList();
+  }
+
+  /**
+   * Returns the stages of the given programs the current user can read.
+   *
+   * <p>Queries on the owning side rather than reading {@link Program#getProgramStages()}, whose
+   * lazy inverse collection can come back empty depending on the caller's Hibernate session.
+   * Callers bind the result into {@code ev.programstageid in (:programstageid)}, where an empty
+   * list matches no rows and silently drops every event.
+   */
+  @Transactional(readOnly = true)
+  public @Nonnull List<ProgramStage> getTrackerProgramStagesWithDataReadAccess(
+      @Nonnull List<Program> programs) {
+    UserDetails user = getCurrentUserDetails();
+
+    return programs.stream()
+        .map(programStageService::getProgramStagesByProgram)
+        .flatMap(List::stream)
+        .filter(ps -> aclService.canRead(user, ps) && aclService.canDataRead(user, ps))
+        .toList();
+  }
+}

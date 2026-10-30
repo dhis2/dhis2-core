@@ -36,14 +36,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @Autowired private PeriodStore periodStore;
 
   private String de;
   private String ou;
@@ -55,6 +58,7 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
     de = UID.generate().getValue();
     ou = UID.generate().getValue();
     ds = UID.generate().getValue();
+    periodStore.invalidateCache();
   }
 
   @Test
@@ -93,7 +97,6 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
 
   @Test
   @DisplayName("Complete data set allowed when compulsory elements are required and filled")
-  @Disabled("DHIS2-19679 fails on CDSR which I know is inconsistent/buggy ATM")
   void compulsoryDataElementOperandsFilledTest() {
     // given a data set with compulsory data element operands
     boolean compulsoryElementsAreRequired = true;

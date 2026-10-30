@@ -278,7 +278,11 @@
       "events": [],
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "notes": [],
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "wpVV2AvPM89"
+      }
     },
     {
       "enrollment": "TvctPPhpD8v",
@@ -300,7 +304,11 @@
       "events": [],
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "notes": [],
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "wpVV2AvPM89"
+      }
     }
   ],
   "events": [

@@ -35,6 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Lars Helge Overland
+ */
 class ColumnTest {
   @Test
   void testIsNotNull() {

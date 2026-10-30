@@ -47,7 +47,12 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.operators.MatchMode;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.jfree.data.time.Year;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -597,6 +602,71 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, objects.size());
   }
 
+  /**
+   * Tests filtering on embedded object paths like fromConstraint.trackedEntityType.id. These paths
+   * should use in-memory filtering since JPA navigation through embedded objects followed by
+   * relationships requires special handling.
+   */
+  @Test
+  void testFilterOnEmbeddedObjectPath() {
+    // Create TrackedEntityTypes
+    TrackedEntityType tetA = createTrackedEntityType('X');
+    TrackedEntityType tetB = createTrackedEntityType('Y');
+    identifiableObjectManager.save(tetA);
+    identifiableObjectManager.save(tetB);
+
+    // Create RelationshipType A with fromConstraint pointing to tetA
+    RelationshipType relTypeA = new RelationshipType();
+    relTypeA.setAutoFields();
+    relTypeA.setName("RelTypeA");
+    relTypeA.setFromToName("from_A");
+    relTypeA.setToFromName("to_A");
+    RelationshipConstraint fromConstraintA = new RelationshipConstraint();
+    fromConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    fromConstraintA.setTrackedEntityType(tetA);
+    fromConstraintA.setTrackerDataView(TrackerDataView.builder().build());
+    RelationshipConstraint toConstraintA = new RelationshipConstraint();
+    toConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    toConstraintA.setTrackerDataView(TrackerDataView.builder().build());
+    relTypeA.setFromConstraint(fromConstraintA);
+    relTypeA.setToConstraint(toConstraintA);
+    identifiableObjectManager.save(relTypeA);
+
+    // Create RelationshipType B with fromConstraint pointing to tetB
+    RelationshipType relTypeB = new RelationshipType();
+    relTypeB.setAutoFields();
+    relTypeB.setName("RelTypeB");
+    relTypeB.setFromToName("from_B");
+    relTypeB.setToFromName("to_B");
+    RelationshipConstraint fromConstraintB = new RelationshipConstraint();
+    fromConstraintB.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    fromConstraintB.setTrackedEntityType(tetB);
+    fromConstraintB.setTrackerDataView(TrackerDataView.builder().build());
+    RelationshipConstraint toConstraintB = new RelationshipConstraint();
+    toConstraintB.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    toConstraintB.setTrackerDataView(TrackerDataView.builder().build());
+    relTypeB.setFromConstraint(fromConstraintB);
+    relTypeB.setToConstraint(toConstraintB);
+    identifiableObjectManager.save(relTypeB);
+
+    // Query filtering by embedded object path: fromConstraint.trackedEntityType.id
+    Query<RelationshipType> query = Query.of(RelationshipType.class);
+    query.add(Filters.eq("fromConstraint.trackedEntityType.id", tetA.getUid()));
+    List<RelationshipType> results = queryService.query(query);
+
+    // Should find only relTypeA
+    assertEquals(1, results.size());
+    assertEquals(relTypeA.getUid(), results.get(0).getUid());
+
+    // Also test filtering by embedded object's simple property: fromConstraint.relationshipEntity
+    Query<RelationshipType> query2 = Query.of(RelationshipType.class);
+    query2.add(Filters.eq("fromConstraint.relationshipEntity", "TRACKED_ENTITY_INSTANCE"));
+    List<RelationshipType> results2 = queryService.query(query2);
+
+    // Should find both relationship types
+    assertEquals(2, results2.size());
+  }
+
   @Test
   void testDefaultSortOrder() {
     Date date = new Date();
@@ -625,6 +695,212 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals("aaaaaaaaaaa", objects.get(0).getUid());
     assertEquals("bbbbbbbbbbb", objects.get(1).getUid());
     assertEquals("ccccccccccc", objects.get(2).getUid());
+  }
+
+  // -------------------------------------------------------------------------
+  // Tests for multiple nested/aliased path filters
+  // These tests verify that multiple filters on many-to-one relationships
+  // work correctly with the database-level filtering optimization.
+  // -------------------------------------------------------------------------
+
+  /**
+   * Tests multiple filters on DIFFERENT many-to-one paths with AND junction. This tests the
+   * scenario: filter=parent.id:eq:X&filter=createdBy.id:eq:Y
+   */
+  @Test
+  void testMultipleFiltersOnDifferentManyToOnePaths() {
+    // Create org unit hierarchy: root -> child1, child2
+    OrganisationUnit root = createOrganisationUnit("Root");
+    root.setUid("rootrootrou");
+    identifiableObjectManager.save(root);
+
+    OrganisationUnit child1 = createOrganisationUnit("Child1");
+    child1.setUid("child1child");
+    child1.setParent(root);
+    identifiableObjectManager.save(child1);
+
+    OrganisationUnit child2 = createOrganisationUnit("Child2");
+    child2.setUid("child2child");
+    child2.setParent(root);
+    identifiableObjectManager.save(child2);
+
+    // Test: Filter by parent.id - should find both children
+    Query<OrganisationUnit> query1 = Query.of(OrganisationUnit.class);
+    query1.add(Filters.eq("parent.id", "rootrootrou"));
+    List<OrganisationUnit> results1 = queryService.query(query1);
+    assertEquals(2, results1.size());
+
+    // Test: Filter by parent.name - should find both children
+    Query<OrganisationUnit> query2 = Query.of(OrganisationUnit.class);
+    query2.add(Filters.eq("parent.name", "Root"));
+    List<OrganisationUnit> results2 = queryService.query(query2);
+    assertEquals(2, results2.size());
+  }
+
+  /**
+   * Tests multiple filters on the SAME many-to-one path with AND junction. This tests the scenario:
+   * filter=parent.id:eq:X&filter=parent.name:like:Y Both conditions must apply to the same parent
+   * entity.
+   */
+  @Test
+  void testMultipleFiltersOnSameManyToOnePath() {
+    // Create org unit hierarchy
+    OrganisationUnit parent1 = createOrganisationUnit("ParentAlpha");
+    parent1.setUid("parentalpha");
+    identifiableObjectManager.save(parent1);
+
+    OrganisationUnit parent2 = createOrganisationUnit("ParentBeta");
+    parent2.setUid("parentbeta1");
+    identifiableObjectManager.save(parent2);
+
+    OrganisationUnit child1 = createOrganisationUnit("ChildOfAlpha");
+    child1.setUid("childofalph");
+    child1.setParent(parent1);
+    identifiableObjectManager.save(child1);
+
+    OrganisationUnit child2 = createOrganisationUnit("ChildOfBeta");
+    child2.setUid("childofbeta");
+    child2.setParent(parent2);
+    identifiableObjectManager.save(child2);
+
+    // Test: Filter by parent.id AND parent.name matching the same parent
+    // Should find only child1
+    Query<OrganisationUnit> query1 = Query.of(OrganisationUnit.class);
+    query1.add(Filters.eq("parent.id", "parentalpha"));
+    query1.add(Filters.like("parent.name", "Alpha", MatchMode.ANYWHERE));
+    List<OrganisationUnit> results1 = queryService.query(query1);
+    assertEquals(1, results1.size());
+    assertEquals("childofalph", results1.get(0).getUid());
+
+    // Test: Filter by parent.id but with non-matching parent.name
+    // Should find nothing (both conditions must match the same parent)
+    Query<OrganisationUnit> query2 = Query.of(OrganisationUnit.class);
+    query2.add(Filters.eq("parent.id", "parentalpha"));
+    query2.add(Filters.like("parent.name", "Beta", MatchMode.ANYWHERE));
+    List<OrganisationUnit> results2 = queryService.query(query2);
+    assertEquals(0, results2.size());
+  }
+
+  /**
+   * Tests multiple filters on different many-to-one paths with OR junction. This tests the
+   * scenario: filter=parent.id:eq:X&rootJunction=OR&filter=name:eq:Y With OR junction and mixed
+   * DB/in-memory filters, all should go to in-memory.
+   */
+  @Test
+  void testMultipleManyToOneFiltersWithOrJunction() {
+    // Create org unit hierarchy
+    OrganisationUnit parent = createOrganisationUnit("ParentOU");
+    parent.setUid("parentoupar");
+    identifiableObjectManager.save(parent);
+
+    OrganisationUnit child1 = createOrganisationUnit("MatchingChild");
+    child1.setUid("matchingchi");
+    child1.setParent(parent);
+    identifiableObjectManager.save(child1);
+
+    OrganisationUnit child2 = createOrganisationUnit("OtherChild");
+    child2.setUid("otherchild1");
+    child2.setParent(parent);
+    identifiableObjectManager.save(child2);
+
+    // Create standalone with same name but different code to avoid unique constraint violation
+    OrganisationUnit standalone = createOrganisationUnit("StandaloneOU");
+    standalone.setUid("standalone1");
+    standalone.setName("MatchingChild"); // Set name to match the filter
+    identifiableObjectManager.save(standalone);
+
+    // Test: Filter by parent.id OR name - should find children of parent AND standalone
+    Query<OrganisationUnit> query = Query.of(OrganisationUnit.class, Junction.Type.OR);
+    query.add(Filters.eq("parent.id", "parentoupar"));
+    query.add(Filters.eq("name", "MatchingChild"));
+    List<OrganisationUnit> results = queryService.query(query);
+    // Should find: child1 (matches parent.id), child2 (matches parent.id), standalone (matches
+    // name)
+    assertEquals(2, results.size());
+  }
+
+  /**
+   * Tests deep nested path filter (parent.parent.id - grandparent). This verifies that multi-level
+   * navigation works correctly.
+   */
+  @Test
+  void testDeepNestedPathFilter() {
+    // Create 3-level hierarchy: grandparent -> parent -> child
+    OrganisationUnit grandparent = createOrganisationUnit("Grandparent");
+    grandparent.setUid("grandparent");
+    identifiableObjectManager.save(grandparent);
+
+    OrganisationUnit parent = createOrganisationUnit("ParentLevel");
+    parent.setUid("parentlevel");
+    parent.setParent(grandparent);
+    identifiableObjectManager.save(parent);
+
+    OrganisationUnit child = createOrganisationUnit("ChildLevel");
+    child.setUid("childlevel1");
+    child.setParent(parent);
+    identifiableObjectManager.save(child);
+
+    // Another branch: grandparent2 -> parent2 -> child2
+    OrganisationUnit grandparent2 = createOrganisationUnit("Grandparent2");
+    grandparent2.setUid("grandparen2");
+    identifiableObjectManager.save(grandparent2);
+
+    OrganisationUnit parent2 = createOrganisationUnit("ParentLevel2");
+    parent2.setUid("parentleve2");
+    parent2.setParent(grandparent2);
+    identifiableObjectManager.save(parent2);
+
+    OrganisationUnit child2 = createOrganisationUnit("ChildLevel2");
+    child2.setUid("childlevel2");
+    child2.setParent(parent2);
+    identifiableObjectManager.save(child2);
+
+    // Test: Filter by parent.parent.id (grandparent)
+    // Note: This is a 2-level deep navigation
+    Query<OrganisationUnit> query = Query.of(OrganisationUnit.class);
+    query.add(Filters.eq("parent.parent.id", "grandparent"));
+    List<OrganisationUnit> results = queryService.query(query);
+
+    // Should find only child (whose grandparent is "grandparent")
+    assertEquals(1, results.size());
+    assertEquals("childlevel1", results.get(0).getUid());
+  }
+
+  /**
+   * Tests mixing simple property filter with nested many-to-one filter. This tests the scenario:
+   * filter=id:eq:X&filter=parent.id:eq:Y
+   */
+  @Test
+  void testMixingSimpleAndNestedFilters() {
+    // Create org unit hierarchy
+    OrganisationUnit parent = createOrganisationUnit("SimpleParent");
+    parent.setUid("simpleparnt");
+    identifiableObjectManager.save(parent);
+
+    OrganisationUnit targetChild = createOrganisationUnit("TargetChild");
+    targetChild.setUid("targetchild");
+    targetChild.setParent(parent);
+    identifiableObjectManager.save(targetChild);
+
+    OrganisationUnit otherChild = createOrganisationUnit("OtherChild");
+    otherChild.setUid("otherchild2");
+    otherChild.setParent(parent);
+    identifiableObjectManager.save(otherChild);
+
+    // Test: Filter by id AND parent.id - should find exactly one
+    Query<OrganisationUnit> query = Query.of(OrganisationUnit.class);
+    query.add(Filters.eq("id", "targetchild"));
+    query.add(Filters.eq("parent.id", "simpleparnt"));
+    List<OrganisationUnit> results = queryService.query(query);
+    assertEquals(1, results.size());
+    assertEquals("targetchild", results.get(0).getUid());
+
+    // Test: Filter by id with wrong parent.id - should find nothing
+    Query<OrganisationUnit> query2 = Query.of(OrganisationUnit.class);
+    query2.add(Filters.eq("id", "targetchild"));
+    query2.add(Filters.eq("parent.id", "wrongparent"));
+    List<OrganisationUnit> results2 = queryService.query(query2);
+    assertEquals(0, results2.size());
   }
 
   private boolean collectionContainsUid(

@@ -32,6 +32,11 @@ package org.hisp.dhis.period;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.translation.Translation;
 
 /**
  * @author Kristian Nordal
@@ -43,13 +48,6 @@ public interface PeriodService {
    * @param period the Period to add.
    */
   void addPeriod(Period period);
-
-  /**
-   * Deletes a Period.
-   *
-   * @param period the Period to delete.
-   */
-  void deletePeriod(Period period);
 
   /**
    * Returns a Period.
@@ -194,7 +192,10 @@ public interface PeriodService {
    *
    * @param name the name of the PeriodType to return.
    * @return the PeriodType with the given name, or null if no match.
+   * @deprecated replace with static PeriodType.getPeriodTypeByName in another PR (applies to other
+   *     similar methods as well)
    */
+  @Deprecated(forRemoval = true)
   PeriodType getPeriodTypeByName(String name);
 
   /**
@@ -223,4 +224,59 @@ public interface PeriodService {
   default PeriodType getPeriodType(PeriodTypeEnum periodType) {
     return getPeriodTypeByName(periodType.getName());
   }
+
+  /**
+   * @param locale for display labels (falls back to user's DB locale when null)
+   * @return all period types with they display properties resolved for the current user
+   * @since 2.44
+   */
+  PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale);
+
+  PeriodTypes getDataOutputPeriodTypes(@CheckForNull Locale locale);
+
+  /**
+   * Updates the label of the given period type name.
+   *
+   * @param name the {@link PeriodType}'s name.
+   * @param label the new label, null or empty to erase
+   * @param locale when null label is the override for the name not associated with a locale,
+   *     otherwise it is a translation for the given locale
+   */
+  boolean updatePeriodTypeLabel(
+      @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale)
+      throws ConflictException;
+
+  /**
+   * Replaces the period type's translation labels with the given ones
+   *
+   * @param name of the type (key)
+   * @param translations labels in different languages
+   * @return true, if a change occurred, false if no row was affected
+   */
+  boolean updatePeriodTypeLabel(
+      @Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations)
+      throws ConflictException;
+
+  /**
+   * Updates the label of the given relative period.
+   *
+   * @param name the {@link RelativePeriodEnum}'s name.
+   * @param label the new label, null or empty to erase
+   * @param locale when null label is the override for the name not associated with a locale,
+   *     otherwise it is a translation for the given locale
+   */
+  boolean updateRelativePeriodLabel(
+      @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale)
+      throws ConflictException;
+
+  /**
+   * Replaces the relative period's translation labels with the given ones
+   *
+   * @param name of the type (key)
+   * @param translations labels in different languages
+   * @return true, if a change occurred, false if no row was affected
+   */
+  boolean updateRelativePeriodLabel(
+      @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations)
+      throws ConflictException;
 }

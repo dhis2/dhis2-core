@@ -43,6 +43,8 @@ import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.predictor.PredictionService;
@@ -84,7 +86,10 @@ public class PredictorController extends AbstractCrudController<Predictor, GetOb
   @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
   @ResponseBody
   public WebMessage runPredictor(
-      @PathVariable("uid") String uid, @RequestParam Date startDate, @RequestParam Date endDate) {
+      @PathVariable("uid") String uid, @RequestParam Date startDate, @RequestParam Date endDate)
+      throws ConflictException {
+    if (startDate.after(endDate)) throw new ConflictException(ErrorCode.E7206, startDate, endDate);
+
     Predictor predictor = predictorService.getPredictor(uid);
 
     try {
@@ -105,7 +110,10 @@ public class PredictorController extends AbstractCrudController<Predictor, GetOb
       method = {RequestMethod.POST, RequestMethod.PUT})
   @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
   @ResponseBody
-  public WebMessage runPredictors(@RequestParam Date startDate, @RequestParam Date endDate) {
+  public WebMessage runPredictors(@RequestParam Date startDate, @RequestParam Date endDate)
+      throws ConflictException {
+    if (startDate.after(endDate)) throw new ConflictException(ErrorCode.E7206, startDate, endDate);
+
     int count = 0;
 
     List<Predictor> allPredictors = predictorService.getAllPredictors();

@@ -40,10 +40,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ValidationCode {
   /* General */
-  E1000("User: `{0}` has no write access to OrganisationUnit: `{1}`."),
+  E1000("User: `{0}` has no capture scope access to OrganisationUnit: `{1}`."),
   E1001("User: `{0}` has no data write access to TrackedEntityType: `{1}`."),
   E1002("TrackedEntity: `{0}`, already exists."),
-  E1003("User: `{0}` has no write access to TrackedEntity: `{1}`."),
+  E1004(
+      "File resource: `{0}` must be an unassigned file resource of domain DATA_VALUE uploaded by the importing user."),
   E1005("Could not find TrackedEntityType: `{0}`."),
   E1006("Attribute: `{0}` does not exist."),
   E1007("Error validating attribute value type: `{0}`; Error: `{1}`."),
@@ -70,13 +71,15 @@ public enum ValidationCode {
   E1029("Event OrganisationUnit: `{0}` and Program: `{1}`, do not match."),
   E1030("Event: `{0}` already exists."),
   E1031("Event occurredAt date is missing."),
-  E1032("Event: `{0}` do not exist."),
-  E1033("Event: `{0}` Enrollment value is null."),
+  E1032("Event: `{0}` does not exist."),
+  E1033("Event: `{0}`, Enrollment value is null."),
   E1039("ProgramStage: `{0}` is not repeatable and an Event already exists."),
   E1041("Enrollment OrganisationUnit: `{0}` and Program: `{1}` do not match."),
-  E1043("Event: `{0}` completeness date has expired, not allowed to make changes to this Event."),
+  E1043(
+      "Event: `{0}` completeness date has expired, not possible to create, edit or delete Event."),
   E1046("Event: `{0}` needs to have at least one Event or schedule date."),
-  E1047("Event: `{0}` date belongs to an expired period, not possible to create Event."),
+  E1047(
+      "Event: `{0}` date belongs to an expired period, not possible to create, edit or delete Event."),
   E1049("Could not find OrganisationUnit: `{0}` linked to TrackedEntity."),
   E1050("Event ScheduledAt date is missing."),
   E1051("Event: `{0}` completedAt must be null when status is `{1}`."),
@@ -85,6 +88,9 @@ public enum ValidationCode {
   E1055("Default AttributeOptionCombo is not allowed as Program has non-default CategoryCombo."),
   E1056("Event date: `{0}` is before start date: `{1}` for AttributeOption: `{2}`."),
   E1057("Event date: `{0}` is after end date: `{1}` for AttributeOption: `{2}` in Program: `{3}`."),
+  E1058("Enrollment date: `{0}` is before start date: `{1}` for AttributeOption: `{2}`."),
+  E1059(
+      "Enrollment date: `{0}` is after end date: `{1}` for AttributeOption: `{2}` in Program: `{3}`."),
   E1063("TrackedEntity: `{0}`, does not exist."),
   E1064("Non-unique attribute value `{0}` for attribute `{1}`."),
   E1068("Could not find TrackedEntity: `{0}` linked to Enrollment."),
@@ -98,19 +104,21 @@ public enum ValidationCode {
   E1080("Enrollment: `{0}` already exists."),
   E1081("Enrollment: `{0}` do not exist."),
   E1082("Event: `{0}` is already deleted and cannot be modified."),
-  E1083("User: `{0}` is not authorized to update completed Events."),
+  E1083("User: `{0}` is not authorized to uncomplete events."),
   E1089("Event: `{0}` references ProgramStage `{1}` which do not belong to Program `{2}`."),
   E1090(
       "Attribute: `{0}` is mandatory in TrackedEntityType `{1}` but not found in TrackedEntity `{2}`."),
   E1091("User: `{0}` has no data write access to Program: `{1}`."),
   E1095("User: `{0}` has no data write access to ProgramStage: `{1}`."),
   E1096("User: `{0}` has no data read access to Program: `{1}`."),
+  E1097("User: `{0}` has no data read access to ProgramStage: `{1}`."),
+  E1098("User: `{0}` has no read access to CategoryOption: `{1}`."),
   E1099("User: `{0}` has no write access to CategoryOption: `{1}`."),
   E1100("User: `{0}` lacks 'F_TEI_CASCADE_DELETE' authority to delete TrackedEntity: `{1}`."),
   E1102("User: `{0}` does not have access to the TrackedEntity: `{1}` and Program: `{2}`."),
   E1103("User: `{0}` lacks 'F_ENROLLMENT_CASCADE_DELETE' authority to delete Enrollment : `{1}`."),
   E1104("User: `{0}` has no data read access to Program: `{1}`, TrackedEntityType: `{2}`."),
-  E1112("AttributeValue: `{0}` is confidential but encryption is not enabled: `{1}`"),
+  E1105("User: `{0}` has no search scope access to OrganisationUnit: `{1}`."),
   E1113("Enrollment: `{0}` is already deleted and cannot be modified."),
   E1114("TrackedEntity: `{0}` is already deleted and cannot be modified."),
   E1115("Could not find CategoryOptionCombo: `{0}`."),
@@ -127,6 +135,9 @@ public enum ValidationCode {
   E1126("Not allowed to update trackedEntity property: {0}."),
   E1127("Not allowed to update enrollment property: {0}."),
   E1128("Not allowed to update event property: {0}."),
+  E1129("CategoryOptionCombo not found for CategoryCombo `{0}`."),
+  E1130("AttributeOptionCombo `{0}` is not in the program enrollment CategoryCombo `{1}`."),
+  E1131("User: `{0}` has no data read access to TrackedEntityType: `{1}`."),
   E1300("Generated by ProgramRule (`{0}`) - `{1}`."),
   E1301("Generated by ProgramRule (`{0}`) - Mandatory DataElement `{1}` is not present."),
   E1302("DataElement `{0}` is not valid: `{1}`."),
@@ -148,12 +159,17 @@ public enum ValidationCode {
   E1316("Event cannot transition from status `{0}` to status `{1}`."),
   E1317("Generated by ProgramRule (`{0}`) - Attribute `{1}` is mandatory and cannot be deleted."),
   E1318("Status `{0}` is not applicable for single events."),
-  E1319("Generated by program rule (`{0}`) - Date `{1}` is not valid"),
+  E1319("Generated by program rule (`{0}`) - Date `{1}` is not valid."),
   E1320("Generated by program rule (`{0}`) - Event (`{1}`) was automatically scheduled at `{2}`."),
   E1321(
       "Generated by program rule (`{0}`) - User (`{1}`) does not have write access to ProgramStage `{2}`, where an event was auto-scheduled using SCHEDULEEVENT rule action."),
   E1322(
       "Generated by program rule (`{0}`) - Event for programStage (`{1}`) and enrollment (`{2}`) already exists"),
+  E1323("User: `{0}` has no write access to any program."),
+  E1324("User `{0}` has no ownership access to any program for the provided TrackedEntity: `{1}`."),
+  E1325("User: `{0}` has no read access to any program."),
+  E1326(
+      "Event `{0}` is completed and its ProgramStage blocks the entry form after completion. Reopen the Event before updating."),
 
   /* Relationship */
   E4000("Relationship: `{0}` cannot link to itself."),
@@ -164,10 +180,11 @@ public enum ValidationCode {
   E4012("Could not find `{0}`: `{1}`, linked to relationship."),
   E4014("RelationshipType `{0}` constraint requires TrackedEntityType `{1}` but `{2}` was found."),
   E4015("Relationship: `{0}` already exists."),
-  E4016("Relationship: `{0}` do not exist."),
+  E4016("Relationship: `{0}` does not exist."),
   E4017("Relationship: `{0}` is already deleted and cannot be modified."),
   E4018("Relationship: `{0}` linking {1}: `{2}` to {3}: `{4}` already exists."),
-  E4020("User: `{0}` has no write access to relationship: `{1}`."),
+  E4019("User: `{0}` has no data read access to RelationshipType: `{1}`."),
+  E4020("User: `{0}` has no data write access to RelationshipType: `{1}`."),
   E5000("{0} `{1}` cannot be created because {2} `{3}` referenced by it could not be created."),
   E9999("N/A.");
 

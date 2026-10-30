@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
@@ -47,12 +48,15 @@ import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
+import org.hisp.dhis.common.DimensionConstants;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.stereotype.Service;
 
@@ -65,6 +69,8 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
   private final QueryPlanner queryPlanner;
 
   private final PartitionManager partitionManager;
+
+  private final FirstOrLastStagePeriodPlanner firstOrLastStagePeriodPlanner;
 
   // -------------------------------------------------------------------------
   // EventQueryPlanner implementation
@@ -80,6 +86,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             .add(this::groupByOrgUnitLevel)
             .add(this::groupByPeriodType)
             .add(this::groupByPeriod)
+            .add(firstOrLastStagePeriodPlanner::plan)
             .build();
 
     for (Function<EventQueryParams, List<EventQueryParams>> grouper : groupers) {
@@ -132,10 +139,22 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
       partitionManager.filterNonExistingPartitions(partitions, tableName);
     }
 
-    return new EventQueryParams.Builder(params)
-        .withTableName(tableName)
-        .withPartitions(partitions)
-        .build();
+    EventQueryParams.Builder builder =
+        new EventQueryParams.Builder(params).withTableName(tableName).withPartitions(partitions);
+
+    boolean hasEventDateItem =
+        params.getItems().stream()
+            .anyMatch(
+                item ->
+                    EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId())
+                        || EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME.equals(
+                            item.getItemId()));
+
+    if (hasEventDateItem) {
+      builder.withSkipPartitioning(true);
+    }
+
+    return builder.build();
   }
 
   /**
@@ -187,7 +206,27 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
    * @return a list of {@link EventQueryParams}.
    */
   private List<EventQueryParams> groupByPeriodType(EventQueryParams params) {
+    if (hasMixedDateFields(params)) {
+      return List.of(params);
+    }
     return QueryPlannerUtils.convert(queryPlanner.groupByPeriodType(params));
+  }
+
+  private boolean hasMixedDateFields(EventQueryParams params) {
+    DimensionalObject periodDimension = params.getDimension(DimensionConstants.PERIOD_DIM_ID);
+    if (periodDimension == null) {
+      return false;
+    }
+
+    long distinctNonDefaultDateFields =
+        periodDimension.getItems().stream()
+            .filter(PeriodDimension.class::isInstance)
+            .map(PeriodDimension.class::cast)
+            .map(PeriodDimension::getDateField)
+            .filter(Objects::nonNull)
+            .distinct()
+            .count();
+    return distinctNonDefaultDateFields > 1;
   }
 
   /**
@@ -271,12 +310,14 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
   private List<EventQueryParams> groupByPeriod(EventQueryParams params) {
     List<EventQueryParams> queries = new ArrayList<>();
 
-    if ((params.isFirstOrLastPeriodAggregationType()
-            || params.getOrgUnitField().getType().isOwnership()
-            || params.useIndividualQuery())
-        && !params.getPeriods().isEmpty()) {
+    boolean isFirstOrLast = params.isFirstOrLastPeriodAggregationType();
+    boolean isOwnership = params.getOrgUnitField().getType().isOwnership();
+    boolean useIndividual = params.useIndividualQuery();
+    boolean hasPeriods = !params.getPeriods().isEmpty();
+
+    if ((isFirstOrLast || isOwnership || useIndividual) && hasPeriods) {
       for (DimensionalItemObject period : params.getPeriods()) {
-        String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
+        String periodType = ((PeriodDimension) period).getPeriodType().getName().toLowerCase();
 
         EventQueryParams query =
             new EventQueryParams.Builder(params)

@@ -1,0 +1,293 @@
+/*
+ * Copyright (c) 2004-2024, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.webapi.staticresource;
+
+import jakarta.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.CheckForNull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppCacheConfig;
+import org.hisp.dhis.appmanager.AppCacheConfig.CacheRule;
+import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.common.HashUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.system.SystemService;
+import org.springframework.http.CacheControl;
+import org.springframework.stereotype.Service;
+import org.springframework.util.AntPathMatcher;
+
+/**
+ * Central service for computing and setting {@code Cache-Control} headers on all static resources
+ * served by DHIS2 (apps, core JAR resources, logos). Every static-serving code path must delegate
+ * to this service instead of setting headers directly.
+ */
+@Service
+@RequiredArgsConstructor
+public class StaticCacheControlService {
+
+  private static final AntPathMatcher ANT = new AntPathMatcher();
+  private static final Pattern WEBPACK_HASH = Pattern.compile("\\.[0-9a-f]{8,}\\.");
+
+  private static final Pattern VITE_HASH =
+      Pattern.compile("[-_]([a-zA-Z0-9_-]{7,12})\\.[a-z0-9]{2,5}$");
+
+  private static final Pattern DIMENSIONS_TOKEN = Pattern.compile("\\d+x\\d+");
+
+  private final DhisConfigurationProvider config;
+  private final AppManager appManager;
+  private final SystemService systemService;
+  private final StaticCacheMetrics metrics;
+
+  /**
+   * Sets appropriate {@code Cache-Control} headers on the response for the given static resource
+   * URI.
+   *
+   * @param response the HTTP response
+   * @param requestUri the request URI (e.g. {@code /apps/dashboard/main.abc123.js})
+   * @param queryString the raw query string (without leading {@code ?}), or {@code null}
+   * @param appKey the app key if the resource belongs to an app, or {@code null} for core resources
+   */
+  public void setHeaders(
+      HttpServletResponse response,
+      String requestUri,
+      @CheckForNull String queryString,
+      @CheckForNull String appKey) {
+    if (!isCacheEnabled() || isDevModeForceNoCache()) {
+      response.setHeader("Cache-Control", CacheControl.noStore().getHeaderValue());
+      metrics.countRequest(StaticCacheMetrics.POLICY_NO_STORE);
+      return;
+    }
+
+    AppCacheConfig appConfig = resolveAppConfig(appKey);
+    CacheControl cc = computeCacheControl(requestUri, queryString, appConfig);
+    String headerValue = cc.getHeaderValue();
+    response.setHeader("Cache-Control", headerValue);
+    metrics.countRequest(classifyPolicy(headerValue));
+  }
+
+  /** Maps a Cache-Control header value to the policy tag used by {@link StaticCacheMetrics}. */
+  private static String classifyPolicy(@CheckForNull String headerValue) {
+    if (headerValue == null) return StaticCacheMetrics.POLICY_DEFAULT;
+    if (headerValue.contains("no-store")) return StaticCacheMetrics.POLICY_NO_STORE;
+    if (headerValue.contains("immutable")) return StaticCacheMetrics.POLICY_IMMUTABLE;
+    if (headerValue.contains("must-revalidate")) return StaticCacheMetrics.POLICY_MUST_REVALIDATE;
+    return StaticCacheMetrics.POLICY_DEFAULT;
+  }
+
+  /**
+   * Generates an ETag suitable for cache busting on upgrades. Uses the app's cache-bust key (which
+   * incorporates the app version) and the DHIS2 server version so that any app update or
+   * patch/release automatically invalidates browser caches. Does not require resource I/O, so this
+   * can be called before loading the resource to support early 304 responses. The request URI is
+   * part of the hashed source so tags are unique per resource.
+   */
+  public String generateETag(@CheckForNull App app, String uri, @CheckForNull String queryString) {
+    String appPart =
+        app != null && app.getCacheBustKey() != null
+            ? app.getCacheBustKey()
+            : (app != null && app.getVersion() != null ? app.getVersion() : "no-app");
+    AppCacheConfig cfg = app != null ? app.getCacheConfig() : null;
+    String suffix = isImmutable(uri, queryString, cfg) ? "-immutable" : "";
+    String source = appPart + "-" + getDhis2Version() + "-" + uri + suffix;
+    return HashUtils.hashMD5(source.getBytes(StandardCharsets.UTF_8));
+  }
+
+  private CacheControl computeCacheControl(
+      String uri, @CheckForNull String queryString, AppCacheConfig config) {
+    // Directory URLs serve the index.html entry point, normalize so the same cache rules
+    // apply to both forms of the URL (DHIS2-21881)
+    if (uri.endsWith("/")) {
+      uri = uri + "index.html";
+    }
+    if (matchesAnyNoCachePattern(uri) || matchesNoCacheRule(uri, config)) {
+      return CacheControl.noStore();
+    }
+
+    if (isImmutable(uri, queryString, config)) {
+      long immutableSeconds = getImmutableMaxAgeSeconds();
+      return CacheControl.maxAge(immutableSeconds, TimeUnit.SECONDS).cachePublic().immutable();
+    }
+
+    Duration maxAge = resolveMaxAge(uri, config);
+    CacheControl cc = CacheControl.maxAge(maxAge.getSeconds(), TimeUnit.SECONDS).cachePublic();
+    if (shouldMustRevalidate(uri, config)) {
+      cc = cc.mustRevalidate();
+    }
+    return cc;
+  }
+
+  private AppCacheConfig resolveAppConfig(@CheckForNull String appKey) {
+    if (appKey == null) return null;
+    App app = appManager.getApp(appKey);
+    return app != null ? app.getCacheConfig() : null;
+  }
+
+  private boolean matchesAnyNoCachePattern(String uri) {
+    String patterns = config.getProperty(ConfigurationKey.STATIC_CACHE_ALWAYS_NO_CACHE_PATTERNS);
+    if (patterns == null || patterns.isBlank()) return false;
+    for (String pattern : patterns.split(",")) {
+      String trimmed = pattern.trim();
+      if (!trimmed.isEmpty() && matchesPattern(trimmed, uri)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean matchesNoCacheRule(String uri, @CheckForNull AppCacheConfig config) {
+    if (config == null) return false;
+    return config.getRules().stream()
+        .anyMatch(
+            r ->
+                r.getMaxAgeSeconds() != null
+                    && r.getMaxAgeSeconds() == 0
+                    && matchesPattern(r.getPattern(), uri));
+  }
+
+  private boolean isImmutable(
+      String uri, @CheckForNull String queryString, @CheckForNull AppCacheConfig config) {
+    if (config != null) {
+      boolean ruleMatch =
+          config.getRules().stream()
+              .anyMatch(
+                  r ->
+                      Boolean.TRUE.equals(r.getImmutable()) && matchesPattern(r.getPattern(), uri));
+      if (ruleMatch) return true;
+    }
+    if (hasCacheBustParam(queryString)) return true;
+    return looksLikeHashedFilename(uri);
+  }
+
+  private static boolean hasCacheBustParam(@CheckForNull String queryString) {
+    if (queryString == null || queryString.isEmpty()) return false;
+    return queryString.startsWith("v=") || queryString.contains("&v=");
+  }
+
+  private Duration resolveMaxAge(String uri, @CheckForNull AppCacheConfig config) {
+    if (config != null) {
+      List<CacheRule> rules = config.getRules();
+      for (CacheRule rule : rules) {
+        if (rule.getMaxAgeSeconds() != null && matchesPattern(rule.getPattern(), uri)) {
+          return Duration.ofSeconds(rule.getMaxAgeSeconds());
+        }
+      }
+      if (config.getDefaultMaxAgeSeconds() != null) {
+        return Duration.ofSeconds(config.getDefaultMaxAgeSeconds());
+      }
+    }
+    if (isHtmlPath(uri)) {
+      return Duration.ofSeconds(getHtmlMaxAgeSeconds());
+    }
+    return Duration.ofSeconds(getDefaultMaxAgeSeconds());
+  }
+
+  private boolean shouldMustRevalidate(String uri, @CheckForNull AppCacheConfig config) {
+    if (isHtmlPath(uri)) return true;
+    if (config == null) return false;
+    return config.getRules().stream()
+        .anyMatch(
+            r -> Boolean.TRUE.equals(r.getMustRevalidate()) && matchesPattern(r.getPattern(), uri));
+  }
+
+  /**
+   * Matches an Ant-style glob against a request URI. Handles the common case where glob patterns
+   * (e.g. {@code ** /*.html}) lack a leading {@code /} but request URIs always start with one.
+   */
+  private static boolean matchesPattern(String pattern, String uri) {
+    if (ANT.match(pattern, uri)) return true;
+    if (uri.startsWith("/")) return ANT.match(pattern, uri.substring(1));
+    return false;
+  }
+
+  /**
+   * Detects hashed filenames produced by common bundlers. Webpack uses dot-separated lowercase hex
+   * ({@code main.abc12345.js}). Vite/Rollup uses dash-separated base64url ({@code
+   * main-Dhu2pmiS.js}, {@code main-zwggxcug.js}).
+   */
+  static boolean looksLikeHashedFilename(String uri) {
+    if (WEBPACK_HASH.matcher(uri).find()) return true;
+    Matcher matcher = VITE_HASH.matcher(uri);
+    return matcher.find() && !isFalsePositiveHashToken(matcher.group(1));
+  }
+
+  /**
+   * Filters out common unhashed filename patterns that happen to fit the Vite hash shape, such as
+   * PWA icon names like {@code apple-touch-icon.png} (lowercase word chains) and {@code
+   * mstile-150x150.png} (pixel dimensions). See DHIS2-21879.
+   */
+  private static boolean isFalsePositiveHashToken(String token) {
+    if (DIMENSIONS_TOKEN.matcher(token).matches()) return true;
+    boolean hasSeparator = token.indexOf('-') >= 0 || token.indexOf('_') >= 0;
+    if (!hasSeparator) return false;
+    for (int i = 0; i < token.length(); i++) {
+      char c = token.charAt(i);
+      if (Character.isDigit(c) || Character.isUpperCase(c)) return false;
+    }
+    return true;
+  }
+
+  private boolean isHtmlPath(String uri) {
+    return uri.endsWith(".html") || uri.endsWith("/");
+  }
+
+  private boolean isCacheEnabled() {
+    return config.isEnabled(ConfigurationKey.STATIC_CACHE_ENABLED);
+  }
+
+  private boolean isDevModeForceNoCache() {
+    return config.isEnabled(ConfigurationKey.STATIC_CACHE_DEV_MODE_FORCE_NO_CACHE);
+  }
+
+  private long getDefaultMaxAgeSeconds() {
+    return Long.parseLong(
+        config.getProperty(ConfigurationKey.STATIC_CACHE_DEFAULT_MAX_AGE_SECONDS));
+  }
+
+  private long getHtmlMaxAgeSeconds() {
+    return Long.parseLong(config.getProperty(ConfigurationKey.STATIC_CACHE_HTML_MAX_AGE_SECONDS));
+  }
+
+  private long getImmutableMaxAgeSeconds() {
+    return Long.parseLong(
+        config.getProperty(ConfigurationKey.STATIC_CACHE_IMMUTABLE_MAX_AGE_SECONDS));
+  }
+
+  private String getDhis2Version() {
+    String version = systemService.getSystemInfoVersion();
+    return version != null ? version : "unknown";
+  }
+}

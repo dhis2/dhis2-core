@@ -43,12 +43,12 @@ public interface DataSynchronizationWithoutPaging {
 
     private final Date skipChangedBefore;
 
-    private final int objectsToSynchronize;
+    private final long objectsToSynchronize;
 
     private final SystemInstance instance;
 
     public DataSynchronizationContext(
-        Date skipChangedBefore, int objectsToSynchronize, SystemInstance instance) {
+        Date skipChangedBefore, long objectsToSynchronize, SystemInstance instance) {
       this.startTime = new Date();
       this.skipChangedBefore = skipChangedBefore;
       this.objectsToSynchronize = objectsToSynchronize;

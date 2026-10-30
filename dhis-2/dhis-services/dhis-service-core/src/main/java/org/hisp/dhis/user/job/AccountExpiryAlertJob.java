@@ -37,7 +37,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SystemSettings;
@@ -72,7 +72,7 @@ public class AccountExpiryAlertJob implements Job {
   private final SystemSettingsProvider settingsProvider;
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     if (!settings.getAccountExpiryAlert()) {
       log.info(format("%s aborted. Expiry alerts are disabled", getJobType().name()));

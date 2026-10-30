@@ -31,21 +31,21 @@ section: Option sets
 section_order: 2
 summary_sql: >-
     WITH options_sets_unused as (
-    SELECT DISTINCT uid,name FROM optionset where optionsetid NOT IN (
-    SELECT DISTINCT optionsetid from attribute where optionsetid IS NOT NULL UNION
-    SELECT DISTINCT optionsetid from dataelement where optionsetid IS NOT NULL UNION
-    SELECT DISTINCT commentoptionsetid from dataelement where commentoptionsetid IS NOT NULL UNION
-    SELECT DISTINCT optionsetid FROM trackedentityattribute WHERE optionsetid IS NOT NULL
-    ))
+    SELECT uid,name FROM optionset os
+    WHERE NOT EXISTS (SELECT 1 FROM attribute a WHERE a.optionsetid = os.optionsetid)
+    AND NOT EXISTS (SELECT 1 FROM dataelement de WHERE de.optionsetid = os.optionsetid)
+    AND NOT EXISTS (SELECT 1 FROM dataelement de WHERE de.commentoptionsetid = os.optionsetid)
+    AND NOT EXISTS (SELECT 1 FROM trackedentityattribute tea WHERE tea.optionsetid = os.optionsetid)
+    )
     SELECT COUNT(*) as value,
     100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM optionset), 0)  as percent
     from options_sets_unused;
 details_sql: >-
-    SELECT DISTINCT uid,name FROM optionset where optionsetid NOT IN (
-    SELECT DISTINCT optionsetid from attribute where optionsetid IS NOT NULL UNION
-    SELECT DISTINCT optionsetid from dataelement where optionsetid IS NOT NULL UNION
-    SELECT DISTINCT commentoptionsetid from dataelement where commentoptionsetid IS NOT NULL UNION
-    SELECT DISTINCT optionsetid FROM trackedentityattribute WHERE optionsetid IS NOT NULL)
+    SELECT uid,name FROM optionset os
+    WHERE NOT EXISTS (SELECT 1 FROM attribute a WHERE a.optionsetid = os.optionsetid)
+    AND NOT EXISTS (SELECT 1 FROM dataelement de WHERE de.optionsetid = os.optionsetid)
+    AND NOT EXISTS (SELECT 1 FROM dataelement de WHERE de.commentoptionsetid = os.optionsetid)
+    AND NOT EXISTS (SELECT 1 FROM trackedentityattribute tea WHERE tea.optionsetid = os.optionsetid)
     ORDER BY name;
 details_id_type: optionSets
 severity: WARNING

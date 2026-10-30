@@ -37,6 +37,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
+ * Image validation is performed by {@code ExternalMapLayerObjectBundleHook} so that it applies
+ * consistently to POST, PUT, JSON PATCH and metadata import.
+ *
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Controller

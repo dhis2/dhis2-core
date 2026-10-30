@@ -65,10 +65,6 @@ public class DefaultDataApprovalAuditService implements DataApprovalAuditService
 
   private final AclService aclService;
 
-  // -------------------------------------------------------------------------
-  // DataValueAuditService implementation
-  // -------------------------------------------------------------------------
-
   @Override
   @Transactional
   public void deleteDataApprovalAudits(OrganisationUnit organisationUnit) {

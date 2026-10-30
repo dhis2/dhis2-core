@@ -44,18 +44,31 @@ public class CurrentUserUtil {
   }
 
   /**
+   * Get the current authentication object.
+   *
+   * <p>Throws an IllegalStateException if no valid authentication is found.
+   *
+   * @return the current Authentication
+   */
+  @Nonnull
+  public static Authentication getAuthentication() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null
+        || !authentication.isAuthenticated()
+        || authentication.getPrincipal() == null) {
+      throw new IllegalStateException("No authentication found");
+    }
+    return authentication;
+  }
+
+  /**
    * Get the username of the currently authenticated user
    *
    * @return the current user's username
    */
   @Nonnull
   public static String getCurrentUsername() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null
-        || !authentication.isAuthenticated()
-        || authentication.getPrincipal() == null) {
-      throw new IllegalStateException("No authenticated user found");
-    }
+    Authentication authentication = getAuthentication();
 
     Object principal = authentication.getPrincipal();
 
@@ -77,12 +90,7 @@ public class CurrentUserUtil {
    */
   @Nonnull
   public static UserDetails getCurrentUserDetails() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null
-        || !authentication.isAuthenticated()
-        || authentication.getPrincipal() == null) {
-      throw new IllegalStateException("No authenticated user found");
-    }
+    Authentication authentication = getAuthentication();
 
     Object principal = authentication.getPrincipal();
 

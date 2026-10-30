@@ -37,13 +37,7 @@ import org.hisp.dhis.node.types.CollectionNode;
  */
 public interface FieldFilterService {
   List<String> SHARING_FIELDS =
-      List.of(
-          "!user",
-          "!publicAccess",
-          "!userGroupAccesses",
-          "!userAccesses",
-          "!externalAccess",
-          "!sharing");
+      List.of("!user", "!publicAccess", "!userGroupAccesses", "!userAccesses", "!sharing");
 
   /** Perform inclusion/exclusion on a list of objects. */
   CollectionNode toCollectionNode(Class<?> wrapper, FieldFilterParams params);

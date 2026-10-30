@@ -1,0 +1,77 @@
+/*
+ * Copyright (c) 2004-2022, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.tracker.trackedentityattributevalue;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+
+/**
+ * @author Abyot Asalefew
+ */
+public interface TrackedEntityAttributeValueService {
+  /**
+   * Deletes all the {@link TrackedEntityAttributeValue}s of {@code trackedEntity}.
+   *
+   * @param trackedEntity the tracked entity whose values to delete
+   */
+  void deleteTrackedEntityAttributeValues(TrackedEntity trackedEntity);
+
+  /**
+   * Finds the stored values of a unique attribute that match any of the given values, in any org
+   * unit. Values are compared case-insensitively. Use it for attributes unique across the whole
+   * system.
+   *
+   * @param attribute the unique attribute
+   * @param values the values to look for
+   * @return the matching values, empty if none
+   */
+  @Nonnull
+  List<UniqueAttributeValueMatch> getUniqueAttributeValues(
+      @Nonnull TrackedEntityAttribute attribute, @Nonnull Set<String> values);
+
+  /**
+   * Finds the stored values of an org unit scoped unique attribute that match one of the given (org
+   * unit, value) pairs exactly: a value only matches when stored for a tracked entity in the org
+   * unit it is paired with. Values are compared case-insensitively.
+   *
+   * @param attribute the unique attribute, unique within an org unit
+   * @param valuesByOrgUnitId the values to look for, keyed by the id of the org unit they are
+   *     unique in
+   * @return the matching values, empty if none
+   */
+  @Nonnull
+  List<UniqueAttributeValueMatch> getUniqueAttributeValues(
+      @Nonnull TrackedEntityAttribute attribute, @Nonnull Map<Long, Set<String>> valuesByOrgUnitId);
+}

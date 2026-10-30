@@ -61,12 +61,12 @@ class SectionUtilsTest extends TestBase {
 
   @Test
   void testDataSetSection() {
-    CategoryOption categoryOptionA = new CategoryOption("OptionA");
-    CategoryOption categoryOptionB = new CategoryOption("OptionB");
-    CategoryOption categoryOptionC = new CategoryOption("OptionC");
-    CategoryOption categoryOptionD = new CategoryOption("OptionD");
-    CategoryOption categoryOptionE = new CategoryOption("OptionE");
-    CategoryOption categoryOptionF = new CategoryOption("OptionF");
+    CategoryOption categoryOptionA = createCategoryOption('A');
+    CategoryOption categoryOptionB = createCategoryOption('B');
+    CategoryOption categoryOptionC = createCategoryOption('C');
+    CategoryOption categoryOptionD = createCategoryOption('D');
+    CategoryOption categoryOptionE = createCategoryOption('E');
+    CategoryOption categoryOptionF = createCategoryOption('F');
 
     Category categoryA = createCategory('A', categoryOptionA, categoryOptionB);
     Category categoryB = createCategory('B', categoryOptionC, categoryOptionD);

@@ -21,6 +21,7 @@ pipeline {
             environment {
                 OLD_VERSION_SCHEMA_PREFIX = '2'
                 SUPPORTED_VERSIONS_JSON = sh(returnStdout: true, script: 'curl -fsSL "https://releases.dhis2.org/v1/versions/stable.json" | jq -r \'.versions[] | select(.supported == true)\'').trim()
+                ARCHITECTURES = 'amd64 arm64'
             }
 
             steps {
@@ -41,7 +42,7 @@ pipeline {
                             def majorVersion = version.split('\\.')[0].toInteger()
                             if (majorVersion >= 42) {
                                 // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
-                                env.BASE_IMAGE = "tomcat:10.1.30-jre17"
+                                env.BASE_IMAGE = "tomcat:10.1.48-jre17"
                             } else if (majorVersion == 41) {
                                 env.BASE_IMAGE = "tomcat:9.0-jre17"
                             } else {

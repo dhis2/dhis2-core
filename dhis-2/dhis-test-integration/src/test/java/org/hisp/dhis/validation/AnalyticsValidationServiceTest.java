@@ -37,6 +37,10 @@ import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.hisp.dhis.expression.Operator.not_equal_to;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -74,23 +78,22 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -105,8 +108,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityAttributeService entityAttributeService;
-
-  @Autowired private TrackedEntityAttributeValueService entityAttributeValueService;
 
   @Autowired private ProgramService programService;
 
@@ -202,12 +203,12 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityAttributeValue trackedEntityAttributeValue =
         new TrackedEntityAttributeValue(entityAttribute, trackedEntity);
     trackedEntityAttributeValue.setValue("123");
-    entityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
+    saveTrackedEntityAttributeValue(entityManager, trackedEntityAttributeValue);
     trackedEntity.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValue));
     manager.update(trackedEntity);
     Program program =
         createProgram(
-            'A', null, Sets.newHashSet(entityAttribute), Sets.newHashSet(orgUnitA, orgUnitA), null);
+            'A', null, Sets.newHashSet(entityAttribute), Sets.newHashSet(orgUnitA, orgUnitA));
     program.setUid(PROGRAM_UID);
     programService.addProgram(program);
     ProgramStage stageA = createProgramStage('A', 0);

@@ -26,7 +26,7 @@
 #
 ---
 name: category_options_default_incorrect_sharing
-description: The default category option should be publicly shared with all users.
+description: The default category option should be publicly shared with all users
 section: Categories
 section_order: 20
 summary_sql: >-

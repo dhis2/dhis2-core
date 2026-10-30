@@ -54,6 +54,8 @@ public class DataSummary {
 
   @JsonProperty private Map<Integer, Integer> activeUsers = new HashMap<>();
 
+  @JsonProperty private Map<Integer, Integer> logins = new HashMap<>();
+
   @JsonProperty private Map<String, Integer> userInvitations = new HashMap<>();
 
   @JsonProperty private Map<Integer, Integer> dataValueCount = new HashMap<>();

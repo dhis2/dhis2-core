@@ -29,10 +29,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
@@ -56,18 +56,19 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -116,8 +117,6 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
 
   @BeforeEach
   void setUp() {
-    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
-
     owner = makeUser("owner");
 
     coc = categoryService.getDefaultCategoryOptionCombo();
@@ -135,6 +134,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     program.getOrganisationUnits().add(orgUnit);
     program.setUid("q04UBOqq3rp");
     program.setTrackedEntityType(trackedEntityType);
+    program.setEnableChangeLog(true);
     manager.save(program);
 
     dataElement = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
@@ -152,7 +152,6 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
 
     dataValue = new EventDataValue();
     dataValue.setDataElement(dataElement.getUid());
-    dataValue.setStoredBy("user");
     dataValue.setValue(DATA_ELEMENT_VALUE);
 
     event = event(enrollment(trackedEntity()));
@@ -341,11 +340,13 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
 
   @Test
   void shouldNotLogChangesWhenChangeLogConfigDisabled() {
-    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "off");
-
     event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dataValue);
     manager.update(event);
+
+    Program program = manager.get(Program.class, event.getProgramStage().getProgram().getUid());
+    program.setEnableChangeLog(false);
+    manager.update(program);
 
     updateDataValue("new value");
     updateDataValue("updated value");
@@ -382,18 +383,20 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
   }
 
   private void updateDataValue(String value) {
+    String body = createDataValueJson(event, value);
+    startNewRequestSession();
     JsonWebMessage importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createDataValueJson(event, value))
+        POST("/tracker?async=false&importStrategy=UPDATE", body)
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
   }
 
   private void updateScheduledAtEventField(String value) {
+    String body = createScheduledAtEventFieldJson(event, value);
+    startNewRequestSession();
     JsonWebMessage importResponse =
-        POST(
-                "/tracker?async=false&importStrategy=UPDATE",
-                createScheduledAtEventFieldJson(event, value))
+        POST("/tracker?async=false&importStrategy=UPDATE", body)
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
@@ -439,8 +442,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
   }
 
   private Enrollment enrollment(TrackedEntity te) {
-    Enrollment enrollment = new Enrollment(program, te, te.getOrganisationUnit());
-    enrollment.setAutoFields();
+    Enrollment enrollment = TrackerTestBase.createEnrollment(program, te, te.getOrganisationUnit());
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
     enrollment.setStatus(EnrollmentStatus.COMPLETED);

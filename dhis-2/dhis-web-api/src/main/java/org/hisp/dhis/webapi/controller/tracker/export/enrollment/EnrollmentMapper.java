@@ -32,7 +32,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 import static java.util.Map.entry;
 
 import java.util.Map;
-import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
@@ -56,7 +56,7 @@ import org.mapstruct.Mapping;
 public interface EnrollmentMapper {
   /**
    * Enrollments can be ordered by given fields which correspond to fields on {@link
-   * org.hisp.dhis.program.Enrollment}.
+   * org.hisp.dhis.tracker.model.Enrollment}.
    */
   Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
@@ -84,5 +84,6 @@ public interface EnrollmentMapper {
   @Mapping(target = "relationships", source = "relationshipItems")
   @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
   @Mapping(target = "notes", source = "notes")
+  @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo.uid")
   org.hisp.dhis.webapi.controller.tracker.view.Enrollment map(Enrollment enrollment);
 }

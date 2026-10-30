@@ -32,6 +32,9 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import static java.lang.String.format;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertEqualUids;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertSmsResponse;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.encodeSms;
@@ -67,14 +70,11 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -94,11 +94,9 @@ import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.test.message.DefaultFakeMessageSender;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -106,7 +104,12 @@ import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
@@ -152,8 +155,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private EnrollmentService enrollmentService;
 
@@ -219,7 +220,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     trackedEntityType = trackedEntityTypeAccessible();
 
     teaA = createTrackedEntityAttribute('A', ValueType.PHONE_NUMBER);
-    teaA.setConfidential(false);
     teaA.getSharing().setOwner(user1);
     teaA.getSharing().addUserAccess(fullAccess(user1));
     manager.save(teaA, false);
@@ -317,7 +317,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertFalse(trackerEventService.exists(UID.of(event.getUid())));
+    assertFalse(trackerEventService.exists(event.getUID()));
   }
 
   @Test
@@ -361,7 +361,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertFalse(trackerEventService.exists(UID.of(event.getUid())));
+    assertFalse(trackerEventService.exists(event.getUID()));
   }
 
   @Test
@@ -464,7 +464,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getProgramStage(), actual.getProgramStage()),
         () ->
             assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertEquals(submission.getEventDate(), actual.getOccurredDate()),
         () -> assertEquals(submission.getDueDate(), actual.getScheduledDate()),
         () -> assertEquals(EventStatus.COMPLETED, actual.getStatus()),
@@ -522,8 +521,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertTrue(trackerEventService.exists(UID.of(event)));
-    TrackerEvent actual = trackerEventService.getEvent(UID.of(event.getUid()));
+    assertTrue(trackerEventService.exists(event.getUID()));
+    TrackerEvent actual = trackerEventService.getEvent(event.getUID());
     assertAll(
         "updated event",
         () -> assertEqualUids(submission.getEnrollment(), actual.getEnrollment()),
@@ -531,7 +530,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getProgramStage(), actual.getProgramStage()),
         () ->
             assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
-        () -> assertNull(actual.getStoredBy()),
         () -> assertEquals(event.getOccurredDate(), actual.getOccurredDate()),
         () -> assertEquals(event.getScheduledDate(), actual.getScheduledDate()),
         () -> assertEquals(EventStatus.COMPLETED, actual.getStatus()),
@@ -539,7 +537,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertNotNull(actual.getCompletedDate()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user1.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         },
         () -> assertNull(actual.getGeometry()));
@@ -601,15 +598,12 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getOrgUnit(), actual.getOrganisationUnit()),
         () ->
             assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertEquals(submission.getEventDate(), actual.getOccurredDate()),
         () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertNull(actual.getCompletedDate()),
         () -> assertGeometry(submission.getCoordinates(), actual.getGeometry()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user1.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         });
   }
@@ -658,7 +652,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<SingleEvent> events =
         singleEventService.findEvents(
-            SingleEventOperationParams.builder().program(eventProgram).build());
+            SingleEventOperationParams.builderForProgram(eventProgram.getUID()).build());
     assertHasSize(1, events);
     SingleEvent actual = events.get(0);
     assertAll(
@@ -666,12 +660,9 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(orgUnit, actual.getOrganisationUnit()),
         () -> assertEqualUids(eventProgram, actual.getProgramStage().getProgram()),
         () -> assertEqualUids(eventProgramStage, actual.getProgramStage()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user1.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         });
   }
@@ -722,7 +713,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     List<Enrollment> enrollments =
         enrollmentService.findEnrollments(
             EnrollmentOperationParams.builder()
-                .trackedEntity(trackedEntity)
+                .trackedEntities(trackedEntity)
                 .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .build());
@@ -737,9 +728,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<TrackerEvent> events =
         trackerEventService.findEvents(
-            TrackerEventOperationParams.builder()
+            TrackerEventOperationParams.builderForProgram(trackerProgram.getUID())
                 .trackedEntity(trackedEntity)
-                .program(trackerProgram)
                 .build());
     assertHasSize(1, events);
     TrackerEvent actualEvent = events.get(0);
@@ -749,12 +739,9 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(trackerProgram, actualEvent.getEnrollment().getProgram()),
         () -> assertEqualUids(trackerProgramStage, actualEvent.getProgramStage()),
         () -> assertEqualUids(actualEnrollment, actualEvent.getEnrollment()),
-        () -> assertEquals(user1.getUsername(), actualEvent.getStoredBy()),
         () -> assertEquals(EventStatus.ACTIVE, actualEvent.getStatus()),
-        () -> assertEquals(user1.getUsername(), actualEvent.getStoredBy()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user1.getUsername());
           assertDataValues(Set.of(expected), actualEvent.getEventDataValues());
         });
   }
@@ -805,9 +792,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<TrackerEvent> events =
         trackerEventService.findEvents(
-            TrackerEventOperationParams.builder()
+            TrackerEventOperationParams.builderForProgram(trackerProgram.getUID())
                 .trackedEntity(trackedEntity)
-                .program(trackerProgram)
                 .build());
     assertHasSize(1, events);
     TrackerEvent actual = events.get(0);
@@ -817,12 +803,9 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(trackerProgram, actual.getEnrollment().getProgram()),
         () -> assertEqualUids(trackerProgramStage, actual.getProgramStage()),
         () -> assertEqualUids(enrollment, actual.getEnrollment()),
-        () -> assertEquals(user2.getUsername(), actual.getStoredBy()),
         () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
-        () -> assertEquals(user2.getUsername(), actual.getStoredBy()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user2.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         });
   }
@@ -839,7 +822,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     TrackedEntity trackedEntity = trackedEntity();
     TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue('A', trackedEntity, teaA);
     teavA.setValue(phoneNumber);
-    attributeValueService.addTrackedEntityAttributeValue(teavA);
+    saveTrackedEntityAttributeValue(entityManager, teavA);
     trackedEntity.getTrackedEntityAttributeValues().add(teavA);
     manager.save(trackedEntity, false);
     return trackedEntity;
@@ -864,8 +847,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   }
 
   private Enrollment enrollment(TrackedEntity te) {
-    Enrollment enrollment = new Enrollment(trackerProgram, te, te.getOrganisationUnit());
-    enrollment.setAutoFields();
+    Enrollment enrollment =
+        TrackerTestBase.createEnrollment(trackerProgram, te, te.getOrganisationUnit());
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
     enrollment.setStatus(EnrollmentStatus.ACTIVE);
@@ -881,7 +864,9 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     event.setProgramStage(trackerProgramStage);
     event.setOrganisationUnit(enrollment.getOrganisationUnit());
     event.setAttributeOptionCombo(coc);
-    event.setOccurredDate(new Date());
+    // SMS submissions encode dates with second precision, so the occurred date must not carry
+    // milliseconds or it won't survive the SMS encode/decode round-trip in shouldUpdateEvent().
+    event.setOccurredDate(DateUtils.getDate(2024, 9, 2, 10, 15));
     event.setAutoFields();
     manager.save(event);
     return event;
@@ -919,13 +904,10 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "mismatch in latitude"));
   }
 
+  // Assert only specific fields of data values since actual values from the DB have auto-generated
+  // fields (created, lastUpdated) that we cannot predict in expected.
   private static void assertDataValues(Set<EventDataValue> expected, Set<EventDataValue> actual) {
-    // The current EventDataValues.equals implementation does not take the value/storedBy into
-    // account
-    // it does check the data element. So we first assert we have a data value for every data
-    // element we expect.
-    // We then assert on fields that are not covered by the equals implementation.
-    assertContainsOnly(expected, actual);
+    assertContainsOnly(expected, actual, EventDataValue::getDataElement);
     assertAll(
         "assert data values", expected.stream().map(e -> assertDataValue(e, actual)).toList());
   }
@@ -940,8 +922,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
       assertAll(
           "assert data value " + expected.getDataElement(),
           () -> assertEquals(expected.getDataElement(), actual.getDataElement()),
-          () -> assertEquals(expected.getValue(), actual.getValue()),
-          () -> assertEquals(expected.getStoredBy(), actual.getStoredBy()));
+          () -> assertEquals(expected.getValue(), actual.getValue()));
     };
   }
 }

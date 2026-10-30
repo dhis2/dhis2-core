@@ -31,9 +31,9 @@ package org.hisp.dhis.i18n.ui.locale;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.locale.LocaleManager;

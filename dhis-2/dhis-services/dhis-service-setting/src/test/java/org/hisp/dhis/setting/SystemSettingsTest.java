@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,17 +38,17 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonInteger;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonPrimitive;
+import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonString;
 import org.junit.jupiter.api.Test;
 
@@ -103,27 +103,41 @@ class SystemSettingsTest {
   @Test
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
-    assertEquals(143, keys.size());
+    assertEquals(158, keys.size());
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
-    assertTrue(keys.contains("experimentalAnalyticsSqlEngineEnabled"));
     assertTrue(keys.contains("notifierGistOverview"));
+    assertTrue(keys.contains("keyCustomTranslationsEnabled"));
+    assertTrue(keys.contains(("keyCustomColor")));
+    assertTrue(keys.contains(("keyCustomColorMobile")));
+    // the new per-table-type analytics update keys (DHIS2-21992)
+    for (AnalyticsTableType type : LATEST_PARTITION_TABLE_TYPES) {
+      assertTrue(keys.contains(SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(type)));
+      assertTrue(
+          keys.contains(SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(type)));
+    }
   }
 
   @Test
   void testToJson() {
-    SystemSettings settings = SystemSettings.of(Map.of("applicationTitle", "Hello World"));
+    SystemSettings settings =
+        SystemSettings.of(Map.of("applicationTitle", "Hello World", "keyUiLocale", "uz_UZ_Latn"));
     JsonMap<JsonMixed> asJson = settings.toJson(false);
     // it does contain the set value
-    JsonPrimitive stringValue = asJson.get("applicationTitle");
+    JsonString stringValue = asJson.get("applicationTitle");
     assertTrue(stringValue.isString());
     assertEquals("Hello World", stringValue.as(JsonString.class).string());
+
+    JsonMixed strLocaleVal = asJson.get("keyUiLocale");
+    assertTrue(strLocaleVal.isString());
+    assertEquals("uz_UZ_Latn", strLocaleVal.as(JsonString.class).string());
+
     // but also all defaults (test some)
-    JsonPrimitive intValue = asJson.get("keyParallelJobsInAnalyticsTableExport");
+    JsonNumber intValue = asJson.get("keyParallelJobsInAnalyticsTableExport");
     assertTrue(intValue.isNumber());
     assertEquals(-1, intValue.as(JsonInteger.class).intValue());
-    JsonPrimitive booleanValue = asJson.get("startModuleEnableLightweight");
+    JsonBoolean booleanValue = asJson.get("startModuleEnableLightweight");
     assertTrue(booleanValue.isBoolean());
     assertFalse(booleanValue.as(JsonBoolean.class).booleanValue());
     JsonString dateValue = asJson.get("keyLastMetaDataSyncSuccess");
@@ -174,10 +188,117 @@ class SystemSettingsTest {
     assertEquals(new Date(123456L), settings.getLastSuccessfulResourceTablesUpdate());
   }
 
+  private static final List<AnalyticsTableType> LATEST_PARTITION_TABLE_TYPES =
+      List.of(
+          AnalyticsTableType.DATA_VALUE,
+          AnalyticsTableType.COMPLETENESS,
+          AnalyticsTableType.EVENT,
+          AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS);
+
+  @Test
+  void testKeyLastSuccessfulAnalyticsTablesUpdate_PerType() {
+    assertEquals(
+        "keyLastSuccessfulAnalyticsTablesUpdateDataValue",
+        SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.DATA_VALUE));
+    assertEquals(
+        "keyLastSuccessfulAnalyticsTablesUpdateCompleteness",
+        SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.COMPLETENESS));
+    assertEquals(
+        "keyLastSuccessfulAnalyticsTablesUpdateEvent",
+        SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.EVENT));
+    assertEquals(
+        "keyLastSuccessfulAnalyticsTablesUpdateTrackedEntityInstanceEvents",
+        SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(
+            AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS));
+  }
+
+  @Test
+  void testKeyLastSuccessfulLatestAnalyticsPartitionUpdate_PerType() {
+    assertEquals(
+        "keyLastSuccessfulLatestAnalyticsPartitionUpdateDataValue",
+        SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(
+            AnalyticsTableType.DATA_VALUE));
+    assertEquals(
+        "keyLastSuccessfulLatestAnalyticsPartitionUpdateCompleteness",
+        SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(
+            AnalyticsTableType.COMPLETENESS));
+    assertEquals(
+        "keyLastSuccessfulLatestAnalyticsPartitionUpdateEvent",
+        SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT));
+    assertEquals(
+        "keyLastSuccessfulLatestAnalyticsPartitionUpdateTrackedEntityInstanceEvents",
+        SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(
+            AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS));
+  }
+
+  @Test
+  void testKeyLastSuccessfulUpdate_PerType_NoDotSeparator() {
+    // regression guard: a literal "." in a flat settings key breaks JsonObject.get(path)-style
+    // dot-as-path-separator accessors (e.g. SystemSettingsControllerTest), which read a flat
+    // "keyXxx.EVENT" key as a nested lookup and silently report it missing
+    for (AnalyticsTableType type : LATEST_PARTITION_TABLE_TYPES) {
+      assertFalse(SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(type).contains("."));
+      assertFalse(
+          SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(type).contains("."));
+    }
+  }
+
+  @Test
+  void testAsDate_LastSuccessfulAnalyticsTablesUpdatePerType() {
+    for (AnalyticsTableType type : LATEST_PARTITION_TABLE_TYPES) {
+      SystemSettings settings =
+          SystemSettings.of(
+              Map.of(
+                  SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(type),
+                  Settings.valueOf(new Date(123456L))));
+      assertEquals(new Date(123456L), settings.getLastSuccessfulAnalyticsTablesUpdate(type));
+    }
+  }
+
+  @Test
+  void testAsDate_LastSuccessfulLatestAnalyticsPartitionUpdatePerType() {
+    for (AnalyticsTableType type : LATEST_PARTITION_TABLE_TYPES) {
+      SystemSettings settings =
+          SystemSettings.of(
+              Map.of(
+                  SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(type),
+                  Settings.valueOf(new Date(654321L))));
+      assertEquals(
+          new Date(654321L), settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(type));
+    }
+  }
+
+  @Test
+  void testLastSuccessfulAnalyticsTablesUpdatePerType_DefaultsToEpoch() {
+    SystemSettings settings = SystemSettings.of(Map.of());
+    assertEquals(
+        new Date(0L), settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.EVENT));
+    assertEquals(
+        new Date(0L),
+        settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT));
+    // a type with no registered per-type key (not one of the four above) must not throw, and
+    // defaults to epoch the same way
+    assertEquals(
+        new Date(0L),
+        settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.ENROLLMENT));
+  }
+
   @Test
   void testAsLocale() {
-    assertEquals(
-        Locale.forLanguageTag("fr"), SystemSettings.of(Map.of("keyUiLocale", "fr")).getUiLocale());
+    Map<String, String> actualExpected =
+        Map.ofEntries(
+            Map.entry("fr", "fr"),
+            Map.entry("fr-FR", "fr-FR"),
+            Map.entry("de_DE", "de-DE"),
+            Map.entry("uz-Latn-UZ", "uz-Latn-UZ"),
+            Map.entry("uz_UZ_Latn", "uz-Latn-UZ"));
+    for (Map.Entry<String, String> e : actualExpected.entrySet()) {
+      String input = e.getKey();
+      String expected = e.getValue();
+      SystemSettings settings = SystemSettings.of(Map.of("keyUiLocale", input));
+      assertEquals(expected, settings.getUiLocale().toLanguageTag());
+      assertEquals(input, settings.asString("keyUiLocale", ""));
+    }
   }
 
   @Test
@@ -237,6 +358,11 @@ class SystemSettingsTest {
     assertTrue(settings.isValid("keyLastMonitoringRun", date));
     assertFalse(settings.isValid("keyLastMonitoringRun", "hello"));
     assertFalse(settings.isValid("keyLastMonitoringRun", "true"));
+    // the correctly serialized form of a Date is accepted ...
+    assertTrue(settings.isValid("keyLastMonitoringRun", Settings.valueOf(new Date())));
+    // ... but Date.toString() output is NOT
+    assertFalse(settings.isValid("keyLastMonitoringRun", new Date().toString()));
+    assertFalse(settings.isValid("keyLastMonitoringRun", "Mon Jun 08 07:50:29 IST 2026"));
   }
 
   @Test
@@ -254,5 +380,18 @@ class SystemSettingsTest {
     settings =
         SystemSettings.of(Map.of("keyEmailHostName", "localhost", "keyEmailUsername", "user"));
     assertTrue(settings.isEmailConfigured());
+  }
+
+  @Test
+  void testFormat() {
+    SystemSettings settings = SystemSettings.of(Map.of());
+    assertEquals("true", settings.format("keyAccountRecovery", "True"));
+    assertEquals("false", settings.format("keyAccountRecovery", "FALSE"));
+
+    assertEquals("en", settings.format("keyUiLocale", "en"));
+    assertEquals("en_EN", settings.format("keyUiLocale", "en_EN"));
+    assertEquals("en_EN_Latn", settings.format("keyUiLocale", "en_EN_Latn"));
+    assertEquals("en_EN", settings.format("keyUiLocale", "en-EN"));
+    assertEquals("en_EN_Latn", settings.format("keyUiLocale", "en-Latn-EN"));
   }
 }

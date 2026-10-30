@@ -74,59 +74,52 @@ class DatastoreUpdateControllerIntegrationTest extends PostgresControllerIntegra
   void testUpdateEntry_PathWithNullValue() {
     addEntry("ns2", "key1", "{'a':42}");
     updateEntry("/dataStore/ns2/key1?path=a");
-    assertEquals("{\"a\": null}", GET("/dataStore/ns2/key1").content().node().getDeclaration());
+    assertEquals("{\"a\": null}", GET("/dataStore/ns2/key1").content().toJson());
   }
 
   @Test
   void testUpdateEntry_RootWithNonNullValue() {
     addEntry("ns3", "key1", "{'a':42}");
     updateEntry("/dataStore/ns3/key1", Body("7"));
-    assertEquals("7", GET("/dataStore/ns3/key1").content().node().getDeclaration());
+    assertEquals("7", GET("/dataStore/ns3/key1").content().toJson());
   }
 
   @Test
   void testUpdateEntry_PathWithNonNullValue() {
     addEntry("ns4", "key1", "{'a':42}");
     updateEntry("/dataStore/ns4/key1?path=a", Body("7"));
-    assertEquals("{\"a\": 7}", GET("/dataStore/ns4/key1").content().node().getDeclaration());
+    assertEquals("{\"a\": 7}", GET("/dataStore/ns4/key1").content().toJson());
   }
 
   @Test
   void testUpdateEntry_RollRootValueIsNull() {
     addEntry("ns5", "key1", "null");
     updateEntry("/dataStore/ns5/key1?roll=3", Body("7"));
-    assertEquals("[7]", GET("/dataStore/ns5/key1").content().node().getDeclaration());
+    assertEquals("[7]", GET("/dataStore/ns5/key1").content().toJson());
   }
 
   @Test
   void testUpdateEntry_RollRootValueIsArray() {
     addEntry("ns6", "key1", "[]");
     updateEntry("/dataStore/ns6/key1?roll=3", Body("7"));
-    assertEquals("[7]", GET("/dataStore/ns6/key1").content().node().getDeclaration());
+    assertEquals("[7]", GET("/dataStore/ns6/key1").content().toJson());
 
     updateEntry("/dataStore/ns6/key1?roll=3", Body("8"));
-    doInTransaction(
-        () -> assertEquals("[7, 8]", GET("/dataStore/ns6/key1").content().node().getDeclaration()));
+    doInTransaction(() -> assertEquals("[7, 8]", GET("/dataStore/ns6/key1").content().toJson()));
 
     updateEntry("/dataStore/ns6/key1?roll=3", Body("9"));
-    doInTransaction(
-        () ->
-            assertEquals(
-                "[7, 8, 9]", GET("/dataStore/ns6/key1").content().node().getDeclaration()));
+    doInTransaction(() -> assertEquals("[7, 8, 9]", GET("/dataStore/ns6/key1").content().toJson()));
 
     updateEntry("/dataStore/ns6/key1?roll=3", Body("10"));
     doInTransaction(
-        () ->
-            assertEquals(
-                "[8, 9, 10]", GET("/dataStore/ns6/key1").content().node().getDeclaration()));
+        () -> assertEquals("[8, 9, 10]", GET("/dataStore/ns6/key1").content().toJson()));
   }
 
   @Test
   void testUpdateEntry_RollRootValueIsOther() {
     addEntry("ns7", "key1", "{}");
     updateEntry("/dataStore/ns7/key1?roll=3", Body("7"));
-    doInTransaction(
-        () -> assertEquals("7", GET("/dataStore/ns7/key1").content().node().getDeclaration()));
+    doInTransaction(() -> assertEquals("7", GET("/dataStore/ns7/key1").content().toJson()));
     updateEntry("/dataStore/ns7/key1?roll=3", Body("\"hello\""));
     doInTransaction(() -> assertEquals("hello", GET("/dataStore/ns7/key1").content().string()));
     updateEntry("/dataStore/ns7/key1?roll=3", Body("true"));
@@ -137,43 +130,34 @@ class DatastoreUpdateControllerIntegrationTest extends PostgresControllerIntegra
   void testUpdateEntry_RollPathValueIsNull() {
     addEntry("ns8", "key1", "{'a':null}");
     updateEntry("/dataStore/ns8/key1?roll=3&path=a", Body("7"));
-    assertEquals("{\"a\": [7]}", GET("/dataStore/ns8/key1").content().node().getDeclaration());
+    assertEquals("{\"a\": [7]}", GET("/dataStore/ns8/key1").content().toJson());
   }
 
   @Test
   void testUpdateEntry_RollPathValueIsUndefined() {
     addEntry("ns9", "key1", "{'a':null}");
     updateEntry("/dataStore/ns9/key1?roll=3&path=b", Body("7"));
-    assertEquals(
-        "{\"a\": null, \"b\": [7]}", GET("/dataStore/ns9/key1").content().node().getDeclaration());
+    assertEquals("{\"a\": null, \"b\": [7]}", GET("/dataStore/ns9/key1").content().toJson());
   }
 
   @Test
   void testUpdateEntry_RollPathValueIsArray() {
     addEntry("ns10", "key1", "{'a':{'b':[]}}");
     updateEntry("/dataStore/ns10/key1?roll=3&path=a.b", Body("7"));
-    assertEquals("[7]", GET("/dataStore/ns10/key1").content().get("a.b").node().getDeclaration());
+    assertEquals("[7]", GET("/dataStore/ns10/key1").content().get("a.b").toJson());
 
     updateEntry("/dataStore/ns10/key1?roll=3&path=a.b", Body("8"));
     doInTransaction(
-        () ->
-            assertEquals(
-                "[7, 8]",
-                GET("/dataStore/ns10/key1").content().get("a.b").node().getDeclaration()));
+        () -> assertEquals("[7, 8]", GET("/dataStore/ns10/key1").content().get("a.b").toJson()));
 
     updateEntry("/dataStore/ns10/key1?roll=3&path=a.b", Body("9"));
     doInTransaction(
-        () ->
-            assertEquals(
-                "[7, 8, 9]",
-                GET("/dataStore/ns10/key1").content().get("a.b").node().getDeclaration()));
+        () -> assertEquals("[7, 8, 9]", GET("/dataStore/ns10/key1").content().get("a.b").toJson()));
 
     updateEntry("/dataStore/ns10/key1?roll=3&path=a.b", Body("10"));
     doInTransaction(
         () ->
-            assertEquals(
-                "[8, 9, 10]",
-                GET("/dataStore/ns10/key1").content().get("a.b").node().getDeclaration()));
+            assertEquals("[8, 9, 10]", GET("/dataStore/ns10/key1").content().get("a.b").toJson()));
   }
 
   @Test
@@ -181,22 +165,15 @@ class DatastoreUpdateControllerIntegrationTest extends PostgresControllerIntegra
     addEntry("ns11", "key1", "{'a':[{}]}");
     updateEntry("/dataStore/ns11/key1?roll=3&path=a.[0]", Body("7"));
     doInTransaction(
-        () ->
-            assertEquals(
-                "{\"a\": [7]}", GET("/dataStore/ns11/key1").content().node().getDeclaration()));
+        () -> assertEquals("{\"a\": [7]}", GET("/dataStore/ns11/key1").content().toJson()));
 
     updateEntry("/dataStore/ns11/key1?roll=3&path=a.[0]", Body("\"hello\""));
     doInTransaction(
-        () ->
-            assertEquals(
-                "{\"a\": [\"hello\"]}",
-                GET("/dataStore/ns11/key1").content().node().getDeclaration()));
+        () -> assertEquals("{\"a\": [\"hello\"]}", GET("/dataStore/ns11/key1").content().toJson()));
 
     updateEntry("/dataStore/ns11/key1?roll=3&path=a.[0]", Body("true"));
     doInTransaction(
-        () ->
-            assertEquals(
-                "{\"a\": [true]}", GET("/dataStore/ns11/key1").content().node().getDeclaration()));
+        () -> assertEquals("{\"a\": [true]}", GET("/dataStore/ns11/key1").content().toJson()));
   }
 
   void updateEntry(String url, Object... args) {

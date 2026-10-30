@@ -30,6 +30,7 @@
 package org.hisp.dhis.organisationunit;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
@@ -43,4 +44,14 @@ public interface OrganisationUnitGroupStore
 
   OrganisationUnitGroup getOrgUnitGroupInGroupSet(
       Set<OrganisationUnitGroup> groups, OrganisationUnitGroupSet groupSet);
+
+  /**
+   * Returns the number of members (organisation units) for each of the given organisation unit
+   * groups, keyed by group UID. The count is computed with a {@code size}/{@code count} query and
+   * does not initialise the (potentially very large) members collection.
+   *
+   * @param uids the UIDs of the organisation unit groups to count members for.
+   * @return a map of organisation unit group UID to member count. Non-existent groups are omitted.
+   */
+  Map<String, Integer> getOrganisationUnitGroupMemberCounts(Set<String> uids);
 }

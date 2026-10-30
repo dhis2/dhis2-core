@@ -44,6 +44,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /** A single data value in the data entry service API. */
 public record DataEntryValue(
@@ -53,12 +54,12 @@ public record DataEntryValue(
     @Nonnull UID orgUnit,
     @CheckForNull UID categoryOptionCombo,
     @CheckForNull UID attributeOptionCombo,
-    @Nonnull String period,
+    @Nonnull Period period,
     String value,
     String comment,
     Boolean followUp,
     Boolean deleted)
-    implements DataEntryId {
+    implements DataValueId {
 
   public DataEntryValue {
     requireNonNull(dataElement);
@@ -82,8 +83,8 @@ public record DataEntryValue(
             true);
   }
 
-  public DataEntryKey toKey() {
-    return new DataEntryKey(
+  public DataValueKey toKey() {
+    return new DataValueKey(
         dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
   }
 
@@ -123,7 +124,9 @@ public record DataEntryValue(
         for the category combo effective for the `dataElement`.
         Will only be considered if `categoryOptionCombo` is not present.""")
           @CheckForNull
-          @CSV.Any(ignore = {"storedBy", "timestamp"})
+          @CSV.Any(
+              ifAbsent = "categoryOptionCombo",
+              ignore = {"storedBy", "timestamp"})
           Map<String, String> categoryOptions,
       @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
           String attributeOptionCombo,

@@ -33,16 +33,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class CategoryStoreTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryStore categoryStore;
+  @Autowired private DbmsManager dbmsManager;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @Test
   @DisplayName("Retrieving Categories by CategoryOptions returns the expected objects")
@@ -81,5 +88,88 @@ class CategoryStoreTest extends PostgresIntegrationTestBase {
     assertTrue(
         categoryOptions.containsAll(List.of(co1.getUid(), co2.getUid(), co3.getUid())),
         "Retrieved CategoryOption UIDs should have expected UIDs");
+  }
+
+  @Test
+  @DisplayName("Removing CategoryOptions from Categories returns the expected count")
+  void removeCatOptionsFromCategoriesTest() {
+    // given 4 Categories exist, each with 2 CategoryOptions (12)
+    TestCategoryMetadata categoryMetadata1 = setupCategoryMetadata("1");
+    TestCategoryMetadata categoryMetadata2 = setupCategoryMetadata("2");
+
+    Category c1 = categoryMetadata1.c1();
+    Category c2 = categoryMetadata1.c2();
+    Category c3 = categoryMetadata2.c1();
+    Category c4 = categoryMetadata2.c2();
+
+    // check state before change
+    assertEquals(2, c1.getCategoryOptions().size());
+    assertEquals(2, c2.getCategoryOptions().size());
+    assertEquals(2, c3.getCategoryOptions().size());
+    assertEquals(2, c4.getCategoryOptions().size());
+
+    // when removing CategoryOptions for 2 Categories
+    int removedCatOptions =
+        categoryStore.removeCatOptionCategoryRefs(Set.of(c1.getId(), c2.getId()));
+    dbmsManager.clearSession();
+
+    // then the expected number of CategoryDimensions should be updated
+    assertEquals(4, removedCatOptions, "4 CategoryOptions should have been removed");
+
+    // and Categories have the expected number of CategoryOptions
+    assertEquals(0, getCategoryCatOptions(c1));
+    assertEquals(0, getCategoryCatOptions(c2));
+    assertEquals(2, getCategoryCatOptions(c3));
+    assertEquals(2, getCategoryCatOptions(c4));
+  }
+
+  private int getCategoryCatOptions(Category c) {
+    return Objects.requireNonNull(categoryStore.getByUid(c.getUid())).getCategoryOptions().size();
+  }
+
+  @Test
+  @DisplayName("CategoryOption order is preserved on reload and sort_order is 1-based in the DB")
+  void categoryOptionOrderIsPreservedAndOneBased() {
+    CategoryOption coA = createCategoryOption('A');
+    CategoryOption coB = createCategoryOption('B');
+    CategoryOption coC = createCategoryOption('C');
+    CategoryOption coD = createCategoryOption('D');
+    categoryService.addCategoryOption(coA);
+    categoryService.addCategoryOption(coB);
+    categoryService.addCategoryOption(coC);
+    categoryService.addCategoryOption(coD);
+
+    // Add options in a deliberately non-alphabetic, non-creation order.
+    Category c = createCategory('Z');
+    c.addCategoryOption(coC);
+    c.addCategoryOption(coA);
+    c.addCategoryOption(coD);
+    c.addCategoryOption(coB);
+    categoryService.addCategory(c);
+
+    // Force the next read to hit the database, not the session cache.
+    dbmsManager.clearSession();
+
+    Category reloaded = Objects.requireNonNull(categoryStore.getByUid(c.getUid()));
+    List<String> reloadedOptionUids =
+        reloaded.getCategoryOptions().stream().map(IdentifiableObject::getUid).toList();
+    assertEquals(
+        List.of(coC.getUid(), coA.getUid(), coD.getUid(), coB.getUid()),
+        reloadedOptionUids,
+        "Reloaded category options must preserve insertion order");
+
+    // The HBM mapping declared base="1" for sort_order. Without @ListIndexBase(1)
+    // on the JPA mapping, Hibernate writes 0-based indices, which would silently
+    // corrupt data co-located with rows written by the previous HBM mapping.
+    List<Integer> sortOrders =
+        jdbcTemplate.queryForList(
+            "select sort_order from categories_categoryoptions where categoryid = ? order by sort_order",
+            Integer.class,
+            reloaded.getId());
+    assertEquals(
+        List.of(1, 2, 3, 4),
+        sortOrders,
+        "sort_order column must be 1-based to match the HBM-era convention "
+            + "(add @ListIndexBase(1) on Category.categoryOptions if this fails)");
   }
 }

@@ -33,7 +33,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Component;
@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class InterpretationDeletionHandler extends DeletionHandler {
+public class InterpretationDeletionHandler extends JdbcDeletionHandler {
   private final InterpretationService interpretationService;
 
   @Override
@@ -55,14 +55,13 @@ public class InterpretationDeletionHandler extends DeletionHandler {
   }
 
   private void deleteUser(User user) {
-    List<Interpretation> interpretations = interpretationService.getInterpretations();
-
-    for (Interpretation interpretation : interpretations) {
-      if (interpretation.getCreatedBy() != null && interpretation.getCreatedBy().equals(user)) {
-        interpretation.setCreatedBy(null);
-        interpretationService.updateInterpretation(interpretation);
-      }
-    }
+    // SQL bypass avoids loading all interpretations + their createdBy User entities (lazy=false)
+    // which would populate N FileResource avatar proxies in L1 cache, each triggering a proxy-init
+    // query when the session is flushed. The column name follows HBM mapping (userid, not
+    // createdby).
+    delete(
+        "UPDATE interpretation SET userid = NULL WHERE userid = :id",
+        java.util.Map.of("id", user.getId()));
   }
 
   private void deleteVisualizationInterpretations(Visualization visualization) {

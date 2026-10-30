@@ -30,11 +30,11 @@
 package org.hisp.dhis.setting;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 
 /**

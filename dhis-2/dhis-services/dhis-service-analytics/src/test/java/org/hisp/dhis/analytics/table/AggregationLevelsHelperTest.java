@@ -81,7 +81,6 @@ class AggregationLevelsHelperTest {
     verify(jdbcTemplate).execute(sqlCaptor.capture());
 
     String capturedSql = sqlCaptor.getValue();
-    System.out.println(capturedSql);
 
     // Verify SQL format (for PostgreSQL update)
     assertTrue(capturedSql.contains("update analytics_table set"));

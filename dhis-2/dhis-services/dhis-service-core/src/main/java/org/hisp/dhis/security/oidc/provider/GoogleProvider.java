@@ -45,6 +45,15 @@ import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 
 /**
+ * Builds the Google-specific {@link DhisOidcClientRegistration} from {@code oidc.provider.google.*}
+ * configuration keys in {@code dhis.conf}. Reads {@code client_id}, {@code client_secret}, {@code
+ * redirect_uri} and {@code mapping_claim}; the mapping claim defaults to {@code email}.
+ *
+ * <p>All OAuth2 / OIDC endpoints (authorization URI, token URI, JWK set URI, user-info URI) are
+ * taken from Spring Security's {@code CommonOAuth2Provider.GOOGLE} preset, which matches Google's
+ * well-known configuration. When {@code oidc.oauth2.login.enabled=on} and the Google block is
+ * present, Google renders as a sign-in button on the DHIS2 web login page.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class GoogleProvider extends AbstractOidcProvider {

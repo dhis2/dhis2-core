@@ -35,8 +35,8 @@ import java.util.List;
 import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrderCriteria;
@@ -44,14 +44,14 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
 import org.hisp.dhis.tracker.export.fieldfiltering.FieldsParser;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
@@ -158,7 +158,7 @@ will take more time to return.**
 
   private EventStatus status;
 
-  @OpenApi.Property({UID.class, CategoryCombo.class})
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
   private UID attributeCategoryCombo;
 
   @OpenApi.Property({UID[].class, CategoryOption.class})

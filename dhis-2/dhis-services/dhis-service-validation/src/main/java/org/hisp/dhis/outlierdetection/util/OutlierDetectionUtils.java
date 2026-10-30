@@ -31,6 +31,7 @@ package org.hisp.dhis.outlierdetection.util;
 
 import static org.hisp.dhis.feedback.ErrorCode.E2208;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
+import static org.hisp.dhis.feedback.ErrorCode.E7136;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
@@ -46,6 +47,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.jdbc.BadSqlGrammarException;
 
 /**
@@ -97,6 +99,9 @@ public class OutlierDetectionUtils {
     } catch (DataIntegrityViolationException ex) {
       log.error(E2208.getMessage(), ex);
       throw new IllegalQueryException(E2208);
+    } catch (QueryTimeoutException ex) {
+      log.error(E7136.getMessage(), ex);
+      throw new QueryRuntimeException(E7136);
     } catch (DataAccessResourceFailureException ex) {
       log.error(E7131.getMessage(), ex);
       throw new QueryRuntimeException(E7131);

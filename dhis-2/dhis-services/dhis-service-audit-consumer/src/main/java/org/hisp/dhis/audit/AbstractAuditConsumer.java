@@ -70,7 +70,7 @@ public abstract class AbstractAuditConsumer implements AuditConsumer {
           "An error occurred de-serializing the message payload. The message can not be de-serialized to an Audit object.",
           e);
     } catch (Exception e) {
-      log.error("An error occurred persisting an Audit message of type 'TRACKER'", e);
+      log.error("An error occurred persisting an audit message", e);
     }
   }
 }

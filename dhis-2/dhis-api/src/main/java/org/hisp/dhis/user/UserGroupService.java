@@ -31,7 +31,9 @@ package org.hisp.dhis.user;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
 public interface UserGroupService {
   String ID = UserGroupService.class.getName();
@@ -47,6 +49,14 @@ public interface UserGroupService {
   UserGroup getUserGroup(String uid);
 
   /**
+   * Returns the user groups with the given UIDs which the current user can read, in one query.
+   *
+   * @param uids the user group UIDs.
+   * @return the readable user groups; unknown UIDs are skipped.
+   */
+  List<UserGroup> getUserGroupsByUid(@Nonnull Collection<UID> uids);
+
+  /**
    * Indicates whether the current user can add or remove members for the user group with the given
    * UID. To do so the current user must have write access to the group or have read access as well
    * as the F_USER_GROUPS_READ_ONLY_ADD_MEMBERS authority.
@@ -60,9 +70,22 @@ public interface UserGroupService {
 
   void addUserToGroups(User user, @Nonnull Collection<String> uids, UserDetails currentUser);
 
-  void removeUserFromGroups(User user, @Nonnull Collection<String> uids);
+  /**
+   * Indicates whether the given user can add or remove members for the given user group. To do so
+   * the user must have write access to the group or have read access as well as the
+   * F_USER_GROUPS_READ_ONLY_ADD_MEMBERS authority.
+   *
+   * <p>Use this overload when you already have the UserGroup loaded to avoid redundant database
+   * queries.
+   *
+   * @param userGroup the user group (may be null).
+   * @param currentUser the user details to check permissions for.
+   * @return true if the user can add or remove members of the user group, false if userGroup is
+   *     null.
+   */
+  boolean canAddOrRemoveMember(UserGroup userGroup, @Nonnull UserDetails currentUser);
 
-  void updateUserGroups(User user, @Nonnull Collection<String> uids, UserDetails currentUser);
+  void updateUserGroups(User user, @Nonnull Collection<UID> uids, UserDetails currentUser);
 
   List<UserGroup> getAllUserGroups();
 
@@ -74,4 +97,14 @@ public interface UserGroupService {
 
   /** Get UserGroup's display name by given userGroup uid Return null if UserGroup does not exist */
   String getDisplayName(String uid);
+
+  /**
+   * Returns the primary keys of all user groups managed by the given managing user groups, resolved
+   * in a single SQL query. Avoids the per-group N+1 of iterating {@link User#getManagedGroups()}.
+   *
+   * @param userGroupIds the primary keys of the managing user groups
+   * @return the primary keys of the managed user groups; empty if the input is empty
+   */
+  @Nonnull
+  Set<Long> getManagedGroupIds(@Nonnull Collection<Long> userGroupIds);
 }

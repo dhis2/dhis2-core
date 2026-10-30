@@ -99,8 +99,8 @@ class NotifierTest {
     assertEquals(2, getNotificationsCount(ANALYTICS_TABLE, analyticsTable.getUid()));
     assertEquals(0, getNotificationsCount(METADATA_IMPORT, metadataImport.getUid()));
 
-    notifier.clear(dataImport1);
-    notifier.clear(analyticsTable);
+    notifier.clear(dataImport1.toKey());
+    notifier.clear(analyticsTable.toKey());
     notifier.notify(dataImport1, "Import started");
     notifier.notify(dataImport1, "Import working");
     notifier.notify(dataImport1, "Import done");
@@ -109,10 +109,10 @@ class NotifierTest {
     awaitIdle();
     assertEquals(3, getNotificationsCount(DATAVALUE_IMPORT, dataImport1.getUid()));
     assertEquals(2, getNotificationsCount(ANALYTICS_TABLE, analyticsTable.getUid()));
-    notifier.clear(dataImport1);
+    notifier.clear(dataImport1.toKey());
     assertEquals(0, getNotificationsCount(DATAVALUE_IMPORT, dataImport1.getUid()));
     assertEquals(2, getNotificationsCount(ANALYTICS_TABLE, analyticsTable.getUid()));
-    notifier.clear(analyticsTable);
+    notifier.clear(analyticsTable.toKey());
     assertEquals(0, getNotificationsCount(DATAVALUE_IMPORT, dataImport1.getUid()));
     assertEquals(0, getNotificationsCount(ANALYTICS_TABLE, analyticsTable.getUid()));
 

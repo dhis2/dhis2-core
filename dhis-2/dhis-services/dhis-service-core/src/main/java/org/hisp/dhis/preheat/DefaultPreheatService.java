@@ -30,6 +30,7 @@
 package org.hisp.dhis.preheat;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -44,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.CategoryDimension;
@@ -61,9 +63,8 @@ import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.period.PeriodTypeStore;
 import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -102,8 +103,7 @@ public class DefaultPreheatService implements PreheatService {
   private final IdentifiableObjectManager manager;
 
   private final PeriodStore periodStore;
-
-  private final PeriodService periodService;
+  private final PeriodTypeStore periodTypeStore;
 
   private final AttributeService attributeService;
 
@@ -206,8 +206,10 @@ public class DefaultPreheatService implements PreheatService {
     }
 
     for (Class<? extends IdentifiableObject> klass : klasses) {
+      // Pass the objects being imported to avoid loading ALL records for uniqueness checking
+      List<IdentifiableObject> objectsBeingImported = params.getObjects().get(klass);
       List<? extends IdentifiableObject> objects =
-          schemaToDataFetcher.fetch(schemaService.getDynamicSchema(klass));
+          schemaToDataFetcher.fetch(schemaService.getSchema(klass), objectsBeingImported);
       if (!objects.isEmpty()) {
         uniqueCollectionMap.put(klass, new ArrayList<>(objects));
       }
@@ -245,9 +247,8 @@ public class DefaultPreheatService implements PreheatService {
     handleAttributes(params.getObjects(), preheat);
     handleSharing(params, preheat);
 
-    periodStore.getAll().forEach(period -> preheat.getPeriodMap().put(period.getName(), period));
-    periodStore
-        .getAllPeriodTypes()
+    periodTypeStore
+        .getAll()
         .forEach(periodType -> preheat.getPeriodTypeMap().put(periodType.getName(), periodType));
 
     log.info(
@@ -268,7 +269,7 @@ public class DefaultPreheatService implements PreheatService {
             (klass, list) ->
                 list.forEach(
                     object -> {
-                      Schema schema = schemaService.getDynamicSchema(klass);
+                      Schema schema = schemaService.getSchema(klass);
 
                       if (schema == null || !schema.isShareable()) {
                         return;
@@ -389,7 +390,8 @@ public class DefaultPreheatService implements PreheatService {
             object
                 .getAttributeValues()
                 .forEach(
-                    (attributeId, value) -> {
+                    (key, value) -> {
+                      String attributeId = key.toString();
                       Set<String> uids = preheat.getUniqueAttributes().get(klass);
                       if (uids != null && uids.contains(attributeId)) {
                         Map<String, Map<String, String>> values =
@@ -397,7 +399,7 @@ public class DefaultPreheatService implements PreheatService {
                         if (!values.containsKey(attributeId)) {
                           values.put(attributeId, new HashMap<>());
                         }
-                        values.get(attributeId).put(value, object.getUid());
+                        values.get(attributeId).put(value.toString(), object.getUid());
                       }
                     }));
   }
@@ -464,7 +466,7 @@ public class DefaultPreheatService implements PreheatService {
     collectScanTargets(targets);
 
     for (Class<?> klass : targets.keySet()) {
-      Schema schema = schemaService.getDynamicSchema(klass);
+      Schema schema = schemaService.getSchema(klass);
 
       List<Property> referenceProperties =
           schema.getProperties().stream()
@@ -485,7 +487,7 @@ public class DefaultPreheatService implements PreheatService {
                   (attributeId, value) ->
                       map.get(PreheatIdentifier.UID)
                           .computeIfAbsent(Attribute.class, k -> new HashSet<>())
-                          .add(attributeId));
+                          .add(attributeId.toString()));
           identifiableObject
               .getSharing()
               .getUserGroups()
@@ -513,15 +515,14 @@ public class DefaultPreheatService implements PreheatService {
                 if (!uidMap.containsKey(itemKlass)) uidMap.put(itemKlass, new HashSet<>());
                 if (!codeMap.containsKey(itemKlass)) codeMap.put(itemKlass, new HashSet<>());
 
-                Object reference = ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+                Object reference = safeInvoke(object, p.getGetterMethod());
 
                 if (reference != null) {
                   IdentifiableObject identifiableObject = (IdentifiableObject) reference;
                   addIdentifiers(map, identifiableObject);
                 }
               } else {
-                Collection<IdentifiableObject> reference =
-                    ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+                Collection<IdentifiableObject> reference = safeInvoke(object, p.getGetterMethod());
 
                 if (reference != null) {
                   reference.forEach(identifiableObject -> addIdentifiers(map, identifiableObject));
@@ -673,7 +674,7 @@ public class DefaultPreheatService implements PreheatService {
     collectScanTargets(targets);
 
     for (Class<?> objectClass : targets.keySet()) {
-      Schema schema = schemaService.getDynamicSchema(objectClass);
+      Schema schema = schemaService.getSchema(objectClass);
 
       if (!schema.isIdentifiableObject()) {
         continue;
@@ -700,8 +701,7 @@ public class DefaultPreheatService implements PreheatService {
         properties.forEach(
             p -> {
               if (!p.isCollection()) {
-                IdentifiableObject reference =
-                    ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+                IdentifiableObject reference = safeInvoke(object, p.getGetterMethod());
 
                 if (reference != null) {
                   try {
@@ -716,10 +716,9 @@ public class DefaultPreheatService implements PreheatService {
               } else {
                 Collection<IdentifiableObject> refObjects =
                     ReflectionUtils.newCollectionInstance(p.getKlass());
-                Collection<IdentifiableObject> references =
-                    ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+                Collection<IdentifiableObject> references = safeInvoke(object, p.getGetterMethod());
 
-                if (references != null) {
+                if (references != null && Hibernate.isInitialized(references)) {
                   for (IdentifiableObject reference : references) {
                     if (reference == null) {
                       continue;
@@ -750,7 +749,7 @@ public class DefaultPreheatService implements PreheatService {
       Class<?> klass = entry.getKey();
       List<?> objects = entry.getValue();
 
-      Schema schema = schemaService.getDynamicSchema(klass);
+      Schema schema = schemaService.getSchema(klass);
       Map<String, Property> properties = schema.getEmbeddedObjectProperties();
 
       if (properties.isEmpty()) {
@@ -767,8 +766,7 @@ public class DefaultPreheatService implements PreheatService {
 
           objects.forEach(
               o -> {
-                Collection<Object> propertyValue =
-                    ReflectionUtils.invokeMethod(o, property.getGetterMethod());
+                Collection<Object> propertyValue = safeInvoke(o, property.getGetterMethod());
                 if (!org.apache.commons.collections4.CollectionUtils.isEmpty(propertyValue)) {
                   list.addAll(propertyValue);
                 }
@@ -783,7 +781,7 @@ public class DefaultPreheatService implements PreheatService {
 
           objects.forEach(
               o -> {
-                Object item = ReflectionUtils.invokeMethod(o, property.getGetterMethod());
+                Object item = safeInvoke(o, property.getGetterMethod());
                 if (item != null) {
                   list.add(item);
                 }
@@ -807,7 +805,7 @@ public class DefaultPreheatService implements PreheatService {
     }
 
     for (Class<? extends IdentifiableObject> objectClass : objects.keySet()) {
-      Schema schema = schemaService.getDynamicSchema(objectClass);
+      Schema schema = schemaService.getSchema(objectClass);
       List<IdentifiableObject> identifiableObjects = objects.get(objectClass);
       Map<String, Map<Object, String>> value =
           handleUniqueProperties(schema, identifier, identifiableObjects);
@@ -823,7 +821,7 @@ public class DefaultPreheatService implements PreheatService {
       return;
     }
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     List<Property> properties =
         schema.getProperties().stream()
@@ -841,8 +839,7 @@ public class DefaultPreheatService implements PreheatService {
       }
 
       if (!property.isCollection()) {
-        IdentifiableObject refObject =
-            ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+        IdentifiableObject refObject = safeInvoke(object, property.getGetterMethod());
         IdentifiableObject ref = getPersistedObject(preheat, identifier, refObject);
 
         ref = connectDefaults(preheat, property, object, refObject, ref);
@@ -855,8 +852,7 @@ public class DefaultPreheatService implements PreheatService {
       } else {
         Collection<IdentifiableObject> objects =
             ReflectionUtils.newCollectionInstance(property.getKlass());
-        Collection<IdentifiableObject> refObjects =
-            ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+        Collection<IdentifiableObject> refObjects = safeInvoke(object, property.getGetterMethod());
 
         for (IdentifiableObject refObject : refObjects) {
           IdentifiableObject ref = getPersistedObject(preheat, identifier, refObject);
@@ -946,7 +942,7 @@ public class DefaultPreheatService implements PreheatService {
       uniqueProperties.forEach(
           property -> {
             if (!map.containsKey(property.getName())) map.put(property.getName(), new HashMap<>());
-            Object value = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+            Object value = safeInvoke(object, property.getGetterMethod());
             if (value != null)
               map.get(property.getName()).put(value, identifier.getIdentifier(object));
           });
@@ -957,20 +953,6 @@ public class DefaultPreheatService implements PreheatService {
 
   private IdentifiableObject getPersistedObject(
       Preheat preheat, PreheatIdentifier identifier, IdentifiableObject ref) {
-    if (ref instanceof Period) {
-      Period period = preheat.getPeriodMap().get(ref.getName());
-
-      if (period == null) {
-        period = periodService.reloadIsoPeriod(ref.getName());
-      }
-
-      if (period != null) {
-        preheat.getPeriodMap().put(period.getName(), period);
-      }
-
-      return period;
-    }
-
     return preheat.get(identifier, ref);
   }
 

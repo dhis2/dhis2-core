@@ -48,6 +48,7 @@ import org.hisp.dhis.query.operators.LessThanOperator;
 import org.hisp.dhis.query.operators.LikeOperator;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.query.operators.NotEqualOperator;
+import org.hisp.dhis.query.operators.NotInOperator;
 import org.hisp.dhis.query.operators.NotLikeOperator;
 import org.hisp.dhis.query.operators.NotNullOperator;
 import org.hisp.dhis.query.operators.NullOperator;
@@ -356,6 +357,35 @@ class OperatorTest {
   }
 
   @Test
+  void testNotInInt() {
+    NotInOperator<Integer> operator = new NotInOperator<>(Arrays.asList(1, 2, 3));
+    assertTrue(operator.test(0));
+    assertFalse(operator.test(1));
+    assertFalse(operator.test(2));
+    assertFalse(operator.test(3));
+    assertTrue(operator.test(4));
+  }
+
+  @Test
+  void testNotInString() {
+    NotInOperator<String> operator = new NotInOperator<>(Arrays.asList("b", "c", "d"));
+    assertTrue(operator.test("a"));
+    assertFalse(operator.test("b"));
+    assertFalse(operator.test("c"));
+    assertFalse(operator.test("d"));
+    assertTrue(operator.test("e"));
+  }
+
+  @Test
+  void testNotInEnum() {
+    NotInOperator<String> operator = new NotInOperator<>(Arrays.asList("A", "B"));
+    assertFalse(operator.test(TestEnum.A));
+    assertFalse(operator.test(TestEnum.B));
+    assertTrue(operator.test(TestEnum.C));
+    assertTrue(operator.test("abc"));
+  }
+
+  @Test
   void testNotLikeValidTypes() {
     NotLikeOperator<String> operator = new NotLikeOperator<>("operator", true, MatchMode.ANYWHERE);
     assertTrue(operator.isValid(String.class));
@@ -450,7 +480,7 @@ class OperatorTest {
 
   @Test
   void testEmptyMap() {
-    EmptyOperator operator = new EmptyOperator();
+    EmptyOperator<String> operator = new EmptyOperator<String>();
     assertTrue(operator.test(Map.of()));
     assertFalse(operator.test(Map.of("key", "value")));
   }

@@ -55,6 +55,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.FactorGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
@@ -78,11 +80,10 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
       @Lazy UserService userService,
       @Lazy TwoFactorAuthService twoFactorAuthService,
       DhisConfigurationProvider configurationProvider) {
-
+    super(detailsService);
     this.userService = userService;
     this.twoFactorAuthService = twoFactorAuthService;
     this.configurationProvider = configurationProvider;
-    setUserDetailsService(detailsService);
     setPasswordEncoder(passwordEncoder);
   }
 
@@ -114,8 +115,16 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     checkTwoFactorAuthentication(auth, userDetails);
 
     // Return a new authentication token with the user details.
+    // Spring Security 7 JwtGenerator requires FactorGrantedAuthority for OIDC auth_time when a
+    // SessionRegistry is active (Authorization Server always installs one).
+    java.util.List<GrantedAuthority> authorities =
+        new java.util.ArrayList<>(result.getAuthorities());
+    if (authorities.stream().noneMatch(FactorGrantedAuthority.class::isInstance)) {
+      authorities.add(
+          FactorGrantedAuthority.fromAuthority(FactorGrantedAuthority.PASSWORD_AUTHORITY));
+    }
     return new UsernamePasswordAuthenticationToken(
-        userDetails, result.getCredentials(), result.getAuthorities());
+        userDetails, result.getCredentials(), authorities);
   }
 
   private void checkLockout(String username, String ip) {

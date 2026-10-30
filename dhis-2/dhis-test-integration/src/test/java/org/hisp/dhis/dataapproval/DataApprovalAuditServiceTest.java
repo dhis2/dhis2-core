@@ -35,6 +35,8 @@ import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.UNACCEPT;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
@@ -382,5 +384,70 @@ class DataApprovalAuditServiceTest extends PostgresIntegrationTestBase {
     audits = dataApprovalAuditService.getDataApprovalAudits(params);
     assertEquals(1, audits.size());
     assertTrue(audits.contains(auditBB3));
+  }
+
+  // -------------------------------------------------------------------------
+  // JPA annotation mapping verification tests
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testJpaEntityPersistenceAndRetrieval() {
+    DataApprovalAudit retrieved = dataApprovalAuditStore.get(auditAA1.getId());
+
+    assertNotNull(retrieved);
+    assertEquals(auditAA1.getId(), retrieved.getId());
+    assertEquals(APPROVE, retrieved.getAction());
+    assertNotNull(retrieved.getCreated());
+    assertNotNull(retrieved.getCreator());
+    assertEquals(userZ.getId(), retrieved.getCreator().getId());
+  }
+
+  @Test
+  void testJpaManyToOneAssociationsLoaded() {
+    DataApprovalAudit retrieved = dataApprovalAuditStore.get(auditBA2.getId());
+
+    assertNotNull(retrieved);
+    assertNotNull(retrieved.getLevel());
+    assertEquals(level2.getId(), retrieved.getLevel().getId());
+    assertNotNull(retrieved.getWorkflow());
+    assertEquals(workflowB.getId(), retrieved.getWorkflow().getId());
+    assertNotNull(retrieved.getPeriod());
+    assertEquals(periodB.getId(), retrieved.getPeriod().getId());
+    assertNotNull(retrieved.getOrganisationUnit());
+    assertEquals(sourceB.getId(), retrieved.getOrganisationUnit().getId());
+    assertNotNull(retrieved.getAttributeOptionCombo());
+    assertEquals(optionComboA.getId(), retrieved.getAttributeOptionCombo().getId());
+  }
+
+  @Test
+  void testJpaIdGeneration() {
+    assertTrue(auditAA1.getId() > 0);
+    assertTrue(auditAB1.getId() > 0);
+    assertNotEquals(auditAA1.getId(), auditAB1.getId());
+  }
+
+  @Test
+  void testJpaEnumFieldPersistence() {
+    assertEquals(APPROVE, dataApprovalAuditStore.get(auditAA1.getId()).getAction());
+    assertEquals(UNAPPROVE, dataApprovalAuditStore.get(auditAB1.getId()).getAction());
+    assertEquals(ACCEPT, dataApprovalAuditStore.get(auditAC1.getId()).getAction());
+    assertEquals(UNACCEPT, dataApprovalAuditStore.get(auditBA2.getId()).getAction());
+  }
+
+  @Test
+  void testJpaUpdateOperations() {
+    DataApprovalAudit retrieved = dataApprovalAuditStore.get(auditAA1.getId());
+    retrieved.setAction(UNACCEPT);
+    dataApprovalAuditStore.update(retrieved);
+
+    DataApprovalAudit updated = dataApprovalAuditStore.get(auditAA1.getId());
+    assertEquals(UNACCEPT, updated.getAction());
+    // Verify associations are still intact after update
+    assertNotNull(updated.getLevel());
+    assertNotNull(updated.getWorkflow());
+    assertNotNull(updated.getPeriod());
+    assertNotNull(updated.getOrganisationUnit());
+    assertNotNull(updated.getAttributeOptionCombo());
+    assertNotNull(updated.getCreator());
   }
 }

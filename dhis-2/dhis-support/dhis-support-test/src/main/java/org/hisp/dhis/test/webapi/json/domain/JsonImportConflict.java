@@ -52,7 +52,7 @@ public interface JsonImportConflict extends JsonObject {
   }
 
   @Required
-  default String getValue() {
+  default String value() {
     return getString("value").string();
   }
 

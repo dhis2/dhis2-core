@@ -56,6 +56,38 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 /**
+ * Builds a {@link DhisOidcClientRegistration} from a generic {@code oidc.provider.<id>.*} config
+ * block, where {@code <id>} is any alphanumeric identifier NOT in the reserved set {@code {google,
+ * azure, wso2, dhis2}}. Reserved ids are handled by the corresponding built-in providers ({@link
+ * GoogleProvider}, {@link AzureAdProvider}, {@link Wso2Provider}, {@link
+ * Dhis2InternalOidcProvider}).
+ *
+ * <p>Every successfully built registration renders as a sign-in button on the DHIS2 web login page
+ * when {@code oidc.oauth2.login.enabled=on}.
+ *
+ * <p>Supported per-provider keys (all suffixes declared as constants on {@link
+ * AbstractOidcProvider}):
+ *
+ * <ul>
+ *   <li>{@code client_id}, {@code client_secret} (required)
+ *   <li>{@code authorization_uri}, {@code token_uri}, {@code user_info_uri}, {@code jwk_uri},
+ *       {@code issuer_uri}
+ *   <li>{@code mapping_claim} (defaults to {@link AbstractOidcProvider#DEFAULT_MAPPING_CLAIM})
+ *   <li>{@code redirect_url} (defaults to {@link
+ *       AbstractOidcProvider#DEFAULT_REDIRECT_TEMPLATE_URL})
+ *   <li>{@code scopes} (space-separated, {@code openid} is always added)
+ *   <li>{@code display_alias}, {@code login_image}, {@code login_image_padding}
+ *   <li>{@code enable_logout} with {@code end_session_endpoint}
+ *   <li>{@code enable_pkce}
+ *   <li>{@code authorization_grant_type}, {@code client_authentication_method}
+ *   <li>{@code extra_request_parameters}
+ *   <li>Keys for {@code private_key_jwt} client authentication: {@code keystore_path}, {@code
+ *       keystore_password}, {@code key_alias}, {@code key_password}, {@code jwk_set_url}
+ * </ul>
+ *
+ * <p>Unknown keys inside a provider block are logged at startup, together with the closest
+ * known-key suggestion, so that typos in {@code dhis.conf} are surfaced to administrators.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class GenericOidcProviderBuilder extends AbstractOidcProvider {
@@ -63,6 +95,17 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider {
     throw new IllegalStateException("Utility class");
   }
 
+  /**
+   * Builds a {@link DhisOidcClientRegistration} for a single generic provider block.
+   *
+   * @param config per-provider key/value map extracted from {@code dhis.conf} (keys are the
+   *     canonical suffixes, e.g. {@code client_id}, not the full {@code oidc.provider.<id>.*} form)
+   * @param externalClients optional map of external clients that may call back into DHIS2 with
+   *     tokens issued by this provider, keyed by external client id
+   * @return the built registration, or {@code null} when the block is effectively empty (missing
+   *     {@code provider_id} or {@code client_id})
+   * @throws IllegalArgumentException if {@code client_secret} is missing
+   */
   public static DhisOidcClientRegistration build(
       Map<String, String> config, Map<String, Map<String, String>> externalClients) {
     Objects.requireNonNull(config, "DhisConfigurationProvider is missing!");
@@ -203,11 +246,13 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider {
   }
 
   /**
-   * Extra request parameters has to be in this form: acr_value 4, test_param five (trailing
-   * (PARAM1_NAME VALUE1,PARAM2_NAME VALUE2...)
+   * Parses the {@code extra_request_parameters} value into a name/value map. The expected format is
+   * a comma-separated list of whitespace-separated name/value pairs, for example {@code acr_value
+   * 4, test_param five}. Entries that are not exactly two whitespace-separated tokens are silently
+   * skipped. These parameters are added to every authorization request made to the provider.
    *
-   * @param config
-   * @return
+   * @param config per-provider key/value map
+   * @return a map of extra request parameter names to values, never {@code null}
    */
   public static Map<String, String> getExtraRequestParameters(Map<String, String> config) {
     String params = StringUtils.defaultIfEmpty(config.get(EXTRA_REQUEST_PARAMETERS), "");

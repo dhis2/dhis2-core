@@ -47,7 +47,17 @@ public interface DataStatisticsEventStore extends GenericStore<DataStatisticsEve
    * @param endDate the end date.
    * @return a map between DataStatisticsEventTypes and counts.
    */
-  Map<DataStatisticsEventType, Double> getDataStatisticsEventCount(Date startDate, Date endDate);
+  Map<DataStatisticsEventType, Long> getDataStatisticsEventCount(Date startDate, Date endDate);
+
+  /**
+   * Returns the number of distinct usernames with at least one recorded event between each of the
+   * given start dates and the given end date. All counts are computed in a single query.
+   *
+   * @param startDates the window start dates.
+   * @param endDate the common end date of all windows.
+   * @return the distinct user counts in the same order as the given start dates.
+   */
+  List<Integer> getDistinctActiveUserCounts(List<Date> startDates, Date endDate);
 
   /**
    * Returns top favorites by views

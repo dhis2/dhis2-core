@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
@@ -98,6 +99,8 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
 
   @Mock private AnalyticsTableHookService analyticsTableHookService;
 
+  @Mock private ConfigurationService configurationService;
+
   private JdbcTrackedEntityAnalyticsTableManager tableManager;
 
   @BeforeEach
@@ -118,58 +121,42 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
             analyticsTableSettings,
             periodDataProvider,
             new ColumnMapper(sqlBuilder, systemSettingsProvider),
-            sqlBuilder);
+            sqlBuilder,
+            configurationService);
   }
 
   @Test
-  void verifyNonConfidentialTeasAreSkipped() {
+  void verifySkippedTeasAreExcluded() {
     AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().build();
 
     TrackedEntityType tet = mock(TrackedEntityType.class);
     when(tet.getUid()).thenReturn("tetUid");
 
-    TrackedEntityAttribute nonConfidentialTea = new TrackedEntityAttribute();
-    nonConfidentialTea.setUid("nonConfidentialTeaUid");
-    nonConfidentialTea.setConfidential(false);
-    nonConfidentialTea.setValueType(ValueType.TEXT);
+    TrackedEntityAttribute tea = new TrackedEntityAttribute();
+    tea.setUid("teaUid");
+    tea.setSkipAnalytics(false);
+    tea.setValueType(ValueType.TEXT);
 
-    TrackedEntityAttribute confidentialTea = new TrackedEntityAttribute();
-    confidentialTea.setUid("confidentialTeaUid");
-    confidentialTea.setConfidential(true);
-    confidentialTea.setValueType(ValueType.TEXT);
+    TrackedEntityAttribute skippedTea = new TrackedEntityAttribute();
+    skippedTea.setUid("skippedTeaUid");
+    skippedTea.setSkipAnalytics(true);
+    skippedTea.setValueType(ValueType.TEXT);
 
     Program program = mock(Program.class);
 
-    when(tet.getTrackedEntityAttributes()).thenReturn(List.of(nonConfidentialTea, confidentialTea));
-
+    when(tet.getTrackedEntityAttributes()).thenReturn(List.of(tea, skippedTea));
     when(program.getTrackedEntityType()).thenReturn(tet);
-
     when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(tet));
-
     when(trackedEntityAttributeService.getProgramTrackedEntityAttributes(List.of(program)))
         .thenReturn(List.of());
-
     when(identifiableObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
     List<AnalyticsTable> analyticsTables = tableManager.getAnalyticsTables(params);
 
     assertEquals(1, analyticsTables.size());
 
-    AnalyticsTable analyticsTable = analyticsTables.get(0);
-
-    assertContainsNonConfidentialTeaColumns(analyticsTable);
-    assertDoesntContainConfidentialTeaColumns(analyticsTable);
-  }
-
-  private void assertDoesntContainConfidentialTeaColumns(AnalyticsTable analyticsTable) {
-    List<Column> columns = analyticsTable.getColumns();
-
-    assertFalse(columns.stream().map(Column::getName).anyMatch("confidentialTeaUid"::equals));
-  }
-
-  private void assertContainsNonConfidentialTeaColumns(AnalyticsTable analyticsTable) {
-    List<Column> columns = analyticsTable.getColumns();
-
-    assertTrue(columns.stream().map(Column::getName).anyMatch("nonConfidentialTeaUid"::equals));
+    List<Column> columns = analyticsTables.get(0).getColumns();
+    assertTrue(columns.stream().map(Column::getName).anyMatch("teaUid"::equals));
+    assertFalse(columns.stream().map(Column::getName).anyMatch("skippedTeaUid"::equals));
   }
 }

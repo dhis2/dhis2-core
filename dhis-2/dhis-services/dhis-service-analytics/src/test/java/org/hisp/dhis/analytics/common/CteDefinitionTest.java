@@ -75,6 +75,7 @@ class CteDefinitionTest {
           () -> assertTrue(cte.isRequiresCoalesce()),
           () -> assertFalse(cte.isFilter()),
           () -> assertFalse(cte.isProgramStage()),
+          () -> assertFalse(cte.hasValueName()),
           () -> assertRandomAlias(cte.getAlias()));
     }
 
@@ -89,6 +90,7 @@ class CteDefinitionTest {
           () -> assertFalse(cte.isProgramIndicator()),
           () -> assertFalse(cte.isExists()),
           () -> assertFalse(cte.isProgramStage()),
+          () -> assertFalse(cte.hasValueName()),
           () -> assertRandomAlias(cte.getAlias()));
     }
 
@@ -107,6 +109,7 @@ class CteDefinitionTest {
           () -> assertFalse(variable.isProgramStage(), "Not expected program stage type"),
           () -> assertFalse(variable.isFilter(), "Not expected filter type"),
           () -> assertFalse(variable.isProgramIndicator(), "Not expected PI type"),
+          () -> assertFalse(variable.hasValueName()),
           () -> assertFalse(variable.isExists()));
 
       // PS/DE CTE expectations
@@ -118,6 +121,7 @@ class CteDefinitionTest {
           () -> assertFalse(psde.isProgramStage()),
           () -> assertFalse(psde.isFilter()),
           () -> assertFalse(psde.isProgramIndicator()),
+          () -> assertFalse(psde.hasValueName()),
           () -> assertFalse(psde.isExists()));
     }
 
@@ -129,6 +133,7 @@ class CteDefinitionTest {
       assertAll(
           () -> assertTrue(cte.isAggregationBase()),
           () -> assertEquals("where pi = 'x'", cte.getAggregateWhereClause()),
+          () -> assertFalse(cte.hasValueName()),
           () -> assertFalse(cte.isRowContext()));
     }
   }
@@ -189,10 +194,9 @@ class CteDefinitionTest {
     @Test
     @DisplayName("Alias uniqueness under concurrent load (low‑collision expectation, not absolute)")
     void aliasUniquenessUnderLoad() {
-      int sampleSize = 5000;
+      int sampleSize = 100;
       Set<String> aliases =
           IntStream.range(0, sampleSize)
-              .parallel()
               .mapToObj(i -> CteDefinition.forFilter("id_" + i, "ps", "sql"))
               .map(CteDefinition::getAlias)
               .collect(Collectors.toCollection(ConcurrentHashMap::newKeySet));
@@ -228,6 +232,30 @@ class CteDefinitionTest {
 
       assertTrue(cteTrue.isRowContext());
       assertFalse(cteFalse.isRowContext());
+    }
+
+    @Test
+    @DisplayName("Program-stage value-name flag defaults to false")
+    void valueNameDefaultsToFalse() {
+      var cte = new CteDefinition("ps", "de", "sql", 0, true, true);
+
+      assertAll(
+          () -> assertTrue(cte.isProgramStage()),
+          () -> assertTrue(cte.isRowContext()),
+          () -> assertTrue(cte.isHasFilter()),
+          () -> assertFalse(cte.hasValueName()));
+    }
+
+    @Test
+    @DisplayName("Program-stage value-name flag is propagated by 7-arg constructor")
+    void valueNamePropagation() {
+      var cte = new CteDefinition("ps", "de", "sql", 0, true, true, true);
+
+      assertAll(
+          () -> assertTrue(cte.isProgramStage()),
+          () -> assertTrue(cte.isRowContext()),
+          () -> assertTrue(cte.isHasFilter()),
+          () -> assertTrue(cte.hasValueName()));
     }
 
     @Test

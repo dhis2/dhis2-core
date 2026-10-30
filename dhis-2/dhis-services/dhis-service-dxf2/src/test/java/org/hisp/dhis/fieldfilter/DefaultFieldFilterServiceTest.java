@@ -76,7 +76,7 @@ class DefaultFieldFilterServiceTest {
   private DefaultFieldFilterService service;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     CacheProvider cacheProvider = mock(CacheProvider.class);
     when(cacheProvider.createPropertyTransformerCache()).thenReturn(new NoOpCache<>());
     service =
@@ -99,20 +99,16 @@ class DefaultFieldFilterServiceTest {
     addProperty(propertyMap, attribute, "publicAccess");
     addProperty(propertyMap, attribute, "userGroupAccesses");
     addProperty(propertyMap, attribute, "userAccesses");
-    addProperty(propertyMap, attribute, "externalAccess");
 
     final Schema rootSchema = new Schema(Attribute.class, "attribute", "attributes");
     rootSchema.setPropertyMap(propertyMap);
-    Mockito.when(schemaService.getDynamicSchema(Mockito.eq(Attribute.class)))
-        .thenReturn(rootSchema);
+    Mockito.when(schemaService.getSchema(Mockito.eq(Attribute.class))).thenReturn(rootSchema);
 
     final Schema booleanSchema = new Schema(boolean.class, "boolean", "booleans");
-    Mockito.when(schemaService.getDynamicSchema(Mockito.eq(boolean.class)))
-        .thenReturn(booleanSchema);
+    Mockito.when(schemaService.getSchema(Mockito.eq(boolean.class))).thenReturn(booleanSchema);
 
     final FieldFilterParams params =
-        new FieldFilterParams(
-            Collections.singletonList(attribute), Collections.emptyList(), Defaults.INCLUDE, true);
+        new FieldFilterParams(Collections.singletonList(attribute), "", Defaults.INCLUDE, true);
 
     CollectionNode node = service.toCollectionNode(Attribute.class, params);
     Assertions.assertEquals(1, node.getChildren().size());
@@ -122,7 +118,6 @@ class DefaultFieldFilterServiceTest {
     Assertions.assertFalse(names.contains("publicAccess"));
     Assertions.assertFalse(names.contains("userGroupAccesses"));
     Assertions.assertFalse(names.contains("userAccesses"));
-    Assertions.assertFalse(names.contains("externalAccess"));
   }
 
   @Test
@@ -137,23 +132,17 @@ class DefaultFieldFilterServiceTest {
     addProperty(propertyMap, attribute, "publicAccess");
     addProperty(propertyMap, attribute, "userGroupAccesses");
     addProperty(propertyMap, attribute, "userAccesses");
-    addProperty(propertyMap, attribute, "externalAccess");
 
     final Schema rootSchema = new Schema(Attribute.class, "attribute", "attributes");
     rootSchema.setPropertyMap(propertyMap);
-    Mockito.when(schemaService.getDynamicSchema(Mockito.eq(Attribute.class)))
-        .thenReturn(rootSchema);
+    Mockito.when(schemaService.getSchema(Mockito.eq(Attribute.class))).thenReturn(rootSchema);
 
     final Schema booleanSchema = new Schema(boolean.class, "boolean", "booleans");
-    Mockito.when(schemaService.getDynamicSchema(Mockito.eq(boolean.class)))
-        .thenReturn(booleanSchema);
+    Mockito.when(schemaService.getSchema(Mockito.eq(boolean.class))).thenReturn(booleanSchema);
 
     final FieldFilterParams params =
         new FieldFilterParams(
-            Collections.singletonList(attribute),
-            Collections.singletonList(":owner"),
-            Defaults.INCLUDE,
-            true);
+            Collections.singletonList(attribute), ":owner", Defaults.INCLUDE, true);
 
     CollectionNode node = service.toCollectionNode(Attribute.class, params);
     Assertions.assertEquals(1, node.getChildren().size());
@@ -164,7 +153,6 @@ class DefaultFieldFilterServiceTest {
     Assertions.assertFalse(names.contains("publicAccess"));
     Assertions.assertFalse(names.contains("userGroupAccesses"));
     Assertions.assertFalse(names.contains("userAccesses"));
-    Assertions.assertFalse(names.contains("externalAccess"));
   }
 
   private static Set<String> extractNodeNames(Collection<Node> nodes) {

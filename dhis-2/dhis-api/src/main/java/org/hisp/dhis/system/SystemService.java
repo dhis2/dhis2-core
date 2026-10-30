@@ -37,7 +37,6 @@ import org.hisp.dhis.system.SystemInfo.SystemInfoForMetadataExport;
  * @author Lars Helge Overland
  */
 public interface SystemService {
-
   /**
    * @return The system info summary for right now
    */

@@ -41,7 +41,10 @@ import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
-import static org.hisp.dhis.webapi.controller.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -55,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
@@ -70,29 +74,28 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonDiff.Mode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -116,15 +119,13 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   // Used to generate unique chars for creating test objects like TEA, ...
   private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final String TEA_MULTI_TEXT = "multitxtAtr";
-  private static final String TE_UID_RBG = "QS6w44flWSS"; // "red,blue,Green" as multi text value
+  private static final String TE_UID_RBG = "QS6w44flWSS"; // "red, blue ,Green" as multi text value
   private static final String TE_UID_RWY = "QS6w44flWTT"; // "red,white,yellow" as multi text value
   private static final String TE_UID_EMPTY_STRING = "QS6w44flWUU"; // "" as multi text value
   public static final List<String> TE_UID_NULL =
       List.of("mHWCacsGYYn", "dUE514NMOlo", "QS6w44flWAf"); // no value or null as multi text value
 
   @Autowired private TrackerImportService trackerImportService;
-
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
@@ -311,7 +312,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
     assertContainsAll(
         List.of(tea1.getUid(), tea2.getUid()), attributes, JsonAttribute::getAttribute);
-    assertContainsAll(List.of("rainy day", "70"), attributes, JsonAttribute::getValue);
+    assertContainsAll(List.of("rainy day", "70"), attributes, JsonAttribute::value);
   }
 
   @Test
@@ -337,8 +338,28 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
         List.of(tea1.getUid(), tea2.getUid(), tea3.getUid()),
         attributes,
         JsonAttribute::getAttribute);
-    assertContainsAll(
-        List.of("rainy day", "70", "Frank PTEA"), attributes, JsonAttribute::getValue);
+    assertContainsAll(List.of("rainy day", "70", "Frank PTEA"), attributes, JsonAttribute::value);
+  }
+
+  @Test
+  void shouldReturnUpdatedByOnAttributeWhenTrackedEntityAttributeValueIsExported() {
+    TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
+
+    JsonList<JsonAttribute> attributes =
+        GET(
+                "/tracker/trackedEntities/{id}?fields=attributes[attribute,value,updatedBy]",
+                te.getUid())
+            .content(HttpStatus.OK)
+            .getList("attributes", JsonAttribute.class);
+
+    assertNotEmpty(attributes.stream().toList());
+    attributes.stream()
+        .forEach(
+            a ->
+                assertEquals(
+                    "trackeradmin",
+                    a.updatedBy(),
+                    "updatedBy mismatch on attribute " + a.getAttribute()));
   }
 
   @Test
@@ -574,7 +595,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertTrue(response.header("content-disposition").contains("filename=trackedEntity.csv"));
     assertStartsWith(
         """
-    trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,storedBy,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
+    trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
     """,
         csvResponse);
     // TEAV order is not deterministic
@@ -599,7 +620,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
             Boolean.toString(te.isInactive()),
             Boolean.toString(te.isDeleted()),
             Boolean.toString(te.isPotentialDuplicate()),
-            ",,,",
+            ",,",
             importUser.getUsername(),
             importUser.getUsername())
         + ","
@@ -681,15 +702,14 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   @Test
   void shouldGetEnrollmentWhenFieldsHasEnrollments() {
     TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
-    assertHasSize(1, te.getEnrollments(), "test expects a tracked entity with one enrollment");
-    Enrollment enrollment = te.getEnrollments().iterator().next();
+    assertHasSize(2, te.getEnrollments(), "test expects a tracked entity with two enrollments");
 
     JsonList<JsonEnrollment> json =
         GET("/tracker/trackedEntities/{id}?fields=enrollments", te.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class);
 
-    assertDefaultEnrollmentResponse(json, enrollment);
+    assertDefaultEnrollmentResponse(json, te.getEnrollments());
   }
 
   @Test
@@ -1155,7 +1175,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
                     te.getAttributes().stream()
                         .filter(attr -> "multitxtAtr".equals(attr.getAttribute()))
                         .findFirst()
-                        .map(JsonAttribute::getValue)
+                        .map(JsonAttribute::value)
                         .orElse(null))
             .toList());
   }
@@ -1213,6 +1233,19 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     manager.clear();
     manager.flush();
     return trackedEntity;
+  }
+
+  private void assertDefaultEnrollmentResponse(
+      JsonList<JsonEnrollment> jsonEnrollments, Set<Enrollment> enrollments) {
+    assertFalse(jsonEnrollments.isEmpty());
+    for (JsonEnrollment jsonEnrollment : jsonEnrollments) {
+      Optional<Enrollment> enrollment =
+          enrollments.stream()
+              .filter(e -> e.getUid().equals(jsonEnrollment.getEnrollment()))
+              .findFirst();
+      assertTrue(enrollment.isPresent());
+      assertDefaultEnrollmentResponse(enrollment.get(), jsonEnrollment);
+    }
   }
 
   private JsonEnrollment assertDefaultEnrollmentResponse(
@@ -1434,7 +1467,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     TrackedEntityAttributeValue attributeValue = attributeValue(tea, trackedEntity, value);
     trackedEntity.addAttributeValue(attributeValue);
     manager.save(trackedEntity, false);
-    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(attributeValue);
+    saveTrackedEntityAttributeValue(entityManager, attributeValue);
     manager.flush();
     manager.clear();
     return tea;
@@ -1446,7 +1479,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     TrackedEntityAttributeValue attributeValue = attributeValue(tea, trackedEntity, value);
     trackedEntity.addAttributeValue(attributeValue);
     manager.save(trackedEntity, false);
-    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(attributeValue);
+    saveTrackedEntityAttributeValue(entityManager, attributeValue);
     return tea;
   }
 
@@ -1535,23 +1568,33 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
    */
   private static Stream<Arguments> provideMultiTextFilterTestCases() {
     return Stream.of(
-        Arguments.of("sw:bl", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
-        Arguments.of("ew:een", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("sw: bl", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("ew:een", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
         Arguments.of("like:ellow", List.of("red,white,yellow"), List.of(TE_UID_RWY)),
         Arguments.of("like:ello", List.of("red,white,yellow"), List.of(TE_UID_RWY)),
         Arguments.of("ew:bl", List.of(), List.of()), // no match
-        Arguments.of("ilike:green", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("ilike:green", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
         Arguments.of(
             "in:red",
-            List.of("red,blue,Green", "red,white,yellow"),
+            List.of("red, blue ,Green", "red,white,yellow"),
             List.of(TE_UID_RBG, TE_UID_RWY)),
         Arguments.of(
             "like:red",
-            List.of("red,blue,Green", "red,white,yellow"),
+            List.of("red, blue ,Green", "red,white,yellow"),
             List.of(TE_UID_RBG, TE_UID_RWY)),
         Arguments.of(
             "!null",
-            List.of("red,blue,Green", "red,white,yellow"),
-            List.of(TE_UID_RBG, TE_UID_RWY)));
+            List.of("red, blue ,Green", "red,white,yellow"),
+            List.of(TE_UID_RBG, TE_UID_RWY)),
+        Arguments.of("eq: blue ", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("eq:blue", List.of(), List.of()),
+        Arguments.of("in: blue ", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("in:blue", List.of(), List.of()),
+        Arguments.of("sw: blue", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("sw:blue", List.of(), List.of()),
+        Arguments.of("ew:blue ", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("ew:blue", List.of(), List.of()),
+        Arguments.of("like: blue ", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("like:blue", List.of("red, blue ,Green"), List.of(TE_UID_RBG)));
   }
 }

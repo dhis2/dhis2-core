@@ -38,7 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
@@ -91,7 +91,7 @@ class DefaultTrackedEntityAnalyticsDimensionsService
     return Optional.of(program)
         .map(Program::getTrackedEntityType)
         .map(IdentifiableObject::getUid)
-        .filter(uid -> StringUtils.equals(uid, trackedEntityTypeId))
+        .filter(uid -> Strings.CS.equals(uid, trackedEntityTypeId))
         .isPresent();
   }
 }

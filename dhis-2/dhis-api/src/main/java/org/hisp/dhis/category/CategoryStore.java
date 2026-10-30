@@ -31,6 +31,7 @@ package org.hisp.dhis.category;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 
@@ -45,4 +46,12 @@ public interface CategoryStore extends GenericDimensionalObjectStore<Category> {
   List<Category> getCategoriesNoAcl(DataDimensionType dataDimensionType, boolean dataDimension);
 
   List<Category> getCategoriesByCategoryOption(Collection<String> categoryOptions);
+
+  /**
+   * Removes all references to the given category ids from the category options.
+   *
+   * @param sourceCategoryIds source category ids
+   * @return number of rows affected
+   */
+  int removeCatOptionCategoryRefs(Set<Long> sourceCategoryIds);
 }

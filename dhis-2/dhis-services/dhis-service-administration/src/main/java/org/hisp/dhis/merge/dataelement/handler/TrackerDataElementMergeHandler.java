@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueChangelog;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
@@ -47,9 +47,6 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
-import org.hisp.dhis.program.SingleEventStore;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.TrackerEventStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -60,6 +57,9 @@ import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLog;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLog;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
+import org.hisp.dhis.tracker.model.SingleEventStore;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.model.TrackerEventStore;
 import org.springframework.stereotype.Component;
 
 /**
@@ -241,7 +241,7 @@ public class TrackerDataElementMergeHandler {
    * either be deleted or left as is, based on whether the source {@link DataElement}s are being
    * deleted or not.
    *
-   * @param sources source {@link DataElement}s used to retrieve {@link DataValueAudit}s
+   * @param sources source {@link DataElement}s used to retrieve {@link DataValueChangelog}s
    * @param mergeRequest merge request
    */
   public void handleEventChangeLogs(

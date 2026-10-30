@@ -56,6 +56,9 @@
       "categoryCombo": {
         "id": "p0bh43XdKy5"
       },
+      "enrollmentCategoryCombo": {
+        "id": "p0bh43XdKy5"
+      },
       "skipOffline": false,
       "displayFrontPageList": false,
       "useFirstStageDuringRegistration": false,
@@ -116,6 +119,9 @@
       "expiryDays": 0,
       "useFirstStageDuringRegistration": false,
       "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "enrollmentCategoryCombo": {
         "id": "bjDvmb4bfuf"
       },
       "sharing": {
@@ -452,6 +458,9 @@
       "categoryCombo": {
         "id": "p0bh43XdKy5"
       },
+      "enrollmentCategoryCombo": {
+        "id": "p0bh43XdKy5"
+      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -580,6 +589,10 @@
         "id": "bjDvmb4bfuf",
         "code": "default"
       },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf",
+        "code": "default"
+      },
       "programTrackedEntityAttributes": [],
       "notificationTemplates": [],
       "translations": [],
@@ -693,6 +706,10 @@
       "expiryDays": 0,
       "useFirstStageDuringRegistration": false,
       "categoryCombo": {
+        "id": "bjDvmb4bfuf",
+        "code": "default"
+      },
+      "enrollmentCategoryCombo": {
         "id": "bjDvmb4bfuf",
         "code": "default"
       },

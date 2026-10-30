@@ -29,10 +29,15 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.escapeHtml;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.appendEscaped;
 import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.stripHtml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.ByteArrayOutputStream;
+import org.hisp.dhis.jsontree.Appender;
+import org.hisp.dhis.jsontree.Text;
+import org.hisp.dhis.jsontree.TextBuilder;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -44,75 +49,72 @@ class OpenApiHtmlUtilsTest {
 
   @Test
   void testEscapeHtml_Null() {
-    assertEquals("", escapeHtml(null));
+    assertEscapedEquals("", "");
   }
 
   @Test
   void testEscapeHtml_Empty() {
-    assertEquals("", escapeHtml(""));
+    assertEscapedEquals("", "");
   }
 
   @Test
   void testEscapeHtml_Blank() {
-    assertEquals("  ", escapeHtml("  "));
+    assertEscapedEquals("  ", "  ");
   }
 
   @Test
   void testEscapeHtml_Plain() {
-    assertEquals("This is just plain text", escapeHtml("This is just plain text"));
+    assertEscapedEquals("This is just plain text", "This is just plain text");
   }
 
   @Test
   void testEscapeHtml_AmpIsEscaped() {
-    assertEquals("You&amp;me", escapeHtml("You&me"));
-    assertEquals("&amp;Co Internationale", escapeHtml("&Co Internationale"));
-    assertEquals("Now &amp;", escapeHtml("Now &"));
+    assertEscapedEquals("You&amp;me", "You&me");
+    assertEscapedEquals("&amp;Co Internationale", "&Co Internationale");
+    assertEscapedEquals("Now &amp;", "Now &");
   }
 
   @Test
   void testEscapeHtml_LessThanIsEscaped() {
-    assertEquals("1&lt;7", escapeHtml("1<7"));
-    assertEquals("&lt; power", escapeHtml("< power"));
-    assertEquals("I &lt;3 cats", escapeHtml("I <3 cats"));
-    assertEquals("I &lt;3 cats &amp; dogs", escapeHtml("I <3 cats & dogs"));
+    assertEscapedEquals("1&lt;7", "1<7");
+    assertEscapedEquals("&lt; power", "< power");
+    assertEscapedEquals("I &lt;3 cats", "I <3 cats");
+    assertEscapedEquals("I &lt;3 cats &amp; dogs", "I <3 cats & dogs");
   }
 
   @Test
   void testEscapeHtml_GreaterThanIsEscaped() {
-    assertEquals("1&gt;7", escapeHtml("1>7"));
-    assertEquals("&gt; power", escapeHtml("> power"));
-    assertEquals("I &gt;&gt; cats", escapeHtml("I >> cats"));
-    assertEquals("cats &gt;&gt; dogs &amp; horses", escapeHtml("cats >> dogs & horses"));
+    assertEscapedEquals("1&gt;7", "1>7");
+    assertEscapedEquals("&gt; power", "> power");
+    assertEscapedEquals("I &gt;&gt; cats", "I >> cats");
+    assertEscapedEquals("cats &gt;&gt; dogs &amp; horses", "cats >> dogs & horses");
   }
 
   @Test
   void testEscapeHtml_SingleQuotesAreEscaped() {
-    assertEquals(
-        "&#039;Hey, must be a devil between us&#039;",
-        escapeHtml("'Hey, must be a devil between us'"));
-    assertEquals(
-        "Now, &#039;Exit Music&#039; (for a film)", escapeHtml("Now, 'Exit Music' (for a film)"));
+    assertEscapedEquals(
+        "&#039;Hey, must be a devil between us&#039;", "'Hey, must be a devil between us'");
+    assertEscapedEquals(
+        "Now, &#039;Exit Music&#039; (for a film)", "Now, 'Exit Music' (for a film)");
   }
 
   @Test
   void testEscapeHtml_DoubleQuotesAreEscaped() {
-    assertEquals(
-        "&quot;Hey, must be a devil between us&quot;",
-        escapeHtml("\"Hey, must be a devil between us\""));
-    assertEquals(
-        "Now, &quot;Exit Music&quot; (for a film)", escapeHtml("Now, \"Exit Music\" (for a film)"));
+    assertEscapedEquals(
+        "&quot;Hey, must be a devil between us&quot;", "\"Hey, must be a devil between us\"");
+    assertEscapedEquals(
+        "Now, &quot;Exit Music&quot; (for a film)", "Now, \"Exit Music\" (for a film)");
   }
 
   @Test
   void testEscapeHtml_HtmlEntitiesAreNotEscaped() {
-    assertEquals(
+    assertEscapedEquals(
         "Remember to use &CounterClockwiseContourIntegral;",
-        escapeHtml("Remember to use &CounterClockwiseContourIntegral;"));
-    assertEquals(
-        "Also the &EmptyVerySmallSquare; space",
-        escapeHtml("Also the &EmptyVerySmallSquare; space"));
-    assertEquals("Direction is &#x200E;!", escapeHtml("Direction is &#x200E;!"));
-    assertEquals("Everyone loves &#128049;", escapeHtml("Everyone loves &#128049;"));
+        "Remember to use &CounterClockwiseContourIntegral;");
+    assertEscapedEquals(
+        "Also the &EmptyVerySmallSquare; space", "Also the &EmptyVerySmallSquare; space");
+    assertEscapedEquals("Direction is &#x200E;!", "Direction is &#x200E;!");
+    assertEscapedEquals("Everyone loves &#128049;", "Everyone loves &#128049;");
   }
 
   @Test
@@ -135,5 +137,47 @@ class OpenApiHtmlUtilsTest {
     assertEquals(
         "Any of , , , , and  will be stripped!",
         stripHtml("Any of <, >, \", ', and & will be stripped!"));
+  }
+
+  @Test
+  void testEscapeHtml_SupplementaryPlane_UTF8_FastPath() {
+    // Regression: appendEncoded(char) writes one char at a time, so a surrogate pair on a
+    // UTF-8 sink becomes two U+FFFD. The fast path (no '&' in input) is affected because
+    // the unescaped default branch calls appendEncoded(c) per char.
+    assertEscapedUtf8("a \uD83D\uDE00 &lt;b&gt;", "a \uD83D\uDE00 <b>");
+  }
+
+  @Test
+  void testEscapeHtml_SupplementaryPlane_UTF8_SlowPath() {
+    // Same bug in the entity-preservation path — mixing '&' with a supplementary character
+    // still goes through the per-char default branch for the emoji.
+    assertEscapedUtf8("a \uD83D\uDE00 &amp; &lt;b&gt;", "a \uD83D\uDE00 & <b>");
+  }
+
+  @Test
+  void testEscapeHtml_SupplementaryPlane_UTF8_Multiple() {
+    // Multiple supplementary characters with escapes interleaved — pins down that the bug
+    // is not boundary-specific
+    assertEscapedUtf8("\uD83D\uDE00&lt;\uD83C\uDF89&gt;", "\uD83D\uDE00<\uD83C\uDF89>");
+  }
+
+  /**
+   * Asserts the escaped output against a UTF-8 round-trip. Unlike {@link #assertEscapedEquals},
+   * this exercises the same encode path as production {@code Appender.ofUTF8} sinks and is the only
+   * way to observe surrogate-pair corruption — {@link TextBuilder} preserves surrogates as raw
+   * {@code char} values and masks the bug.
+   */
+  private void assertEscapedUtf8(String expected, String actual) {
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    try (Appender out = Appender.ofUTF8(bytes)) {
+      appendEscaped(Text.of(actual), out);
+    }
+    assertEquals(expected, bytes.toString(UTF_8));
+  }
+
+  private void assertEscapedEquals(String expected, String actual) {
+    TextBuilder escaped = new TextBuilder();
+    appendEscaped(Text.of(actual), escaped);
+    assertEquals(expected, escaped.toString());
   }
 }

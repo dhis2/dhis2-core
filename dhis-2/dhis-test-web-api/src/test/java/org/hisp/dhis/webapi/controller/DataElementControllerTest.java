@@ -36,6 +36,7 @@ import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
 import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
@@ -144,9 +145,7 @@ class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(1, summary.getStats().getIgnored());
     assertEquals(0, summary.getStats().getCreated());
 
-    JsonErrorReport errorReport =
-        summary.find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4000);
-    assertNotNull(errorReport);
+    JsonErrorReport errorReport = summary.findErrorReport(ErrorCode.E4000);
     assertEquals("Missing required property `locale`", errorReport.getMessage());
   }
 
@@ -297,9 +296,7 @@ class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
                     }""")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport errorReport =
-        validationErrorMsg.find(
-            JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E1121);
+    JsonErrorReport errorReport = validationErrorMsg.findErrorReport(ErrorCode.E1121);
     assertNotNull(errorReport);
     assertEquals(
         "Data element `DeUid000001` value type cannot be changed as it has associated data values",
@@ -422,10 +419,7 @@ class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
                     """)
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport errorReport =
-        validationErrorMsg.find(
-            JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E1121);
-    assertNotNull(errorReport);
+    JsonErrorReport errorReport = validationErrorMsg.findErrorReport(ErrorCode.E1121);
     assertEquals(
         "Data element `DeUid000003` value type cannot be changed as it has associated data values",
         errorReport.getMessage());
@@ -525,11 +519,22 @@ class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
 
   public static Stream<Arguments> invalidApiPathFormats() {
     return Stream.of(
-        Arguments.of("/44/dataElements"),
+        Arguments.of("/45/dataElements"),
         Arguments.of("/99/dataElements"),
         Arguments.of("/27/dataElements"),
         Arguments.of("/333/dataElements"),
         Arguments.of("/3/dataElements"),
         Arguments.of("/test/dataElements"));
+  }
+
+  @Test
+  @DisplayName("Data elements expose dimensionItemType when requested in fields")
+  void getDataElementsWithDimensionItemTypeTest() {
+    JsonArray dataElements =
+        GET("/dataElements?fields=dimensionItemType").content(OK).getArray("dataElements");
+
+    assertFalse(dataElements.isEmpty());
+    dataElements.forEach(
+        de -> assertEquals("DATA_ELEMENT", de.asObject().getString("dimensionItemType").string()));
   }
 }

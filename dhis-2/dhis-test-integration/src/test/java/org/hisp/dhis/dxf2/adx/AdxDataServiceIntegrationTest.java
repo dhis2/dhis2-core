@@ -41,6 +41,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -50,6 +51,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -265,9 +267,9 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     idObjectManager.save(deA);
     idObjectManager.save(deB);
     // Period
-    pe202001 = PeriodType.getPeriodFromIsoString("202001");
-    pe202002 = PeriodType.getPeriodFromIsoString("202002");
-    pe2021Q1 = PeriodType.getPeriodFromIsoString("2021Q1");
+    pe202001 = Period.of("202001");
+    pe202002 = Period.of("202002");
+    pe2021Q1 = Period.of("2021Q1");
     periodService.addPeriod(pe202001);
     periodService.addPeriod(pe202002);
     periodService.addPeriod(pe2021Q1);
@@ -322,10 +324,10 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     testExport(
         "adx/exportA.adx.xml",
         getCommonExportParams().toBuilder()
-            .idScheme("CODE")
-            .dataElementIdScheme("NAME")
-            .categoryIdScheme("NAME")
-            .categoryOptionIdScheme("UID")
+            .idScheme(IdProperty.CODE)
+            .dataElementIdScheme(IdProperty.NAME)
+            .categoryIdScheme(IdProperty.NAME)
+            .categoryOptionIdScheme(IdProperty.UID)
             .build());
   }
 
@@ -334,11 +336,11 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     testExport(
         "adx/exportB.adx.xml",
         getCommonExportParams().toBuilder()
-            .idScheme("CODE")
-            .dataSetIdScheme("NAME")
-            .orgUnitIdScheme("UID")
-            .dataElementIdScheme("UID")
-            .categoryOptionComboIdScheme("NAME")
+            .idScheme(IdProperty.CODE)
+            .dataSetIdScheme(IdProperty.NAME)
+            .orgUnitIdScheme(IdProperty.UID)
+            .dataElementIdScheme(IdProperty.UID)
+            .categoryOptionComboIdScheme(IdProperty.NAME)
             .orgUnitGroup(Set.of(ougA.getUid()))
             .build());
   }
@@ -348,11 +350,11 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     testExport(
         "adx/exportC.adx.xml",
         getCommonExportParams().toBuilder()
-            .idScheme("CODE")
-            .dataSetIdScheme("UID")
-            .orgUnitIdScheme("NAME")
-            .categoryIdScheme("UID")
-            .categoryOptionIdScheme("NAME")
+            .idScheme(IdProperty.CODE)
+            .dataSetIdScheme(IdProperty.UID)
+            .orgUnitIdScheme(IdProperty.NAME)
+            .categoryIdScheme(IdProperty.UID)
+            .categoryOptionIdScheme(IdProperty.NAME)
             .children(true)
             .build());
   }
@@ -362,11 +364,11 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     testExport(
         "adx/exportD.adx.xml",
         getCommonExportParams().toBuilder()
-            .idScheme("CODE")
-            .dataSetIdScheme("UID")
-            .orgUnitIdScheme("NAME")
-            .categoryIdScheme("UID")
-            .categoryOptionIdScheme("NAME")
+            .idScheme(IdProperty.CODE)
+            .dataSetIdScheme(IdProperty.UID)
+            .orgUnitIdScheme(IdProperty.NAME)
+            .categoryIdScheme(IdProperty.UID)
+            .categoryOptionIdScheme(IdProperty.NAME)
             .children(true)
             .attributeOptionCombo(Set.of(cocMcDonalds.getUid()))
             .build());
@@ -449,23 +451,23 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   // --------------------------------------------------------------------------
   // Supportive methods
   // --------------------------------------------------------------------------
-  private DataExportParams getCommonExportParams() {
-    return DataExportParams.builder()
+  private DataExportParams.Input getCommonExportParams() {
+    return DataExportParams.Input.builder()
         .orgUnit(Set.of(ouA.getUid()))
         .period(Set.of(pe202001.getIsoDate(), pe202002.getIsoDate()))
         .dataSet(Set.of(dsA.getUid(), dsB.getUid()))
         .build();
   }
 
-  private void testExport(String filePath, DataExportParams params) throws Exception {
+  private void testExport(String filePath, DataExportParams.Input params) throws Exception {
     addDataValues(
         new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1"),
         new DataValue(deB, pe202002, ouA, cocDefault, cocDefault, "Some text"),
         new DataValue(deA, pe202001, ouB, cocMOver5, cocMcDonalds, "2"),
         new DataValue(deA, pe202001, ouB, cocFOver5, cocPepfar, "3"));
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataExportPipeline.exportAsXmlGroups(params, out);
-    String result = out.toString("UTF-8");
+    dataExportPipeline.exportAsXmlGroups(params, () -> out);
+    String result = out.toString(StandardCharsets.UTF_8);
     InputStream expectedStream = new ClassPathResource(filePath).getInputStream();
     String expected =
         new BufferedReader(new InputStreamReader(expectedStream))

@@ -2,13 +2,19 @@
 
 set -euo pipefail
 
-BASE_IMAGE=${BASE_IMAGE}
+BASE_IMAGE=${BASE_IMAGE:-}
 IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-'dhis2/core'}
 IMAGE_APP_ROOT=${IMAGE_APP_ROOT:-'/usr/local/tomcat/webapps/ROOT'}
 IMAGE_USER=${IMAGE_USER:-'65534'}
 WAR_PATH=${WAR_PATH:-'dhis-2/dhis-web-server/target/dhis.war'}
 UNARCHIVED_WAR_DIR=${UNARCHIVED_WAR_DIR:-'dhis2-war'}
 JIB_BUILD_FILE=${JIB_BUILD_FILE:-'jib.yaml'}
+
+CURL_VERSION=${CURL_VERSION:-'8.20.0'}
+CURL_SHA256_AMD64='3cf20eb1bca2726d74a39fcda2b758a08a23a3dce73ad6f3f468d7e4d49d215b'
+CURL_SHA256_ARM64='061b624119f128038bdfa96f975980d6c35ed502130c4825d59b3143efeafa0e'
+
+ARCHITECTURES=${ARCHITECTURES:-'amd64'}
 
 downloaded_war_name='downloaded-dhis2.war'
 old_version_schema_prefix='2'
@@ -19,9 +25,15 @@ function help() {
    echo '-t <tag>    DHIS2 version tag to build.'
    echo '-d          Create image from a "dev" version.'
    echo '-r          Rebuild image with an existing WAR for the given DHIS2 version. Without this option the image will be built with a new WAR.'
+   echo '-p <image>  Promote an existing image, e.g. one built and tested elsewhere, instead of building one.'
    echo '-h          Print this help message.'
    echo
+   echo 'Environment variables:'
+   echo 'ARCHITECTURES   Space-separated list of architectures to build. Defaults to "amd64".'
+   echo '                Example: ARCHITECTURES="amd64 arm64" build-docker-image.sh -t 40.1.1 -d'
+   echo
    echo 'Example: build-docker-image.sh -t 40.1.1 -r'
+   echo 'Example: build-docker-image.sh -t 40.1.1 -p registry.example.org/dhis2/core@sha256:<digest>'
 }
 
 function create_immutable_tag() {
@@ -89,6 +101,29 @@ function list_tags() {
   echo "${rolling_tags[@]}"
 }
 
+function fetch_curl_binary() {
+  local arch="$1"
+  local dest_dir="$2"
+
+  local curl_arch sha256
+  case "$arch" in
+    amd64) curl_arch='x86_64';  sha256="$CURL_SHA256_AMD64" ;;
+    arm64) curl_arch='aarch64'; sha256="$CURL_SHA256_ARM64" ;;
+    *) echo "Unsupported architecture: $arch"; exit 1 ;;
+  esac
+
+  local tarball="curl-linux-${curl_arch}-glibc-${CURL_VERSION}.tar.xz"
+  local url="https://github.com/stunnel/static-curl/releases/download/${CURL_VERSION}/${tarball}"
+
+  mkdir -p "$dest_dir"
+  echo "Downloading static curl ${CURL_VERSION} for ${arch} ..."
+  curl -fsSL -o "${dest_dir}/${tarball}" "$url"
+  echo "${sha256}  ${dest_dir}/${tarball}" | sha256sum -c -
+  tar -C "$dest_dir" -xJf "${dest_dir}/${tarball}" curl
+  chmod +x "${dest_dir}/curl"
+  rm "${dest_dir}/${tarball}"
+}
+
 function use_existing_war() {
   echo 'Image will be rebuilt with existing WAR'
 
@@ -125,19 +160,51 @@ function use_new_war() {
 }
 
 function build_main_image() {
+  if [[ -z "$BASE_IMAGE" ]]; then
+    echo 'Error: BASE_IMAGE is required to build an image'
+    exit 1
+  fi
+
   echo "Building image for version $image_tag, based on $BASE_IMAGE ..."
 
-  jib build \
-    --build-file "$JIB_BUILD_FILE" \
-    --target "$IMAGE_REPOSITORY:$main_image_tag" \
-    --parameter unarchivedWarDir="$UNARCHIVED_WAR_DIR" \
-    --parameter imageAppRoot="$IMAGE_APP_ROOT" \
-    --parameter baseImage="$BASE_IMAGE" \
-    --parameter imageUser="$IMAGE_USER" \
-    --parameter gitCommit="$GIT_COMMIT" \
-    --parameter gitBranch="$GIT_BRANCH" \
-    --parameter dhis2Version="$DHIS2_VERSION" \
-    --parameter timestamp="$(date +'%s000')" # Unix time with zeroed milliseconds; will be shown as "2023-11-02T14:40:32Z"
+  local timestamp
+  timestamp="$(date +'%s000')" # Unix time with zeroed milliseconds; will be shown as "2023-11-02T14:40:32Z"
+
+  local -a arch_list
+  read -ra arch_list <<< "$ARCHITECTURES"
+
+  for arch in "${arch_list[@]}"; do
+    local curl_dir="curl-bin-${arch}"
+    fetch_curl_binary "$arch" "$curl_dir"
+
+    jib build \
+      --build-file "$JIB_BUILD_FILE" \
+      --target "$IMAGE_REPOSITORY:${main_image_tag}-${arch}" \
+      --parameter unarchivedWarDir="$UNARCHIVED_WAR_DIR" \
+      --parameter imageAppRoot="$IMAGE_APP_ROOT" \
+      --parameter baseImage="$BASE_IMAGE" \
+      --parameter imageUser="$IMAGE_USER" \
+      --parameter architecture="$arch" \
+      --parameter curlBinaryDir="$curl_dir" \
+      --parameter gitCommit="$GIT_COMMIT" \
+      --parameter gitBranch="$GIT_BRANCH" \
+      --parameter dhis2Version="$DHIS2_VERSION" \
+      --parameter timestamp="$timestamp"
+  done
+
+  local -a arch_images=()
+  for arch in "${arch_list[@]}"; do
+    arch_images+=("$IMAGE_REPOSITORY:${main_image_tag}-${arch}")
+  done
+
+  docker manifest create "$IMAGE_REPOSITORY:$main_image_tag" "${arch_images[@]}"
+  docker manifest push "$IMAGE_REPOSITORY:$main_image_tag"
+}
+
+# Copies the manifest list and the image manifests it references as they are, so the promoted image has the digests of the source.
+function copy_main_image() {
+  echo "Copying $source_image to $IMAGE_REPOSITORY:$main_image_tag ..."
+  docker buildx imagetools create --tag "$IMAGE_REPOSITORY:$main_image_tag" "$source_image"
 }
 
 # To create additional rolling tags for a multi-architecture image (manifest list) we have to create a new manifest list,
@@ -162,7 +229,7 @@ function create_additional_manifests() {
   done
 }
 
-while getopts 'ht:dr' option; do
+while getopts 'ht:drp:' option; do
    case $option in
       h)
         help
@@ -173,11 +240,18 @@ while getopts 'ht:dr' option; do
         dev_image=1;;
       r)
         rebuild_image=1;;
+      p)
+        source_image=$OPTARG;;
       \?)
         echo 'Error: Invalid option'
         exit;;
    esac
 done
+
+if [[ -n ${source_image:-} && ( ${dev_image:-} -eq 1 || ${rebuild_image:-} -eq 1 ) ]]; then
+  echo 'Error: -p cannot be combined with -d or -r'
+  exit 1
+fi
 
 if [[ ${dev_image:-} -eq 1 ]]; then
   echo 'Creating image from a dev version ...'
@@ -206,13 +280,17 @@ create_rolling_tags
 
 list_tags
 
-if [[ ${rebuild_image:-} -eq 1 ]]; then
-  use_existing_war
+if [[ -n ${source_image:-} ]]; then
+  copy_main_image
 else
-  use_new_war
-fi
+  if [[ ${rebuild_image:-} -eq 1 ]]; then
+    use_existing_war
+  else
+    use_new_war
+  fi
 
-build_main_image
+  build_main_image
+fi
 
 create_additional_manifests
 

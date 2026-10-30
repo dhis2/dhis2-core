@@ -72,8 +72,8 @@ import static org.hisp.dhis.feedback.ErrorCode.E7611;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getSortedChildren;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getSortedGrandChildren;
+import static org.hisp.dhis.period.Period.ofNullable;
 import static org.hisp.dhis.period.PeriodType.getCalendar;
-import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.hisp.dhis.period.RelativePeriods.getRelativePeriodsFromEnum;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -84,6 +84,7 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsWeeklyStartKey;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseNameableObject;
@@ -105,6 +106,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.DateField;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -192,10 +194,12 @@ public class DimensionalObjectProvider {
    * @return a period based instance of {@link BaseDimensionalObject}.
    */
   public DimensionalObject getPeriodDimension(List<String> items, Date relativePeriodDate) {
-    List<Period> periods = new ArrayList<>();
+    List<PeriodDimension> periods = new ArrayList<>();
     DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
     AnalyticsFinancialYearStartKey financialYearStart =
         settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
+    AnalyticsWeeklyStartKey weeklyStart =
+        settingsProvider.getCurrentSettings().getAnalyticsWeeklyStart();
 
     for (String isoPeriod : items) {
       // Contains isoPeriod and timeField
@@ -205,12 +209,17 @@ public class DimensionalObjectProvider {
         String dateField = isoPeriodHolder.getDateField();
         DateField dateAndField = new DateField(relativePeriodDate, dateField);
         addRelativePeriods(
-            dateAndField, periods, dimensionalKeywords, financialYearStart, isoPeriodHolder);
+            dateAndField,
+            periods,
+            dimensionalKeywords,
+            financialYearStart,
+            weeklyStart,
+            isoPeriodHolder);
       } else {
-        Period period = getPeriodFromIsoString(isoPeriodHolder.getIsoPeriod());
+        Period period = ofNullable(isoPeriodHolder.getIsoPeriod());
 
         if (period != null) {
-          addDatePeriods(periods, dimensionalKeywords, isoPeriodHolder, period);
+          addDatePeriods(periods, dimensionalKeywords, isoPeriodHolder, PeriodDimension.of(period));
         } else {
           addDailyPeriods(periods, dimensionalKeywords, isoPeriodHolder);
         }
@@ -237,14 +246,14 @@ public class DimensionalObjectProvider {
    * @param isoPeriodHolder the object where the ISO period and dates will be extracted from.
    */
   private void addDailyPeriods(
-      List<Period> periods,
+      List<PeriodDimension> periods,
       DimensionItemKeywords dimensionalKeywords,
       IsoPeriodHolder isoPeriodHolder) {
-    Optional<Period> optionalPeriod = isoPeriodHolder.toDailyPeriod();
+    Optional<PeriodDimension> optionalPeriod = isoPeriodHolder.toDailyPeriod();
 
     if (optionalPeriod.isPresent()) {
       I18nFormat format = i18nManager.getI18nFormat();
-      Period periodToAdd = optionalPeriod.get();
+      PeriodDimension periodToAdd = optionalPeriod.get();
       String startDate = format.formatDate(periodToAdd.getStartDate());
       String endDate = format.formatDate(periodToAdd.getEndDate());
 
@@ -268,10 +277,10 @@ public class DimensionalObjectProvider {
    * @param period the object to be set accordingly to the given isoPeriodHolder
    */
   private void addDatePeriods(
-      List<Period> periods,
+      List<PeriodDimension> periods,
       DimensionItemKeywords dimensionalKeywords,
       IsoPeriodHolder isoPeriodHolder,
-      Period period) {
+      PeriodDimension period) {
     I18nFormat format = i18nManager.getI18nFormat();
     I18n i18n = i18nManager.getI18n();
 
@@ -283,7 +292,7 @@ public class DimensionalObjectProvider {
     dimensionalKeywords.addKeyword(
         isoPeriodHolder.getIsoPeriod(),
         format != null
-            ? i18n.getString(format.formatPeriod(period))
+            ? i18n.getString(format.formatPeriod(period.getPeriod()))
             : isoPeriodHolder.getIsoPeriod());
 
     periods.add(period);
@@ -297,13 +306,15 @@ public class DimensionalObjectProvider {
    * @param periods the {@link List} of {@link Period} to be populated.
    * @param dimensionalKeywords the {@link DimensionItemKeywords} to be populated.
    * @param financialYearStart the initial financial year.
+   * @param weeklyStart the initial weekly.
    * @param isoPeriodHolder the object where the ISO period and date will be extracted from.
    */
   private void addRelativePeriods(
       DateField relativePeriodDate,
-      List<Period> periods,
+      List<PeriodDimension> periods,
       DimensionItemKeywords dimensionalKeywords,
       AnalyticsFinancialYearStartKey financialYearStart,
+      AnalyticsWeeklyStartKey weeklyStart,
       IsoPeriodHolder isoPeriodHolder) {
     I18nFormat format = i18nManager.getI18nFormat();
     I18n i18n = i18nManager.getI18n();
@@ -312,9 +323,9 @@ public class DimensionalObjectProvider {
     dimensionalKeywords.addKeyword(
         isoPeriodHolder.getIsoPeriod(), i18n.getString(isoPeriodHolder.getIsoPeriod()));
 
-    List<Period> relativePeriods =
+    List<PeriodDimension> relativePeriods =
         getRelativePeriodsFromEnum(
-            relativePeriod, relativePeriodDate, format, true, financialYearStart);
+            relativePeriod, relativePeriodDate, format, true, financialYearStart, weeklyStart);
 
     // If a custom time filter is specified, set it in periods
 
@@ -332,18 +343,18 @@ public class DimensionalObjectProvider {
    * @param periods the {@link List} of {@link Period}s to be overridden.
    * @param calendar the base calendar where the period identifier will be extracted from.
    */
-  private void overridePeriodAttributes(List<Period> periods, Calendar calendar) {
+  private void overridePeriodAttributes(List<PeriodDimension> periods, Calendar calendar) {
     I18nFormat format = i18nManager.getI18nFormat();
 
-    for (Period period : periods) {
-      String name = format != null ? format.formatPeriod(period) : null;
-      String shortName = format != null ? format.formatPeriod(period, true) : null;
+    for (PeriodDimension period : periods) {
+      String name = format != null ? format.formatPeriod(period.getPeriod()) : null;
+      String shortName = format != null ? format.formatPeriod(period.getPeriod(), true) : null;
 
       period.setName(name);
       period.setShortName(shortName);
 
       if (!calendar.isIso8601()) {
-        period.setUid(getLocalPeriodIdentifier(period, calendar));
+        period.setUid(getLocalPeriodIdentifier(period.getPeriod(), calendar));
       }
     }
   }
@@ -366,6 +377,24 @@ public class DimensionalObjectProvider {
       DisplayProperty displayProperty,
       List<OrganisationUnit> userOrgUnits,
       IdScheme inputIdScheme) {
+    return getOrgUnitDimension(items, displayProperty, userOrgUnits, inputIdScheme, false);
+  }
+
+  /**
+   * Same as {@link #getOrgUnitDimension(List, DisplayProperty, List, IdScheme)} but, when {@code
+   * geometryOnly} is true, restricts level- and group-resolved organisation units to those that
+   * have a non-null geometry. Used by the geoFeatures endpoint, which only renders units that have
+   * geometry. When {@code geometryOnly} is true an empty result is allowed (it does not raise
+   * {@code E7143}), since "no units have geometry" is a valid empty response rather than an error.
+   *
+   * @param geometryOnly whether to include only organisation units that have a non-null geometry.
+   */
+  public DimensionalObject getOrgUnitDimension(
+      List<String> items,
+      DisplayProperty displayProperty,
+      List<OrganisationUnit> userOrgUnits,
+      IdScheme inputIdScheme,
+      boolean geometryOnly) {
     List<Integer> levels = new ArrayList<>();
     List<OrganisationUnitGroup> groups = new ArrayList<>();
     List<DimensionalItemObject> ous =
@@ -375,8 +404,11 @@ public class DimensionalObjectProvider {
     DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
 
     if (!levels.isEmpty()) {
-      orgUnitAtLevels.addAll(
-          sort(organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList)));
+      List<OrganisationUnit> atLevels =
+          geometryOnly
+              ? organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList, true)
+              : organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList);
+      orgUnitAtLevels.addAll(sort(atLevels));
 
       dimensionalKeywords.addKeywords(
           levels.stream()
@@ -386,7 +418,11 @@ public class DimensionalObjectProvider {
     }
 
     if (!groups.isEmpty()) {
-      orgUnitAtLevels.addAll(sort(organisationUnitService.getOrganisationUnits(groups, ousList)));
+      List<OrganisationUnit> inGroups =
+          geometryOnly
+              ? organisationUnitService.getOrganisationUnits(groups, ousList, true)
+              : organisationUnitService.getOrganisationUnits(groups, ousList);
+      orgUnitAtLevels.addAll(sort(inGroups));
 
       dimensionalKeywords.addKeywords(
           groups.stream()
@@ -409,7 +445,9 @@ public class DimensionalObjectProvider {
       dimensionalKeywords.addKeywords(ousList);
     }
 
-    if (orgUnitAtLevels.isEmpty()) {
+    // When geometryOnly is set, an empty result is a valid empty response (e.g. no unit at the
+    // level has geometry), not a query error, so the E7143 guard is skipped in that case.
+    if (orgUnitAtLevels.isEmpty() && !geometryOnly) {
       throwIllegalQueryEx(E7143, ORGUNIT_DIM_ID);
     }
 
@@ -428,7 +466,7 @@ public class DimensionalObjectProvider {
 
   /**
    * This method will return a list of {@link OrganisationUnit} UIDs based on the given items and
-   * user organisation units.
+   * user organisation units. Levels and groups are NOT expanded by default.
    *
    * @param items the list of items that might be included into the resulting organisation unit and
    *     its keywords.
@@ -437,11 +475,81 @@ public class DimensionalObjectProvider {
    */
   public List<String> getOrgUnitDimensionUid(
       List<String> items, List<OrganisationUnit> userOrgUnits) {
-    return getOrgUnitDimensionItems(
-            items, userOrgUnits, IdScheme.UID, new ArrayList<>(), new ArrayList<>())
-        .stream()
-        .map(DimensionalItemObject::getUid)
-        .toList();
+    return getOrgUnitDimensionUid(items, userOrgUnits, false);
+  }
+
+  /**
+   * This method will return a list of {@link OrganisationUnit} UIDs based on the given items and
+   * user organisation units.
+   *
+   * @param items the list of items that might be included into the resulting organisation unit and
+   *     its keywords.
+   * @param userOrgUnits the list of organisation units associated with the current user.
+   * @param expandGroupsAndLevels if true, expands LEVEL-X and OU_GROUP-X to their member org units.
+   *     Explicit org units are kept in the result (union semantics). This is needed for SQL
+   *     filtering but should be false for metadata generation.
+   * @return a list of {@link OrganisationUnit} UIDs.
+   */
+  public List<String> getOrgUnitDimensionUid(
+      List<String> items, List<OrganisationUnit> userOrgUnits, boolean expandGroupsAndLevels) {
+    return getOrgUnitDimensionUid(items, userOrgUnits, expandGroupsAndLevels, false);
+  }
+
+  /**
+   * This method will return a list of {@link OrganisationUnit} UIDs based on the given items and
+   * user organisation units.
+   *
+   * @param items the list of items that might be included into the resulting organisation unit and
+   *     its keywords.
+   * @param userOrgUnits the list of organisation units associated with the current user.
+   * @param expandGroupsAndLevels if true, expands LEVEL-X and OU_GROUP-X to their member org units.
+   *     This is needed for SQL filtering but should be false for metadata generation.
+   * @param orgUnitsAsBoundaries if true and LEVEL-X / OU_GROUP-X selectors are present, explicit
+   *     org units only scope the expansion and are not included in the result (stage.ou dimension
+   *     semantics). If false, explicit org units are kept alongside the expanded members (union
+   *     semantics, used by org unit typed data element filters). Only relevant when
+   *     expandGroupsAndLevels is true.
+   * @return a list of {@link OrganisationUnit} UIDs.
+   */
+  public List<String> getOrgUnitDimensionUid(
+      List<String> items,
+      List<OrganisationUnit> userOrgUnits,
+      boolean expandGroupsAndLevels,
+      boolean orgUnitsAsBoundaries) {
+    List<Integer> levels = new ArrayList<>();
+    List<OrganisationUnitGroup> groups = new ArrayList<>();
+
+    List<DimensionalItemObject> ous =
+        getOrgUnitDimensionItems(items, userOrgUnits, IdScheme.UID, levels, groups);
+
+    boolean hasLevelsOrGroups = !levels.isEmpty() || !groups.isEmpty();
+
+    List<String> result = new ArrayList<>();
+
+    // With boundary semantics, OUs combined with levels / groups only scope the expansion
+    if (!(expandGroupsAndLevels && orgUnitsAsBoundaries && hasLevelsOrGroups)) {
+      result.addAll(ous.stream().map(DimensionalItemObject::getUid).toList());
+    }
+
+    if (expandGroupsAndLevels) {
+      List<OrganisationUnit> ousList = asTypedList(ous);
+
+      if (!levels.isEmpty()) {
+        result.addAll(
+            organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList).stream()
+                .map(OrganisationUnit::getUid)
+                .toList());
+      }
+
+      if (!groups.isEmpty()) {
+        result.addAll(
+            organisationUnitService.getOrganisationUnits(groups, ousList).stream()
+                .map(OrganisationUnit::getUid)
+                .toList());
+      }
+    }
+
+    return result.stream().distinct().toList();
   }
 
   /**

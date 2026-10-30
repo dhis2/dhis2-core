@@ -35,6 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceException;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
@@ -54,6 +57,8 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataApprovalService dataApprovalService;
 
   @Autowired private DataApprovalLevelService dataApprovalLevelService;
+
+  @PersistenceContext private EntityManager entityManager;
 
   private DataApprovalWorkflow workflowA;
 
@@ -200,5 +205,124 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
     assertThrows(
         AccessDeniedException.class,
         () -> dataApprovalLevelService.addDataApprovalLevel(new DataApprovalLevel("7", 1, null)));
+  }
+
+  // -------------------------------------------------------------------------
+  // JPA Annotation Tests
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testJpaEntityPersistenceAndRetrieval() {
+    // Create a workflow with all fields populated
+    workflowA.setCode("WORKFLOW_A_CODE");
+    long id = dataApprovalService.addWorkflow(workflowA);
+
+    // Clear the persistence context to force a fresh load from database
+
+    // Retrieve and verify all fields
+    DataApprovalWorkflow retrieved = dataApprovalService.getWorkflow(id);
+    assertEquals("A", retrieved.getName());
+    assertEquals("WORKFLOW_A_CODE", retrieved.getCode());
+    assertEquals(periodType, retrieved.getPeriodType());
+    assertEquals(categoryCombo, retrieved.getCategoryCombo());
+    assertEquals(2, retrieved.getLevels().size());
+    assertTrue(retrieved.getLevels().contains(level1));
+    assertTrue(retrieved.getLevels().contains(level2));
+  }
+
+  @Test
+  void testJpaManyToOnePeriodType() {
+    // Test that periodType ManyToOne relationship is properly loaded
+    long id = dataApprovalService.addWorkflow(workflowA);
+
+    DataApprovalWorkflow retrieved = dataApprovalService.getWorkflow(id);
+    assertEquals(periodType.getName(), retrieved.getPeriodType().getName());
+  }
+
+  @Test
+  void testJpaManyToOneCategoryCombo() {
+    // Test that categoryCombo ManyToOne relationship is properly loaded
+    long id = dataApprovalService.addWorkflow(workflowA);
+
+    DataApprovalWorkflow retrieved = dataApprovalService.getWorkflow(id);
+    assertEquals(categoryCombo.getUid(), retrieved.getCategoryCombo().getUid());
+  }
+
+  @Test
+  void testJpaManyToManyLevels() {
+    // Test that levels ManyToMany relationship is properly loaded
+    long id = dataApprovalService.addWorkflow(workflowA);
+
+    DataApprovalWorkflow retrieved = dataApprovalService.getWorkflow(id);
+    assertEquals(2, retrieved.getLevels().size());
+    assertTrue(retrieved.getLevels().stream().anyMatch(l -> l.getName().equals(level1.getName())));
+    assertTrue(retrieved.getLevels().stream().anyMatch(l -> l.getName().equals(level2.getName())));
+  }
+
+  @Test
+  void testJpaIdGeneration() {
+    // Test that ID is properly generated using SEQUENCE strategy
+    long id1 = dataApprovalService.addWorkflow(workflowA);
+    long id2 = dataApprovalService.addWorkflow(workflowB);
+
+    assertTrue(id1 > 0);
+    assertTrue(id2 > 0);
+    assertTrue(id1 != id2);
+  }
+
+  @Test
+  void testJpaUpdateOperations() {
+    // Test that update operations preserve all associations
+    long id = dataApprovalService.addWorkflow(workflowA);
+    entityManager.flush();
+    entityManager.clear();
+
+    DataApprovalWorkflow retrieved = dataApprovalService.getWorkflow(id);
+    retrieved.setName("UpdatedName");
+    retrieved.setCode("UPDATED_CODE");
+    retrieved.setLevels(newHashSet(level3));
+
+    dataApprovalService.updateWorkflow(retrieved);
+
+    DataApprovalWorkflow updated = dataApprovalService.getWorkflow(id);
+    assertEquals("UpdatedName", updated.getName());
+    assertEquals("UPDATED_CODE", updated.getCode());
+    assertEquals(1, updated.getLevels().size());
+    assertTrue(updated.getLevels().contains(level3));
+    assertEquals(periodType.getName(), updated.getPeriodType().getName());
+  }
+
+  @Test
+  void testJpaNonNullConstraints() {
+    // Test that non-null constraints are enforced
+    DataApprovalWorkflow workflow = new DataApprovalWorkflow();
+    workflow.setName("TestWorkflow");
+    workflow.setPeriodType(periodType);
+    workflow.setCategoryCombo(categoryCombo);
+
+    // Should succeed with all required fields
+    long id = dataApprovalService.addWorkflow(workflow);
+    assertTrue(id > 0);
+  }
+
+  @Test
+  void testJpaUniqueConstraintOnName() {
+    // Add first workflow
+    dataApprovalService.addWorkflow(workflowA);
+
+    // Try to add another workflow with the same name
+    DataApprovalWorkflow duplicate = new DataApprovalWorkflow();
+    duplicate.setName("A"); // Same name as workflowA
+    duplicate.setPeriodType(periodType);
+    duplicate.setCategoryCombo(categoryCombo);
+
+    // This should either throw an exception or fail silently depending on configuration
+    // We'll just verify that after adding, we only have one with that name
+    assertThrows(
+        PersistenceException.class,
+        () -> {
+          dataApprovalService.addWorkflow(duplicate);
+          entityManager.flush();
+        });
   }
 }

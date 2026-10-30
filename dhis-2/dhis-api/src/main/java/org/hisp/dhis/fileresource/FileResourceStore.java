@@ -31,13 +31,14 @@ package org.hisp.dhis.fileresource;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.datavalue.DataValueKey;
+import org.hisp.dhis.datavalue.DataValueFileResourceKey;
 import org.joda.time.DateTime;
 
 public interface FileResourceStore extends IdentifiableObjectStore<FileResource> {
-  List<FileResource> getExpiredFileResources(DateTime expires);
+  List<FileResource> getExpiredDataValueFileResources(DateTime expires, DateTime gracePeriod);
 
   List<FileResource> getAllUnProcessedImages();
 
@@ -90,6 +91,17 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
   List<String> findMessagesByFileResource(@Nonnull String uid);
 
   /**
+   * Lookup of the users that take part in a message conversation containing the given attachment.
+   *
+   * <p>Used to authorize reads of a {@link FileResourceDomain#MESSAGE_ATTACHMENT}: only the
+   * participants of the conversation the attachment belongs to may read it.
+   *
+   * @param uid of a message attachment file resource
+   * @return UID(s) of the users participating in a conversation that contains the attachment
+   */
+  List<String> findMessageAttachmentParticipants(@Nonnull String uid);
+
+  /**
    * Lookup of the custom icon key(s) for a custom icon file resource id.
    *
    * @param uid if a file resource
@@ -103,7 +115,28 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
    * @param uid of a file resource
    * @return data value(s) key combinations that have the given file resource as value.
    */
-  List<DataValueKey> findDataValuesByFileResourceValue(@Nonnull String uid);
+  List<DataValueFileResourceKey> findDataValuesByFileResourceValue(@Nonnull String uid);
+
+  /**
+   * Lookup of the aggregate data values of a file value type that hold the given file resource as
+   * their current value or held it as a former value, as recorded in their change log (audit).
+   *
+   * @param uid of a file resource
+   * @return where each such data value belongs, once per distinct combination
+   */
+  List<DataValueFileReference> findDataValueReferencesByFileResourceValue(@Nonnull String uid);
+
+  /**
+   * Where an aggregate data value that holds, or held, a file resource as value belongs.
+   *
+   * @param orgUnitPath path of the organisation unit of the data value
+   * @param categoryOptionCombo uid of the category option combo of the data value
+   * @param attributeOptionCombo uid of the attribute option combo of the data value
+   */
+  record DataValueFileReference(
+      @Nonnull String orgUnitPath,
+      @Nonnull String categoryOptionCombo,
+      @Nonnull String attributeOptionCombo) {}
 
   /**
    * Get all unassigned File Resources by JOB_DATA FileResourceDomain, which have no associated job
@@ -116,4 +149,13 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
    * @return matching FileResources
    */
   List<FileResource> getAllUnassignedByJobDataDomainWithNoJobConfig();
+
+  List<FileResource> getUnassignedPassedGracePeriod(
+      Set<FileResourceDomain> domainsToDeleteWhenUnassigned, DateTime minus);
+
+  /**
+   * Updates the assignment state and owner of the file resource with the given uid via a single
+   * JDBC UPDATE. No-op if no file resource with that uid exists.
+   */
+  void updateAssignment(@Nonnull String uid, boolean assigned, @Nonnull String fileResourceOwner);
 }

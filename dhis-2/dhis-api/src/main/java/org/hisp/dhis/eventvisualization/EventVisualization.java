@@ -53,7 +53,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.analytics.EventDataType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Sorting;
@@ -66,8 +70,10 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.FavoritableObject;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -84,12 +90,16 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 @JacksonXmlRootElement(localName = "eventVisualization", namespace = DXF_2_0)
 public class EventVisualization extends BaseAnalyticalObject
-    implements MetadataObject, EventAnalyticalObject {
+    implements MetadataObject, EventAnalyticalObject, FavoritableObject {
 
   protected EventVisualizationType type;
+
+  /** Users who have marked this object as a favorite. */
+  @Getter @Setter @JsonProperty private Set<String> favorites = new HashSet<>();
 
   // -------------------------------------------------------------------------
   // Dimensional properties
@@ -142,6 +152,15 @@ public class EventVisualization extends BaseAnalyticalObject
 
   /** Indicates whether to hide n/a data. */
   private boolean hideNaData;
+
+  /** Indicates whether to hide columns with no data values. */
+  private boolean hideEmptyColumns;
+
+  /** Fixes (or not) the pivot table column headers. */
+  private boolean fixColumnHeaders;
+
+  /** Fixes (or not) the pivot table row headers. */
+  private boolean fixRowHeaders;
 
   /**
    * Indicates whether this is a legacy row (EventChart or EventReport).
@@ -428,7 +447,7 @@ public class EventVisualization extends BaseAnalyticalObject
 
   @Override
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public Program getProgram() {
     return program;
@@ -462,7 +481,7 @@ public class EventVisualization extends BaseAnalyticalObject
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public DataElement getDataElementValueDimension() {
     return dataElementValueDimension;
@@ -591,6 +610,36 @@ public class EventVisualization extends BaseAnalyticalObject
     this.hideNaData = hideNaData;
   }
 
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isHideEmptyColumns() {
+    return hideEmptyColumns;
+  }
+
+  public void setHideEmptyColumns(boolean hideEmptyColumns) {
+    this.hideEmptyColumns = hideEmptyColumns;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isFixColumnHeaders() {
+    return fixColumnHeaders;
+  }
+
+  public void setFixColumnHeaders(boolean fixColumnHeaders) {
+    this.fixColumnHeaders = fixColumnHeaders;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isFixRowHeaders() {
+    return fixRowHeaders;
+  }
+
+  public void setFixRowHeaders(boolean fixRowHeaders) {
+    this.fixRowHeaders = fixRowHeaders;
+  }
+
   // -------------------------------------------------------------------------
   // Analytical properties
   // -------------------------------------------------------------------------
@@ -643,5 +692,17 @@ public class EventVisualization extends BaseAnalyticalObject
 
   public void setLegacy(boolean legacy) {
     this.legacy = legacy;
+  }
+
+  @Override
+  public boolean setAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.add(user.getUid());
+  }
+
+  @Override
+  public boolean removeAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.remove(user.getUid());
   }
 }

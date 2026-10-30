@@ -105,6 +105,12 @@ public class DataQueryRequest {
 
   protected String userOrganisationUnitCriteria;
 
+  /**
+   * Whether to restrict organisation unit dimension resolution to units that have a non-null
+   * geometry. Used by the geoFeatures endpoint, which only renders units with geometry.
+   */
+  protected boolean geometryOnly;
+
   public boolean hasAggregationType() {
     return aggregationType != null;
   }
@@ -283,6 +289,11 @@ public class DataQueryRequest {
       return this;
     }
 
+    public DataQueryRequestBuilder geometryOnly(boolean geometryOnly) {
+      this.request.geometryOnly = geometryOnly;
+      return this;
+    }
+
     public DataQueryRequest build() {
       return request;
     }
@@ -320,21 +331,8 @@ public class DataQueryRequest {
       this.request.userOrgUnit = criteria.getUserOrgUnit();
       this.request.userOrganisationUnitCriteria =
           getAnalyticsQueryCriteria(criteria.getDimension());
-      this.request.userOrgUnitType = getAnalyticsOrgUnitType(criteria.getUserOrgUnitType());
+      this.request.userOrgUnitType = criteria.getUserOrgUnitType();
       return this;
-    }
-
-    /**
-     * Retrieves default UserOrgUnitType if the type is equal null
-     *
-     * @param userOrgUnitType
-     */
-    private UserOrgUnitType getAnalyticsOrgUnitType(UserOrgUnitType userOrgUnitType) {
-      if (userOrgUnitType == null) {
-        return UserOrgUnitType.DATA_OUTPUT;
-      }
-
-      return userOrgUnitType;
     }
   }
 }

@@ -33,7 +33,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -105,8 +104,8 @@ public class TranslatableObject {
     }
 
     return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+        Translation.getCacheKey(locale, translationKey),
+        key -> getTranslationValue(locale, translationKey, defaultTranslation));
   }
 
   /**
@@ -114,10 +113,10 @@ public class TranslatableObject {
    *
    * @return Translation value if exists, otherwise return default value.
    */
-  private String getTranslationValue(String locale, String translationKey, String defaultValue) {
+  private String getTranslationValue(Locale locale, String translationKey, String defaultValue) {
     for (Translation translation : translations) {
       if (locale.equals(translation.getLocale())
-          && translationKey.equals(translation.getProperty())
+          && translationKey.equalsIgnoreCase(translation.getProperty())
           && !StringUtils.isEmpty(translation.getValue())) {
         return translation.getValue();
       }

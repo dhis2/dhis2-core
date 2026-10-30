@@ -32,12 +32,14 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.intellij.lang.annotations.Language;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.scheduling.JobConfigurationController} that
@@ -45,8 +47,14 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Jan Bernitt
  */
-@Transactional
 class JobConfigurationControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
+
+  @Autowired private DbmsManager dbmsManager;
+
+  @AfterEach
+  void tearDown() {
+    dbmsManager.emptyTable("jobconfiguration");
+  }
 
   @Test
   void testRevert() {

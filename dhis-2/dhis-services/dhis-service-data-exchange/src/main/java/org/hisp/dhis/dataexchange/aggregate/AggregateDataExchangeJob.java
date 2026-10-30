@@ -37,7 +37,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
@@ -64,10 +64,9 @@ public class AggregateDataExchangeJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
-    notifier.clear(config);
+  public void execute(JobEntry config, JobProgress progress) {
     AggregateDataExchangeJobParameters params =
-        (AggregateDataExchangeJobParameters) config.getJobParameters();
+        (AggregateDataExchangeJobParameters) config.parameters();
 
     List<String> dataExchangeIds = params.getDataExchangeIds();
     progress.startingProcess(
@@ -87,7 +86,8 @@ public class AggregateDataExchangeJob implements Job {
           dataExchangeService.exchangeData(
               CurrentUserUtil.getCurrentUserDetails(), exchange, progress));
     }
-    notifier.addJobSummary(config, NotificationLevel.INFO, allSummaries, ImportSummaries.class);
+    notifier.addJobSummary(
+        config.toKey(), NotificationLevel.INFO, allSummaries, ImportSummaries.class);
     ImportStatus status = allSummaries.getStatus();
     if (status == ImportStatus.ERROR) {
       String errors =

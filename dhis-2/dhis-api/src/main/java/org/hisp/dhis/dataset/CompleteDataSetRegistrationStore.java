@@ -78,6 +78,9 @@ public interface CompleteDataSetRegistrationStore {
       OrganisationUnit source,
       CategoryOptionCombo attributeOptionCombo);
 
+  void deleteCompleteDataSetRegistration(
+      UID dataSet, Period period, UID orgUnit, UID attributeOptionCombo);
+
   /**
    * Deletes a CompleteDataSetRegistration.
    *

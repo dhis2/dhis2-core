@@ -31,6 +31,9 @@ package org.hisp.dhis.maintenance;
 
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createSingleEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTeToTeRelationship;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -56,38 +59,38 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageRecipients;
-import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.test.utils.RelationshipUtils;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.TestNotes;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
-import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.program.message.ProgramMessage;
+import org.hisp.dhis.tracker.program.message.ProgramMessageRecipients;
+import org.hisp.dhis.tracker.program.message.ProgramMessageService;
+import org.hisp.dhis.tracker.test.RelationshipUtils;
 import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,10 +112,6 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Autowired private RelationshipService relationshipService;
 
   @Autowired private ProgramMessageService programMessageService;
-
-  @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
-
-  @Autowired private SingleEventChangeLogService singleEventChangeLogService;
 
   @Autowired private DataElementService dataElementService;
 
@@ -139,6 +138,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Autowired private TestNotes testNotes;
 
   private Date enrollmentDate;
 
@@ -198,10 +199,12 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     enrollment = new Enrollment(enrollmentDate, occurredDate, trackedEntity, program);
     enrollment.setUid(CodeGenerator.generateUid());
     enrollment.setOrganisationUnit(organisationUnit);
+    enrollment.setAttributeOptionCombo(coA);
     Enrollment enrollmentWithTeAssociation =
         new Enrollment(enrollmentDate, occurredDate, trackedEntityWithAssociations, program);
     enrollmentWithTeAssociation.setUid(UID.generate().getValue());
     enrollmentWithTeAssociation.setOrganisationUnit(organisationUnit);
+    enrollmentWithTeAssociation.setAttributeOptionCombo(coA);
     manager.save(trackedEntityWithAssociations);
     manager.save(enrollmentWithTeAssociation);
     manager.save(enrollment);
@@ -402,8 +405,16 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setAttributeOptionCombo(coA);
     eventA.setOrganisationUnit(organisationUnit);
     manager.save(eventA);
-    trackerEventChangeLogService.addEventChangeLog(
-        eventA, dataElement, "", "value", UPDATE, getCurrentUsername());
+    entityManager.persist(
+        new org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLog(
+            eventA,
+            dataElement,
+            null,
+            "",
+            "value",
+            UPDATE,
+            new java.util.Date(),
+            getCurrentUsername()));
     manager.save(enrollment);
     assertTrue(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     manager.delete(enrollment);
@@ -422,8 +433,16 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     SingleEvent eventA = createSingleEvent(program.getProgramStageByStage(1), organisationUnit);
     eventA.setAttributeOptionCombo(coA);
     manager.save(eventA);
-    singleEventChangeLogService.addEventChangeLog(
-        eventA, dataElement, "", "value", UPDATE, getCurrentUsername());
+    entityManager.persist(
+        new org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLog(
+            eventA,
+            dataElement,
+            null,
+            "",
+            "value",
+            UPDATE,
+            new java.util.Date(),
+            getCurrentUsername()));
     assertTrue(singleEventService.findEvent(UID.of(eventA)).isPresent());
     manager.delete(eventA);
     assertFalse(singleEventService.findEvent(UID.of(eventA)).isPresent());
@@ -553,6 +572,56 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testDeleteSoftDeletedEnrollmentWithNotes() {
+    manager.save(trackerEvent);
+    Note enrollmentNote = testNotes.save(enrollment, "enrollment note");
+    Note eventNote = testNotes.save(trackerEvent, "event note");
+    manager.delete(enrollment);
+
+    maintenanceService.deleteSoftDeletedEnrollments();
+
+    assertFalse(noteExists(enrollmentNote.getUid()));
+    assertFalse(noteExists(eventNote.getUid()));
+  }
+
+  @Test
+  void testDeleteSoftDeletedTrackerEventWithNotes() {
+    manager.save(trackerEvent);
+    Note enrollmentNote = testNotes.save(enrollment, "enrollment note");
+    Note eventNote = testNotes.save(trackerEvent, "event note");
+    manager.delete(trackerEvent);
+
+    maintenanceService.deleteSoftDeletedEvents();
+
+    assertFalse(noteExists(eventNote.getUid()));
+    assertTrue(noteExists(enrollmentNote.getUid()), "enrollment is not deleted");
+  }
+
+  @Test
+  void testDeleteSoftDeletedSingleEventWithNotes() {
+    manager.save(singleEvent);
+    Note note = testNotes.save(singleEvent, "event note");
+    manager.delete(singleEvent);
+
+    maintenanceService.deleteSoftDeletedEvents();
+
+    assertFalse(noteExists(note.getUid()));
+  }
+
+  @Test
+  void testDeleteSoftDeletedTrackedEntityWithNotes() {
+    manager.save(trackerEvent);
+    Note enrollmentNote = testNotes.save(enrollment, "enrollment note");
+    Note eventNote = testNotes.save(trackerEvent, "event note");
+    manager.delete(trackedEntity);
+
+    maintenanceService.deleteSoftDeletedTrackedEntities();
+
+    assertFalse(noteExists(enrollmentNote.getUid()));
+    assertFalse(noteExists(eventNote.getUid()));
+  }
+
+  @Test
   @Disabled("until we can inject dhis.conf property overrides")
   void testAuditEntryForDeletionOfSoftDeletedTrackedEntity() {
     manager.delete(trackedEntityWithAssociations);
@@ -613,6 +682,12 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     return Boolean.TRUE.equals(
         jdbcTemplate.queryForObject(
             "select exists(select 1 from singleevent where uid=?)", Boolean.class, uid));
+  }
+
+  private boolean noteExists(String uid) {
+    return Boolean.TRUE.equals(
+        jdbcTemplate.queryForObject(
+            "select exists(select 1 from note where uid=?)", Boolean.class, uid));
   }
 
   private boolean relationshipExistsIncludingDeleted(String uid) {

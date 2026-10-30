@@ -41,4 +41,8 @@ public class DimensionServiceCommonTest {
   public static Predicate<ValueType> aggregateAllowedValueTypesPredicate() {
     return DimensionsServiceCommon.AGGREGATE_ALLOWED_VALUE_TYPES::contains;
   }
+
+  public static Predicate<ValueType> enrollmentAggregateDisallowedValueTypesPredicate() {
+    return DimensionsServiceCommon.ENROLLMENT_AGGREGATE_DISALLOWED_VALUE_TYPES::contains;
+  }
 }

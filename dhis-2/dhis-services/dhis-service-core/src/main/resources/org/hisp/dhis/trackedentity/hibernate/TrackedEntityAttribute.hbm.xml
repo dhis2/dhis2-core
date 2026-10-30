@@ -62,8 +62,6 @@
 
     <property name="sortOrderInListNoProgram" />
 
-    <property name="confidential" />
-
     <property name="unique" column="uniquefield" />
 
     <property name="generated" />
@@ -102,6 +100,8 @@
     <property name="blockedSearchOperators" column="blockedsearchoperators" type="jsbBlockedOperators" />
 
     <property name="trigramIndexable" column="trigramindexable" not-null="true" />
+
+    <property name="skipAnalytics" column="skipanalytics"/>
 
   </class>
 

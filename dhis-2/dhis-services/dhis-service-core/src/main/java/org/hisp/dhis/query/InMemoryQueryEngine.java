@@ -32,6 +32,7 @@ package org.hisp.dhis.query;
 import static org.hisp.dhis.query.Filters.eq;
 import static org.hisp.dhis.query.Filters.ilike;
 import static org.hisp.dhis.query.Filters.in;
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -50,7 +51,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
@@ -104,7 +104,7 @@ public class InMemoryQueryEngine implements QueryEngine {
   private record OrderBy(Order order, Property property) {}
 
   private <T extends IdentifiableObject> List<T> runSorter(Query<T> query, List<T> objects) {
-    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    Schema schema = schemaService.getSchema(query.getObjectType());
     List<OrderBy> orders = new ArrayList<>();
     for (Order order : query.getOrders()) {
       Property p = schema.getProperty(order.getProperty());
@@ -127,8 +127,8 @@ public class InMemoryQueryEngine implements QueryEngine {
 
   private static int compare(Object lside, Object rside, OrderBy orderBy) {
     Method getter = orderBy.property.getGetterMethod();
-    Object left = ReflectionUtils.invokeMethod(lside, getter);
-    Object right = ReflectionUtils.invokeMethod(rside, getter);
+    Object left = safeInvoke(lside, getter);
+    Object right = safeInvoke(rside, getter);
 
     if (left == right) return 0;
 
@@ -226,7 +226,7 @@ public class InMemoryQueryEngine implements QueryEngine {
     if (f.isAttribute()) return filterMatchAttribute(f);
 
     String path = f.getPath();
-    Schema schema = schemaService.getDynamicSchema(q.getObjectType());
+    Schema schema = schemaService.getSchema(q.getObjectType());
 
     // flat path
     if (!path.contains(".")) return filterMatch(schema.getProperty(path), f);
@@ -240,8 +240,8 @@ public class InMemoryQueryEngine implements QueryEngine {
       properties[i] = p;
       schema =
           p.isCollection()
-              ? schemaService.getDynamicSchema(p.getItemKlass())
-              : schemaService.getDynamicSchema(p.getKlass());
+              ? schemaService.getSchema(p.getItemKlass())
+              : schemaService.getSchema(p.getKlass());
     }
     Predicate<Object> res = filterMatch(properties[properties.length - 1], f);
     for (int i = properties.length - 2; i >= 0; i--) {
@@ -262,12 +262,12 @@ public class InMemoryQueryEngine implements QueryEngine {
 
   private Predicate<Object> filterMatch(Property p, Filter f) {
     Operator<?> op = f.getOperator();
-    return obj -> op.test(ReflectionUtils.invokeMethod(obj, p.getGetterMethod()));
+    return obj -> op.test(safeInvoke(obj, p.getGetterMethod()));
   }
 
   private Predicate<Object> filterMatch(Property p, Predicate<Object> tail) {
     return obj -> {
-      Object value = ReflectionUtils.invokeMethod(obj, p.getGetterMethod());
+      Object value = safeInvoke(obj, p.getGetterMethod());
       return p.isCollection() && value instanceof Collection<?> c
           ? c.stream().anyMatch(tail)
           : tail.test(value);

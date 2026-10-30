@@ -51,7 +51,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -68,9 +67,9 @@ import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.period.PeriodDataProvider;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.dimension.DimensionsCriteria;
@@ -232,7 +231,7 @@ public class EnrollmentQueryAnalyticsController {
   @GetMapping("/dimensions")
   public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
       @RequestParam String programId,
-      @RequestParam(defaultValue = "*") List<String> fields,
+      @RequestParam(defaultValue = "*") String fields,
       DimensionsCriteria dimensionsCriteria,
       HttpServletResponse response) {
     contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);

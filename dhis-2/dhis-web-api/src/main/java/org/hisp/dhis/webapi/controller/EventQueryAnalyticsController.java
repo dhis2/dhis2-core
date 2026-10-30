@@ -69,9 +69,9 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.util.PeriodCriteriaUtils;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
@@ -262,7 +262,7 @@ public class EventQueryAnalyticsController {
   public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
       @RequestParam(required = false) String programId,
       @RequestParam(required = false) String programStageId,
-      @RequestParam(defaultValue = "*") List<String> fields,
+      @RequestParam(defaultValue = "*") String fields,
       DimensionsCriteria dimensionsCriteria,
       HttpServletResponse response) {
     validateRequest(programId, programStageId);

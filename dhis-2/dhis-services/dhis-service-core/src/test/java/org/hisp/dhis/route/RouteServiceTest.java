@@ -35,18 +35,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Random;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.feedback.BadGatewayException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.web.util.UriComponentsBuilder;
 
 class RouteServiceTest {
 
@@ -66,21 +65,37 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
     assertThrows(IllegalStateException.class, routeService::postConstruct);
   }
 
   @Test
-  void testCreateTargetUriDoesNotEscapeUrl() throws BadGatewayException {
-    RouteService routeService = new RouteService(null, null, null, null, null);
-    String targetUri =
-        routeService.createTargetUri(
-            new Route().setUrl("https://play.im.dhis2.org/stable-2-42-1/api/**"),
-            Optional.of("/organisationUnits"),
-            Map.of("filter", List.of("id:in:[Rp268JB6Ne4,cDw53Ej8rju]")));
+  void testCreateRequestUrlDoesNotEscapeUrl() {
+    RouteService routeService = new RouteService(null, null, null, null, null, null);
+    String upstreamUrl =
+        routeService.createRequestUrl(
+            UriComponentsBuilder.fromUriString(
+                "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits"),
+            Map.of("filter", List.of("id:in:[Rp268JB6Ne4,cDw53Ej8rju]")),
+            Map.of());
     assertEquals(
         "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits?filter=id:in:[Rp268JB6Ne4,cDw53Ej8rju]",
-        targetUri);
+        upstreamUrl);
+  }
+
+  @Test
+  void testCreateRequestUrlReplacesPlaceholders() {
+    RouteService routeService = new RouteService(null, null, null, null, null, null);
+    String upstreamUrl =
+        routeService.createRequestUrl(
+            UriComponentsBuilder.fromUriString(
+                "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits?q={foo}"),
+            Map.of("filter", List.of("id:eq:cDw53Ej8rju")),
+            Map.of("foo", "bar"));
+    assertEquals(
+        "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits?q=bar&filter=id:eq:cDw53Ej8rju",
+        upstreamUrl);
   }
 
   @Test
@@ -91,7 +106,8 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
     assertThrows(IllegalStateException.class, routeService::postConstruct);
   }
 
@@ -105,7 +121,8 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
     routeService.postConstruct();
 
     Route route = new Route();
@@ -123,7 +140,10 @@ class RouteServiceTest {
     "*.org,stub.com,false",
     "192.168.*.*,192.168.0.1,true",
     "*.org,stub.org,true",
-    ",stub,false"
+    ",stub,false",
+    "*,{stub}.org,false",
+    "*,stub.org/{foo},true",
+    "*,stub.org?q={foo},true",
   })
   void testValidateRoute(String routeRemoteServersAllowed, String routeUrl, boolean isValid)
       throws ConflictException {
@@ -134,7 +154,8 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
     routeService.postConstruct();
 
     Route route = new Route();

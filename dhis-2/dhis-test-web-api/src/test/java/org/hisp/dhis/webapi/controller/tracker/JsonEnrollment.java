@@ -69,4 +69,8 @@ public interface JsonEnrollment extends JsonObject {
   default JsonList<JsonNote> getNotes() {
     return get("notes").asList(JsonNote.class);
   }
+
+  default String getAttributeOptionCombo() {
+    return getString("attributeOptionCombo").string();
+  }
 }

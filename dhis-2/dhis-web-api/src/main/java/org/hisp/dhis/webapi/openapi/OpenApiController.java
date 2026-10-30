@@ -38,8 +38,8 @@ import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -53,6 +53,8 @@ import org.hisp.dhis.cache.SoftCache;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.openapi.JsonGenerator.Format;
 import org.hisp.dhis.webapi.openapi.JsonGenerator.Language;
@@ -79,8 +81,8 @@ public class OpenApiController {
   private final ApplicationContext context;
 
   private static final SoftCache<Api> API_CACHE = new SoftCache<>();
-  private static final SoftCache<String> JSON_CACHE = new SoftCache<>();
-  private static final SoftCache<String> HTML_CACHE = new SoftCache<>();
+  private static final SoftCache<byte[]> JSON_CACHE = new SoftCache<>();
+  private static final SoftCache<byte[]> HTML_CACHE = new SoftCache<>();
 
   /**
    * As long as the server is the same the response will be for the same request, so we just create
@@ -123,13 +125,12 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    // for HTML X-properties must be included
     generation.setIncludeXProperties(true);
 
     // auto-set context path
     rendering.setContextPath(request.getContextPath());
 
-    getHtmlWriter(response).write(renderCached(scoping, generation, rendering));
+    writeHtml(response, renderCached(scoping, generation, rendering));
   }
 
   @OpenApi.Description(
@@ -145,14 +146,13 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    // for HTML X-properties must be included
     generation.setIncludeXProperties(true);
 
     // auto-set context path
     rendering.setContextPath(request.getContextPath());
 
     OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path:/api/" + path));
-    getHtmlWriter(response).write(renderCached(scope, generation, rendering));
+    writeHtml(response, renderCached(scope, generation, rendering));
   }
 
   /*
@@ -169,7 +169,7 @@ public class OpenApiController {
     if (notModified(request, response, generation)) return;
 
     OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path:/api/" + path));
-    getYamlWriter(response).write(generateCached(Language.YAML, scope, generation));
+    write(response, APPLICATION_X_YAML, generateCached(Language.YAML, scope, generation));
   }
 
   @OpenApi.Response(String.class)
@@ -183,7 +183,7 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    getYamlWriter(response).write(generateCached(Language.YAML, scoping, generation));
+    write(response, APPLICATION_X_YAML, generateCached(Language.YAML, scoping, generation));
   }
 
   /*
@@ -200,7 +200,7 @@ public class OpenApiController {
     if (notModified(request, response, generation)) return;
 
     OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path:/api/" + path));
-    getJsonWriter(response).write(generateCached(Language.JSON, scope, generation));
+    write(response, APPLICATION_JSON_VALUE, generateCached(Language.JSON, scope, generation));
   }
 
   @OpenApi.Response(JsonObject.class)
@@ -214,33 +214,26 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    getJsonWriter(response).write(generateCached(Language.JSON, scoping, generation));
+    write(response, APPLICATION_JSON_VALUE, generateCached(Language.JSON, scoping, generation));
   }
 
-  private PrintWriter getHtmlWriter(HttpServletResponse response) {
-    return getWriter(response, TEXT_HTML_VALUE);
-  }
-
-  private PrintWriter getYamlWriter(HttpServletResponse response) {
-    return getWriter(response, APPLICATION_X_YAML);
-  }
-
-  private PrintWriter getJsonWriter(HttpServletResponse response) {
-    return getWriter(response, APPLICATION_JSON_VALUE);
-  }
-
-  private PrintWriter getWriter(HttpServletResponse response, String contentType) {
-    response.setContentType(contentType);
+  private static void write(HttpServletResponse response, String contentType, byte[] bytes) {
+    response.setContentType(contentType + ";charset=UTF-8");
     response.setHeader("ETag", E_TAG);
+    response.setContentLength(bytes.length);
     try {
-      return response.getWriter();
+      response.getOutputStream().write(bytes);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
   }
 
+  private static void writeHtml(HttpServletResponse response, byte[] bytes) {
+    write(response, TEXT_HTML_VALUE, bytes);
+  }
+
   @Nonnull
-  private String renderCached(
+  private byte[] renderCached(
       OpenApiScopingParams scoping,
       OpenApiGenerationParams generation,
       OpenApiRenderingParams rendering) {
@@ -251,16 +244,19 @@ public class OpenApiController {
     return HTML_CACHE.get(
         cacheKey,
         () -> {
-          String json = generateCached(Language.JSON, scoping, generation);
+          byte[] jsonBytesUtf8 = generateCached(Language.JSON, scoping, generation);
+          JsonObject json =
+              JsonMixed.of(
+                  JsonNode.of(jsonBytesUtf8, StandardCharsets.UTF_8, null, JsonNode.Index.AUTO));
           Api partial = extractCached(scoping, generation);
           Api full = extractCached(new OpenApiScopingParams(), new OpenApiGenerationParams());
           ApiStatistics stats = new ApiStatistics(full, partial);
-          return renderHTML(json, rendering, stats);
+          return renderHTML(json.as(OpenApiObject.class), rendering, stats);
         });
   }
 
   @Nonnull
-  private String generateCached(
+  private byte[] generateCached(
       Language language, OpenApiScopingParams scoping, OpenApiGenerationParams params) {
     String cacheKey =
         params.isSkipCache() ? null : scoping.getCacheKey() + params.getDocumentCacheKey();
@@ -285,8 +281,11 @@ public class OpenApiController {
     for (String s : scoping.scope) {
       int split = s.indexOf(':');
       if (split > 0) {
-        String key = s.substring(0, split);
-        String value = s.substring(split + 1);
+        // The scope key/value come from the `scope` request parameter and are reflected into the
+        // generated HTML page header. Strip any HTML-significant characters here, at the single
+        // point where the scope is parsed, so no untrusted markup can reach those rendering sinks.
+        String key = OpenApiHtmlUtils.stripHtml(s.substring(0, split));
+        String value = OpenApiHtmlUtils.stripHtml(s.substring(split + 1));
         filters.computeIfAbsent(key, k -> new HashSet<>()).add(value);
       }
     }

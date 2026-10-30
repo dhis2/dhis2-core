@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  */
 @Transactional
-abstract class AbstractGistControllerTest extends H2ControllerIntegrationTestBase {
+abstract class AbstractGistControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired protected OrganisationUnitService organisationUnitService;
 
   protected String userGroupId;
@@ -178,12 +178,8 @@ abstract class AbstractGistControllerTest extends H2ControllerIntegrationTestBas
     assertFalse(pager.exists(), "Pager should not be present");
   }
 
-  /**
-   * The guest user will get the {@code Test_skipSharingCheck} authority so we do not get errors
-   * from the H2 database complaining that it does not support JSONB functions. Obviously this has
-   * an impact on the results which are not longer filter, the {@code sharing} is ignored.
-   */
+  /** Switches to a user without any authorities; sharing applies to it like to any other user. */
   protected final void switchToGuestUser() {
-    switchToNewUser("guest", "Test_skipSharingCheck");
+    switchToNewUser("guest");
   }
 }

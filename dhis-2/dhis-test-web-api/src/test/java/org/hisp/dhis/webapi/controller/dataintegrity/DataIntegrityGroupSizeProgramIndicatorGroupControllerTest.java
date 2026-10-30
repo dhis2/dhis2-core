@@ -36,7 +36,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -104,11 +103,9 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest
 
     CategoryCombo defaultCategoryCombo = categoryService.getCategoryCombo(getDefaultCatCombo());
 
-    Program programA = new Program();
+    Program programA = createProgramWithoutRegistration('A');
     programA.setName("Program A");
     programA.setShortName("Program A");
-    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    programA.setCategoryCombo(defaultCategoryCombo);
     programService.addProgram(programA);
 
     ProgramIndicatorGroup programIndicatorGroupA = new ProgramIndicatorGroup("Test PI Group A");

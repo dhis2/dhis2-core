@@ -26,7 +26,7 @@
 #
 ---
 name: category_option_group_sets_scarce
-description: Category option group sets should have at least two members.
+description: Category option group sets should have at least two members
 section: Group size
 section_order: 8
 summary_sql: >-

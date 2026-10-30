@@ -57,6 +57,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -73,7 +75,11 @@ import org.springframework.core.Ordered;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement(localName = "schema", namespace = DxfNamespaces.DXF_2_0)
-public class Schema implements Ordered, Klass {
+public final class Schema implements Ordered, Klass {
+
+  /** True for a schema that was not registered by created dynamically because no schema existed. */
+  @Getter @Setter private boolean dynamic;
+
   /** Class that is described in this schema. */
   private final Class<?> klass;
 
@@ -118,28 +124,28 @@ public class Schema implements Ordered, Klass {
   private final boolean secondaryMetadata;
 
   /** Namespace URI to be used for this class. */
-  private String namespace;
+  @Setter private String namespace;
 
   /**
    * This will normally be set to equal singular, but in certain cases it might be useful to have
    * another name for when this class is used as an item inside a collection.
    */
-  private String name;
+  @Setter private String name;
 
   /** A beautified (and possibly translated) name that can be used in UI. */
-  private String displayName;
+  @Setter private String displayName;
 
   /**
    * This will normally be set to equal plural, and is normally used as a wrapper for a collection
    * of instances of this klass type.
    */
-  private String collectionName;
+  @Setter private String collectionName;
 
   /** Is sharing supported for instances of this class. */
   private Boolean shareable;
 
   /** Is data sharing supported for instances of this class. */
-  private boolean dataShareable;
+  @Setter private boolean dataShareable;
 
   /** Is data write sharing support for instances of this class. */
   private Boolean dataWriteShareable;
@@ -148,35 +154,35 @@ public class Schema implements Ordered, Klass {
   private Boolean dataReadShareable;
 
   /** Points to relative Web-API endpoint (if exposed). */
-  private String relativeApiEndpoint;
+  @Setter private String relativeApiEndpoint;
 
   /** Used by LinkService to link to the API endpoint containing this type. */
-  private String apiEndpoint;
+  @Setter private String apiEndpoint;
 
   /** Used by LinkService to link to the Schema describing this type (if reference). */
-  private String href;
+  @Setter private String href;
 
   /**
    * Are any properties on this class being persisted, if false, this file does not have any
    * Hibernate mapping file attached to it.
    */
-  private boolean persisted;
+  @Setter private boolean persisted;
 
   /**
    * Should new instances always be default private, even if the user can create public instances.
    */
-  private boolean defaultPrivate;
+  @Setter private boolean defaultPrivate;
 
   /**
    * If this is true, do not require private authority for create/update of instances of this type.
    */
-  private boolean implicitPrivateAuthority;
+  @Setter private boolean implicitPrivateAuthority;
 
   /** Database table name of this class */
-  private String tableName;
+  @Setter private String tableName;
 
   /** List of authorities required for doing operations on this class. */
-  private List<Authority> authorities = Lists.newArrayList();
+  private final List<Authority> authorities = new ArrayList<>();
 
   /**
    * Map of all exposed properties on this class, where key is property name, and value is instance
@@ -190,6 +196,7 @@ public class Schema implements Ordered, Klass {
    * Map defining a way to retieve values from a set of properties. Only make sense for
    * IdentifiableObjects schemas
    */
+  @Getter @Setter
   private Map<Collection<String>, Collection<Function<IdentifiableObject, String>>>
       uniqueMultiPropertiesExctractors = Collections.emptyMap();
 
@@ -214,18 +221,18 @@ public class Schema implements Ordered, Klass {
       new ConcurrentHashMap<>();
 
   /** Used for sorting of schema list when doing metadata import/export. */
-  private int order = Ordered.LOWEST_PRECEDENCE;
+  @Setter private int order = Ordered.LOWEST_PRECEDENCE;
 
-  public Schema(Class<?> klass, String singular, String plural) {
-    this.klass = klass;
-    this.embeddedObject = EmbeddedObject.class.isAssignableFrom(klass);
-    this.identifiableObject = IdentifiableObject.class.isAssignableFrom(klass);
-    this.nameableObject = NameableObject.class.isAssignableFrom(klass);
-    this.subscribableObject = SubscribableObject.class.isAssignableFrom(klass);
+  public Schema(Class<?> type, String singular, String plural) {
+    this.klass = type;
     this.singular = singular;
     this.plural = plural;
-    this.metadata = MetadataObject.class.isAssignableFrom(klass);
-    this.secondaryMetadata = SecondaryMetadataObject.class.isAssignableFrom(klass);
+    this.embeddedObject = EmbeddedObject.class.isAssignableFrom(type);
+    this.identifiableObject = IdentifiableObject.class.isAssignableFrom(type);
+    this.nameableObject = NameableObject.class.isAssignableFrom(type);
+    this.subscribableObject = SubscribableObject.class.isAssignableFrom(type);
+    this.metadata = MetadataObject.class.isAssignableFrom(type);
+    this.secondaryMetadata = SecondaryMetadataObject.class.isAssignableFrom(type);
   }
 
   @Override
@@ -296,18 +303,10 @@ public class Schema implements Ordered, Klass {
     return namespace;
   }
 
-  public void setNamespace(String namespace) {
-    this.namespace = namespace;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getCollectionName() {
     return collectionName == null ? plural : collectionName;
-  }
-
-  public void setCollectionName(String collectionName) {
-    this.collectionName = collectionName;
   }
 
   @JsonProperty
@@ -316,18 +315,10 @@ public class Schema implements Ordered, Klass {
     return name == null ? singular : name;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getDisplayName() {
     return displayName != null ? displayName : getName();
-  }
-
-  public void setDisplayName(String displayName) {
-    this.displayName = displayName;
   }
 
   @JsonProperty
@@ -344,10 +335,6 @@ public class Schema implements Ordered, Klass {
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isDataShareable() {
     return dataShareable;
-  }
-
-  public void setDataShareable(boolean dataShareable) {
-    this.dataShareable = dataShareable;
   }
 
   @JsonProperty
@@ -376,18 +363,10 @@ public class Schema implements Ordered, Klass {
     return relativeApiEndpoint;
   }
 
-  public void setRelativeApiEndpoint(String relativeApiEndpoint) {
-    this.relativeApiEndpoint = relativeApiEndpoint;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getApiEndpoint() {
     return apiEndpoint;
-  }
-
-  public void setApiEndpoint(String apiEndpoint) {
-    this.apiEndpoint = apiEndpoint;
   }
 
   public boolean hasApiEndpoint() {
@@ -400,18 +379,10 @@ public class Schema implements Ordered, Klass {
     return href;
   }
 
-  public void setHref(String href) {
-    this.href = href;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isPersisted() {
     return persisted;
-  }
-
-  public void setPersisted(boolean persisted) {
-    this.persisted = persisted;
   }
 
   @JsonProperty
@@ -438,27 +409,15 @@ public class Schema implements Ordered, Klass {
     return defaultPrivate;
   }
 
-  public void setDefaultPrivate(boolean defaultPrivate) {
-    this.defaultPrivate = defaultPrivate;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isImplicitPrivateAuthority() {
     return implicitPrivateAuthority;
   }
 
-  public void setImplicitPrivateAuthority(boolean implicitPrivateAuthority) {
-    this.implicitPrivateAuthority = implicitPrivateAuthority;
-  }
-
   @JsonIgnore
   public String getTableName() {
     return tableName;
-  }
-
-  public void setTableName(String tableName) {
-    this.tableName = tableName;
   }
 
   @JsonProperty
@@ -478,17 +437,6 @@ public class Schema implements Ordered, Klass {
   @JacksonXmlProperty(localName = "property", namespace = DxfNamespaces.DXF_2_0)
   public List<Property> getProperties() {
     return Lists.newArrayList(propertyMap.values());
-  }
-
-  public Map<Collection<String>, Collection<Function<IdentifiableObject, String>>>
-      getUniqueMultiPropertiesExctractors() {
-    return uniqueMultiPropertiesExctractors;
-  }
-
-  public void setUniqueMultiPropertiesExctractors(
-      Map<Collection<String>, Collection<Function<IdentifiableObject, String>>>
-          uniqueMultiPropertiesExctractors) {
-    this.uniqueMultiPropertiesExctractors = uniqueMultiPropertiesExctractors;
   }
 
   public boolean hasProperty(String propertyName) {
@@ -640,10 +588,6 @@ public class Schema implements Ordered, Klass {
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public int getOrder() {
     return order;
-  }
-
-  public void setOrder(int order) {
-    this.order = order;
   }
 
   /**

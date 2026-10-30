@@ -31,7 +31,6 @@ package org.hisp.dhis.reservedvalue;
 
 import static java.util.Calendar.DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -235,32 +234,17 @@ class ReservedValueServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals("TEST-OS", result.get(0).getValue());
   }
 
-  @Test
-  void testUseReservationWhenReserved()
-      throws TextPatternGenerationException, ReserveValueException {
-    reservedValueService.reserve(simpleTextPattern, 1, new HashMap<>(), future);
-    assertTrue(reservedValueService.useReservedValue(simpleTextPattern.getTextPattern(), "FOOBAR"));
-    assertEquals(0, reservedValueStore.getCount());
-  }
-
-  @Test
-  void testUseReservationWhenNotReserved() {
-    assertFalse(
-        reservedValueService.useReservedValue(simpleTextPattern.getTextPattern(), "FOOBAR"));
-    assertEquals(0, reservedValueStore.getCount());
-  }
-
   private static TrackedEntityAttribute createTextPattern(
       IdentifiableObject owner, String pattern) {
     try {
       TextPattern textPattern = TextPatternParser.parse(pattern);
-      textPattern.setOwnerObject(Objects.fromClass(owner.getClass()));
+      textPattern.setOwnerObject(Objects.TRACKEDENTITYATTRIBUTE);
       textPattern.setOwnerUid(owner.getUid());
       TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
       trackedEntityAttribute.setTextPattern(textPattern);
       trackedEntityAttribute.setGenerated(true);
       return trackedEntityAttribute;
-    } catch (TextPatternParsingException | IllegalAccessException e) {
+    } catch (TextPatternParsingException e) {
       e.printStackTrace();
     }
     return null;

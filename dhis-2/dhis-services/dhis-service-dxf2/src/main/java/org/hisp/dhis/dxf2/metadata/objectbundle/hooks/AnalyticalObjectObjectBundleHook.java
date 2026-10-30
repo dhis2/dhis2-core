@@ -51,8 +51,7 @@ public class AnalyticalObjectObjectBundleHook extends AbstractObjectBundleHook<A
   @Override
   public void preCreate(AnalyticalObject object, ObjectBundle bundle) {
     BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
-    Schema schema =
-        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(analyticalObject));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(analyticalObject));
 
     analyticalObjectImportHandler.handleAnalyticalObject(
         entityManager, schema, analyticalObject, bundle);
@@ -63,8 +62,7 @@ public class AnalyticalObjectObjectBundleHook extends AbstractObjectBundleHook<A
       AnalyticalObject object, AnalyticalObject persistedObject, ObjectBundle bundle) {
     BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
 
-    Schema schema =
-        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(analyticalObject));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(analyticalObject));
 
     analyticalObjectImportHandler.handleAnalyticalObject(
         entityManager, schema, analyticalObject, bundle);

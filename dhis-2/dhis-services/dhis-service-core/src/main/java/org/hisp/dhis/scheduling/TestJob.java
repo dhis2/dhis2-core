@@ -49,8 +49,8 @@ public class TestJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration conf, JobProgress progress) {
-    TestJobParameters params = (TestJobParameters) conf.getJobParameters();
+  public void execute(JobEntry conf, JobProgress progress) {
+    TestJobParameters params = (TestJobParameters) conf.parameters();
     progress.startingProcess("Test job");
 
     // initial wait stage

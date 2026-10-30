@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,17 +40,17 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
@@ -99,12 +100,13 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
         .getSharing()
         .addUserAccess(new UserAccess(importUser, AccessStringHelper.DATA_READ));
     manager.save(programStage, false);
+    program.getProgramStages().add(programStage);
 
     TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
     te.setTrackedEntityType(trackedEntityType);
     manager.save(te);
 
-    enrollment = enrollment(te, program, orgUnit);
+    enrollment = enrollment(te, program, orgUnit, coc);
     event = event(enrollment, programStage, coc);
     enrollment.setEvents(Set.of(event));
     manager.update(enrollment);
@@ -148,7 +150,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
             .content(HttpStatus.OK)
             .as(JsonNote.class);
 
-    assertEquals("This is a note", note.getValue());
+    assertEquals("This is a note", note.value());
     assertTrue(CodeGenerator.isValidUid(note.getNote()));
   }
 
@@ -169,7 +171,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
             .content(HttpStatus.OK)
             .as(JsonNote.class);
 
-    assertEquals("This is a note", note.getValue());
+    assertEquals("This is a note", note.value());
     assertEquals(noteUid.getValue(), note.getNote());
   }
 
@@ -202,7 +204,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
             .content(HttpStatus.OK)
             .as(JsonNote.class);
 
-    assertEquals("This is a note", note.getValue());
+    assertEquals("This is a note", note.value());
     assertTrue(CodeGenerator.isValidUid(note.getNote()));
   }
 
@@ -222,7 +224,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
             .content(HttpStatus.OK)
             .as(JsonNote.class);
 
-    assertEquals("This is a note", note.getValue());
+    assertEquals("This is a note", note.value());
     assertEquals(noteUid.getValue(), note.getNote());
   }
 
@@ -238,13 +240,15 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
     return eventA;
   }
 
-  private Enrollment enrollment(TrackedEntity te, Program program, OrganisationUnit orgUnit) {
+  private Enrollment enrollment(
+      TrackedEntity te, Program program, OrganisationUnit orgUnit, CategoryOptionCombo coc) {
     Enrollment enrollmentA = new Enrollment(program, te, orgUnit);
     enrollmentA.setAutoFields();
     enrollmentA.setEnrollmentDate(new Date());
     enrollmentA.setOccurredDate(new Date());
     enrollmentA.setStatus(EnrollmentStatus.COMPLETED);
     enrollmentA.setFollowup(true);
+    enrollmentA.setAttributeOptionCombo(coc);
     manager.save(enrollmentA, false);
     te.setEnrollments(Set.of(enrollmentA));
     manager.save(te, false);

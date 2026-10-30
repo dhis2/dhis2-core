@@ -32,13 +32,14 @@ package org.hisp.dhis.textpattern;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
 import java.util.Objects;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Stian Sandvold
  */
-public class TextPatternSegment {
+public class TextPatternSegment implements Serializable {
   private TextPatternMethod method;
 
   private String parameter;

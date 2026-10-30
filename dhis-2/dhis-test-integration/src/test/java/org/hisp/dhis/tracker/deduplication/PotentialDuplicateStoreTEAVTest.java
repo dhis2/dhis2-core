@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.tracker.deduplication;
 
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -39,11 +42,10 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -59,8 +61,6 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
-
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -131,13 +131,13 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
         createTrackedEntityAttributeValue('C', control, trackedEntityAttributeC));
     original
         .getTrackedEntityAttributeValues()
-        .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
+        .forEach(value -> saveTrackedEntityAttributeValue(entityManager, value));
     duplicate
         .getTrackedEntityAttributeValues()
-        .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
+        .forEach(value -> saveTrackedEntityAttributeValue(entityManager, value));
     control
         .getTrackedEntityAttributeValues()
-        .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
+        .forEach(value -> saveTrackedEntityAttributeValue(entityManager, value));
   }
 
   @Test

@@ -43,7 +43,6 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
@@ -146,7 +145,7 @@ public class DataValidator {
    * @throws IllegalQueryException if the validation fails.
    */
   public Period getAndValidatePeriod(String pe) {
-    Period period = PeriodType.getPeriodFromIsoString(pe);
+    Period period = Period.ofNullable(pe);
 
     if (period == null) {
       throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1101, pe));

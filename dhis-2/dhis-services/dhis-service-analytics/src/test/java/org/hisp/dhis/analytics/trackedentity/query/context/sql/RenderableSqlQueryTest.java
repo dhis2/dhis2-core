@@ -38,6 +38,7 @@ import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.common.query.Table;
 import org.hisp.dhis.common.SortDirection;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -77,5 +78,54 @@ class RenderableSqlQueryTest {
                 .orderClause(IndexedOrder.of(1, Order.of(() -> "orderField", SortDirection.ASC)))
                 .groupableCondition(GroupableCondition.of("group", () -> "condition1"))
                 .build()));
+  }
+
+  @Test
+  void testRenderQueryWithGroupByBetweenWhereAndOrder() {
+    RenderableSqlQuery query =
+        RenderableSqlQuery.builder()
+            .selectField(Field.of("t1", () -> "ou", "ou"))
+            .selectField(Field.ofUnquoted("", () -> "count(1)", "value"))
+            .mainTable(Table.of(() -> "table1", () -> "t1"))
+            .groupByField(Field.of("t1", () -> "ou", ""))
+            .groupableCondition(GroupableCondition.of("group", () -> "condition"))
+            .orderClause(IndexedOrder.of(1, Order.of(() -> "orderField", SortDirection.ASC)))
+            .limitOffset(LimitOffset.of(10, 20, false))
+            .build();
+
+    Assertions.assertEquals(
+        """
+        select t1."ou" as "ou", count(1) as "value" from table1 t1 where condition group by t1."ou" order by orderField nulls last limit 10 offset 20""",
+        query.render());
+  }
+
+  @Test
+  void testRenderCountQueryWithGroupByWrapsInSubquery() {
+    RenderableSqlQuery query =
+        RenderableSqlQuery.builder()
+            .selectField(Field.of("t1", () -> "ou", "ou"))
+            .selectField(Field.ofUnquoted("", () -> "count(1)", "value"))
+            .mainTable(Table.of(() -> "table1", () -> "t1"))
+            .groupByField(Field.of("t1", () -> "ou", ""))
+            .groupableCondition(GroupableCondition.of("group", () -> "condition"))
+            .build();
+
+    Assertions.assertEquals(
+        """
+        select count(*) from (select t1."ou" as "ou", count(1) as "value" from table1 t1 where condition group by t1."ou") subquery""",
+        query.forCount().render());
+  }
+
+  @Test
+  void testRenderCountQueryWithoutGroupByUsesCountOne() {
+    RenderableSqlQuery query =
+        RenderableSqlQuery.builder()
+            .selectField(Field.of("t1", () -> "field1", "alias1"))
+            .mainTable(Table.of(() -> "table1", () -> "t1"))
+            .groupableCondition(GroupableCondition.of("group", () -> "condition"))
+            .build();
+
+    Assertions.assertEquals(
+        "select count(1) from table1 t1 where condition", query.forCount().render());
   }
 }

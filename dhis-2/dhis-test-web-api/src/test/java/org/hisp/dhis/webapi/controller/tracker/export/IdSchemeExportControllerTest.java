@@ -58,13 +58,13 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
@@ -281,10 +281,9 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
     // dataElement is asserted in other tests
     assertAll(
         "assert dataValue fields",
-        () -> assertEquals(uidDataValue.getValue(), nameDataValue.getValue(), "value"),
+        () -> assertEquals(uidDataValue.value(), nameDataValue.value(), "value"),
         () -> assertEquals(uidDataValue.getCreatedAt(), nameDataValue.getCreatedAt(), "createdAt"),
         () -> assertEquals(uidDataValue.getUpdatedAt(), nameDataValue.getUpdatedAt(), "updatedAt"),
-        () -> assertEquals(uidDataValue.getStoredBy(), nameDataValue.getStoredBy(), "storedBy"),
         () ->
             assertEquals(
                 uidDataValue.getProvidedElsewhere(),

@@ -29,11 +29,10 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
-import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE;
-import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -41,6 +40,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -54,7 +54,6 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TestSetup;
@@ -64,10 +63,12 @@ import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,6 +89,8 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
   @Autowired private ProgramStageDataElementService programStageDataElementService;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
+
+  @Autowired private CategoryService categoryService;
 
   private TrackedEntity maleA;
 
@@ -126,10 +129,7 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
     assertNoErrors(
         trackerImportService.importTracker(
             params, testSetup.fromJson("tracker/validations/enrollments_te_te-data.json")));
-  }
 
-  private void setup() {
-    injectSecurityContextUser(importUser);
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
     manager.save(organisationUnitA);
@@ -185,25 +185,14 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
     manager.flush();
   }
 
-  @Test
-  void testNoWriteAccessToOrg() throws IOException {
-    User user = userService.getUser(USER_2);
-    injectSecurityContextUser(user);
-    TrackerImportParams params = new TrackerImportParams();
-    params.setImportStrategy(CREATE);
-
-    ImportReport importReport =
-        trackerImportService.importTracker(
-            params, testSetup.fromJson("tracker/validations/enrollments_te_enrollments-data.json"));
-
-    assertHasErrors(importReport, 4, ValidationCode.E1000);
+  @BeforeEach
+  void setupUser() {
+    injectSecurityContextUser(importUser);
+    trackedEntityType.setPublicAccess(AccessStringHelper.READ_WRITE);
   }
 
   @Test
   void shouldFailWhenUserHasNoAccessToTrackedEntityType() throws IOException {
-    clearSecurityContext();
-
-    setup();
     programA.setPublicAccess(AccessStringHelper.FULL);
     TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType("bPJ0FMtcnEh");
     programA.setTrackedEntityType(bPJ0FMtcnEh);
@@ -226,9 +215,6 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
 
   @Test
   void testUserNoWriteAccessToProgram() throws IOException {
-    clearSecurityContext();
-
-    setup();
     programA.setPublicAccess(
         AccessStringHelper.newInstance()
             .enable(AccessStringHelper.Permission.DATA_READ)
@@ -253,9 +239,6 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
 
   @Test
   void testUserHasWriteAccessToProgram() throws IOException {
-    clearSecurityContext();
-
-    setup();
     programA.setPublicAccess(AccessStringHelper.FULL);
     trackedEntityType.setPublicAccess(AccessStringHelper.DATA_READ);
     programA.setTrackedEntityType(trackedEntityType);
@@ -276,13 +259,6 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
 
   @Test
   void testUserHasNoAccessToProgramTeType() throws IOException {
-    clearSecurityContext();
-
-    setup();
-    programA.setPublicAccess(AccessStringHelper.FULL);
-    programA.setTrackedEntityType(trackedEntityType);
-    manager.updateNoAcl(programA);
-    manager.flush();
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
     injectSecurityContextUser(user);
@@ -298,9 +274,8 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
 
   @Test
   void shouldFailWhenTeNotEnrolledAndUserHasNoAccessToTeRegisteringOrgUnit() {
-    clearSecurityContext();
-    setup();
-    TrackedEntity trackedEntityB = createTrackedEntity(trackedEntityType, organisationUnitB);
+    TrackedEntity trackedEntityB = createTrackedEntity(organisationUnitB, trackedEntityType);
+    manager.save(trackedEntityB);
     User userA = createUser(organisationUnitA);
     TrackerImportParams params = TrackerImportParams.builder().importStrategy(CREATE).build();
 
@@ -317,10 +292,9 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
 
   @Test
   void shouldEnrollTeWhenTeNotEnrolledButUserHasAccessToTeRegisteringOrgUnit() {
-    clearSecurityContext();
-    setup();
     Program programB = createProgram(organisationUnitB);
-    TrackedEntity trackedEntityB = createTrackedEntity(trackedEntityType, organisationUnitB);
+    TrackedEntity trackedEntityB = createTrackedEntity(organisationUnitB, trackedEntityType);
+    manager.save(trackedEntityB);
     User userB = createUser(organisationUnitB);
     TrackerImportParams params = TrackerImportParams.builder().importStrategy(CREATE).build();
 
@@ -358,14 +332,6 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
     return program;
   }
 
-  private TrackedEntity createTrackedEntity(
-      TrackedEntityType trackedEntityType, OrganisationUnit orgUnit) {
-    TrackedEntity trackedEntity = createTrackedEntity('T', orgUnit, trackedEntityType);
-    manager.save(trackedEntity);
-
-    return trackedEntity;
-  }
-
   private List<Enrollment> createEnrollment(
       TrackedEntity trackedEntity, OrganisationUnit orgUnit, Program program) {
     return List.of(
@@ -377,6 +343,8 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
             .enrollment(UID.generate())
+            .attributeOptionCombo(
+                MetadataIdentifier.ofUid(categoryService.getDefaultCategoryOptionCombo().getUid()))
             .build());
   }
 }

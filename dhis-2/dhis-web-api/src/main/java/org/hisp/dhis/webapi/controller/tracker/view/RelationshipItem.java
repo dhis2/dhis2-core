@@ -46,7 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.TrackerEvent;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -63,10 +63,10 @@ public class RelationshipItem {
   @NoArgsConstructor
   @AllArgsConstructor
   @OpenApi.Shared(value = false)
-  @OpenApi.Identifiable(as = org.hisp.dhis.trackedentity.TrackedEntity.class)
+  @OpenApi.Identifiable(as = org.hisp.dhis.tracker.model.TrackedEntity.class)
   public static class TrackedEntity {
     @JsonProperty
-    @OpenApi.Property({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class})
+    @OpenApi.Property({UID.class, org.hisp.dhis.tracker.model.TrackedEntity.class})
     private UID trackedEntity;
 
     @JsonProperty private String trackedEntityType;
@@ -111,9 +111,9 @@ public class RelationshipItem {
   @NoArgsConstructor
   @AllArgsConstructor
   @OpenApi.Shared(value = false)
-  @OpenApi.Identifiable(as = org.hisp.dhis.program.Enrollment.class)
+  @OpenApi.Identifiable(as = org.hisp.dhis.tracker.model.Enrollment.class)
   public static class Enrollment {
-    @OpenApi.Property({UID.class, org.hisp.dhis.program.Enrollment.class})
+    @OpenApi.Property({UID.class, org.hisp.dhis.tracker.model.Enrollment.class})
     @JsonProperty
     private UID enrollment;
 
@@ -181,7 +181,7 @@ public class RelationshipItem {
     @JsonProperty
     private String programStage;
 
-    @OpenApi.Property({UID.class, org.hisp.dhis.program.Enrollment.class})
+    @OpenApi.Property({UID.class, org.hisp.dhis.tracker.model.Enrollment.class})
     @JsonProperty
     private String enrollment;
 

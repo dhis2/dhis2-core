@@ -35,6 +35,8 @@ import static java.util.Comparator.comparing;
 import static org.hisp.dhis.webapi.openapi.Api.Schema.Direction.IN;
 import static org.hisp.dhis.webapi.openapi.Api.Schema.Direction.OUT;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -51,6 +53,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.jsontree.Appender;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.openapi.Api.Schema.Direction;
 import org.springframework.http.HttpStatus;
@@ -96,21 +99,33 @@ public class OpenApiGenerator extends JsonGenerator {
     String contactEmail;
   }
 
-  public static String generate(
+  public static byte[] generate(
       Language language, Api api, Format format, Info info, OpenApiGenerationParams params) {
+    ByteArrayOutputStream bytes = newByteArrayOutputStream(api);
+    generate(language, api, format, info, params, bytes);
+    return bytes.toByteArray();
+  }
+
+  static void generate(
+      Language language,
+      Api api,
+      Format format,
+      Info info,
+      OpenApiGenerationParams params,
+      OutputStream out) {
+    try (Appender appender = Appender.ofUTF8(out)) {
+      OpenApiGenerator gen =
+          new OpenApiGenerator(
+              api, language.getAdjustFormat().apply(format), language, info, params, appender);
+      gen.generateDocument();
+    }
+  }
+
+  private static ByteArrayOutputStream newByteArrayOutputStream(Api api) {
     int endpoints = 0;
     for (Api.Controller c : api.getControllers()) endpoints += c.getEndpoints().size();
     int capacity = endpoints * 256 + api.getSchemas().size() * 512;
-    OpenApiGenerator gen =
-        new OpenApiGenerator(
-            api,
-            language.getAdjustFormat().apply(format),
-            language,
-            info,
-            params,
-            new StringBuilder(capacity));
-    gen.generateDocument();
-    return gen.toString();
+    return new ByteArrayOutputStream(capacity);
   }
 
   /**
@@ -136,7 +151,7 @@ public class OpenApiGenerator extends JsonGenerator {
       Language language,
       Info info,
       OpenApiGenerationParams params,
-      StringBuilder out) {
+      Appender out) {
     super(out, format, language);
     this.api = api;
     this.info = info;
@@ -479,7 +494,8 @@ public class OpenApiGenerator extends JsonGenerator {
                 () -> {
                   generateSchemaOrRef(property.getType(), direction);
                   addTrueMember("readOnly", property.getAccess() == OpenApi.Access.READ);
-                  addStringMember("description", property.getDescription().orElse(NO_DESCRIPTION));
+                  addStringMultilineMember(
+                      "description", property.getDescription().orElse(NO_DESCRIPTION));
                   if (xProperties())
                     addStringMember("x-since", getSinceVersion(property.getSince()));
                 }));
@@ -516,12 +532,21 @@ public class OpenApiGenerator extends JsonGenerator {
     addNumberMember("maxLength", simpleType.maxLength());
     addStringMember("pattern", simpleType.pattern());
     addRawMember("default", defaultValue);
-    boolean isEnum = !simpleType.enums().isEmpty();
+    List<String> enums = simpleType.enums();
+    boolean isEnum = enums != null && !enums.isEmpty();
     if (isEnum) {
-      addInlineArrayMember("enum", simpleType.enums());
+      addInlineArrayMember("enum", enums);
     }
 
     addStringMultilineMember("description", simpleType.description());
+    Map<String, DirectType.SimpleType> members = simpleType.members();
+    if (members != null && !members.isEmpty()) {
+      addObjectMember(
+          "properties",
+          () ->
+              members.forEach(
+                  (name, t) -> addObjectMember(name, () -> generateSimpleTypeSchema(t, null))));
+    }
   }
 
   private void generateUidSchema(Api.Schema schema) {

@@ -30,10 +30,9 @@
 package org.hisp.dhis.fileresource;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mockStatic;
@@ -43,12 +42,13 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import java.io.File;
-import java.util.Map;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -80,6 +80,12 @@ class FileResourceServiceTest {
 
   @Mock private EntityManager entityManager;
 
+  @Mock private AclService aclService;
+
+  @Mock private IdentifiableObjectManager idObjectManager;
+
+  @Mock private UserDetails userDetails;
+
   @Captor private ArgumentCaptor<FileSavedEvent> fileSavedEventCaptor;
 
   @Captor private ArgumentCaptor<ImageFileSavedEvent> imageFileSavedEventCaptor;
@@ -97,16 +103,18 @@ class FileResourceServiceTest {
             fileResourceStore,
             periodService,
             fileResourceContentStore,
-            imageProcessingService,
             fileEventPublisher,
-            entityManager);
+            entityManager,
+            aclService,
+            idObjectManager);
+
+    user.setUid("userUid0001");
   }
 
   @Test
   void verifySaveFile() {
     FileResource fileResource =
-        new FileResource(
-            "mycat.pdf", "application/pdf", 1000, "md5", FileResourceDomain.PUSH_ANALYSIS);
+        new FileResource("mycat.pdf", "application/pdf", 1000, "md5", FileResourceDomain.DOCUMENT);
 
     fileResource.setUid("fileRes1");
 
@@ -163,17 +171,13 @@ class FileResourceServiceTest {
 
     File file = new File("");
 
-    Map<ImageFileDimension, File> imageFiles = Map.of(ImageFileDimension.LARGE, file);
-
-    when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
-
-    fileResource.setUid("imageUid1");
+    fileResource.setUid("imageUid001");
 
     try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
 
-      userUtilMockedStatic
-          .when(CurrentUserUtil::getCurrentUserDetails)
-          .thenReturn(UserDetails.fromUser(user));
+      userUtilMockedStatic.when(CurrentUserUtil::getCurrentUserDetails).thenReturn(userDetails);
+
+      userUtilMockedStatic.when(userDetails::getUid).thenReturn("userUid0001");
 
       subject.asyncSaveFileResource(fileResource, file);
 
@@ -184,11 +188,9 @@ class FileResourceServiceTest {
 
       ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
-      assertThat(event.fileResource(), is("imageUid1"));
-      assertFalse(event.imageFiles().isEmpty());
-      assertThat(event.imageFiles().size(), is(1));
-      assertThat(event.imageFiles(), hasKey(ImageFileDimension.LARGE));
-      assertEquals(user.getUid(), event.userUid());
+      assertThat(event.fileResource().getValue(), is("imageUid001"));
+      assertNotNull(event.file());
+      assertEquals(user.getUid(), event.user().getValue());
     }
   }
 
@@ -209,8 +211,8 @@ class FileResourceServiceTest {
 
     FileDeletedEvent event = fileDeletedEventCaptor.getValue();
 
-    assertThat(event.getContentType(), is("application/pdf"));
-    assertThat(event.getDomain(), is(FileResourceDomain.DOCUMENT));
+    assertThat(event.contentType(), is("application/pdf"));
+    assertThat(event.domain(), is(FileResourceDomain.DOCUMENT));
   }
 
   @Test
@@ -225,17 +227,13 @@ class FileResourceServiceTest {
 
     File file = new File("");
 
-    Map<ImageFileDimension, File> imageFiles = Map.of(ImageFileDimension.LARGE, file);
-
-    when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
-
-    fileResource.setUid("imageUid1");
+    fileResource.setUid("imageUid001");
 
     try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
 
-      userUtilMockedStatic
-          .when(CurrentUserUtil::getCurrentUserDetails)
-          .thenReturn(UserDetails.fromUser(user));
+      userUtilMockedStatic.when(CurrentUserUtil::getCurrentUserDetails).thenReturn(userDetails);
+
+      userUtilMockedStatic.when(userDetails::getUid).thenReturn("userUid0001");
 
       subject.asyncSaveFileResource(fileResource, file);
 
@@ -246,11 +244,9 @@ class FileResourceServiceTest {
 
       ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
-      assertThat(event.fileResource(), is("imageUid1"));
-      assertFalse(event.imageFiles().isEmpty());
-      assertThat(event.imageFiles().size(), is(1));
-      assertThat(event.imageFiles(), hasKey(ImageFileDimension.LARGE));
-      assertEquals(user.getUid(), event.userUid());
+      assertThat(event.fileResource().getValue(), is("imageUid001"));
+      assertNotNull(event.file());
+      assertEquals(user.getUid(), event.user().getValue());
     }
   }
 }

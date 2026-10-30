@@ -49,6 +49,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -63,7 +64,7 @@ import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -76,6 +77,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.FavoritableOperations;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -95,7 +97,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/maps")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class MapController extends AbstractCrudController<Map, GetObjectListParams> {
+public class MapController extends AbstractCrudController<Map, GetObjectListParams>
+    implements FavoritableOperations<Map> {
   private static final int MAP_MIN_WIDTH = 140;
 
   private static final int MAP_MIN_HEIGHT = 25;
@@ -131,9 +134,9 @@ public class MapController extends AbstractCrudController<Map, GetObjectListPara
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @ResponseBody
   public WebMessage putJsonObject(
-      @PathVariable String uid, @CurrentUser UserDetails currentUser, HttpServletRequest request)
+      @PathVariable UID uid, @CurrentUser UserDetails currentUser, HttpServletRequest request)
       throws IOException {
-    Map map = mappingService.getMap(uid);
+    Map map = mappingService.getMap(uid.getValue());
 
     if (map == null) {
       return notFound("Map does not exist: " + uid);
@@ -143,7 +146,7 @@ public class MapController extends AbstractCrudController<Map, GetObjectListPara
         importService.getParamsFromMap(contextService.getParameterValuesMap());
 
     Map newMap = deserializeJsonEntity(request);
-    newMap.setUid(uid);
+    newMap.setUid(uid.getValue());
 
     metadataMergeService.merge(
         new MetadataMergeParams<>(newMap, map)
@@ -226,8 +229,8 @@ public class MapController extends AbstractCrudController<Map, GetObjectListPara
       }
 
       if (view.getPeriods() != null && !view.getPeriods().isEmpty()) {
-        for (Period period : view.getPeriods()) {
-          period.setName(format.formatPeriod(period));
+        for (PeriodDimension period : view.getPeriods()) {
+          period.setName(format.formatPeriod(period.getPeriod()));
         }
       }
 

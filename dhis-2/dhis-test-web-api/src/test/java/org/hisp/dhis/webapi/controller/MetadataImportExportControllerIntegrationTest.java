@@ -29,16 +29,24 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonObjectReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.intellij.lang.annotations.Language;
@@ -48,6 +56,25 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class MetadataImportExportControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
+
+  private static final String PROGRAM_RULE_ACTION_WITHOUT_RULE =
+      "metadata/program_rule_action_without_program_rule_reference.json";
+
+  @Test
+  void testAggregateDataExchangeSuccess() {
+    POST("/metadata/", Path.of("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    JsonTypeReport typeReport =
+        POST("/aggregateDataExchanges/iFOyIpQciyk/exchange")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonTypeReport.class);
+    JsonImportSummary report = typeReport.getImportSummaries().get(0).as(JsonImportSummary.class);
+    // ADE requires analytics so the best we can do in a test is to assert the SQL error thrown
+    // from the lack of analytics
+    String description = report.getDescription();
+    assertTrue(description.contains("bad SQL grammar"));
+    assertTrue(description.contains("from analytics"));
+  }
 
   @Test
   void testPostJsonMetadata_Async() {
@@ -82,6 +109,72 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
                 Body("<metadata></metadata>"),
                 ContentType("application/xml")));
     assertStartsWith("Initiated METADATA_IMPORT", msg.getMessage());
+  }
+
+  @Test
+  @DisplayName(
+      "A program rule action with no programRule reference is reported against that object (atomicMode=ALL)")
+  void testProgramRuleActionWithoutProgramRuleReference_atomicAll() {
+    JsonImportSummary summary =
+        POST("/metadata?atomicMode=ALL", Path.of(PROGRAM_RULE_ACTION_WITHOUT_RULE))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("ERROR", summary.getStatus());
+    assertProgramRuleActionErrorIsVisible(summary);
+
+    // atomicMode=ALL, so nothing at all is persisted
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programs/ProgramUid1"));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programRules/PrgRuleUid1"));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programRuleActions/PrgRuleAct1"));
+  }
+
+  @Test
+  @DisplayName(
+      "A program rule action with no programRule reference is reported against that object (atomicMode=NONE)")
+  void testProgramRuleActionWithoutProgramRuleReference_atomicNone() {
+    JsonImportSummary summary =
+        POST("/metadata?atomicMode=NONE", Path.of(PROGRAM_RULE_ACTION_WITHOUT_RULE))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("WARNING", summary.getStatus());
+    assertProgramRuleActionErrorIsVisible(summary);
+
+    // atomicMode=NONE, so only the invalid object is ignored
+    assertStatus(HttpStatus.OK, GET("/programs/ProgramUid1"));
+    assertStatus(HttpStatus.OK, GET("/programRules/PrgRuleUid1"));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programRuleActions/PrgRuleAct1"));
+
+    // the rule is imported without the action, rather than left as a dangling reference
+    assertTrue(
+        GET("/programRules/PrgRuleUid1?fields=programRuleActions[id]")
+            .content()
+            .getArray("programRuleActions")
+            .isEmpty());
+  }
+
+  /**
+   * Asserts the failure is attributed to the offending {@link ProgramRuleAction} itself in an
+   * import report.
+   */
+  private void assertProgramRuleActionErrorIsVisible(JsonImportSummary summary) {
+    JsonTypeReport typeReport = summary.getTypeReport(ProgramRuleAction.class);
+    assertEquals(1, typeReport.getObjectReports().size());
+
+    JsonObjectReport objectReport = typeReport.getObjectReports().get(0);
+    assertEquals(ProgramRuleAction.class, objectReport.getKlass());
+    assertEquals("PrgRuleAct1", objectReport.getUid());
+    assertEquals(0, objectReport.getIndex());
+
+    assertEquals(1, objectReport.getErrorReports().size());
+    JsonErrorReport errorReport = objectReport.getErrorReports().get(0);
+    assertEquals(ErrorCode.E4093, errorReport.getErrorCode());
+    assertEquals(ProgramRuleAction.class, errorReport.getMainKlass());
+    assertEquals(
+        "ProgramRuleAction `PrgRuleAct1` must reference a program rule", errorReport.getMessage());
   }
 
   @Test
@@ -199,6 +292,50 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
     // Then it shows as success & created
     assertEquals("OK", importSummary.getStatus());
     assertEquals(1, importSummary.getStats().getCreated());
+  }
+
+  @Test
+  void deleteStatsAreCorrectWhenDeleteNotAllowedTest() {
+    // given import of 2 categories and 2 category combos
+    POST(
+            "/metadata?importReportMode=FULL&importStrategy=CREATE_AND_UPDATE&async=false",
+            Path.of("metadata/categories_with_category_combos.json"))
+        .content(HttpStatus.OK);
+
+    dbmsManager.clearSession();
+
+    // when trying to delete 2 categories
+    JsonImportSummary importSummary =
+        POST(
+                "/metadata?importReportMode=FULL&importStrategy=DELETE&async=false",
+                Path.of("metadata/delete_categories.json"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // then report shows items as ignored as delete is not allowed
+    assertEquals("WARNING", importSummary.getStatus());
+    JsonTypeReport typeReport = importSummary.getTypeReports().get(0).as(JsonTypeReport.class);
+
+    assertTrue(
+        typeReport.getObjectReports().stream()
+            .flatMap(or -> or.getErrorReports().stream())
+            .allMatch(
+                er ->
+                    er.getMessage()
+                        .contains(
+                            "Object could not be deleted because it is associated with another object")));
+    assertEquals(2, importSummary.getStats().getTotal());
+    assertEquals(2, importSummary.getStats().getIgnored());
+    assertEquals(0, importSummary.getStats().getDeleted());
+    assertEquals(0, importSummary.getStats().getCreated());
+    assertEquals(0, importSummary.getStats().getUpdated());
+
+    assertEquals(2, typeReport.getStats().getTotal());
+    assertEquals(2, typeReport.getStats().getIgnored());
+    assertEquals(0, typeReport.getStats().getDeleted());
+    assertEquals(0, typeReport.getStats().getCreated());
+    assertEquals(0, typeReport.getStats().getUpdated());
   }
 
   private String updateUserOrgUnit(String orgUnit) {

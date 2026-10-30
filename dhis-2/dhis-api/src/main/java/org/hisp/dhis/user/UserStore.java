@@ -32,7 +32,6 @@ package org.hisp.dhis.user;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -41,6 +40,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -82,6 +82,15 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @return number of users
    */
   int getUserCount();
+
+  /**
+   * Returns the number of users whose last login is on or after each of the given dates. All counts
+   * are computed in a single query.
+   *
+   * @param sinceDates the last login cutoff dates.
+   * @return the user counts in the same order as the given dates.
+   */
+  List<Integer> getActiveUserCounts(List<Date> sinceDates);
 
   List<User> getExpiringUsers(UserQueryParams userQueryParams);
 
@@ -166,6 +175,21 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<User> getUserByUsernames(Collection<String> usernames);
 
   /**
+   * Retrieves the usernames of all users that are members of the user role with the given UID.
+   *
+   * @param roleUid the UID of the user role.
+   * @return a list of usernames.
+   */
+  List<String> getUsernamesByUserRole(@Nonnull UID roleUid);
+
+  /**
+   * Returns all usernames in the system.
+   *
+   * @return a list of all usernames
+   */
+  List<String> getAllUsernames();
+
+  /**
    * Retrieves the most recently-used enabled User associated with the given open ID.
    *
    * <p>This only returns enabled users.
@@ -244,4 +268,92 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   List<User> getUsersWithOrgUnit(
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<UID> uids);
+
+  /**
+   * Update one source category dimension constraint to the targetCategoryId, where the User does
+   * not have a constraint for the targetCategoryId.
+   *
+   * @param sourceCategoryIds source category ids
+   * @param targetCategoryId target category id
+   * @return number of updated rows
+   */
+  int updateCatDimensionConstraintsCategoryRefs(Set<Long> sourceCategoryIds, long targetCategoryId);
+
+  /**
+   * Delete category dimension constraints for all sourceCategoryIds
+   *
+   * @param sourceCategoryIds source category ids
+   * @return number of updated rows
+   */
+  int deleteRemainingCatDimensionConstraints(Set<Long> sourceCategoryIds);
+
+  /**
+   * Delete category dimension constraints for all sourceCategoryIds where the User already has the
+   * targetCategoryId
+   *
+   * @param sourceCategoryIds source category ids
+   * @param targetCategoryId target category id
+   * @return number of deleted rows
+   */
+  int deleteCatDimensionConstraintsWhenUserHasTarget(
+      Set<Long> sourceCategoryIds, long targetCategoryId);
+
+  /**
+   * Creates a new userinfo row by copying all scalar fields from the source user. Identity fields
+   * (uid, uuid, username, password) and timestamps are supplied as parameters; security-sensitive
+   * fields (secret, openid, ldapid, restore*, idtoken, verifiedemail, emailverificationtoken) are
+   * cleared; externalauth is forced to false; twofactortype is reset to NOT_ENABLED; invitation is
+   * forced to false. The new row's userinfoid is assigned from the Hibernate sequence.
+   *
+   * <p>Collection memberships (roles, groups, org units, dimension constraints) are NOT copied by
+   * this method; use the dedicated copy methods for those.
+   *
+   * @param sourceUid UID of the user to copy
+   * @param newUid UID for the new user
+   * @param newUuid UUID for the new user
+   * @param username username for the new user
+   * @param encodedPassword pre-encoded bcrypt password for the new user
+   * @param actingUserUid UID of the user performing the replication
+   */
+  int insertUserCopy(
+      @Nonnull UID sourceUid,
+      @Nonnull UID newUid,
+      @Nonnull UUID newUuid,
+      @Nonnull String username,
+      @Nonnull String encodedPassword,
+      @Nonnull UID actingUserUid);
+
+  /**
+   * Copies all org unit memberships (capture, data-view, TEI-search) from the source user to the
+   * target user directly via SQL, without loading any collection into memory.
+   *
+   * @param sourceUserUid UID of the user to copy from
+   * @param targetUserUid UID of the user to copy to
+   */
+  void copyOrgUnitMemberships(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid);
+
+  /**
+   * Copies category option group set and category dimension constraints from the source user to the
+   * target user directly via SQL, without loading any collection into memory.
+   *
+   * @param sourceUserUid UID of the user to copy from
+   * @param targetUserUid UID of the user to copy to
+   */
+  void copyDimensionConstraints(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid);
+
+  /**
+   * Removes the given attribute UIDs from the attributevalues jsonb column of the specified user.
+   * Used to strip unique attributes from a replica so the uniqueness constraint is not violated.
+   *
+   * @param userUid UID of the user to update
+   * @param attributeUids attribute UIDs to remove from attributevalues
+   */
+  void removeAttributeValues(@Nonnull UID userUid, @Nonnull Collection<UID> attributeUids);
+
+  /**
+   * Evicts the {@code getUserByUsername} query cache region after a direct JDBC write, so that
+   * subsequent lookups by username reflect the new row rather than a stale cached result. Only the
+   * username query region is evicted; all other query cache regions are left intact.
+   */
+  void clearUserQueryCache();
 }

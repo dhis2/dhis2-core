@@ -13,25 +13,25 @@
     </id>
     
     &identifiableProperties;
-    <property name="mapViews" column="mapviews" type="double"/>
-    <property name="visualizationViews" column="visualizationviews" type="double"/>
-    <property name="eventReportViews" column="eventreportviews" type="double"/>
-    <property name="eventChartViews" column="eventchartviews" type="double"/>
-    <property name="eventVisualizationViews" column="eventvisualizationviews" type="double"/>
-    <property name="dashboardViews" column="dashboardviews" type="double"/>
-    <property name="passiveDashboardViews" column="passivedashboardviews" type="double"/>
-    <property name="dataSetReportViews" column="datasetreportviews" type="double" />
-    <property name="activeUsers" column="active_users" type="int"/>
-    <property name="totalViews" column="totalviews" type="double"/>
-    <property name="savedMaps" column="maps" type="double"/>
-    <property name="savedVisualizations" column="visualizations" type="double"/>
-    <property name="savedEventReports" column="eventreports" type="double"/>
-    <property name="savedEventCharts" column="eventcharts" type="double"/>
-    <property name="savedEventVisualizations" column="eventvisualizations" type="double"/>
-    <property name="savedDashboards" column="dashboards" type="double"/>
-    <property name="savedIndicators" column="indicators" type="double"/>
-    <property name="savedDataValues" column="datavalues" type="double"/>
-    <property name="users" column="users" type="int"/>
+    <property name="mapViews" column="mapviews" type="long"/>
+    <property name="visualizationViews" column="visualizationviews" type="long"/>
+    <property name="eventReportViews" column="eventreportviews" type="long"/>
+    <property name="eventChartViews" column="eventchartviews" type="long"/>
+    <property name="eventVisualizationViews" column="eventvisualizationviews" type="long"/>
+    <property name="dashboardViews" column="dashboardviews" type="long"/>
+    <property name="passiveDashboardViews" column="passivedashboardviews" type="long"/>
+    <property name="dataSetReportViews" column="datasetreportviews" type="long"/>
+    <property name="activeUsers" column="active_users" type="long"/>
+    <property name="totalViews" column="totalviews" type="long"/>
+    <property name="savedMaps" column="maps" type="long"/>
+    <property name="savedVisualizations" column="visualizations" type="long"/>
+    <property name="savedEventReports" column="eventreports" type="long"/>
+    <property name="savedEventCharts" column="eventcharts" type="long"/>
+    <property name="savedEventVisualizations" column="eventvisualizations" type="long"/>
+    <property name="savedDashboards" column="dashboards" type="long"/>
+    <property name="savedIndicators" column="indicators" type="long"/>
+    <property name="savedDataValues" column="datavalues" type="long"/>
+    <property name="users" column="users" type="long"/>
 
   </class>
 

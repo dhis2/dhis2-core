@@ -66,7 +66,7 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -118,7 +118,6 @@ public class MetadataItemsHandler {
             .collect(toSet());
     boolean includeMetadataDetails = commonRequestParams.isIncludeMetadataDetails();
     DisplayProperty displayProperty = commonRequestParams.getDisplayProperty();
-    DimensionalItemObject value = commonRequestParams.getValue();
     Map<String, MetadataItem> metadataItemMap =
         getDimensionMetadataItemMap(
             grid,
@@ -127,15 +126,6 @@ public class MetadataItemsHandler {
             programs,
             programStages,
             includeMetadataDetails);
-
-    if (value != null) {
-      metadataItemMap.put(
-          value.getUid(),
-          new MetadataItem(
-              value.getDisplayProperty(displayProperty),
-              includeMetadataDetails ? value.getUid() : null,
-              value.getCode()));
-    }
 
     itemLegends.stream()
         .filter(Objects::nonNull)
@@ -409,7 +399,7 @@ public class MetadataItemsHandler {
     Calendar calendar = PeriodType.getCalendar();
 
     if (PERIOD == dimensionType && !calendar.isIso8601()) {
-      Period period = (Period) periodOrDefaultItem;
+      PeriodDimension period = (PeriodDimension) periodOrDefaultItem;
       DateTimeUnit dateTimeUnit = calendar.fromIso(period.getStartDate());
       String isoDate = period.getPeriodType().getIsoDate(dateTimeUnit);
 

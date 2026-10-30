@@ -30,7 +30,7 @@
 package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.hisp.dhis.feedback.Assertions.assertNoErrors;
-import static org.hisp.dhis.webapi.controller.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;

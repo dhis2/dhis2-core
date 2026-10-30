@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.render.type;
 
-public interface RenderingObject<T extends Enum<?>> {
+import java.io.Serializable;
+
+public interface RenderingObject<T extends Enum<?>> extends Serializable {
   String _TYPE = "type";
 
   T getType();

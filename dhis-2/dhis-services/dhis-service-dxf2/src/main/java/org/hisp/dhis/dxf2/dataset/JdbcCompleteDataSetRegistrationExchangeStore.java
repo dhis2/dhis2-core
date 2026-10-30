@@ -47,6 +47,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingJsonCompleteDataSetRegistrations;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
@@ -97,6 +98,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
   // --------------------------------------------------------------------------
 
   private final JdbcTemplate jdbcTemplate;
+  private final PeriodStore periodStore;
 
   // --------------------------------------------------------------------------
   // CompleteDataSetRegistrationStore implementation
@@ -215,7 +217,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     items.close();
   }
 
-  private static String createQuery(ExportParams params) {
+  private String createQuery(ExportParams params) {
     IdSchemes idSchemes =
         params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
 
@@ -300,7 +302,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     }
   }
 
-  private static String createPeriodClause(
+  private String createPeriodClause(
       ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder) {
     if (params.hasStartEndDate()) {
       namedParamsBuilder
@@ -309,7 +311,13 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
 
       return " AND ( pe.startdate >= '${startDate}' AND pe.enddate <= '${endDate}' ) ";
     } else if (params.hasPeriods()) {
-      namedParamsBuilder.put("periods", commaDelimitedIds(params.getPeriods()));
+      namedParamsBuilder.put(
+          "periods",
+          params.getPeriods().stream()
+              .map(periodStore::reloadPeriod)
+              .filter(p -> p.getId() != 0)
+              .map(p -> "" + p.getId())
+              .collect(Collectors.joining(",")));
 
       return " AND cdsr.periodid in ( ${periods} ) ";
     }

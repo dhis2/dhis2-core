@@ -36,6 +36,8 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtil
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -57,12 +59,12 @@ import org.geojson.Polygon;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.schema.Schema;
 import org.springframework.stereotype.Component;
 
@@ -85,7 +87,7 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
       ImportStrategy importStrategy,
       ValidationContext ctx,
       Consumer<ObjectReport> addReports) {
-    Schema schema = ctx.getSchemaService().getDynamicSchema(klass);
+    Schema schema = ctx.getSchemaService().getSchema(klass);
     List<T> objects =
         selectObjectsBasedOnImportStrategy(persistedObjects, nonPersistedObjects, importStrategy);
 
@@ -129,7 +131,8 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
     object
         .getAttributeValues()
         .forEach(
-            (attributeId, value) -> {
+            (key, value) -> {
+              String attributeId = key.toString();
               if (attributes.contains(attributeId))
                 validateGeoJsonValue(attributeId, value, errorReports::add);
             });
@@ -142,17 +145,33 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
    *
    * <p>If Jackson throws error then create new ErrorReport with ErrorCode.E6004
    *
-   * @param attributeId the ID of the attribute being checked
-   * @param attributeValue the validated value for the attribute with the provided ID
+   * @param key the ID of the attribute being checked
+   * @param value the validated value for the attribute with the provided ID
    * @param addError ErrorReport consumer.
    */
   private void validateGeoJsonValue(
-      String attributeId, String attributeValue, Consumer<ErrorReport> addError) {
+      String attributeId, Text value, Consumer<ErrorReport> addError) {
+    String attributeValue = value.toString();
     try {
       validateGeoJsonObject(
           objectMapper.readValue(attributeValue, GeoJsonObject.class), attributeId, addError);
+    } catch (InvalidTypeIdException e) {
+      // Expected validation error for unsupported GeoJSON types
+      log.debug("Unsupported GeoJSON type in attribute {}: {}", attributeId, e);
+      addError.accept(
+          new ErrorReport(Attribute.class, ErrorCode.E6005, attributeValue)
+              .setMainId(attributeValue)
+              .setErrorProperty("value"));
+    } catch (MismatchedInputException e) {
+      // Expected validation error for invalid structure/types
+      log.debug("Invalid GeoJSON structure in attribute {}: {}", attributeId, e);
+      addError.accept(
+          new ErrorReport(Attribute.class, ErrorCode.E6004, attributeValue)
+              .setMainId(attributeValue)
+              .setErrorProperty("value"));
     } catch (JsonProcessingException e) {
-      log.error(DebugUtils.getStackTrace(e));
+      // Unexpected parsing error
+      log.debug("Failed to parse GeoJSON in attribute {}: {}", attributeId, e);
       addError.accept(
           new ErrorReport(Attribute.class, ErrorCode.E6004, attributeValue)
               .setMainId(attributeValue)

@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.tracker.ResponseHelper.setRowContextColumn
 import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,8 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -98,6 +101,9 @@ public class EnrollmentQueryService {
 
     List<Keyword> keywords = getDimensionsKeywords(params);
 
+    // Retain original period dimensions before consuming them for date filtering
+    List<DimensionalObject> periods = getPeriodDimensions(params);
+
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     // Headers
@@ -111,6 +117,14 @@ public class EnrollmentQueryService {
 
     if (!params.isSkipData() || params.analyzeOnly()) {
       count = addData(grid, params);
+    }
+
+    // Re-add period items for metadata generation (items + dimensions sections)
+    if (!periods.isEmpty()) {
+      params =
+          new EventQueryParams.Builder(params)
+              .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), EMPTY)
+              .build();
     }
 
     // Metadata
@@ -159,7 +173,6 @@ public class EnrollmentQueryService {
                 DATETIME,
                 false,
                 true))
-        .addHeader(new GridHeader(STORED_BY.getItem(), STORED_BY.getName(), TEXT, false, true))
         .addHeader(
             new GridHeader(
                 CREATED_BY_DISPLAY_NAME.getItem(),
@@ -175,7 +188,11 @@ public class EnrollmentQueryService {
                 false,
                 true))
         .addHeader(
-            new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true));
+            new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true))
+        .addHeader(new GridHeader(CREATED.getItem(), CREATED.getName(), DATETIME, false, true))
+        .addHeader(
+            new GridHeader(
+                COMPLETED_DATE.getItem(), COMPLETED_DATE.getName(), DATETIME, false, true));
 
     if (sqlBuilder.supportsGeospatialData()) {
       grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
@@ -232,5 +249,11 @@ public class EnrollmentQueryService {
     timer.getTime("Got enrollments " + grid.getHeight());
 
     return count;
+  }
+
+  private static List<DimensionalObject> getPeriodDimensions(EventQueryParams params) {
+    return params.getDimensions().stream()
+        .filter(d -> d.getDimensionType() == DimensionType.PERIOD)
+        .toList();
   }
 }

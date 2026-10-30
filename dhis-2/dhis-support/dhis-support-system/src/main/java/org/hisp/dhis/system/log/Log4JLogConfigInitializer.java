@@ -33,12 +33,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.google.common.collect.Lists;
+import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.zip.Deflater;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -82,8 +82,6 @@ public class Log4JLogConfigInitializer implements LogConfigInitializer {
   private static final String METADATA_SYNC_LOGGER_FILENAME = "dhis-metadata-sync.log";
 
   private static final String GENERAL_LOGGER_FILENAME = "dhis.log";
-
-  private static final String PUSH_ANALYSIS_LOGGER_FILENAME = "dhis-push-analysis.log";
 
   private static final String AUDIT_LOGGER_FILENAME = "dhis-audit.log";
 
@@ -140,9 +138,6 @@ public class Log4JLogConfigInitializer implements LogConfigInitializer {
     addConfigurableLogger(
         METADATA_SYNC_LOGGER_FILENAME, Lists.newArrayList("org.hisp.dhis.dxf2.metadata"));
 
-    addConfigurableLogger(
-        PUSH_ANALYSIS_LOGGER_FILENAME, Lists.newArrayList("org.hisp.dhis.pushanalysis"));
-
     addConfigurableAuditLog(AUDIT_LOGGER_FILENAME, Lists.newArrayList("org.hisp.dhis.audit"));
 
     addConfigurableRootLog(GENERAL_LOGGER_FILENAME);
@@ -166,7 +161,7 @@ public class Log4JLogConfigInitializer implements LogConfigInitializer {
         RollingFileAppender.newBuilder()
             .withFileName(file)
             .setName("appender_" + file)
-            .withFilePattern(file + ".%i")
+            .withFilePattern(file + ".%i.gz")
             .setLayout(PATTERN_LAYOUT)
             .withPolicy(
                 CronTriggeringPolicy.createPolicy(getLogConfiguration(), "true", "0 0 0 * * ?"))

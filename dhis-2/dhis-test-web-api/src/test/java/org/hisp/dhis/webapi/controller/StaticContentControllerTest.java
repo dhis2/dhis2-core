@@ -47,8 +47,7 @@ import static org.springframework.util.MimeTypeUtils.IMAGE_JPEG;
 import static org.springframework.util.MimeTypeUtils.IMAGE_PNG;
 
 import com.google.gson.JsonObject;
-import java.util.Optional;
-import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
+import org.hisp.dhis.fileresource.BlobStoreFileResourceContentStore;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.WebSpringTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,7 +72,7 @@ class StaticContentControllerTest extends WebSpringTestBase {
 
   @Autowired private SystemSettingsService settingsService;
 
-  @Autowired private JCloudsFileResourceContentStore fileResourceContentStore;
+  @Autowired private BlobStoreFileResourceContentStore fileResourceContentStore;
 
   @BeforeEach
   void setUp() {
@@ -94,7 +93,7 @@ class StaticContentControllerTest extends WebSpringTestBase {
   void verifyFetchWithDefaultKey() throws Exception {
     mvc.perform(get(URL + LOGO_BANNER).accept(TEXT_HTML_VALUE).session(session))
         .andExpect(redirectedUrlPattern("**/dhis-web-commons/css/light_blue/logo_banner.png"))
-        .andExpect(status().isMovedTemporarily());
+        .andExpect(status().isFound());
   }
 
   @Test
@@ -165,7 +164,7 @@ class StaticContentControllerTest extends WebSpringTestBase {
     final String theExpectedStatus = "ERROR";
     final String theExpectedMessage = "No custom file found.";
     // a non existing logo in the content store used during the fetch
-    fileResourceContentStore.deleteFileResourceContent(makeKey(DOCUMENT, Optional.of(LOGO_BANNER)));
+    fileResourceContentStore.deleteFileResourceContent(makeKey(DOCUMENT, LOGO_BANNER));
     // When
     final ResultActions result =
         mvc.perform(get(URL + LOGO_BANNER).accept(APPLICATION_JSON).session(session));
@@ -197,6 +196,15 @@ class StaticContentControllerTest extends WebSpringTestBase {
                 .session(session))
         .andExpect(content().string(error))
         .andExpect(status().isUnsupportedMediaType());
+  }
+
+  @Test
+  void verifyErrorWhenStoringOversizeFile() throws Exception {
+    // 10MB + 1 byte exceeds the default max.file_upload_size (10MB).
+    MockMultipartFile oversize =
+        new MockMultipartFile("file", "huge.png", MIME_PNG, new byte[10_000_001]);
+    mvc.perform(multipart(URL + LOGO_BANNER).file(oversize).session(session))
+        .andExpect(status().isConflict());
   }
 
   @Test

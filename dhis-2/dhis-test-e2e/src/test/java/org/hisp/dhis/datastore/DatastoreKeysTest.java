@@ -384,7 +384,6 @@ class DatastoreKeysTest extends ApiTest {
     {
         "object": {
             "publicAccess": "--------",
-            "externalAccess": false,
             "user": {},
             "userAccesses": [
                 {
@@ -405,7 +404,6 @@ class DatastoreKeysTest extends ApiTest {
     {
         "object": {
             "publicAccess": "--------",
-            "externalAccess": false,
             "user": {},
             "userAccesses": [],
             "userGroupAccesses": [
@@ -426,7 +424,6 @@ class DatastoreKeysTest extends ApiTest {
     {
         "object": {
             "publicAccess": "--------",
-            "externalAccess": false,
             "user": {},
             "userAccesses": [],
             "userGroupAccesses": []

@@ -50,6 +50,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.util.DateUtils;
@@ -126,7 +127,7 @@ class AnalyticsZscoreSqlStatementProcessorTest {
     period.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     period.setStartDate(DateUtils.parseDate("2023-01-01"));
     period.setEndDate(DateUtils.parseDate("2023-12-31"));
-    List<Period> periods = List.of(period);
+    List<PeriodDimension> periods = List.of(PeriodDimension.of(period));
     OutlierRequest.OutlierRequestBuilder builder = OutlierRequest.builder();
     builder
         .dataDimensions(dataDimensions)

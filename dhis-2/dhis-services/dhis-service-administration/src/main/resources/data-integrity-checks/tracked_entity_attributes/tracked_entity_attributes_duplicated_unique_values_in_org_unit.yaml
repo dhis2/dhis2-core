@@ -1,0 +1,87 @@
+# Copyright (c) 2004-2026, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: tracked_entity_attributes_duplicated_unique_values_in_org_unit
+description: Tracked entity attributes unique within an org unit having the same value for more than one tracked entity in the same org unit
+section: Tracked entity attributes
+section_order: 4
+summary_sql: >-
+    WITH duplicates AS (
+        SELECT teav.trackedentityattributeid
+        FROM trackedentityattributevalue teav
+        INNER JOIN trackedentityattribute tea ON tea.trackedentityattributeid = teav.trackedentityattributeid
+        INNER JOIN trackedentity te ON te.trackedentityid = teav.trackedentityid
+        WHERE tea.uniquefield = true
+        AND tea.orgunitscope = true
+        AND te.deleted = false
+        GROUP BY teav.trackedentityattributeid, te.organisationunitid, lower(teav.value)
+        HAVING COUNT(*) > 1
+    )
+    SELECT COUNT(DISTINCT trackedentityattributeid) AS value,
+    100 * COUNT(DISTINCT trackedentityattributeid) / NULLIF((
+        SELECT COUNT(*) FROM trackedentityattribute
+        WHERE uniquefield = true AND orgunitscope = true), 0) AS percent
+    FROM duplicates;
+details_sql: >-
+    WITH duplicates AS (
+        SELECT teav.trackedentityattributeid,
+        te.organisationunitid,
+        lower(teav.value) AS value,
+        array_agg(CAST(te.uid AS text)) AS trackedentities
+        FROM trackedentityattributevalue teav
+        INNER JOIN trackedentityattribute tea ON tea.trackedentityattributeid = teav.trackedentityattributeid
+        INNER JOIN trackedentity te ON te.trackedentityid = teav.trackedentityid
+        WHERE tea.uniquefield = true
+        AND tea.orgunitscope = true
+        AND te.deleted = false
+        GROUP BY teav.trackedentityattributeid, te.organisationunitid, lower(teav.value)
+        HAVING COUNT(*) > 1
+    )
+    SELECT tea.uid, tea.name,
+    COUNT(DISTINCT d.organisationunitid || '|' || d.value) || ' duplicated value(s)' AS comment,
+    array_agg(t.trackedentity ORDER BY t.trackedentity) AS refs
+    FROM duplicates d
+    INNER JOIN trackedentityattribute tea ON tea.trackedentityattributeid = d.trackedentityattributeid
+    CROSS JOIN LATERAL unnest(d.trackedentities) AS t(trackedentity)
+    GROUP BY tea.uid, tea.name
+    ORDER BY tea.name;
+details_id_type: trackedEntityAttributes
+severity: SEVERE
+introduction: >
+    A tracked entity attribute that is unique within an org unit should not have the same value,
+    ignoring case, for more than one tracked entity registered in the same org unit.
+    Such duplicates can exist when data was imported before the attribute was made unique, or
+    because of bugs in earlier versions where the uniqueness was not validated, e.g. when an
+    enrollment was sent without its tracked entity.
+    Values of deleted tracked entities are not considered.
+    The comment shows how many values are duplicated and the references list the tracked entities
+    holding them.
+recommendation: >
+    For each listed attribute, open the referenced tracked entities and change the value of all but
+    one of the tracked entities sharing it in the same org unit. Until the duplicates are fixed,
+    updates to the attributes of those tracked entities may be rejected as non-unique.
+is_slow: TRUE

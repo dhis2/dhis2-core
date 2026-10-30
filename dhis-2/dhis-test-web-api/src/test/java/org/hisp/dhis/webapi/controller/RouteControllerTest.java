@@ -29,16 +29,19 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockserver.model.HttpRequest.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Part;
 import java.io.UnsupportedEncodingException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -69,22 +72,30 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.MediaType;
 import org.mockserver.model.NottableString;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockMultipartHttpServletRequest;
+import org.springframework.mock.web.MockPart;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.client.MockMvcHttpConnector;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
 @Transactional
 @ContextConfiguration(
@@ -97,6 +108,8 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   private static GenericContainer<?> tokenMockServerContainer;
   private static MockServerClient tokenMockServerClient;
 
+  @Autowired private JdbcTemplate jdbcTemplate;
+
   @Autowired private OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
   @Autowired private ObjectMapper jsonMapper;
@@ -106,6 +119,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     public DhisConfigurationProvider dhisConfigurationProvider() {
       Properties override = new Properties();
       override.put(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "http://*,https://stub");
+      override.put(ConfigurationKey.AUDIT_DATABASE.getKey(), "true");
 
       PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
           new PostgresDhisConfigurationProvider(null);
@@ -136,17 +150,38 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                     String queryString = ((MockHttpServletRequest) request).getQueryString();
                     response.setContentType("application/json");
 
+                    ImmutableMap.Builder<String, Object> responseBodyBuilder =
+                        ImmutableMap.<String, Object>builder()
+                            .put("name", "John Doe")
+                            .put("headers", headers)
+                            .put("requestUri", ((MockHttpServletRequest) request).getRequestURI())
+                            .put("queryString", queryString != null ? queryString : "")
+                            .put("contentType", request.getContentType());
+
+                    if (request instanceof MockMultipartHttpServletRequest) {
+                      List<Map<String, Object>> parts = new ArrayList<>();
+                      for (Part part : ((MockMultipartHttpServletRequest) request).getParts()) {
+                        ImmutableMap.Builder<String, Object> partBuilder = ImmutableMap.builder();
+                        if (part.getContentType() != null) {
+                          partBuilder.put("contentType", part.getContentType());
+                        }
+                        if (part.getSubmittedFileName() != null) {
+                          partBuilder.put("fileName", part.getSubmittedFileName());
+                        }
+                        if (part.getInputStream() != null) {
+                          partBuilder.put(
+                              "content", new String(part.getInputStream().readAllBytes()));
+                        }
+                        partBuilder.put(
+                            "contentDisposition", part.getHeader("Content-Disposition"));
+                        partBuilder.put("name", part.getName());
+                        parts.add(partBuilder.build());
+                      }
+                      responseBodyBuilder.put("parts", parts);
+                    }
                     response
                         .getWriter()
-                        .write(
-                            jsonMapper.writeValueAsString(
-                                Map.of(
-                                    "name",
-                                    "John Doe",
-                                    "headers",
-                                    headers,
-                                    "queryString",
-                                    queryString != null ? queryString : "")));
+                        .write(jsonMapper.writeValueAsString(responseBodyBuilder.build()));
                   })
               .build();
       return new MockMvcHttpConnector(mockMvc);
@@ -156,7 +191,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   @BeforeAll
   static void beforeAll() {
     tokenMockServerContainer =
-        new GenericContainer<>("mockserver/mockserver")
+        new GenericContainer<>("mockserver/mockserver:5.15.0")
             .waitingFor(new HttpWaitStrategy().forStatusCode(404))
             .withExposedPorts(1080);
     tokenMockServerContainer.start();
@@ -183,16 +218,16 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     private MockServerClient upstreamMockServerClient;
 
     @BeforeAll
-    public static void beforeAll() {
+    static void beforeAll() {
       upstreamMockServerContainer =
-          new GenericContainer<>("mockserver/mockserver")
+          new GenericContainer<>("mockserver/mockserver:5.15.0")
               .waitingFor(new HttpWaitStrategy().forStatusCode(404))
               .withExposedPorts(1080);
       upstreamMockServerContainer.start();
     }
 
     @BeforeEach
-    public void beforeEach() {
+    void beforeEach() {
       upstreamMockServerClient =
           new MockServerClient("localhost", upstreamMockServerContainer.getFirstMappedPort());
     }
@@ -323,6 +358,50 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                   null));
 
       assertEquals(200, mvcResult.getResponse().getStatus());
+    }
+
+    @Test
+    void testRunRouteIsAudited() throws JsonProcessingException {
+      upstreamMockServerClient
+          .when(request().withPath("/testRunRouteIsAudited"))
+          .respond(org.mockserver.model.HttpResponse.response("{}"));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put(
+          "url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort() + "/**");
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+      MvcResult mvcResult =
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run/testRunRouteIsAudited?param=secret",
+                  new ArrayList<>(),
+                  "application/json",
+                  null));
+
+      assertEquals(200, mvcResult.getResponse().getStatus());
+
+      await()
+          .untilAsserted(
+              () -> {
+                List<Map<String, Object>> auditEntries =
+                    jdbcTemplate.queryForList("SELECT * FROM audit ORDER BY createdAt DESC");
+                assertFalse(auditEntries.isEmpty());
+                assertEquals("API", auditEntries.get(0).get("auditscope"));
+                Map<String, String> auditEntry =
+                    jsonMapper.readValue(
+                        ((PGobject) auditEntries.get(0).get("attributes")).getValue(), Map.class);
+                assertEquals("Route Run", auditEntry.get("source"));
+                assertEquals(
+                    "http://localhost:"
+                        + upstreamMockServerContainer.getFirstMappedPort()
+                        + "/testRunRouteIsAudited",
+                    auditEntry.get("upstreamUrl"));
+              });
     }
 
     @Test
@@ -614,10 +693,271 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     assertEquals(200, mvcResult.getResponse().getStatus());
     JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
-    assertEquals("John Doe", responseBody.asObject().get("name").as(JsonString.class).string());
+    assertEquals("John Doe", responseBody.get("name").as(JsonString.class).string());
     assertEquals(
         "foo",
         responseBody.get("headers").asObject().get("X-API-KEY").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteWhenUserIsNotRouteOwner() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    switchToNewUser(createAndAddRandomUser());
+    HttpResponse runRouteHttpResponse =
+        GET(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                + "/run");
+
+    assertStatus(HttpStatus.FORBIDDEN, runRouteHttpResponse);
+  }
+
+  @Test
+  void testRunRouteWhenUserIsNotOwnerAndDoesNotHaveRouteAuthority() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("authorities", List.of("F_TEST"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    switchToNewUser(createAndAddRandomUser());
+    HttpResponse runRouteHttpResponse =
+        GET(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                + "/run");
+
+    assertStatus(HttpStatus.FORBIDDEN, runRouteHttpResponse);
+  }
+
+  @Test
+  void testRunRouteWhenUserIsNotOwnerButHasRouteAuthority() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("authorities", List.of("F_TEST"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    switchToNewUser(createAndAddRandomUser("F_TEST"));
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+  }
+
+  @Test
+  void testRunRouteGivenEncodedAndUnencodedCharactersUrl()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub?fields=code%2Ccreated");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run?clientQuery=[code%2Ccreated]",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals(
+        "fields=code%2Ccreated&clientQuery=[code%2Ccreated]",
+        responseBody.get("queryString").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteGivenPlaceholderValueAndCorrespondingPlaceholderInRouteUrl()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub?fields={fields}");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run?_fields=code",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals("fields=code", responseBody.get("queryString").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteGivenPlaceholderValueContainingReservedUriCharacter()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub/{id}/public");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run?_id=1/any",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals("/1%2Fany/public", responseBody.get("requestUri").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteGivenBlankPlaceholderValueAndCorrespondingPlaceholderInRouteUrl()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub?fields={fields}");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run?_fields=",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(502, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals(
+        "Missing or blank value for placeholder: fields",
+        responseBody.get("message").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteGivenPlaceholderInRouteUrlButNoCorrespondingPlaceholderValue()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub?fields={fields}");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(502, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals(
+        "Missing or blank value for placeholder: fields",
+        responseBody.get("message").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteGivenPlaceholderValueButNoCorrespondingPlaceholderInRouteUrl()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run?_fields=code",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals("_fields=code", responseBody.get("queryString").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteGivenMultipartBody()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MockMultipartHttpServletRequestBuilder multipartHttpServletRequestBuilder =
+        MockMvcRequestBuilders.multipart(
+                org.springframework.http.HttpMethod.POST,
+                makeApiUrl(
+                    "/routes/"
+                        + postHttpResponse
+                            .content()
+                            .get("response.uid")
+                            .as(JsonString.class)
+                            .string()
+                        + "/run"))
+            .part(new MockPart("domain", "DOCUMENT".getBytes()))
+            .file(new MockMultipartFile("file", "foo", "text/plain", "bar".getBytes()));
+    MvcResult mvcResult = webRequestWithAsyncMvcResult(multipartHttpServletRequestBuilder);
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals("", responseBody.get("queryString").as(JsonString.class).string());
+    assertTrue(
+        responseBody
+            .get("contentType")
+            .as(JsonString.class)
+            .string()
+            .startsWith("multipart/form-data;boundary="));
+
+    JsonObject documentPart = responseBody.get("parts").asList(JsonObject.class).get(0);
+    assertEquals("DOCUMENT", documentPart.get("content").as(JsonString.class).string());
+    assertEquals(
+        "form-data; name=\"domain\"",
+        documentPart.get("contentDisposition").as(JsonString.class).string());
+    assertEquals("domain", documentPart.get("name").as(JsonString.class).string());
+
+    JsonObject filePart = responseBody.get("parts").asList(JsonObject.class).get(1);
+    assertEquals("bar", filePart.get("content").as(JsonString.class).string());
+    assertEquals("text/plain", filePart.get("contentType").as(JsonString.class).string());
+    assertEquals(
+        "form-data; name=\"file\"; filename=\"foo\"",
+        filePart.get("contentDisposition").as(JsonString.class).string());
+    assertEquals("foo", filePart.get("fileName").as(JsonString.class).string());
+    assertEquals("file", filePart.get("name").as(JsonString.class).string());
   }
 
   @Test

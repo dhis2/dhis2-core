@@ -29,12 +29,10 @@
  */
 package org.hisp.dhis.webapi.controller.dimension;
 
-import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,6 +48,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -110,11 +109,8 @@ public class DimensionController
 
   @Nonnull
   @Override
-  protected DimensionalObject getEntity(String uid) throws NotFoundException {
-    if (isNotBlank(uid) && isValidUid(uid)) {
-      return dimensionService.getDimensionalObjectCopy(uid, true);
-    }
-    throw new NotFoundException(format("No dimensional object with id `%s` exists", uid));
+  public DimensionalObject getEntity(@Nonnull UID uid) throws NotFoundException {
+    return dimensionService.getDimensionalObjectCopy(uid.getValue(), true);
   }
 
   /**
@@ -128,6 +124,7 @@ public class DimensionController
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<DimensionalObject>> getObjectList(
       GetObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser) {
 
@@ -174,12 +171,13 @@ public class DimensionController
         @OpenApi.Property(name = "items", value = DimensionalItemObject[].class)
       })
   @GetMapping("/{uid}/items")
-  public @ResponseBody RootNode getItems(@PathVariable String uid, GetObjectListParams params)
+  public @ResponseBody RootNode getItems(@PathVariable UID uid, GetObjectListParams params)
       throws QueryParserException {
 
     // This is the base list used in this flow. It contains only items
     // allowed to the current user.
-    List<DimensionalItemObject> readableItems = dimensionService.getCanReadDimensionItems(uid);
+    List<DimensionalItemObject> readableItems =
+        dimensionService.getCanReadDimensionItems(uid.getValue());
 
     // The query engine is just used as a tool to do in-memory filtering
     // This is needed for two reasons:
@@ -208,7 +206,7 @@ public class DimensionController
 
     RootNode rootNode = NodeUtils.createMetadata();
 
-    List<String> fields = params.getFieldsJsonList();
+    String fields = params.getFieldsJsonList();
     CollectionNode collectionNode =
         rootNode.addChild(
             oldFieldFilterService.toCollectionNode(
@@ -220,7 +218,8 @@ public class DimensionController
     }
 
     // Adding pagination elements to the root node.
-    dimensionItemPageHandler.addPaginationToNodeIfEnabled(rootNode, params, uid, totalOfItems);
+    dimensionItemPageHandler.addPaginationToNodeIfEnabled(
+        rootNode, params, uid.getValue(), totalOfItems);
 
     return rootNode;
   }
@@ -273,7 +272,7 @@ public class DimensionController
       })
   @GetMapping("/dataSet/{uid}")
   public ResponseEntity<JsonRoot> getDimensionsForDataSet(
-      @PathVariable String uid,
+      @PathVariable UID uid,
       @RequestParam(value = "links", defaultValue = "true", required = false) boolean links,
       @RequestParam(defaultValue = "*") List<FieldPath> fields)
       throws NotFoundException {

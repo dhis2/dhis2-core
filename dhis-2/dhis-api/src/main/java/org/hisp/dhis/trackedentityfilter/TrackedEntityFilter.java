@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -81,7 +82,7 @@ public class TrackedEntityFilter extends BaseIdentifiableObject implements Metad
   // -------------------------------------------------------------------------
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Program getProgram() {
     return program;

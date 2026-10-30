@@ -83,7 +83,7 @@ public class LoginConfigController {
         .applicationRightSideFooter(getTranslatableString("keyApplicationRightFooter", locale))
         .loginPopup(getTranslatableString("loginPopup", locale))
         .countryFlag(settings.getFlag())
-        .uiLocale(settings.getUiLocale().getLanguage())
+        .uiLocale(settings.getUiLocale().language())
         .loginPageLogo(
             settings.getUseCustomLogoFront() ? "/api/staticContent/logo_front.png" : null)
         .selfRegistrationNoRecaptcha(settings.getSelfRegistrationNoRecaptcha())
@@ -109,6 +109,10 @@ public class LoginConfigController {
     for (String registrationId : allRegistrationIds) {
       DhisOidcClientRegistration clientRegistration =
           oidcProviderRepository.getDhisOidcClientRegistration(registrationId);
+
+      if (!clientRegistration.isVisibleOnLoginPage()) {
+        continue;
+      }
 
       providers.add(
           LoginOidcProvider.builder()

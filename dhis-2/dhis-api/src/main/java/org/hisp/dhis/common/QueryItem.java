@@ -30,6 +30,7 @@
 package org.hisp.dhis.common;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -85,6 +86,10 @@ public class QueryItem implements GroupableItem {
   private Boolean unique = false;
 
   private RelationshipType relationshipType;
+
+  private AnalyticsCustomHeader customHeader;
+
+  private List<String> dimensionValues = new ArrayList<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -201,22 +206,42 @@ public class QueryItem implements GroupableItem {
     return filters.add(filter);
   }
 
+  public void addDimensionValue(String value) {
+    dimensionValues.add(value);
+  }
+
   public String getKey() {
     QueryKey key = new QueryKey();
 
     key.add("item", getItemId())
-        .addIgnoreNull("filter", getFiltersAsString())
-        .addIgnoreNull("program", maybeGetProgramUid());
-
-    if (legendSet != null) {
-      key.add("legendSet", legendSet.getUid());
-    }
+        .addIgnoreNull("filterItem", getFiltersAsString())
+        .addIgnoreNull("programItem", getProgramUid())
+        .addIgnoreNull("programStageItem", getProgramStageUid())
+        .addIgnoreNull("repeatableStageParamsItem", repeatableStageParams)
+        .addIgnoreNull("legendSetItem", getLegendSetUid())
+        .addIgnoreNull("dimensionValuesItem", getDimensionValuesAsString());
 
     return key.build();
   }
 
-  private String maybeGetProgramUid() {
+  private String getProgramUid() {
     return program != null ? program.getUid() : null;
+  }
+
+  private String getProgramStageUid() {
+    return programStage != null ? programStage.getUid() : null;
+  }
+
+  private String getLegendSetUid() {
+    return legendSet != null ? legendSet.getUid() : null;
+  }
+
+  public String getDimensionValuesAsString() {
+    if (isEmpty(dimensionValues)) {
+      return null;
+    }
+
+    return StringUtils.join(dimensionValues, ", ");
   }
 
   /**
@@ -308,22 +333,26 @@ public class QueryItem implements GroupableItem {
 
   /**
    * Returns option filter items. Options are specified by code but returned as identifiers, so the
-   * codes are mapped to options and then to identifiers.
+   * codes are mapped to options and then to identifiers. The no-value keyword is retained in its
+   * requested position.
    *
    * <p>//TODO clean up and standardize on identifier.
    */
   private List<String> getOptionSetQueryFilterItems() {
     return getQueryFilterItems().stream()
-        .map(this::getOptionByCode)
+        .map(this::getOptionUidByCode)
         .filter(Objects::nonNull)
-        .map(IdentifiableObject::getUid)
         .collect(Collectors.toList());
   }
 
-  private Option getOptionByCode(String code) {
+  private String getOptionUidByCode(String code) {
+    if (isNoValue(code)) {
+      return code;
+    }
+
     for (Option option : optionSet.getOptions()) {
       if (option != null && option.getCode().equals(code)) {
-        return option;
+        return option.getUid();
       }
     }
     return null;
@@ -347,17 +376,29 @@ public class QueryItem implements GroupableItem {
   }
 
   /**
+   * Indicates whether the given filter token is the no-value keyword for this query item. Option
+   * set items use the reserved {@code D2__NOVALUE} keyword, all other items the legacy {@code NV}
+   * keyword.
+   *
+   * @param token the filter token.
+   */
+  public boolean isNoValue(String token) {
+    return QueryKey.isNoValue(token, hasOptionSet());
+  }
+
+  /**
    * Returns SQL filter for the given query filter and SQL encoded filter. If the item value type is
    * text-based, the filter is converted to lower-case.
    *
    * @param filter the query filter.
    * @param encodedFilter the SQL encoded filter.
-   * @param isNullValueSubstitutionAllowed whether the text "NV" should be replaced by null in the
-   *     query or not.
+   * @param isNullValueSubstitutionAllowed whether the no-value keyword should be replaced by null
+   *     in the query or not.
    */
   public String getSqlFilter(
       QueryFilter filter, String encodedFilter, boolean isNullValueSubstitutionAllowed) {
-    return filter.getSqlFilter(encodedFilter, valueType, isNullValueSubstitutionAllowed);
+    return filter.getSqlFilter(
+        encodedFilter, valueType, isNullValueSubstitutionAllowed, hasOptionSet());
   }
 
   // -------------------------------------------------------------------------
@@ -481,5 +522,14 @@ public class QueryItem implements GroupableItem {
 
   public int getProgramStageOffset() {
     return hasRepeatableStageParams() ? repeatableStageParams.getIndex() : 0;
+  }
+
+  public QueryItem withCustomHeader(AnalyticsCustomHeader customHeader) {
+    this.customHeader = customHeader;
+    return this;
+  }
+
+  public boolean hasCustomHeader() {
+    return customHeader != null;
   }
 }

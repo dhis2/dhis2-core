@@ -55,9 +55,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.fileresource.FileResource;
@@ -97,8 +97,10 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   /** Required. Will be stored as a hash. */
   private String password;
 
+  /** 2FA secret. */
   private String secret;
 
+  /** Type of 2FA authentication. */
   private TwoFactorType twoFactorType;
 
   /** Date when password was changed. */
@@ -116,7 +118,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   /** List of previously used passwords. */
   private List<String> previousPasswords = new ArrayList<>();
 
-  /** Date of the user's last login. */
+  /** Date of last login of user account. */
   private Date lastLogin;
 
   /** The token used for a user account restore. Will be stored as a hash. */
@@ -341,7 +343,11 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
       return false;
     }
 
-    return authorities.containsAll(group.getAuthorities());
+    Set<String> roleAuthorities = group.getAuthorities();
+    // A null entry is never held; immutable sets throw on contains(null), so test entries one by
+    // one.
+    return roleAuthorities == null
+        || roleAuthorities.stream().allMatch(a -> a != null && authorities.contains(a));
   }
 
   /**
@@ -391,12 +397,11 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     Set<DimensionalObject> constraints = new HashSet<>();
 
     for (CategoryOptionGroupSet cogs : cogsDimensionConstraints) {
-      cogs.setDimensionType(DimensionType.CATEGORY_OPTION_GROUP_SET);
+      // getDimensionType() returns CATEGORY_OPTION_GROUP_SET by definition (see Category above).
       constraints.add(cogs);
     }
 
     for (Category cat : catDimensionConstraints) {
-      cat.setDimensionType(DimensionType.CATEGORY);
       constraints.add(cat);
     }
 
@@ -499,7 +504,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(
       localName = "catDimensionConstraints",
       namespace = DxfNamespaces.DXF_2_0)
@@ -513,7 +518,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(
       localName = "cogsDimensionConstraints",
       namespace = DxfNamespaces.DXF_2_0)
@@ -618,6 +623,14 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   public void setInvitation(boolean invitation) {
     this.invitation = invitation;
+  }
+
+  /** Ends a pending invitation and clears its restore token, restore expiry, and ID token. */
+  public void clearInvitation() {
+    invitation = false;
+    restoreToken = null;
+    restoreExpiry = null;
+    idToken = null;
   }
 
   @JsonProperty
@@ -924,7 +937,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 2)
+  @PropertyRange(min = 1)
   public String getFirstName() {
     return firstName;
   }
@@ -935,7 +948,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 2)
+  @PropertyRange(min = 1)
   public String getSurname() {
     return surname;
   }
@@ -1203,6 +1216,21 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   }
 
   public void setAvatar(FileResource avatar) {
+    // if new -> new assigned
+    if (this.avatar == null && avatar != null) {
+      avatar.setAssigned(true);
+    }
+
+    // if update -> old unassigned + new assigned
+    if (this.avatar != null && avatar != null && (!this.avatar.getUid().equals(avatar.getUid()))) {
+      this.avatar.setAssigned(false);
+      avatar.setAssigned(true);
+    }
+
+    // if delete -> unassigned
+    if (this.avatar != null && avatar == null) {
+      this.avatar.setAssigned(false);
+    }
     this.avatar = avatar;
   }
 
@@ -1230,22 +1258,5 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   public void setEmailVerificationToken(String emailVerificationToken) {
     this.emailVerificationToken = emailVerificationToken;
-  }
-
-  public static String username(User user) {
-    // TODO: MAS get rid of this default value use of "system-process"
-    return username(user, "system-process");
-  }
-
-  public static String username(UserDetails user) {
-    return username(user, "system-process");
-  }
-
-  public static String username(User user, String defaultValue) {
-    return user != null ? user.getUsername() : defaultValue;
-  }
-
-  public static String username(UserDetails user, String defaultValue) {
-    return user != null ? user.getUsername() : defaultValue;
   }
 }

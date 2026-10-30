@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
@@ -54,14 +56,21 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataExportGroup;
 import org.hisp.dhis.datavalue.DataExportService;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
@@ -123,12 +132,12 @@ class AggregateDataExchangeServiceTest {
             .setPe(List.of("202101", "202102"))
             .setOu(List.of("lGgJFgRkZui", "pvINfKxtqyN", "VOyqQ54TehY"))
             .setAggregationType(AggregationType.COUNT)
-            .setOutputDataElementIdScheme(IdScheme.UID.name())
-            .setOutputOrgUnitIdScheme(IdScheme.CODE.name())
-            .setOutputDataItemIdScheme(IdScheme.NAME.name())
-            .setOutputIdScheme(IdScheme.CODE.name());
+            .setOutputDataElementIdScheme(IdProperty.UID)
+            .setOutputOrgUnitIdScheme(IdProperty.CODE)
+            .setOutputDataItemIdScheme(IdProperty.NAME)
+            .setOutputIdScheme(IdProperty.CODE);
 
-    DataQueryParams query = service.toDataQueryParams(sourceRequest, new SourceDataQueryParams());
+    DataQueryParams query = service.toDataQueryParams(sourceRequest, null);
 
     assertTrue(query.hasDimension(DATA_X_DIM_ID));
     assertTrue(query.hasDimension(PERIOD_DIM_ID));
@@ -141,10 +150,7 @@ class AggregateDataExchangeServiceTest {
     assertEquals(IdScheme.NAME, query.getOutputDataItemIdScheme());
     assertEquals(IdScheme.CODE, query.getOutputIdScheme());
 
-    SourceDataQueryParams params =
-        new SourceDataQueryParams().setOutputIdScheme(IdScheme.CODE.name());
-
-    query = service.toDataQueryParams(sourceRequest, params);
+    query = service.toDataQueryParams(sourceRequest, IdProperty.CODE);
 
     assertEquals(IdScheme.CODE, query.getOutputDataElementIdScheme());
     assertEquals(IdScheme.CODE, query.getOutputOrgUnitIdScheme());
@@ -153,100 +159,11 @@ class AggregateDataExchangeServiceTest {
   }
 
   @Test
-  void testToImportOptionsA() {
-    TargetRequest request =
-        new TargetRequest()
-            .setIdScheme("uid")
-            .setDataElementIdScheme("code")
-            .setOrgUnitIdScheme("code")
-            .setImportStrategy(ImportStrategy.CREATE)
-            .setSkipAudit(Boolean.TRUE)
-            .setDryRun(Boolean.TRUE);
-    Target target = new Target().setType(TargetType.EXTERNAL).setApi(new Api()).setRequest(request);
-    AggregateDataExchange exchange = new AggregateDataExchange().setTarget(target);
-
-    ImportOptions options = service.toImportOptions(exchange);
-
-    assertEquals(IdScheme.CODE, options.getIdSchemes().getDataElementIdScheme());
-    assertEquals(IdScheme.CODE, options.getIdSchemes().getOrgUnitIdScheme());
-    assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme());
-    assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme());
-    assertEquals(IdScheme.UID, options.getIdSchemes().getIdScheme());
-    assertEquals(ImportStrategy.CREATE, options.getImportStrategy());
-    assertTrue(options.isSkipAudit());
-    assertTrue(options.isDryRun());
-  }
-
-  @Test
-  void testToImportOptionsB() {
-    TargetRequest request =
-        new TargetRequest().setDataElementIdScheme("uid").setOrgUnitIdScheme("code");
-    Target target = new Target().setType(TargetType.EXTERNAL).setApi(new Api()).setRequest(request);
-    AggregateDataExchange exchange = new AggregateDataExchange().setTarget(target);
-
-    ImportOptions options = service.toImportOptions(exchange);
-
-    assertEquals(IdScheme.UID, options.getIdSchemes().getDataElementIdScheme());
-    assertEquals(IdScheme.CODE, options.getIdSchemes().getOrgUnitIdScheme());
-    assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme());
-    assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme());
-    assertEquals(IdScheme.UID, options.getIdSchemes().getIdScheme());
-    assertEquals(ImportStrategy.CREATE_AND_UPDATE, options.getImportStrategy());
-    assertTrue(options.isSkipAudit());
-    assertFalse(options.isDryRun());
-  }
-
-  @Test
-  void testToImportOptionsC() {
-    TargetRequest request =
-        new TargetRequest()
-            .setIdScheme("code")
-            .setDataElementIdScheme("uid")
-            .setOrgUnitIdScheme("uid")
-            .setSkipAudit(Boolean.FALSE);
-    Target target = new Target().setType(TargetType.EXTERNAL).setApi(new Api()).setRequest(request);
-    AggregateDataExchange exchange = new AggregateDataExchange().setTarget(target);
-
-    ImportOptions options = service.toImportOptions(exchange);
-
-    assertEquals(IdScheme.UID, options.getIdSchemes().getDataElementIdScheme());
-    assertEquals(IdScheme.UID, options.getIdSchemes().getOrgUnitIdScheme());
-    assertEquals(IdScheme.CODE, options.getIdSchemes().getCategoryOptionComboIdScheme());
-    assertEquals(IdScheme.CODE, options.getIdSchemes().getCategoryOptionIdScheme());
-    assertEquals(IdScheme.CODE, options.getIdSchemes().getIdScheme());
-    assertEquals(ImportStrategy.CREATE_AND_UPDATE, options.getImportStrategy());
-    assertFalse(options.isSkipAudit());
-    assertFalse(options.isDryRun());
-  }
-
-  @Test
   void testToAggregationType() {
     assertEquals(
         new AnalyticsAggregationType(AggregationType.COUNT, AggregationType.COUNT),
         service.toAnalyticsAggregationType(AggregationType.COUNT));
     assertNull(service.toAnalyticsAggregationType(null));
-  }
-
-  @Test
-  void testToIdScheme() {
-    String undefined = null;
-
-    assertEquals(IdScheme.CODE, service.toIdScheme("code"));
-    assertEquals(IdScheme.UID, service.toIdScheme("UID"));
-    assertEquals(IdScheme.UID, service.toIdScheme("uid"));
-    assertEquals(IdScheme.UID, service.toIdScheme("uid"));
-    assertEquals(IdScheme.UID, service.toIdScheme(undefined, "uid"));
-    assertEquals(IdScheme.UID, service.toIdScheme(undefined, undefined, "uid"));
-    assertNull(service.toIdScheme(undefined));
-    assertNull(service.toIdScheme(undefined, undefined));
-  }
-
-  @Test
-  void testToIdSchemeOrDefault() {
-    assertEquals(IdScheme.CODE, service.toIdSchemeOrDefault("code"));
-    assertEquals(IdScheme.UID, service.toIdSchemeOrDefault("UID"));
-    assertEquals(IdScheme.UID, service.toIdSchemeOrDefault("uid"));
-    assertEquals(IdScheme.UID, service.toIdSchemeOrDefault(null));
   }
 
   @Test
@@ -314,5 +231,100 @@ class AggregateDataExchangeServiceTest {
         () ->
             service.getSourceDataValueSets(
                 UserDetails.fromUser(new User()), "uid", new SourceDataQueryParams()));
+  }
+
+  @Test
+  void testCreateScopeElements_indicatorUsesOutputDataItemIdScheme() {
+    Indicator indicator = new Indicator();
+    indicator.setUid("indUid000001");
+    indicator.setCode("IND_CODE_A");
+    indicator.setName("IndicatorA");
+    indicator.setAggregateExportCategoryOptionCombo("cocTarget001");
+    indicator.setAggregateExportAttributeOptionCombo("aocTarget001");
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(indicator)))
+            .withOutputDataElementIdScheme(IdScheme.CODE)
+            .withOutputDataItemIdScheme(IdScheme.NAME)
+            .build();
+
+    List<DataEntryGroup.Input.Scope.Element> elements =
+        AggregateDataExchangeService.createScopeElements(
+            params, DataEntryGroup.Input.Scope.Element::new);
+
+    assertEquals(1, elements.size());
+    DataEntryGroup.Input.Scope.Element el = elements.get(0);
+    assertEquals("IndicatorA", el.dataElement());
+    assertEquals("cocTarget001", el.categoryOptionCombo());
+    assertEquals("aocTarget001", el.attributeOptionCombo());
+  }
+
+  @Test
+  void testCreateScopeElements_programIndicatorUsesAggregateExportDataElement() {
+    ProgramIndicator pi = new ProgramIndicator();
+    pi.setUid("piUid00000001");
+    pi.setCode("PI_CODE_A");
+    pi.setName("ProgramIndicatorA");
+    pi.setAggregateExportDataElement("deTargetUid01");
+    pi.setAggregateExportCategoryOptionCombo("cocTarget001");
+    pi.setAggregateExportAttributeOptionCombo("aocTarget001");
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(pi)))
+            .withOutputDataElementIdScheme(IdScheme.CODE)
+            .withOutputDataItemIdScheme(IdScheme.NAME)
+            .build();
+
+    List<DataEntryGroup.Input.Scope.Element> elements =
+        AggregateDataExchangeService.createScopeElements(
+            params, DataEntryGroup.Input.Scope.Element::new);
+
+    assertEquals(1, elements.size());
+    DataEntryGroup.Input.Scope.Element el = elements.get(0);
+    assertEquals("deTargetUid01", el.dataElement());
+    assertEquals("cocTarget001", el.categoryOptionCombo());
+    assertEquals("aocTarget001", el.attributeOptionCombo());
+  }
+
+  @Test
+  void testToDataEntryGroupDataSetIsNull() {
+    DataEntryGroup.Input group = AggregateDataExchangeService.toDataEntryGroup(emptyGrid(), null);
+    assertNull(group.dataSet());
+  }
+
+  @Test
+  void testToDataEntryGroupWithDataSet() {
+    DataEntryGroup.Input group =
+        AggregateDataExchangeService.toDataEntryGroup(emptyGrid(), "myDataSetUid");
+    assertEquals("myDataSetUid", group.dataSet());
+  }
+
+  @Test
+  void testToDataExportGroupDataSetIsNull() {
+    DataExportGroup.Output group =
+        AggregateDataExchangeService.toDataExportGroup(emptyGrid(), null);
+    assertNull(group.dataSet());
+  }
+
+  @Test
+  void testToDataExportGroupWithDataSet() {
+    DataExportGroup.Output group =
+        AggregateDataExchangeService.toDataExportGroup(emptyGrid(), "myDataSetUid");
+    assertEquals("myDataSetUid", group.dataSet());
+  }
+
+  private Grid emptyGrid() {
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID, "Data", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID, "OrgUnit", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(CATEGORYOPTIONCOMBO_DIM_ID, "COC", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, true));
+    return grid;
   }
 }

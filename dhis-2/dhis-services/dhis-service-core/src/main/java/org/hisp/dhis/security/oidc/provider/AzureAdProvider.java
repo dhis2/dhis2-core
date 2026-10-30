@@ -45,9 +45,26 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 /**
+ * Builds one {@link DhisOidcClientRegistration} per configured Microsoft Entra ID (Azure AD) tenant
+ * from {@code oidc.provider.azure.<n>.*} configuration keys in {@code dhis.conf}, where {@code <n>}
+ * is a small integer index (up to {@link #MAX_AZURE_TENANTS}). Multiple tenants are supported; each
+ * {@code azure.<n>} block becomes its own login-page button on the DHIS2 web login page when {@code
+ * oidc.oauth2.login.enabled=on}. Note: "Azure AD" is the legacy name for Microsoft Entra ID and is
+ * retained only for backwards compatibility in the configuration key.
+ *
+ * <p>The key {@code tenant} holds the Azure directory / tenant ID; it is used both as the Spring
+ * Security registration id and as the base for all endpoint URIs. Endpoints are built against the
+ * modern Microsoft identity platform (v2.0): {@code /oauth2/v2.0/authorize}, {@code
+ * /oauth2/v2.0/token}, {@code /discovery/v2.0/keys}, issuer {@code /v2.0}, and {@code
+ * https://graph.microsoft.com/oidc/userinfo}. The corresponding well-known discovery document lives
+ * at {@code https://login.microsoftonline.com/<tenant>/v2.0/.well-known/openid-configuration}.
+ *
+ * <p>Per-tenant keys read: {@code tenant}, {@code client_id}, {@code client_secret}, {@code
+ * redirect_url}, {@code mapping_claim}, {@code display_alias}, {@code enable_logout}. {@code
+ * enable_logout} defaults to {@code TRUE}; when enabled, the {@code end_session_endpoint} is wired
+ * to {@code /oauth2/v2.0/logout} on the tenant host.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
- *     <p>Well known url for reference. In a perfect world we would dynamically parse this.
- *     https://login.microsoftonline.com/"+tenant+"/v2.0/.well-known/openid-configuration
  */
 public class AzureAdProvider extends AbstractOidcProvider {
   public static final int MAX_AZURE_TENANTS = 10;

@@ -29,11 +29,11 @@
  */
 package org.hisp.dhis;
 
-import com.epam.reportportal.junit5.ReportPortalExtension;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.hisp.dhis.helpers.extensions.CoverageLoggerExtension;
 import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
+import org.hisp.dhis.helpers.extensions.RequestIdExtension;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.TestInstance;
@@ -43,10 +43,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+// RequestIdExtension is first so its beforeAll stamps a request id before
+// MetadataSetupExtension issues class-setup requests (see its javadoc).
+@ExtendWith(RequestIdExtension.class)
 @ExtendWith(ConfigurationExtension.class)
 @ExtendWith(MetadataSetupExtension.class)
 @ExtendWith(CoverageLoggerExtension.class)
-@ExtendWith(ReportPortalExtension.class)
 public abstract class ApiTest {
   @AfterAll
   public void afterAll() {

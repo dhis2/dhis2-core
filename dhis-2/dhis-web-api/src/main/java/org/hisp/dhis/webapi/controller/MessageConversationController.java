@@ -147,14 +147,14 @@ public class MessageConversationController
   @OpenApi.Param(name = "markRead", value = boolean.class)
   @GetMapping("/{uid:[a-zA-Z0-9]{11}}")
   public ResponseEntity<?> getObject(
-      @PathVariable String uid,
+      @PathVariable UID uid,
       GetObjectParams params,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
     org.hisp.dhis.message.MessageConversation messageConversation =
-        messageService.getMessageConversation(uid);
+        messageService.getMessageConversation(uid.getValue());
 
     if (messageConversation == null) {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -276,6 +276,7 @@ public class MessageConversationController
         MessageService.META_USER_AGENT + request.getHeader(ContextUtils.HEADER_USER_AGENT);
 
     Set<FileResource> attachments = new HashSet<>();
+    UserDetails currentUser = getCurrentUserDetails();
 
     for (FileResource fr : messageConversation.getAttachments()) {
       FileResource fileResource = fileResourceService.getFileResource(fr.getUid());
@@ -284,8 +285,8 @@ public class MessageConversationController
         throw new ConflictException("Attachment '" + fr.getUid() + "' not found.");
       }
 
-      if (!fileResource.getDomain().equals(FileResourceDomain.MESSAGE_ATTACHMENT)
-          || fileResource.isAssigned()) {
+      if (!fileResourceService.canAssign(
+          currentUser, fileResource, FileResourceDomain.MESSAGE_ATTACHMENT)) {
         throw new ConflictException(
             "Attachment '" + fr.getUid() + "' is already used or not a valid attachment.");
       }
@@ -356,8 +357,8 @@ public class MessageConversationController
         return conflict("Attachment '" + fileResourceUid + "' not found.");
       }
 
-      if (!fileResource.getDomain().equals(FileResourceDomain.MESSAGE_ATTACHMENT)
-          || fileResource.isAssigned()) {
+      if (!fileResourceService.canAssign(
+          currentUser, fileResource, FileResourceDomain.MESSAGE_ATTACHMENT)) {
         return conflict(
             "Attachment '" + fileResourceUid + "' is already used or not a valid attachment.");
       }
@@ -789,7 +790,7 @@ public class MessageConversationController
   @Override
   @RequiresAuthority(anyOf = F_METADATA_IMPORT)
   public WebMessage deleteObject(
-      @PathVariable String uid,
+      @PathVariable UID uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
@@ -799,7 +800,7 @@ public class MessageConversationController
           HttpRequestMethodNotSupportedException {
 
     org.hisp.dhis.message.MessageConversation messageConversation =
-        messageService.getMessageConversation(uid);
+        messageService.getMessageConversation(uid.getValue());
 
     if (messageConversation == null) {
       return notFound("Message conversation does not exist: " + uid);

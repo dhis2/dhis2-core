@@ -144,8 +144,8 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
   }
 
   private List<PrefixedDimension> dimensions(ProgramStage programStage) {
-
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+
     return Optional.of(programStage)
         .map(ProgramStage::getProgram)
         .map(
@@ -158,8 +158,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                                 .collect(Collectors.toSet())),
                         filterByValueType(QUERY, ofDataElements(programStage)),
                         filterByValueType(
-                            QUERY,
-                            ofItemsWithProgram(p, getTeasIfRegistrationAndNotConfidential(p))),
+                            QUERY, ofItemsWithProgram(p, getTeasIfRegistrationAndAnalyzable(p))),
                         ofItemsWithProgram(p, getCategories(p)),
                         ofItemsWithProgram(p, getAttributeCategoryOptionGroupSetsIfNeeded(p)))))
         .orElse(List.of());
@@ -189,17 +188,17 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
         .orElse(List.of());
   }
 
-  private List<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(Program program) {
+  private List<TrackedEntityAttribute> getTeasIfRegistrationAndAnalyzable(Program program) {
     return Optional.of(program)
         .filter(Program::isRegistration)
         .map(Program::getTrackedEntityAttributes)
         .orElse(List.of())
         .stream()
-        .filter(this::isNotConfidential)
+        .filter(this::isNotSkipped)
         .collect(Collectors.toList());
   }
 
-  private boolean isNotConfidential(TrackedEntityAttribute trackedEntityAttribute) {
-    return !trackedEntityAttribute.isConfidentialBool();
+  private boolean isNotSkipped(TrackedEntityAttribute trackedEntityAttribute) {
+    return !trackedEntityAttribute.getSkipAnalytics();
   }
 }

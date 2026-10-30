@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.category;
 
+import static java.util.Comparator.comparing;
+
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -147,6 +149,12 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional(readOnly = true)
+  public Category getCategory(UID uid) {
+    return categoryStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public Category getCategoryByName(String name) {
     List<Category> dataElementCategories = new ArrayList<>(categoryStore.getAllEqName(name));
 
@@ -201,6 +209,7 @@ public class DefaultCategoryService implements CategoryService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<Category> getCategoriesByCategoryOption(Collection<UID> categoryOptions) {
     return categoryStore.getCategoriesByCategoryOption(UID.toValueList(categoryOptions));
   }
@@ -394,6 +403,12 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional(readOnly = true)
+  public CategoryCombo getCategoryCombo(UID uid) {
+    return categoryComboStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public CategoryCombo getCategoryComboByName(String name) {
     return categoryComboStore.getByName(name);
   }
@@ -414,6 +429,12 @@ public class DefaultCategoryService implements CategoryService {
   @Transactional(readOnly = true)
   public List<CategoryCombo> getAttributeCategoryCombos() {
     return categoryComboStore.getCategoryCombosByDimensionType(DataDimensionType.ATTRIBUTE);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<CategoryCombo> getCategoryCombosByCategory(Collection<UID> categoryUids) {
+    return categoryComboStore.getCategoryCombosByCategory(categoryUids);
   }
 
   // -------------------------------------------------------------------------
@@ -491,6 +512,12 @@ public class DefaultCategoryService implements CategoryService {
   public CategoryOptionCombo getCategoryOptionCombo(
       CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions) {
     return categoryOptionComboStore.getCategoryOptionCombo(categoryCombo, categoryOptions);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public void preloadCategoryComboAssociations(Collection<CategoryCombo> categoryCombos) {
+    categoryComboStore.preloadCategoryComboAssociations(categoryCombos);
   }
 
   @Override
@@ -632,21 +659,24 @@ public class DefaultCategoryService implements CategoryService {
   @Transactional(readOnly = true)
   public List<DataElementOperand> getOperands(
       Collection<DataElement> dataElements, boolean includeTotals) {
-    List<DataElementOperand> operands = Lists.newArrayList();
+    List<DataElementOperand> operands = new ArrayList<>();
 
-    for (DataElement dataElement : dataElements) {
-      Set<CategoryCombo> categoryCombos = dataElement.getCategoryCombos();
+    dataElements.stream()
+        .sorted(comparing(DataElement::getName))
+        .forEach(
+            dataElement -> {
+              Set<CategoryCombo> categoryCombos = dataElement.getCategoryCombos();
 
-      boolean anyIsDefault = categoryCombos.stream().anyMatch(cc -> cc.isDefault());
+              boolean anyIsDefault = categoryCombos.stream().anyMatch(CategoryCombo::isDefault);
 
-      if (includeTotals && !anyIsDefault) {
-        operands.add(new DataElementOperand(dataElement));
-      }
+              if (includeTotals && !anyIsDefault) {
+                operands.add(new DataElementOperand(dataElement));
+              }
 
-      for (CategoryCombo categoryCombo : categoryCombos) {
-        operands.addAll(getOperands(dataElement, categoryCombo));
-      }
-    }
+              for (CategoryCombo categoryCombo : categoryCombos) {
+                operands.addAll(getOperands(dataElement, categoryCombo));
+              }
+            });
 
     return operands;
   }
@@ -811,6 +841,6 @@ public class DefaultCategoryService implements CategoryService {
   @Override
   public SetValuedMap<String, String> getCategoryOptionOrganisationUnitsAssociations(
       Set<String> uids) {
-    return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(uids);
+    return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(uids, false);
   }
 }

@@ -41,7 +41,7 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
@@ -69,7 +69,7 @@ public class ImageResizingJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
     progress.startingProcess("Resizing image resources");
 
     List<FileResource> images = fileResourceService.getAllUnProcessedImagesFiles();
@@ -80,9 +80,7 @@ public class ImageResizingJob implements Job {
   }
 
   private void storeImageFiles(FileResource image) {
-    String key = image.getStorageKey();
-
-    if (!fileResourceContentStore.fileResourceContentExists(image.getStorageKey())) {
+    if (!fileResourceContentStore.fileResourceContentExists(image.asBlobKey())) {
       throw new IllegalStateException(
           "The referenced file could not be found for FileResource: " + image.getUid());
     }
@@ -90,7 +88,7 @@ public class ImageResizingJob implements Job {
     File tmpFile = new File(UUID.randomUUID().toString());
 
     try (FileOutputStream fileOutputStream = new FileOutputStream(tmpFile)) {
-      fileResourceContentStore.copyContent(key, fileOutputStream);
+      fileResourceContentStore.copyContent(image.asBlobKey(), fileOutputStream);
 
       String storageKey =
           fileResourceContentStore.saveFileResourceContent(

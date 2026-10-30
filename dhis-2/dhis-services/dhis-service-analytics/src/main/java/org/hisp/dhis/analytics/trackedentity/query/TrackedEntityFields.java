@@ -31,10 +31,15 @@ package org.hisp.dhis.analytics.trackedentity.query;
 
 import static java.util.Arrays.stream;
 import static lombok.AccessLevel.PRIVATE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.SUPPORTED_EVENT_STATIC_DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrFullName;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelOrgUnitObject;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelStaticDimension;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.joinedWithPrefixesIfNeeded;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
@@ -49,7 +54,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.CommonParams;
@@ -61,6 +65,7 @@ import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityStaticField;
+import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
@@ -183,6 +188,81 @@ public class TrackedEntityFields {
                         true)));
 
     // Adding dimension headers.
+    addDimensionHeaders(fields, commonParsed, contextParams, headersMap);
+
+    return reorder(headersMap, fields);
+  }
+
+  /**
+   * Returns a collection of headers for the given {@link TrackedEntityQueryParams}, covering only
+   * the GROUP BY dimensions requested for aggregation. Unlike {@link #getGridHeaders(ContextParams,
+   * List)}, the unconditional per-TEI {@link TrackedEntityStaticField} headers are not included,
+   * since aggregate output has no per-TEI rows.
+   *
+   * @param contextParams the {@link ContextParams}.
+   * @return a {@link Set} of {@link GridHeader}.
+   */
+  public static Set<GridHeader> getAggregateGridHeaders(
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    // Aggregate select fields are built via Field.ofDimensionIdentifier, which carries neither a
+    // field alias nor a dimension identifier key, so they cannot be matched back to a dimension by
+    // Field.getDimensionIdentifier() the way the per-TEI path does. Headers are therefore built
+    // directly from the dimensions the query groups by, so that there is exactly one header per
+    // grouped column. Each header is named by the name the query aliases its column to, so that
+    // the grid can read every row by header name.
+    Set<GridHeader> headers = new LinkedHashSet<>();
+    AggregateQueryBuilder.getGroupedDimensions(contextParams).stream()
+        .forEach(
+            dimIdentifier -> {
+              GridHeader header = getHeaderForDimensionParam(dimIdentifier, contextParams);
+              headers.add(
+                  withStageOffsetIfNecessary(
+                      dimIdentifier,
+                      named(header, AggregateQueryBuilder.groupedDimensionName(dimIdentifier))));
+            });
+
+    return headers;
+  }
+
+  /**
+   * Returns the given header under the given name, leaving everything else about it alone. Every
+   * property has to be carried over: the option set decides whether stored codes can be mapped to
+   * their display labels, and the legend set decides whether the value is read as a legend. The
+   * repeatable stage params are not copied because they are applied after the rename, by {@link
+   * #withStageOffsetIfNecessary}.
+   */
+  private static GridHeader named(GridHeader header, String name) {
+    if (name.equals(header.getName())) {
+      return header;
+    }
+
+    return new GridHeader(
+        name,
+        header.getColumn(),
+        header.getDisplayColumn(),
+        header.getValueType(),
+        header.isHidden(),
+        header.isMeta(),
+        header.getOptionSetObject(),
+        header.getLegendSetObject(),
+        header.getProgramStage(),
+        null);
+  }
+
+  /**
+   * Adds headers, to the given headers map, for the dimensions found in the given list of {@link
+   * Field}.
+   *
+   * @param fields list of {@link Field}.
+   * @param commonParsed the {@link CommonParsedParams}.
+   * @param contextParams the {@link ContextParams}.
+   * @param headersMap the headers map to add to.
+   */
+  private static void addDimensionHeaders(
+      List<Field> fields,
+      CommonParsedParams commonParsed,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams,
+      Map<String, GridHeader> headersMap) {
     fields.stream()
         .map(
             field ->
@@ -192,14 +272,102 @@ public class TrackedEntityFields {
                         commonParsed.getDimensionIdentifiers().stream(),
                         getEligibleParsedHeaders(commonParsed))))
         .filter(Objects::nonNull)
-        .map(
-            dimIdentifier ->
-                Pair.of(dimIdentifier, getHeaderForDimensionParam(dimIdentifier, contextParams)))
-        .map(pair -> withStageOffsetIfNecessary(pair.getLeft(), pair.getRight()))
-        .filter(Objects::nonNull)
-        .forEach(g -> headersMap.put(g.getName(), g));
+        .forEach(dimIdentifier -> addHeaderToMap(dimIdentifier, contextParams, headersMap));
+  }
 
-    return reorder(headersMap, fields);
+  /**
+   * Adds the header for the given dimension identifier to the headers map.
+   *
+   * @param dimIdentifier the dimension identifier
+   * @param contextParams the context params
+   * @param headersMap the headers map
+   */
+  private static void addHeaderToMap(
+      DimensionIdentifier<DimensionParam> dimIdentifier,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams,
+      Map<String, GridHeader> headersMap) {
+    GridHeader header = getHeaderForDimensionParam(dimIdentifier, contextParams);
+    GridHeader offsetHeader = withStageOffsetIfNecessary(dimIdentifier, header);
+
+    // An event-level dimension is addressable by its short stage scoped name
+    // (programStageUid.dimensionName), stored as the primary key with the full name kept as an
+    // alias for reorder() lookup via field.getDimensionIdentifier().
+    Optional<String> shortName = eventLevelShortName(dimIdentifier);
+    if (shortName.isEmpty()) {
+      headersMap.put(offsetHeader.getName(), offsetHeader);
+      return;
+    }
+
+    if (isEventLevelDataElementDimension(dimIdentifier)) {
+      // A stage data element keeps its option and legend sets, and the full key keeps the offset
+      // header itself.
+      headersMap.put(shortName.get(), copyWithOptions(offsetHeader, shortName.get()));
+      headersMap.put(offsetHeader.getName(), offsetHeader);
+      return;
+    }
+
+    // Every other event-level dimension carries no option, legend, stage or display properties,
+    // so both keys address the renamed header. They must not hold two names: GridHeader equality
+    // is name-only and the two would collapse downstream.
+    GridHeader shortHeader = copyStripped(offsetHeader, shortName.get());
+    headersMap.put(shortName.get(), shortHeader);
+    headersMap.put(offsetHeader.getName(), shortHeader);
+  }
+
+  /**
+   * Returns the short stage scoped name an event-level dimension is addressed by ({@code
+   * programStageUid.dimensionName}), or empty when the dimension is not event-level.
+   */
+  private static Optional<String> eventLevelShortName(
+      DimensionIdentifier<DimensionParam> dimIdentifier) {
+    String stageUid =
+        dimIdentifier.hasProgramStage()
+            ? dimIdentifier.getProgramStage().getElement().getUid()
+            : null;
+    if (stageUid == null) {
+      return Optional.empty();
+    }
+
+    if (isEventLevelStaticDimension(dimIdentifier, SUPPORTED_EVENT_STATIC_DIMENSIONS)) {
+      return Optional.of(
+          stageUid
+              + DIMENSION_IDENTIFIER_SEP
+              + dimIdentifier.getDimension().getStaticDimension().getHeaderName());
+    }
+
+    if (isEventLevelOrgUnitObject(dimIdentifier)) {
+      return Optional.of(stageUid + DIMENSION_IDENTIFIER_SEP + "ou");
+    }
+
+    if (isEventLevelDataElementDimension(dimIdentifier)) {
+      return Optional.of(
+          stageUid + DIMENSION_IDENTIFIER_SEP + dimIdentifier.getDimension().getUid());
+    }
+
+    return Optional.empty();
+  }
+
+  /** Returns the given header under the given name, keeping only its scalar properties. */
+  private static GridHeader copyStripped(GridHeader header, String name) {
+    return new GridHeader(
+        name, header.getColumn(), header.getValueType(), header.isHidden(), header.isMeta());
+  }
+
+  /** Returns the given header under the given name, keeping its option and legend sets. */
+  private static GridHeader copyWithOptions(GridHeader header, String name) {
+    return new GridHeader(
+        name,
+        header.getColumn(),
+        header.getValueType(),
+        header.isHidden(),
+        header.isMeta(),
+        header.getOptionSetObject(),
+        header.getLegendSetObject());
+  }
+
+  private static boolean isEventLevelDataElementDimension(
+      DimensionIdentifier<DimensionParam> dimIdentifier) {
+    return isDataElement(dimIdentifier);
   }
 
   /**
@@ -233,14 +401,16 @@ public class TrackedEntityFields {
 
   /**
    * Checks if the given {@link DimensionIdentifier} is eligible to be added as a header. It is
-   * eligible if it is a static dimension, and it is either an event or enrollment dimension.
+   * eligible if it is a data element, or if it is a static dimension and it is either an event or
+   * enrollment dimension.
    *
    * @param parsedHeader the {@link DimensionIdentifier}.
    * @return true if it is eligible, false otherwise.
    */
   private static boolean isEligible(DimensionIdentifier<DimensionParam> parsedHeader) {
-    return parsedHeader.getDimension().isStaticDimension()
-        && (parsedHeader.isEventDimension() || parsedHeader.isEnrollmentDimension());
+    return isDataElement(parsedHeader)
+        || (parsedHeader.getDimension().isStaticDimension()
+            && (parsedHeader.isEventDimension() || parsedHeader.isEnrollmentDimension()));
   }
 
   /**

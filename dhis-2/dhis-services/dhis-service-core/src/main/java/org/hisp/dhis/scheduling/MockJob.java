@@ -42,7 +42,7 @@ public class MockJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
     try {
       Thread.sleep(10000);
     } catch (InterruptedException ex) {

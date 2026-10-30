@@ -64,7 +64,9 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
             "måns", // Non-ASCII character
             "foo", // Too short
             "foo__bar", // Double underscore
-            "foo_" // Trailing underscore
+            "foo_", // Trailing underscore
+            "bobby#tables", // Invalid special character
+            "" // Blank username
             );
 
     badUsers.forEach(this::createUser);
@@ -92,12 +94,30 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
             summary.getPercentage().doubleValue(),
             0.1));
     assertEquals(badUsernames.size(), summary.getCount());
+
+    badUsers.forEach(this::deleteUser);
   }
 
   @Test
   void testDoNotFlagUsersWithValidUserNames() {
 
+    Set<String> goodUsers =
+        Set.of(
+            "alice",
+            "bob_tables",
+            "charlie123",
+            "delta.delta",
+            "echo-echo",
+            "foxtrot@123",
+            "golf.hotel",
+            "india-juliet");
+
+    goodUsers.forEach(this::createUser);
+    dbmsManager.clearSession();
+
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, true);
+
+    goodUsers.forEach(this::deleteUser);
   }
 
   private void createUser(String username) {
@@ -110,6 +130,13 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
     user.setLastUpdated(new Date());
     user.setCreated(new Date());
     manager.persist(user);
+  }
+
+  private void deleteUser(String username) {
+    User user = userService.getUserByUsername(username);
+    if (user != null) {
+      userService.deleteUser(user);
+    }
   }
 
   private boolean almostEqual(double a, double b, double epsilon) {

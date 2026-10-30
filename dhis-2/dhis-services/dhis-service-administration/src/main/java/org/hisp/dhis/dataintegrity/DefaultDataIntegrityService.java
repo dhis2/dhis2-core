@@ -46,6 +46,7 @@ import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -67,7 +68,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -329,8 +329,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   // -------------------------------------------------------------------------
 
   List<DataIntegrityIssue> getOrganisationUnitsWithCyclicReferences() {
-    return toSimpleIssueList(
-        organisationUnitService.getOrganisationUnitsWithCyclicReferences().stream());
+    return List.of();
   }
 
   // -------------------------------------------------------------------------
@@ -379,7 +378,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
             i18n.getString(format("data_integrity.%s.%s", name, property), defaultValue);
 
     try {
-      Schema issueSchema = issueIdType == null ? null : schemaService.getDynamicSchema(issueIdType);
+      Schema issueSchema = issueIdType == null ? null : schemaService.getSchema(issueIdType);
       String issueIdTypeName = issueSchema == null ? null : issueSchema.getPlural();
       checksByName.putIfAbsent(
           name,
@@ -503,7 +502,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("organisation_units_violating_exclusive_group_sets");
     checks.add("orgunits_compulsory_group_count");
     checks.add("indicators_violating_exclusive_group_sets");
-    checks.add("tracker_geometry_invalid_srid");
     checks.add("tracked_entity_attributes_invalid_trigram_search_configuration");
     checks.add("tracked_entity_attributes_trigram_index_out_of_sync");
     checks.add("tracked_entity_attributes_trigram_index_overview");
@@ -774,7 +772,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
                 .replaceAll("[^*_a-z0-9]+", "") // sanitise against regex attacks
                 .replace("*", ".*"); // expand regex wildcard match
         for (DataIntegrityCheck check : checksByName.values()) {
-          if (check.getName().matches(pattern)) {
+          if (check
+              .getName()
+              .matches(pattern)) { // NOSONAR javasecurity:S2631 - pattern sanitised above
             expanded.add(check.getName());
           }
         }

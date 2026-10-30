@@ -101,7 +101,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -261,9 +260,9 @@ class ExpressionServiceTest extends PostgresIntegrationTestBase {
           "orgUnitGrpA", 1000000,
           "orgUnitGrpB", 2000000);
 
-  private static final Period samplePeriod1 = PeriodType.getPeriodFromIsoString("20200101");
+  private static final Period samplePeriod1 = Period.of("20200101");
 
-  private static final Period samplePeriod2 = PeriodType.getPeriodFromIsoString("20200102");
+  private static final Period samplePeriod2 = Period.of("20200102");
 
   private static final List<Period> TEST_SAMPLE_PERIODS =
       Lists.newArrayList(samplePeriod1, samplePeriod2);
@@ -1649,5 +1648,26 @@ class ExpressionServiceTest extends PostgresIntegrationTestBase {
         VALID,
         validity("greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})", PREDICTOR_EXPRESSION));
     assertEquals(EXPRESSION_IS_NOT_WELL_FORMED, validity("1*", PREDICTOR_EXPRESSION));
+  }
+
+  @Test
+  void testSubstituteIndicatorExpressionsResolvesOrgUnitGroupCounts() {
+    // Equivalence guard for the OUG{} count fix: substituteIndicatorExpressions must produce the
+    // same exploded expression as the previous group.getMembers().size() implementation, while
+    // resolving the count with a count query instead of initialising the members collection.
+    Indicator indicator = createIndicator('Z', indicatorTypeB);
+    indicator.setNumerator("OUG{" + orgUnitGroupA.getUid() + "}");
+    indicator.setDenominator("OUG{" + orgUnitGroupB.getUid() + "}");
+
+    expressionService.substituteIndicatorExpressions(List.of(indicator));
+
+    // The substituted count must equal what group.getMembers().size() returned before the change.
+    assertEquals(
+        String.valueOf(orgUnitGroupA.getMembers().size()), indicator.getExplodedNumerator());
+    assertEquals(
+        String.valueOf(orgUnitGroupB.getMembers().size()), indicator.getExplodedDenominator());
+    // orgUnitGroupA has 5 members, orgUnitGroupB has 3 (see setUp).
+    assertEquals("5", indicator.getExplodedNumerator());
+    assertEquals("3", indicator.getExplodedDenominator());
   }
 }

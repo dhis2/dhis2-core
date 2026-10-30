@@ -336,6 +336,9 @@ public class DataDimensionItem {
     this.indicator = indicator;
   }
 
+  @JsonProperty
+  @JsonSerialize(as = NameableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElement getDataElement() {
     return dataElement;
   }
@@ -345,7 +348,7 @@ public class DataDimensionItem {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseNameableObject.class)
+  @JsonSerialize(as = NameableObject.class)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public DataElementOperand getDataElementOperand() {
     return dataElementOperand;

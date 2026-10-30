@@ -1,13 +1,11 @@
 {
-  "dashboards":
-  [
+  "dashboards": [
     {
       "id": "f1OijtLnf8a",
       "name": "test",
       "code": "",
       "description": "",
-      "dashboardItems":
-      [
+      "dashboardItems": [
         {
           "x": 0,
           "y": 0,
@@ -16,8 +14,7 @@
           "id": "KnmKNIFiAwC",
           "type": "VISUALIZATION",
           "position": null,
-          "visualization":
-          {
+          "visualization": {
             "id": "gyYXi0rXAIc",
             "name": "ANC: 1-3 dropout rate Yearly"
           },
@@ -28,25 +25,23 @@
         }
       ],
       "restrictFilters": false,
-      "itemConfig":
-      {
+      "itemConfig": {
         "insertPosition": "END"
       },
       "sharing": {
         "public": "--------",
-        "external" : false,
-        "owner" : "M5zQapPyTZI",
-        "users" : {
+        "external": false,
+        "owner": "M5zQapPyTZI",
+        "users": {
           "XThzKnyzeYW": {
-            "id" : "XThzKnyzeYW",
-            "access" : "rw------"
+            "id": "XThzKnyzeYW",
+            "access": "rw------"
           }
         }
       }
     }
   ],
-  "categories":
-  [
+  "categories": [
     {
       "lastUpdated": "2016-03-17T01:53:56.098+0000",
       "code": "Gender",
@@ -59,12 +54,10 @@
       "name": "Gender",
       "shortName": "Gender",
       "created": "2016-03-17T01:53:56.097+0000",
-      "user":
-      {
+      "user": {
         "id": "M5zQapPyTZI"
       },
-      "categoryOptions":
-      [
+      "categoryOptions": [
         {
           "id": "DRs8ZFxNOpW"
         },
@@ -75,15 +68,13 @@
       "dataDimension": true
     }
   ],
-  "userRoles":
-  [
+  "userRoles": [
     {
       "description": "userRoleA",
       "name": "userRoleA",
       "id": "VIkpd2KHCb1",
       "code": "userRoleA",
-      "authorities":
-      [
+      "authorities": [
         "F_PROGRAM_INDICATOR_PUBLIC_ADD",
         "F_USER_VIEW",
         "F_GENERATE_MIN_MAX_VALUES",
@@ -276,7 +267,6 @@
         "F_PREDICTORGROUP_ADD",
         "F_REPORT_PRIVATE_ADD",
         "F_VALIDATIONRULEGROUP_PRIVATE_ADD",
-        "F_PUSH_ANALYSIS_DELETE",
         "F_REPLICATE_USER",
         "F_DATAVALUE_ADD",
         "M_dhis-web-maintenance-organisationunit",
@@ -292,7 +282,6 @@
         "F_INDICATOR_PRIVATE_ADD",
         "F_FRED_CREATE",
         "F_EVENTCHART_PUBLIC_ADD",
-        "F_PUSH_ANALYSIS_ADD",
         "M_dhis-web-event-visualizer",
         "F_USER_ADD",
         "F_EXTERNAL_MAP_LAYER_DELETE",
@@ -337,19 +326,18 @@
         "F_INDICATORGROUP_PRIVATE_ADD",
         "F_FRED_DELETE",
         "F_VALIDATIONCRITERIA_DELETE",
-        "F_NONE"],
+        "F_NONE"
+      ],
       "sharing": {
         "public": "--------"
       }
     }
   ],
-  "categoryOptions":
-  [
+  "categoryOptions": [
     {
       "id": "DRs8ZFxNOpW",
       "name": "Female",
-      "user":
-      {
+      "user": {
         "id": "M5zQapPyTZI"
       },
       "shortName": "Female",
@@ -366,31 +354,26 @@
         "owner": "M5zQapPyTZI"
       },
       "name": "Male",
-      "user":
-      {
+      "user": {
         "id": "M5zQapPyTZI"
       },
       "id": "x3Owjhq9G7K",
       "shortName": "Male"
     }
   ],
-  "organisationUnitLevels":
-  [
+  "organisationUnitLevels": [
     {
       "level": 1,
       "name": "Country",
       "id": "knxIFcPUBz2"
     }
   ],
-  "categoryOptionCombos":
-  [
+  "categoryOptionCombos": [
     {
-      "categoryCombo":
-      {
+      "categoryCombo": {
         "id": "v7n8H4aj8Cg"
       },
-      "categoryOptions":
-      [
+      "categoryOptions": [
         {
           "id": "DRs8ZFxNOpW"
         }
@@ -403,60 +386,50 @@
       "name": "Male",
       "ignoreApproval": false,
       "id": "O9ZA0CUVVmL",
-      "categoryOptions":
-      [
+      "categoryOptions": [
         {
           "id": "x3Owjhq9G7K"
         }
       ],
-      "categoryCombo":
-      {
+      "categoryCombo": {
         "id": "v7n8H4aj8Cg"
       }
     }
   ],
-  "visualizations":
-  [
+  "visualizations": [
     {
       "sharing": {
-        "public" : "--------",
+        "public": "--------",
         "external": false
       },
       "completedOnly": false,
       "showData": true,
-      "organisationUnits":
-      [
+      "organisationUnits": [
         {
           "id": "uyHni0GvBpD"
         }
       ],
-      "dataDimensionItems":
-      [
+      "dataDimensionItems": [
         {
           "dataDimensionItemType": "AGGREGATE_DATA_ELEMENT",
-          "dataElement":
-          {
+          "dataElement": {
             "id": "JXWenbITNIR"
           }
         },
         {
           "dataDimensionItemType": "AGGREGATE_DATA_ELEMENT",
-          "dataElement":
-          {
+          "dataElement": {
             "id": "Kvv6LltZuOd"
           }
         }
       ],
-      "filterDimensions":
-      [
+      "filterDimensions": [
         "ou"
       ],
-      "seriesKey":
-      {
+      "seriesKey": {
         "hidden": true
       },
-      "series":
-      [
+      "series": [
         {
           "dimensionItem": "JXWenbITNIR",
           "visualizationType": "LINE",
@@ -467,26 +440,20 @@
           "visualizationType": "LINE"
         }
       ],
-      "organisationUnitLevels":
-      [],
+      "organisationUnitLevels": [],
       "id": "gyYXi0rXAIc",
-      "user":
-      {
+      "user": {
         "id": "M5zQapPyTZI"
       },
       "userOrganisationUnitChildren": false,
       "hideEmptyRows": false,
-      "organisationUnitGroups":
-      [],
+      "organisationUnitGroups": [],
       "name": "VisualizationA",
       "sortOrder": 0,
       "category": "pe",
-      "categoryOptionGroups":
-      [],
-      "dataElementGroups":
-      [],
-      "relativePeriods":
-      {
+      "categoryOptionGroups": [],
+      "dataElementGroups": [],
+      "relativePeriods": {
         "lastSixMonth": false,
         "last5Years": false,
         "thisSixMonth": false,
@@ -517,49 +484,41 @@
         "lastMonth": false,
         "last6Months": false
       },
-      "categoryDimensions":
-      [],
+      "categoryDimensions": [],
       "userOrganisationUnit": false,
       "hideSubtitle": false,
       "hideTitle": false,
       "regression": false,
       "type": "COLUMN",
       "aggregationType": "SUM",
-      "periods":
-      [],
+      "periods": [],
       "hideLegend": false,
-      "itemOrganisationUnitGroups":
-      [],
+      "itemOrganisationUnitGroups": [],
       "userOrganisationUnitGrandChildren": false
     }
   ],
-  "categoryCombos":
-  [
+  "categoryCombos": [
     {
       "publicAccess": "rw------",
       "lastUpdated": "2016-03-17T01:54:04.956+0000",
       "code": "Gender",
       "skipTotal": false,
       "id": "v7n8H4aj8Cg",
-      "categories":
-      [
+      "categories": [
         {
           "id": "XFgfIO1qQmd"
         }
       ],
-      "userGroupAccesses":
-      [],
+      "userGroupAccesses": [],
       "created": "2016-03-17T01:54:04.875+0000",
       "name": "Gender",
       "dataDimensionType": "DISAGGREGATION",
-      "user":
-      {
+      "user": {
         "id": "M5zQapPyTZI"
       }
     }
   ],
-  "users":
-  [
+  "users": [
     {
       "firstName": "userA",
       "userRoles": [
@@ -568,8 +527,7 @@
         }
       ],
       "username": "userA",
-      "organisationUnits":
-      [
+      "organisationUnits": [
         {
           "id": "uyHni0GvBpD"
         }
@@ -579,29 +537,24 @@
       "surname": "userA"
     }
   ],
-  "dataElements":
-  [
+  "dataElements": [
     {
       "code": "DataElementCodeA",
       "zeroIsSignificant": false,
       "domainType": "AGGREGATE",
       "aggregationType": "AVERAGE",
-      "aggregationLevels":
-      [],
-      "userGroupAccesses":
-      [],
+      "aggregationLevels": [],
+      "userGroupAccesses": [],
       "valueType": "NUMBER",
       "lastUpdated": "2016-03-17T01:52:56.021+0000",
       "publicAccess": "rw------",
       "created": "2016-03-17T01:52:56.017+0000",
       "name": "DataElementA",
-      "user":
-      {
+      "user": {
         "id": "M5zQapPyTZI"
       },
       "id": "JXWenbITNIR",
-      "attributeValues":
-      [],
+      "attributeValues": [],
       "shortName": "DataElementShortA"
     },
     {
@@ -610,93 +563,76 @@
       "id": "Kvv6LltZuOd",
       "name": "DataElementB",
       "created": "2016-03-17T01:53:21.548+0000",
-      "user":
-      {
+      "user": {
         "id": "M5zQapPyTZI"
       },
       "shortName": "DataElementShortB",
-      "attributeValues":
-      [],
+      "attributeValues": [],
       "aggregationType": "AVERAGE",
       "domainType": "AGGREGATE",
       "code": "DataElementCodeB",
       "zeroIsSignificant": false,
-      "aggregationLevels":
-      [],
-      "userGroupAccesses":
-      [],
+      "aggregationLevels": [],
+      "userGroupAccesses": [],
       "valueType": "NUMBER"
     },
     {
-      "user":
-      {
+      "user": {
         "id": "M5zQapPyTZI"
       },
       "name": "DataElementC",
       "created": "2016-03-17T01:54:39.781+0000",
       "id": "JrpFZgTcp5m",
-      "attributeValues":
-      [],
+      "attributeValues": [],
       "shortName": "DataElementShortC",
       "lastUpdated": "2016-03-17T01:54:39.782+0000",
       "publicAccess": "rw------",
       "valueType": "NUMBER",
-      "userGroupAccesses":
-      [],
+      "userGroupAccesses": [],
       "code": "DataElementCodeC",
       "zeroIsSignificant": false,
       "aggregationType": "AVERAGE",
       "domainType": "AGGREGATE",
-      "categoryCombo":
-      {
+      "categoryCombo": {
         "id": "v7n8H4aj8Cg"
       },
-      "aggregationLevels":
-      []
+      "aggregationLevels": []
     },
     {
-      "user":
-      {
+      "user": {
         "id": "M5zQapPyTZI"
       },
       "created": "2016-03-17T01:55:00.723+0000",
       "name": "DataElementD",
       "id": "Dy2uRmhOKbJ",
-      "attributeValues":
-      [],
+      "attributeValues": [],
       "shortName": "DataElementShortD",
       "lastUpdated": "2016-03-17T01:55:00.724+0000",
       "publicAccess": "rw------",
       "valueType": "NUMBER",
-      "userGroupAccesses":
-      [],
+      "userGroupAccesses": [],
       "zeroIsSignificant": false,
       "code": "DataElementCodeD",
       "domainType": "AGGREGATE",
       "aggregationType": "AVERAGE",
-      "categoryCombo":
-      {
+      "categoryCombo": {
         "id": "v7n8H4aj8Cg"
       },
-      "aggregationLevels":
-      []
+      "aggregationLevels": []
     }
   ],
-  "organisationUnits":
-  [
+  "organisationUnits": [
     {
       "path": "/uyHni0GvBpD",
       "featureType": "NONE",
       "uuid": "eb380b08-6cc6-4aca-9b67-e1247e02db33",
       "lastUpdated": "2016-03-17T01:51:39.609+0000",
       "shortName": "Country",
-      "attributeValues":
-      [],
+      "attributeValues": [],
       "openingDate": "2016-03-17",
       "id": "uyHni0GvBpD",
       "description": "",
-      "user":
-      {
+      "user": {
         "id": "M5zQapPyTZI"
       },
       "name": "Country",

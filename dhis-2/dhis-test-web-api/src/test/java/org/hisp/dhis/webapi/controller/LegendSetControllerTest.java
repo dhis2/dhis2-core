@@ -31,8 +31,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,5 +74,21 @@ class LegendSetControllerTest extends H2ControllerIntegrationTestBase {
   void testDeleteObject() {
     String id = assertStatus(HttpStatus.CREATED, POST("/legendSets/", "{'name':'LS'}"));
     assertWebMessage("OK", 200, "OK", null, DELETE("/legendSets/" + id).content(HttpStatus.OK));
+  }
+
+  @Test
+  void testGetLegendSetWithLegendsDoesNotCauseInfiniteRecursion() {
+    String id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/legendSets/",
+                "{'name':'LS','legends':[{'name':'L1','startValue':0,'endValue':50,'color':'#ff0000'}]}"));
+
+    JsonObject legendSet = GET("/legendSets/" + id).content(HttpStatus.OK);
+
+    JsonList<JsonObject> legends = legendSet.getList("legends", JsonObject.class);
+    assertEquals(1, legends.size());
+    assertFalse(legends.get(0).has("legendSet"), "Legend must not serialize back to its legendSet");
   }
 }

@@ -1,0 +1,148 @@
+/*
+ * Copyright (c) 2004-2022, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.webapi.filter;
+
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_SESSION_ID;
+import static org.hisp.dhis.log.MdcKeys.MDC_SESSION_ID;
+import static org.hisp.dhis.webapi.filter.SessionIdFilter.hashToBase64;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.MDC;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+/**
+ * @author Luciano Fiandesio
+ */
+@ExtendWith(MockitoExtension.class)
+class SessionIdFilterTest {
+  @Mock private DhisConfigurationProvider dhisConfigurationProvider;
+
+  private SessionIdFilter subject;
+
+  @BeforeEach
+  void setUp() {
+    MDC.clear();
+  }
+
+  @AfterEach
+  void tearDown() {
+    SecurityContextHolder.clearContext();
+  }
+
+  @Test
+  void testIsDisabled() throws Exception {
+    init(false);
+    doFilter(request -> {});
+
+    assertNull(MDC.get(MDC_SESSION_ID));
+  }
+
+  @Test
+  void testIsEnabled() throws Exception {
+    authenticate();
+
+    init(true);
+    AtomicReference<String> inChain =
+        doFilter(
+            request -> {
+              HttpSession session = mock(HttpSession.class);
+              when(request.getSession(false)).thenReturn(session);
+              when(session.getId()).thenReturn("ABCDEFGHILMNO");
+            });
+
+    assertEquals("ID" + hashToBase64("ABCDEFGHILMNO"), inChain.get());
+    assertNull(MDC.get(MDC_SESSION_ID), "session ID must be removed from MDC after the request");
+  }
+
+  @Test
+  void testDoesNotCreateSessionWhenNoneExists() throws Exception {
+    authenticate();
+
+    init(true);
+    AtomicReference<String> inChain =
+        doFilter(request -> when(request.getSession(false)).thenReturn(null));
+
+    assertNull(inChain.get());
+    assertNull(MDC.get(MDC_SESSION_ID));
+  }
+
+  private void authenticate() {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(
+            "admin", "admin", List.of((GrantedAuthority) () -> "ALL"));
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
+  }
+
+  private AtomicReference<String> doFilter(Consumer<HttpServletRequest> withRequest)
+      throws Exception {
+    HttpServletRequest req = mock(HttpServletRequest.class);
+    HttpServletResponse res = mock(HttpServletResponse.class);
+    AtomicReference<String> inChain = new AtomicReference<>();
+    FilterChain filterChain = (request, response) -> inChain.set(MDC.get(MDC_SESSION_ID));
+
+    withRequest.accept(req);
+
+    subject.doFilter(req, res, filterChain);
+
+    verify(req, never()).getSession();
+    verify(req, never()).getSession(true);
+    return inChain;
+  }
+
+  private void init(boolean enabled) {
+    when(dhisConfigurationProvider.isEnabled(LOGGING_SESSION_ID)).thenReturn(enabled);
+    subject = new SessionIdFilter(dhisConfigurationProvider);
+  }
+}

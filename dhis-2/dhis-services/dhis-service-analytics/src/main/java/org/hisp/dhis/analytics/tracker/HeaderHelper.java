@@ -31,99 +31,323 @@ package org.hisp.dhis.analytics.tracker;
 
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toSet;
 import static lombok.AccessLevel.PRIVATE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
+import static org.hisp.dhis.analytics.event.LabelMapper.getDateFieldLabel;
+import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.PeriodDimensionSplitter;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.program.Program;
 
 @NoArgsConstructor(access = PRIVATE)
 public class HeaderHelper {
   public static void addCommonHeaders(
       Grid grid, EventQueryParams params, List<DimensionalObject> periods) {
 
-    for (DimensionalObject dimension : params.getDimensions()) {
-      grid.addHeader(
-          new GridHeader(
-              dimension.getDimension(), dimension.getDimensionDisplayName(), TEXT, false, true));
+    addDimensionHeaders(grid, params.getDimensions(), params.getProgram());
+    addDimensionHeaders(grid, periods, params.getProgram());
+
+    if (params.hasEnrollmentStatuses() && !grid.headerExists(PROGRAM_STATUS.getItem())) {
+      addMetaHeaders(grid, List.of(PROGRAM_STATUS));
     }
 
-    for (DimensionalObject dimension : periods) {
-      grid.addHeader(
-          new GridHeader(
-              dimension.getDimension(), dimension.getDimensionDisplayName(), TEXT, false, true));
+    if (params.hasEnrollmentOuDimension()) {
+      addMetaHeaders(grid, List.of(ColumnHeader.ENROLLMENT_OU, ColumnHeader.ENROLLMENT_OU_NAME));
+    }
+
+    if (params.hasRegistrationOuDimension()) {
+      addMetaHeaders(grid, registrationOuHeaders(params));
     }
 
     DisplayProperty displayProperty = params.getDisplayProperty();
-    Map<String, Long> repeatedNames =
-        params.getItems().stream()
-            .collect(groupingBy(s -> s.getItem().getDisplayProperty(displayProperty), counting()));
+    HeaderBuildContext context = HeaderBuildContext.of(params, displayProperty);
 
     for (QueryItem item : params.getItems()) {
-      /**
-       * If the request contains an item of value type ORGANISATION_UNIT and the item UID is linked
-       * to coordinates (coordinateField), then create header of value type COORDINATE and type
-       * Point.
-       */
-      if (item.getValueType() == ORGANISATION_UNIT
-          && params.getCoordinateFields().stream()
-              .anyMatch(f -> f.equals(item.getItem().getUid()))) {
-        grid.addHeader(
-            new GridHeader(
-                item.getItem().getUid(),
-                item.getItem().getDisplayProperty(displayProperty),
-                COORDINATE,
-                false,
-                true,
-                item.getOptionSet(),
-                item.getLegendSet()));
-      } else if (item.hasNonDefaultRepeatableProgramStageOffset()) {
-        String column = item.getItem().getDisplayProperty(displayProperty);
-        String displayColumn = item.getColumnName(displayProperty, repeatedNames.get(column) > 1);
-
-        RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
-
-        String name = repeatableStageParams.getDimension();
-
-        grid.addHeader(
-            new GridHeader(
-                name,
-                column,
-                displayColumn,
-                item.getValueType(),
-                false,
-                true,
-                item.getOptionSet(),
-                item.getLegendSet(),
-                item.getProgramStage().getUid(),
-                item.getRepeatableStageParams()));
-      } else {
-        String uid = getItemUid(item);
-        String column = item.getItem().getDisplayProperty(displayProperty);
-        String displayColumn = item.getColumnName(displayProperty, repeatedNames.get(column) > 1);
-
-        grid.addHeader(
-            new GridHeader(
-                uid,
-                column,
-                displayColumn,
-                item.getValueType(),
-                false,
-                true,
-                item.getOptionSet(),
-                item.getLegendSet()));
-      }
+      grid.addHeader(buildGridHeader(item, context));
+      addStageOrgUnitHeaders(grid, item, params);
     }
   }
+
+  /** Adds a metadata header per given column, all of which share the same shape. */
+  private static void addMetaHeaders(Grid grid, List<ColumnHeader> headers) {
+    for (ColumnHeader header : headers) {
+      grid.addHeader(new GridHeader(header.getItem(), header.getName(), TEXT, false, true));
+    }
+  }
+
+  /**
+   * The aggregate grid carries one column per dimension and its base CTE projects only the org unit
+   * uid, so the name column belongs to the query endpoints alone.
+   */
+  private static List<ColumnHeader> registrationOuHeaders(EventQueryParams params) {
+    return params.isAggregatedEnrollments()
+        ? List.of(ColumnHeader.REGISTRATION_OU)
+        : List.of(ColumnHeader.REGISTRATION_OU, ColumnHeader.REGISTRATION_OU_NAME);
+  }
+
+  /** Adds the org unit name and code headers of a stage scoped org unit dimension, if requested. */
+  private static void addStageOrgUnitHeaders(Grid grid, QueryItem item, EventQueryParams params) {
+    if (!isStageOuDimension(item) || !params.hasHeaders()) {
+      return;
+    }
+
+    String stageUid = item.getProgramStage().getUid();
+
+    if (params.getHeaders().contains(stageUid + ".ouname")) {
+      grid.addHeader(
+          new GridHeader(
+              stageUid + ".ouname",
+              "Organisation unit name",
+              "Organisation unit name",
+              TEXT,
+              false,
+              true,
+              null,
+              null));
+    }
+
+    if (params.getHeaders().contains(stageUid + ".oucode")) {
+      grid.addHeader(
+          new GridHeader(
+              stageUid + ".oucode",
+              "Organisation unit code",
+              "Organisation unit code",
+              TEXT,
+              false,
+              true,
+              null,
+              null));
+    }
+  }
+
+  private static void addDimensionHeaders(
+      Grid grid, List<DimensionalObject> dimensions, Program program) {
+    for (DimensionalObject dimension : PeriodDimensionSplitter.expandPeriodDimensions(dimensions)) {
+      grid.addHeader(
+          new GridHeader(
+              getDimensionHeaderName(dimension),
+              getDimensionHeaderColumn(dimension, program),
+              TEXT,
+              false,
+              true));
+    }
+  }
+
+  private static String getDimensionHeaderName(DimensionalObject dimension) {
+    return getStaticDateField(dimension)
+        .map(HeaderHelper::toDateFieldKey)
+        .orElse(dimension.getDimension());
+  }
+
+  private static String getDimensionHeaderColumn(DimensionalObject dimension, Program program) {
+    return getStaticDateField(dimension)
+        .map(dateField -> getDateFieldLabel(dateField, program))
+        .orElse(dimension.getDimensionDisplayName());
+  }
+
+  private static Optional<String> getStaticDateField(DimensionalObject dimension) {
+    if (!PERIOD_DIM_ID.equals(dimension.getDimension())) {
+      return Optional.empty();
+    }
+
+    Set<String> dateFields =
+        dimension.getItems().stream()
+            .filter(PeriodDimension.class::isInstance)
+            .map(PeriodDimension.class::cast)
+            .map(PeriodDimension::getDateField)
+            .collect(toSet());
+
+    if (dateFields.size() == 1) {
+      String dateField = dateFields.iterator().next();
+      if (dateField != null) {
+        return Optional.of(dateField);
+      }
+    }
+
+    return Optional.empty();
+  }
+
+  private static String toDateFieldKey(String dateField) {
+    return dateField.toLowerCase().replace("_", "");
+  }
+
+  private static GridHeader buildGridHeader(QueryItem item, HeaderBuildContext context) {
+    if (isCoordinateHeader(item, context.coordinateFields())) {
+      return toGridHeader(buildCoordinateHeaderSpec(item, context.displayProperty()));
+    }
+
+    if (item.hasNonDefaultRepeatableProgramStageOffset()) {
+      return toGridHeader(buildRepeatableStageHeaderSpec(item, context));
+    }
+
+    return toGridHeader(buildDefaultHeaderSpec(item, context));
+  }
+
+  private static boolean isCoordinateHeader(QueryItem item, Set<String> coordinateFields) {
+    return item.getValueType() == ORGANISATION_UNIT
+        && coordinateFields.contains(item.getItem().getUid());
+  }
+
+  private static HeaderSpec buildCoordinateHeaderSpec(
+      QueryItem item, DisplayProperty displayProperty) {
+    return new HeaderSpec(
+        item.getItem().getUid(),
+        item.getItem().getDisplayProperty(displayProperty),
+        null,
+        COORDINATE,
+        item.getOptionSet(),
+        item.getLegendSet(),
+        null,
+        null);
+  }
+
+  private static HeaderSpec buildRepeatableStageHeaderSpec(
+      QueryItem item, HeaderBuildContext context) {
+    String column = item.getItem().getDisplayProperty(context.displayProperty());
+    long repeatedCount = context.repeatedNames().getOrDefault(column, 0L);
+    String displayColumn = item.getColumnName(context.displayProperty(), repeatedCount > 1);
+
+    RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
+
+    return new HeaderSpec(
+        repeatableStageParams.getDimension(),
+        column,
+        displayColumn,
+        item.getValueType(),
+        item.getOptionSet(),
+        item.getLegendSet(),
+        item.getProgramStage().getUid(),
+        repeatableStageParams);
+  }
+
+  private static HeaderSpec buildDefaultHeaderSpec(QueryItem item, HeaderBuildContext context) {
+    String uid =
+        item.hasCustomHeader()
+            ? item.getCustomHeader().headerKey(item.getCustomHeader().key())
+            : getItemUid(item);
+    String column =
+        item.hasCustomHeader()
+            ? item.getCustomHeader().label()
+            : item.getItem().getDisplayProperty(context.displayProperty());
+    String repeatedNamesKey =
+        item.hasCustomHeader()
+            ? item.getCustomHeader().label()
+            : item.getItem().getDisplayProperty(context.displayProperty());
+    long repeatedCount = context.repeatedNames().getOrDefault(repeatedNamesKey, 0L);
+    String displayColumn = item.getColumnName(context.displayProperty(), repeatedCount > 1);
+
+    return new HeaderSpec(
+        uid,
+        column,
+        displayColumn,
+        item.getValueType(),
+        item.getOptionSet(),
+        item.getLegendSet(),
+        null,
+        null);
+  }
+
+  private static GridHeader toGridHeader(HeaderSpec spec) {
+    if (spec.programStage() != null && spec.repeatableStageParams() != null) {
+      if (spec.displayColumn() != null) {
+        return new GridHeader(
+            spec.name(),
+            spec.column(),
+            spec.displayColumn(),
+            spec.valueType(),
+            false,
+            true,
+            spec.optionSet(),
+            spec.legendSet(),
+            spec.programStage(),
+            spec.repeatableStageParams());
+      }
+
+      return new GridHeader(
+          spec.name(),
+          spec.column(),
+          spec.valueType(),
+          false,
+          true,
+          spec.optionSet(),
+          spec.legendSet(),
+          spec.programStage(),
+          spec.repeatableStageParams());
+    }
+
+    if (spec.displayColumn() != null) {
+      return new GridHeader(
+          spec.name(),
+          spec.column(),
+          spec.displayColumn(),
+          spec.valueType(),
+          false,
+          true,
+          spec.optionSet(),
+          spec.legendSet());
+    }
+
+    return new GridHeader(
+        spec.name(),
+        spec.column(),
+        spec.valueType(),
+        false,
+        true,
+        spec.optionSet(),
+        spec.legendSet());
+  }
+
+  private record HeaderBuildContext(
+      DisplayProperty displayProperty,
+      Map<String, Long> repeatedNames,
+      Set<String> coordinateFields) {
+    private static HeaderBuildContext of(EventQueryParams params, DisplayProperty displayProperty) {
+      Map<String, Long> repeatedNames =
+          params.getItems().stream()
+              .collect(
+                  groupingBy(s -> s.getItem().getDisplayProperty(displayProperty), counting()));
+
+      Set<String> coordinateFields =
+          params.getCoordinateFields() == null
+              ? Collections.emptySet()
+              : new HashSet<>(params.getCoordinateFields());
+
+      return new HeaderBuildContext(displayProperty, repeatedNames, coordinateFields);
+    }
+  }
+
+  private record HeaderSpec(
+      String name,
+      String column,
+      String displayColumn,
+      ValueType valueType,
+      OptionSet optionSet,
+      LegendSet legendSet,
+      String programStage,
+      RepeatableStageParams repeatableStageParams) {}
 }

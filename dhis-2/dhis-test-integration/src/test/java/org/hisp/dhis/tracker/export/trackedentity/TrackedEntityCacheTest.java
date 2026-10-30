@@ -56,8 +56,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.test.utils.Assertions;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
@@ -69,6 +67,8 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -206,6 +206,8 @@ class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
             TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build(),
             TrackerObjects.builder().enrollments(List.of(enrollment)).build()));
 
+    clearSession();
+
     // The cache is empty again, but this time, the owner should be found in the DB, so the user has
     // access to the te-program combination
     assertTrue(
@@ -278,6 +280,7 @@ class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
         .enrolledAt(Instant.now())
         .occurredAt(Instant.now())
         .status(EnrollmentStatus.ACTIVE)
+        .attributeOptionCombo(MetadataIdentifier.ofUid("HllvX50cXC0"))
         .build();
   }
 

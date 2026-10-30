@@ -29,8 +29,13 @@
  */
 package org.hisp.dhis.merge.category;
 
+import static org.hisp.dhis.common.input.InputUtils.decodeInput;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
 import static org.hisp.dhis.feedback.ErrorCode.E1540;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createSingleEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -41,6 +46,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryCombo;
@@ -71,9 +77,9 @@ import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
-import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.datavalue.DataValueChangelog;
+import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
+import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
@@ -97,20 +103,20 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.SingleEventStore;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.TrackerEventStore;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.SingleEventStore;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.model.TrackerEventStore;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -144,7 +150,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataExportStore dataExportStore;
   @Autowired private DataDumpService dataDumpService;
   @Autowired private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
-  @Autowired private DataValueAuditStore dataValueAuditStore;
+  @Autowired private DataValueChangelogStore dataValueChangelogStore;
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
   @Autowired private DataApprovalStore dataApprovalStore;
   @Autowired private TrackerEventStore trackerEventStore;
@@ -1283,12 +1289,12 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   // ------------------------
-  // -- DataValueAudit --
+  // -- DataValueChangelog --
   // ------------------------
 
   @Test
   @DisplayName(
-      "DataValueAudits with references to source COCs are deleted when sources are deleted")
+      "DataValueChangelogs with references to source COCs are deleted when sources are deleted")
   void dataValueAuditMergeDeleteTest() throws ConflictException, BadRequestException {
     // given
     dataDumpService.upsertValues(
@@ -1308,13 +1314,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
 
     // then
-    DataValueAuditQueryParams source1DvaQueryParams = getQueryParams(cocDuplicate);
-    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(cocTarget);
+    DataValueChangelogQueryParams source1DvaQueryParams = getQueryParams(cocDuplicate);
+    DataValueChangelogQueryParams targetDvaQueryParams = getQueryParams(cocTarget);
 
-    List<DataValueAudit> source1Audits =
-        dataValueAuditStore.getDataValueAudits(source1DvaQueryParams);
+    List<DataValueChangelog> source1Audits =
+        dataValueChangelogStore.getEntries(source1DvaQueryParams);
 
-    List<DataValueAudit> targetItems = dataValueAuditStore.getDataValueAudits(targetDvaQueryParams);
+    List<DataValueChangelog> targetItems = dataValueChangelogStore.getEntries(targetDvaQueryParams);
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, source1Audits.size(), "Expect 0 entries with source COC refs");
@@ -2267,8 +2273,8 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     return da;
   }
 
-  private DataValueAuditQueryParams getQueryParams(CategoryOptionCombo coc) {
-    return new DataValueAuditQueryParams().setCategoryOptionCombo(coc);
+  private DataValueChangelogQueryParams getQueryParams(CategoryOptionCombo coc) {
+    return decodeInput(DataValueChangelogQueryParams.class, Map.of("co", UID.of(coc)));
   }
 
   private DataValue addDataValue(DataValue value) {

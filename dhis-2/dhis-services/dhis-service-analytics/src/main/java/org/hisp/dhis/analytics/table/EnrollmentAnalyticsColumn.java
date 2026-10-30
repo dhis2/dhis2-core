@@ -112,14 +112,20 @@ public final class EnrollmentAnalyticsColumn {
             .selectExpression(sqlBuilder.ifThen("en.status = 'COMPLETED'", "en.completeddate"))
             .build(),
         AnalyticsTableColumn.builder()
-            .name(EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME)
+            .name(EventAnalyticsColumnName.CREATED_COLUMN_NAME)
             .dataType(TIMESTAMP)
-            .selectExpression("en.lastupdated")
+            .selectExpression(
+                sqlBuilder.ifThenElse(
+                    "en.createdatclient is not null", "en.createdatclient", "en.created"))
             .build(),
         AnalyticsTableColumn.builder()
-            .name(EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME)
-            .dataType(VARCHAR_255)
-            .selectExpression("en.storedby")
+            .name(EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression(
+                sqlBuilder.ifThenElse(
+                    "en.lastupdatedatclient is not null",
+                    "en.lastupdatedatclient",
+                    "en.lastupdated"))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME)
@@ -153,6 +159,12 @@ public final class EnrollmentAnalyticsColumn {
             .dataType(CHARACTER_11)
             .nullable(NOT_NULL)
             .selectExpression("coalesce(registrationou.uid,ou.uid)")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.AO_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("acs.categoryoptioncombouid")
             .build());
   }
 

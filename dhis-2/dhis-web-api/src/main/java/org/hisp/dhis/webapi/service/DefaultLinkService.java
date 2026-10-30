@@ -75,7 +75,7 @@ public class DefaultLinkService implements LinkService {
       return;
     }
 
-    Schema schema = schemaService.getDynamicSchema(klass);
+    Schema schema = schemaService.getSchema(klass);
 
     if (!schema.hasApiEndpoint()) {
       return;
@@ -173,7 +173,7 @@ public class DefaultLinkService implements LinkService {
 
     for (Property property : schema.getProperties()) {
       if (PropertyType.REFERENCE == property.getPropertyType()) {
-        Schema klassSchema = schemaService.getDynamicSchema(property.getKlass());
+        Schema klassSchema = schemaService.getSchema(property.getKlass());
         property.setHref(hrefBase + "/schemas/" + klassSchema.getSingular());
 
         if (klassSchema.hasApiEndpoint()) {
@@ -181,7 +181,7 @@ public class DefaultLinkService implements LinkService {
           property.setApiEndpoint(hrefBase + klassSchema.getRelativeApiEndpoint());
         }
       } else if (PropertyType.REFERENCE == property.getItemPropertyType()) {
-        Schema klassSchema = schemaService.getDynamicSchema(property.getItemKlass());
+        Schema klassSchema = schemaService.getSchema(property.getItemKlass());
         property.setHref(hrefBase + "/schemas/" + klassSchema.getSingular());
 
         if (klassSchema.hasApiEndpoint()) {
@@ -246,7 +246,7 @@ public class DefaultLinkService implements LinkService {
   }
 
   private <T> void generateLink(T object, String hrefBase, boolean deepScan) {
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     if (schema == null) {
       log.warn("Could not find schema for object of type " + object.getClass().getName() + ".");
@@ -297,7 +297,7 @@ public class DefaultLinkService implements LinkService {
 
     Class<?> klass = HibernateProxyUtils.getRealClass(object);
 
-    Schema schema = schemaService.getDynamicSchema(klass);
+    Schema schema = schemaService.getSchema(klass);
 
     if (!schema.hasApiEndpoint()
         || schema.getProperty("id") == null

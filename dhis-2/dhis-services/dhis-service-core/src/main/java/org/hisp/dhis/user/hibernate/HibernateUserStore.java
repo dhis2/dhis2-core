@@ -34,6 +34,7 @@ import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -48,8 +49,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -57,12 +58,14 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.QueryHints;
+import org.hibernate.LockOptions;
+import org.hibernate.jpa.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -95,6 +98,9 @@ import org.springframework.stereotype.Repository;
 public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     implements UserStore {
   public static final String DISABLED_COLUMN = "disabled";
+
+  /** Named query cache region for {@link #getUserByUsername} results. */
+  static final String USERNAME_QUERY_CACHE_REGION = "org.hisp.dhis.user.User.byUsername";
 
   private final QueryCacheManager queryCacheManager;
 
@@ -206,7 +212,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       convertedOrder = Order.parse(orders);
       String order = createOrderHql(convertedOrder, false, userSchema);
       hql = "select distinct u";
-      if (order != null) hql += "," + order;
+      if (order != null) {
+        hql += "," + order;
+      }
       hql += " ";
     }
 
@@ -300,6 +308,10 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       hql += hlp.whereAnd() + " u.lastLogin < :inactiveSince ";
     }
 
+    if (params.isNeverLoggedIn()) {
+      hql += hlp.whereAnd() + " u.lastLogin is null ";
+    }
+
     if (params.getPasswordLastUpdated() != null) {
       hql += hlp.whereAnd() + " u.passwordLastUpdated < :passwordLastUpdated ";
     }
@@ -325,7 +337,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     if (fetch) {
       String orderExpression = createOrderHql(convertedOrder, true, userSchema);
-      hql += "order by " + StringUtils.defaultString(orderExpression, "u.surname, u.firstName");
+      hql += "order by " + Objects.toString(orderExpression, "u.surname, u.firstName");
     }
 
     // ---------------------------------------------------------------------
@@ -449,7 +461,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     TypedQuery<User> typedQuery = entityManager.createQuery(hql, User.class);
     typedQuery.setParameter("username", username);
-    typedQuery.setHint(QueryHints.CACHEABLE, true);
+    typedQuery.setHint(QueryHints.HINT_CACHEABLE, true);
+    typedQuery.setHint(QueryHints.HINT_CACHE_REGION, USERNAME_QUERY_CACHE_REGION);
 
     return QueryUtils.getSingleResult(typedQuery);
   }
@@ -502,9 +515,13 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   private static Locale toLocale(Object value) {
-    if (value == null) return null;
-    if (value instanceof Locale l) return l;
-    return Locale.forLanguageTag(value.toString());
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof Locale l) {
+      return l;
+    }
+    return Locale.of(value.toString());
   }
 
   @Override
@@ -619,6 +636,20 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
+  public List<String> getUsernamesByUserRole(@Nonnull UID roleUid) {
+    return getSession()
+        .createQuery(
+            "select u.username from User u join u.userRoles r where r.uid = :roleUid", String.class)
+        .setParameter("roleUid", roleUid.getValue())
+        .list();
+  }
+
+  @Override
+  public List<String> getAllUsernames() {
+    return getSession().createQuery("select u.username from User u", String.class).list();
+  }
+
+  @Override
   public void setActiveLinkedAccounts(
       @Nonnull String actingUsername, @Nonnull String activeUsername) {
 
@@ -676,10 +707,14 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   @CheckForNull
   private static String createOrderHql(
       @CheckForNull List<Order> orders, boolean direction, Schema userSchema) {
-    if (orders == null || orders.isEmpty()) return null;
+    if (orders == null || orders.isEmpty()) {
+      return null;
+    }
     List<Order> persistedOrders =
         orders.stream().filter(o -> userSchema.getProperty(o.getProperty()).isPersisted()).toList();
-    if (persistedOrders.isEmpty()) return null;
+    if (persistedOrders.isEmpty()) {
+      return null;
+    }
     return persistedOrders.stream()
         .map(
             o -> {
@@ -688,9 +723,282 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
               boolean ignoreCase = o.isIgnoreCase() && String.class == p.getKlass();
               String order =
                   ignoreCase ? "lower(u.%s)".formatted(property) : "u.%s".formatted(property);
-              if (!direction) return order;
+              if (!direction) {
+                return order;
+              }
               return o.isAscending() ? order + " asc" : order + " desc";
             })
         .collect(joining(","));
+  }
+
+  @Override
+  public int updateCatDimensionConstraintsCategoryRefs(
+      Set<Long> sourceCategoryIds, long targetCategoryId) {
+    if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
+
+    String sql =
+        """
+        UPDATE users_catdimensionconstraints
+        SET dataelementcategoryid = :targetCategoryId
+        WHERE (userid, dataelementcategoryid) IN (
+            SELECT DISTINCT ON (userid) userid, dataelementcategoryid
+            FROM users_catdimensionconstraints
+            WHERE dataelementcategoryid IN (:sourceCategoryIds)
+            ORDER BY userid, dataelementcategoryid
+        )
+        """;
+    return nativeSynchronizedQuery(sql)
+        // users_catdimensionconstraints is the User.catDimensionConstraints collection table.
+        // Collection regions are keyed by the collection's element entity, so Category is what
+        // reaches that region, not the owning User.
+        .addSynchronizedEntityClass(Category.class)
+        .setParameter("targetCategoryId", targetCategoryId)
+        .setParameter("sourceCategoryIds", sourceCategoryIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
+  }
+
+  @Override
+  public int deleteRemainingCatDimensionConstraints(Set<Long> sourceCategoryIds) {
+    if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
+
+    String sql =
+        """
+        DELETE FROM users_catdimensionconstraints
+        WHERE dataelementcategoryid IN (:sourceCategoryIds)
+        """;
+    return nativeSynchronizedQuery(sql)
+        // see updateCatDimensionConstraintsCategoryRefs
+        .addSynchronizedEntityClass(Category.class)
+        .setParameter("sourceCategoryIds", sourceCategoryIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
+  }
+
+  @Override
+  public int deleteCatDimensionConstraintsWhenUserHasTarget(
+      Set<Long> sourceCategoryIds, long targetCategoryId) {
+    if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
+
+    String sql =
+        """
+        DELETE FROM users_catdimensionconstraints
+        WHERE dataelementcategoryid IN (:sourceCategoryIds)
+        AND userid IN (
+            SELECT userid FROM users_catdimensionconstraints
+            WHERE dataelementcategoryid = :targetCategoryId
+        )
+        """;
+    return nativeSynchronizedQuery(sql)
+        // see updateCatDimensionConstraintsCategoryRefs
+        .addSynchronizedEntityClass(Category.class)
+        .setParameter("targetCategoryId", targetCategoryId)
+        .setParameter("sourceCategoryIds", sourceCategoryIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
+  }
+
+  @Override
+  public int insertUserCopy(
+      @Nonnull UID sourceUid,
+      @Nonnull UID newUid,
+      @Nonnull UUID newUuid,
+      @Nonnull String username,
+      @Nonnull String encodedPassword,
+      @Nonnull UID actingUserUid) {
+    long newId =
+        Objects.requireNonNull(
+            jdbcTemplate.queryForObject("SELECT nextval('hibernate_sequence')", Long.class));
+    long actingUserId =
+        Objects.requireNonNull(
+            jdbcTemplate.queryForObject(
+                "SELECT userinfoid FROM userinfo WHERE uid = ?",
+                Long.class,
+                actingUserUid.getValue()));
+
+    return jdbcTemplate.update(
+        """
+        INSERT INTO userinfo (
+          userinfoid,
+          surname, firstname, email, phonenumber, uid, code,
+          lastupdated, lastcheckedinterpretations, jobtitle, introduction, gender,
+          birthday, nationality, employer, education, interests, languages, created,
+          welcomemessage, whatsapp, skype, facebookmessenger, telegram, twitter,
+          avatar, attributevalues, dataviewmaxorgunitlevel, lastupdatedby, creatoruserid,
+          username, password, secret, externalauth, openid, ldapid, passwordlastupdated,
+          lastlogin, restoretoken, restoreexpiry, selfregistered, invitation, disabled,
+          uuid, accountexpiry, idtoken, verifiedemail, emailverificationtoken, twofactortype)
+        SELECT
+          ?,
+          surname, firstname, email, phonenumber,
+          ?,
+          NULL,
+          now(),
+          NULL,
+          jobtitle, introduction, gender, birthday, nationality, employer,
+          education, interests, languages,
+          now(),
+          welcomemessage, whatsapp, skype, facebookmessenger, telegram, twitter,
+          avatar, attributevalues, dataviewmaxorgunitlevel,
+          ?,
+          ?,
+          ?,
+          ?,
+          NULL,
+          false,
+          NULL,
+          NULL,
+          now(),
+          NULL,
+          NULL,
+          NULL,
+          selfregistered,
+          false,
+          disabled,
+          ?,
+          accountexpiry,
+          NULL,
+          NULL,
+          NULL,
+          'NOT_ENABLED'
+        FROM userinfo
+        WHERE uid = ?
+        """,
+        newId,
+        newUid.getValue(),
+        actingUserId,
+        actingUserId,
+        username,
+        encodedPassword,
+        newUuid,
+        sourceUid.getValue());
+  }
+
+  @Override
+  public void copyOrgUnitMemberships(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid) {
+    jdbcTemplate.update(
+        """
+        INSERT INTO usermembership (userinfoid, organisationunitid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.organisationunitid
+        FROM usermembership m
+        WHERE m.userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM usermembership
+          WHERE userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND organisationunitid = m.organisationunitid
+        )
+        """,
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
+    jdbcTemplate.update(
+        """
+        INSERT INTO userdatavieworgunits (userinfoid, organisationunitid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.organisationunitid
+        FROM userdatavieworgunits m
+        WHERE m.userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM userdatavieworgunits
+          WHERE userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND organisationunitid = m.organisationunitid
+        )
+        """,
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
+    jdbcTemplate.update(
+        """
+        INSERT INTO userteisearchorgunits (userinfoid, organisationunitid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.organisationunitid
+        FROM userteisearchorgunits m
+        WHERE m.userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM userteisearchorgunits
+          WHERE userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND organisationunitid = m.organisationunitid
+        )
+        """,
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
+  }
+
+  @Override
+  public void copyDimensionConstraints(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid) {
+    jdbcTemplate.update(
+        """
+        INSERT INTO users_cogsdimensionconstraints (userid, categoryoptiongroupsetid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.categoryoptiongroupsetid
+        FROM users_cogsdimensionconstraints m
+        WHERE m.userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM users_cogsdimensionconstraints
+          WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND categoryoptiongroupsetid = m.categoryoptiongroupsetid
+        )
+        """,
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
+    jdbcTemplate.update(
+        """
+        INSERT INTO users_catdimensionconstraints (userid, dataelementcategoryid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.dataelementcategoryid
+        FROM users_catdimensionconstraints m
+        WHERE m.userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM users_catdimensionconstraints
+          WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND dataelementcategoryid = m.dataelementcategoryid
+        )
+        """,
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
+  }
+
+  @Override
+  public void removeAttributeValues(@Nonnull UID userUid, @Nonnull Collection<UID> attributeUids) {
+    for (UID attrUid : attributeUids) {
+      jdbcTemplate.update(
+          "UPDATE userinfo SET attributevalues = attributevalues - ? WHERE uid = ?",
+          attrUid.getValue(),
+          userUid.getValue());
+    }
+  }
+
+  @Override
+  public List<Integer> getActiveUserCounts(List<Date> sinceDates) {
+    if (sinceDates.isEmpty()) {
+      return List.of();
+    }
+    StringBuilder sql = new StringBuilder("select ");
+    for (int i = 0; i < sinceDates.size(); i++) {
+      if (i > 0) {
+        sql.append(", ");
+      }
+      sql.append("count(*) filter (where lastlogin >= ?) as c").append(i);
+    }
+    sql.append(" from userinfo");
+    return jdbcTemplate.query(
+        sql.toString(),
+        ps -> {
+          for (int i = 0; i < sinceDates.size(); i++) {
+            ps.setTimestamp(i + 1, new java.sql.Timestamp(sinceDates.get(i).getTime()));
+          }
+        },
+        rs -> {
+          rs.next();
+          List<Integer> counts = new ArrayList<>(sinceDates.size());
+          for (int i = 0; i < sinceDates.size(); i++) {
+            counts.add(rs.getInt(i + 1));
+          }
+          return counts;
+        });
+  }
+
+  @Override
+  public void clearUserQueryCache() {
+    getSession().getSessionFactory().getCache().evictQueryRegion(USERNAME_QUERY_CACHE_REGION);
   }
 }

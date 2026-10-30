@@ -39,7 +39,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-/** Hibernate implementation of the OAuth2ClientStore. */
+/**
+ * Hibernate-backed store for {@link Dhis2OAuth2Client}. Backs {@link
+ * Dhis2OAuth2ClientServiceImpl}'s {@link
+ * org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository}
+ * implementation.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Repository
 public class HibernateDhis2OAuth2ClientStore
     extends HibernateIdentifiableObjectStore<Dhis2OAuth2Client> implements Dhis2OAuth2ClientStore {
@@ -52,6 +59,7 @@ public class HibernateDhis2OAuth2ClientStore
     super(entityManager, jdbcTemplate, publisher, Dhis2OAuth2Client.class, aclService, true);
   }
 
+  /** Look up a client by OAuth2 {@code client_id}; returns {@code null} if none. */
   @Override
   @CheckForNull
   public Dhis2OAuth2Client getByClientId(@Nonnull String clientId) {

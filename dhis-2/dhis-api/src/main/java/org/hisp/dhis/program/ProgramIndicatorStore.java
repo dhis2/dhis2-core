@@ -30,6 +30,7 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
@@ -42,4 +43,15 @@ public interface ProgramIndicatorStore extends IdentifiableObjectStore<ProgramIn
   List<ProgramIndicator> getAllWithExpressionContainingStrings(@Nonnull List<String> searchStrings);
 
   List<ProgramIndicator> getAllWithFilterContainingStrings(@Nonnull List<String> searchStrings);
+
+  /**
+   * Updates all ProgramIndicator.categoryCombo and ProgramIndicator.attributeCategoryCombo
+   * references from source CategoryCombos to the target.
+   *
+   * @param sourceCategoryComboIds IDs of source CategoryCombos to replace
+   * @param targetCategoryComboId ID of target CategoryCombo
+   * @return number of updated records
+   */
+  int updateCategoryComboAndAttributeComboRefs(
+      Set<Long> sourceCategoryComboIds, long targetCategoryComboId);
 }

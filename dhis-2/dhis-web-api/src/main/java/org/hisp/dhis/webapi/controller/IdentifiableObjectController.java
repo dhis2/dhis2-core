@@ -37,8 +37,10 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
@@ -59,9 +61,12 @@ public class IdentifiableObjectController
   @Nonnull
   @Override
   @SuppressWarnings("unchecked")
-  public IdentifiableObject getEntity(String uid) throws NotFoundException {
-    Optional<IdentifiableObject> object = (Optional<IdentifiableObject>) manager.find(uid);
-    if (object.isEmpty()) {
+  public IdentifiableObject getEntity(@Nonnull UID uid) throws NotFoundException {
+    Optional<IdentifiableObject> object =
+        (Optional<IdentifiableObject>) manager.find(uid.getValue());
+    // A file resource is authorized against its owning object, which only the file resource API
+    // applies, so this generic lookup does not resolve it.
+    if (object.isEmpty() || object.get() instanceof FileResource) {
       throw new NotFoundException(format("No identifiable object with id `%s` exists", uid));
     }
     return object.get();
@@ -75,7 +80,7 @@ public class IdentifiableObjectController
 
   @Override
   public WebMessage putJsonObject(
-      @PathVariable("uid") String pvUid,
+      @PathVariable("uid") UID uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws HttpRequestMethodNotSupportedException {
@@ -84,7 +89,7 @@ public class IdentifiableObjectController
 
   @Override
   public WebMessage deleteObject(
-      @PathVariable("uid") String pvUid,
+      @PathVariable("uid") UID uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)

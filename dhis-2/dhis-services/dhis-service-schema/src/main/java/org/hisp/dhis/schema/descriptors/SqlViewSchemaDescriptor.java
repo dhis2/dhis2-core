@@ -59,7 +59,6 @@ public class SqlViewSchemaDescriptor implements SchemaDescriptor {
     schema.add(
         new Authority(AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_SQLVIEW_PRIVATE_ADD")));
     schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_SQLVIEW_DELETE")));
-    schema.add(new Authority(AuthorityType.EXTERNALIZE, Lists.newArrayList("F_SQLVIEW_EXTERNAL")));
 
     return schema;
   }

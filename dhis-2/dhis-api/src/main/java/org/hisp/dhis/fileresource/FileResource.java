@@ -31,10 +31,13 @@ package org.hisp.dhis.fileresource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.storage.BlobKey;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.util.MimeTypeUtils;
 
 /**
@@ -48,7 +51,8 @@ public class FileResource extends BaseIdentifiableObject {
   public static final Set<String> IMAGE_CONTENT_TYPES =
       Set.of("image/jpg", "image/png", "image/jpeg");
 
-  public static FileResource ofKey(FileResourceDomain domain, String key, String contentType) {
+  public static FileResource ofKey(
+      FileResourceDomain domain, @Nonnull String key, String contentType) {
     return new FileResource(
         key, domain.getContainerName() + "_" + key, contentType, 0, null, domain);
   }
@@ -68,8 +72,11 @@ public class FileResource extends BaseIdentifiableObject {
   /**
    * Flag indicating whether the resource is assigned (e.g. to a DataValue) or not. Unassigned
    * FileResources are generally safe to delete when reaching a certain age (unassigned objects
-   * might be in staging).
+   * might be in staging). <br>
+   * It is marked as read-only as it should only be set internally by code when it is used/no longer
+   * used by one of its domains, never through the API.
    */
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private boolean assigned = false;
 
   /** The domain which this FileResource belongs to. */
@@ -103,11 +110,11 @@ public class FileResource extends BaseIdentifiableObject {
     this.contentLength = contentLength;
     this.contentMd5 = contentMd5;
     this.domain = domain;
-    this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.empty());
+    this.storageKey = FileResourceKeyUtil.makeKeyWithRandomUUID(domain).value();
   }
 
   public FileResource(
-      String key,
+      @Nonnull String key,
       String name,
       String contentType,
       long contentLength,
@@ -118,7 +125,7 @@ public class FileResource extends BaseIdentifiableObject {
     this.contentLength = contentLength;
     this.contentMd5 = contentMd5;
     this.domain = domain;
-    this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.of(key));
+    this.storageKey = FileResourceKeyUtil.makeKey(domain, key).value();
   }
 
   // -------------------------------------------------------------------------
@@ -181,8 +188,22 @@ public class FileResource extends BaseIdentifiableObject {
     this.contentMd5 = contentMd5;
   }
 
+  /**
+   * Returns the raw storage key string as persisted in the database (e.g. {@code
+   * "dataValue/550e8400-e29b-41d4-a716-446655440000"}). Prefer {@link #asBlobKey()} when passing
+   * the key to blob-storage APIs.
+   */
   public String getStorageKey() {
     return storageKey;
+  }
+
+  /**
+   * Returns the storage key as a typed {@link BlobKey}. Use this when calling {@link
+   * org.hisp.dhis.fileresource.FileResourceContentStore} methods, which accept {@link BlobKey}
+   * rather than {@link String}.
+   */
+  public BlobKey asBlobKey() {
+    return BlobKey.of(storageKey);
   }
 
   public void setStorageKey(String storageKey) {
@@ -239,5 +260,17 @@ public class FileResource extends BaseIdentifiableObject {
 
   public void setFileResourceOwner(String fileResourceOwner) {
     this.fileResourceOwner = fileResourceOwner;
+  }
+
+  /**
+   * Compares primary keys, so the check does not depend on loading any other state of the uploader.
+   *
+   * @param user a user
+   * @return true when the given user uploaded this file resource
+   */
+  public boolean isCreatedBy(@Nonnull UserDetails user) {
+    User uploader = getCreatedBy();
+    Long userId = user.getId();
+    return uploader != null && userId != null && uploader.getId() == userId;
   }
 }

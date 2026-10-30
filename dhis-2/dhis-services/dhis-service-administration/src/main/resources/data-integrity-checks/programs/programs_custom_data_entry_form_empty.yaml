@@ -26,7 +26,7 @@
 #
 ---
 name: programs_custom_data_entry_forms_empty
-description: Programs which have custom data entry forms which are empty.
+description: Programs which have empty custom data entry forms
 section: Programs
 section_order: 1
 summary_sql: >-

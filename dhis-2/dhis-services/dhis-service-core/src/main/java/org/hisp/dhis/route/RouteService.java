@@ -32,18 +32,22 @@ package org.hisp.dhis.route;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import io.netty.handler.timeout.ReadTimeoutException;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,10 +55,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -73,14 +82,22 @@ import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriTemplate;
+import org.springframework.web.util.UriUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClientRequest;
@@ -110,6 +127,8 @@ public class RouteService {
   private DataBufferFactory dataBufferFactory;
 
   private WebClient webClient;
+
+  private final AuditManager auditManager;
 
   protected static final Set<String> ALLOWED_REQUEST_HEADERS =
       Set.of(
@@ -165,10 +184,10 @@ public class RouteService {
       throw new IllegalStateException(
           "Allowed route URL scheme must be either http or https: " + host);
     }
-    if ((host.startsWith("http:"))) {
+    if (host.startsWith("http:")) {
       log.warn("Allowed route URL is insecure: {}. You should change the protocol to HTTPS", host);
     }
-    if ((host.equals("https://*"))) {
+    if (host.equals("https://*")) {
       log.warn(
           "Default allowed route URL {} is vulnerable to server-side request forgery (SSRF) attacks. You should further restrict the default allowed route URL such that it contains no wildcards",
           host);
@@ -212,17 +231,20 @@ public class RouteService {
   }
 
   protected boolean isRouteUrlAllowed(URL routeUrl) {
-    String routeAddress =
-        routeUrl.getProtocol()
-            + "://"
-            + routeUrl.getHost()
-            + (routeUrl.getPort() > -1 ? ":" + routeUrl.getPort() : "");
+    String origin = getOrigin(routeUrl);
     for (String regexRemoteServer : allowedRouteRegexRemoteServers) {
-      if (routeAddress.matches(regexRemoteServer)) {
+      if (origin.matches(regexRemoteServer)) {
         return true;
       }
     }
     return false;
+  }
+
+  protected String getOrigin(URL url) {
+    return url.getProtocol()
+        + "://"
+        + url.getHost()
+        + (url.getPort() > -1 ? ":" + url.getPort() : "");
   }
 
   public void validateRoute(Route route) throws ConflictException {
@@ -238,8 +260,13 @@ public class RouteService {
       throw new ConflictException("Route URL scheme must be either http or https");
     }
 
+    if (!new UriTemplate(getOrigin(url)).getVariableNames().isEmpty()) {
+      throw new ConflictException("Placeholders are only permitted in the route URL path or query");
+    }
+
     if (!isRouteUrlAllowed(url)) {
-      throw new ConflictException("Route URL is not permitted");
+      throw new ConflictException(
+          "Route URL is not permitted. Ask your DHIS2 server administrator to allow it");
     }
 
     if (route.getResponseTimeoutSeconds() < 1 || route.getResponseTimeoutSeconds() > 60) {
@@ -264,47 +291,53 @@ public class RouteService {
       throws BadGatewayException {
 
     try {
-      if (!isRouteUrlAllowed(new URL(route.getBaseUrl()))) {
-        return new ResponseEntity<>(HttpStatusCode.valueOf(503));
-      }
-    } catch (MalformedURLException e) {
+      validateRoute(route);
+    } catch (ConflictException e) {
       log.error(e.getMessage(), e);
       throw new BadGatewayException("An unexpected error occurred");
     }
 
+    UriComponentsBuilder uriComponentsBuilder = createRequestPathBuilder(route, subPath);
+    MultiValueMap<String, String> queryParams = getQueryParams(request);
+    Map<String, String> placeholderQueryParams = getPlaceholderQueryParams(route, queryParams);
+    Map<String, List<String>> upstreamQueryParams =
+        queryParams.entrySet().stream()
+            .filter(
+                q ->
+                    !q.getKey().startsWith("_")
+                        || !placeholderQueryParams.containsKey(q.getKey().substring(1)))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     HttpHeaders headers = filterRequestHeaders(request);
+    applyAuthScheme(route, headers, upstreamQueryParams);
     route.getHeaders().forEach(headers::add);
     addForwardedUserHeader(userDetails, headers);
 
-    Map<String, List<String>> queryParameters = new HashMap<>();
-    request
-        .getParameterMap()
-        .forEach(
-            (key, value) ->
-                queryParameters
-                    .computeIfAbsent(key, k -> new LinkedList<>())
-                    .addAll(Arrays.asList(value)));
+    String upstreamUrl =
+        createRequestUrl(
+            uriComponentsBuilder.cloneBuilder(), upstreamQueryParams, placeholderQueryParams);
 
-    applyAuthScheme(route, headers, queryParameters);
-    String targetUri = createTargetUri(route, subPath, queryParameters);
     HttpMethod httpMethod =
         Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
     WebClient.RequestHeadersSpec<?> requestHeadersSpec =
-        buildRequestSpec(headers, httpMethod, targetUri, route, request);
+        buildRequestSpec(headers, httpMethod, upstreamUrl, route, request);
+
+    String upstreamUrlLog =
+        uriComponentsBuilder.buildAndExpand(placeholderQueryParams).toUriString();
 
     log.debug(
         "Sending '{}' '{}' with route '{}' ('{}')",
         httpMethod,
-        targetUri,
+        upstreamUrlLog,
         route.getName(),
         route.getUid());
 
-    ResponseEntity<Flux<DataBuffer>> responseEntityFlux = retrieve(requestHeadersSpec);
+    ResponseEntity<Flux<DataBuffer>> responseEntityFlux =
+        retrieve(requestHeadersSpec, httpMethod, upstreamUrlLog, route.getUid(), userDetails);
 
     log.debug(
         "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
         httpMethod,
-        targetUri,
+        upstreamUrlLog,
         responseEntityFlux.getStatusCode(),
         route.getName(),
         route.getUid());
@@ -315,35 +348,109 @@ public class RouteService {
         responseEntityFlux.getStatusCode());
   }
 
+  protected Map<String, String> getPlaceholderQueryParams(
+      Route route, MultiValueMap<String, String> queryParams) throws BadGatewayException {
+    List<String> placeholders = new UriTemplate(route.getBaseUrl()).getVariableNames();
+    Map<String, String> placeholderQueryParams =
+        queryParams.entrySet().stream()
+            .filter(
+                q ->
+                    q.getKey().startsWith("_")
+                        && q.getKey().length() > 1
+                        && placeholders.contains(q.getKey().substring(1)))
+            .map(q -> Map.entry(q.getKey().substring(1), q.getValue().get(0)))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    for (String placeholder : placeholders) {
+      if (!placeholderQueryParams.containsKey(placeholder)
+          || placeholderQueryParams.get(placeholder).isBlank()) {
+        throw new BadGatewayException("Missing or blank value for placeholder: " + placeholder);
+      }
+    }
+
+    return UriUtils.encodeUriVariables(placeholderQueryParams);
+  }
+
   protected ResponseEntity<Flux<DataBuffer>> retrieve(
-      WebClient.RequestHeadersSpec<?> requestHeadersSpec) {
+      WebClient.RequestHeadersSpec<?> requestHeadersSpec,
+      HttpMethod httpMethod,
+      String upstreamUrlLog,
+      String routeId,
+      UserDetails userDetails) {
     WebClient.ResponseSpec responseSpec =
         requestHeadersSpec
             .retrieve()
             .onStatus(httpStatusCode -> true, clientResponse -> Mono.empty());
+
+    Audit.AuditBuilder auditBuilder =
+        Audit.builder()
+            .auditScope(AuditScope.API)
+            .createdBy(userDetails.getUsername())
+            .auditType(AuditType.SECURITY)
+            .data("");
+
+    RouteRunApiAuditEntry auditEntry = new RouteRunApiAuditEntry();
+    auditEntry.setSource("Route Run");
+    auditEntry.setRouteId(routeId);
+    auditEntry.setHttpMethod(httpMethod.name());
+    auditEntry.setUpstreamUrl(upstreamUrlLog);
 
     return responseSpec
         .toEntityFlux(DataBuffer.class)
         .onErrorReturn(
             throwable -> throwable.getCause() instanceof ReadTimeoutException,
             new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
+        .doOnError(
+            throwable -> {
+              auditEntry.setSuccessful(false);
+              AuditableEntity auditableEntity =
+                  new AuditableEntity(RouteRunApiAuditEntry.class, auditEntry);
+              Audit audit =
+                  auditBuilder
+                      .createdAt(LocalDateTime.now())
+                      .attributes(
+                          auditManager.collectAuditAttributes(
+                              auditEntry, RouteRunApiAuditEntry.class))
+                      .auditableEntity(auditableEntity)
+                      .build();
+              auditManager.send(audit);
+            })
+        .doOnSuccess(
+            fluxResponseEntity -> {
+              auditEntry.setSuccessful(true);
+              AuditableEntity auditableEntity =
+                  new AuditableEntity(RouteRunApiAuditEntry.class, auditEntry);
+              Audit audit =
+                  auditBuilder
+                      .createdAt(LocalDateTime.now())
+                      .attributes(
+                          auditManager.collectAuditAttributes(
+                              auditEntry, RouteRunApiAuditEntry.class))
+                      .auditableEntity(auditableEntity)
+                      .build();
+              auditManager.send(audit);
+            })
         .block();
   }
 
-  protected String createTargetUri(
-      Route route, Optional<String> subPath, Map<String, List<String>> queryParameters)
+  protected UriComponentsBuilder createRequestPathBuilder(Route route, Optional<String> subPath)
       throws BadGatewayException {
     UriComponentsBuilder uriComponentsBuilder =
-        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl());
+        UriComponentsBuilder.fromUriString(route.getBaseUrl());
+    uriComponentsBuilder.path(getSubPath(route, subPath));
 
-    for (Map.Entry<String, List<String>> queryParameter : queryParameters.entrySet()) {
+    return uriComponentsBuilder;
+  }
+
+  protected String createRequestUrl(
+      UriComponentsBuilder uriComponentsBuilder,
+      Map<String, List<String>> upstreamQueryParams,
+      Map<String, String> placeholderQueryParams) {
+    for (Map.Entry<String, List<String>> queryParameter : upstreamQueryParams.entrySet()) {
       uriComponentsBuilder =
           uriComponentsBuilder.queryParam(queryParameter.getKey(), queryParameter.getValue());
     }
 
-    uriComponentsBuilder.path(getSubPath(route, subPath));
-
-    return uriComponentsBuilder.build().toUriString();
+    return uriComponentsBuilder.buildAndExpand(placeholderQueryParams).toUriString();
   }
 
   protected WebClient.RequestHeadersSpec<?> buildRequestSpec(
@@ -354,21 +461,10 @@ public class RouteService {
       HttpServletRequest request)
       throws BadGatewayException {
 
-    final Flux<DataBuffer> requestBodyFlux;
-    try {
-      requestBodyFlux =
-          DataBufferUtils.read(
-                  new InputStreamResource(request.getInputStream()), dataBufferFactory, 8192)
-              .doOnNext(DataBufferUtils.releaseConsumer());
-    } catch (IOException e) {
-      log.error(e.getMessage(), e);
-      throw new BadGatewayException("An error occurred while reading the upstream response");
-    }
-
-    WebClient.RequestHeadersSpec<?> requestHeadersSpec =
+    WebClient.RequestBodySpec requestBodySpec =
         webClient
             .method(httpMethod)
-            .uri(targetUri)
+            .uri(uriBuilder -> URI.create(targetUri))
             .httpRequest(
                 clientHttpRequest -> {
                   Object nativeRequest = clientHttpRequest.getNativeRequest();
@@ -376,15 +472,82 @@ public class RouteService {
                     httpClientRequest.responseTimeout(
                         Duration.ofSeconds(route.getResponseTimeoutSeconds()));
                   }
-                })
-            .body(requestBodyFlux, DataBuffer.class);
+                });
 
-    for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+    WebClient.RequestHeadersSpec<?> requestHeadersSpec;
+    if (request instanceof MultipartHttpServletRequest) {
+      requestHeadersSpec = buildMultipartUpstreamRequestHeaderSpec(request, requestBodySpec);
+    } else {
+      requestHeadersSpec = buildUpstreamRequestHeaderSpec(request, requestBodySpec);
+    }
+
+    for (Map.Entry<String, List<String>> header : headers.headerSet()) {
       requestHeadersSpec =
           requestHeadersSpec.header(header.getKey(), header.getValue().toArray(new String[0]));
     }
 
     return requestHeadersSpec;
+  }
+
+  protected WebClient.RequestHeadersSpec<?> buildUpstreamRequestHeaderSpec(
+      HttpServletRequest request, WebClient.RequestBodySpec requestBodySpec)
+      throws BadGatewayException {
+    try {
+      Flux<DataBuffer> requestBodyFlux =
+          DataBufferUtils.read(
+                  new InputStreamResource(request.getInputStream()), dataBufferFactory, 8192)
+              .doOnNext(DataBufferUtils.releaseConsumer());
+      return requestBodySpec.body(requestBodyFlux, DataBuffer.class);
+    } catch (IOException e) {
+      log.error(e.getMessage(), e);
+      throw new BadGatewayException("An error occurred while processing the request");
+    }
+  }
+
+  protected WebClient.RequestHeadersSpec<?> buildMultipartUpstreamRequestHeaderSpec(
+      HttpServletRequest request, WebClient.RequestBodySpec requestBodySpec)
+      throws BadGatewayException {
+    try {
+      MultipartBodyBuilder multipartBodyBuilder = new MultipartBodyBuilder();
+      for (Part part : request.getParts()) {
+        multipartBodyBuilder.asyncPart(
+            part.getName(),
+            DataBufferUtils.read(
+                new InputStreamResource(part.getInputStream()), dataBufferFactory, 8192),
+            DataBuffer.class);
+      }
+
+      for (Map.Entry<String, MultipartFile> file :
+          ((MultipartHttpServletRequest) request).getFileMap().entrySet()) {
+        MultipartBodyBuilder.PartBuilder partBuilder =
+            multipartBodyBuilder.asyncPart(
+                file.getKey(),
+                DataBufferUtils.read(file.getValue().getResource(), dataBufferFactory, 8192),
+                DataBuffer.class);
+        if (file.getValue().getContentType() != null) {
+          partBuilder.contentType(MediaType.valueOf(file.getValue().getContentType()));
+        }
+        if (file.getValue().getOriginalFilename() != null) {
+          partBuilder.filename(file.getValue().getOriginalFilename());
+        }
+      }
+
+      return requestBodySpec.body(BodyInserters.fromMultipartData(multipartBodyBuilder.build()));
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      throw new BadGatewayException("An error occurred while processing the request");
+    }
+  }
+
+  protected MultiValueMap<String, String> getQueryParams(HttpServletRequest request) {
+    if (request.getQueryString() != null) {
+      return UriComponentsBuilder.fromUriString(
+              "?" + URLDecoder.decode(request.getQueryString(), StandardCharsets.UTF_8))
+          .build()
+          .getQueryParams();
+    } else {
+      return new LinkedMultiValueMap<>();
+    }
   }
 
   protected ResponseBodyEmitter emitResponseBody(
@@ -424,14 +587,16 @@ public class RouteService {
   }
 
   protected void applyAuthScheme(
-      Route route, Map<String, List<String>> headers, Map<String, List<String>> queryParameters)
+      Route route, HttpHeaders headers, Map<String, List<String>> queryParameters)
       throws BadGatewayException {
     if (route.getAuth() != null) {
       try {
+        Map<String, List<String>> authHeaders = new LinkedHashMap<>();
         route
             .getAuth()
             .decrypt(encryptor::decrypt)
-            .apply(applicationContext, headers, queryParameters);
+            .apply(applicationContext, authHeaders, queryParameters);
+        authHeaders.forEach((name, values) -> values.forEach(value -> headers.add(name, value)));
       } catch (Exception e) {
         log.error(e.getMessage(), e);
         throw new BadGatewayException("An error occurred during authentication");
@@ -484,7 +649,8 @@ public class RouteService {
    * @return an {@link HttpHeaders}.
    */
   private HttpHeaders filterResponseHeaders(HttpHeaders responseHeaders) {
-    return filterHeaders(responseHeaders.keySet(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
+    return filterHeaders(
+        responseHeaders.headerNames(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
   }
 
   /**

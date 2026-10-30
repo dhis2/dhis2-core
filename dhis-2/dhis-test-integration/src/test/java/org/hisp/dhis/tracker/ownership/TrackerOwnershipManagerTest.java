@@ -35,6 +35,8 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -51,18 +53,18 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -199,23 +201,11 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldHaveAccessWhenProgramProtectedAndUserInCaptureScope() {
     assertTrue(trackerOwnershipManager.hasAccess(userDetailsA, trackedEntityA1, programA));
-    assertTrue(
-        trackerOwnershipManager.hasAccess(
-            userDetailsA,
-            trackedEntityA1.getUid(),
-            trackedEntityA1.getOrganisationUnit(),
-            programA));
   }
 
   @Test
   void shouldNotHaveAccessWhenProgramProtectedAndUserNotInSearchScopeNorHasTemporaryAccess() {
     assertFalse(trackerOwnershipManager.hasAccess(userDetailsB, trackedEntityA1, programA));
-    assertFalse(
-        trackerOwnershipManager.hasAccess(
-            UserDetails.fromUser(userB),
-            trackedEntityA1.getUid(),
-            trackedEntityA1.getOrganisationUnit(),
-            programA));
 
     injectSecurityContextUser(userB);
     NotFoundException exception =
@@ -235,12 +225,6 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     userService.updateUser(userB);
     assertFalse(
         trackerOwnershipManager.hasAccess(UserDetails.fromUser(userB), trackedEntityA1, programA));
-    assertFalse(
-        trackerOwnershipManager.hasAccess(
-            UserDetails.fromUser(userB),
-            trackedEntityA1.getUid(),
-            trackedEntityA1.getOrganisationUnit(),
-            programA));
 
     injectSecurityContextUser(userB);
     NotFoundException exception =
@@ -257,12 +241,6 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldHaveAccessWhenProgramClosedAndUserInCaptureScope() {
     assertTrue(trackerOwnershipManager.hasAccess(userDetailsB, trackedEntityB1, programB));
-    assertTrue(
-        trackerOwnershipManager.hasAccess(
-            userDetailsB,
-            trackedEntityB1.getUid(),
-            trackedEntityB1.getOrganisationUnit(),
-            programB));
   }
 
   @Test

@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.analytics.table.ColumnRegex.NUMERIC_REGEXP;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
@@ -73,7 +74,9 @@ import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -166,6 +169,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   private static final List<String> SORT_KEY = List.of("dx", "co");
 
+  private static final List<String> PRIMARY_KEY = List.of("id", "year");
+
   public JdbcAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -178,7 +183,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      ConfigurationService configurationService) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -191,7 +197,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        sqlBuilder);
+        sqlBuilder,
+        configurationService);
   }
 
   // -------------------------------------------------------------------------
@@ -206,10 +213,14 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
+    List<String> primaryKey =
+        sqlBuilder.requiresUniqueKeyAnalyticsTables() ? PRIMARY_KEY : List.of();
+
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getColumns(params))
-            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(params), SORT_KEY);
+            ? getLatestAnalyticsTable(params, getColumns(params), primaryKey)
+            : getRegularAnalyticsTable(
+                params, getDataYears(params), getColumns(params), SORT_KEY, primaryKey);
 
     return table.hasTablePartitions() ? List.of(table) : List.of();
   }
@@ -248,6 +259,86 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     AnalyticsTablePartition partition = getLatestTablePartition(tables);
+
+    if (sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
+      removeUpdatedDataViaStagingKeys(partition);
+    } else {
+      removeUpdatedDataViaSubquery(partition);
+    }
+  }
+
+  /**
+   * Removes updated and deleted data on databases which require a unique key for analytics tables
+   * (Doris). The equivalent single {@code delete ... using <federated table>} statement is avoided
+   * here because it joins a live federated table (the operational database's {@code datavalue})
+   * against local tables inside a {@code delete}, which is dramatically slower than the same join
+   * shape used as a plain {@code select} (as {@link #populateTable} already does). Instead, the
+   * matching rows' natural key column values are first materialized into a small native staging
+   * table via that proven-fast federated {@code select}, and the actual delete runs entirely
+   * locally against that staging table.
+   */
+  private void removeUpdatedDataViaStagingKeys(AnalyticsTablePartition partition) {
+    String keysTableName = getAnalyticsTableType().getTableName() + "_delete_keys";
+    Table keysTable =
+        new Table(
+            keysTableName,
+            List.of(
+                new Column("dx", CHARACTER_11),
+                new Column("co", CHARACTER_11),
+                new Column("ao", CHARACTER_11),
+                new Column("pe", TEXT),
+                new Column("ou", CHARACTER_11),
+                new Column("year", INTEGER)),
+            List.of());
+
+    invokeTimeAndLog(
+        sqlBuilder.dropTableIfExistsCascade(keysTableName), "Drop delete-keys staging table (pre)");
+
+    invokeTimeAndLog(sqlBuilder.createTable(keysTable), "Create delete-keys staging table");
+
+    String insertSql =
+        replaceQualify(
+            sqlBuilder,
+            """
+            insert into ${keysTableName} (dx,co,ao,pe,ou,year) \
+            select des.dataelementuid, dcs.categoryoptioncombouid, acs.categoryoptioncombouid, ps.iso, ous.organisationunituid, ps.year \
+            from ${datavalue} dv \
+            inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
+            inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+            inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
+            inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
+            inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
+            where dv.lastupdated >= '${startDate}' and dv.lastupdated < '${endDate}';""",
+            Map.of(
+                "keysTableName", quote(keysTableName),
+                "startDate", toLongDate(partition.getStartDate()),
+                "endDate", toLongDate(partition.getEndDate())));
+
+    invokeTimeAndLog(insertSql, "Populate delete-keys staging table");
+
+    String deleteSql =
+        replace(
+            """
+            delete from ${tableName} ax \
+            using ${keysTableName} k \
+            where ax.dx=k.dx and ax.co=k.co and ax.ao=k.ao and ax.pe=k.pe and ax.ou=k.ou and ax.year=k.year;""",
+            Map.of(
+                "tableName", quote(getAnalyticsTableType().getTableName()),
+                "keysTableName", quote(keysTableName)));
+
+    invokeTimeAndLog(deleteSql, "Remove updated data values");
+
+    invokeTimeAndLog(
+        sqlBuilder.dropTableIfExistsCascade(keysTableName),
+        "Drop delete-keys staging table (post)");
+  }
+
+  /**
+   * Removes updated and deleted data on databases which do not require a unique key for analytics
+   * tables (Postgres, ClickHouse). Runs entirely against local tables, so the federated-join
+   * problem {@link #removeUpdatedDataViaStagingKeys} works around does not apply here.
+   */
+  private void removeUpdatedDataViaSubquery(AnalyticsTablePartition partition) {
     String sql =
         replaceQualify(
             sqlBuilder,
@@ -410,8 +501,21 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                 "startTime", toLongDate(params.getStartTime()),
                 "deletedClause", sqlBuilder.isFalse("dv", "deleted"))));
 
+    sql.append(getStartEndDatesCondition(respectStartEndDates));
+
+    if (whereClause != null) {
+      sql.append(" and " + whereClause + " ");
+    }
+
+    invokeTimeAndLog(sql.toString(), "Populating table: '{}' {}", tableName, valueTypes);
+  }
+
+  String getStartEndDatesCondition(boolean respectStartEndDates) {
+    StringBuilder condition = new StringBuilder("");
+
     if (respectStartEndDates) {
-      sql.append(
+      condition.append(SPACE);
+      condition.append(
           """
           and (aon.startdate is null or aon.startdate <= ps.startdate) \
           and (aon.enddate is null or aon.enddate >= ps.enddate) \
@@ -419,11 +523,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
           and (con.enddate is null or con.enddate >= ps.enddate)\s""");
     }
 
-    if (whereClause != null) {
-      sql.append(" and " + whereClause + " ");
-    }
-
-    invokeTimeAndLog(sql.toString(), "Populating table: '{}' {}", tableName, valueTypes);
+    return condition.toString();
   }
 
   /**
@@ -518,7 +618,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     columns.add(
         AnalyticsTableColumn.builder()
             .name("id")
-            .dataType(TEXT)
+            .dataType(sqlBuilder.requiresUniqueKeyAnalyticsTables() ? VARCHAR_255 : TEXT)
             .selectExpression(idColAlias)
             .build());
     columns.addAll(getDataElementGroupSetColumns());
@@ -747,7 +847,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    *
    * @return sql statement fraction of statistic basic values for the outlier identification.
    */
-  private String getOutliersJoinStatement() {
+  String getOutliersJoinStatement() {
+    // Outlier stats are only meaningful for numeric data elements; text/date/boolean values
+    // (e.g. LONG_TEXT) must never be fed into the double precision stats below.
+    String numericValueTypes =
+        quotedCommaDelimitedString(ObjectUtils.asStringList(ValueType.NUMERIC_TYPES));
     // spotless:off
     return "left join (select t3.dataelementid, t3.sourceid, t3.categoryoptioncomboid, t3.attributeoptioncomboid, " +
         // median of absolute deviations "mad" (median(xi - median(xi)))
@@ -779,8 +883,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         "percentile_cont(0.5) " +
         "within group (order by dv1.value::double precision) as percentile_middle_value " +
         "from datavalue dv1 " +
-        // Only numeric values (value is varchar or string) can be used for stats calculation.
-        "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' " +
+        "inner join dataelement de1 on dv1.dataelementid = de1.dataelementid " +
+        // Only numeric data elements with a parseable numeric value can be used for stats
+        // calculation; text-typed values (e.g. LONG_TEXT) must be excluded regardless of
+        // whether their content happens to look numeric.
+        "where de1.valuetype in (" + numericValueTypes + ") " +
+        "and dv1.value ~ " + NUMERIC_REGEXP + " " +
         "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, " +
         "dv1.attributeoptioncomboid) t1 " +
         "join " +
@@ -793,8 +901,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         "dv1.attributeoptioncomboid as attributeoptioncomboid, " +
         "dv1.value, dv1.periodid " +
         "from datavalue dv1 " +
-        // Only numeric values (varchars) can be used for stats calculation.
-        "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' " +
+        "inner join dataelement de1 on dv1.dataelementid = de1.dataelementid " +
+        // Only numeric data elements with a parseable numeric value can be used for stats
+        // calculation; text-typed values (e.g. LONG_TEXT) must be excluded regardless of
+        // whether their content happens to look numeric.
+        "where de1.valuetype in (" + numericValueTypes + ") " +
+        "and dv1.value ~ " + NUMERIC_REGEXP + " " +
         "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, " +
         "dv1.attributeoptioncomboid, dv1.value, dv1.periodid) t2 " +
         "on t1.sourceid = t2.sourceid " +

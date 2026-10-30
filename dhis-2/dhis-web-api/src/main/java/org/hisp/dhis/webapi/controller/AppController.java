@@ -39,8 +39,14 @@ import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +60,6 @@ import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
-import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -62,7 +67,11 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.util.AppHtmlTemplate;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.staticresource.HtmlCacheBustingService;
+import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
+import org.hisp.dhis.webapi.staticresource.StaticCacheMetrics;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -100,6 +109,12 @@ public class AppController {
   @Autowired private I18nManager i18nManager;
 
   @Autowired private ContextService contextService;
+
+  @Autowired private StaticCacheControlService staticCacheControlService;
+
+  @Autowired private HtmlCacheBustingService htmlCacheBustingService;
+
+  @Autowired private StaticCacheMetrics staticCacheMetrics;
 
   @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
@@ -148,6 +163,7 @@ public class AppController {
       throw new WebMessageException(conflict(message));
     }
 
+    htmlCacheBustingService.invalidateAll();
     return new ResponseEntity<>(installedApp, HttpStatus.CREATED);
   }
 
@@ -156,6 +172,7 @@ public class AppController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void reloadApps() {
     appManager.reloadApps();
+    htmlCacheBustingService.invalidateAll();
   }
 
   @GetMapping("/{app}/**")
@@ -182,6 +199,18 @@ public class AppController {
           forbidden("User does not have access to app '" + appName + "'."));
     }
 
+    // Set cache headers early — applies to both 200 and 304 responses
+    String requestUri = request.getRequestURI();
+    String queryString = request.getQueryString();
+    staticCacheControlService.setHeaders(response, requestUri, queryString, application.getKey());
+
+    // Early 304 check — avoids resource I/O for cached responses
+    String etag = staticCacheControlService.generateETag(application, requestUri, queryString);
+    if (new ServletWebRequest(request, response).checkNotModified(etag)) {
+      staticCacheMetrics.countNotModified();
+      return;
+    }
+
     // Get page requested
     String resource = getResourcePath(request.getPathInfo(), application, contextPath);
 
@@ -189,10 +218,9 @@ public class AppController {
 
     ResourceResult resourceResult = appManager.getAppResource(application, resource, baseUrl);
     if (resourceResult instanceof ResourceFound found) {
-      serveResource(request, response, found, application);
+      serveResource(request, response, found, application, baseUrl);
     } else if (resourceResult instanceof Redirect redirect) {
       String redirectUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
-      String queryString = request.getQueryString();
       if (queryString != null) {
         redirectUrl += "?" + queryString;
       }
@@ -210,33 +238,23 @@ public class AppController {
     }
   }
 
+  /**
+   * Streams the resource content to the response. Cache headers and 304 are handled by the caller.
+   * For HTML entry points, the cache-busting rewrite is applied first (cached, request-independent)
+   * and then the {@link AppHtmlTemplate} is applied (per-request, injects the request-specific base
+   * URL into the HTML).
+   */
   private void serveResource(
       HttpServletRequest request,
       HttpServletResponse response,
       ResourceFound resourceResult,
-      App app)
+      App app,
+      String baseUrl)
       throws IOException {
     String filename = resourceResult.resource().getFilename();
     log.debug("Serving app resource, filename: {}", filename);
 
-    // Use a combination of app version and last modified timestamp to generate an ETag
-    // This is to ensure that the ETag changes when the app is updated
-    // There is no guarantee that a new app uploaded will have a different version number, so we
-    // need to include the last modified timestamp
-    // Similarly, with classPath resources the lastModified timestamp may be missing or not
-    // reliable, so we need to include the version number
-    // See also AppHtmlNoCacheFilter for cache control headers set on index.html responses
-
-    long lastModified = resourceResult.resource().lastModified();
-    String etagSource = String.format("%s-%s", app.getVersion(), String.valueOf(lastModified));
-    String etag = HashUtils.hashMD5(etagSource.getBytes());
-
-    if (new ServletWebRequest(request, response).checkNotModified(etag, lastModified)) {
-      log.debug("Resource not modified (etag {}, source {})", etag, etagSource);
-      response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-      return;
-    }
-
+    String requestUri = request.getRequestURI();
     String mimeType =
         resourceResult.mimeType() == null
             ? request.getSession().getServletContext().getMimeType(filename)
@@ -246,19 +264,40 @@ public class AppController {
       response.setContentType(mimeType);
     }
 
-    long contentLength = appManager.getUriContentLength(resourceResult.resource());
+    boolean isHtmlEntry =
+        (mimeType != null && mimeType.startsWith("text/html"))
+            || (filename != null && filename.endsWith(".html"));
 
-    response.setContentLengthLong(contentLength);
+    InputStream inputStream;
+    long contentLength;
+
+    if (isHtmlEntry) {
+      // Step 1: cache-busting rewrite (cached, request-independent)
+      InputStream cacheBusted =
+          htmlCacheBustingService.rewriteIfNeeded(
+              resourceResult.resource().getInputStream(), app, requestUri);
+
+      // Step 2: inject request-specific base URL (per-request, NOT cached)
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      new AppHtmlTemplate(baseUrl, app).apply(cacheBusted, bout);
+      byte[] htmlBytes = bout.toByteArray();
+      contentLength = htmlBytes.length;
+      inputStream = new ByteArrayInputStream(htmlBytes);
+    } else {
+      inputStream = resourceResult.resource().getInputStream();
+      contentLength = appManager.getUriContentLength(resourceResult.resource());
+    }
+
+    if (contentLength > 0) {
+      response.setContentLengthLong(contentLength);
+    }
 
     log.debug(
-        "Serving resource: {} (contentType: {}, contentLength: {}, lastModified: {}, etag: {})",
+        "Serving resource: {} (contentType: {}, contentLength: {})",
         filename,
         mimeType,
-        contentLength,
-        String.valueOf(lastModified),
-        etag);
-    StreamUtils.copyThenCloseInputStream(
-        resourceResult.resource().getInputStream(), response.getOutputStream());
+        contentLength);
+    StreamUtils.copyThenCloseInputStream(inputStream, response.getOutputStream());
   }
 
   @DeleteMapping("/{app}")
@@ -275,6 +314,8 @@ public class AppController {
     if (!appManager.deleteApp(appToDelete, deleteAppData)) {
       throw new WebMessageException(badRequest("App cannot be deleted."));
     }
+
+    htmlCacheBustingService.invalidateAll();
   }
 
   @SuppressWarnings("unchecked")
@@ -292,7 +333,8 @@ public class AppController {
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
-  private String getResourcePath(String path, App app, String contextPath) {
+  private String getResourcePath(String path, App app, String contextPath)
+      throws WebMessageException {
     String resourcePath = path;
     String appPrefix = "/" + AppManager.INSTALLED_APP_PREFIX + app.getKey();
 
@@ -310,8 +352,77 @@ public class AppController {
     // that only files inside app directory can be resolved)
     resourcePath = REGEX_REMOVE_PROTOCOL.matcher(resourcePath).replaceAll("");
 
+    // Validate for path traversal attempts
+    validateResourcePath(resourcePath);
+
     log.debug("Resource path: {} => {}", path, resourcePath);
 
     return resourcePath;
+  }
+
+  /**
+   * Validates the resource path to prevent path traversal attacks.
+   *
+   * <p>This validation provides defense-in-depth against various bypass techniques including:
+   *
+   * <ul>
+   *   <li>Direct path traversal (../)
+   *   <li>Null byte injection (%00)
+   *   <li>Semicolon path parameter bypass (/..;/) - exploits Nginx/Tomcat interpretation mismatch
+   * </ul>
+   *
+   * @param resourcePath the resource path to validate
+   * @throws WebMessageException if the path contains traversal sequences or is otherwise invalid
+   */
+  private void validateResourcePath(String resourcePath) throws WebMessageException {
+    if (resourcePath == null || resourcePath.isEmpty()) {
+      return;
+    }
+
+    // Check for null bytes which could be used to bypass validation
+    if (resourcePath.contains("\0")) {
+      log.warn("Path traversal attempt detected: null byte in path");
+      throw new WebMessageException(badRequest("Invalid resource path"));
+    }
+
+    // Check for path traversal sequences - this catches ".." in any form
+    if (resourcePath.contains("..")) {
+      log.warn("Path traversal attempt detected: '..' sequence in path");
+      throw new WebMessageException(badRequest("Invalid resource path"));
+    }
+
+    // Check for semicolon which can be used for path parameter bypass (/..;/)
+    // Nginx treats "..;" as literal, but Tomcat interprets ";" as path parameter delimiter
+    if (resourcePath.contains(";")) {
+      log.warn("Path traversal attempt detected: semicolon in path (potential bypass)");
+      throw new WebMessageException(badRequest("Invalid resource path"));
+    }
+
+    // Strip leading slashes for normalization check (in app context, leading / is relative)
+    String pathToCheck = resourcePath;
+    while (pathToCheck.startsWith("/")) {
+      pathToCheck = pathToCheck.substring(1);
+    }
+
+    // If path is empty after stripping slashes, it's valid (refers to app root)
+    if (pathToCheck.isEmpty()) {
+      return;
+    }
+
+    try {
+      // Normalize the path and verify it doesn't escape the root
+      Path normalized = Paths.get(pathToCheck).normalize();
+      String normalizedStr = normalized.toString();
+
+      // After normalization, check again for traversal (handles edge cases)
+      if (normalizedStr.contains("..") || normalizedStr.startsWith("..")) {
+        log.warn("Path traversal attempt detected after normalization");
+        throw new WebMessageException(badRequest("Invalid resource path"));
+      }
+
+    } catch (InvalidPathException e) {
+      log.warn("Invalid path format detected: {}", e.getMessage());
+      throw new WebMessageException(badRequest("Invalid resource path"));
+    }
   }
 }

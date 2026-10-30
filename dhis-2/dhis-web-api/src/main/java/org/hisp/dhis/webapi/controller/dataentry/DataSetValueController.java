@@ -45,12 +45,12 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockStatus;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -96,8 +96,8 @@ public class DataSetValueController {
     CategoryOptionCombo aoc =
         dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp());
 
-    DataExportParams exportParams =
-        DataExportParams.builder()
+    DataExportParams.Input exportParams =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(params.getDs()))
             .period(Set.of(params.getPe()))
             .orgUnit(Set.of(params.getOu()))
@@ -119,7 +119,7 @@ public class DataSetValueController {
     UID de = UID.of(ds.getDataElements().iterator().next());
     LockStatus lockStatus =
         dataEntryService.getEntryStatus(
-            UID.of(ds), new DataEntryKey(de, UID.of(ou), null, UID.of(aoc), pe.getIsoDate()));
+            UID.of(ds), new DataValueKey(de, UID.of(ou), null, UID.of(aoc), pe));
 
     CompleteDataSetRegistration registration =
         registrationService.getCompleteDataSetRegistration(ds, pe, ou, aoc);
@@ -141,7 +141,7 @@ public class DataSetValueController {
       DataExportValue value, DataValueCategoryParams attribute) {
     return new DataValuePostParams()
         .setDataElement(value.dataElement().getValue())
-        .setPeriod(value.period())
+        .setPeriod(value.period().getIsoDate())
         .setOrgUnit(value.orgUnit().getValue())
         .setCategoryOptionCombo(value.categoryOptionCombo().getValue())
         .setAttribute(attribute)

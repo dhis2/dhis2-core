@@ -31,6 +31,7 @@ package org.hisp.dhis.fieldfiltering.transformers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
 import org.hisp.dhis.fieldfiltering.FieldTransformer;
 
@@ -49,15 +50,13 @@ public class RenameFieldTransformer implements FieldTransformer {
   }
 
   @Override
-  public JsonNode apply(String path, JsonNode value, JsonNode parent) {
-    if (fieldPathTransformer.getParameters().isEmpty() && !parent.isObject()) {
+  public JsonNode apply(PropertyPath path, JsonNode value, JsonNode parent) {
+    if (fieldPathTransformer.parameters().isEmpty() && !parent.isObject()) {
       return value;
     }
 
-    String fieldName = getFieldName(path);
-
-    value = ((ObjectNode) parent).remove(fieldName);
-    ((ObjectNode) parent).set(fieldPathTransformer.getParameters().get(0), value);
+    value = ((ObjectNode) parent).remove(path.property().toString());
+    ((ObjectNode) parent).set(fieldPathTransformer.parameters().get(0), value);
 
     return value;
   }

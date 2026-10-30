@@ -47,4 +47,13 @@ public interface CategoryDimensionStore extends GenericStore<CategoryDimension> 
    * @return matching {@link CategoryDimension}s
    */
   List<CategoryDimension> getByCategoryOption(Collection<String> categoryOptions);
+
+  /**
+   * Update all sourceCategoryIds ids to the targetId.
+   *
+   * @param sourceCategoryIds source category ids
+   * @param targetId target category id
+   * @return number of updated rows
+   */
+  int updateCatDimensionCategoryRefs(Collection<Long> sourceCategoryIds, long targetId);
 }

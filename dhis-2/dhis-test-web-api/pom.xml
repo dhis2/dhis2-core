@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.43-SNAPSHOT</version>
+    <version>2.44-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-test-web-api</artifactId>
@@ -41,6 +41,11 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-administration</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-reporting</artifactId>
       <scope>compile</scope>
     </dependency>
@@ -51,8 +56,16 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-tracker</artifactId>
+      <artifactId>dhis-tracker</artifactId>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-tracker</artifactId>
+      <version>${project.version}</version>
+      <classifier>tests</classifier>
+      <type>test-jar</type>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -158,18 +171,23 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-webmvc</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-oauth2-authorization-server</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -250,6 +268,11 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-crypto</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -377,7 +400,7 @@
     <dependency>
       <groupId>org.openapitools</groupId>
       <artifactId>openapi-generator</artifactId>
-      <version>7.14.0</version>
+      <version>7.26.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -393,8 +416,13 @@
     </dependency>
     <dependency>
       <groupId>org.mock-server</groupId>
-      <artifactId>mockserver-client-java</artifactId>
+      <artifactId>mockserver-client-java-no-dependencies</artifactId>
       <version>5.15.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -405,6 +433,28 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jdbc</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>3.0.8</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-lang3</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -440,6 +490,8 @@
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-jdbc</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-setting</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.openjdk.jmh:jmh-generator-annprocess</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>com.networknt:json-schema-validator</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>com.jayway.jsonpath:json-path</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
           <ignoredNonTestScopedDependencies>
             <!-- compile dependency to get coverage in aggregate report -->
@@ -456,7 +508,7 @@
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-api</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-analytics</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-system</ignoredNonTestScopedDependency>
-            <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-tracker</ignoredNonTestScopedDependency>
+            <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-tracker</ignoredNonTestScopedDependency>
           </ignoredNonTestScopedDependencies>
         </configuration>
       </plugin>

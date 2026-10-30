@@ -35,12 +35,12 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Stream;
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
@@ -62,7 +62,7 @@ class DefaultAppManagerTest {
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
   @Mock private AppHubService appHubService;
-  @Mock private AppStorageService jCloudsAppStorageService;
+  @Mock private AppStorageService blobStoreAppStorageService;
   @Mock private DatastoreService datastoreService;
   @Mock private Cache<App> appCache;
   @Mock private DefaultCacheBuilderProvider cacheBuilderProvider;
@@ -125,7 +125,7 @@ class DefaultAppManagerTest {
         new DefaultAppManager(
             dhisConfigurationProvider,
             appHubService,
-            jCloudsAppStorageService,
+            blobStoreAppStorageService,
             datastoreService,
             cacheBuilderProvider,
             i18nManager,

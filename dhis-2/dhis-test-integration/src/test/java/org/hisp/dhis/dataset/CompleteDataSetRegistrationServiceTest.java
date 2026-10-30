@@ -51,9 +51,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -76,6 +77,7 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   @Autowired private DataDumpService dataDumpService;
 
   @Autowired private PeriodService periodService;
+  @Autowired private PeriodStore periodStore;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -113,6 +115,9 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
 
   @BeforeAll
   void setUp() {
+    periodStore.invalidateCache();
+    PeriodType.invalidatePeriodCache();
+
     sourceA = createOrganisationUnit('A');
     sourceB = createOrganisationUnit('B');
     sourceC = createOrganisationUnit('C');
@@ -155,7 +160,6 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  @Disabled("DHIS2-19679 read of mapped object with Period triggers conflicting duplicate insert")
   void testSaveGet() throws ConflictException {
     CompleteDataSetRegistration registrationA =
         new CompleteDataSetRegistration(
@@ -176,7 +180,6 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  @Disabled("DHIS2-19679 read of mapped object with Period triggers conflicting duplicate insert")
   void testSaveAutoProperties() throws ConflictException {
     CompleteDataSetRegistration registration =
         new CompleteDataSetRegistration(dataSetA, periodA, sourceA, optionCombo, true);
@@ -190,7 +193,6 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  @Disabled("DHIS2-19679 read of mapped object with Period triggers conflicting duplicate insert")
   void testDelete() throws ConflictException {
     CompleteDataSetRegistration registrationA =
         new CompleteDataSetRegistration(
@@ -233,7 +235,6 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  @Disabled("DHIS2-19679 read of mapped object with Period triggers conflicting duplicate insert")
   void testDeleteByDataSet() throws ConflictException {
     CompleteDataSetRegistration registrationA =
         new CompleteDataSetRegistration(
@@ -279,7 +280,6 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  @Disabled("DHIS2-19679 read of mapped object with Period triggers conflicting duplicate insert")
   void testGetMissingCompulsoryFields() {
     DataElementOperand compulsoryA = new DataElementOperand(elementA, optionCombo);
     DataElementOperand compulsoryB = new DataElementOperand(elementB, optionCombo);

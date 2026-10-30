@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -905,6 +906,8 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertEquals("#ddeeff", mapView.getNoDataColor());
     assertEquals("#aabbcc", mapView.getOrganisationUnitColor());
     assertEquals(ThematicMapType.CHOROPLETH, mapView.getThematicMapType());
+    assertEquals(List.of("dx"), mapView.getColumnDimensions());
+    assertEquals(List.of("pe"), mapView.getFilterDimensions());
     metadata =
         renderService.fromMetadata(
             new ClassPathResource("dxf2/map_update.json").getInputStream(), RenderFormat.JSON);
@@ -921,6 +924,8 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertEquals("#ddeeff", mapView.getNoDataColor());
     assertEquals("#aabbcc", mapView.getOrganisationUnitColor());
     assertEquals(ThematicMapType.CHOROPLETH, mapView.getThematicMapType());
+    assertEquals(List.of("dx"), mapView.getColumnDimensions());
+    assertEquals(List.of("pe"), mapView.getFilterDimensions());
   }
 
   /**
@@ -1017,7 +1022,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(srA);
     assertNotNull(srA.getName());
     assertNotNull(srA.getVisualization());
-    assertNotNull("UID", srA.getOutputDataItemIdScheme());
+    assertEquals(IdProperty.UID, srA.getOutputDataItemIdScheme());
     Target tA = aeA.getTarget();
     assertNotNull(tA);
     assertEquals(TargetType.INTERNAL, tA.getType());
@@ -1034,7 +1039,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(srB);
     assertNotNull(srB.getName());
     assertNotNull(srB.getVisualization());
-    assertNotNull("UID", srB.getOutputDataItemIdScheme());
+    assertEquals(IdProperty.UID, srB.getOutputDataItemIdScheme());
     Target tB = aeB.getTarget();
     assertNotNull(tB);
     assertEquals(TargetType.EXTERNAL, tB.getType());
@@ -1054,7 +1059,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(srC);
     assertNotNull(srC.getName());
     assertNotNull(srC.getVisualization());
-    assertNotNull("UID", srC.getOutputDataItemIdScheme());
+    assertEquals(IdProperty.UID, srC.getOutputDataItemIdScheme());
     Target tC = aeC.getTarget();
     assertNotNull(tC);
     assertEquals(TargetType.EXTERNAL, tC.getType());
@@ -1135,7 +1140,6 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     MetadataImportParams params = createParams(ImportStrategy.CREATE);
     ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
-
     assertEquals(Status.OK, report.getStatus());
 
     metadata =
@@ -1144,7 +1148,6 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     params = createParams(ImportStrategy.CREATE);
     report = importService.importMetadata(params, new MetadataObjects(metadata));
-
     assertEquals(Status.OK, report.getStatus());
 
     EventVisualization visualization = manager.get(EventVisualization.class, "gyYXi0rXAIc");

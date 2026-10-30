@@ -32,6 +32,7 @@ package org.hisp.dhis.fieldfiltering.transformers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
 import org.hisp.dhis.fieldfiltering.FieldTransformer;
 import org.springframework.util.StringUtils;
@@ -52,18 +53,16 @@ public class KeyByFieldTransformer implements FieldTransformer {
   }
 
   @Override
-  public JsonNode apply(String path, JsonNode value, JsonNode parent) {
+  public JsonNode apply(PropertyPath path, JsonNode value, JsonNode parent) {
     if (!parent.isObject()) {
       return value;
     }
 
     String keyByFieldName = "id";
 
-    if (!fieldPathTransformer.getParameters().isEmpty()) {
-      keyByFieldName = fieldPathTransformer.getParameters().get(0);
+    if (!fieldPathTransformer.parameters().isEmpty()) {
+      keyByFieldName = fieldPathTransformer.parameters().get(0);
     }
-
-    String fieldName = getFieldName(path);
 
     if (value.isArray()) {
       ObjectNode objectNode = ((ArrayNode) value).arrayNode().objectNode();
@@ -90,7 +89,7 @@ public class KeyByFieldTransformer implements FieldTransformer {
         }
       }
 
-      ((ObjectNode) parent).replace(fieldName, objectNode);
+      ((ObjectNode) parent).replace(path.property().toString(), objectNode);
     }
 
     return value;

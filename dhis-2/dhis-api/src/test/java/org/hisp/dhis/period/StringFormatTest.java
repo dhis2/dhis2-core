@@ -79,15 +79,15 @@ class StringFormatTest {
     assertEquals("2010April", financialApril.getIsoDate(), "Financial April");
     assertEquals("2010July", financialJuly.getIsoDate(), "Financial July");
     assertEquals("2010Oct", financialOct.getIsoDate(), "Financial Oct");
-    assertEquals(day1, PeriodType.getPeriodFromIsoString("20100101"));
-    assertEquals(month1, PeriodType.getPeriodFromIsoString("201001"));
-    assertEquals(year1, PeriodType.getPeriodFromIsoString("2010"));
-    assertEquals(quarter1, PeriodType.getPeriodFromIsoString("2010Q1"));
-    assertEquals(semester1, PeriodType.getPeriodFromIsoString("2010S1"));
-    assertEquals(semesterApril1, PeriodType.getPeriodFromIsoString("2010AprilS1"));
-    assertEquals(biMonth1, PeriodType.getPeriodFromIsoString("201002B"));
-    assertEquals(financialApril, PeriodType.getPeriodFromIsoString("2010April"));
-    assertEquals(financialJuly, PeriodType.getPeriodFromIsoString("2010July"));
-    assertEquals(financialOct, PeriodType.getPeriodFromIsoString("2010Oct"));
+    assertEquals(day1, Period.of("20100101"));
+    assertEquals(month1, Period.of("201001"));
+    assertEquals(year1, Period.of("2010"));
+    assertEquals(quarter1, Period.of("2010Q1"));
+    assertEquals(semester1, Period.of("2010S1"));
+    assertEquals(semesterApril1, Period.of("2010AprilS1"));
+    assertEquals(biMonth1, Period.of("201002B"));
+    assertEquals(financialApril, Period.of("2010April"));
+    assertEquals(financialJuly, Period.of("2010July"));
+    assertEquals(financialOct, Period.of("2010Oct"));
   }
 }

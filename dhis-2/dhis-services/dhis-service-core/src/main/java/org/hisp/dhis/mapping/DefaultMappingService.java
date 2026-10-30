@@ -38,8 +38,7 @@ import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -62,8 +61,6 @@ public class DefaultMappingService extends GenericAnalyticalObjectService<MapVie
   private final OrganisationUnitService organisationUnitService;
 
   private final IndicatorService indicatorService;
-
-  private final PeriodService periodService;
 
   // -------------------------------------------------------------------------
   // MappingService implementation
@@ -161,9 +158,8 @@ public class DefaultMappingService extends GenericAnalyticalObjectService<MapVie
       String indicatorUid, String organisationUnitUid, int level) {
     MapView mapView = new MapView();
 
-    Period period =
-        periodService.reloadPeriod(
-            new RelativePeriods().setThisYear(true).getRelativePeriods().iterator().next());
+    PeriodDimension period =
+        new RelativePeriods().setThisYear(true).getRelativePeriods().iterator().next();
 
     Indicator indicator = indicatorService.getIndicator(indicatorUid);
     OrganisationUnit unit = organisationUnitService.getOrganisationUnit(organisationUnitUid);

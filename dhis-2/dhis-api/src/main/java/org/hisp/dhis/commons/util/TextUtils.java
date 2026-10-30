@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.common.RegexUtils;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -123,7 +124,7 @@ public class TextUtils {
   public static String removeLastOr(String string) {
     string = StringUtils.stripEnd(string, " ");
 
-    return StringUtils.removeEndIgnoreCase(string, "or");
+    return Strings.CI.removeEnd(string, "or");
   }
 
   /**
@@ -136,7 +137,7 @@ public class TextUtils {
   public static String removeLastAnd(String string) {
     string = StringUtils.stripEnd(string, " ");
 
-    return StringUtils.removeEndIgnoreCase(string, "and");
+    return Strings.CI.removeEnd(string, "and");
   }
 
   /**
@@ -149,7 +150,7 @@ public class TextUtils {
   public static String removeLastComma(String string) {
     string = StringUtils.stripEnd(string, " ");
 
-    return StringUtils.removeEndIgnoreCase(string, ",");
+    return Strings.CI.removeEnd(string, ",");
   }
 
   /**
@@ -180,7 +181,7 @@ public class TextUtils {
   public static String removeLast(String string, String remove) {
     string = StringUtils.stripEnd(string, " ");
 
-    return StringUtils.removeEndIgnoreCase(string, remove);
+    return Strings.CI.removeEnd(string, remove);
   }
 
   /**
@@ -570,8 +571,9 @@ public class TextUtils {
           int endVar = (startDefault > 0 && startDefault < endBrace) ? startDefault : endBrace;
           String varName = template.substring(startVar, endVar);
           String value = variables.get(varName);
-          if (value == null && startDefault < 0)
+          if (value == null && startDefault < 0) {
             throw new IllegalArgumentException("Undefined variable: " + varName);
+          }
           if (value != null) {
             res.append(value);
           } else {
@@ -721,5 +723,43 @@ public class TextUtils {
   public static String cleanUrlPathOnly(@Nonnull String baseUrl, @Nonnull String path) {
     String base = removeAnyTrailingSlash(baseUrl);
     return base + ("/" + path).replaceAll("/+", "/");
+  }
+
+  /**
+   * Sanitizes the given input by replacing characters which are not matching any of the valid
+   * characters as specified by the given pattern with the given replacement character. Consecutive
+   * replacement characters are merged into a single character. Any leading replacement characters
+   * are removed.
+   *
+   * @param pattern the pattern of valid characters.
+   * @param input the input string.
+   * @param replacement the replacement characters for invalid characters.
+   * @return a sanitized string.
+   */
+  public static String sanitize(Pattern pattern, String input, char replacement) {
+    if (StringUtils.isEmpty(input)) {
+      return input;
+    }
+
+    StringBuilder sb = new StringBuilder(input.length());
+
+    for (int i = 0; i < input.length(); i++) {
+      char c = input.charAt(i);
+      if (pattern.matcher(String.valueOf(c)).matches()) {
+        sb.append(c);
+      } else {
+        sb.append(replacement);
+      }
+    }
+
+    String str = sb.toString();
+
+    // Merge consecutive replacement characters
+    str = str.replaceAll((replacement + "+"), String.valueOf(replacement));
+
+    // Remove any leading replacement characters
+    str = str.replaceAll(("^" + replacement + "+"), "");
+
+    return str;
   }
 }

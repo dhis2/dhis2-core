@@ -64,7 +64,7 @@ class DefaultLinkServiceTest {
 
   @Test
   void noLinks() {
-    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+    when(schemaService.getSchema(OrganisationUnit.class))
         .thenAnswer(
             invocation -> {
               Schema schema =
@@ -81,7 +81,7 @@ class DefaultLinkServiceTest {
 
   @Test
   void nextLinkDefaultParameters() {
-    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+    when(schemaService.getSchema(OrganisationUnit.class))
         .thenAnswer(
             invocation -> {
               Schema schema =
@@ -110,7 +110,7 @@ class DefaultLinkServiceTest {
 
   @Test
   void nextLinkParameters() {
-    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+    when(schemaService.getSchema(OrganisationUnit.class))
         .thenAnswer(
             invocation -> {
               Schema schema =
@@ -143,7 +143,7 @@ class DefaultLinkServiceTest {
 
   @Test
   void prevLinkDefaultParameters() {
-    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+    when(schemaService.getSchema(OrganisationUnit.class))
         .thenAnswer(
             invocation -> {
               Schema schema =
@@ -172,7 +172,7 @@ class DefaultLinkServiceTest {
 
   @Test
   void nextLink() {
-    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+    when(schemaService.getSchema(OrganisationUnit.class))
         .thenAnswer(
             invocation -> {
               Schema schema =
@@ -201,7 +201,7 @@ class DefaultLinkServiceTest {
 
   @Test
   void nextLinkWithDotsInPath() {
-    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+    when(schemaService.getSchema(OrganisationUnit.class))
         .thenAnswer(
             invocation -> {
               Schema schema =
@@ -230,7 +230,7 @@ class DefaultLinkServiceTest {
 
   @Test
   void prevLinkParameters() {
-    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+    when(schemaService.getSchema(OrganisationUnit.class))
         .thenAnswer(
             invocation -> {
               Schema schema =
@@ -262,7 +262,7 @@ class DefaultLinkServiceTest {
 
   @Test
   void prevLinkParametersPage1() {
-    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+    when(schemaService.getSchema(OrganisationUnit.class))
         .thenAnswer(
             invocation -> {
               Schema schema =

@@ -38,14 +38,18 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueKey;
+import org.hisp.dhis.datavalue.DataValueChangelog;
+import org.hisp.dhis.datavalue.DataValueFileResourceKey;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.message.Message;
+import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.message.UserMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
@@ -70,21 +74,22 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
   }
 
   @Override
-  public List<FileResource> getExpiredFileResources(DateTime expires) {
+  public List<FileResource> getExpiredDataValueFileResources(
+      DateTime retentionPeriod, DateTime gracePeriod) {
+    @Language("SQL")
     String sql =
         """
         select fr.*
         from fileresource fr
-        inner join (select dva.value
-        from datavalueaudit dva
-        where dva.created < :date
-        and dva.audittype in ('DELETE', 'UPDATE')
-        and dva.dataelementid in
-        (select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dva
-        on dva.value = fr.uid
-        where fr.isassigned = true;
+        where fr.isassigned = false
+        and fr.domain = 'DATA_VALUE'
+        and fr.lastupdated < :gracePeriod
+        and fr.lastupdated < :retentionPeriod
         """;
-    return nativeSynchronizedTypedQuery(sql).setParameter("date", expires.toDate()).getResultList();
+    return nativeSynchronizedTypedQuery(sql)
+        .setParameter("gracePeriod", gracePeriod.toDate())
+        .setParameter("retentionPeriod", retentionPeriod.toDate())
+        .getResultList();
   }
 
   @Override
@@ -172,7 +177,32 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
   }
 
   @Override
-  public List<DataValueKey> findDataValuesByFileResourceValue(@Nonnull String uid) {
+  public List<String> findMessageAttachmentParticipants(@Nonnull String uid) {
+    @Language("SQL")
+    String sql =
+        """
+        select distinct u.uid
+        from userinfo u
+        inner join usermessage um on um.userid = u.userinfoid
+        inner join messageconversation_usermessages mcu on mcu.usermessageid = um.usermessageid
+        inner join messageconversation_messages mcm
+          on mcm.messageconversationid = mcu.messageconversationid
+        inner join messageattachments ma on ma.messageid = mcm.messageid
+        inner join fileresource fr on fr.fileresourceid = ma.fileresourceid
+        where fr.uid = :uid
+        """;
+    return nativeSynchronizedQuery(sql)
+        .addSynchronizedEntityClass(User.class)
+        .addSynchronizedEntityClass(UserMessage.class)
+        .addSynchronizedEntityClass(MessageConversation.class)
+        .addSynchronizedEntityClass(Message.class)
+        .addSynchronizedEntityClass(FileResource.class)
+        .setParameter("uid", uid)
+        .list();
+  }
+
+  @Override
+  public List<DataValueFileResourceKey> findDataValuesByFileResourceValue(@Nonnull String uid) {
     String sql =
         "select de.uid as de, o.uid as ou, dv.periodid as pe, co.uid as co from dataelement de"
             + " inner join datavalue dv on de.dataelementid = dv.dataelementid"
@@ -189,12 +219,55 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
     return stream
         .map(
             col ->
-                new DataValueKey(
+                new DataValueFileResourceKey(
                     (String) (col)[0],
                     (String) col[1],
                     ((Number) col[2]).longValue(),
                     (String) col[3]))
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<DataValueFileReference> findDataValueReferencesByFileResourceValue(
+      @Nonnull String uid) {
+    // restricting to the file data elements first lets both lookups use the indexes that lead
+    // with the data element
+    @Language("SQL")
+    String sql =
+        """
+        select distinct ou.path, coc.uid as coc, aoc.uid as aoc
+        from (
+          select dv.sourceid as ouid, dv.categoryoptioncomboid as cocid,
+            dv.attributeoptioncomboid as aocid
+          from datavalue dv
+          where dv.value = :uid
+            and dv.dataelementid in (
+              select de.dataelementid from dataelement de
+              where de.valuetype in ('FILE_RESOURCE', 'IMAGE'))
+          union
+          select dva.organisationunitid, dva.categoryoptioncomboid, dva.attributeoptioncomboid
+          from datavalueaudit dva
+          where dva.value = :uid
+            and dva.dataelementid in (
+              select de.dataelementid from dataelement de
+              where de.valuetype in ('FILE_RESOURCE', 'IMAGE'))
+        ) ref
+        inner join organisationunit ou on ou.organisationunitid = ref.ouid
+        inner join categoryoptioncombo coc on coc.categoryoptioncomboid = ref.cocid
+        inner join categoryoptioncombo aoc on aoc.categoryoptioncomboid = ref.aocid
+        """;
+    Stream<Object[]> rows =
+        nativeSynchronizedQuery(sql)
+            .addSynchronizedEntityClass(DataValue.class)
+            .addSynchronizedEntityClass(DataValueChangelog.class)
+            .addSynchronizedEntityClass(DataElement.class)
+            .addSynchronizedEntityClass(OrganisationUnit.class)
+            .addSynchronizedEntityClass(CategoryOptionCombo.class)
+            .setParameter("uid", uid)
+            .stream();
+    return rows.map(
+            row -> new DataValueFileReference((String) row[0], (String) row[1], (String) row[2]))
+        .toList();
   }
 
   @Override
@@ -209,5 +282,35 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
         """;
 
     return nativeSynchronizedTypedQuery(sql).list();
+  }
+
+  @Override
+  public void updateAssignment(
+      @Nonnull String uid, boolean assigned, @Nonnull String fileResourceOwner) {
+    jdbcTemplate.update(
+        "update fileresource set isassigned = ?, fileresourceowner = ?, lastupdated = now() where uid = ?",
+        assigned,
+        fileResourceOwner,
+        uid);
+  }
+
+  @Override
+  public List<FileResource> getUnassignedPassedGracePeriod(
+      Set<FileResourceDomain> domainsToDeleteWhenUnassigned, DateTime gracePeriod) {
+    @Language("SQL")
+    String sql =
+        """
+        select fr.*
+        from fileresource fr
+        where fr.isassigned = false
+        and fr.domain in :domainsToDeleteWhenUnassigned
+        and fr.lastupdated < :gracePeriod
+        """;
+    return nativeSynchronizedTypedQuery(sql)
+        .setParameter("gracePeriod", gracePeriod.toDate())
+        .setParameter(
+            "domainsToDeleteWhenUnassigned",
+            domainsToDeleteWhenUnassigned.stream().map(Enum::name).toList())
+        .getResultList();
   }
 }

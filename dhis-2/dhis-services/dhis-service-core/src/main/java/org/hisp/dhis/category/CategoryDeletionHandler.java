@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.category;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Component;
  * @author Dang Duy Hieu
  */
 @Component
+@Slf4j
 public class CategoryDeletionHandler extends IdObjectDeletionHandler<Category> {
   @Override
   protected void registerHandler() {
@@ -51,9 +53,11 @@ public class CategoryDeletionHandler extends IdObjectDeletionHandler<Category> {
   }
 
   private void deleteCategoryCombo(CategoryCombo categoryCombo) {
+    log.info("Starting to delete category combo: " + categoryCombo.getName());
     for (Category category : categoryCombo.getCategories()) {
       category.getCategoryCombos().remove(categoryCombo);
       idObjectManager.updateNoAcl(category);
     }
+    log.info("Finished to delete category combo: " + categoryCombo.getName());
   }
 }

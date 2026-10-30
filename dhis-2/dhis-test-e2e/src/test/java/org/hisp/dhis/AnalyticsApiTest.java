@@ -33,8 +33,10 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import io.restassured.http.ContentType;
+import org.hisp.dhis.helpers.EnvUtils;
 import org.hisp.dhis.helpers.extensions.AnalyticsSetupExtension;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
+import org.hisp.dhis.helpers.extensions.RequestIdExtension;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
@@ -66,6 +68,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * @author maikel arabori
  */
 @TestInstance(PER_CLASS)
+// RequestIdExtension first so its beforeAll stamps a request id before
+// AnalyticsSetupExtension issues class-setup requests (see its javadoc).
+@ExtendWith(RequestIdExtension.class)
 @ExtendWith(ConfigurationExtension.class)
 @ExtendWith(AnalyticsSetupExtension.class)
 @Timeout(value = AnalyticsApiTest.DEFAULT_LIMIT_EXECUTION_TIME, unit = MINUTES)
@@ -82,5 +87,26 @@ public abstract class AnalyticsApiTest {
 
   protected void login() {
     new LoginActions().loginAsAdmin();
+  }
+
+  private String getDataSource() {
+    return EnvUtils.getDataSource();
+  }
+
+  public boolean isClickHouse() {
+    return getDataSource().equalsIgnoreCase("clickhouse");
+  }
+
+  public boolean isDoris() {
+    return getDataSource().equalsIgnoreCase("doris");
+  }
+
+  public boolean isPostgres() {
+    return getDataSource().equalsIgnoreCase("postgres");
+  }
+
+  static boolean hasOutliersSupport() {
+    return System.getProperty("dhis2.analytics.datasource", "postgres")
+        .equalsIgnoreCase("postgres");
   }
 }

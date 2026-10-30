@@ -41,11 +41,15 @@ import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,18 +62,15 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
@@ -80,6 +81,9 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -341,12 +345,6 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
         UID.of(trackedEntityA1), UID.of(programA), "test protected program");
 
     assertTrue(trackerOwnershipManager.hasAccess(userDetailsB, trackedEntityA1, programA));
-    assertTrue(
-        trackerOwnershipManager.hasAccess(
-            userDetailsB,
-            trackedEntityA1.getUid(),
-            trackedEntityA1.getOrganisationUnit(),
-            programA));
 
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
@@ -527,13 +525,13 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .trackedEntity(trackedEntityA1)
+            .trackedEntities(trackedEntityA1)
             .program(programA)
             .orgUnits(organisationUnitB)
             .build();
     List<Enrollment> enrollment = enrollmentService.findEnrollments(params);
 
-    assertContainsOnly(List.of(trackedEntityA1Enrollment), enrollment);
+    assertContainsOnly(List.of(trackedEntityA1Enrollment.getUid()), uids(enrollment));
   }
 
   @Test
@@ -591,6 +589,11 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
     OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
     organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
+    User admin = getAdminUser();
+    admin.setTeiSearchOrganisationUnits(Set.of(notAssociatedOrgUnit));
+    manager.update(admin);
+    injectSecurityContextUser(admin);
+
     Exception exception =
         assertThrows(
             ForbiddenException.class,
@@ -614,6 +617,22 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
                     trackedEntityA1, UID.of(programA), madeUpOrgUnit));
     assertEquals(
         "Tracked entity not transferred. Org unit supplied does not exist.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldNotTransferOwnershipWhenOrgUnitNotInUserEffectiveSearchScope() {
+    OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(outOfScopeOrgUnit);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipManager.transferOwnership(
+                    trackedEntityA1, UID.of(programA), outOfScopeOrgUnit.getUID()));
+    assertEquals(
+        "Tracked entity not transferred. Org unit supplied is not in the user scope.",
         exception.getMessage());
   }
 
@@ -645,6 +664,45 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
             + " is already "
             + organisationUnitA.getUid(),
         exception.getMessage());
+  }
+
+  @Test
+  void shouldUpdateTrackedEntityLastUpdatedWhenOwnershipIsTransferred()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    Date lastUpdatedBefore = trackedEntityA1.getLastUpdated();
+
+    transferOwnership(trackedEntityA1, programA, organisationUnitB);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(UID.of(trackedEntityA1.getUid()));
+    assertTrue(
+        trackedEntity.getLastUpdated().after(lastUpdatedBefore),
+        () ->
+            String.format(
+                "The field lastUpdated for TrackedEntity %s should be updated after ownership transfer. ",
+                trackedEntityA1.getUid()));
+  }
+
+  @Test
+  void shouldUpdateTrackedEntityLastUpdatedWhenGrantingTemporaryOwnership()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(userB);
+    userDetailsB = UserDetails.fromUser(userB);
+    injectSecurityContext(userDetailsB);
+    Date lastUpdatedBefore = trackedEntityA1.getLastUpdated();
+
+    trackerOwnershipManager.grantTemporaryOwnership(
+        UID.of(trackedEntityA1), UID.of(programA), "test protected program");
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(UID.of(trackedEntityA1.getUid()));
+    assertTrue(
+        trackedEntity.getLastUpdated().after(lastUpdatedBefore),
+        () ->
+            String.format(
+                "The field lastUpdated for TrackedEntity %s should be updated after temporary access granted. ",
+                trackedEntityA1.getUid()));
   }
 
   private void transferOwnership(

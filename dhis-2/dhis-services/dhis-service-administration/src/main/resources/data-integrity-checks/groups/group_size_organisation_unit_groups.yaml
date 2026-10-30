@@ -26,7 +26,7 @@
 #
 ---
 name: orgunit_groups_scarce
-description: Organisation unit groups should have at least two members.
+description: Organisation unit groups should have at least two members
 section: Group size
 section_order: 1
 summary_sql: >-

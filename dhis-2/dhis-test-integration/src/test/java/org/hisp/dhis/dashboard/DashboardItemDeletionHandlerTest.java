@@ -41,6 +41,7 @@ import org.hisp.dhis.eventreport.EventReportService;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.program.Program;
@@ -220,7 +221,7 @@ class DashboardItemDeletionHandlerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteDocument() {
+  void testDeleteDocument() throws ForbiddenException {
     Document documentA = new Document();
     Document documentB = new Document();
     documentA.setName("A");

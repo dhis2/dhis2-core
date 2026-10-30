@@ -1,0 +1,162 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/userSettings",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 65,
+          "max": 140,
+          "mean": 125
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/categoryOptions?paging=false&fields=id,name,organisationUnits[id,name,code],categoryOptionGroups[id,name,groupSets[id]],categoryOptionCombos[id,name]&relativePeriodDate=2023-11-01",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 50,
+          "max": 2000,
+          "mean": 2300
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/categoryOptions?paging=false&fields=id,name,organisationUnits[id,name,code],categoryOptionGroups[id,name,groupSets[id]],categoryOptionCombos[id,name]",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 80,
+          "max": 200,
+          "mean": 135
+        },
+        {
+          "release": "40.2.2",
+          "min": 80,
+          "max": 215,
+          "mean": 155
+        },
+        {
+          "release": "41.0",
+          "min": 80,
+          "max": 735,
+          "mean": 155
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/programs?fields=id,displayFormName,version,displayEnrollmentDateLabel,enrollmentDateLabel,maxTeiCountToReturn,selectIncidentDatesInFuture,incidentDateLabel,selectEnrollmentDatesInFuture,registration,favorite,useFirstStageDuringRegistration,displayName,onlyEnrollOnce,completeEventsExpiryDays,description,displayShortName,externalAccess,withoutRegistration,minAttributesRequiredToSearch,displayFrontPageList,programType,accessLevel,displayIncidentDate,expiryDays,style[*],dataEntryForm[*],relatedProgram[id,displayName],relationshipType[id,displayName],featureType,trackedEntityType[id,displayName],categoryCombo[id,displayName,isDefault,categories[id,displayName,categoryOptions[id,displayName,organisationUnits[id]]]],userRoles[id,displayName],programSections[*],programStages[*,dataEntryForm[*],programStageSections[id,displayName,description,sortOrder,dataElements[id]],programStageDataElements[*,dataElement[*,optionSet[id]]]],programTrackedEntityAttributes[*,trackedEntityAttribute[id,unique,orgunitScope]],minAttributesRequiredToSearch,maxTeiCountToReturn&paging=false",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 1000,
+          "max": 1500,
+          "mean": 1300
+        },
+        {
+          "release": "40.2.2",
+          "min": 3000,
+          "max": 4300,
+          "mean": 3950
+        },
+        {
+          "release": "41.0",
+          "min": 1600,
+          "max": 6000,
+          "mean": 4100
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/trackedEntityTypes?paging=false&fields=id,displayName,featureType,maxTeiCountToReturn,minAttributesRequiredToSearch,trackedEntityTypeAttributes[*,trackedEntityAttribute[id,unique,displayInListNoProgram]],style,access[data[read,write]]",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 65,
+          "max": 150,
+          "mean": 105
+        },
+        {
+          "release": "40.2.2",
+          "min": 65,
+          "max": 150,
+          "mean": 105
+        },
+        {
+          "release": "41.0",
+          "min": 65,
+          "max": 150,
+          "mean": 105
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/organisationUnitLevels?fields=id,displayName~rename(name),level&paging=false",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 65,
+          "max": 155,
+          "mean": 100
+        },
+        {
+          "release": "40.2.2",
+          "min": 65,
+          "max": 155,
+          "mean": 100
+        },
+        {
+          "release": "41.0",
+          "min": 65,
+          "max": 155,
+          "mean": 100
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/organisationUnits?fields=id,displayName,path,children::isNotEmpty,access&query=a&withinUserHierarchy=true&pageSize=10000",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 100,
+          "max": 210,
+          "mean": 145
+        },
+        {
+          "release": "40.2.2",
+          "min": 100,
+          "max": 210,
+          "mean": 145
+        },
+        {
+          "release": "41.0",
+          "min": 100,
+          "max": 485,
+          "mean": 145
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    }
+  ]
+}

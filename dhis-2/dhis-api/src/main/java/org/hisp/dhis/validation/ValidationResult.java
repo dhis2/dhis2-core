@@ -30,6 +30,7 @@
 package org.hisp.dhis.validation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -39,6 +40,9 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -202,7 +206,7 @@ public class ValidationResult implements Comparable<ValidationResult>, Serializa
     return "[Org unit: "
         + organisationUnit.getUid()
         + ", period: "
-        + period.getUid()
+        + period.getIsoDate()
         + ", validation rule: "
         + validationRule.getUid()
         + "("
@@ -227,7 +231,7 @@ public class ValidationResult implements Comparable<ValidationResult>, Serializa
   public int compareTo(ValidationResult other) {
     return new CompareToBuilder()
         .append(this.validationRule, other.getValidationRule())
-        .append(this.period, other.getPeriod())
+        .append(this.period.getIsoDate(), other.getPeriod().getIsoDate())
         .append(this.attributeOptionCombo, other.getAttributeOptionCombo())
         .append(this.organisationUnit, other.getOrganisationUnit())
         .append(this.id, other.getId())
@@ -260,7 +264,8 @@ public class ValidationResult implements Comparable<ValidationResult>, Serializa
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(using = JacksonPeriodSerializer.class)
+  @JsonDeserialize(using = JacksonPeriodDeserializer.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Period getPeriod() {
     return period;
@@ -271,7 +276,7 @@ public class ValidationResult implements Comparable<ValidationResult>, Serializa
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public CategoryOptionCombo getAttributeOptionCombo() {
     return attributeOptionCombo;

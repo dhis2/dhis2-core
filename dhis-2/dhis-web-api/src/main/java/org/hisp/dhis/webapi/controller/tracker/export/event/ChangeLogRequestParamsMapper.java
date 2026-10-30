@@ -43,7 +43,7 @@ import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams.EventChangeLogOperationParamsBuilder;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 
-class ChangeLogRequestParamsMapper {
+public class ChangeLogRequestParamsMapper {
   private ChangeLogRequestParamsMapper() {
     throw new IllegalStateException("Utility class");
   }
@@ -55,7 +55,7 @@ class ChangeLogRequestParamsMapper {
    * return a representation we have to map to a view model. This mapping for example for events is
    * done in {@link EventMapper} is not necessary for change logs.
    */
-  static EventChangeLogOperationParams map(
+  public static EventChangeLogOperationParams map(
       Set<String> orderableFields,
       Set<Pair<String, Class<?>>> filterableFields,
       ChangeLogRequestParams requestParams)

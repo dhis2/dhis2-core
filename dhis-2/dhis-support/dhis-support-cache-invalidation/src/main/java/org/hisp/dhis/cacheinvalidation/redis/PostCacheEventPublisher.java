@@ -46,7 +46,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;

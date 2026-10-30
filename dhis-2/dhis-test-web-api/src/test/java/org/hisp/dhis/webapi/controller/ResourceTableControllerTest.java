@@ -31,11 +31,16 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -46,10 +51,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class ResourceTableControllerTest extends PostgresControllerIntegrationTestBase {
 
+  @MockitoBean private AnalyticsTableGenerator analyticsTableGenerator;
+
   @Test
   void testResourceTables() {
     JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables"));
     assertStartsWith("Initiated RESOURCE_TABLE", msg.getMessage());
+    verify(analyticsTableGenerator, atLeastOnce()).generateResourceTables(any());
   }
 
   @Test

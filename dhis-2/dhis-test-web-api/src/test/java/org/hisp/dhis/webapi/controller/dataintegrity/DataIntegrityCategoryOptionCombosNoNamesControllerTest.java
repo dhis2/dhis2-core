@@ -43,7 +43,8 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityIntegrationTest {
+class DataIntegrityCategoryOptionCombosNoNamesControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
   private final String check = "category_option_combos_no_names";
 

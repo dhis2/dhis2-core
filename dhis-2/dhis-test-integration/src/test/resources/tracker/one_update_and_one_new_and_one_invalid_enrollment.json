@@ -53,7 +53,11 @@
       "events": [],
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "notes": [],
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "NENROLLMENT",
@@ -76,7 +80,11 @@
       "events": [],
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "notes": [],
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "XjRvstYX68A",
@@ -99,7 +107,11 @@
       "events": [],
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "notes": [],
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     }
   ],
   "events": [],

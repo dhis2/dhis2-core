@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,7 +107,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Transactional
   public long addOrganisationUnit(OrganisationUnit organisationUnit) {
     organisationUnitStore.save(organisationUnit);
-    // TODO: MAS: This is only used in tests and should be moved to a test util class
     return organisationUnit.getId();
   }
 
@@ -162,6 +161,12 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<String> getOrganisationUnitPathsByUid(@Nonnull Collection<UID> uids) {
+    return organisationUnitStore.getOrganisationUnitPathsByUid(uids);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public OrganisationUnit getOrganisationUnit(String uid) {
     return organisationUnitStore.getByUid(uid);
   }
@@ -188,9 +193,19 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Transactional(readOnly = true)
   public List<OrganisationUnit> getOrganisationUnits(
       Collection<OrganisationUnitGroup> groups, Collection<OrganisationUnit> parents) {
+    return getOrganisationUnits(groups, parents, false);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<OrganisationUnit> getOrganisationUnits(
+      Collection<OrganisationUnitGroup> groups,
+      Collection<OrganisationUnit> parents,
+      boolean geometryOnly) {
     OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
     params.setParents(Sets.newHashSet(parents));
     params.setGroups(Sets.newHashSet(groups));
+    params.setGeometryOnly(geometryOnly);
 
     return organisationUnitStore.getOrganisationUnits(params);
   }
@@ -259,7 +274,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
     OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
     params.setParents(Sets.newHashSet(organisationUnit));
     params.setMaxLevels(levels);
-    params.setFetchChildren(true);
     params.setOrderBy(orderBy);
 
     return organisationUnitStore.getOrganisationUnits(params);
@@ -311,9 +325,17 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Transactional(readOnly = true)
   public List<OrganisationUnit> getOrganisationUnitsAtLevels(
       Collection<Integer> levels, Collection<OrganisationUnit> parents) {
+    return getOrganisationUnitsAtLevels(levels, parents, false);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<OrganisationUnit> getOrganisationUnitsAtLevels(
+      Collection<Integer> levels, Collection<OrganisationUnit> parents, boolean geometryOnly) {
     OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
     params.setLevels(Sets.newHashSet(levels));
     params.setParents(Sets.newHashSet(parents));
+    params.setGeometryOnly(geometryOnly);
 
     return organisationUnitStore.getOrganisationUnits(params);
   }
@@ -328,12 +350,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Transactional(readOnly = true)
   public List<OrganisationUnit> getOrganisationUnitsWithoutGroups() {
     return organisationUnitStore.getOrganisationUnitsWithoutGroups();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences() {
-    return organisationUnitStore.getOrganisationUnitsWithCyclicReferences();
   }
 
   @Override
@@ -584,18 +600,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
     // ---------------------------------------------------------------------
 
     return 1;
-  }
-
-  @Override
-  @Transactional
-  public void updatePaths() {
-    organisationUnitStore.updatePaths();
-  }
-
-  @Override
-  @Transactional
-  public void forceUpdatePaths() {
-    organisationUnitStore.forceUpdatePaths();
   }
 
   @Override

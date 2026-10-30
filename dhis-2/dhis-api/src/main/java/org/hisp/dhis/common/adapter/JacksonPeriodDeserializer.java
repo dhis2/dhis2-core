@@ -35,7 +35,6 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import java.io.IOException;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 
 class LocalPeriod {
   private String id;
@@ -71,6 +70,6 @@ public class JacksonPeriodDeserializer extends JsonDeserializer<Period> {
   public Period deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
     LocalPeriod period = jp.readValueAs(LocalPeriod.class);
 
-    return period.getId() == null ? null : PeriodType.getPeriodFromIsoString(period.getId());
+    return period.getId() == null ? null : Period.of(period.getId());
   }
 }

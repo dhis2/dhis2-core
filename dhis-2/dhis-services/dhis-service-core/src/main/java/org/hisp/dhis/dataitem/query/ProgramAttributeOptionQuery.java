@@ -91,7 +91,8 @@ public class ProgramAttributeOptionQuery implements DataItemQuery {
               Pair.of("optionset_uid", "optionset.uid"),
               Pair.of("optionvalue_uid", "optionvalue.uid"),
               Pair.of("optionvalue_name", "optionvalue.name"),
-              Pair.of("optionvalue_code", "optionvalue.code"))
+              Pair.of("optionvalue_code", "optionvalue.code"),
+              Pair.of("item_skipanalytics", "trackedentityattribute.skipanalytics"))
           .stream()
           .map(pair -> pair.getRight() + " as " + pair.getLeft())
           .collect(joining(", "));
@@ -128,7 +129,7 @@ public class ProgramAttributeOptionQuery implements DataItemQuery {
     }
 
     sql.append(
-        " group by program.name, program.shortname, item_name, "
+        " group by program.name, program.shortname, item_name, item_skipanalytics, "
             + COMMON_UIDS
             + ", item_valuetype, item_code, item_sharing, item_shortname,"
             + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname, i18n_third_name");
@@ -142,7 +143,9 @@ public class ProgramAttributeOptionQuery implements DataItemQuery {
 
     // Mandatory filters. They do not respect the root junction filtering.
     sql.append(always(sharingConditions("t.item_sharing", READ_ACCESS, paramsMap)));
-    sql.append(" and");
+    sql.append(" and ");
+    sql.append(always("t.item_skipanalytics = false"));
+    sql.append(" and ");
     sql.append(ifSet(valueTypeFiltering("t.item_valuetype", paramsMap)));
 
     // Optional filters, based on the current root junction.

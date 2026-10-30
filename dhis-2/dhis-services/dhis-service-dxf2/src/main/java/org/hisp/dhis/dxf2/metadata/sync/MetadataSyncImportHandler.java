@@ -29,9 +29,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.sync;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -70,7 +69,8 @@ public class MetadataSyncImportHandler {
 
   private final MetadataImportService metadataImportService;
 
-  public MetadataSyncSummary importMetadata(MetadataSyncParams syncParams, String versionSnapShot) {
+  public MetadataSyncSummary importMetadata(
+      MetadataSyncParams syncParams, InputStream versionSnapshot) {
     MetadataVersion version = getMetadataVersion(syncParams);
     MetadataImportParams importParams = syncParams.getImportParams();
     MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
@@ -80,7 +80,7 @@ public class MetadataSyncImportHandler {
     }
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> classListMap =
-        parseClassListMap(versionSnapShot);
+        parseClassListMap(versionSnapshot);
 
     if (classListMap == null) {
       throw new MetadataSyncServiceException("ClassListMap can't be null");
@@ -136,12 +136,9 @@ public class MetadataSyncImportHandler {
   }
 
   private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> parseClassListMap(
-      String metadataVersionSnapshot) {
-    ByteArrayInputStream byteArrayInputStream =
-        new ByteArrayInputStream(metadataVersionSnapshot.getBytes(StandardCharsets.UTF_8));
-
+      InputStream metadataVersionSnapshot) {
     try {
-      return renderService.fromMetadata(byteArrayInputStream, RenderFormat.JSON);
+      return renderService.fromMetadata(metadataVersionSnapshot, RenderFormat.JSON);
     } catch (IOException ex) {
       String message =
           "Exception occurred while trying to do JSON conversion while parsing class list map";

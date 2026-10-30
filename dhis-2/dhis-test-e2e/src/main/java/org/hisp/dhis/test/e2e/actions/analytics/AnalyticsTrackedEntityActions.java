@@ -52,6 +52,10 @@ public class AnalyticsTrackedEntityActions extends RestApiActions {
     return new AnalyticsTrackedEntityActions("/query");
   }
 
+  public AnalyticsTrackedEntityActions aggregate() {
+    return new AnalyticsTrackedEntityActions("/aggregate");
+  }
+
   public ApiResponse getDimensions(String trackedEntityType, QueryParamsBuilder queryParams) {
     if (queryParams == null) {
       queryParams = new QueryParamsBuilder();

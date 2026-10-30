@@ -48,7 +48,6 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.ProgramExpression;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
-import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.security.acl.AclService;
@@ -194,18 +193,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         ProgramNotificationTemplate.class,
-        aclService,
-        true);
-  }
-
-  @Bean("org.hisp.dhis.program.notification.ProgramNotificationInstanceStore")
-  public HibernateIdentifiableObjectStore<ProgramNotificationInstance>
-      programNotificationInstanceStore() {
-    return new HibernateIdentifiableObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        ProgramNotificationInstance.class,
         aclService,
         true);
   }

@@ -29,8 +29,7 @@
  */
 package org.hisp.dhis.category;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -43,7 +42,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CategoryComboDeletionHandler extends IdObjectDeletionHandler<CategoryCombo> {
-  private final CategoryService categoryService;
 
   @Override
   protected void registerHandler() {
@@ -52,12 +50,8 @@ public class CategoryComboDeletionHandler extends IdObjectDeletionHandler<Catego
   }
 
   private DeletionVeto allowDeleteCategory(Category category) {
-    for (CategoryCombo categoryCombo : categoryService.getAllCategoryCombos()) {
-      if (categoryCombo.getCategories().contains(category)) {
-        return new DeletionVeto(CategoryCombo.class, categoryCombo.getName());
-      }
-    }
-    return ACCEPT;
+    String sql = "select 1 from categorycombos_categories where categoryid = :id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", category.getId()));
   }
 
   private void deleteCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {

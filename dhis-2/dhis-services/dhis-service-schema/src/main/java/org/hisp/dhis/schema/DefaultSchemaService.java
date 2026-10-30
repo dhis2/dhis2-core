@@ -30,13 +30,15 @@
 package org.hisp.dhis.schema;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.CaseFormat;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import jakarta.persistence.EntityManagerFactory;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.MappingException;
@@ -89,7 +92,6 @@ import org.hisp.dhis.schema.descriptors.DataElementGroupSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataElementOperandSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataEntryFormSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.DataInputPeriodSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetNotificationTemplateSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
@@ -103,7 +105,6 @@ import org.hisp.dhis.schema.descriptors.EventReportSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.EventVisualizationSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ExpressionSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.ExternalFileResourceSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ExternalMapLayerSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
@@ -155,7 +156,6 @@ import org.hisp.dhis.schema.descriptors.ProgramStageSectionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramStageWorkingListSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramTrackedEntityAttributeSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipConstraintSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipTypeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
@@ -184,6 +184,7 @@ import org.hisp.dhis.schema.descriptors.ValidationRuleSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.system.util.AnnotationUtils;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -196,8 +197,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service("org.hisp.dhis.schema.SchemaService")
 public class DefaultSchemaService implements SchemaService {
-  // Simple alias map for our concrete implementations of the core interfaces
-  private static final Map<Class<?>, Class<?>> BASE_ALIAS_MAP =
+  /** Simple alias map for our concrete implementations of the core interfaces */
+  private static final Map<Class<?>, Class<?>> BASE_TYPE_BY_INTERFACE_TYPE =
       Map.of(
           IdentifiableObject.class, BaseIdentifiableObject.class,
           NameableObject.class, BaseNameableObject.class,
@@ -205,7 +206,9 @@ public class DefaultSchemaService implements SchemaService {
           DimensionalItemObject.class, BaseDimensionalItemObject.class,
           AnalyticalObject.class, BaseAnalyticalObject.class);
 
-  private final Map<Class<?>, SchemaDescriptor> descriptors = new ConcurrentHashMap<>();
+  private static final Map<Class<?>, Class<?>> INTERFACE_TYPE_BY_BASE_TYPE =
+      BASE_TYPE_BY_INTERFACE_TYPE.entrySet().stream()
+          .collect(toMap(Map.Entry::getValue, Map.Entry::getKey));
 
   private void init() {
     register(new AggregateDataExchangeSchemaDescriptor());
@@ -291,12 +294,9 @@ public class DefaultSchemaService implements SchemaService {
     register(new ValidationRuleGroupSchemaDescriptor());
     register(new ValidationRuleSchemaDescriptor());
     register(new ValidationNotificationTemplateSchemaDescriptor());
-    register(new PushAnalysisSchemaDescriptor());
     register(new ProgramIndicatorGroupSchemaDescriptor());
-    register(new ExternalFileResourceSchemaDescriptor());
     register(new OptionGroupSchemaDescriptor());
     register(new OptionGroupSetSchemaDescriptor());
-    register(new DataInputPeriodSchemaDescriptor());
     register(new ReportingRateSchemaDescriptor());
     register(new UserAccessSchemaDescriptor());
     register(new UserGroupAccessSchemaDescriptor());
@@ -329,16 +329,12 @@ public class DefaultSchemaService implements SchemaService {
     register(new OAuth2AuthorizationConsentSchemaDescriptor());
   }
 
-  private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
-
-  private final Map<String, Schema> singularSchemaMap = new HashMap<>();
-
-  private final Map<String, Schema> pluralSchemaMap = new HashMap<>();
-
-  private final Map<Class<?>, Schema> dynamicClassSchemaMap = new HashMap<>();
+  private final Map<Class<?>, SchemaDescriptor> descriptors = new ConcurrentHashMap<>();
+  private final Map<Class<?>, Schema> schemas = new ConcurrentHashMap<>();
+  private final Map<String, Schema> schemaBySingularName = new HashMap<>();
+  private final Map<String, Schema> schemaByPluralName = new HashMap<>();
 
   private final PropertyIntrospectorService propertyIntrospectorService;
-
   private final EntityManagerFactory entityManagerFactory;
 
   @Autowired
@@ -358,17 +354,9 @@ public class DefaultSchemaService implements SchemaService {
     descriptors.putIfAbsent(descriptor.getSchema().getKlass(), descriptor);
   }
 
-  @Override
-  public Class<?> getConcreteClass(Class<?> klass) {
-    if (BASE_ALIAS_MAP.containsKey(klass)) {
-      return BASE_ALIAS_MAP.get(klass);
-    }
-
-    return klass;
-  }
-
   @EventListener
   public void handleContextRefresh(ContextRefreshedEvent contextRefreshedEvent) {
+    if (schemas.size() >= descriptors.size()) return; // done that
     for (SchemaDescriptor descriptor : descriptors.values()) {
       Schema schema = descriptor.getSchema();
 
@@ -395,9 +383,9 @@ public class DefaultSchemaService implements SchemaService {
             Maps.newHashMap(propertyIntrospectorService.getPropertiesMap(schema.getKlass())));
       }
 
-      classSchemaMap.put(schema.getKlass(), schema);
-      singularSchemaMap.put(schema.getSingular(), schema);
-      pluralSchemaMap.put(schema.getPlural(), schema);
+      schemas.put(schema.getKlass(), schema);
+      schemaBySingularName.put(schema.getSingular(), schema);
+      schemaByPluralName.put(schema.getPlural(), schema);
 
       updateSelf(schema);
 
@@ -409,51 +397,24 @@ public class DefaultSchemaService implements SchemaService {
   }
 
   @Override
-  public Schema getSchema(Class<?> klass) {
-    if (klass == null) {
-      log.error("getSchema() Error, input class should not be null!");
-      return null;
-    }
-
-    if (classSchemaMap.containsKey(klass)) {
-      return classSchemaMap.get(klass);
-    }
-
-    if (dynamicClassSchemaMap.containsKey(klass)) {
-      return dynamicClassSchemaMap.get(klass);
-    }
-
-    return null;
+  public Schema getSchema(Class<?> type) {
+    if (type == null) throw new IllegalArgumentException("Schema type must not be null");
+    if (BASE_TYPE_BY_INTERFACE_TYPE.containsKey(type)) type = BASE_TYPE_BY_INTERFACE_TYPE.get(type);
+    return schemas.computeIfAbsent(type, this::createDynamicSchema);
   }
 
-  @Override
-  public Schema getDynamicSchema(Class<?> klass) {
-    if (klass == null) {
-      log.error("getDynamicSchema() Error, input class should not be null!");
-      return null;
-    }
+  /** Creates a synthetic schema, what was previously known as "dynamic schema". */
+  @Nonnull
+  private Schema createDynamicSchema(Class<?> key) {
+    String name = getName(key);
 
-    Schema schema = getSchema(klass);
-
-    if (schema != null) {
-      return schema;
-    }
-
-    // Lookup the implementation class of core interfaces, if the input
-    // klass is a core interface
-    klass = getConcreteClass(klass);
-
-    String name = getName(klass);
-
-    schema = new Schema(klass, name, name + "s");
+    Schema schema = new Schema(key, name, name + "s");
+    schema.setDynamic(true);
     schema.setDisplayName(beautify(schema));
     schema.setPropertyMap(
         new HashMap<>(propertyIntrospectorService.getPropertiesMap(schema.getKlass())));
 
     updateSelf(schema);
-
-    dynamicClassSchemaMap.put(klass, schema);
-
     return schema;
   }
 
@@ -472,35 +433,34 @@ public class DefaultSchemaService implements SchemaService {
 
   @Override
   public Schema getSchemaBySingularName(String name) {
-    return singularSchemaMap.get(name);
+    return schemaBySingularName.get(name);
   }
 
   @Override
   public Schema getSchemaByPluralName(String name) {
-    return pluralSchemaMap.get(name);
+    return schemaByPluralName.get(name);
   }
 
   @Override
   public List<Schema> getSchemas() {
-    return Lists.newArrayList(classSchemaMap.values());
+    return schemas.values().stream().filter(not(Schema::isDynamic)).toList();
   }
 
   @Override
   public List<Schema> getSortedSchemas() {
-    List<Schema> schemas = Lists.newArrayList(classSchemaMap.values());
-    schemas.sort(OrderComparator.INSTANCE);
-
-    return schemas;
+    return schemas.values().stream()
+        .filter(not(Schema::isDynamic))
+        .sorted(OrderComparator.INSTANCE)
+        .toList();
   }
 
   @Override
   public List<Schema> getMetadataSchemas() {
-    List<Schema> schemas = getSchemas();
-
-    schemas.removeIf(schema -> !schema.isMetadata());
-    schemas.sort(OrderComparator.INSTANCE);
-
-    return schemas;
+    return schemas.values().stream()
+        .filter(not(Schema::isDynamic))
+        .filter(Schema::isMetadata)
+        .sorted(OrderComparator.INSTANCE)
+        .toList();
   }
 
   @Override
@@ -531,7 +491,7 @@ public class DefaultSchemaService implements SchemaService {
 
   @Override
   public PropertyPath getPropertyPath(Class<?> klass, String path) {
-    Schema curSchema = getDynamicSchema(klass);
+    Schema curSchema = getSchema(klass);
     Property curProperty = null;
     boolean persisted = true;
     List<String> alias = new ArrayList<>();
@@ -564,16 +524,43 @@ public class DefaultSchemaService implements SchemaService {
       }
 
       if (curProperty.isCollection()) {
-        curSchema = getDynamicSchema(curProperty.getItemKlass());
+        curSchema = getSchema(curProperty.getItemKlass());
         alias.add(curProperty.getFieldName());
       } else if (!curProperty.isSimple()) {
-        curSchema = getDynamicSchema(curProperty.getKlass());
+        curSchema = getSchema(curProperty.getKlass());
         alias.add(curProperty.getFieldName());
       } else {
         return new PropertyPath(curProperty, persisted, alias.toArray(new String[] {}));
       }
     }
     return new PropertyPath(curProperty, persisted, alias.toArray(new String[] {}));
+  }
+
+  public static <T> T safeInvoke(Object object, Method method) {
+    // Resolve the fallback up front: ReflectionUtils.invokeMethod logs a type mismatch at ERROR.
+    if (object != null && method != null && !method.getDeclaringClass().isInstance(object)) {
+      Method fallback = getInterfaceMethod(method);
+      if (fallback != null && fallback.getDeclaringClass().isInstance(object)) {
+        return ReflectionUtils.invokeMethod(object, fallback);
+      }
+    }
+    try {
+      return ReflectionUtils.invokeMethod(object, method);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to invoke method " + method.getName(), e);
+    }
+  }
+
+  private static Method getInterfaceMethod(Method method) {
+    Class<?> interfaceClass = INTERFACE_TYPE_BY_BASE_TYPE.get(method.getDeclaringClass());
+    if (interfaceClass == null) {
+      return null;
+    }
+    try {
+      return interfaceClass.getMethod(method.getName());
+    } catch (NoSuchMethodException e) {
+      return null;
+    }
   }
 
   private boolean isFilterByAttributeId(Property curProperty, String propertyName) {

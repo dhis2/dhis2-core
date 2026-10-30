@@ -43,7 +43,6 @@ class DimensionParamTypeTest {
   void mapDates() {
     CommonRequestParams request =
         new CommonRequestParams()
-            .withEventDate(of("IpHINAT79UW.LAST_YEAR"))
             .withOccurredDate(of("LAST_MONTH"))
             .withEnrollmentDate(of("2021-06-30"))
             .withLastUpdated(of("TODAY"))
@@ -52,7 +51,6 @@ class DimensionParamTypeTest {
 
     Set<String> expected =
         of(
-            "IpHINAT79UW.pe:LAST_YEAR:EVENT_DATE",
             "pe:2021-06-30:ENROLLMENT_DATE",
             "pe:LAST_MONTH:OCCURRED_DATE",
             "pe:YESTERDAY:SCHEDULED_DATE",

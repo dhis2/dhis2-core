@@ -324,12 +324,12 @@ public class ApiIntegrator {
     // these are removed later again in the generation based on what schemas have
     // actually been referenced when rendering the paths part of the document
     api.getSchemas().values().stream()
-        .filter(schema -> !schema.isUniversal())
+        .filter(schema -> !schema.isBidirectional())
         .forEach(this::generateInputSchema);
   }
 
   private Api.Schema generateInputSchema(Api.Schema output) {
-    if (output.isUniversal()) return output;
+    if (output.isBidirectional()) return output;
     // might already be set due to recursive resolution
     if (output.getInput().isPresent()) return output.getInput().getValue();
     Class<?> schemaType = output.getRawType();

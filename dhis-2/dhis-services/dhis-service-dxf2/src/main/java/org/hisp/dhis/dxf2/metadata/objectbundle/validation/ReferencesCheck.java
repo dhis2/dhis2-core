@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.joinObjects;
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,6 +48,7 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatErrorReport;
@@ -104,8 +106,7 @@ public class ReferencesCheck implements ValidationCheck {
 
     List<PreheatErrorReport> preheatErrorReports = new ArrayList<>();
 
-    Schema schema =
-        ctx.getSchemaService().getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = ctx.getSchemaService().getSchema(HibernateProxyUtils.getRealClass(object));
 
     schema.getProperties().stream()
         .filter(
@@ -153,7 +154,7 @@ public class ReferencesCheck implements ValidationCheck {
       Property p,
       EmbeddedObject embeddedObject) {
     Schema embeddedSchema =
-        ctx.getSchemaService().getDynamicSchema(p.isCollection() ? p.getItemKlass() : p.getKlass());
+        ctx.getSchemaService().getSchema(p.isCollection() ? p.getItemKlass() : p.getKlass());
     embeddedSchema.getProperties().stream()
         .filter(
             ep ->
@@ -181,7 +182,7 @@ public class ReferencesCheck implements ValidationCheck {
       Object object,
       List<PreheatErrorReport> preheatErrorReports,
       Property property) {
-    IdentifiableObject refObject = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+    IdentifiableObject refObject = safeInvoke(object, property.getGetterMethod());
     IdentifiableObject ref = bundle.getPreheat().get(bundle.getPreheatIdentifier(), refObject);
 
     // HACK this needs to be redone when the move to using
@@ -216,8 +217,7 @@ public class ReferencesCheck implements ValidationCheck {
       Property property) {
     Collection<IdentifiableObject> objects =
         ReflectionUtils.newCollectionInstance(property.getKlass());
-    Collection<IdentifiableObject> refObjects =
-        ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+    Collection<IdentifiableObject> refObjects = safeInvoke(object, property.getGetterMethod());
     if (CollectionUtils.isEmpty(refObjects)) {
       return;
     }
@@ -265,8 +265,10 @@ public class ReferencesCheck implements ValidationCheck {
       List<PreheatErrorReport> preheatErrorReports) {
     object
         .getAttributeValues()
+        .keys()
         .forEach(
-            (attributeId, value) -> {
+            key -> {
+              String attributeId = key.toString();
               if (preheat.get(PreheatIdentifier.UID, Attribute.class, attributeId) == null) {
                 preheatErrorReports.add(
                     new PreheatErrorReport(
@@ -317,9 +319,8 @@ public class ReferencesCheck implements ValidationCheck {
     }
   }
 
-  private boolean skipCheck(Class<?> klass) {
-    return klass != null
-        && (Period.class.isAssignableFrom(klass) || PeriodType.class.isAssignableFrom(klass));
+  private boolean skipCheck(Class<?> type) {
+    return Period.class == type || PeriodType.class == type || PeriodDimension.class == type;
   }
 
   private PreheatErrorReport createError(
@@ -350,16 +351,14 @@ public class ReferencesCheck implements ValidationCheck {
       ObjectBundle bundle,
       List<PreheatErrorReport> preheatErrorReports) {
     if (property.isCollection()) {
-      Collection<EmbeddedObject> collection =
-          ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      Collection<EmbeddedObject> collection = safeInvoke(object, property.getGetterMethod());
       if (collection != null) {
         collection.forEach(
             embeddedObject ->
                 checkEmbeddedObject(ctx, bundle, preheatErrorReports, property, embeddedObject));
       }
     } else {
-      EmbeddedObject embeddedObject =
-          ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      EmbeddedObject embeddedObject = safeInvoke(object, property.getGetterMethod());
       if (embeddedObject != null) {
         checkEmbeddedObject(ctx, bundle, preheatErrorReports, property, embeddedObject);
       }

@@ -41,6 +41,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
@@ -56,11 +57,12 @@ import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
-import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.scheduling.parameters.TestJobParameters;
+import org.hisp.dhis.scheduling.parameters.TrackerDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 
 /**
@@ -79,13 +81,14 @@ public enum JobType {
   RESOURCE_TABLE(),
   ANALYTICS_TABLE(AnalyticsJobParameters.class),
   CONTINUOUS_ANALYTICS_TABLE(ContinuousAnalyticsJobParameters.class),
+  SINGLE_EVENT_DATA_SYNC(SingleEventDataSynchronizationJobParameters.class),
+  TRACKED_ENTITY_DATA_SYNC(TrackerDataSynchronizationJobParameters.class),
   DATA_SYNC(DataSynchronizationJobParameters.class),
   META_DATA_SYNC(MetadataSyncJobParameters.class),
   AGGREGATE_DATA_EXCHANGE(AggregateDataExchangeJobParameters.class),
   SEND_SCHEDULED_MESSAGE(),
   PROGRAM_NOTIFICATIONS(),
   MONITORING(MonitoringJobParameters.class),
-  PUSH_ANALYSIS(PushAnalysisJobParameters.class),
   HTML_PUSH_ANALYTICS(HtmlPushAnalyticsJobParameters.class),
   TRACKER_TRIGRAM_INDEX_MAINTENANCE(TrackerTrigramIndexJobParameters.class),
   PREDICTOR(PredictorJobParameters.class),
@@ -137,25 +140,25 @@ public enum JobType {
    * @param name for the {@link JobConfiguration} should it be created
    */
   public record Defaults(
-      @Nonnull String uid,
+      @Nonnull UID uid,
       @CheckForNull String cronExpression,
       @CheckForNull Integer delay,
       @Nonnull String name) {
 
     static Defaults every(int seconds, String uid, String name) {
-      return new Defaults(uid, null, seconds, name);
+      return new Defaults(UID.of(uid), null, seconds, name);
     }
 
     static Defaults daily2am(String uid, String name) {
-      return new Defaults(uid, "0 0 2 ? * *", null, name);
+      return new Defaults(UID.of(uid), "0 0 2 ? * *", null, name);
     }
 
     static Defaults daily1am(String uid, String name) {
-      return new Defaults(uid, "0 0 1 ? * *", null, name);
+      return new Defaults(UID.of(uid), "0 0 1 ? * *", null, name);
     }
 
     static Defaults daily7am(String uid, String name) {
-      return new Defaults(uid, "0 0 7 ? * *", null, name);
+      return new Defaults(UID.of(uid), "0 0 7 ? * *", null, name);
     }
 
     /**
@@ -166,7 +169,7 @@ public enum JobType {
     static Defaults dailyRandomBetween3and5(String uid, String name) {
       ThreadLocalRandom rnd = ThreadLocalRandom.current();
       String cron = format("%d %d %d ? * *", rnd.nextInt(60), rnd.nextInt(60), rnd.nextInt(3, 6));
-      return new Defaults(uid, cron, null, name);
+      return new Defaults(UID.of(uid), cron, null, name);
     }
   }
 
@@ -199,7 +202,11 @@ public enum JobType {
    *     (System User will not work).
    */
   public boolean isValidUserRequiredForJob() {
-    return this == HTML_PUSH_ANALYTICS || this == AGGREGATE_DATA_EXCHANGE || this == META_DATA_SYNC;
+    return this == HTML_PUSH_ANALYTICS
+        || this == AGGREGATE_DATA_EXCHANGE
+        || this == META_DATA_SYNC
+        || this == SINGLE_EVENT_DATA_SYNC
+        || this == TRACKED_ENTITY_DATA_SYNC;
   }
 
   /**
@@ -218,8 +225,9 @@ public enum JobType {
         || this == VALIDATION_RESULTS_NOTIFICATION
         || this == SYSTEM_VERSION_UPDATE_CHECK
         || this == DATA_SYNC
+        || this == SINGLE_EVENT_DATA_SYNC
+        || this == TRACKED_ENTITY_DATA_SYNC
         || this == SMS_SEND
-        || this == PUSH_ANALYSIS
         || this == PREDICTOR
         || this == DATAVALUE_IMPORT
         || this == COMPLETE_DATA_SET_REGISTRATION_IMPORT
@@ -249,8 +257,6 @@ public enum JobType {
    */
   public boolean isUsingContinuousExecution() {
     return this == METADATA_IMPORT
-        || this == RESOURCE_TABLE
-        || this == ANALYTICS_TABLE
         || this == TRACKER_IMPORT_JOB
         || this == DATA_INTEGRITY
         || this == DATA_INTEGRITY_DETAILS
@@ -282,7 +288,6 @@ public enum JobType {
           Map.of(
               "relativePeriods", "/api/periodTypes/relativePeriodTypes",
               "validationRuleGroups", "/api/validationRuleGroups");
-      case PUSH_ANALYSIS -> Map.of("pushAnalysis", "/api/pushAnalysis");
       case PREDICTOR ->
           Map.of(
               "predictors", "/api/predictors",

@@ -37,12 +37,18 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -52,6 +58,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -61,26 +71,26 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.test.utils.RelationshipUtils;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.TestNotes;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.test.RelationshipUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -89,6 +99,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
@@ -96,11 +107,13 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private EnrollmentService enrollmentService;
 
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
   @Autowired protected UserService _userService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TestNotes testNotes;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
@@ -211,7 +224,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeValueA.setAttribute(trackedEntityAttributeA);
     trackedEntityAttributeValueA.setTrackedEntity(trackedEntityA);
     trackedEntityAttributeValueA.setValue("12");
-    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValueA);
+    saveTrackedEntityAttributeValue(entityManager, trackedEntityAttributeValueA);
     trackedEntityA.setTrackedEntityAttributeValues(Set.of(trackedEntityAttributeValueA));
     manager.update(trackedEntityA);
 
@@ -226,15 +239,12 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.update(programB);
 
     programStageA = createProgramStage('A', programA);
+    programStageA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     manager.save(programStageA, false);
     ProgramStage inaccessibleProgramStage = createProgramStage('B', programA);
     inaccessibleProgramStage.getSharing().setOwner(admin);
     inaccessibleProgramStage.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(inaccessibleProgramStage, false);
-    programA.setProgramStages(Set.of(programStageA, inaccessibleProgramStage));
-    manager.save(programA, false);
-    programB.setProgramStages(Set.of(programStageA, inaccessibleProgramStage));
-    manager.save(programB, false);
 
     relationshipTypeA = createRelationshipType('A');
     relationshipTypeA
@@ -380,6 +390,32 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldGetEnrollmentWithNotesWhenNotesAreRequested() throws NotFoundException {
+    Note note = testNotes.save(enrollmentA, "text");
+    manager.clear();
+
+    EnrollmentFields fields = EnrollmentFields.builder().includeNotes().build();
+
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
+
+    assertNotNull(enrollment);
+    assertContainsOnly(
+        List.of(note.getUid()), enrollment.getNotes().stream().map(Note::getUid).toList());
+  }
+
+  @Test
+  void shouldGetEnrollmentWithoutNotesWhenNotesAreNotRequested() throws NotFoundException {
+    testNotes.save(enrollmentA, "text");
+    manager.clear();
+
+    Enrollment enrollment =
+        enrollmentService.getEnrollment(UID.of(enrollmentA), EnrollmentFields.none());
+
+    assertNotNull(enrollment);
+    assertIsEmpty(enrollment.getNotes());
+  }
+
+  @Test
   void shouldGetEnrollmentWithAttributesWhenUserHasAccessToThem() throws NotFoundException {
     EnrollmentFields fields = EnrollmentFields.builder().includeAttributes().build();
 
@@ -387,6 +423,24 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     assertNotNull(enrollment);
     assertContainsOnly(List.of(trackedEntityAttributeA.getUid()), attributeUids(enrollment));
+  }
+
+  @Test
+  void shouldNotReturnAttributeValueWhenUserCannotReadAttribute() throws NotFoundException {
+    // Remove metadata read access to the attribute for the current user. The enrollment is still
+    // accessible, but its attribute value must not be returned.
+    trackedEntityAttributeA.getSharing().setOwner(admin);
+    trackedEntityAttributeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.updateNoAcl(trackedEntityAttributeA);
+    manager.flush();
+    manager.clear();
+
+    EnrollmentFields fields = EnrollmentFields.builder().includeAttributes().build();
+
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
+
+    assertNotNull(enrollment);
+    assertTrue(attributeUids(enrollment).isEmpty());
   }
 
   @Test
@@ -528,7 +582,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
         EnrollmentOperationParams.builder()
             .orgUnits(trackedEntityA.getOrganisationUnit())
             .orgUnitMode(SELECTED)
-            .trackedEntity(trackedEntityA)
+            .trackedEntities(trackedEntityA)
             .build();
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
@@ -551,7 +605,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
-    assertContainsOnly(List.of(enrollmentA), enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
@@ -587,7 +641,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
-    assertContainsOnly(List.of(enrollmentA), enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
@@ -625,7 +679,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
-    assertContainsOnly(List.of(enrollmentA), enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
@@ -698,7 +752,12 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
-        List.of(enrollmentA, enrollmentB, enrollmentChildA, enrollmentGrandchildA), enrollments);
+        List.of(
+            enrollmentA.getUid(),
+            enrollmentB.getUid(),
+            enrollmentChildA.getUid(),
+            enrollmentGrandchildA.getUid()),
+        uids(enrollments));
   }
 
   @Test
@@ -770,14 +829,23 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldNotDeleteNoteWhenDeletingEnrollment() {
-    Note note = new Note();
-    note.setCreator(CodeGenerator.generateUid());
-    note.setNoteText("text");
-    manager.save(note);
-    enrollmentA.getNotes().add(note);
+  void shouldGetNoteWhenNoteHasNoLastUpdatedBy() throws NotFoundException {
+    Note note = testNotes.save(enrollmentA, "text");
+    assertNull(note.getLastUpdatedBy(), "test expects a note without lastUpdatedBy");
+    manager.clear();
 
-    manager.save(enrollmentA);
+    Enrollment enrollment =
+        enrollmentService.getEnrollment(
+            UID.of(enrollmentA), EnrollmentFields.builder().includeNotes().build());
+
+    assertContainsOnly(
+        List.of(note.getUid()), enrollment.getNotes().stream().map(Note::getUid).toList());
+    assertNull(enrollment.getNotes().get(0).getLastUpdatedBy());
+  }
+
+  @Test
+  void shouldNotDeleteNotesWhenSoftDeletingEnrollment() {
+    Note note = testNotes.save(enrollmentA, "text");
 
     assertTrue(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
 
@@ -786,13 +854,17 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.clear();
 
     assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
-    assertTrue(manager.exists(Note.class, note.getUid()));
+    assertEquals(
+        1,
+        jdbcTemplate.queryForObject(
+            "select count(*) from note where uid = ?", Integer.class, note.getUid()));
   }
 
   @Test
   void shouldReturnEnrollmentWithGeometry() {
     GeometryFactory geometryFactory = new GeometryFactory();
     Point point = geometryFactory.createPoint(new Coordinate(13.4050, 52.5200));
+    point.setSRID(4326);
 
     enrollmentA.setGeometry(point);
     manager.update(enrollmentA);
@@ -805,6 +877,46 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     assertEquals(enrollmentA.getGeometry(), enrollment.get().getGeometry());
   }
 
+  @Test
+  void shouldReturnEnrollmentWhenRequestedAttributeOptionComboAccessible()
+      throws ForbiddenException, BadRequestException {
+    CategoryOptionCombo attributeOptionCombo =
+        createAttributeOptionCombo(enrollmentA, AccessStringHelper.READ_ONLY);
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .attributeOptionCombo(attributeOptionCombo.getUID())
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
+
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
+  }
+
+  @Test
+  void shouldFailWhenRequestedAttributeOptionComboNotAccessible() {
+    CategoryOptionCombo attributeOptionCombo =
+        createAttributeOptionCombo(enrollmentA, AccessStringHelper.DEFAULT);
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .attributeOptionCombo(attributeOptionCombo.getUID())
+            .build();
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class, () -> enrollmentService.findEnrollments(operationParams));
+    assertStartsWith("User has no access to attribute option combo:", exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnNoEnrollmentsWhenRequestedEnrollmentAttributeOptionComboNotAccessible()
+      throws ForbiddenException, BadRequestException {
+    createAttributeOptionCombo(enrollmentA, AccessStringHelper.DEFAULT);
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().enrollments(Set.of(enrollmentA.getUID())).build();
+
+    assertIsEmpty(enrollmentService.findEnrollments(operationParams));
+  }
+
   private static List<String> attributeUids(Enrollment enrollment) {
     return enrollment.getTrackedEntity().getTrackedEntityAttributeValues().stream()
         .map(v -> v.getAttribute().getUid())
@@ -815,5 +927,36 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     return enrollment.getRelationshipItems().stream()
         .map(r -> r.getRelationship().getUid())
         .collect(Collectors.toSet());
+  }
+
+  private CategoryOptionCombo createAttributeOptionCombo(
+      Enrollment enrollment, String sharingAccess) {
+    injectSecurityContextUser(admin);
+
+    CategoryOption categoryOption = createCategoryOption('A');
+    categoryOption.getSharing().setPublicAccess(sharingAccess);
+    manager.save(categoryOption, false);
+
+    Category category = createCategory('A');
+    category.setCategoryOptions(List.of(categoryOption));
+    manager.save(category, false);
+
+    CategoryCombo categoryCombo = createCategoryCombo('A');
+    categoryCombo.setCategories(List.of(category));
+    manager.save(categoryCombo, false);
+
+    CategoryOptionCombo attributeOptionCombo = createCategoryOptionCombo('A');
+    attributeOptionCombo.setCategoryCombo(categoryCombo);
+    attributeOptionCombo.setCategoryOptions(Set.of(categoryOption));
+    attributeOptionCombo.getSharing().setPublicAccess(AccessStringHelper.READ_ONLY);
+    manager.save(attributeOptionCombo, false);
+
+    enrollment.setAttributeOptionCombo(attributeOptionCombo);
+    manager.update(enrollment);
+    manager.flush();
+
+    injectSecurityContextUser(user);
+
+    return attributeOptionCombo;
   }
 }

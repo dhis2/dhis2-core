@@ -57,6 +57,11 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeByName;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.AnalyticsType.EVENT;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -107,32 +112,32 @@ import org.hisp.dhis.option.OptionStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramCategoryMapping;
 import org.hisp.dhis.program.ProgramCategoryOptionMapping;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramOwnershipHistory;
-import org.hisp.dhis.program.ProgramOwnershipHistoryService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.acl.ProgramOwnershipHistory;
+import org.hisp.dhis.tracker.acl.ProgramOwnershipHistoryService;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -167,8 +172,6 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private OptionService optionService;
 
   @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
-
-  @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -210,11 +213,11 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   // Note: The periods are not persisted. They don't need to be for event
   // analytics, so the tests should work without them being persisted.
-  private Period peJan = createPeriod("2017-01");
+  private PeriodDimension peJan = PeriodDimension.of(createPeriod("2017-01"));
 
-  private Period peFeb = createPeriod("2017-02");
+  private PeriodDimension peFeb = PeriodDimension.of(createPeriod("2017-02"));
 
-  private Period peMar = createPeriod("2017-03");
+  private PeriodDimension peMar = PeriodDimension.of(createPeriod("2017-03"));
 
   private CategoryOption coA;
 
@@ -262,6 +265,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws ConflictException {
+    createPeriodTypes();
+
     // Organisation Units
     //
     // A -> B -> D,E,F,G
@@ -496,7 +501,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     // Tracked Entity Attribute Values
     TrackedEntityAttributeValue atv = createTrackedEntityAttributeValue('A', teiA, atU);
     atv.setValue(ouF.getUid());
-    attributeValueService.addTrackedEntityAttributeValue(atv);
+    saveTrackedEntityAttributeValue(entityManager, atv);
 
     // Enrollments (Enrollments)
     Enrollment enrollmentA = createEnrollment(programA, teiA, ouE);
@@ -655,7 +660,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     injectAdminIntoSecurityContext();
   }
 
@@ -669,7 +674,9 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @AfterAll
-  public void tearDown() {
+  void tearDown() {
+    cleanPeriodTypes();
+
     for (AnalyticsTableService service : analyticsTableServices) {
       service.dropTables();
     }
@@ -847,6 +854,24 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             List.of("201701", "ouabcdefghF"),
             List.of("201702", "ouabcdefghG"),
             List.of("201703", "ouabcdefghH")),
+        grid);
+  }
+
+  @Test
+  void testGetAggregatedEventDataWithEventOrgUnit() {
+    EventQueryParams params =
+        getAggregatedQueryBuilderA().withOrgUnitField(new OrgUnitField("EVENT")).build();
+
+    Grid grid = eventAggregateService.getAggregatedData(params);
+
+    assertGridContains(
+        // Headers
+        List.of("pe", "ou"),
+        // Grid
+        List.of(
+            List.of("201701", "ouabcdefghI"),
+            List.of("201702", "ouabcdefghJ"),
+            List.of("201703", "ouabcdefghK")),
         grid);
   }
 
@@ -1187,6 +1212,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  @Disabled(
+      "This test is disabled because the scenario is not possible: event aggregate does not support Program Indicators")
   void testEnrollmentProgramIndicatorWithOrgUnitFieldAtStart() {
     ProgramIndicator pi =
         createProgramIndicatorA(
@@ -1218,6 +1245,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  @Disabled(
+      "This test is disabled because the scenario is not possible: event aggregate does not support Program Indicators")
   void testEnrollmentProgramIndicatorWithOrgUnitFieldAtEnd() {
     ProgramIndicator pi =
         createProgramIndicatorA(
@@ -1710,8 +1739,13 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
    */
   private void assertGridContains(List<String> headers, List<List<Object>> rows, Grid grid) {
     // Assert grid contains the expected number of rows
-    assertEquals(
-        rows.size(), grid.getHeight(), "Expected " + rows.size() + " rows in grid " + grid);
+    if (rows.size() != grid.getHeight()) {
+      System.out.println("❌ ROW COUNT MISMATCH:");
+      System.out.println("   Expected: " + rows.size() + " rows");
+      System.out.println("   Actual:   " + grid.getHeight() + " rows");
+      printGridComparison(headers, rows, grid);
+      assertEquals(rows.size(), grid.getHeight(), "Expected " + rows.size() + " rows in grid");
+    }
 
     // Make a map from header name to grid column index
     Map<String, Integer> headerMap =
@@ -1720,9 +1754,13 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             .collect(Collectors.toMap(i -> grid.getHeaders().get(i).getName(), identity()));
 
     // Assert grid contains all the expected headers (column names)
-    assertTrue(
-        headerMap.keySet().containsAll(headers),
-        "Expected headers " + headers + " in grid " + grid);
+    if (!headerMap.keySet().containsAll(headers)) {
+      System.out.println("❌ HEADER MISMATCH:");
+      System.out.println("   Expected headers: " + headers);
+      System.out.println("   Available headers: " + headerMap.keySet());
+      assertTrue(
+          headerMap.keySet().containsAll(headers), "Expected headers " + headers + " in grid");
+    }
 
     // Make colA:row1value/colB:row1value, colA:row2value/colB:row2value...
     List<String> expected =
@@ -1736,7 +1774,105 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             .collect(toList());
 
     // Assert the expected rows are present with the expected values
-    assertEquals(expected, actual);
+    if (!expected.equals(actual)) {
+      System.out.println("❌ GRID CONTENT MISMATCH:");
+      printGridComparison(headers, rows, grid);
+      assertEquals(expected, actual, "Grid content does not match expected values");
+    }
+  }
+
+  private void printGridComparison(
+      List<String> headers, List<List<Object>> expectedRows, Grid actualGrid) {
+    System.out.println("\n📊 GRID COMPARISON:");
+    System.out.println("=".repeat(80));
+
+    // Print headers
+    System.out.println("HEADERS: " + headers);
+    System.out.println();
+
+    // Print expected data
+    System.out.println("✅ EXPECTED (" + expectedRows.size() + " rows):");
+    System.out.println("-".repeat(40));
+    printFormattedRows(headers, expectedRows);
+
+    System.out.println();
+
+    // Print actual data
+    System.out.println("❌ ACTUAL (" + actualGrid.getHeight() + " rows):");
+    System.out.println("-".repeat(40));
+
+    if (actualGrid.getHeight() == 0) {
+      System.out.println("   (no rows)");
+    } else {
+      // Extract actual rows for the specified headers
+      Map<String, Integer> headerMap =
+          range(0, actualGrid.getHeaders().size())
+              .boxed()
+              .collect(Collectors.toMap(i -> actualGrid.getHeaders().get(i).getName(), identity()));
+
+      List<List<Object>> actualRows =
+          actualGrid.getRows().stream()
+              .map(
+                  row ->
+                      headers.stream()
+                          .map(
+                              header ->
+                                  headerMap.containsKey(header)
+                                      ? row.get(headerMap.get(header))
+                                      : "N/A")
+                          .collect(toList()))
+              .collect(toList());
+
+      printFormattedRows(headers, actualRows);
+    }
+
+    System.out.println();
+    System.out.println("=".repeat(80));
+  }
+
+  private void printFormattedRows(List<String> headers, List<List<Object>> rows) {
+    if (rows.isEmpty()) {
+      System.out.println("   (no rows)");
+      return;
+    }
+
+    // Calculate column widths
+    int[] widths = new int[headers.size()];
+    for (int i = 0; i < headers.size(); i++) {
+      widths[i] = Math.max(headers.get(i).length(), 10);
+      for (List<Object> row : rows) {
+        if (i < row.size()) {
+          widths[i] = Math.max(widths[i], String.valueOf(row.get(i)).length());
+        }
+      }
+    }
+
+    // Print header row
+    System.out.print("   ");
+    for (int i = 0; i < headers.size(); i++) {
+      System.out.printf("%-" + widths[i] + "s", headers.get(i));
+      if (i < headers.size() - 1) System.out.print(" | ");
+    }
+    System.out.println();
+
+    // Print separator
+    System.out.print("   ");
+    for (int i = 0; i < headers.size(); i++) {
+      System.out.print("-".repeat(widths[i]));
+      if (i < headers.size() - 1) System.out.print("-+-");
+    }
+    System.out.println();
+
+    // Print data rows
+    for (List<Object> row : rows) {
+      System.out.print("   ");
+      for (int i = 0; i < headers.size(); i++) {
+        String value = i < row.size() ? String.valueOf(row.get(i)) : "N/A";
+        System.out.printf("%-" + widths[i] + "s", value);
+        if (i < headers.size() - 1) System.out.print(" | ");
+      }
+      System.out.println();
+    }
   }
 
   /**

@@ -47,6 +47,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -112,7 +113,7 @@ class IconTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailWhenUpdatingDefaultIcon() throws BadRequestException, NotFoundException {
+  void shouldFailWhenUpdatingDefaultIcon() throws Exception {
     Icon defaultIcon =
         addIcon("3G", "description", keywords, addFileResource('G'), DefaultIcon._3G);
 
@@ -268,23 +269,23 @@ class IconTest extends PostgresIntegrationTestBase {
   }
 
   private Icon addIcon(String key, Set<String> keywords)
-      throws BadRequestException, NotFoundException {
+      throws BadRequestException, NotFoundException, ConflictException {
     return addIcon(key, keywords, addFileResource('Z'));
   }
 
   private Icon addIcon(String key, Set<String> keywords, FileResource image)
-      throws BadRequestException, NotFoundException {
+      throws BadRequestException, NotFoundException, ConflictException {
     return addIcon(key, null, keywords, image);
   }
 
   private Icon addIcon(String key, String description, Set<String> keywords, FileResource image)
-      throws BadRequestException, NotFoundException {
+      throws BadRequestException, NotFoundException, ConflictException {
     return addIcon(key, description, keywords, image, null);
   }
 
   private Icon addIcon(
       String key, String description, Set<String> keywords, FileResource image, DefaultIcon origin)
-      throws BadRequestException, NotFoundException {
+      throws BadRequestException, NotFoundException, ConflictException {
     AddIconRequest addRequest =
         AddIconRequest.builder()
             .key(key)

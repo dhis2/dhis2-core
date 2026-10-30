@@ -45,8 +45,8 @@ public final class EventAnalyticsColumnName {
   public static final String SCHEDULED_DATE_COLUMN_NAME = "scheduleddate";
   public static final String COMPLETED_DATE_COLUMN_NAME = "completeddate";
   public static final String CREATED_COLUMN_NAME = "created";
+  public static final String CREATED_DATE_COLUMN_NAME = "created";
   public static final String LAST_UPDATED_COLUMN_NAME = "lastupdated";
-  public static final String STORED_BY_COLUMN_NAME = "storedby";
   public static final String CREATED_BY_USERNAME_COLUMN_NAME = "createdbyusername";
   public static final String CREATED_BY_NAME_COLUMN_NAME = "createdbyname";
   public static final String CREATED_BY_LASTNAME_COLUMN_NAME = "createdbylastname";
@@ -68,5 +68,6 @@ public final class EventAnalyticsColumnName {
   public static final String ENROLLMENT_GEOMETRY_COLUMN_NAME = "enrollmentgeometry";
   public static final String REGISTRATION_OU_COLUMN_NAME = "registrationou";
   public static final String ENROLLMENT_OU_COLUMN_NAME = "enrollmentou";
+  public static final String ENROLLMENT_OU_NAME_COLUMN_NAME = "enrollmentouname";
   public static final String TRACKED_ENTITY_GEOMETRY_COLUMN_NAME = "tegeometry";
 }

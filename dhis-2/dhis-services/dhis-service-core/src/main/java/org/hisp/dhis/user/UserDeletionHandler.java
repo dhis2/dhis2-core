@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.user;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -62,10 +60,8 @@ public class UserDeletionHandler extends JdbcDeletionHandler {
   }
 
   private void deleteUserRole(UserRole role) {
-    for (User user : role.getMembers()) {
-      user.getUserRoles().remove(role);
-      idObjectManager.updateNoAcl(user);
-    }
+    // Use SQL to delete join table rows — avoids loading the full members collection.
+    delete("DELETE FROM userrolemembers WHERE userroleid = :id", Map.of("id", role.getId()));
   }
 
   private void deleteOrganisationUnit(OrganisationUnit unit) {
@@ -91,14 +87,8 @@ public class UserDeletionHandler extends JdbcDeletionHandler {
   }
 
   private DeletionVeto allowDeleteUserRole(UserRole userRole) {
-    for (User credentials : userRole.getMembers()) {
-      for (UserRole role : credentials.getUserRoles()) {
-        if (role.equals(userRole)) {
-          return new DeletionVeto(User.class, credentials.getName());
-        }
-      }
-    }
-    return ACCEPT;
+    String sql = "select 1 from userrolemembers where userroleid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", userRole.getId()));
   }
 
   private DeletionVeto allowDeleteFileResource(FileResource fileResource) {

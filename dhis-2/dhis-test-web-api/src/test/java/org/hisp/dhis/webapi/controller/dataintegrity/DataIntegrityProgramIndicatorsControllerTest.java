@@ -34,7 +34,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -97,12 +96,9 @@ class DataIntegrityProgramIndicatorsControllerTest extends AbstractDataIntegrity
 
     CategoryCombo defaultCategoryCombo = categoryService.getCategoryCombo(getDefaultCatCombo());
 
-    Program programA = new Program();
-    programA.setAutoFields();
+    Program programA = createProgramWithoutRegistration('A');
     programA.setName("Program A");
     programA.setShortName("Program A");
-    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    programA.setCategoryCombo(defaultCategoryCombo);
     programService.addProgram(programA);
 
     programIndicatorA = new ProgramIndicator();

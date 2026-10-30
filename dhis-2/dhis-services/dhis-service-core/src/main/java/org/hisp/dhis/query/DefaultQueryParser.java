@@ -63,7 +63,7 @@ public class DefaultQueryParser implements QueryParser {
   public <T extends IdentifiableObject> Query<T> parse(
       Class<T> objectType, @Nonnull List<String> filters, Junction.Type rootJunction)
       throws QueryParserException {
-    Schema schema = schemaService.getDynamicSchema(objectType);
+    Schema schema = schemaService.getSchema(objectType);
     Query<T> query = Query.of(objectType, rootJunction);
 
     List<String> mentions = new ArrayList<>();
@@ -195,9 +195,9 @@ public class DefaultQueryParser implements QueryParser {
       }
 
       if (currentProperty.isCollection()) {
-        currentSchema = schemaService.getDynamicSchema(currentProperty.getItemKlass());
+        currentSchema = schemaService.getSchema(currentProperty.getItemKlass());
       } else {
-        currentSchema = schemaService.getDynamicSchema(currentProperty.getKlass());
+        currentSchema = schemaService.getSchema(currentProperty.getKlass());
       }
     }
 

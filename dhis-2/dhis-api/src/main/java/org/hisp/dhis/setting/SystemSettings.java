@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,15 +34,17 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BinaryOperator;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsWeeklyStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
@@ -235,8 +237,11 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default AnalyticsFinancialYearStartKey getAnalyticsFinancialYearStart() {
-    return asEnum(
-        "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER);
+    return asEnum("analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.getDefault());
+  }
+
+  default AnalyticsWeeklyStartKey getAnalyticsWeeklyStart() {
+    return asEnum("analyticsWeeklyStart", AnalyticsWeeklyStartKey.getDefault());
   }
 
   default String getPhoneNumberAreaCode() {
@@ -299,6 +304,14 @@ public non-sealed interface SystemSettings extends Settings {
 
   default int getAnalyticsMaxLimit() {
     return asInt("keyAnalyticsMaxLimit", 100000);
+  }
+
+  /**
+   * @return the max number of indicator values (indicators times dimension item permutations) an
+   *     analytics query may compute, 0 means unlimited
+   */
+  default int getAnalyticsMaxIndicatorPermutations() {
+    return asInt("keyAnalyticsMaxIndicatorPermutations", 1000000);
   }
 
   default int getDataQualityMaxLimit() {
@@ -375,6 +388,109 @@ public non-sealed interface SystemSettings extends Settings {
 
   default Date getLastSuccessfulLatestAnalyticsPartitionUpdate() {
     return asDate("keyLastSuccessfulLatestAnalyticsPartitionUpdate", new Date(0L));
+  }
+
+  /**
+   * Per-{@link AnalyticsTableType} counterpart of {@link
+   * #getLastSuccessfulAnalyticsTablesUpdate()}. Only registered for the table types that support a
+   * latest partition (see {@link AnalyticsTableType#isLatestPartition()}) since those are the only
+   * ones a latest-partition update ever needs to read a per-type clock for.
+   *
+   * <p>No separator character between the base key and the type suffix (deliberately not a "."): a
+   * flat settings key containing a literal "." is misread as a nested path by {@code
+   * JsonObject.get(path)}-style dot-path accessors, which would silently report an existing flat
+   * key as missing.
+   */
+  static String keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType type) {
+    return "keyLastSuccessfulAnalyticsTablesUpdate" + perTypeKeySuffix(type);
+  }
+
+  /**
+   * Per-{@link AnalyticsTableType} counterpart of {@link
+   * #getLastSuccessfulLatestAnalyticsPartitionUpdate()}.
+   */
+  static String keyLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType type) {
+    return "keyLastSuccessfulLatestAnalyticsPartitionUpdate" + perTypeKeySuffix(type);
+  }
+
+  /** Matches the corresponding per-type getter method name suffix below, e.g. {@code DataValue}. */
+  private static String perTypeKeySuffix(AnalyticsTableType type) {
+    return switch (type) {
+      case DATA_VALUE -> "DataValue";
+      case COMPLETENESS -> "Completeness";
+      case EVENT -> "Event";
+      case TRACKED_ENTITY_INSTANCE_EVENTS -> "TrackedEntityInstanceEvents";
+      default -> type.name();
+    };
+  }
+
+  default Date getLastSuccessfulAnalyticsTablesUpdateDataValue() {
+    return asDate(
+        keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.DATA_VALUE), new Date(0L));
+  }
+
+  default Date getLastSuccessfulAnalyticsTablesUpdateCompleteness() {
+    return asDate(
+        keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.COMPLETENESS), new Date(0L));
+  }
+
+  default Date getLastSuccessfulAnalyticsTablesUpdateEvent() {
+    return asDate(keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.EVENT), new Date(0L));
+  }
+
+  default Date getLastSuccessfulAnalyticsTablesUpdateTrackedEntityInstanceEvents() {
+    return asDate(
+        keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS),
+        new Date(0L));
+  }
+
+  default Date getLastSuccessfulLatestAnalyticsPartitionUpdateDataValue() {
+    return asDate(
+        keyLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.DATA_VALUE),
+        new Date(0L));
+  }
+
+  default Date getLastSuccessfulLatestAnalyticsPartitionUpdateCompleteness() {
+    return asDate(
+        keyLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.COMPLETENESS),
+        new Date(0L));
+  }
+
+  default Date getLastSuccessfulLatestAnalyticsPartitionUpdateEvent() {
+    return asDate(
+        keyLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT), new Date(0L));
+  }
+
+  default Date getLastSuccessfulLatestAnalyticsPartitionUpdateTrackedEntityInstanceEvents() {
+    return asDate(
+        keyLastSuccessfulLatestAnalyticsPartitionUpdate(
+            AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS),
+        new Date(0L));
+  }
+
+  /**
+   * Typed, per-type read access to the same key {@link
+   * #getLastSuccessfulAnalyticsTablesUpdateDataValue()} and its siblings read, computed directly
+   * via {@link #keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType)} rather than dispatching
+   * to those getters. Not itself a registered setting (it takes an argument, so it is invisible to
+   * the reflective default-value/key discovery that {@link #keysWithDefaults()} relies on) &mdash;
+   * that registration still comes from the no-arg per-type getters above, which remain unchanged. A
+   * type with no registered per-type key (i.e. {@link AnalyticsTableType#isLatestPartition()} is
+   * {@code false}) defaults to the epoch, same as an unset registered key would.
+   */
+  default Date getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType type) {
+    return type.isLatestPartition()
+        ? asDate(keyLastSuccessfulAnalyticsTablesUpdate(type), new Date(0L))
+        : new Date(0L);
+  }
+
+  /**
+   * Per-type counterpart of {@link #getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType)}.
+   */
+  default Date getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType type) {
+    return type.isLatestPartition()
+        ? asDate(keyLastSuccessfulLatestAnalyticsPartitionUpdate(type), new Date(0L))
+        : new Date(0L);
   }
 
   default Date getLastSuccessfulResourceTablesUpdate() {
@@ -471,10 +587,6 @@ public non-sealed interface SystemSettings extends Settings {
 
   default String getDateFormat() {
     return asString("keyDateFormat", "yyyy-MM-dd");
-  }
-
-  default String getStyle() {
-    return asString("keyStyle", "light_blue/light_blue.css");
   }
 
   default String getRemoteInstanceUrl() {
@@ -613,10 +725,20 @@ public non-sealed interface SystemSettings extends Settings {
   /**
    * @return A job that has not been updating its "alive" timestamp for this number of minutes is
    *     reset to initial state of being scheduled by the heartbeat job. The run that was in
-   *     progress is considered a failed run.
+   *     progress is considered a failed run. This excludes analytic jobs which use {@link
+   *     #getJobsRescheduleAnalyticsAfterMinutes()}.
    */
   default int getJobsRescheduleAfterMinutes() {
     return asInt("jobsRescheduleAfterMinutes", 10);
+  }
+
+  /**
+   * @return An analytics job that has not been updating its "alive" timestamp for this number of
+   *     minutes is reset to initial state of being scheduled by the heartbeat job. The run that was
+   *     in progress is considered a failed run.
+   */
+  default int getJobsRescheduleAnalyticsAfterMinutes() {
+    return asInt("jobsRescheduleAnalyticsAfterMinutes", 60 * 4);
   }
 
   /**
@@ -779,15 +901,6 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * @since 2.42
-   * @return true if the experimental analytics query engine should be used for analytics queries.
-   *     This engine is only required when using ClickHouse or Doris as the analytics database.
-   */
-  default boolean getUseExperimentalAnalyticsQueryEngine() {
-    return asBoolean("experimentalAnalyticsSqlEngineEnabled", false);
-  }
-
-  /**
    * @since 2.40
    * @return if true, the analytics event tables are created with a centroid value for each Data
    *     Element or TEA of type OU or ougeometry
@@ -812,5 +925,56 @@ public non-sealed interface SystemSettings extends Settings {
   default boolean isHideUnapprovedDataInAnalytics() {
     // -1 means approval is disabled
     return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
+  }
+
+  /**
+   * @since 2.42
+   * @return a set of redirect urls that are allowed in device client enrollment and registration,
+   *     delimited by comma. Default is empty string which means all redirect urls are allowed.
+   */
+  default String getDeviceEnrollmentRedirectAllowlist() {
+    return asString("deviceEnrollmentRedirectAllowlist", "dhis2oauth://oauth");
+  }
+
+  /**
+   * @since 2.42
+   * @return a set of user groups (by name) that are allowed to enroll devices, delimited by comma.
+   *     Default is empty string which means all users can enroll devices.
+   */
+  default String getDeviceEnrollmentAllowedUserGroups() {
+    return asString("deviceEnrollmentAllowedUserGroups", "");
+  }
+
+  /**
+   * @since 2.42
+   * @return the time to live in seconds for the device enrollment IAT (issued at) claim.
+   */
+  default int getDeviceEnrollmentIATTtlSeconds() {
+    return asInt("deviceEnrollmentIATTtlSeconds", 60);
+  }
+
+  /**
+   * since 2.43
+   *
+   * @return custom color to use as the background for DHIS2 header bar
+   */
+  default String getCustomColor() {
+    return asString("keyCustomColor", "");
+  }
+
+  /**
+   * since 2.43
+   *
+   * @return custom color to use as the background for DHIS2 header bar for Android
+   */
+  default String getCustomColorMobile() {
+    return asString("keyCustomColorMobile", "");
+  }
+
+  /*
+   * @since 2.43
+   */
+  default Boolean getCustomTranslationsEnabled() {
+    return asBoolean("keyCustomTranslationsEnabled", false);
   }
 }

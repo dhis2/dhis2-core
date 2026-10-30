@@ -37,11 +37,14 @@ import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.storage.BlobReadOptions;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -72,7 +75,7 @@ public interface FileResourceService {
 
   List<FileResource> getFileResources(@Nonnull List<String> uids);
 
-  List<FileResource> getOrphanedFileResources();
+  List<FileResource> getExpiredFileResources(Set<FileResourceDomain> domainsToDeleteWhenUnassigned);
 
   /**
    * Get all unassigned File Resources by JOB_DATA FileResourceDomain, which have no associated job
@@ -103,6 +106,73 @@ public interface FileResourceService {
    *     example when the same data value would be associated with the same file resource value.
    */
   List<FileResourceOwner> findOwnersByStorageKey(@CheckForNull String storageKey);
+
+  /**
+   * Decides whether the given user may read the content of the given {@link FileResource}.
+   *
+   * <p>{@link FileResource} is not a shareable type, so it carries no sharing of its own and the
+   * decision is made against the object that owns it: a {@link FileResourceDomain#DOCUMENT} is
+   * readable when its {@link org.hisp.dhis.document.Document} is, a {@link
+   * FileResourceDomain#MESSAGE_ATTACHMENT} when the user takes part in the conversation, and so on.
+   *
+   * <p>This is <em>deny by default</em>: a domain without an explicit rule is not readable. Callers
+   * serving file content to a user MUST consult this method first.
+   *
+   * @param user the user requesting the file resource
+   * @param fileResource the file resource to read
+   * @return true if the user may read the file resource, false if not
+   */
+  boolean canRead(@Nonnull UserDetails user, @Nonnull FileResource fileResource);
+
+  /**
+   * Decides whether the given user may read the metadata (name, size, content type, checksum,
+   * uploader) of the given {@link FileResource}.
+   *
+   * <p>This is {@link #canRead(UserDetails, FileResource)}, except for {@link
+   * FileResourceDomain#DATA_VALUE}: clients such as Capture and Data Entry look up the metadata of
+   * a file that belongs to a data value the user already sees, and that file was usually uploaded
+   * by someone else. The content of such a file is only served by the data value APIs, which apply
+   * the data access rules of the owning value.
+   *
+   * @param user the user requesting the file resource
+   * @param fileResource the file resource to describe
+   * @return true if the user may read the metadata of the file resource, false if not
+   */
+  boolean canReadMetadata(@Nonnull UserDetails user, @Nonnull FileResource fileResource);
+
+  /**
+   * Decides whether the given user may read the content of the given {@link
+   * FileResourceDomain#DATA_VALUE} file where it is not looked up through its data value, as by the
+   * data value change log (audit) API, which serves current and former values alike.
+   *
+   * <p>This is {@link #canRead(UserDetails, FileResource)}, or the file is the current or a former
+   * value of an aggregate data value of a file value type that the user may read: its organisation
+   * unit is in the user's data capture or data view hierarchy, and the user may read the data of
+   * its category option combo and attribute option combo. Any other domain is not readable here.
+   *
+   * @param user the user requesting the file resource
+   * @param fileResource the data value file resource to read
+   * @return true if the user may read the file resource, false if not
+   */
+  boolean canReadDataValueFile(@Nonnull UserDetails user, @Nonnull FileResource fileResource);
+
+  /**
+   * Decides whether the given user may assign the given {@link FileResource} to an object, such as
+   * a document, a message or an icon.
+   *
+   * <p>Who may read a file follows from the object it is assigned to, so only a file that is not
+   * assigned yet, has the domain of that object and was uploaded by the user may be assigned. A
+   * superuser may assign files uploaded by other users.
+   *
+   * @param user the user assigning the file resource
+   * @param fileResource the file resource to assign
+   * @param domain the domain of the object the file resource is assigned to
+   * @return true if the user may assign the file resource, false if not
+   */
+  boolean canAssign(
+      @Nonnull UserDetails user,
+      @Nonnull FileResource fileResource,
+      @Nonnull FileResourceDomain domain);
 
   /**
    * Creates the provided file resource and stores the file content asynchronously.
@@ -167,8 +237,17 @@ public interface FileResourceService {
   byte[] copyImageContent(FileResource fileResource, ImageFileDimension dimension)
       throws BadRequestException, IOException;
 
+  /** {@link #copyImageContent(FileResource, ImageFileDimension)} bounded by {@code options}. */
+  byte[] copyImageContent(
+      FileResource fileResource, ImageFileDimension dimension, BlobReadOptions options)
+      throws BadRequestException, IOException;
+
   /** Opens a stream to the file resource content. */
   InputStream openContentStream(FileResource fileResource)
+      throws IOException, NoSuchElementException;
+
+  /** {@link #openContentStream(FileResource)} bounded by {@code options}. */
+  InputStream openContentStream(FileResource fileResource, BlobReadOptions options)
       throws IOException, NoSuchElementException;
 
   /**
@@ -183,6 +262,13 @@ public interface FileResourceService {
   InputStream openContentStreamToImage(FileResource fileResource, ImageFileDimension dimension)
       throws IOException, NoSuchElementException, BadRequestException;
 
+  /**
+   * {@link #openContentStreamToImage(FileResource, ImageFileDimension)} bounded by {@code options}.
+   */
+  InputStream openContentStreamToImage(
+      FileResource fileResource, ImageFileDimension dimension, BlobReadOptions options)
+      throws IOException, NoSuchElementException, BadRequestException;
+
   boolean fileResourceExists(String uid);
 
   void updateFileResource(FileResource fileResource);
@@ -191,7 +277,8 @@ public interface FileResourceService {
 
   URI getSignedGetFileResourceContentUri(FileResource fileResource);
 
-  List<FileResource> getExpiredFileResources(FileResourceRetentionStrategy retentionStrategy);
+  List<FileResource> getExpiredDataValueFileResources(
+      FileResourceRetentionStrategy retentionStrategy);
 
   List<FileResource> getAllUnProcessedImagesFiles();
 

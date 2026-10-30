@@ -107,7 +107,6 @@ class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
     dataElement.setCreatedBy(getAdminUser());
     dataElement.setSharing(
         Sharing.builder()
-            .external(false)
             .publicAccess(AccessStringHelper.DEFAULT)
             .owner("testOwner")
             .userGroups(userGroupSharing)

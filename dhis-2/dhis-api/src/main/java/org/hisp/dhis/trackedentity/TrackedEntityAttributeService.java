@@ -174,17 +174,10 @@ public interface TrackedEntityAttributeService {
   List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes();
 
   /**
-   * Get all {@link TrackedEntityAttribute} linked to all {@link TrackedEntityType} present in the
-   * system
-   *
-   * @return a Set of {@link TrackedEntityAttribute}
-   */
-  Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes();
-
-  /**
-   * Fetches all {@link TrackedEntityAttribute} UIDs of the given {@link Program}
+   * Fetches UIDs of all {@link TrackedEntityAttribute} that have {@code skipSynchronization} set to
+   * true.
    *
    * @return a Set of {@link TrackedEntityAttribute} UIDs
    */
-  Set<String> getTrackedEntityAttributesInProgram(@Nonnull Program program);
+  Set<UID> getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue();
 }

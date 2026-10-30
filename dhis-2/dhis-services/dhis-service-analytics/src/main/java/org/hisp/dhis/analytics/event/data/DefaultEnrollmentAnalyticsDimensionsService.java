@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.AGGREGATE;
+import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.ENROLLMENT_AGGREGATE;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.QUERY;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.collectDimensions;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.filterByValueType;
@@ -63,7 +64,6 @@ public class DefaultEnrollmentAnalyticsDimensionsService
 
   @Override
   public List<PrefixedDimension> getQueryDimensionsByProgramId(String programId) {
-
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     return Optional.of(programId)
         .map(programService::getProgram)
@@ -81,7 +81,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                         filterByValueType(
                             QUERY,
                             ofItemsWithProgram(
-                                program, getTeasIfRegistrationAndNotConfidential(program))))))
+                                program, getTeasIfRegistrationAndNotSkipped(program))))))
         .orElse(List.of());
   }
 
@@ -120,25 +120,24 @@ public class DefaultEnrollmentAnalyticsDimensionsService
             program ->
                 collectDimensions(
                     List.of(
-                        getProgramStageDataElements(AGGREGATE, program),
+                        getProgramStageDataElements(ENROLLMENT_AGGREGATE, program),
                         filterByValueType(
-                            AGGREGATE,
+                            ENROLLMENT_AGGREGATE,
                             ofItemsWithProgram(program, program.getTrackedEntityAttributes())))))
         .orElse(List.of());
   }
 
-  private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(
-      Program program) {
+  private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotSkipped(Program program) {
     return Optional.of(program)
         .filter(Program::isRegistration)
         .map(Program::getTrackedEntityAttributes)
         .orElse(List.of())
         .stream()
-        .filter(this::isNotConfidential)
+        .filter(this::isNotSkipped)
         .collect(Collectors.toList());
   }
 
-  private boolean isNotConfidential(TrackedEntityAttribute trackedEntityAttribute) {
-    return !trackedEntityAttribute.isConfidentialBool();
+  private boolean isNotSkipped(TrackedEntityAttribute trackedEntityAttribute) {
+    return !Boolean.TRUE.equals(trackedEntityAttribute.getSkipAnalytics());
   }
 }

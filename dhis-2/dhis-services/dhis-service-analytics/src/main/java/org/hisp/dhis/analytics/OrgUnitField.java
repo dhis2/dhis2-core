@@ -230,7 +230,10 @@ public class OrgUnitField {
           + ((noColumnAlias) ? "" : " as " + col);
     }
 
-    return sqlBuilder.quote(tableAlias, col);
+    // Always add the column alias when one is requested. Without it, JDBC drivers that retain the
+    // table prefix in result-set metadata (e.g. ClickHouse) report the column as
+    // "<tableAlias>.<col>", and downstream lookups by bare column name fail.
+    return sqlBuilder.quote(tableAlias, col) + ((noColumnAlias) ? "" : " as " + col);
   }
 
   @Override

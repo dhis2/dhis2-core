@@ -103,6 +103,10 @@ public class RestApiActions {
     return post("", ContentType.JSON.toString(), object, queryParamsBuilder);
   }
 
+  public ApiResponse postNoBody(String resource) {
+    return post(resource, ContentType.JSON.toString(), null, null);
+  }
+
   public ApiResponse post(
       String resource, String contentType, Object object, QueryParamsBuilder queryParams) {
     String path = queryParams == null ? "" : queryParams.build();
@@ -258,6 +262,26 @@ public class RestApiActions {
 
     addCoverage("PUT", resourceId);
     return new ApiResponse(response);
+  }
+
+  /**
+   * Sends PUT request.
+   *
+   * @param body Body of request
+   */
+  public ApiResponse put(String body) {
+    Response put = given().contentType(ContentType.JSON).body(body).when().put();
+    return new ApiResponse(put);
+  }
+
+  /**
+   * Sends PUT request.
+   *
+   * @param body Body of request
+   */
+  public ApiResponse put(String resourceId, Object body) {
+    Response put = given().contentType(ContentType.JSON).body(body).when().put(resourceId);
+    return new ApiResponse(put);
   }
 
   /**

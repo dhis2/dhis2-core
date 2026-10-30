@@ -51,7 +51,9 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
@@ -75,15 +77,15 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
     TrackerObjects duplicateTrackedEntities =
         testSetup.importTrackerData("tracker/deduplication/potential_duplicates.json");
 
-    trackedEntityAOriginal = testSetup.getTrackedEntity(trackerObjects, "QS6w44flWAf").getUid();
+    trackedEntityAOriginal = testSetup.getTrackedEntity(trackerObjects, "QS6w44flWAf").getUID();
     trackedEntityADuplicate =
-        testSetup.getTrackedEntity(duplicateTrackedEntities, "DS6w44flWAf").getUid();
-    trackedEntityBOriginal = testSetup.getTrackedEntity(trackerObjects, "dUE514NMOlo").getUid();
+        testSetup.getTrackedEntity(duplicateTrackedEntities, "DS6w44flWAf").getUID();
+    trackedEntityBOriginal = testSetup.getTrackedEntity(trackerObjects, "dUE514NMOlo").getUID();
     trackedEntityBDuplicate =
-        testSetup.getTrackedEntity(duplicateTrackedEntities, "DUE514NMOlo").getUid();
-    trackedEntityCOriginal = testSetup.getTrackedEntity(trackerObjects, "mHWCacsGYYn").getUid();
+        testSetup.getTrackedEntity(duplicateTrackedEntities, "DUE514NMOlo").getUID();
+    trackedEntityCOriginal = testSetup.getTrackedEntity(trackerObjects, "mHWCacsGYYn").getUID();
     trackedEntityCDuplicate =
-        testSetup.getTrackedEntity(duplicateTrackedEntities, "DHWCacsGYYn").getUid();
+        testSetup.getTrackedEntity(duplicateTrackedEntities, "DHWCacsGYYn").getUID();
   }
 
   @Test

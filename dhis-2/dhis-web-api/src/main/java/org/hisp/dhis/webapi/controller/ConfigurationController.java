@@ -29,32 +29,51 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.feedback.ErrorCode.E1101;
+import static org.hisp.dhis.period.PeriodTypeEnum.TWO_YEARLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.YEARLY;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
-import org.apache.commons.lang3.StringUtils;
+import java.util.function.Supplier;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.period.PeriodPipeline;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.period.PeriodTypes;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
@@ -70,6 +89,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -89,6 +109,7 @@ public class ConfigurationController {
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
   @Autowired private PeriodService periodService;
+  @Autowired private PeriodPipeline periodPipeline;
 
   @Autowired private RenderService renderService;
 
@@ -446,7 +467,7 @@ public class ConfigurationController {
       value = {"/corsWhitelist", "/corsAllowlist"},
       produces = APPLICATION_JSON_VALUE)
   public @ResponseBody Set<String> getCorsWhitelist(Model model, HttpServletRequest request) {
-    return configurationService.getConfiguration().getCorsWhitelist();
+    return configurationService.getCorsWhitelist();
   }
 
   @SuppressWarnings("unchecked")
@@ -458,10 +479,63 @@ public class ConfigurationController {
   public void setCorsWhitelist(@RequestBody String input) throws IOException {
     Set<String> corsWhitelist = renderService.fromJson(input, Set.class);
 
+    configurationService.setCorsWhitelist(corsWhitelist);
+  }
+
+  @OpenApi.Response(PeriodTypes.PeriodTypeEntry.Output[].class)
+  @GetMapping(
+      value = {"/dataOutputPeriodTypes"},
+      produces = APPLICATION_JSON_VALUE)
+  public void getDataOutputPeriodTypes(
+      @RequestParam(required = false) Locale locale,
+      @RequestParam(defaultValue = "*") Fields fields,
+      HttpServletResponse response) {
+    Set<PeriodTypeEnum> names =
+        configurationService.getConfiguration().getDataOutputPeriodTypes().stream()
+            .map(PeriodType::getPeriodTypeEnum)
+            .collect(toSet());
+
+    periodPipeline.exportAsJson(names, locale, fields, lazyJsonOutputStream(response));
+  }
+
+  private static Supplier<OutputStream> lazyJsonOutputStream(HttpServletResponse response) {
+    return () -> {
+      response.setContentType(CONTENT_TYPE_JSON);
+      try {
+        return response.getOutputStream();
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+    };
+  }
+
+  @OpenApi.Shared(false)
+  public record PeriodTypeName(String name) {}
+
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
+  @PostMapping(
+      value = {"/dataOutputPeriodTypes"},
+      consumes = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setDataOutputPeriodTypes(@RequestBody Set<PeriodTypeName> names) {
+
+    // Disallow deprecated types
+    for (PeriodTypeName obj : names) {
+      if (trimToEmpty(obj.name()).equalsIgnoreCase(TWO_YEARLY.getName())) {
+        throw new IllegalQueryException(new ErrorMessage(E1101, obj.name()));
+      }
+    }
+
+    Set<PeriodType> periodTypesParsed = new LinkedHashSet<>();
+
+    names.forEach(
+        p -> addIgnoreNull(periodTypesParsed, periodService.getPeriodTypeByName(p.name())));
+
+    // Always add yearly, as it is mandatory for partition checks
+    periodTypesParsed.add(periodService.getPeriodTypeByName(YEARLY.getName()));
+
     Configuration configuration = configurationService.getConfiguration();
-
-    configuration.setCorsWhitelist(corsWhitelist);
-
+    configuration.setDataOutputPeriodTypes(periodTypesParsed);
     configurationService.setConfiguration(configuration);
   }
 
@@ -492,6 +566,6 @@ public class ConfigurationController {
    * @return a trimmed string.
    */
   private String trim(String string) {
-    return StringUtils.remove(string, "\"");
+    return Strings.CS.remove(string, "\"");
   }
 }

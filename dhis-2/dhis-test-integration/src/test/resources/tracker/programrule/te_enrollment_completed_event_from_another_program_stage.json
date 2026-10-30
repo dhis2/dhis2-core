@@ -71,7 +71,8 @@
       "events": [],
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "notes": [],
+      "attributeOptionCombo": {}
     }
   ],
   "events": [
@@ -97,7 +98,8 @@
       "storedBy": "admin",
       "deleted": false,
       "attributeOptionCombo": {
-        "idScheme": "UID"
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
       },
       "attributeCategoryOptions": [],
 

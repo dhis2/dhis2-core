@@ -26,8 +26,7 @@
 #
 ---
   name: data_elements_cannot_aggregate_operator_not_none
-  description: Aggregate data elements which cannot be aggregated but have an aggregation operator set to something 
-      other than NONE
+  description: Aggregate data elements which cannot be aggregated but have an aggregation operator not set to NONE
   section: Data elements (aggregate)
   section_order: 9
   summary_sql: >-

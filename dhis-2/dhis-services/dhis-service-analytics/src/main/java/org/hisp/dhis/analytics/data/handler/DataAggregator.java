@@ -37,7 +37,7 @@ import static org.hisp.dhis.analytics.ProcessingHint.SINGLE_PROGRAM_INDICATOR_RE
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionalObject;

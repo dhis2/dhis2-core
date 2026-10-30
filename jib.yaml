@@ -4,9 +4,7 @@ kind: BuildFile
 from:
   image: ${baseImage}
   platforms:
-    - architecture: "amd64"
-      os: "linux"
-    - architecture: "arm64"
+    - architecture: ${architecture}
       os: "linux"
 
 creationTime: ${timestamp}
@@ -39,3 +37,9 @@ layers:
           properties:
             user: ${imageUser}
             group: ${imageUser}
+    - name: "curl"
+      files:
+        - src: ${curlBinaryDir}/curl
+          dest: "/usr/local/bin/curl"
+          properties:
+            filePermissions: "755"

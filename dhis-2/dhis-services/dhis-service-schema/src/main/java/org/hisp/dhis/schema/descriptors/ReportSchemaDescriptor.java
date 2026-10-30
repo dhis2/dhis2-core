@@ -56,7 +56,6 @@ public class ReportSchemaDescriptor implements SchemaDescriptor {
         new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_REPORT_PUBLIC_ADD")));
     schema.add(
         new Authority(AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_REPORT_PRIVATE_ADD")));
-    schema.add(new Authority(AuthorityType.EXTERNALIZE, Lists.newArrayList("F_REPORT_EXTERNAL")));
     schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_REPORT_DELETE")));
 
     return schema;

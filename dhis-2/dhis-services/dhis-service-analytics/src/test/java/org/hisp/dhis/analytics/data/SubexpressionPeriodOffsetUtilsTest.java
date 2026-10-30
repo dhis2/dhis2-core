@@ -33,7 +33,7 @@ import static java.lang.String.format;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.test.TestBase.createDataElement;
-import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,8 +46,10 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.sql.DorisSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -77,28 +79,45 @@ class SubexpressionPeriodOffsetUtilsTest {
   private final SubexpressionDimensionItem subExpr =
       new SubexpressionDimensionItem(expression, items, null);
 
-  private final Period periodA = createPeriod("202309");
-
-  private final Period periodB = createPeriod("202310");
-
   private final DataQueryParams params =
       DataQueryParams.newBuilder()
           .withPeriodType("monthly")
-          .withPeriods(List.of(periodA, periodB))
+          .withPeriods(createPeriodDimensions("202309", "202310"))
           .addDimension(
               new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, getList(subExpr)))
           .build();
 
   @Test
   void testJoinPeriodOffsetValues() {
-    String result = SubexpressionPeriodOffsetUtils.joinPeriodOffsetValues(params);
+    String result =
+        SubexpressionPeriodOffsetUtils.joinPeriodOffsetValues(params, new PostgreSqlBuilder());
     String expected =
-        " join (values"
-            + "(-2,'202309','202307'),(-2,'202310','202308'),"
-            + "(-1,'202309','202308'),(-1,'202310','202309'),"
-            + "(0,'202309','202309'),(0,'202310','202310'),"
-            + "(1,'202309','202310'),(1,'202310','202311'))"
-            + " as shift (\"delta\", \"reportperiod\", \"dataperiod\") on \"dataperiod\" = \"monthly\"";
+        " join (select -2 as \"delta\", '202309' as \"reportperiod\", '202307' as \"dataperiod\""
+            + " union all select -2, '202310', '202308'"
+            + " union all select -1, '202309', '202308'"
+            + " union all select -1, '202310', '202309'"
+            + " union all select 0, '202309', '202309'"
+            + " union all select 0, '202310', '202310'"
+            + " union all select 1, '202309', '202310'"
+            + " union all select 1, '202310', '202311'"
+            + ") as shift on shift.\"dataperiod\" = ax.\"monthly\"";
+    assertEquals(expected, result);
+  }
+
+  @Test
+  void testJoinPeriodOffsetValuesWithDoris() {
+    String result =
+        SubexpressionPeriodOffsetUtils.joinPeriodOffsetValues(params, new DorisSqlBuilder("", ""));
+    String expected =
+        " join (select -2 as `delta`, '202309' as `reportperiod`, '202307' as `dataperiod`"
+            + " union all select -2, '202310', '202308'"
+            + " union all select -1, '202309', '202308'"
+            + " union all select -1, '202310', '202309'"
+            + " union all select 0, '202309', '202309'"
+            + " union all select 0, '202310', '202310'"
+            + " union all select 1, '202309', '202310'"
+            + " union all select 1, '202310', '202311'"
+            + ") as shift on shift.`dataperiod` = ax.`monthly`";
     assertEquals(expected, result);
   }
 
@@ -139,7 +158,8 @@ class SubexpressionPeriodOffsetUtilsTest {
 
   private List<DimensionalItemObject> getPeriodList(String... isoPeriods) {
     return Arrays.stream(isoPeriods)
-        .map(PeriodType::getPeriodFromIsoString)
+        .map(Period::ofNullable)
+        .map(PeriodDimension::of)
         .map(DimensionalItemObject.class::cast)
         .toList();
   }

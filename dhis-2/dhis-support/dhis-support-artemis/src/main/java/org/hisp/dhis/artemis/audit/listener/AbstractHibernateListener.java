@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostInsertEvent;
@@ -48,6 +49,7 @@ import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.proxy.HibernateProxy;
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
@@ -71,6 +73,8 @@ public abstract class AbstractHibernateListener {
 
   protected final AuditObjectFactory objectFactory;
 
+  private final AuditMatrix auditMatrix;
+
   private final UsernameSupplier usernameSupplier;
 
   private final SchemaService schemaService;
@@ -78,15 +82,18 @@ public abstract class AbstractHibernateListener {
   protected AbstractHibernateListener(
       AuditManager auditManager,
       AuditObjectFactory objectFactory,
+      AuditMatrix auditMatrix,
       UsernameSupplier usernameSupplier,
       SchemaService schemaService) {
     checkNotNull(auditManager);
     checkNotNull(objectFactory);
+    checkNotNull(auditMatrix);
     checkNotNull(usernameSupplier);
     checkNotNull(schemaService);
 
     this.auditManager = auditManager;
     this.objectFactory = objectFactory;
+    this.auditMatrix = auditMatrix;
     this.usernameSupplier = usernameSupplier;
     this.schemaService = schemaService;
   }
@@ -97,10 +104,10 @@ public abstract class AbstractHibernateListener {
       Auditable auditable =
           AnnotationUtils.getAnnotation(HibernateProxyUtils.getRealClass(object), Auditable.class);
 
-      boolean shouldAudit =
+      boolean isAuditableEventType =
           Arrays.stream(auditable.eventType()).anyMatch(s -> s.contains("all") || s.contains(type));
 
-      if (shouldAudit) {
+      if (isAuditableEventType && auditMatrix.isEnabled(auditable.scope(), getAuditType())) {
         return Optional.of(auditable);
       }
     }
@@ -123,8 +130,7 @@ public abstract class AbstractHibernateListener {
    */
   protected Object createAuditEntry(PostDeleteEvent event) {
     Map<String, Object> objectMap = new HashMap<>();
-    Schema schema =
-        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(event.getEntity()));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(event.getEntity()));
     Map<String, Property> properties = schema.getFieldNameMapProperties();
 
     for (int i = 0; i < event.getDeletedState().length; i++) {
@@ -169,7 +175,7 @@ public abstract class AbstractHibernateListener {
       Serializable id,
       EntityPersister persister) {
     Map<String, Object> objectMap = new HashMap<>();
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(entity));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(entity));
     Map<String, Property> properties = schema.getFieldNameMapProperties();
 
     HibernateProxy entityProxy = null;
@@ -182,11 +188,11 @@ public abstract class AbstractHibernateListener {
       String pName = persister.getPropertyNames()[i];
       Property property = properties.get(pName);
 
-      if (shouldIgnoreProperty(property)) {
+      if (shouldIgnoreProperty(property) || isUnloadedCollection(value)) {
         continue;
       }
 
-      if (shouldInitializeProxy(value) || property.isEmbeddedObject()) {
+      if (shouldRefetchThroughProxy(value, property)) {
         if (entityProxy == null) {
           entityProxy = createProxy(id, session, persister);
         }
@@ -249,17 +255,11 @@ public abstract class AbstractHibernateListener {
     if (value == null) return;
 
     if (property.isCollection() && (value instanceof Collection<?> collectionValue)) {
-
-      if (collectionValue.isEmpty()) return;
-
+      // a loaded empty collection is written as [], so a missing key only means "not loaded"
       Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) collectionValue;
 
       if (IdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
-        List<String> uids = IdentifiableObjectUtils.getUids(collection);
-
-        if (uids != null && !uids.isEmpty()) {
-          objectMap.put(property.getFieldName(), uids);
-        }
+        objectMap.put(property.getFieldName(), IdentifiableObjectUtils.getUids(collection));
       } else {
         handleNonIdentifiableCollection(property, value, objectMap);
       }
@@ -287,6 +287,26 @@ public abstract class AbstractHibernateListener {
     }
 
     return true;
+  }
+
+  /**
+   * Rule 2: a collection the request did not load is left out, as loading it here would read every
+   * element from the database (hundreds of thousands for large org unit sets).
+   */
+  private static boolean isUnloadedCollection(Object value) {
+    return value instanceof PersistentCollection collection && !collection.wasInitialized();
+  }
+
+  /**
+   * An embedded collection that is already initialized (e.g. an inline {@code state} snapshot
+   * captured at flush time) reflects the current, correct association. Re-resolving it through a
+   * freshly created, uninitialized entity proxy re-queries the collection and can race with the
+   * not-yet-visible write, wiping out data that was already there. Only force the proxy re-fetch
+   * for a singular embedded property or a collection that isn't loaded yet.
+   */
+  private boolean shouldRefetchThroughProxy(Object value, Property property) {
+    return shouldInitializeProxy(value)
+        || (property.isEmbeddedObject() && !property.isCollection());
   }
 
   private Object getId(Object object) {

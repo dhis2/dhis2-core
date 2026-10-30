@@ -44,6 +44,7 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -76,7 +77,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       ColumnMapper columnMapper,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      ConfigurationService configurationService) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -89,7 +91,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        sqlBuilder);
+        sqlBuilder,
+        configurationService);
     this.columnMapper = columnMapper;
   }
 
@@ -118,6 +121,23 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   /**
+   * Returns the distinct {@link AnalyticsTableColumn#getJoinClause() column-contributed join
+   * clauses} joined by a single space, or an empty string when no column declares one. Callers are
+   * responsible for inserting the result into the populating SELECT at the appropriate position via
+   * the {@code ${extraJoinClause}} template placeholder.
+   *
+   * <p>Used to support engines that populate lookup-driven columns via JOINs rather than correlated
+   * subqueries (e.g. ClickHouse).
+   */
+  protected static String collectColumnJoinClauses(List<AnalyticsTableColumn> columns) {
+    return columns.stream()
+        .map(AnalyticsTableColumn::getJoinClause)
+        .filter(s -> s != null && !s.isBlank())
+        .distinct()
+        .collect(Collectors.joining(" "));
+  }
+
+  /**
    * Returns a list of columns based on the given attribute.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
@@ -140,7 +160,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         on en.trackedentityid=${uid}.trackedentityid \
         and ${uid}.trackedentityattributeid = ${id}\s""";
 
-    return program.getNonConfidentialTrackedEntityAttributes().stream()
+    return program.getAnalyzableTrackedEntityAttributes().stream()
         .map(attribute -> replaceQualify(sqlBuilder, template, toVariableMap(attribute)))
         .collect(Collectors.joining());
   }

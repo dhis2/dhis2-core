@@ -51,7 +51,6 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -129,12 +128,12 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
       query.setParameter("rulesUids", request.getVr());
     }
     if (request.getPe() != null) {
-      Period p = PeriodType.getPeriodFromIsoString(request.getPe());
+      Period p = Period.of(request.getPe());
       query.setParameter("startDate", p.getStartDate());
       query.setParameter("endDate", p.getEndDate());
     }
     if (request.getCreated() != null) {
-      Period p = PeriodType.getPeriodFromIsoString(request.getCreated());
+      Period p = Period.of(request.getCreated());
       query.setParameter("createdStartDate", p.getStartDate());
       query.setParameter("createdEndDate", p.getEndDate());
     }
@@ -236,7 +235,7 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
       int i = 1;
       for (String period : query.getPe()) {
         String parameterName = "periodId" + (i++);
-        Period p = PeriodType.getPeriodFromIsoString(period);
+        Period p = Period.of(period);
         hibernateQuery.setParameter(parameterName + "Start", p.getStartDate());
         hibernateQuery.setParameter(parameterName + "End", p.getEndDate());
       }

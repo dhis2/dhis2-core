@@ -57,8 +57,20 @@ public interface JsonIdentifiableObject extends JsonObject {
     return getString("displayName").string();
   }
 
+  default String getShortName() {
+    return getString("shortName").string();
+  }
+
+  default String getDisplayShortName() {
+    return getString("displayShortName").string();
+  }
+
   default String getDescription() {
     return getString("description").string();
+  }
+
+  default String getDisplayDescription() {
+    return getString("displayDescription").string();
   }
 
   default String getHref() {
@@ -83,11 +95,6 @@ public interface JsonIdentifiableObject extends JsonObject {
 
   default LocalDateTime getCreated() {
     return get("created", JsonDate.class).date();
-  }
-
-  @Validation(required = YesNo.NO)
-  default boolean getExternalAccess() {
-    return getBoolean("externalAccess").booleanValue(false);
   }
 
   default List<String> getFavorites() {

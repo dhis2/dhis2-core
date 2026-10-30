@@ -254,7 +254,9 @@ public interface JobProgress {
    */
   @Nonnull
   default <T> T nonNullStagePostCondition(@CheckForNull T value) throws CancellationException {
-    if (value == null) throw new CancellationException("Post-condition was null");
+    if (value == null) {
+      throw new CancellationException("Post-condition was null");
+    }
     return value;
   }
 
@@ -564,7 +566,9 @@ public interface JobProgress {
       return res;
     } catch (Exception ex) {
       failedStage(ex);
-      if (exception.isInstance(ex)) throw (E) ex;
+      if (exception.isInstance(ex)) {
+        throw (E) ex;
+      }
       return null;
     }
   }
@@ -647,7 +651,8 @@ public interface JobProgress {
   }
 
   /**
-   * Returns a formatted string, or null if the given format is null.
+   * Returns a formatted string using <code>{}</code> as variable markers, or null if the given
+   * format is null.
    *
    * @param pattern the pattern string.
    * @param args the pattern arguments.

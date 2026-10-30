@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.OutputFormat.ANALYTICS;
 import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.LATITUDE_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.LONGITUDE_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
@@ -62,20 +63,21 @@ import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.OrgUnitField;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -83,8 +85,10 @@ import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -253,11 +257,13 @@ public class DefaultDataQueryService implements DataQueryService {
     return getDimension(
         dimension,
         items,
-        request.getRelativePeriodDate(),
-        request.getDisplayProperty(),
         userOrgUnits,
-        allowNull,
-        inputIdScheme);
+        new DimensionResolveOptions(
+            request.getRelativePeriodDate(),
+            request.getDisplayProperty(),
+            allowNull,
+            inputIdScheme,
+            false));
   }
 
   @Override
@@ -273,11 +279,9 @@ public class DefaultDataQueryService implements DataQueryService {
     return getDimension(
         dimension,
         items,
-        relativePeriodDate,
-        displayProperty,
         userOrgUnits,
-        allowNull,
-        inputIdScheme);
+        new DimensionResolveOptions(
+            relativePeriodDate, displayProperty, allowNull, inputIdScheme, false));
   }
 
   @Override
@@ -299,7 +303,7 @@ public class DefaultDataQueryService implements DataQueryService {
           units.addAll(currentUser.getOrganisationUnits().stream().sorted().toList());
           break;
         case DATA_OUTPUT:
-          units.addAll(getAnalyticsOrganisationUnitsOrDefault(currentUser));
+          units.addAll(currentUser.getDataViewOrganisationUnits().stream().sorted().toList());
           break;
         case TEI_SEARCH:
           units.addAll(currentUser.getTeiSearchOrganisationUnits().stream().sorted().toList());
@@ -312,35 +316,9 @@ public class DefaultDataQueryService implements DataQueryService {
     return units;
   }
 
-  /**
-   * Retrieve the list of organisation units to which the current user has access rights. If the
-   * user has analytics organisation units assigned, those will be returned. Otherwise, it returns
-   * the default ones (data capture organisation units).
-   *
-   * @param currentUser {@link User}
-   * @return a list of {@link OrganisationUnit}.
-   */
-  private List<OrganisationUnit> getAnalyticsOrganisationUnitsOrDefault(User currentUser) {
-    Set<OrganisationUnit> organisationUnits = currentUser.getDataViewOrganisationUnits();
-    if (organisationUnits != null && !organisationUnits.isEmpty()) {
-      return organisationUnits.stream().sorted().toList();
-    } else {
-      // If the user has no analytics permissions for any organization unit,
-      // returns data capture organization units, instead.
-      Set<OrganisationUnit> defaultOrganisationUnits = currentUser.getOrganisationUnits();
-      if (defaultOrganisationUnits != null && !defaultOrganisationUnits.isEmpty()) {
-        return defaultOrganisationUnits.stream().sorted().toList();
-      }
-    }
-
-    return new ArrayList<>();
-  }
-
   private List<DimensionalObject> getDimensionalObjects(DataQueryRequest request) {
     List<DimensionalObject> list = new ArrayList<>();
-    DataQueryParams params =
-        DataQueryParams.newBuilder().withUserOrgUnitType(request.getUserOrgUnitType()).build();
-    List<OrganisationUnit> userOrgUnits = getUserOrgUnits(params, request.getUserOrgUnit());
+    List<OrganisationUnit> userOrgUnits = getUserOrgUnits(null, request.getUserOrgUnit());
 
     if (request.getDimension() != null) {
       for (String param : request.getDimension()) {
@@ -353,11 +331,13 @@ public class DefaultDataQueryService implements DataQueryService {
               getDimension(
                   dimension,
                   items,
-                  request.getRelativePeriodDate(),
-                  request.getDisplayProperty(),
                   userOrgUnits,
-                  false,
-                  firstNonNull(request.getInputIdScheme(), UID)));
+                  new DimensionResolveOptions(
+                      request.getRelativePeriodDate(),
+                      request.getDisplayProperty(),
+                      false,
+                      firstNonNull(request.getInputIdScheme(), UID),
+                      request.isGeometryOnly())));
         }
       }
     }
@@ -381,25 +361,37 @@ public class DefaultDataQueryService implements DataQueryService {
   }
 
   /**
+   * Options controlling how a dimension is resolved by {@link #getDimension(String, List, List,
+   * DimensionResolveOptions)}.
+   *
+   * @param relativePeriodDate the relative period date.
+   * @param displayProperty the display property.
+   * @param allowNull whether to allow returning null.
+   * @param inputIdScheme the input {@link IdScheme}.
+   * @param geometryOnly whether to restrict org unit resolution to units with a non-null geometry.
+   */
+  private record DimensionResolveOptions(
+      Date relativePeriodDate,
+      DisplayProperty displayProperty,
+      boolean allowNull,
+      IdScheme inputIdScheme,
+      boolean geometryOnly) {}
+
+  /**
    * Returns a {@link DimensionalObject}.
    *
    * @param dimension the dimension identifier.
    * @param items the dimension items.
-   * @param relativePeriodDate the relative period date.
-   * @param displayProperty the relative period date.
    * @param userOrgUnits the list of user {@link OrganisationUnit}.
-   * @param allowNull whether to allow returning null.
-   * @param inputIdScheme the input {@link IdScheme}.
+   * @param options the {@link DimensionResolveOptions} controlling resolution.
    * @return a {@link DimensionalObject}.
    */
   private DimensionalObject getDimension(
       String dimension,
       List<String> items,
-      Date relativePeriodDate,
-      DisplayProperty displayProperty,
       List<OrganisationUnit> userOrgUnits,
-      boolean allowNull,
-      IdScheme inputIdScheme) {
+      DimensionResolveOptions options) {
+    IdScheme inputIdScheme = options.inputIdScheme();
     if (DATA_X_DIM_ID.equals(dimension)) {
       return dimensionalObjectProducer.getDimension(items, inputIdScheme);
     } else if (CATEGORYOPTIONCOMBO_DIM_ID.equals(dimension)) {
@@ -417,10 +409,10 @@ public class DefaultDataQueryService implements DataQueryService {
           DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO,
           getCategoryOptionComboList(items, inputIdScheme));
     } else if (PERIOD_DIM_ID.equals(dimension)) {
-      return dimensionalObjectProducer.getPeriodDimension(items, relativePeriodDate);
+      return dimensionalObjectProducer.getPeriodDimension(items, options.relativePeriodDate());
     } else if (ORGUNIT_DIM_ID.equals(dimension)) {
       return dimensionalObjectProducer.getOrgUnitDimension(
-          items, displayProperty, userOrgUnits, inputIdScheme);
+          items, options.displayProperty(), userOrgUnits, inputIdScheme, options.geometryOnly());
     } else if (ORGUNIT_GROUP_DIM_ID.equals(dimension)) {
       return dimensionalObjectProducer.getOrgUnitGroupDimension(items, inputIdScheme);
     } else if (LONGITUDE_DIM_ID.contains(dimension)) {
@@ -430,20 +422,111 @@ public class DefaultDataQueryService implements DataQueryService {
       return new BaseDimensionalObject(
           dimension, STATIC, null, DISPLAY_NAME_LATITUDE, new ArrayList<>());
     } else {
+      // Check for stage-specific category or COGS (format: stageUid.categoryUid or
+      // stageUid.cogsUid)
+      Optional<DimensionalObject> stageSpecificDim =
+          getStageSpecificDynamicDimension(
+              dimension, items, inputIdScheme, options.displayProperty());
+      if (stageSpecificDim.isPresent()) {
+        return stageSpecificDim.get();
+      }
+
       Optional<DimensionalObject> baseDimensionalObject =
           dimensionalObjectProducer.getDynamicDimension(
-              dimension, items, displayProperty, inputIdScheme);
+              dimension, items, options.displayProperty(), inputIdScheme);
 
       if (baseDimensionalObject.isPresent()) {
         return baseDimensionalObject.get();
       }
     }
 
-    if (allowNull) {
+    if (options.allowNull()) {
       return null;
     }
 
     throw new IllegalQueryException(new ErrorMessage(E7125, dimension));
+  }
+
+  /**
+   * Handles stage-specific dynamic dimensions (Category and CategoryOptionGroupSet). Format:
+   * stageUid.categoryUid or stageUid.cogsUid
+   *
+   * @param dimension the dimension string, potentially with stage prefix
+   * @param items the list of items (category options or category option groups)
+   * @param inputIdScheme the input id scheme
+   * @return an Optional containing the DimensionalObject if it's a stage-specific dynamic dimension
+   */
+  private Optional<DimensionalObject> getStageSpecificDynamicDimension(
+      String dimension,
+      List<String> items,
+      IdScheme inputIdScheme,
+      DisplayProperty displayProperty) {
+    // Check if dimension has stage prefix (format: stageUid.dimensionUid)
+    if (!dimension.contains(DIMENSION_IDENTIFIER_SEP)) {
+      return Optional.empty();
+    }
+
+    String[] parts = dimension.split("\\" + DIMENSION_IDENTIFIER_SEP);
+    if (parts.length != 2) {
+      return Optional.empty();
+    }
+
+    String stageUid = parts[0];
+    String dimUid = parts[1];
+
+    // Try to load as ProgramStage
+    ProgramStage programStage =
+        idObjectManager.getObject(ProgramStage.class, inputIdScheme, stageUid);
+    if (programStage == null) {
+      return Optional.empty();
+    }
+
+    // Try to load as Category or CategoryOptionGroupSet
+    DimensionalObject dimObject = null;
+    DimensionType dimensionType = null;
+    Class<? extends DimensionalItemObject> itemClass = null;
+
+    Category category = idObjectManager.getObject(Category.class, inputIdScheme, dimUid);
+    if (category != null && category.isDataDimension()) {
+      dimObject = category;
+      dimensionType = DimensionType.CATEGORY;
+      itemClass = org.hisp.dhis.category.CategoryOption.class;
+    } else {
+      CategoryOptionGroupSet cogs =
+          idObjectManager.getObject(CategoryOptionGroupSet.class, inputIdScheme, dimUid);
+      if (cogs != null && cogs.isDataDimension()) {
+        dimObject = cogs;
+        dimensionType = DimensionType.CATEGORY_OPTION_GROUP_SET;
+        itemClass = org.hisp.dhis.category.CategoryOptionGroup.class;
+      }
+    }
+
+    if (dimObject == null) {
+      return Optional.empty();
+    }
+
+    // Load dimension items
+    boolean allItems = items.isEmpty() || items.contains("ALL_ITEMS");
+    List<DimensionalItemObject> dimItems;
+    if (!allItems) {
+      dimItems = new ArrayList<>(idObjectManager.getOrdered(itemClass, inputIdScheme, items));
+    } else {
+      dimItems = new ArrayList<>(dimObject.getItems());
+    }
+
+    // Create the BaseDimensionalObject with program stage
+    // Use default constructor to avoid with(dimension) method which incorrectly
+    // parses stageUid.categoryUid as programUid.categoryUid
+    BaseDimensionalObject result = new BaseDimensionalObject();
+    result.setUid(dimension); // Full qualified name for metadata keys
+    result.setDimensionType(dimensionType);
+    result.setDimensionName(dimUid); // Actual column name for SQL
+    result.setName(dimObject.getDisplayProperty(displayProperty));
+    result.setItems(dimItems);
+    result.setAllItems(allItems);
+    result.setProgramStage(programStage);
+
+    return Optional.of(result);
   }
 
   /**

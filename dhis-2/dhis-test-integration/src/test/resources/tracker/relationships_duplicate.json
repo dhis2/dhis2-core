@@ -1,0 +1,37 @@
+{
+  "trackedEntities": [],
+  "enrollments": [],
+  "events": [],
+  "relationships": [
+    {
+      "relationship": "Dupe111Rel1",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "xLmPUYJX8Ks"
+      },
+      "bidirectional": false,
+      "deleted": false,
+      "from": {
+        "trackedEntity": "IOR1AXXl24H"
+      },
+      "to": {
+        "enrollment": "TvctPPhpD8u"
+      }
+    },
+    {
+      "relationship": "Dupe222Rel2",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "TV9oB9LT3sh"
+      },
+      "bidirectional": false,
+      "deleted": false,
+      "from": {
+        "trackedEntity": "IOR1AXXl24H"
+      },
+      "to": {
+        "event": "D9PbzJY8bJO"
+      }
+    }
+  ]
+}

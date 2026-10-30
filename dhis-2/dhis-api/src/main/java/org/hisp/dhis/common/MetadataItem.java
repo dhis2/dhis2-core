@@ -30,7 +30,6 @@
 package org.hisp.dhis.common;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
@@ -57,7 +56,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -239,7 +238,7 @@ public class MetadataItem implements Serializable {
 
     // TODO common interface
 
-    if (dimensionalItemObject instanceof Period period) {
+    if (dimensionalItemObject instanceof PeriodDimension period) {
       this.startDate = period.getStartDate();
       this.endDate = period.getEndDate();
     } else if (dimensionalItemObject instanceof Indicator indicator
@@ -266,7 +265,7 @@ public class MetadataItem implements Serializable {
       return operand.getValueType().toSimplifiedValueType();
     } else if (dimensionalItemObject instanceof TrackedEntityAttribute attribute) {
       return attribute.getValueType().toSimplifiedValueType();
-    } else if (dimensionalItemObject instanceof Period) {
+    } else if (dimensionalItemObject instanceof PeriodDimension) {
       return TEXT;
     } else if (dimensionalItemObject
         instanceof ProgramDataElementDimensionItem programDataElementDimensionItem) {
@@ -348,21 +347,9 @@ public class MetadataItem implements Serializable {
       return;
     }
     // Override icon path.
-    style.setIcon(getFullIconUrl(style.getIcon()));
+    style.setIcon(style.getIcon());
 
     this.style = style;
-  }
-
-  /**
-   * It returns the full icon URL for the given icon name. The full URL is based on the Icons' API.
-   * See the controller {@link org.hisp.dhis.webapi.controller.IconController} for more details.
-   *
-   * @param iconName the icon name.
-   * @return the icon's full path.
-   */
-  private String getFullIconUrl(String iconName) {
-    String absoluteUrl = appendIfMissing(serverBaseUrl, "/");
-    return absoluteUrl + "api/icons/" + iconName + "/icon.svg";
   }
 
   @JsonIgnore

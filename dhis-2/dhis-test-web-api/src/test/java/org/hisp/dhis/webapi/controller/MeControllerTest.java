@@ -37,13 +37,20 @@ import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.http.HttpStatus.Series;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -58,9 +65,13 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonMeDto;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -73,6 +84,8 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   private User userA;
 
   @Autowired private ApiTokenStore apiTokenStore;
+
+  @Autowired private FileResourceService fileResourceService;
 
   @BeforeEach
   void setUp() {
@@ -89,12 +102,13 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetCurrentUser_Fields() {
-    JsonMeDto me = GET("/me?fields=name,settings[keyStyle]").content().as(JsonMeDto.class);
+    JsonMeDto me =
+        GET("/me?fields=name,settings[keyCustomColorMobile]").content().as(JsonMeDto.class);
     assertEquals(2, me.size());
     assertEquals(Set.of("name", "settings"), Set.copyOf(me.names()));
     JsonMap<JsonMixed> settings = me.getSettings();
     assertEquals(1, settings.size());
-    assertEquals(List.of("keyStyle"), settings.names());
+    assertEquals(List.of("keyCustomColorMobile"), settings.names());
   }
 
   @Test
@@ -125,6 +139,54 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     assertFalse(GET("/me/authorities/missing").content(HttpStatus.OK).booleanValue());
   }
 
+  /**
+   * Contract pins for the {@code /api/me} response shape. These assert the CURRENT contract that
+   * clients rely on; changing any of them must be a deliberate, reviewed decision.
+   */
+  @Test
+  void testGetCurrentUser_ContractShape() {
+    JsonObject me = GET("/me").content(HttpStatus.OK);
+
+    assertEquals("userA", me.getString("username").string());
+    // PIN: "name" is the display name (first name + surname), NOT the username
+    assertEquals(userA.getFirstName() + " " + userA.getSurname(), me.getString("name").string());
+    assertNotEquals(me.getString("username").string(), me.getString("name").string());
+    assertTrue(me.getArray("authorities").stringValues().contains("ALL"));
+    assertTrue(me.getObject("settings").exists());
+    // impersonation fields only appear while impersonating / when the feature is enabled
+    assertFalse(me.get("impersonation").exists());
+    assertFalse(me.get("canImpersonate").exists());
+  }
+
+  @Test
+  void testGetAuthorities_ExactSetForLimitedUser() {
+    switchToNewUser("contract", "F_PERFORM_MAINTENANCE");
+    assertEquals(
+        singletonList("F_PERFORM_MAINTENANCE"),
+        GET("/me/authorities").content(HttpStatus.OK).stringValues());
+    assertEquals(
+        singletonList("F_PERFORM_MAINTENANCE"),
+        GET("/me?fields=authorities")
+            .content(HttpStatus.OK)
+            .getArray("authorities")
+            .stringValues());
+  }
+
+  @Test
+  void testHasAuthority_NonSuperuserExactMatch() {
+    switchToNewUser("contract", "F_PERFORM_MAINTENANCE");
+    assertTrue(
+        GET("/me/authorization/F_PERFORM_MAINTENANCE").content(HttpStatus.OK).booleanValue());
+    assertFalse(GET("/me/authorization/F_DOES_NOT_EXIST").content(HttpStatus.OK).booleanValue());
+  }
+
+  @Test
+  void testHasAuthority_SuperuserImplicitlyHasAnyAuthority() {
+    // PIN: userA holds ALL; isAuthorized() implicitly grants ANY authority for superusers
+    assertTrue(
+        GET("/me/authorization/F_PERFORM_MAINTENANCE").content(HttpStatus.OK).booleanValue());
+  }
+
   @Test
   void testGetEmailVerifiedProperty() {
     assertFalse(GET("/me").content().as(JsonMeDto.class).getEmailVerified());
@@ -142,10 +204,12 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetSettings_ByKey() {
     JsonObject settings =
-        GET("/me/settings?key=keyStyle&key=keyAnalysisDisplayProperty").content(HttpStatus.OK);
+        GET("/me/settings?key=keyCustomColorMobile&key=keyAnalysisDisplayProperty")
+            .content(HttpStatus.OK);
     assertTrue(settings.isObject());
     assertEquals(2, settings.size());
-    assertEquals(Set.of("keyStyle", "keyAnalysisDisplayProperty"), Set.copyOf(settings.names()));
+    assertEquals(
+        Set.of("keyCustomColorMobile", "keyAnalysisDisplayProperty"), Set.copyOf(settings.names()));
   }
 
   @Test
@@ -308,12 +372,128 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     userService.updateUser(userByUsername);
 
     assertEquals(
-        "myvalue", GET("/me").content().as(JsonMeDto.class).getAttributeValues().get(0).getValue());
+        "myvalue", GET("/me").content().as(JsonMeDto.class).getAttributeValues().get(0).value());
   }
 
   @Test
   void testGetTwoFactorType() {
     JsonMeDto jsonMeDto = GET("/me").content().as(JsonMeDto.class);
     assertEquals(TwoFactorType.NOT_ENABLED.toString(), jsonMeDto.getTwoFactorType());
+  }
+
+  // NOTE: ACL filtering tests for userGroups/userRoles in /api/me are in
+  // MeControllerAclTest.java which extends PostgresControllerIntegrationTestBase.
+  // These tests require PostgreSQL-specific JSON functions (jsonb_has_user_group_ids, etc.)
+  // See DHIS2-20458 for details.
+
+  @Test
+  void testRemoveAvatar() throws IOException {
+    // First, upload an avatar image
+    File file = new ClassPathResource("file/dhis2.png").getFile();
+    MockMultipartFile image =
+        new MockMultipartFile("file", "dhis2.png", "image/png", Files.readAllBytes(file.toPath()));
+    HttpResponse uploadResponse = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonObject savedObject =
+        uploadResponse.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
+    String fileResourceId = savedObject.getString("id").string();
+
+    // Set the avatar on the current user
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User user = userService.getUserByUsername(currentUsername);
+    FileResource fileResource = fileResourceService.getFileResource(fileResourceId);
+    user.setAvatar(fileResource);
+    userService.updateUser(user);
+
+    // Verify avatar is set
+    User userWithAvatar = userService.getUserByUsername(currentUsername);
+    assertNotNull(userWithAvatar.getAvatar());
+    assertEquals(fileResourceId, userWithAvatar.getAvatar().getUid());
+
+    // Now remove the avatar
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/me/avatar"));
+
+    // Verify avatar is removed
+    User userAfterRemoval = userService.getUserByUsername(currentUsername);
+    assertNull(userAfterRemoval.getAvatar());
+
+    // Verify file resource is marked as unassigned
+    FileResource fileResourceAfterRemoval = fileResourceService.getFileResource(fileResourceId);
+    assertFalse(fileResourceAfterRemoval.isAssigned());
+  }
+
+  @Test
+  void testRemoveAvatar_NoExistingAvatar() {
+    // Verify user has no avatar
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User user = userService.getUserByUsername(currentUsername);
+    assertNull(user.getAvatar());
+
+    // Removing avatar when there is none should succeed (idempotent operation)
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/me/avatar"));
+
+    // Verify still no avatar
+    User userAfter = userService.getUserByUsername(currentUsername);
+    assertNull(userAfter.getAvatar());
+  }
+
+  @Test
+  void testRemoveAvatar_WithoutSpecialAuthorities() throws IOException {
+    // Switch to a user without special authorities (simulating a guest user)
+    switchToNewUser("guestUser");
+
+    // First, upload an avatar image
+    File file = new ClassPathResource("file/dhis2.png").getFile();
+    MockMultipartFile image =
+        new MockMultipartFile("file", "dhis2.png", "image/png", Files.readAllBytes(file.toPath()));
+    HttpResponse uploadResponse = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonObject savedObject =
+        uploadResponse.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
+    String fileResourceId = savedObject.getString("id").string();
+
+    // Set the avatar on the current user
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User user = userService.getUserByUsername(currentUsername);
+    FileResource fileResource = fileResourceService.getFileResource(fileResourceId);
+    user.setAvatar(fileResource);
+    userService.updateUser(user);
+
+    // Verify avatar is set
+    User userWithAvatar = userService.getUserByUsername(currentUsername);
+    assertNotNull(userWithAvatar.getAvatar());
+
+    // Remove the avatar - this should work even without special authorities
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/me/avatar"));
+
+    // Verify avatar is removed
+    User userAfterRemoval = userService.getUserByUsername(currentUsername);
+    assertNull(userAfterRemoval.getAvatar());
+  }
+
+  /**
+   * DHIS2-21908: /api/me must tolerate users who belong to membership groups that manage other
+   * groups. Building UserDetails via {@code userService.createUserDetails} batch-resolves managed
+   * group PKs; the legacy {@code UserDetails.fromUser} path N+1s on usergroupmanaged.
+   */
+  @Test
+  void testGetCurrentUser_WithManagedUserGroups() {
+    User user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    UserGroup managed = createUserGroup('Y', Set.of());
+    manager.save(managed);
+
+    UserGroup managing = createUserGroup('X', Set.of(user));
+    managing.addManagedGroup(managed);
+    manager.save(managing);
+
+    user.getGroups().add(managing);
+    userService.updateUser(user);
+
+    JsonMeDto me = GET("/me?fields=id").content().as(JsonMeDto.class);
+    assertEquals(user.getUid(), me.getId());
+
+    // Same choke point MeController now uses for UserDetails construction.
+    User reloaded = userService.getUser(user.getUid());
+    UserDetails details = userService.createUserDetails(reloaded);
+    assertTrue(details.getManagedGroupLongIds().contains(managed.getId()));
   }
 }

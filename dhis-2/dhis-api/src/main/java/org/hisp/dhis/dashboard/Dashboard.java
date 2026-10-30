@@ -82,7 +82,6 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -111,7 +110,9 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject,
   @Column(name = "name", nullable = false, length = 230)
   private String name;
 
-  @Setter private String description;
+  @Type(type = "text")
+  @Column(name = "description", columnDefinition = "text")
+  private String description;
 
   @JoinTable(
       name = "dashboard_items",
@@ -258,9 +259,9 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject,
     return name;
   }
 
-  @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
     return translations.getTranslation("NAME", name);
   }
@@ -280,31 +281,15 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject,
   }
 
   @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isFavorite() {
-    if (favorites == null || !CurrentUserUtil.hasCurrentUser()) {
-      return false;
-    }
-    return favorites.contains(CurrentUserUtil.getCurrentUserDetails().getUid());
-  }
-
-  @Override
   public boolean setAsFavorite(UserDetails user) {
-    if (this.favorites == null) {
-      this.favorites = new HashSet<>();
-    }
-
-    return this.favorites.add(user.getUid());
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.add(user.getUid());
   }
 
   @Override
   public boolean removeAsFavorite(UserDetails user) {
-    if (this.favorites == null) {
-      this.favorites = new HashSet<>();
-    }
-
-    return this.favorites.remove(user.getUid());
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.remove(user.getUid());
   }
 
   @Override

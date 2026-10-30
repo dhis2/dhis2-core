@@ -31,12 +31,9 @@ package org.hisp.dhis.security;
 
 import static org.apache.commons.lang3.StringUtils.firstNonEmpty;
 
-import com.google.common.base.Strings;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
-import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
@@ -59,8 +56,8 @@ import org.springframework.util.ClassUtils;
 @Slf4j
 public class AuthenticationLoggerListener
     implements ApplicationListener<AbstractAuthenticationEvent> {
-  private static final HashFunction ID_HASH_FUNCTION = Hashing.sha256();
 
+  @Override
   public void onApplicationEvent(AbstractAuthenticationEvent event) {
     if (!log.isWarnEnabled()) {
       return;
@@ -86,7 +83,6 @@ public class AuthenticationLoggerListener
 
     String authName = firstNonEmpty(authentication.getName(), "");
     String ipAddress = "";
-    String sessionId = "";
     String exceptionMessage = "";
 
     if (event instanceof AbstractAuthenticationFailureEvent failureEvent) {
@@ -94,13 +90,11 @@ public class AuthenticationLoggerListener
     } else if (authentication.getDetails()
         instanceof ForwardedIpAwareWebAuthenticationDetails authDetails) {
       ipAddress = formatIpAddress(authDetails.getIp());
-      sessionId = hashSessionId(authDetails.getSessionId());
     } else if (authentication instanceof OAuth2LoginAuthenticationToken authenticationToken) {
       authName = getUsernameFromPrincipal(authenticationToken.getPrincipal());
       WebAuthenticationDetails oauthDetails =
           (WebAuthenticationDetails) authenticationToken.getDetails();
       ipAddress = formatIpAddress(oauthDetails.getRemoteAddress());
-      sessionId = hashSessionId(oauthDetails.getSessionId());
     } else if (event.getSource() instanceof OAuth2AuthenticationToken authenticationToken) {
       authName = getUsernameFromPrincipal(authenticationToken.getPrincipal());
     } else if (event.getSource() instanceof ApiTokenAuthenticationToken authenticationToken) {
@@ -113,24 +107,23 @@ public class AuthenticationLoggerListener
       ipAddress = formatIpAddress(apiTokenDetails.getRemoteAddress());
     }
 
-    logMessage(event, authName, ipAddress, sessionId, exceptionMessage);
+    logMessage(event, authName, ipAddress, exceptionMessage);
   }
 
   private void logMessage(
       AbstractAuthenticationEvent event,
       String authName,
       String ipAddress,
-      String sessionId,
       String exceptionMessage) {
     String eventClassName =
         String.format("Authentication event: %s; ", ClassUtils.getShortName(event.getClass()));
     String usernamePrefix =
-        Strings.isNullOrEmpty(authName) ? "" : String.format("username: %s; ", authName);
+        StringUtils.isEmpty(authName) ? "" : String.format("username: %s; ", authName);
     String msg =
         TextUtils.removeNonEssentialChars(
-            eventClassName + usernamePrefix + ipAddress + sessionId + exceptionMessage);
+            eventClassName + usernamePrefix + ipAddress + exceptionMessage);
 
-    log.info(StringUtils.removeEnd(msg.stripTrailing(), ";"));
+    log.info(Strings.CS.removeEnd(msg.stripTrailing(), ";"));
   }
 
   private static String formatIpAddress(String ip) {
@@ -142,15 +135,5 @@ public class AuthenticationLoggerListener
       return dhisOidcUser.getUsername();
     }
     return "";
-  }
-
-  private static String hashSessionId(String sessionId) {
-    if (sessionId == null) {
-      return "";
-    }
-
-    String s =
-        ID_HASH_FUNCTION.newHasher().putString(sessionId, StandardCharsets.UTF_8).hash().toString();
-    return String.format("sessionId: %s; ", s);
   }
 }

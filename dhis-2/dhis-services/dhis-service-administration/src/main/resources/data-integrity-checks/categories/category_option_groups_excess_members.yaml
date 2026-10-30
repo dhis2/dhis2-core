@@ -26,7 +26,7 @@
 #
 ---
 name: category_options_excess_groupset_membership
-description: Category options which belong to multiple groups in a category option group set.
+description: Category options which belong to multiple groups in a category option group set
 section: Categories
 section_order: 10
 summary_sql: >-

@@ -30,7 +30,7 @@
 package org.hisp.dhis.i18n.locale;
 
 import java.util.List;
-import java.util.Locale;
+import org.hisp.dhis.common.Locale;
 
 /**
  * @author Torgeir Lorange Ostby

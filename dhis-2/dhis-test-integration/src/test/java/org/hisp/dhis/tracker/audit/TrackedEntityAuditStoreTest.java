@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;

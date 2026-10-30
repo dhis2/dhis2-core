@@ -38,25 +38,24 @@ import java.sql.ResultSet;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.calendar.DateUnitPeriodTypeParser;
-import org.hisp.dhis.calendar.DateUnitType;
 import org.hisp.dhis.calendar.PeriodTypeParser;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.i18n.I18n;
 
 /**
  * The superclass of all PeriodTypes.
@@ -69,7 +68,7 @@ public abstract class PeriodType implements Serializable {
   private static final long serialVersionUID = 2402122626196305083L;
 
   /** Cache for period lookup. */
-  private static Cache<Period> PERIOD_CACHE =
+  private static final Cache<Period> PERIOD_CACHE =
       new SimpleCacheBuilder<Period>()
           .forRegion("periodCache")
           .expireAfterAccess(12, TimeUnit.HOURS)
@@ -81,17 +80,8 @@ public abstract class PeriodType implements Serializable {
     return getCalendar().name() + getName() + date.getTime();
   }
 
-  private String getCacheKey(Date date, String customKey) {
-    return getCalendar().name() + getName() + date.getTime() + customKey;
-  }
-
   private String getCacheKey(org.hisp.dhis.calendar.Calendar calendar, Date date) {
     return calendar.name() + getName() + date.getTime();
-  }
-
-  private String getCacheKey(
-      org.hisp.dhis.calendar.Calendar calendar, Date date, String customKey) {
-    return calendar.name() + getName() + date.getTime() + customKey;
   }
 
   /**
@@ -102,16 +92,14 @@ public abstract class PeriodType implements Serializable {
    */
   public static void invalidatePeriodCache() {
     PERIOD_CACHE.invalidateAll();
+    Period.clearCache();
   }
 
   private static CalendarService calendarService;
 
   public static void setCalendarService(CalendarService calendarService) {
     PeriodType.calendarService = calendarService;
-  }
-
-  public static CalendarService getCalendarService() {
-    return calendarService;
+    invalidatePeriodCache();
   }
 
   public static org.hisp.dhis.calendar.Calendar getCalendar() {
@@ -135,6 +123,7 @@ public abstract class PeriodType implements Serializable {
           new WeeklyPeriodType(),
           new WeeklyWednesdayPeriodType(),
           new WeeklyThursdayPeriodType(),
+          new WeeklyFridayPeriodType(),
           new WeeklySaturdayPeriodType(),
           new WeeklySundayPeriodType(),
           new BiWeeklyPeriodType(),
@@ -146,8 +135,10 @@ public abstract class PeriodType implements Serializable {
           new SixMonthlyAprilPeriodType(),
           new SixMonthlyNovemberPeriodType(),
           new YearlyPeriodType(),
+          new FinancialFebruaryPeriodType(),
           new FinancialAprilPeriodType(),
           new FinancialJulyPeriodType(),
+          new FinancialAugustPeriodType(),
           new FinancialSeptemberPeriodType(),
           new FinancialOctoberPeriodType(),
           new FinancialNovemberPeriodType());
@@ -157,6 +148,7 @@ public abstract class PeriodType implements Serializable {
           PeriodTypeEnum.WEEKLY_WEDNESDAY.getName(), DayOfWeek.WEDNESDAY,
           PeriodTypeEnum.WEEKLY_THURSDAY.getName(), DayOfWeek.THURSDAY,
           PeriodTypeEnum.WEEKLY_SATURDAY.getName(), DayOfWeek.SATURDAY,
+          PeriodTypeEnum.WEEKLY_FRIDAY.getName(), DayOfWeek.FRIDAY,
           PeriodTypeEnum.WEEKLY_SUNDAY.getName(), DayOfWeek.SUNDAY,
           PeriodTypeEnum.WEEKLY.getName(), DayOfWeek.MONDAY);
 
@@ -176,15 +168,6 @@ public abstract class PeriodType implements Serializable {
    */
   public static List<PeriodType> getAvailablePeriodTypes() {
     return PERIOD_TYPES;
-  }
-
-  /**
-   * Returns an immutable list of the names of all period types in their natural order.
-   *
-   * @return an immutable list of the names of all period types.
-   */
-  public static List<String> getAvailablePeriodTypeNames() {
-    return PERIOD_TYPES.stream().map(PeriodType::getName).collect(Collectors.toUnmodifiableList());
   }
 
   /**
@@ -221,24 +204,6 @@ public abstract class PeriodType implements Serializable {
     }
 
     return null;
-  }
-
-  /**
-   * Get period type according to natural order order.
-   *
-   * @param index the index of the period type with base 1
-   * @return period type according to index order or null if no match TODO: Consider manual
-   *     ordering, since relying on natural order might create problems if new periods are
-   *     introduced.
-   */
-  public static PeriodType getByIndex(int index) {
-    index -= 1;
-
-    if (index < 0 || index > PERIOD_TYPES.size() - 1) {
-      return null;
-    }
-
-    return PERIOD_TYPES.get(index);
   }
 
   /**
@@ -335,29 +300,12 @@ public abstract class PeriodType implements Serializable {
     Period period;
 
     if (optional.isPresent()) {
-      period = optional.get();
-      period.setDateField(null);
-
       return optional.get();
-    } else {
-      period = createPeriod(date, getCalendar());
-      PERIOD_CACHE.put(getCacheKey(date), period);
     }
+    period = createPeriod(date, getCalendar());
+    PERIOD_CACHE.put(getCacheKey(date), period);
 
     return period;
-  }
-
-  /**
-   * Creates a valid Period based on the given date and "dateField". E.g. the given date is February
-   * 10. 2007, a monthly PeriodType should return February 2007.
-   *
-   * @param date the date which is contained by the created period.
-   * @param dateField the date field of the returned {@link Period}.
-   * @return the valid Period based on the given date.
-   */
-  public Period createPeriod(Date date, String dateField) {
-    return PERIOD_CACHE.get(
-        getCacheKey(date, dateField), s -> createPeriod(date, getCalendar(), dateField));
   }
 
   public Period createPeriod(Calendar cal) {
@@ -381,34 +329,12 @@ public abstract class PeriodType implements Serializable {
     Period period;
 
     if (optional.isPresent()) {
-      period = optional.get();
-      period.setDateField(null);
-
       return optional.get();
-    } else {
-      period = createPeriod(calendar.fromIso(DateTimeUnit.fromJdkDate(date)), calendar);
-      PERIOD_CACHE.put(getCacheKey(calendar, date), period);
     }
+    period = createPeriod(calendar.fromIso(DateTimeUnit.fromJdkDate(date)), calendar);
+    PERIOD_CACHE.put(getCacheKey(calendar, date), period);
 
     return period;
-  }
-
-  /**
-   * Creates a valid {@link Period} based on the given date. E.g. the given date is February 10.
-   * 2007, a monthly {@link PeriodType} should return February 2007. This method is intended for use
-   * in situations where a huge number of periods will be generated and its desirable to re-use the
-   * calendar.
-   *
-   * @param date the date which is contained by the created period.
-   * @param calendar the calendar implementation to use.
-   * @param dateField the date field of the returned {@link Period}.
-   * @return the valid Period based on the given date.
-   */
-  public Period createPeriod(
-      Date date, org.hisp.dhis.calendar.Calendar calendar, String dateField) {
-    return PERIOD_CACHE.get(
-        getCacheKey(calendar, date, dateField),
-        p -> createPeriod(calendar.fromIso(DateTimeUnit.fromJdkDate(date)), calendar));
   }
 
   public Period toIsoPeriod(DateTimeUnit start, DateTimeUnit end) {
@@ -427,6 +353,7 @@ public abstract class PeriodType implements Serializable {
     return toIsoPeriod(dateTimeUnit, dateTimeUnit);
   }
 
+  @Nonnull
   public abstract String getIso8601Duration();
 
   public abstract Period createPeriod(
@@ -523,54 +450,13 @@ public abstract class PeriodType implements Serializable {
    *
    * @param isoPeriod String formatted period (2011, 201101, 2011W34, 2011Q1 etc
    * @return the PeriodType or null if unrecognized
+   * @throws IllegalArgumentException if the given ISO period is formally invalid. This does not
+   *     detect semantically invalid periods, like for example a quarterly period for a 5th quarter,
+   *     but it would detect a two digit quarter.
    */
+  @Nonnull
   public static PeriodType getPeriodTypeFromIsoString(String isoPeriod) {
-    return DateUnitType.find(isoPeriod)
-        .map(DateUnitType.DateUnitTypeWithPattern::getDateUnitType)
-        .map(DateUnitType::getName)
-        .map(PERIOD_TYPE_MAP::get)
-        .orElse(null);
-  }
-
-  /**
-   * Returns a period based on the given date string in ISO format. Returns null if the date string
-   * cannot be parsed to a period.
-   *
-   * @param isoPeriod the date string in ISO format.
-   * @return a period.
-   */
-  public static Period getPeriodFromIsoString(String isoPeriod) {
-    if (isoPeriod != null) {
-      PeriodType periodType = getPeriodTypeFromIsoString(isoPeriod);
-
-      try {
-        return periodType != null ? periodType.createPeriod(isoPeriod) : null;
-      } catch (Exception ex) {
-        // Do nothing and return null
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Returns a list of periods based on the given date string in ISO format.
-   *
-   * @param isoPeriods the date strings in ISO format.
-   * @return a period.
-   */
-  public static List<Period> getPeriodsFromIsoStrings(Collection<String> isoPeriods) {
-    List<Period> periods = new ArrayList<>();
-
-    for (String isoPeriod : isoPeriods) {
-      Period period = getPeriodFromIsoString(isoPeriod);
-
-      if (period != null) {
-        periods.add(period);
-      }
-    }
-
-    return periods;
+    return PERIOD_TYPE_ENUM_MAP.get(PeriodTypeEnum.ofIsoPeriod(isoPeriod));
   }
 
   /**
@@ -651,6 +537,7 @@ public abstract class PeriodType implements Serializable {
    *
    * @return the iso8601 format.
    */
+  @Nonnull
   public abstract String getIsoFormat();
 
   // -------------------------------------------------------------------------
@@ -849,6 +736,10 @@ public abstract class PeriodType implements Serializable {
    */
   public boolean equalsName(String periodTypeName) {
     return this.getName().equals(periodTypeName);
+  }
+
+  public String getDisplayName(I18n i18n) {
+    return i18n.getString(getName());
   }
 
   // -------------------------------------------------------------------------

@@ -31,6 +31,9 @@ package org.hisp.dhis.test.h2;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -39,7 +42,6 @@ import java.util.Map;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.postgresql.util.PGobject;
@@ -56,6 +58,7 @@ public class H2SqlFunction {
       createAliasForFunction(connection, "jsonb_typeof");
       createAliasForFunction(connection, "jsonb_has_user_id");
       createAliasForFunction(connection, "jsonb_check_user_access");
+      createAliasForFunction(connection, "jsonb_get_translated_value");
     } catch (SQLException exception) {
       log.info(
           "Failed to register custom H2Functions, probably already registered, ignoring this.",
@@ -81,7 +84,7 @@ public class H2SqlFunction {
     if (content == null) {
       return "null";
     }
-    return JsonValue.of(content).node().getType().name().toLowerCase();
+    return JsonValue.of(content).type().name().toLowerCase();
   }
 
   // Postgres inbuilt function
@@ -95,10 +98,10 @@ public class H2SqlFunction {
       if (!value.exists()) {
         return null;
       }
-      if (value.node().getType() == JsonNodeType.STRING) {
+      if (value.node().isString()) {
         return value.as(JsonString.class).string();
       }
-      return value.node().getDeclaration();
+      return value.toJson();
     } catch (Exception e) {
       log.error("Failed to extract path", e);
       throw e;
@@ -116,7 +119,7 @@ public class H2SqlFunction {
       if (!value.exists()) {
         return null;
       }
-      return value.node().getDeclaration();
+      return value.toJson();
     } catch (Exception e) {
       log.error("Failed to extract path", e);
       throw e;
@@ -177,6 +180,40 @@ public class H2SqlFunction {
 
     } catch (Exception e) {
       log.error("Failed to check user access", e);
+      throw e;
+    }
+  }
+
+  // Custom DHIS2 translation function
+  // Extracts a translated value from the translations JSONB column for a given locale and property
+  public static String jsonb_get_translated_value(PGobject input1, String property, String locale) {
+    try {
+      String content = input1.getValue();
+      if (content == null) {
+        return null;
+      }
+
+      // Parse the JSONB array using Gson
+      JsonArray jsonArray = new Gson().fromJson(content, JsonArray.class);
+
+      // Iterate through array elements to find matching property and locale
+      for (JsonElement element : jsonArray) {
+        JsonObject obj = element.getAsJsonObject();
+        String elementProperty = obj.has("property") ? obj.get("property").getAsString() : null;
+        String elementLocale = obj.has("locale") ? obj.get("locale").getAsString() : null;
+
+        if (elementProperty != null
+            && elementLocale != null
+            && elementProperty.equals(property)
+            && elementLocale.equals(locale)
+            && obj.has("value")) {
+          return obj.get("value").getAsString();
+        }
+      }
+
+      return null;
+    } catch (Exception e) {
+      log.error("Failed to get translated value", e);
       throw e;
     }
   }

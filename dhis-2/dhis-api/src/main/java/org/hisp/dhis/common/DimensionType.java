@@ -50,7 +50,8 @@ public enum DimensionType {
   OPTION_GROUP_SET,
   VALIDATION_RULE,
   STATIC,
-  ORGANISATION_UNIT_LEVEL;
+  ORGANISATION_UNIT_LEVEL,
+  PROGRAM_STATUS;
 
   private static final int LAST_ORDER = 999;
 

@@ -36,6 +36,10 @@ import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
 import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -58,13 +62,15 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -91,8 +97,6 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private ProgramStageDataElementService programStageDataElementService;
-
-  @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private ConstantService constantService;
 
@@ -138,8 +142,13 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
 
   private ProgramIndicator indicatorF;
 
+  @Autowired private SystemSettingsService systemSettingsService;
+
   @BeforeEach
   void setUp() {
+
+    systemSettingsService.clearCurrentSettings();
+
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     // ---------------------------------------------------------------------
@@ -261,8 +270,8 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
         new TrackedEntityAttributeValue(atA, trackedEntity, "1");
     TrackedEntityAttributeValue attributeValueB =
         new TrackedEntityAttributeValue(atB, trackedEntity, "2");
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
+    saveTrackedEntityAttributeValue(entityManager, attributeValueA);
+    saveTrackedEntityAttributeValue(entityManager, attributeValueB);
     // ---------------------------------------------------------------------
     // TrackedEntityDataValue
     // ---------------------------------------------------------------------
@@ -605,19 +614,17 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
   void testNestedSubqueryWithTableAlias() {
     Date dateFrom = getDate(2019, 1, 1);
     Date dateTo = getDate(2019, 12, 31);
-    // Generated subquery, since indicatorF is type Enrollment
-    String expected =
-        "coalesce((select \"DataElmentA\" from analytics_event_Program000B where analytics_event_Program000B.enrollment = axx1.enrollment and \"DataElmentA\" is not null and occurreddate < cast( '"
-            + "2020-01-11"
-            + "' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 )::numeric,0) - "
-            + "coalesce((select \"DataElmentC\" from analytics_event_Program000B where analytics_event_Program000B.enrollment = axx1.enrollment and \"DataElmentC\" is not null and occurreddate < cast( '"
-            + "2020-01-11"
-            + "' as date ) and ps = 'ProgrmStagB' order by occurreddate desc limit 1 )::numeric,0)";
     String expression = "#{ProgrmStagA.DataElmentA} - #{ProgrmStagB.DataElmentC}";
-    assertEquals(
-        expected,
+    String sql =
         programIndicatorService.getAnalyticsSql(
-            expression, NUMERIC, indicatorF, dateFrom, dateTo, "axx1"));
+            expression, NUMERIC, indicatorF, dateFrom, dateTo, "axx1");
+    assertTrue(
+        sql.contains(
+            "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentA', offset='0'"));
+    assertTrue(
+        sql.contains(
+            "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagB', deUid='DataElmentC', offset='0'"));
+    assertTrue(sql.contains("piUid='" + indicatorF.getUid() + "'"));
   }
 
   // -------------------------------------------------------------------------

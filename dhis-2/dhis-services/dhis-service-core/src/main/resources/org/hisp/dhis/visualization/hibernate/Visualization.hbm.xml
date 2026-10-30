@@ -199,7 +199,7 @@
       </type>
     </property>
 
-    <list name="periods" table="visualization_periods">
+    <list name="persistedPeriods" table="visualization_periods">
       <cache usage="read-write"/>
       <key column="visualizationid" foreign-key="fk_visualization_periods_visualizationid"/>
       <list-index column="sort_order" base="0"/>

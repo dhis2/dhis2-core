@@ -42,6 +42,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UidObject;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
@@ -51,18 +52,35 @@ public interface UserDetails
     extends org.springframework.security.core.userdetails.UserDetails, UidObject {
 
   /**
-   * Create UserDetails from User
-   *
-   * <p>TODO MAS: This is a workaround and usually indicated a design flaw, and that we should
-   * refactor // to use UserDetails higher up in the layers.
+   * @return a {@link UserDetails} object that is all initialized to empty (no anything) but which
+   *     can be used to only set the properties that matter (for example in a test).
+   */
+  @UsageTestOnly
+  static UserDetailsImplBuilder empty() {
+    return UserDetailsImpl.builder()
+        .isSuper(false)
+        .authorities(List.of())
+        .allAuthorities(Set.of())
+        .allRestrictions(Set.of())
+        .userGroupIds(Set.of())
+        .userOrgUnitIds(Set.of())
+        .userDataOrgUnitIds(Set.of())
+        .userSearchOrgUnitIds(Set.of())
+        .userEffectiveSearchOrgUnitIds(Set.of())
+        .userRoleIds(Set.of())
+        .managedGroupLongIds(Set.of())
+        .userRoleLongIds(Set.of());
+  }
+
+  /**
+   * Create UserDetails from a User. This method should be avoided if possible. Always prefer using
+   * CurrentUserUtil.getCurrentUser() over fetching the currnt user from the DB.
    *
    * @param user user to convert
    * @return UserDetails
    */
   @CheckForNull
   static UserDetails fromUser(@CheckForNull User user) {
-    // TODO check in session if a UserDetails for the user already exists (if the user is the
-    // current user)
     if (user == null) {
       return null;
     }
@@ -112,10 +130,46 @@ public interface UserDetails
       @CheckForNull Set<String> searchOrgUnitUids,
       @CheckForNull Set<String> dataViewUnitUids,
       boolean loadOrgUnits) {
+    return createUserDetails(
+        user,
+        accountNonLocked,
+        credentialsNonExpired,
+        orgUnitUids,
+        searchOrgUnitUids,
+        dataViewUnitUids,
+        loadOrgUnits,
+        null);
+  }
+
+  /**
+   * Variant of {@link #createUserDetails(User, boolean, boolean, Set, Set, Set, boolean)} that
+   * accepts a pre-resolved set of managed-group primary keys. When {@code managedGroupLongIds} is
+   * non-null it is used as-is, avoiding the per-group lazy-load N+1 incurred by {@link
+   * User#getManagedGroups()} (which initialises {@code getManagedGroups()} once per group). When
+   * null, the managed groups are resolved from the entity (legacy behaviour) for callers without
+   * access to a store.
+   */
+  // TODO(DHIS2-21896) this overload chain has grown too many parameters (java:S107); replace with
+  // a parameter object and change the Set<String> UID params to Set<UID>.
+  @CheckForNull
+  static UserDetails createUserDetails(
+      @CheckForNull User user,
+      boolean accountNonLocked,
+      boolean credentialsNonExpired,
+      @CheckForNull Set<String> orgUnitUids,
+      @CheckForNull Set<String> searchOrgUnitUids,
+      @CheckForNull Set<String> dataViewUnitUids,
+      boolean loadOrgUnits,
+      @CheckForNull Set<Long> managedGroupLongIds) {
 
     if (user == null) {
       return null;
     }
+
+    Set<Long> resolvedManagedGroupLongIds =
+        managedGroupLongIds != null
+            ? managedGroupLongIds
+            : (user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getManagedGroups()));
 
     UserDetailsImplBuilder userDetailsImplBuilder =
         UserDetailsImpl.builder()
@@ -136,6 +190,7 @@ public interface UserDetails
             .accountNonExpired(user.isAccountNonExpired())
             .accountNonLocked(accountNonLocked)
             .credentialsNonExpired(credentialsNonExpired)
+            .dataViewMaxOrganisationUnitLevel(user.getDataViewMaxOrganisationUnitLevel())
             .authorities(user.getAuthorities())
             .allAuthorities(
                 new HashSet<>(
@@ -147,9 +202,7 @@ public interface UserDetails
             .userRoleIds(new HashSet<>(setOfIds(user.getUserRoles())))
             .userGroupIds(
                 new HashSet<>(user.getUid() == null ? Set.of() : setOfIds(user.getGroups())))
-            .managedGroupLongIds(
-                new HashSet<>(
-                    user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getManagedGroups())))
+            .managedGroupLongIds(new HashSet<>(resolvedManagedGroupLongIds))
             .userRoleLongIds(
                 new HashSet<>(
                     user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getUserRoles())));
@@ -230,6 +283,8 @@ public interface UserDetails
 
   String getSurname();
 
+  String getEmail();
+
   @Nonnull
   Set<String> getUserGroupIds();
 
@@ -275,6 +330,12 @@ public interface UserDetails
 
   boolean isEmailVerified();
 
+  default String getName() {
+    return getFirstName() + " " + getSurname();
+  }
+
+  Integer getDataViewMaxOrganisationUnitLevel();
+
   boolean hasAnyRestrictions(Collection<String> restrictions);
 
   void setId(Long id);
@@ -292,7 +353,11 @@ public interface UserDetails
     if (!canGrantOwnUserRole && getUserRoleIds().contains(role.getUid())) {
       return false;
     }
-    return getAllAuthorities().containsAll(role.getAuthorities());
+    Set<String> authorities = role.getAuthorities();
+    Set<String> held = getAllAuthorities();
+    // A null entry is never held; immutable sets throw on contains(null), so test entries one by
+    // one.
+    return authorities == null || authorities.stream().allMatch(a -> a != null && held.contains(a));
   }
 
   default boolean canManage(UserGroup userGroup) {

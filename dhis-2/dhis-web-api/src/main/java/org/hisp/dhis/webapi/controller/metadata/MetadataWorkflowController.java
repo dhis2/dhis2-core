@@ -35,17 +35,19 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.gist.GistParams;
+import org.hisp.dhis.gist.GistObjectListParams;
+import org.hisp.dhis.gist.GistObjectParams;
 import org.hisp.dhis.metadata.MetadataAdjustParams;
 import org.hisp.dhis.metadata.MetadataProposal;
 import org.hisp.dhis.metadata.MetadataProposalSchemaDescriptor;
@@ -53,10 +55,10 @@ import org.hisp.dhis.metadata.MetadataProposalType;
 import org.hisp.dhis.metadata.MetadataProposeParams;
 import org.hisp.dhis.metadata.MetadataWorkflowService;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.webapi.controller.AbstractGistReadOnlyController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -81,17 +83,22 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class MetadataWorkflowController extends AbstractGistReadOnlyController<MetadataProposal> {
 
   private final MetadataWorkflowService service;
+  private final SchemaService schemaService;
 
+  @OpenApi.Response(MetadataProposal.class)
   @GetMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonNode> getProposal(@PathVariable("uid") String uid, GistParams params)
+  public void getProposal(
+      @PathVariable("uid") UID uid, GistObjectParams params, HttpServletResponse response)
       throws NotFoundException, BadRequestException {
-    return getObjectGist(uid, params);
+    getObjectGist(uid, params, response);
   }
 
+  @OpenApi.Response(MetadataProposal[].class)
   @GetMapping(value = "", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonNode> getProposals(GistParams params, HttpServletRequest request)
+  public void getProposals(
+      GistObjectListParams params, HttpServletRequest request, HttpServletResponse response)
       throws BadRequestException {
-    return getObjectListGist(params, request);
+    getObjectListGist(params, request, response);
   }
 
   @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)

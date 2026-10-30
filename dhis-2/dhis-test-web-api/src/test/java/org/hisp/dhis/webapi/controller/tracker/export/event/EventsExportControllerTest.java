@@ -37,13 +37,17 @@ import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -74,22 +78,23 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TestNotes;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
@@ -97,6 +102,7 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -117,6 +123,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private static final String EVENT_NO_VALUE = CodeGenerator.generateUid();
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TestNotes testNotes;
 
   @Autowired private FileResourceService fileResourceService;
 
@@ -143,14 +151,11 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private TrackedEntityType trackedEntityType;
 
   private EventDataValue dv;
-  private EventDataValue dvMultiText;
 
   private DataElement de;
 
   private DataElement deMultiText;
 
-  private TrackerEvent eventRBG;
-  private TrackerEvent eventRWY;
   private TrackerEvent eventNoValue;
 
   @BeforeEach
@@ -200,14 +205,14 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     programStage.setProgramStageDataElements(
         Sets.newHashSet(programStageDataElement, programStageDataElementMultiText));
     manager.save(programStage, false);
+    program.getProgramStages().add(programStage);
 
     dv = new EventDataValue();
     dv.setDataElement(de.getUid());
-    dv.setStoredBy("user");
     dv.setValue(DATA_ELEMENT_VALUE);
 
-    eventRBG = createEvent(createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_RBG), orgUnit, EVENT_RBG);
-    eventRWY = createEvent(createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_RWY), orgUnit, EVENT_RWY);
+    createEvent(createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_RBG), orgUnit, EVENT_RBG);
+    createEvent(createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_RWY), orgUnit, EVENT_RWY);
     eventNoValue =
         createEvent(
             createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_NO_VALUE), orgUnit, EVENT_NO_VALUE);
@@ -217,8 +222,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   void getEventByPathIsIdenticalToQueryParam() {
     TrackedEntity to = trackedEntity();
     TrackerEvent event = event(enrollment(to));
-    event.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
-    manager.update(event);
+    testNotes.save(event, "my notes");
     relationship(event, to);
     switchContextToUser(user);
 
@@ -267,8 +271,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void getEventByIdWithNotes() {
     TrackerEvent event = event(enrollment(trackedEntity()));
-    event.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
-    manager.update(event);
+    Note saved = testNotes.save(event, "my notes");
     switchContextToUser(user);
 
     JsonEvent jsonEvent =
@@ -277,9 +280,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
             .as(JsonEvent.class);
 
     JsonNote note = jsonEvent.getNotes().get(0);
-    assertEquals("oqXG28h988k", note.getNote());
-    assertEquals("my notes", note.getValue());
-    assertEquals(owner.getUid(), note.getStoredBy());
+    assertEquals(saved.getUid(), note.getNote());
+    assertEquals("my notes", note.value());
   }
 
   @Test
@@ -297,10 +299,9 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertHasOnlyMembers(eventJson, "dataValues");
     JsonDataValue dataValue = eventJson.getDataValues().get(0);
     assertEquals(de.getUid(), dataValue.getDataElement());
-    assertEquals(dv.getValue(), dataValue.getValue());
+    assertEquals(dv.getValue(), dataValue.value());
     assertHasMember(dataValue, "createdAt");
     assertHasMember(dataValue, "updatedAt");
-    assertHasMember(dataValue, "storedBy");
   }
 
   @ParameterizedTest
@@ -322,7 +323,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertContainsOnly(expectedEvents, jsonEvents.stream().map(JsonEvent::getEvent).toList());
     assertContainsOnly(
         expectedDataValues,
-        jsonEvents.stream().map(jsonEvent -> jsonEvent.getDataValues().get(0).getValue()).toList());
+        jsonEvents.stream().map(jsonEvent -> jsonEvent.getDataValues().get(0).value()).toList());
   }
 
   @Test
@@ -343,7 +344,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     JsonDataValue dataValue = jsonEvent.getDataValues().get(0);
     assertEquals(eventNoValue.getUid(), jsonEvent.getEvent());
     assertEquals(deMultiText.getUid(), dataValue.getDataElement());
-    assertNull(dataValue.getValue());
+    assertNull(dataValue.value());
   }
 
   @Test
@@ -1091,8 +1092,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   private Enrollment enrollment(TrackedEntity te) {
-    Enrollment result = new Enrollment(program, te, te.getOrganisationUnit());
-    result.setAutoFields();
+    Enrollment result = createEnrollment(program, te, te.getOrganisationUnit());
     result.setEnrollmentDate(new Date());
     result.setOccurredDate(new Date());
     result.setStatus(EnrollmentStatus.COMPLETED);
@@ -1206,7 +1206,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private EventDataValue createDataValue(String value) {
     EventDataValue dvMultiText = new EventDataValue();
     dvMultiText.setDataElement(deMultiText.getUid());
-    dvMultiText.setStoredBy("user");
     dvMultiText.setValue(value);
     return dvMultiText;
   }
@@ -1223,11 +1222,37 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     return event;
   }
 
-  private Note note(String uid, String value, String storedBy) {
-    Note note = new Note(value, storedBy);
-    note.setUid(uid);
-    manager.save(note, false);
-    return note;
+  static Stream<Arguments> callEventsEndpoint() {
+    return Stream.of(
+        arguments(
+            ".json.zip", "application/json+zip", "attachment; filename=events.json.zip", "binary"),
+        arguments(
+            ".json.gz", "application/json+gzip", "attachment; filename=events.json.gz", "binary"),
+        arguments(
+            ".csv", "application/csv; charset=UTF-8", "attachment; filename=events.csv", null),
+        arguments(
+            ".csv.gz", "application/csv+gzip", "attachment; filename=events.csv.gz", "binary"),
+        arguments(
+            ".csv.zip", "application/csv+zip", "attachment; filename=events.csv.zip", "binary"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("callEventsEndpoint")
+  void
+      shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvokedForTrackerEvent(
+          String extension,
+          String expectedContentType,
+          String expectedAttachment,
+          String encoding) {
+    switchContextToUser(user);
+
+    HttpResponse res = GET("/tracker/events" + extension + "?program=" + program.getUid());
+
+    assertEquals(HttpStatus.OK, res.status());
+    assertEquals(expectedContentType, res.header("Content-Type"));
+    assertEquals(expectedAttachment, res.header(ContextUtils.HEADER_CONTENT_DISPOSITION));
+    assertEquals(encoding, res.header(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING));
+    assertNotNull(res.content(expectedContentType));
   }
 
   private void assertDefaultResponse(JsonObject json, TrackerEvent event) {

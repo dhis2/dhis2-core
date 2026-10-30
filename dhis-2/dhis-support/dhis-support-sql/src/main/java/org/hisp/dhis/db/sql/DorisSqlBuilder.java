@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -61,11 +62,22 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   private static final String QUOTE = "`";
 
+  /** Maximum length in bytes of a Doris {@code varchar} column. */
+  private static final int VARCHAR_MAX_BYTES = 65533;
+
+  /** Maximum number of bytes a single UTF-8 character can occupy. */
+  private static final int UTF8_MAX_BYTES_PER_CHAR = 4;
+
   // Database
 
   @Override
   public Database getDatabase() {
     return Database.DORIS;
+  }
+
+  @Override
+  public boolean isHighPerformance() {
+    return true;
   }
 
   // Data types
@@ -110,9 +122,15 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("char(%d)", length);
   }
 
+  /**
+   * PostgreSQL {@code varchar(n)} limits the number of characters, while Doris {@code varchar(n)}
+   * limits the number of bytes. Widen the length by the maximum number of bytes a UTF-8 character
+   * can occupy so that any value valid in PostgreSQL also fits the generated Doris column.
+   */
   @Override
   public String dataTypeVarchar(int length) {
-    return String.format("varchar(%d)", length);
+    int byteLength = Math.min(length * UTF8_MAX_BYTES_PER_CHAR, VARCHAR_MAX_BYTES);
+    return String.format("varchar(%d)", byteLength);
   }
 
   @Override
@@ -201,6 +219,21 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public boolean requiresIndexesForAnalytics() {
+    return false;
+  }
+
+  @Override
+  public boolean supportsContinuousAnalytics() {
+    return true;
+  }
+
+  @Override
+  public boolean requiresUniqueKeyAnalyticsTables() {
+    return true;
+  }
+
+  @Override
+  public boolean supportsPercentileCont() {
     return false;
   }
 
@@ -336,6 +369,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("variance(%s)", expression);
   }
 
+  // Statements
+
   @Override
   public String createTable(Table table) {
     Validate.isTrue(table.hasPrimaryKey() || table.hasColumns());
@@ -346,7 +381,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Columns
 
     if (table.hasColumns()) {
-      String columns = toCommaSeparated(table.getColumns(), this::toColumnString);
+      String columns = toCommaSeparated(getOrderedColumns(table), this::toColumnString);
 
       sql.append("(").append(columns).append(") engine = olap ");
     }
@@ -424,6 +459,37 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   /**
+   * Returns the table's columns ordered so that primary key columns appear first, in their declared
+   * order, followed by the remaining columns in their original order. Doris requires key columns
+   * (for both the unique key and duplicate key models) to be an ordered leading prefix of the table
+   * schema.
+   *
+   * @param table the {@link Table}.
+   * @return the ordered list of {@link Column}.
+   */
+  private List<Column> getOrderedColumns(Table table) {
+    if (!table.hasPrimaryKey()) {
+      return table.getColumns();
+    }
+
+    Map<String, Column> columnsByName =
+        table.getColumns().stream().collect(Collectors.toMap(Column::getName, c -> c));
+
+    List<Column> keyColumns =
+        table.getPrimaryKey().stream().map(columnsByName::get).collect(Collectors.toList());
+
+    List<Column> otherColumns =
+        table.getColumns().stream()
+            .filter(c -> !table.getPrimaryKey().contains(c.getName()))
+            .collect(Collectors.toList());
+
+    List<Column> orderedColumns = new ArrayList<>(keyColumns);
+    orderedColumns.addAll(otherColumns);
+
+    return orderedColumns;
+  }
+
+  /**
    * Returns a column definition string.
    *
    * @param column the {@link Column}.
@@ -482,9 +548,14 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format(
         """
         select t.table_name from information_schema.tables t \
-        where t.table_schema = 'public' \
+        where t.table_schema = database() \
         and t.table_name = %s;""",
         singleQuote(name));
+  }
+
+  @Override
+  public String showCreateTable(String name) {
+    return String.format("show create table %s;", quote(name));
   }
 
   /**
@@ -495,6 +566,19 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   public String createIndex(Index index) {
     return notSupported();
   }
+
+  @Override
+  public String castDecimal(String expr, int precision, int scale) {
+    return String.format("cast(%s as decimal(%d,%d))", expr, precision, scale);
+  }
+
+  @Override
+  public String decimalLiteral(String literal, int precision, int scale) {
+    // Force a DECIMAL literal (avoid DOUBLE literal parsing path).
+    return String.format("cast('%s' as decimal(%d,%d))", escape(literal), precision, scale);
+  }
+
+  // Catalog
 
   /**
    * Returns a create catalog statement.
@@ -508,14 +592,13 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return replace(
         """
         create catalog ${catalog} \
-        properties (
+        properties (\
         "type" = "jdbc", \
         "user" = "${username}", \
         "password" = "${password}", \
         "jdbc_url" = "${connection_url}", \
         "driver_url" = "${driver_filename}", \
-        "driver_class" = "org.postgresql.Driver"
-        );""",
+        "driver_class" = "org.postgresql.Driver");""",
         Map.of(
             "catalog", quote(catalog),
             "username", username,

@@ -71,7 +71,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -81,6 +81,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.FavoritableOperations;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -100,7 +101,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @AllArgsConstructor
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class EventVisualizationController
-    extends AbstractCrudController<EventVisualization, GetObjectListParams> {
+    extends AbstractCrudController<EventVisualization, GetObjectListParams>
+    implements FavoritableOperations<EventVisualization> {
+
   private final DimensionService dimensionService;
 
   private final LegendSetService legendSetService;
@@ -192,8 +195,8 @@ public class EventVisualizationController
     I18nFormat format = i18nManager.getI18nFormat();
 
     if (eventVisualization.getPeriods() != null && !eventVisualization.getPeriods().isEmpty()) {
-      for (Period period : eventVisualization.getPeriods()) {
-        period.setName(format.formatPeriod(period));
+      for (PeriodDimension period : eventVisualization.getPeriods()) {
+        period.setName(format.formatPeriod(period.getPeriod()));
       }
     }
 

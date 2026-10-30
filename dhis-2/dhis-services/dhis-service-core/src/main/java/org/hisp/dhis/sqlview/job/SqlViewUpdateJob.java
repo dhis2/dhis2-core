@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
@@ -59,9 +59,9 @@ public class SqlViewUpdateJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     progress.startingProcess("SQL View update");
-    SqlViewUpdateParameters params = (SqlViewUpdateParameters) config.getJobParameters();
+    SqlViewUpdateParameters params = (SqlViewUpdateParameters) config.parameters();
     if (params == null) {
       progress.completedProcess("No views to update");
       return;

@@ -39,7 +39,7 @@
         foreign-key="fk_mapview_organisationunits_organisationunitid" />
     </list>
 
-    <list name="periods" table="mapview_periods">
+    <list name="persistedPeriods" table="mapview_periods">
       <cache usage="read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_periods_mapviewid" />
       <list-index column="sort_order" base="0" />
@@ -216,7 +216,9 @@
     <property name="eventPointColor" />
 
     <property name="eventPointRadius" />
-    
+
+    <property name="eventCoordinateFieldFallback" length="15"/>
+
     <property name="thematicMapType" length="50" column="thematicmaptype">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.mapping.ThematicMapType</param>

@@ -39,10 +39,10 @@ import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletRegistration;
 import java.util.EnumSet;
 import java.util.EventListener;
+import org.hisp.dhis.webapi.filter.ConditionalOpenEntityManagerInViewFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterRegistration;
 import org.springframework.mock.web.MockServletContext;
-import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 
 class DhisWebApiWebAppInitializerTestCase {
 
@@ -82,7 +82,7 @@ class DhisWebApiWebAppInitializerTestCase {
                   EnumSet<DispatcherType> dispatcherTypes,
                   boolean isMatchAfter,
                   String... urlPatterns) {
-                if (filterClass.equals(OpenEntityManagerInViewFilter.class)) {
+                if (filterClass.equals(ConditionalOpenEntityManagerInViewFilter.class)) {
                   DhisWebApiWebAppInitializerMockServletContext.this.dispatcherTypes =
                       dispatcherTypes;
                 }

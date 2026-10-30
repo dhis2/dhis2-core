@@ -53,6 +53,8 @@ import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.gml.GmlImportService;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.Metadata;
+import org.hisp.dhis.dxf2.metadata.MetadataDependencyRootResolver;
+import org.hisp.dhis.dxf2.metadata.MetadataDependencyRoots;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -60,6 +62,8 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -110,6 +114,7 @@ public class MetadataImportExportController {
   private final JobExecutionService jobExecutionService;
   private final ObjectMapper jsonMapper;
   private final BulkPatchManager bulkPatchManager;
+  private final MetadataDependencyRootResolver dependencyRootResolver;
 
   @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
@@ -189,6 +194,40 @@ public class MetadataImportExportController {
     MetadataExportParams params =
         metadataExportService.getParamsFromMap(contextService.getParameterValuesMap());
     metadataExportService.validate(params);
+
+    return ResponseEntity.ok(params);
+  }
+
+  /**
+   * Exports several objects, of possibly differing types, with their dependencies, merged into one
+   * de-duplicated payload. Each {@code objects} parameter names objects of one type, {@code
+   * objects=optionSet:abc,def}, repeated when the type changes.
+   *
+   * <p>Declares no {@code produces} and sets no {@code Content-Disposition}: both belong to {@code
+   * MetadataExportParamsMessageConverter}, and a {@code produces} would break the {@code .json.zip}
+   * and {@code .json.gz} suffixes.
+   */
+  @OpenApi.Param(name = "objects", value = String[].class)
+  @GetMapping("/dependencies")
+  public ResponseEntity<MetadataExportParams> getMetadataWithDependencies()
+      throws WebMessageException {
+
+    MetadataExportParams params =
+        metadataExportService.getDependencyExportParams(contextService.getParameterValuesMap());
+
+    // read straight from the request rather than binding a @RequestParam: Spring splits a
+    // comma separated value into separate list entries, which would tear `optionSet:a,b` into
+    // `optionSet:a` and a type-less `b`
+    MetadataDependencyRoots roots =
+        dependencyRootResolver.resolve(contextService.getParameterValues("objects"));
+
+    if (roots.hasErrors()) {
+      throw new WebMessageException(
+          conflict("One or more of the requested objects could not be resolved")
+              .setResponse(new ErrorReportsWebMessageResponse(roots.errors())));
+    }
+
+    params.setObjectsExportWithDependencies(roots.objects());
 
     return ResponseEntity.ok(params);
   }

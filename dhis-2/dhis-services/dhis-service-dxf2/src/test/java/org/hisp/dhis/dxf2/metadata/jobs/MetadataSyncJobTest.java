@@ -34,14 +34,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobKey;
 import org.hisp.dhis.scheduling.JobProgress.Status;
-import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -71,11 +71,8 @@ class MetadataSyncJobTest {
       "Job progress status should be SUCCESS after metadata sync pre-processor setup completes")
   void preprocessSetupTest() {
     // given
-    JobConfiguration config = new JobConfiguration();
-    config.setJobType(JobType.META_DATA_SYNC);
-    config.setLastExecutedStatus(JobStatus.RUNNING);
-
-    RecordingJobProgress jobProgress = new RecordingJobProgress(config);
+    RecordingJobProgress jobProgress =
+        new RecordingJobProgress(new JobKey(UID.generate(), JobType.META_DATA_SYNC));
 
     MetadataSyncPreProcessor preProcessor =
         new MetadataSyncPreProcessor(settingsService, null, null, null, null);
@@ -93,11 +90,8 @@ class MetadataSyncJobTest {
       "Job progress status should be SUCCESS after metadata sync pre-processor handle current metadata version completes")
   void handleCurrentMetadataVersionTest() {
     // given
-    JobConfiguration config = new JobConfiguration();
-    config.setJobType(JobType.META_DATA_SYNC);
-    config.setLastExecutedStatus(JobStatus.RUNNING);
-
-    RecordingJobProgress jobProgress = new RecordingJobProgress(config);
+    RecordingJobProgress jobProgress =
+        new RecordingJobProgress(new JobKey(UID.generate(), JobType.META_DATA_SYNC));
 
     MetadataSyncPreProcessor preProcessor =
         new MetadataSyncPreProcessor(
@@ -119,11 +113,8 @@ class MetadataSyncJobTest {
       "Job progress status should be SUCCESS after metadata sync pre-processor handle metadata versions completes")
   void handleMetadataVersionsTest() {
     // given
-    JobConfiguration config = new JobConfiguration();
-    config.setJobType(JobType.META_DATA_SYNC);
-    config.setLastExecutedStatus(JobStatus.RUNNING);
-
-    RecordingJobProgress jobProgress = new RecordingJobProgress(config);
+    RecordingJobProgress jobProgress =
+        new RecordingJobProgress(new JobKey(UID.generate(), JobType.META_DATA_SYNC));
 
     MetadataSyncPreProcessor preProcessor =
         new MetadataSyncPreProcessor(

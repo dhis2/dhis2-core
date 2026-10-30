@@ -80,7 +80,7 @@ public class DefaultDataValueService implements DataValueService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DeflatedDataValue> getDeflatedDataValues(DataExportStoreParams params) {
+  public List<DeflatedDataValue> getDeflatedDataValues(DeflatedDataValueParams params) {
     return dataValueStore.getDeflatedDataValues(params);
   }
 

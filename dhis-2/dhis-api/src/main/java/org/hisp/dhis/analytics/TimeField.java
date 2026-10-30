@@ -49,9 +49,12 @@ import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 public enum TimeField {
   EVENT_DATE(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
   ENROLLMENT_DATE(
-      EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
       EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+      EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
       "enrollmentdate"),
+  // Constructor order is (enrollmentColumnName, eventColumnName, trackedEntityColumnName). In the
+  // event analytics table the enrollment occurred (incident) date is "enrollmentoccurreddate";
+  // "occurreddate" there is the event date.
   INCIDENT_DATE(
       EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
       EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
@@ -60,9 +63,10 @@ public enum TimeField {
   SCHEDULED_DATE(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
   COMPLETED_DATE(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME),
   CREATED(EventAnalyticsColumnName.CREATED_COLUMN_NAME),
+  CREATED_DATE(EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME),
   LAST_UPDATED(
-      EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
       EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+      EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
       "lastupdated");
 
   @Getter private final String enrollmentColumnName;
@@ -108,5 +112,9 @@ public enum TimeField {
         .flatMap(TimeField::from)
         .map(SUPPORTING_RAW_FIELD_TIME_FIELDS::contains)
         .orElse(false);
+  }
+
+  public String asString() {
+    return enrollmentColumnName + eventColumnName + trackedEntityColumnName;
   }
 }

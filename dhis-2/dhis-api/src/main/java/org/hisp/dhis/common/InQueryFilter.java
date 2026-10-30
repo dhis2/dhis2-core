@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.QueryKey.isNoValue;
 import static org.hisp.dhis.common.QueryOperator.IN;
 
 import java.util.List;
@@ -50,17 +50,23 @@ public class InQueryFilter extends QueryFilter {
 
   private final boolean shouldQuote;
 
+  private final boolean isOptionSet;
+
   /**
-   * Construct a InQueryFilter using field name and the original {@link QueryFilter}
+   * Construct a InQueryFilter using field name and the original {@link QueryFilter}.
    *
    * @param field the field on which to construct the InQueryFilter
    * @param encodedFilter The original encodedFilter in {@link QueryFilter}
    * @param shouldQuote whether this filter contains text or numeric values
+   * @param isOptionSet whether the dimension is backed by an option set, selecting the no-value
+   *     keyword ({@code D2__NOVALUE} for option sets, {@code NV} otherwise)
    */
-  public InQueryFilter(String field, String encodedFilter, boolean shouldQuote) {
+  public InQueryFilter(
+      String field, String encodedFilter, boolean shouldQuote, boolean isOptionSet) {
     super(IN, encodedFilter);
     this.field = field;
     this.shouldQuote = shouldQuote;
+    this.isOptionSet = isOptionSet;
   }
 
   /**
@@ -126,7 +132,7 @@ public class InQueryFilter extends QueryFilter {
   }
 
   private boolean isMissingItem(String filterItem) {
-    return NV.equals(filterItem);
+    return isNoValue(filterItem, isOptionSet);
   }
 
   /** Select sql statement detection. The method retrieves true if sql statement detected. */

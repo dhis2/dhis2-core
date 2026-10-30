@@ -59,7 +59,7 @@ public class PrefixedDimensions {
   }
 
   public static Collection<PrefixedDimension> ofDataElements(ProgramStage programStage) {
-    return programStage.getDataElements().stream()
+    return programStage.getNonSkippedDataElements().stream()
         .map(
             dataElement ->
                 PrefixedDimension.builder()
@@ -71,7 +71,7 @@ public class PrefixedDimensions {
   }
 
   public static Collection<PrefixedDimension> ofItemsWithProgram(
-      Program program, Collection<? extends BaseIdentifiableObject> objects) {
+      Program program, Collection<? extends IdentifiableObject> objects) {
     return objects.stream()
         .map(item -> PrefixedDimension.builder().item(item).program(program).build())
         .collect(Collectors.toList());
@@ -80,6 +80,7 @@ public class PrefixedDimensions {
   public static Collection<PrefixedDimension> ofProgramStageDataElements(
       Collection<ProgramStageDataElement> programStageDataElements) {
     return programStageDataElements.stream()
+        .filter(de -> !de.getSkipAnalytics())
         .map(
             programStageDataElement ->
                 PrefixedDimension.builder()

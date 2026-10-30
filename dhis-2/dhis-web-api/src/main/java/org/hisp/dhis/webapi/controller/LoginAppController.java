@@ -53,8 +53,6 @@ public class LoginAppController {
         request.getRequestURI().substring(request.getContextPath().length());
     String forwardPath =
         "/" + AppManager.INSTALLED_APP_PREFIX + contextRelativePath.replaceFirst("/", "");
-
-    // TODO: MAS: Here we can introduce a swappable login app configurable similar to the start page
     RequestDispatcher dispatcher = request.getServletContext().getRequestDispatcher(forwardPath);
     dispatcher.forward(request, response);
   }

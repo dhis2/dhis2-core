@@ -96,6 +96,7 @@ public class ProgramRuleVariableObjectBundleHook
       Consumer<ErrorReport> addReports) {
     validateUniqueProgramRuleName(bundle, programRuleVariable, addReports);
     validateProgramRuleNameKeyWords(programRuleVariable, addReports);
+    validateSourceTypeReference(programRuleVariable, addReports);
   }
 
   private void validateUniqueProgramRuleName(
@@ -160,6 +161,53 @@ public class ProgramRuleVariableObjectBundleHook
       addReports.accept(
           new ErrorReport(
               ProgramRuleVariable.class, ErrorCode.E4052, programRuleVariable.getName()));
+    }
+  }
+
+  private void validateSourceTypeReference(
+      ProgramRuleVariable programRuleVariable, Consumer<ErrorReport> addReports) {
+    ProgramRuleVariableSourceType sourceType = programRuleVariable.getSourceType();
+    if (sourceType == null) {
+      addReports.accept(
+          new ErrorReport(
+              ProgramRuleVariable.class, ErrorCode.E4090, programRuleVariable.getName()));
+      return;
+    }
+    if (ProgramRuleVariableSourceType.getDataTypes().contains(sourceType)
+        && programRuleVariable.getDataElement() == null) {
+      addReports.accept(
+          new ErrorReport(
+              ProgramRuleVariable.class,
+              ErrorCode.E4059,
+              programRuleVariable.getName(),
+              sourceType));
+    }
+    if (sourceType == ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE
+        && programRuleVariable.getProgramStage() == null) {
+      addReports.accept(
+          new ErrorReport(
+              ProgramRuleVariable.class,
+              ErrorCode.E4091,
+              programRuleVariable.getName(),
+              sourceType));
+    }
+    if (ProgramRuleVariableSourceType.getAttributeTypes().contains(sourceType)
+        && programRuleVariable.getAttribute() == null) {
+      addReports.accept(
+          new ErrorReport(
+              ProgramRuleVariable.class,
+              ErrorCode.E4089,
+              programRuleVariable.getName(),
+              sourceType));
+    }
+    if (sourceType == ProgramRuleVariableSourceType.CALCULATED_VALUE
+        && programRuleVariable.getValueType() == null) {
+      addReports.accept(
+          new ErrorReport(
+              ProgramRuleVariable.class,
+              ErrorCode.E4092,
+              programRuleVariable.getName(),
+              sourceType));
     }
   }
 

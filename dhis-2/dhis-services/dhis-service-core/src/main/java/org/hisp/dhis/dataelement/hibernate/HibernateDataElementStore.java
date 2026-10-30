@@ -29,21 +29,29 @@
  */
 package org.hisp.dhis.dataelement.hibernate;
 
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import org.hibernate.LockOptions;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -130,5 +138,45 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
             .addPredicate(root -> builder.equal(root.get("uid"), uid));
 
     return getSingleResult(builder, param);
+  }
+
+  public List<DataElement> getByCategoryCombo(List<CategoryCombo> categoryCombos) {
+    if (categoryCombos == null || categoryCombos.isEmpty()) return List.of();
+    @Language("hql")
+    String hql =
+        """
+        select de from DataElement de
+        where de.categoryCombo in (:categoryCombos)
+        """;
+    return getQuery(hql)
+        .setParameter("categoryCombos", categoryCombos)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .list();
+  }
+
+  @Override
+  public Map<String, PeriodType> getPeriodTypesByUid(Collection<String> uids) {
+    if (uids == null || uids.isEmpty()) return Map.of();
+
+    @Language("hql")
+    String hql =
+        """
+        select distinct de
+        from DataElement de
+        join fetch de.dataSetElements dse
+        join fetch dse.dataSet
+        where de.uid in (:uids)
+        """;
+
+    List<DataElement> dataElements = getQuery(hql).setParameter("uids", uids).list();
+
+    Map<String, PeriodType> result = new HashMap<>();
+    for (DataElement de : dataElements) {
+      PeriodType pt = de.getPeriodType();
+      if (pt != null) {
+        result.put(de.getUid(), pt);
+      }
+    }
+    return result;
   }
 }

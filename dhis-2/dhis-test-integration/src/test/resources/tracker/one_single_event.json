@@ -1,0 +1,83 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [],
+  "events": [
+    {
+      "event": "QRYjLTiJTrA",
+      "occurredAt": "2022-04-20T06:00:38.343",
+      "createdAtClient": "2022-04-20T12:17:30.163",
+      "updatedAtClient": "2022-04-30T12:17:30.163",
+      "storedBy": "admin",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "cS7eutanDrT"
+      },
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "rLZC0lvvxQY"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "DiszpKrYNg8"
+      },
+      "status": "ACTIVE",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "SeWJkpLAyLt"
+      },
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xwZ2u3WyQR0"
+        },
+        {
+          "idScheme": "UID",
+          "identifier": "i4Nbp8S2G6A"
+        }
+      ],
+      "notes": [],
+      "dataValues": [
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "FieVkTxp4HE"
+          },
+          "value": "15.0"
+        }
+      ]
+    }
+  ],
+  "relationships": [],
+  "username": "system-process"
+}

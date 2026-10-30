@@ -96,6 +96,8 @@ public interface CategoryService {
    */
   Category getCategory(String uid);
 
+  Category getCategory(UID uid);
+
   /**
    * Retrieves the Category with the given name.
    *
@@ -295,6 +297,14 @@ public interface CategoryService {
   CategoryCombo getCategoryCombo(String uid);
 
   /**
+   * Retrieves a CategoryCombo with the given UID.
+   *
+   * @param uid the identifier of the CategoryCombo to retrieve.
+   * @return the CategoryCombo.
+   */
+  CategoryCombo getCategoryCombo(UID uid);
+
+  /**
    * Retrieves the CategoryCombo with the given name.
    *
    * @param name the name of the CategoryCombo to retrieve.
@@ -325,6 +335,8 @@ public interface CategoryService {
    * @return a list of CategoryCombos.
    */
   List<CategoryCombo> getAttributeCategoryCombos();
+
+  List<CategoryCombo> getCategoryCombosByCategory(Collection<UID> categoryUids);
 
   // -------------------------------------------------------------------------
   // CategoryOptionCombo
@@ -399,6 +411,17 @@ public interface CategoryService {
    * @return a list of CategoryOptionCombos.
    */
   List<CategoryOptionCombo> getAllCategoryOptionCombos();
+
+  /**
+   * Eagerly loads, in three queries rather than one per parent, the associations of the given
+   * {@link CategoryCombo}s: {@link CategoryCombo#getCategories()} with each category's {@link
+   * Category#getCategoryOptions()}, and {@link CategoryCombo#getOptionCombos()} with each option
+   * combo's {@link CategoryOptionCombo#getCategoryOptions()}. Used to prime the session before
+   * those associations are traversed or serialised, avoiding an N+1 select per parent.
+   *
+   * @param categoryCombos the category combos whose associations to load.
+   */
+  void preloadCategoryComboAssociations(Collection<CategoryCombo> categoryCombos);
 
   /**
    * Generates and persists a default Category, CategoryOption, CategoryCombo and

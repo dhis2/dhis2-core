@@ -33,7 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
@@ -59,7 +59,7 @@ public class ResourceTableJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
     analyticsTableGenerator.generateResourceTables(progress);
   }
 }

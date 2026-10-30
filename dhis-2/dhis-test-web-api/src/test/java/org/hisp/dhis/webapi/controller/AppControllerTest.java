@@ -31,7 +31,9 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.nio.file.Files.createTempDirectory;
 import static org.hisp.dhis.util.ZipFileUtils.MAX_ENTRIES;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;
@@ -53,11 +55,13 @@ import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.appmanager.JCloudsAppStorageService;
+import org.hisp.dhis.appmanager.BlobStoreAppStorageService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -91,7 +95,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Autowired private AppManager appManager;
-  @Autowired private JCloudsAppStorageService jCloudsAppStorageService;
+  @Autowired private BlobStoreAppStorageService blobStoreAppStorageService;
 
   static {
     try {
@@ -113,6 +117,25 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     // make sure we reset the UI locale to default in case a test changes it
     DELETE("/systemSettings/keyUiLocale");
     DELETE("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID);
+  }
+
+  @Test
+  void testGetAppMenuWhenInstalledAppWithoutIconInManifest() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-wihout-icon.zip").getFile());
+
+    HttpResponse response = GET("/apps/menu");
+    JsonArray apps = response.content(HttpStatus.OK);
+    String icon =
+        apps.asObject()
+            .get("modules")
+            .asList(JsonObject.class)
+            .get(0)
+            .get("icon")
+            .as(JsonString.class)
+            .string();
+    assertTrue(
+        icon.equals("http://localhost/api/apps/test/icons/test.png")
+            || icon.equals("http://localhost/api/apps/myapp/dhis2-app-icon.png"));
   }
 
   @Test
@@ -138,18 +161,19 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "When installing multiple versions of the same app, only the last one installed should exist.")
+      "When installing multiple versions of the same app, only the last one installed should"
+          + " exist.")
   void testInstallMultipleSameKey() throws IOException {
     // Clean up first
     Map<String, Pair<App, BundledAppInfo>> installedApps =
-        jCloudsAppStorageService.discoverInstalledApps();
+        blobStoreAppStorageService.discoverInstalledApps();
     installedApps.values().forEach(p -> appManager.deleteApp(p.getLeft(), true));
 
     appManager.installApp(new ClassPathResource("app/app_ver1.zip").getFile());
     appManager.installApp(new ClassPathResource("app/app_ver3.zip").getFile());
     appManager.installApp(new ClassPathResource("app/app_ver2.zip").getFile());
 
-    installedApps = jCloudsAppStorageService.discoverInstalledApps();
+    installedApps = blobStoreAppStorageService.discoverInstalledApps();
 
     assertEquals(1, installedApps.size());
     assertEquals("2.0.0", installedApps.values().stream().findFirst().get().getLeft().getVersion());
@@ -271,7 +295,8 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Should return the most specific language match, i.e. if the user has ar_IQ as locale, we should retrieve ar_IQ first, then ar then default (english) in this order")
+      "Should return the most specific language match, i.e. if the user has ar_IQ as locale, we"
+          + " should retrieve ar_IQ first, then ar then default (english) in this order")
   void testInstalledAppReturnsTranslatedShortcuts_WithLanguageFallback() throws IOException {
     POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=ar_IQ");
 
@@ -358,6 +383,85 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
         "App installation should fail due to zip bomb attempt");
 
     bombZip.delete();
+  }
+
+  @Test
+  @DisplayName("Resource access with path traversal sequence '..' is rejected")
+  void testResourceAccessPathTraversalRejected() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    // Direct path traversal attempt - should be rejected at application level
+    // Note: The servlet container may also reject this
+    HttpResponse response = GET("/apps/myapp/subdir/../../../etc/passwd");
+    assertEquals(
+        HttpStatus.BAD_REQUEST,
+        response.status(),
+        "Path traversal with '..' should be rejected with 400 Bad Request");
+  }
+
+  @Test
+  @DisplayName("Resource access with encoded path traversal is rejected")
+  void testResourceAccessEncodedPathTraversalRejected() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    // After URL decoding by servlet, this becomes "../" which should be rejected
+    // The servlet container decodes %2e%2e%2f to ../ before reaching our code
+    HttpResponse response = GET("/apps/myapp/%2e%2e/etc/passwd");
+    // This may return 400 from servlet container or our code - either is acceptable
+    assertTrue(
+        response.status() == HttpStatus.BAD_REQUEST || response.status() == HttpStatus.NOT_FOUND,
+        "Encoded path traversal should be rejected");
+  }
+
+  @Test
+  @DisplayName("Resource access with double-dot in middle of path is rejected")
+  void testResourceAccessDoubleDotInPathRejected() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    HttpResponse response = GET("/apps/myapp/foo..bar/test.txt");
+    // "foo..bar" contains ".." but is not a traversal - this should be allowed or 404
+    // The key is that actual traversal like "../" is blocked
+    // This test documents expected behavior - containing ".." without "/" might be okay
+    assertTrue(
+        response.status() == HttpStatus.NOT_FOUND || response.status() == HttpStatus.BAD_REQUEST,
+        "Resource with '..' in filename should either be not found or rejected");
+  }
+
+  @Test
+  @DisplayName("Resource access with parent directory traversal '../' is rejected")
+  void testResourceAccessParentTraversalRejected() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    HttpResponse response = GET("/apps/myapp/../otherapp/secret.txt");
+    assertEquals(
+        HttpStatus.BAD_REQUEST,
+        response.status(),
+        "Parent directory traversal '../' should be rejected");
+  }
+
+  @Test
+  @DisplayName("Legitimate nested resource path works correctly")
+  void testLegitimateNestedResourcePath() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    // Normal resource access should work fine
+    HttpResponse response = GET("/apps/myapp/index.html");
+    assertEquals(HttpStatus.OK, response.status(), "Legitimate resource access should succeed");
+  }
+
+  @Test
+  @DisplayName("Resource access with semicolon bypass technique is rejected")
+  void testResourceAccessSemicolonBypassRejected() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    // Semicolon bypass technique: Nginx treats "..;" as literal folder name,
+    // but Tomcat treats ";" as path parameter delimiter and normalizes ".."
+    // This exploits the interpretation mismatch between reverse proxy and servlet container
+    HttpResponse response = GET("/apps/myapp/..;/..;/..;/etc/passwd");
+    // This may return 400 from servlet container, Spring Security, or our code
+    assertTrue(
+        response.status() == HttpStatus.BAD_REQUEST || response.status() == HttpStatus.NOT_FOUND,
+        "Semicolon bypass technique should be rejected");
   }
 
   /**

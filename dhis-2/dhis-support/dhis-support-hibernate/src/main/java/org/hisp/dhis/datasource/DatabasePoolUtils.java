@@ -33,7 +33,6 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_DRIVER_CLASS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS;
@@ -75,11 +74,15 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_VALID
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_WARN_MAX_AGE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_JMX_ENABLED;
 
 import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -90,7 +93,6 @@ import java.util.function.Consumer;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -116,7 +118,6 @@ public final class DatabasePoolUtils {
             .put(CONNECTION_URL, ANALYTICS_CONNECTION_URL)
             .put(CONNECTION_USERNAME, ANALYTICS_CONNECTION_USERNAME)
             .put(CONNECTION_PASSWORD, ANALYTICS_CONNECTION_PASSWORD)
-            .put(CONNECTION_DRIVER_CLASS, ANALYTICS_CONNECTION_DRIVER_CLASS)
             .put(CONNECTION_POOL_MAX_SIZE, ANALYTICS_CONNECTION_POOL_MAX_SIZE)
             .put(CONNECTION_POOL_TEST_QUERY, ANALYTICS_CONNECTION_POOL_TEST_QUERY)
             .put(CONNECTION_POOL_MAX_IDLE_TIME, ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME)
@@ -157,19 +158,34 @@ public final class DatabasePoolUtils {
     UNPOOLED
   }
 
-  public static DataSource createDbPool(DbPoolConfig config)
+  /**
+   * Creates a data source backed by a database connection pool.
+   *
+   * <p>The default driver class name for PostgreSQL operational database is defined in {@code
+   * ConfigurationKey#CONNECTION_DRIVER_CLASS}.
+   *
+   * <p>The analytics database driver class name is inferred from analytics database property and
+   * must be passed using the {@code PoolConfig#driverClassName} property.
+   *
+   * @param config the {@link DbPoolConfig}. Must include a {@code dataSourceName} for metrics.
+   * @param meterRegistry Micrometer registry for HikariCP metrics. Use {@code SimpleMeterRegistry}
+   *     in tests where metrics export is not needed.
+   * @return a {@link DataSource}.
+   */
+  public static DataSource createDbPool(DbPoolConfig config, MeterRegistry meterRegistry)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
+    Objects.requireNonNull(
+        meterRegistry, "MeterRegistry is required. Use SimpleMeterRegistry in tests.");
 
     ConfigKeyMapper mapper = config.getMapper();
     DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
-    log.info("Database pool type value is '{}'", dbPoolType);
+    log.debug("Creating database pool '{}' with type '{}'", config.getDataSourceName(), dbPoolType);
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
+
     final String driverClassName =
-        firstNonNull(
-            config.getDriverClassName(),
-            dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_DRIVER_CLASS)));
+        firstNonNull(config.getDriverClassName(), dhisConfig.getProperty(CONNECTION_DRIVER_CLASS));
     final String jdbcUrl =
         firstNonNull(
             config.getJdbcUrl(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_URL)));
@@ -182,7 +198,9 @@ public final class DatabasePoolUtils {
 
     final DataSource dataSource =
         switch (dbPoolType) {
-          case HIKARI -> createHikariDbPool(username, password, driverClassName, jdbcUrl, config);
+          case HIKARI ->
+              createHikariDbPool(
+                  username, password, driverClassName, jdbcUrl, config, meterRegistry);
           case UNPOOLED -> createNoPoolDataSource(username, password, driverClassName, jdbcUrl);
           case C3P0 -> createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
           default ->
@@ -212,7 +230,8 @@ public final class DatabasePoolUtils {
       String password,
       String driverClassName,
       String jdbcUrl,
-      DbPoolConfig config) {
+      DbPoolConfig config,
+      MeterRegistry meterRegistry) {
     ConfigKeyMapper mapper = config.getMapper();
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
@@ -242,15 +261,26 @@ public final class DatabasePoolUtils {
         parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MIN_IDLE)));
 
     HikariConfig hc = new HikariConfig();
-    hc.setPoolName("HikariDataSource_" + CodeGenerator.generateCode(10));
+    hc.setPoolName(config.getDataSourceName());
     hc.setDriverClassName(driverClassName);
     hc.setJdbcUrl(jdbcUrl);
     hc.setUsername(username);
     hc.setPassword(password);
-    hc.addDataSourceProperty("cachePrepStmts", "true");
-    hc.addDataSourceProperty("prepStmtCacheSize", "250");
-    hc.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-    hc.setConnectionTestQuery(connectionTestQuery);
+
+    // Skip unless explicitly configured; HikariCP defaults to Connection.isValid() which uses
+    // the PG driver's lightweight protocol-level ping instead of executing a SQL query.
+    if (connectionTestQuery != null && !connectionTestQuery.isBlank()) {
+      hc.setConnectionTestQuery(connectionTestQuery);
+    }
+
+    hc.setConnectionTimeout(connectionTimeout);
+    hc.setValidationTimeout(validationTimeout);
+    hc.setMaximumPoolSize(maxPoolSize);
+    hc.setMinimumIdle(minIdleConnections);
+    hc.setKeepaliveTime(SECONDS.toMillis(keepAliveTimeSeconds));
+    hc.setIdleTimeout(SECONDS.toMillis(maxIdleTime));
+    hc.setMaxLifetime(SECONDS.toMillis(maxLifeTimeSeconds));
+
     final String leakThresholdStr =
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_WARN_MAX_AGE));
 
@@ -276,16 +306,17 @@ public final class DatabasePoolUtils {
       }
     }
 
-    HikariDataSource ds = new HikariDataSource(hc);
-    ds.setConnectionTimeout(connectionTimeout);
-    ds.setValidationTimeout(validationTimeout);
-    ds.setMaximumPoolSize(maxPoolSize);
-    ds.setMinimumIdle(minIdleConnections);
-    ds.setKeepaliveTime(SECONDS.toMillis(keepAliveTimeSeconds));
-    ds.setIdleTimeout(SECONDS.toMillis(maxIdleTime));
-    ds.setMaxLifetime(SECONDS.toMillis(maxLifeTimeSeconds));
+    // Configure HikariCP metrics if enabled
+    if (dhisConfig.isEnabled(MONITORING_DBPOOL_ENABLED)) {
+      hc.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(meterRegistry));
+    }
 
-    return ds;
+    // Register HikariCP pool MBeans (HikariConfig/HikariPool) if JMX monitoring is enabled
+    if (dhisConfig.isEnabled(MONITORING_JMX_ENABLED)) {
+      hc.setRegisterMbeans(true);
+    }
+
+    return new HikariDataSource(hc);
   }
 
   /** Create a data source based on a C3p0 connection pool. */

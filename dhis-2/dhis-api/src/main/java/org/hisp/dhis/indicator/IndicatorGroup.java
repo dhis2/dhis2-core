@@ -38,7 +38,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -93,7 +92,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Setter
 @Entity
 @Table(name = "indicatorgroup")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class IndicatorGroup extends BaseMetadataObject
     implements IdentifiableObject, MetadataObject {
   @Id
@@ -107,12 +106,13 @@ public class IndicatorGroup extends BaseMetadataObject
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
 
+  @Type(type = "text")
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
 
-  @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "indicatorgroupmembers",
       joinColumns =
@@ -123,7 +123,7 @@ public class IndicatorGroup extends BaseMetadataObject
           @JoinColumn(
               name = "indicatorid",
               foreignKey = @ForeignKey(name = "fk_indicatorgroup_indicatorid")))
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<Indicator> members = new HashSet<>();
 
   @Type(type = "jsbAttributeValues")
@@ -135,7 +135,7 @@ public class IndicatorGroup extends BaseMetadataObject
   private Sharing sharing = new Sharing();
 
   @ManyToMany(mappedBy = "members", fetch = FetchType.LAZY)
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<IndicatorGroupSet> groupSets = new HashSet<>();
 
   // -------------------------------------------------------------------------
@@ -277,7 +277,7 @@ public class IndicatorGroup extends BaseMetadataObject
   }
 
   @JsonProperty("indicatorGroupSet")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(localName = "indicatorGroupSet", namespace = DxfNamespaces.DXF_2_0)
   @Property(value = PropertyType.REFERENCE, required = Property.Value.FALSE)
   public IndicatorGroupSet getGroupSet() {
@@ -285,7 +285,7 @@ public class IndicatorGroup extends BaseMetadataObject
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "groupSets", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "groupSet", namespace = DxfNamespaces.DXF_2_0)
   public Set<IndicatorGroupSet> getGroupSets() {
@@ -432,17 +432,5 @@ public class IndicatorGroup extends BaseMetadataObject
   @Override
   public void setName(String name) {
     this.name = name;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public void setMembers(Set<Indicator> members) {
-    this.members = members;
-  }
-
-  public void setGroupSets(Set<IndicatorGroupSet> groupSets) {
-    this.groupSets = groupSets;
   }
 }

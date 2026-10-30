@@ -31,6 +31,10 @@ package org.hisp.dhis.dxf2.sync;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.common.ImportSummariesResponseExtractor;
@@ -50,6 +54,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RequestCallback;
@@ -62,11 +67,12 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 public class SyncUtils {
-  static final String HEADER_AUTHORIZATION = "Authorization";
-
+  public static final String HEADER_AUTHORIZATION = "Authorization";
   private static final String PING_PATH = "/api/system/ping";
 
-  private SyncUtils() {}
+  private SyncUtils() {
+    throw new IllegalStateException("Utility class");
+  }
 
   /**
    * Sends a synchronization request to the {@code syncUrl} and analyzes the returned summary
@@ -78,7 +84,7 @@ public class SyncUtils {
    * @param endpoint Endpoint against which the sync request is run
    * @return True if sync was successful, false otherwise
    */
-  static boolean sendSyncRequest(
+  public static boolean sendSyncRequest(
       SystemSettings settings,
       RestTemplate restTemplate,
       RequestCallback requestCallback,
@@ -146,6 +152,86 @@ public class SyncUtils {
 
     log.info("Sync summary: " + responseSummary);
     return Optional.ofNullable(responseSummary);
+  }
+
+  /**
+   * Sends a sync request and reads the response using {@code responseExtractor}, retrying on server
+   * errors up to {@code maxSyncAttempts} times. Use this instead of {@link
+   * #runSyncRequest(RestTemplate, RequestCallback, Class, String, int)} when the response isn't a
+   * {@link WebMessageResponse} — for example a tracker {@code ImportReport}.
+   */
+  public static <T> T runSyncRequest(
+      RestTemplate restTemplate,
+      RequestCallback requestCallback,
+      ResponseExtractor<T> responseExtractor,
+      String syncUrl,
+      int maxSyncAttempts) {
+    int attempts = Math.max(1, maxSyncAttempts);
+    int attempt = 0;
+    while (true) {
+      attempt++;
+      try {
+        return restTemplate.execute(syncUrl, HttpMethod.POST, requestCallback, responseExtractor);
+      } catch (HttpClientErrorException ex) {
+        // A 4xx response still has a body our extractor can read, but RestTemplate throws before
+        // the extractor gets a chance to run. So we read the body straight off the exception
+        // instead. We don't retry this: a client error won't fix itself by trying again.
+        return extractFromErrorResponse(ex, responseExtractor);
+      } catch (HttpServerErrorException ex) {
+        log.error(
+            "Sync server error (attempt {}/{}): {}",
+            attempt,
+            attempts,
+            ex.getResponseBodyAsString(),
+            ex);
+        if (attempt >= attempts) {
+          throw ex;
+        }
+      } catch (ResourceAccessException ex) {
+        log.error("Exception during tracker sync push: {}", ex.getMessage(), ex);
+        throw ex;
+      }
+    }
+  }
+
+  private static <T> T extractFromErrorResponse(
+      HttpClientErrorException ex, ResponseExtractor<T> responseExtractor) {
+    try {
+      return responseExtractor.extractData(toClientHttpResponse(ex));
+    } catch (IOException e) {
+      throw new UncheckedIOException("Failed to parse sync error response", e);
+    }
+  }
+
+  private static ClientHttpResponse toClientHttpResponse(HttpClientErrorException ex) {
+    return new ClientHttpResponse() {
+      @Override
+      public HttpStatusCode getStatusCode() {
+        return ex.getStatusCode();
+      }
+
+      @Override
+      public String getStatusText() {
+        return ex.getStatusText();
+      }
+
+      @Override
+      public void close() {
+        // Nothing to close — the response body was already read into memory when the exception
+        // was created.
+      }
+
+      @Override
+      public InputStream getBody() {
+        return new ByteArrayInputStream(ex.getResponseBodyAsByteArray());
+      }
+
+      @Override
+      public HttpHeaders getHeaders() {
+        HttpHeaders headers = ex.getResponseHeaders();
+        return headers != null ? headers : new HttpHeaders();
+      }
+    };
   }
 
   private static ResponseExtractor<? extends WebMessageResponse> getResponseExtractor(
@@ -218,7 +304,7 @@ public class SyncUtils {
    * @param restTemplate Reference to RestTemplate
    * @return AvailabilityStatus that says whether the server is available or not
    */
-  static AvailabilityStatus testServerAvailability(
+  public static AvailabilityStatus testServerAvailability(
       SystemSettings settings, RestTemplate restTemplate) {
     final int maxAttempts = settings.getSyncMaxRemoteServerAvailabilityCheckAttempts();
     final int delayBetweenAttempts =
@@ -364,7 +450,7 @@ public class SyncUtils {
     return true;
   }
 
-  static SystemInstance getRemoteInstance(SystemSettings settings, SyncEndpoint endpoint) {
+  public static SystemInstance getRemoteInstance(SystemSettings settings, SyncEndpoint endpoint) {
     String username = settings.getRemoteInstanceUsername();
     String password = settings.getRemoteInstancePassword();
     String syncUrl = settings.getRemoteInstanceUrl() + endpoint.getPath();

@@ -47,12 +47,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.AtomicMode;
@@ -62,9 +58,14 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +100,11 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     nonSuperUser = userService.getUser("Tu9fv8ezgHl");
   }
 
+  @BeforeEach
+  void injectNonSuperUser() {
+    injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
+  }
+
   @Test
   void testProgramOwnerWhenEnrolled() throws IOException {
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
@@ -123,10 +129,8 @@ class OwnershipTest extends PostgresIntegrationTestBase {
 
   @Test
   void testClientDatesForTrackedEntityEnrollmentEvent() throws IOException {
-    User nonSuperUser = userService.getUser(this.nonSuperUser.getUid());
-    injectSecurityContextUser(nonSuperUser);
     TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/ownership_event.json");
-    manager.flush();
+    clearSession();
     TrackerObjects teTrackerObjects = testSetup.fromJson("tracker/ownership_te.json");
     TrackerObjects enTrackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
 
@@ -186,7 +190,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     updatedEnrollment.setOccurredAt(Instant.now());
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
-    manager.flush();
+    clearSession();
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getUpdated());
     enrollments = manager.getAll(Enrollment.class);
@@ -214,14 +218,12 @@ class OwnershipTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCreateEnrollmentAfterDeleteEnrollment() throws IOException {
-    injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     List<Enrollment> enrollments = manager.getAll(Enrollment.class);
     assertEquals(1, enrollments.stream().filter(en -> !en.isDeleted()).count());
     params.setImportStrategy(TrackerImportStrategy.DELETE);
-    manager.clear();
-    manager.flush();
+    clearSession();
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getDeleted());
@@ -239,7 +241,6 @@ class OwnershipTest extends PostgresIntegrationTestBase {
   @Test
   void testCreateEnrollmentWithoutOwnership()
       throws IOException, ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     List<Enrollment> enrollments = manager.getAll(Enrollment.class);
@@ -261,7 +262,6 @@ class OwnershipTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenCreatingTEAndEnrollmentAndUserHasNoAccessToEnrollmentOU() throws IOException {
-    injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     TrackerObjects trackerObjects =
@@ -298,6 +298,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
         manager.get(TrackedEntity.class, "IOR1AXXl24H"),
         UID.of("BFcipDERJnf"),
         UID.of("B1nCbRV3qtP"));
+    injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);

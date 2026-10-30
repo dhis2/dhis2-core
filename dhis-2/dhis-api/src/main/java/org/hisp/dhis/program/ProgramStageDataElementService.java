@@ -30,6 +30,8 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
@@ -86,4 +88,17 @@ public interface ProgramStageDataElementService {
    *     DataElement}
    */
   List<ProgramStageDataElement> getProgramStageDataElements(DataElement dataElement);
+
+  /**
+   * Returns a map of ProgramStages containing sets of DataElements (together forming
+   * ProgramStageDataElements) that have the skipSynchronization flag set to true.
+   *
+   * <p>This method retrieves all ProgramStage–DataElement associations for the given Program where
+   * the skipSynchronization flag is enabled, meaning these data elements should be excluded from
+   * synchronization operations.
+   *
+   * @return a map where the key is the ProgramStage UID and the value is a set of DataElement UIDs
+   *     associated with that ProgramStage that have skipSynchronization set to true
+   */
+  Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
 }

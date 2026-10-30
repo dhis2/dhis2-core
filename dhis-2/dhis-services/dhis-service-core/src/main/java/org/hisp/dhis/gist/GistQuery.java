@@ -30,27 +30,24 @@
 package org.hisp.dhis.gist;
 
 import static java.lang.Integer.parseInt;
-import static java.lang.Math.abs;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
-import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.PrimaryKeyObject;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.query.Junction;
+import org.hisp.dhis.common.PropertyPath;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
@@ -69,11 +66,6 @@ import org.hisp.dhis.schema.annotation.Gist.Transform;
 @Builder(toBuilder = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class GistQuery {
-  /**
-   * Fields allow {@code property[sub,sub]} syntax where a comma occurs as part of the property
-   * name. These commas need to be ignored when splitting a {@code fields} parameter list.
-   */
-  static final String FIELD_SPLIT = ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
 
   /** Query properties about the owner of the collection property. */
   @Getter
@@ -117,9 +109,6 @@ public final class GistQuery {
   /** Not the elements contained in the collection but those not contained (yet). Default false. */
   @JsonProperty private final boolean inverse;
 
-  /** Apply translations to translatable properties? Default true. */
-  @JsonProperty private final boolean translate;
-
   /**
    * Use absolute URLs when referring to other APIs in pager and {@code apiEndpoints}? Default
    * false.
@@ -144,14 +133,12 @@ public final class GistQuery {
   /** Weather or not to include the API endpoints references */
   @JsonProperty private final boolean references;
 
-  private final boolean typedAttributeValues;
-
   /** The extend to which fields are included by default */
   @JsonProperty(value = "auto")
   private final GistAutoType autoType;
 
   /** Names of those properties that should be included in the response. */
-  @JsonProperty @Builder.Default private final List<Field> fields = emptyList();
+  @JsonProperty @Builder.Default private final Fields fields = Fields.DEFAULT;
 
   /**
    * List of filter property expressions. An expression has the format {@code
@@ -162,7 +149,7 @@ public final class GistQuery {
   @JsonProperty @Builder.Default private final List<Order> orders = emptyList();
 
   public List<String> getFieldNames() {
-    return fields.stream().map(Field::getName).collect(toList());
+    return fields.names();
   }
 
   public Transform getDefaultTransformation() {
@@ -177,80 +164,27 @@ public final class GistQuery {
     return filters.size() > 1 && filters.stream().anyMatch(f -> f.getGroup() >= 0);
   }
 
-  public GistQuery with(GistParams params) throws BadRequestException {
-    int page = abs(params.getPage());
-    int size = Math.min(1000, abs(params.getPageSize()));
-    boolean tree = params.isOrgUnitsTree();
-    boolean offline = params.isOrgUnitsOffline();
-    String order = tree ? "path" : params.getOrder();
-    if (offline && (order == null || order.isEmpty())) order = "level,name";
-    String fields = offline ? "path,displayName,children::isNotEmpty" : params.getFields();
-    // ensure tree always includes path in fields
-    if (tree) {
-      if (fields == null || fields.isEmpty()) {
-        fields = "path";
-      } else if (!(fields.contains(",path,"))
-          || fields.startsWith("path,")
-          || fields.endsWith(",path")) fields += ",path";
-    }
-    return toBuilder()
-        .paging(!offline)
-        .pageSize(size)
-        .pageOffset(Math.max(0, page - 1) * size)
-        .translate(params.isTranslate())
-        .inverse(params.isInverse())
-        .total(params.isCountTotalPages())
-        .absoluteUrls(params.isAbsoluteUrls())
-        .headless(params.isHeadless())
-        .describe(params.isDescribe())
-        .references(!tree && !offline && params.isReferences())
-        .anyFilter(params.getRootJunction() == Junction.Type.OR)
-        .fields(getStrings(fields, FIELD_SPLIT).stream().map(Field::parse).toList())
-        .filters(
-            getStrings(params.getFilter(), FIELD_SPLIT).stream()
-                .map(Filter::parse)
-                .collect(toList()))
-        .orders(getStrings(order, ",").stream().map(Order::parse).toList())
-        .build();
+  public boolean hasTranslationContext() {
+    return translationLocale != null;
   }
 
   private static List<String> getStrings(String value, String splitRegex) {
-    if (value == null || value.isEmpty()) {
-      return emptyList();
-    }
+    if (value == null || value.isEmpty()) return List.of();
     return asList(value.split(splitRegex));
   }
 
-  public GistQuery withOwner(Owner owner) {
-    return toBuilder().owner(owner).build();
+  public GistQuery addField(PropertyPath path) {
+    return toBuilder()
+        .fields(fields.add(new Fields.Field(path, null, Transform.AUTO, List.of())))
+        .build();
   }
 
-  public GistQuery withFilter(Filter filter) {
-    return withAddedItem(filter, getFilters(), GistQueryBuilder::filters);
-  }
-
-  public GistQuery withOrder(Order order) {
-    return withAddedItem(order, getOrders(), GistQueryBuilder::orders);
-  }
-
-  public GistQuery withField(String path) {
-    return withAddedItem(
-        new Field(path, getDefaultTransformation()), getFields(), GistQueryBuilder::fields);
-  }
-
-  public GistQuery withFields(List<Field> fields) {
-    return toBuilder().fields(fields).build();
+  public GistQuery withFields(List<Fields.Field> fields) {
+    return toBuilder().fields(new Fields(fields)).build();
   }
 
   public GistQuery withFilters(List<Filter> filters) {
     return toBuilder().filters(filters).build();
-  }
-
-  private <E> GistQuery withAddedItem(
-      E e, List<E> collection, BiFunction<GistQueryBuilder, List<E>, GistQueryBuilder> setter) {
-    List<E> plus1 = new ArrayList<>(collection);
-    plus1.add(e);
-    return setter.apply(toBuilder(), plus1).build();
   }
 
   public enum Direction {
@@ -363,101 +297,27 @@ public final class GistQuery {
   }
 
   @Getter
-  @Builder(toBuilder = true)
-  @AllArgsConstructor
-  public static final class Field {
-
-    public static final String REFS_PATH = "__refs__";
-    public static final String ALL_PATH = "*";
-    public static final Field ALL = new Field(ALL_PATH, Transform.NONE);
-
-    @JsonProperty private final String propertyPath;
-    @JsonProperty private final Transform transformation;
-    @JsonProperty private final String alias;
-    @JsonProperty private final String transformationArgument;
-    @JsonProperty private final boolean translate;
-    @JsonProperty private final boolean attribute;
-
-    public Field(String propertyPath, Transform transformation) {
-      this(propertyPath, transformation, "", null, false, false);
-    }
-
-    @JsonProperty
-    public String getName() {
-      return alias.isEmpty() ? propertyPath : alias;
-    }
-
-    public Field withTransformation(Transform transform) {
-      return toBuilder().transformation(transform).build();
-    }
-
-    public Field withPropertyPath(String path) {
-      return toBuilder().propertyPath(path).build();
-    }
-
-    public Field withAlias(String alias) {
-      return toBuilder().alias(alias).build();
-    }
-
-    public Field withTranslate() {
-      return toBuilder().translate(true).build();
-    }
-
-    public Field asAttribute() {
-      return toBuilder().attribute(true).build();
-    }
-
-    @Override
-    public String toString() {
-      return transformation == Transform.NONE
-          ? propertyPath
-          : propertyPath + "::" + transformation.name().toLowerCase().replace('_', '-');
-    }
-
-    public static Field parse(String field) {
-      String[] parts = field.split("(?:::|~|@)(?![^\\[\\]]*\\])");
-      if (parts.length == 1) {
-        return new Field(field, Transform.AUTO);
-      }
-      Transform transform = Transform.AUTO;
-      String alias = "";
-      String arg = null;
-      for (int i = 1; i < parts.length; i++) {
-        String part = parts[i];
-        if (part.startsWith("rename")) {
-          alias = parseArgument(part);
-        } else {
-          transform = Transform.parse(part);
-          if (part.indexOf('(') >= 0) {
-            arg = parseArgument(part);
-          }
-        }
-      }
-      return new Field(parts[0], transform, alias, arg, false, false);
-    }
-
-    private static String parseArgument(String part) {
-      return part.substring(part.indexOf('(') + 1, part.lastIndexOf(')'));
-    }
-  }
-
-  @Getter
   @Builder
   @AllArgsConstructor
   public static final class Order {
-    @JsonProperty private final String propertyPath;
+    @JsonProperty private final PropertyPath propertyPath;
 
     @JsonProperty @Builder.Default private final Direction direction = Direction.ASC;
 
     public static Order parse(String order) {
       String[] parts = order.split("(?:::|:|~|@)");
       if (parts.length == 1) {
-        return new Order(order, Direction.ASC);
+        return new Order(PropertyPath.of(order), Direction.ASC);
       }
       if (parts.length == 2) {
-        return new Order(parts[0], Direction.valueOf(parts[1].toUpperCase()));
+        return new Order(PropertyPath.of(parts[0]), Direction.valueOf(parts[1].toUpperCase()));
       }
       throw new IllegalArgumentException("Not a valid order expression: " + order);
+    }
+
+    @Nonnull
+    public static List<Order> ofList(String order) {
+      return getStrings(order, ",").stream().map(Order::parse).toList();
     }
 
     @Override
@@ -470,23 +330,31 @@ public final class GistQuery {
   @AllArgsConstructor(access = AccessLevel.PRIVATE)
   public static final class Filter {
 
+    private static final String FILTERS_SPLIT =
+        ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
+
     @JsonProperty private final int group;
-    @JsonProperty private final String propertyPath;
+    @JsonProperty private final PropertyPath propertyPath;
     @JsonProperty private final Comparison operator;
     @JsonProperty private final String[] value;
     @JsonProperty private final boolean attribute;
     @JsonProperty private final boolean subSelect;
 
     public Filter(String propertyPath, Comparison operator, String... value) {
-      this(0, propertyPath, operator, value, false, false);
+      this(0, PropertyPath.of(propertyPath), operator, value, false, false);
     }
 
-    public Filter withPropertyPath(String path) {
-      return new Filter(path, operator, value);
+    @Nonnull
+    public static List<Filter> ofList(String filter) {
+      return getStrings(filter, FILTERS_SPLIT).stream().map(Filter::parse).toList();
+    }
+
+    public Filter withPropertyPath(CharSequence path) {
+      return new Filter(group, PropertyPath.of(path), operator, value, false, false);
     }
 
     public Filter withValue(String... value) {
-      return new Filter(propertyPath, operator, value);
+      return new Filter(group, propertyPath, operator, value, false, false);
     }
 
     /**

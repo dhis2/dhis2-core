@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.common.IdProperty;
 import org.junit.jupiter.api.Test;
 
 class AggregateDataExchangeTest {
@@ -68,7 +69,7 @@ class AggregateDataExchangeTest {
   @Test
   void testTargetRequestA() {
     TargetRequest tA = new TargetRequest();
-    tA.setIdScheme("uid");
+    tA.setIdScheme(IdProperty.UID);
 
     assertNull(tA.getSkipAudit());
     assertTrue(tA.isSkipAuditOrDefault());
@@ -77,7 +78,7 @@ class AggregateDataExchangeTest {
   @Test
   void testTargetRequestB() {
     TargetRequest tA = new TargetRequest();
-    tA.setIdScheme("uid");
+    tA.setIdScheme(IdProperty.UID);
     tA.setSkipAudit(false);
 
     assertFalse(tA.getSkipAudit());

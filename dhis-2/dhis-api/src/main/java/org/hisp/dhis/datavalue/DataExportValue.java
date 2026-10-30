@@ -36,6 +36,8 @@ import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.period.Period;
 
 /**
  * A flat data value using UIDs and ISO period values for the keys.
@@ -47,10 +49,11 @@ import org.hisp.dhis.common.UID;
  */
 public record DataExportValue(
     @Nonnull UID dataElement,
-    @Nonnull String period,
+    @Nonnull Period period,
     @Nonnull UID orgUnit,
     @Nonnull UID categoryOptionCombo,
     @Nonnull UID attributeOptionCombo,
+    @Nonnull ValueType type,
     @CheckForNull String value,
     @CheckForNull String comment,
     @CheckForNull Boolean followUp,
@@ -66,6 +69,7 @@ public record DataExportValue(
     requireNonNull(orgUnit);
     requireNonNull(categoryOptionCombo);
     requireNonNull(attributeOptionCombo);
+    requireNonNull(type);
   }
 
   /**
@@ -77,25 +81,26 @@ public record DataExportValue(
   public static DataExportValue of(Object[] row) {
     return new DataExportValue(
         UID.of((String) row[0]),
-        (String) row[1],
+        Period.of((String) row[1]),
         UID.of((String) row[2]),
         UID.of((String) row[3]),
         UID.of((String) row[4]),
-        (String) row[5],
+        ValueType.valueOf((String) row[5]),
         (String) row[6],
-        (Boolean) row[7],
-        (String) row[8],
-        (Date) row[9],
+        (String) row[7],
+        (Boolean) row[8],
+        (String) row[9],
         (Date) row[10],
-        (Boolean) row[11]);
+        (Date) row[11],
+        (Boolean) row[12]);
   }
 
   public boolean isFollowUp() {
     return followUp != null && followUp;
   }
 
-  public DataEntryKey toKey() {
-    return new DataEntryKey(
+  public DataValueKey toKey() {
+    return new DataValueKey(
         dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
   }
 
@@ -112,18 +117,47 @@ public record DataExportValue(
       @CheckForNull String categoryOptionCombo,
       @CheckForNull Map<String, String> categoryOptions,
       @CheckForNull String attributeOptionCombo,
+      @Nonnull ValueType type,
       @CheckForNull String value,
       @CheckForNull String comment,
       @CheckForNull Boolean followUp,
       @CheckForNull String storedBy,
-      @CheckForNull Date created,
-      @CheckForNull Date lastUpdated,
+      @CheckForNull String created,
+      @CheckForNull String lastUpdated,
       boolean deleted) {
 
     public Output {
       requireNonNull(dataElement);
-      if (categoryOptionCombo == null && categoryOptions == null)
-        requireNonNull(categoryOptionCombo); // fail - one is required
+      requireNonNull(type);
+      // Note: AOC + COC can be null
+      // AOC if it is defined in a group's header or is default
+      // COC if it is default
+    }
+
+    public Output(
+        @Nonnull String dataElement,
+        @CheckForNull String period,
+        @CheckForNull String orgUnit,
+        @CheckForNull String categoryOptionCombo,
+        @CheckForNull String attributeOptionCombo,
+        @Nonnull ValueType type,
+        @CheckForNull String value,
+        @CheckForNull String comment) {
+      this(
+          dataElement,
+          period,
+          orgUnit,
+          categoryOptionCombo,
+          null,
+          attributeOptionCombo,
+          type,
+          value,
+          comment,
+          null,
+          null,
+          null,
+          null,
+          false);
     }
   }
 }

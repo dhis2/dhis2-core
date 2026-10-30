@@ -33,7 +33,8 @@ import java.io.InputStream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.common.IndirectTransactional;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,7 @@ public class DefaultJobExecutionService implements JobExecutionService {
   private final JobSchedulerService jobSchedulerService;
 
   @Override
-  @NonTransactional
+  @IndirectTransactional
   public void executeOnceNow(
       @Nonnull JobConfiguration config, @Nonnull MimeType contentType, @Nonnull InputStream content)
       throws ConflictException {
@@ -57,7 +58,7 @@ public class DefaultJobExecutionService implements JobExecutionService {
   }
 
   @Override
-  @NonTransactional
+  @IndirectTransactional
   public void executeOnceNow(@Nonnull JobConfiguration config) throws ConflictException {
     validateIsNewRunOnce(config);
     executeOnceNow(jobConfigurationService.create(config));
@@ -65,7 +66,7 @@ public class DefaultJobExecutionService implements JobExecutionService {
 
   private void executeOnceNow(String jobId) throws ConflictException {
     try {
-      jobSchedulerService.executeNow(jobId);
+      jobSchedulerService.executeNow(UID.ofNullable(jobId));
     } catch (NotFoundException ex) {
       log.error("Ad-hoc job creation failed", ex);
       ConflictException error = new ConflictException("Ad-hoc job creation failed");

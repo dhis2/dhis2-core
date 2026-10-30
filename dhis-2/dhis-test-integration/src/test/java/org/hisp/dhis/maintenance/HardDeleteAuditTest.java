@@ -30,6 +30,7 @@
 package org.hisp.dhis.maintenance;
 
 import static org.awaitility.Awaitility.await;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
@@ -44,9 +45,9 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.maintenance.jdbc.JdbcMaintenanceStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

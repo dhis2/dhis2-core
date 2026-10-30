@@ -40,12 +40,12 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.i18n.I18n;
@@ -53,7 +53,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SystemSettings;
@@ -88,7 +88,7 @@ public class CredentialsExpiryAlertJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     if (!settings.getCredentialsExpiryAlert()) {
       log.info("credentialsExpiryAlertTask aborted. Expiry alerts are disabled");

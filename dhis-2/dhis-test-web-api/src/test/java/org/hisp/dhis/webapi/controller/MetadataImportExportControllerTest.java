@@ -223,7 +223,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(1, organisationUnit.getAttributeValues().size());
     JsonAttributeValue attributeValue = organisationUnit.getAttributeValues().get(0);
     GeoJsonObject geoJSON =
-        new ObjectMapper().readValue(attributeValue.getValue(), GeoJsonObject.class);
+        new ObjectMapper().readValue(attributeValue.value(), GeoJsonObject.class);
     assertTrue(geoJSON instanceof Polygon);
     Polygon polygon = (Polygon) geoJSON;
     assertEquals(100, polygon.getCoordinates().get(0).get(0).getLongitude());
@@ -241,8 +241,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
                     + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}")
             .content(HttpStatus.CONFLICT)
             .as(JsonWebMessage.class);
-    assertNotNull(
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E6004));
+    assertTrue(message.findErrorReport(ErrorCode.E6004).exists());
   }
 
   /** Import OptionSet with two Options, sort orders are 2 and 3. */
@@ -543,10 +542,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(1, report.getStats().getIgnored());
     assertEquals(
         "Object could not be deleted because it is associated with another object: DataElement",
-        report
-            .find(
-                JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E4030)
-            .getMessage());
+        report.findErrorReport(ErrorCode.E4030).getMessage());
   }
 
   @Test()
@@ -566,6 +562,21 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
+  @DisplayName("Should return conflict when source request visualization is not a valid UID")
+  void testSourceRequestVisualizationInvalidUid() {
+    JsonWebMessage message =
+        assertWebMessage(
+            HttpStatus.CONFLICT,
+            POST(
+                "/metadata/",
+                "{'aggregateDataExchanges': [{'id': 'iFOyIpQciyk', 'name': 'Test exchange',"
+                    + "'source': {'requests': [{'name': 'R1', 'visualization': '1nvalidUid',"
+                    + "'dx': ['fbfJHSPpUQD'], 'pe': ['202201'], 'ou': ['ImspTQPwCqd']}]},"
+                    + "'target': {'type': 'INTERNAL'}}]}"));
+    assertTrue(message.getMessage().contains("1nvalidUid"));
+  }
+
+  @Test
   @DisplayName(
       "Should return error E6305 if create a new AggregateDataExchange without authentication"
           + " details")
@@ -578,10 +589,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(
         "Aggregate data exchange target API must specify either access token or username and"
             + " password",
-        report
-            .find(
-                JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E6305)
-            .getMessage());
+        report.findErrorReport(ErrorCode.E6305).getMessage());
   }
 
   @Test
@@ -597,7 +605,6 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             [{"op":"add", "path":"/sharing",
             "value":{"owner": "GOLswS44mh8",
               "public": "rw------",
-              "external": false,
               "users": {"%s": {"id": "%s", "access": "rw------"}}}}]"""
                 .formatted(userA.getUid(), userA.getUid()))
         .content(HttpStatus.OK);
@@ -612,60 +619,6 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(
         "User has no data write access for AggregateDataExchange: Internal data exchange",
         report.getString("description").string());
-  }
-
-  @Test
-  void testAggregateDataExchangeSuccess() {
-    POST("/metadata/", Path.of("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
-    JsonTypeReport typeReport =
-        POST("/aggregateDataExchanges/iFOyIpQciyk/exchange")
-            .content(HttpStatus.OK)
-            .get("response")
-            .as(JsonTypeReport.class);
-    JsonImportSummary report = typeReport.getImportSummaries().get(0).as(JsonImportSummary.class);
-    assertEquals("SUCCESS", report.getStatus());
-  }
-
-  @Test
-  void deleteStatsAreCorrectWhenDeleteNotAllowedTest() {
-    // given import of 2 categories and 2 category combos
-    POST(
-            "/metadata?importReportMode=FULL&importStrategy=CREATE_AND_UPDATE&async=false",
-            Path.of("metadata/categories_with_category_combos.json"))
-        .content(HttpStatus.OK);
-
-    // when trying to delete 2 categories
-    JsonImportSummary importSummary =
-        POST(
-                "/metadata?importReportMode=FULL&importStrategy=DELETE&async=false",
-                Path.of("metadata/delete_categories.json"))
-            .content(HttpStatus.CONFLICT)
-            .get("response")
-            .as(JsonImportSummary.class);
-
-    // then report shows items as ignored as delete is not allowed
-    assertEquals("WARNING", importSummary.getStatus());
-    JsonTypeReport typeReport = importSummary.getTypeReports().get(0).as(JsonTypeReport.class);
-
-    assertTrue(
-        typeReport.getObjectReports().stream()
-            .flatMap(or -> or.getErrorReports().stream())
-            .allMatch(
-                er ->
-                    er.getMessage()
-                        .contains(
-                            "Object could not be deleted because it is associated with another object")));
-    assertEquals(2, importSummary.getStats().getTotal());
-    assertEquals(2, importSummary.getStats().getIgnored());
-    assertEquals(0, importSummary.getStats().getDeleted());
-    assertEquals(0, importSummary.getStats().getCreated());
-    assertEquals(0, importSummary.getStats().getUpdated());
-
-    assertEquals(2, typeReport.getStats().getTotal());
-    assertEquals(2, typeReport.getStats().getIgnored());
-    assertEquals(0, typeReport.getStats().getDeleted());
-    assertEquals(0, typeReport.getStats().getCreated());
-    assertEquals(0, typeReport.getStats().getUpdated());
   }
 
   @Test
@@ -867,6 +820,50 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
+  @DisplayName(
+      "Importing Map with MapView with CategoryOptionGroupSetDimensions in same import succeeds")
+  void importingMapWithMapViewAndCategoryOptionGroupSetDimensionsPayloadTest() {
+    // When importing a Map with MapView that references CategoryOptionGroupSet data in the same
+    // import (as produced by a metadata dependency export)
+    JsonImportSummary report =
+        POST(
+                "/metadata",
+                Path.of("metadata/metadata_map_mapview_with_cat_option_group_set_dimension.json"))
+            .content()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import is successful and the CategoryOptionGroupSetDimension is present when
+    // retrieved
+    assertEquals("OK", report.getStatus());
+
+    JsonMixed content = GET("/maps/C7x2WOLhCA8").content(HttpStatus.OK);
+
+    assertEquals(
+        "C5jldMd8OHv",
+        content
+            .getArray("mapViews")
+            .getObject(0)
+            .getArray("categoryOptionGroupSetDimensions")
+            .getObject(0)
+            .getObject("categoryOptionGroupSet")
+            .getString("id")
+            .string());
+
+    assertEquals(
+        "CYxK4wmcPqA",
+        content
+            .getArray("mapViews")
+            .getObject(0)
+            .getArray("categoryOptionGroupSetDimensions")
+            .getObject(0)
+            .getArray("categoryOptionGroups")
+            .getObject(0)
+            .getString("id")
+            .string());
+  }
+
+  @Test
   @DisplayName("Partial import (update) with expected CategoryOptionCombos should succeed")
   void partialImportExpectedCocsTest() {
     // Given category metadata exists
@@ -1000,7 +997,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     // And 5 COCs now exist
     assertEquals(
         5,
-        GET("/categoryOptionCombos")
+        GET("/categoryOptionCombos?gist=false")
             .content(HttpStatus.OK)
             .getObject("pager")
             .getNumber("total")
@@ -1028,7 +1025,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     // And no extra COCs have been generated unknowingly in the system
     assertEquals(
         5,
-        GET("/categoryOptionCombos")
+        GET("/categoryOptionCombos?gist=false")
             .content(HttpStatus.OK)
             .getObject("pager")
             .getNumber("total")
@@ -1350,6 +1347,94 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             .map(JsonIdentifiableObject::getId)
             .toList()
             .contains("IndUid000x1"));
+  }
+
+  @Test
+  @DisplayName("Imported DataSetElements belong to their DataSet without explicit back-references")
+  void importDataSetElementsWithoutBackReferencesTest() {
+    DataElement first = createDataElement('A');
+    first.setUid("DeUid0000x1");
+    DataElement second = createDataElement('B');
+    second.setUid("DeUid0000x2");
+    manager.save(first);
+    manager.save(second);
+
+    String metadata =
+        """
+        {'dataSets': [{
+          'id': 'dsUid0000x1',
+          'name': 'test ds 1',
+          'shortName': 'test ds 1',
+          'periodType': 'Monthly',
+          'dataSetElements': [%s]
+        }]}
+        """;
+    String firstElement = "{'dataElement': {'id': 'DeUid0000x1'}}";
+    String secondElement = "{'dataElement': {'id': 'DeUid0000x2'}}";
+
+    POST("/metadata", metadata.formatted(firstElement + "," + secondElement))
+        .content(HttpStatus.OK);
+    startNewRequestSession();
+
+    JsonDataSet dataSet = GET("/dataSets/dsUid0000x1").content(HttpStatus.OK).as(JsonDataSet.class);
+    assertEquals(
+        Set.of("DeUid0000x1", "DeUid0000x2"),
+        dataSet.getDatSetElements().stream()
+            .map(element -> element.getDatElement().getId())
+            .collect(Collectors.toSet()));
+
+    POST("/metadata", metadata.formatted(firstElement)).content(HttpStatus.OK);
+    startNewRequestSession();
+
+    JsonDataSet updated = GET("/dataSets/dsUid0000x1").content(HttpStatus.OK).as(JsonDataSet.class);
+    assertEquals(
+        List.of("DeUid0000x1"),
+        updated.getDatSetElements().stream()
+            .map(element -> element.getDatElement().getId())
+            .toList());
+    assertEquals(
+        1L,
+        entityManager
+            .createQuery("select count(e) from DataSetElement e", Long.class)
+            .getSingleResult());
+    assertNotNull(manager.get(DataElement.class, "DeUid0000x2"));
+
+    POST("/metadata", metadata.formatted("")).content(HttpStatus.OK);
+    startNewRequestSession();
+
+    assertTrue(
+        GET("/dataSets/dsUid0000x1")
+            .content(HttpStatus.OK)
+            .as(JsonDataSet.class)
+            .getDatSetElements()
+            .isEmpty());
+    assertEquals(
+        0L,
+        entityManager
+            .createQuery("select count(e) from DataSetElement e", Long.class)
+            .getSingleResult());
+    assertNotNull(manager.get(DataElement.class, "DeUid0000x1"));
+  }
+
+  @Test
+  void testSaveNotificationTemplateWithDeliveryChannels() {
+    POST("/metadata", Path.of("program/program_notification_template.json")).content(HttpStatus.OK);
+    JsonObject template =
+        GET("/programNotificationTemplates/uivYkvFEOss")
+            .content(HttpStatus.OK)
+            .as(JsonObject.class);
+    assertNotNull(template);
+    assertEquals(1, template.getArray("deliveryChannels").size());
+
+    // Update the template with an additional delivery channel
+    POST("/metadata", Path.of("program/program_notification_template_update.json"))
+        .content(HttpStatus.OK);
+    template =
+        GET("/programNotificationTemplates/uivYkvFEOss")
+            .content(HttpStatus.OK)
+            .as(JsonObject.class);
+    assertNotNull(template);
+    assertEquals(2, template.getArray("deliveryChannels").size());
   }
 
   private void setupDataElementsWithCatCombos(CategoryCombo... categoryCombos) {

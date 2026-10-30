@@ -30,7 +30,7 @@
 package org.hisp.dhis.common.comparator;
 
 import java.util.Comparator;
-import java.util.Locale;
+import org.hisp.dhis.common.Locale;
 
 /**
  * @author Lars Helge Overland

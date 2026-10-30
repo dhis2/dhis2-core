@@ -37,7 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,7 +67,7 @@ public abstract class ControllerWithApiTokenAuthTestBase extends H2ControllerInt
   }
 
   @Override
-  protected final HttpResponse perform(MockHttpServletRequestBuilder request) {
+  protected final HttpResponse perform(AbstractMockHttpServletRequestBuilder<?> request) {
     return exceptionAsFail(
         () -> new HttpResponse(toResponse(mvc.perform(request).andReturn().getResponse())));
   }

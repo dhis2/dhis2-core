@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.43-SNAPSHOT</version>
+    <version>2.44-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-data-exchange</artifactId>
@@ -51,10 +51,6 @@
     <!-- Application -->
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>spring-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
     </dependency>
     <dependency>
@@ -80,10 +76,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

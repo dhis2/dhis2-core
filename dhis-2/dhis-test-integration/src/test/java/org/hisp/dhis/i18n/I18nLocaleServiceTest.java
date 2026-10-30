@@ -32,8 +32,8 @@ package org.hisp.dhis.i18n;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.Locale;
 import java.util.Map;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;

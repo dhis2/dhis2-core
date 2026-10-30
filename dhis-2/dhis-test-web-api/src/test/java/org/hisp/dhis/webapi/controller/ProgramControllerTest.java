@@ -102,14 +102,31 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals("Label for Enrollment Date", program.getEnrollmentDateLabel().string());
     assertEquals("Label for Enrollment", program.getEnrollmentLabel().string());
+    assertEquals("Label for Enrollments", program.getEnrollmentsLabel().string());
     assertEquals("Label for Follow Up", program.getFollowUpLabel().string());
     assertEquals("Label for Org Unit", program.getOrUnitLabel().string());
     assertEquals("Label for Relationship", program.getRelationshipLabel().string());
+    assertEquals("Label for Relationships", program.getRelationshipsLabel().string());
     assertEquals("Label for Note", program.getNoteLabel().string());
+    assertEquals("Label for Notes", program.getNotesLabel().string());
     assertEquals(
         "Label for Tracked Entity Attribute", program.getTrackedEntityAttributeLabel().string());
+    assertEquals(
+        "Label for Tracked Entity Attributes", program.getTrackedEntityAttributesLabel().string());
     assertEquals("Label for Program Stage", program.getProgramStageLabel().string());
+    assertEquals("Label for Program Stages", program.getProgramStagesLabel().string());
     assertEquals("Label for Event", program.getEventLabel().string());
+    assertEquals("Label for Events", program.getEventsLabel().string());
+  }
+
+  @Test
+  void shouldGetProgramStageLabels() {
+    JsonProgramStage programStage =
+        GET("/programStages/PSzMWi7rBga").content(HttpStatus.OK).as(JsonProgramStage.class);
+
+    assertEquals("Label for Program Stage PS", programStage.getProgramStageLabel().string());
+    assertEquals("Label for Event PS", programStage.getEventLabel().string());
+    assertEquals("Label for Events PS", programStage.getEventsLabel().string());
   }
 
   @Test
@@ -370,24 +387,89 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testDeleteWithMapView() {
-    String mapViewJson =
+  void shouldCreateProgramAndPersistScalarFields() {
+    // language=JSON
+    String json =
         """
         {
-          "name": "test mapview",
-          "id": "mVIVRd23Jm9",
-          "organisationUnitLevels": [],
-          "maps": [],
-          "layer": "event",
-          "program": {
-            "id": "PrZMWi7rBga"
-          },
-          "programStage": {
-            "id": "PSzMWi7rBga"
-          }
+          "id": "Program1111",
+          "name": "scalar fields program",
+          "shortName": "scalar prog",
+          "programType": "WITHOUT_REGISTRATION",
+          "displayIncidentDate": false,
+          "onlyEnrollOnce": true,
+          "expiryDays": 5,
+          "completeEventsExpiryDays": 3,
+          "minAttributesRequiredToSearch": 2
         }
         """;
-    POST("/mapViews", mapViewJson).content(HttpStatus.CREATED);
+    assertStatus(HttpStatus.CREATED, POST("/programs", json));
+
+    JsonProgram program = GET("/programs/Program1111").content(HttpStatus.OK).as(JsonProgram.class);
+
+    assertEquals("scalar fields program", program.getName());
+    assertEquals("scalar prog", program.getShortName());
+    assertEquals("WITHOUT_REGISTRATION", program.getString("programType").string());
+    assertFalse(program.getBoolean("displayIncidentDate").booleanValue());
+    assertTrue(program.getBoolean("onlyEnrollOnce").booleanValue());
+    assertEquals(5, program.getNumber("expiryDays").intValue());
+    assertEquals(3, program.getNumber("completeEventsExpiryDays").intValue());
+    assertEquals(2, program.getNumber("minAttributesRequiredToSearch").intValue());
+  }
+
+  @Test
+  void shouldUpdateProgramAndPersistChanges() {
+    // language=JSON
+    String json =
+        """
+        {
+          "id": "PrZMWi7rBga",
+          "name": "updated program name",
+          "shortName": "test program",
+          "programType": "WITH_REGISTRATION",
+          "description": "updated program description",
+          "onlyEnrollOnce": true,
+          "expiryDays": 10,
+          "enrollmentDateLabel": "Updated Enrollment Date"
+        }
+        """;
+    assertStatus(HttpStatus.OK, PUT("/programs/" + PROGRAM_UID, json));
+
+    JsonProgram program =
+        GET("/programs/{id}", PROGRAM_UID).content(HttpStatus.OK).as(JsonProgram.class);
+
+    assertEquals("updated program name", program.getName());
+    assertEquals("updated program description", program.getDescription());
+    assertTrue(program.getBoolean("onlyEnrollOnce").booleanValue());
+    assertEquals(10, program.getNumber("expiryDays").intValue());
+    assertEquals("Updated Enrollment Date", program.getEnrollmentDateLabel().string());
+  }
+
+  @Test
+  void testDeleteWithMapView() {
+
+    String mapJson =
+        """
+        {
+          "name": "test map",
+          "id": "mAPVRd23Jm9",
+          "mapViews": [
+            {
+              "name": "test mapview",
+              "id": "mVIVRd23Jm9",
+              "organisationUnitLevels": [],
+              "layer": "event",
+              "program": {
+                "id": "PrZMWi7rBga"
+              },
+              "programStage": {
+                "id": "PSzMWi7rBga"
+              }
+            }
+          ]
+        }
+        """;
+    POST("/maps", mapJson).content(HttpStatus.CREATED);
 
     assertStatus(HttpStatus.OK, DELETE("/programs/%s".formatted(PROGRAM_UID)));
     assertStatus(HttpStatus.NOT_FOUND, GET("/programs/%s".formatted(PROGRAM_UID)));

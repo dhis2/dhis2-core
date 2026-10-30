@@ -49,9 +49,9 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
 
   List<MinMaxDataElement> get(OrganisationUnit source, Collection<DataElement> dataElements);
 
-  List<MinMaxDataElement> query(MinMaxDataElementQueryParams query);
+  List<MinMaxDataElement> query(MinMaxDataElementParams query);
 
-  int countMinMaxDataElements(MinMaxDataElementQueryParams query);
+  int countMinMaxDataElements(MinMaxDataElementParams query);
 
   void delete(OrganisationUnit organisationUnit);
 
@@ -73,7 +73,6 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
    */
   List<MinMaxDataElement> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 
-  @SuppressWarnings("unchecked")
   List<String> getDataElementsByDataSet(UID dataSet);
 
   int deleteByKeys(List<MinMaxValueKey> keys);

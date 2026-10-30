@@ -52,7 +52,7 @@ public enum AnalyticsDateFilter {
   EVENT_DATE(
       TimeField.EVENT_DATE,
       EventsAnalyticsQueryCriteria::getEventDate,
-      null,
+      EnrollmentAnalyticsQueryCriteria::getEventDate,
       CommonRequestParams::getEventDate),
   ENROLLMENT_DATE(
       TimeField.ENROLLMENT_DATE,
@@ -86,7 +86,13 @@ public enum AnalyticsDateFilter {
       EventsAnalyticsQueryCriteria::getLastUpdated,
       EnrollmentAnalyticsQueryCriteria::getLastUpdated,
       CommonRequestParams::getLastUpdated),
-  CREATED(TimeField.CREATED, null, null, CommonRequestParams::getCreated);
+  CREATED(TimeField.CREATED, null, null, CommonRequestParams::getCreated),
+  COMPLETED(
+      TimeField.COMPLETED_DATE,
+      null,
+      null,
+      // No matching column for TEA analytics queries
+      null);
 
   private final TimeField timeField;
 

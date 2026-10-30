@@ -30,23 +30,63 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.NoSuchElementException;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
  * @author Henning Håkonsen
  */
 public class JsonJobParametersType extends JsonBinaryType {
-  static final ObjectMapper MAPPER = new ObjectMapper();
 
-  static {
-    MAPPER.enableDefaultTyping(); // TODO remove?
-    MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    MAPPER.setAnnotationIntrospector(
-        new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
-  }
+  static final ObjectMapper MAPPER =
+      new ObjectMapper()
+          .enableDefaultTyping()
+          .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+          .setAnnotationIntrospector(
+              new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
+
+  /**
+   * Note that because of the way the Java class information is encoded in the JSON we do need this
+   * work-around to get the exact parsing of the {@link JobParameters} that would occur if the
+   * {@link JobConfiguration#getJobParameters()} property was parsed.
+   */
+  private static final TypeReference<JobParameters> GET_JOB_PARAMETERS =
+      MethodTypeReference.fromMethod(JobConfiguration.class, "getJobParameters");
 
   @Override
   protected ObjectMapper getResultingMapper() {
     return MAPPER;
+  }
+
+  private static class MethodTypeReference<T> extends TypeReference<T> {
+    public static <T> TypeReference<T> fromMethod(Class<?> clazz, String methodName) {
+      try {
+        Method method = clazz.getMethod(methodName);
+        Type returnType = method.getGenericReturnType();
+        return new TypeReference<T>() {
+          @Override
+          public Type getType() {
+            return returnType;
+          }
+        };
+      } catch (NoSuchMethodException e) {
+        throw new NoSuchElementException("Method not found: " + methodName, e);
+      }
+    }
+  }
+
+  public static JobParameters fromJson(String json) {
+    if (json == null || "null".equals(json) || "[]".equals(json) || "{}".equals(json)) return null;
+    try {
+      return MAPPER.readValue(json, GET_JOB_PARAMETERS);
+    } catch (JsonProcessingException e) {
+      throw new IllegalArgumentException(e);
+    }
   }
 }

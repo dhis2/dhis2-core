@@ -1,0 +1,644 @@
+/*
+ * Copyright (c) 2004-2022, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.tracker.acl;
+
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1096;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1097;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1098;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1105;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1325;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4019;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4020;
+
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.user.UserDetails;
+import org.springframework.stereotype.Component;
+
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Ameen Mohamed <ameen@dhis2.org>
+ */
+@RequiredArgsConstructor
+@Component
+public class DefaultTrackerAccessManager implements TrackerAccessManager {
+
+  private final AclService aclService;
+  private final TrackerOwnershipManager ownershipAccessManager;
+  private final TrackerProgramService trackerProgramService;
+
+  @Override
+  public List<ErrorMessage> canRead(
+      @Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>();
+
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
+    checkDataReadAccessToTrackedEntityType(errors, user, trackedEntityType);
+
+    List<Program> tetPrograms =
+        trackerProgramService.getTrackerProgramsWithDataReadAccess(trackedEntityType);
+    if (tetPrograms.isEmpty()) {
+      errors.add(new ErrorMessage(E1325, user.getUid(), List.of(user.getUid())));
+    }
+    checkTrackedEntityProgramAccess(errors, user, tetPrograms, trackedEntity);
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canCreate(
+      @Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>();
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
+    checkDataWriteAccessToTrackedEntityType(errors, user, trackedEntityType);
+    checkOrgUnitInCaptureScope(errors, user, trackedEntity.getOrganisationUnit());
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canUpdate(
+      UserDetails user, @Nonnull TrackedEntity trackedEntity, @Nonnull OrganisationUnit orgUnit) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors =
+        new ArrayList<>(validateExistingTrackedEntityAccess(user, trackedEntity));
+
+    if (!orgUnit.getUid().equals(trackedEntity.getOrganisationUnit().getUid())) {
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canDelete(UserDetails user, @Nonnull TrackedEntity trackedEntity) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors =
+        new ArrayList<>(validateExistingTrackedEntityAccess(user, trackedEntity));
+    checkOrgUnitInCaptureScope(errors, user, trackedEntity.getOrganisationUnit());
+
+    return errors;
+  }
+
+  private List<ErrorMessage> validateExistingTrackedEntityAccess(
+      @Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>();
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
+    checkDataWriteAccessToTrackedEntityType(errors, user, trackedEntity.getTrackedEntityType());
+
+    List<Program> tetPrograms =
+        trackerProgramService.getTrackerProgramsWithDataWriteAccess(trackedEntityType);
+    if (tetPrograms.isEmpty()) {
+      errors.add(new ErrorMessage(ValidationCode.E1323, user.getUid(), List.of(user.getUid())));
+    } else {
+      checkTrackedEntityProgramAccess(errors, user, tetPrograms, trackedEntity);
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canRead(@Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    Program program = enrollment.getProgram();
+    List<ErrorMessage> errors = new ArrayList<>();
+    checkDataReadAccessToProgram(errors, user, program);
+    checkDataReadAccessToProgramTrackedEntityType(errors, user, program);
+    checkOwnershipAccess(errors, user, enrollment.getTrackedEntity(), program);
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canCreate(@Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>(validateEnrollmentAccess(user, enrollment));
+
+    OrganisationUnit enrollmentOrgUnit = enrollment.getOrganisationUnit();
+    checkOrgUnitInCaptureScope(errors, user, enrollmentOrgUnit);
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canUpdate(
+      @Nonnull UserDetails user,
+      @Nonnull Enrollment enrollment,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo categoryOptionCombo) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>(validateEnrollmentAccess(user, enrollment));
+
+    if (!orgUnit.getUid().equals(enrollment.getOrganisationUnit().getUid())) {
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    }
+
+    if (!categoryOptionCombo.getUid().equals(enrollment.getAttributeOptionCombo().getUid())) {
+      checkDataWriteAccessToCategoryOptionCombo(errors, user, categoryOptionCombo);
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canDelete(@Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    return new ArrayList<>(canCreate(user, enrollment));
+  }
+
+  private List<ErrorMessage> validateEnrollmentAccess(
+      @Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    Program program = enrollment.getProgram();
+    List<ErrorMessage> errors = new ArrayList<>();
+    checkDataWriteAccessToProgram(errors, user, program);
+    checkDataReadAccessToProgramTrackedEntityType(errors, user, program);
+    checkOwnershipAccess(errors, user, enrollment.getTrackedEntity(), program);
+    checkDataWriteAccessToCategoryOptionCombo(errors, user, enrollment.getAttributeOptionCombo());
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canRead(@Nonnull UserDetails user, @Nonnull TrackerEvent event) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    ProgramStage programStage = event.getProgramStage();
+    Program program = programStage.getProgram();
+    List<ErrorMessage> errors = new ArrayList<>();
+
+    checkDataReadAccessToProgram(errors, user, program);
+    checkDataReadAccessToProgramStage(errors, user, programStage);
+    checkDataReadAccessToProgramTrackedEntityType(errors, user, program);
+    checkOwnershipAccess(errors, user, event.getEnrollment().getTrackedEntity(), program);
+    checkDataReadAccessToCategoryOptionCombo(errors, user, event.getAttributeOptionCombo());
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canCreate(@Nonnull UserDetails user, @Nonnull TrackerEvent event) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+    List<ErrorMessage> errors = new ArrayList<>(validateTrackerEventAccess(user, event));
+
+    OrganisationUnit orgUnit = event.getOrganisationUnit();
+    if (event.isCreatableInSearchScope()) {
+      checkOrgUnitInSearchScope(errors, user, orgUnit);
+    } else {
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canUpdate(
+      @Nonnull UserDetails user,
+      @Nonnull TrackerEvent event,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo attributeOptionCombo) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>(validateTrackerEventAccess(user, event));
+
+    if (!orgUnit.getUid().equals(event.getOrganisationUnit().getUid())) {
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    }
+
+    if (!attributeOptionCombo.getUid().equals(event.getAttributeOptionCombo().getUid())) {
+      checkDataWriteAccessToCategoryOptionCombo(errors, user, attributeOptionCombo);
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canDelete(@Nonnull UserDetails user, @Nonnull TrackerEvent event) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    return new ArrayList<>(canCreate(user, event));
+  }
+
+  private List<ErrorMessage> validateTrackerEventAccess(
+      @Nonnull UserDetails user, @Nonnull TrackerEvent event) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    ProgramStage programStage = event.getProgramStage();
+    Program program = programStage.getProgram();
+    List<ErrorMessage> errors = new ArrayList<>();
+
+    checkDataWriteAccessToProgramStage(errors, user, programStage);
+    checkDataReadAccessToProgram(errors, user, program);
+    checkDataReadAccessToProgramTrackedEntityType(errors, user, program);
+    if (event.getEnrollment() != null) {
+      checkOwnershipAccess(errors, user, event.getEnrollment().getTrackedEntity(), program);
+    }
+    checkDataWriteAccessToCategoryOptionCombo(errors, user, event.getAttributeOptionCombo());
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canRead(@Nonnull UserDetails user, @Nonnull SingleEvent event) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    ProgramStage programStage = event.getProgramStage();
+    Program program = programStage.getProgram();
+
+    List<ErrorMessage> errors = new ArrayList<>();
+    checkOrgUnitInScope(
+        errors, user, event.getProgramStage().getProgram(), event.getOrganisationUnit());
+    checkDataReadAccessToProgram(errors, user, program);
+    checkDataReadAccessToCategoryOptionCombo(errors, user, event.getAttributeOptionCombo());
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canCreate(@Nonnull UserDetails user, @Nonnull SingleEvent event) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    return new ArrayList<>(validateSingleEventAccess(user, event));
+  }
+
+  @Override
+  public List<ErrorMessage> canUpdate(
+      @Nonnull UserDetails user,
+      @Nonnull SingleEvent event,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo categoryOptionCombo) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>(validateSingleEventAccess(user, event));
+    if (!orgUnit.getUid().equals(event.getOrganisationUnit().getUid())) {
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    }
+
+    if (!categoryOptionCombo.getUid().equals(event.getAttributeOptionCombo().getUid())) {
+      checkDataWriteAccessToCategoryOptionCombo(errors, user, categoryOptionCombo);
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canDelete(@Nonnull UserDetails user, @Nonnull SingleEvent event) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    return canCreate(user, event);
+  }
+
+  private List<ErrorMessage> validateSingleEventAccess(
+      @Nonnull UserDetails user, @Nonnull SingleEvent event) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>();
+    checkOrgUnitInCaptureScope(errors, user, event.getOrganisationUnit());
+    checkDataWriteAccessToProgram(errors, user, event.getProgramStage().getProgram());
+    checkDataWriteAccessToCategoryOptionCombo(errors, user, event.getAttributeOptionCombo());
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canRead(@Nonnull UserDetails user, @Nonnull Relationship relationship) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    List<ErrorMessage> errors = new ArrayList<>();
+    if (!aclService.canDataRead(user, relationshipType)) {
+      errors.add(
+          new ErrorMessage(
+              E4019, user.getUid(), List.of(user.getUid(), relationshipType.getUid())));
+    }
+
+    RelationshipItem from = relationship.getFrom();
+    RelationshipItem to = relationship.getTo();
+
+    errors.addAll(canRead(user, from));
+    errors.addAll(canRead(user, to));
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canCreate(UserDetails user, @Nonnull Relationship relationship) {
+    if (user.isSuper()) return List.of();
+    List<ErrorMessage> errors = new ArrayList<>(canWrite(user, relationship));
+    if (!relationship.getRelationshipType().isBidirectional()) {
+      errors.addAll(canRead(user, relationship.getTo()));
+    }
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canDelete(UserDetails user, @Nonnull Relationship relationship) {
+    if (user.isSuper()) return List.of();
+    return canWrite(user, relationship);
+  }
+
+  private List<ErrorMessage> canWrite(UserDetails user, Relationship relationship) {
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    List<ErrorMessage> errors = new ArrayList<>();
+    if (!aclService.canDataWrite(user, relationshipType)) {
+      errors.add(
+          new ErrorMessage(
+              E4020, user.getUid(), List.of(user.getUid(), relationshipType.getUid())));
+    }
+    errors.addAll(canWrite(user, relationship.getFrom()));
+    if (relationshipType.isBidirectional()) {
+      errors.addAll(canWrite(user, relationship.getTo()));
+    }
+    return errors;
+  }
+
+  private List<ErrorMessage> canRead(@Nonnull UserDetails user, RelationshipItem item) {
+    if (item.getTrackedEntity() != null) return canRead(user, item.getTrackedEntity());
+    if (item.getEnrollment() != null) return canRead(user, item.getEnrollment());
+    if (item.getTrackerEvent() != null) return canRead(user, item.getTrackerEvent());
+    if (item.getSingleEvent() != null) return canRead(user, item.getSingleEvent());
+    return List.of();
+  }
+
+  private List<ErrorMessage> canWrite(@Nonnull UserDetails user, RelationshipItem item) {
+    if (item.getTrackedEntity() != null) {
+      TrackedEntity te = item.getTrackedEntity();
+      return canUpdate(user, te, te.getOrganisationUnit());
+    }
+    if (item.getEnrollment() != null) {
+      Enrollment enrollment = item.getEnrollment();
+      return canUpdate(
+          user, enrollment, enrollment.getOrganisationUnit(), enrollment.getAttributeOptionCombo());
+    }
+    if (item.getTrackerEvent() != null) {
+      TrackerEvent trackerEvent = item.getTrackerEvent();
+      return canUpdate(
+          user,
+          trackerEvent,
+          trackerEvent.getOrganisationUnit(),
+          trackerEvent.getAttributeOptionCombo());
+    }
+    if (item.getSingleEvent() != null) {
+      SingleEvent singleEvent = item.getSingleEvent();
+      return canUpdate(
+          user,
+          singleEvent,
+          singleEvent.getOrganisationUnit(),
+          singleEvent.getAttributeOptionCombo());
+    }
+
+    return List.of();
+  }
+
+  private void checkDataReadAccessToProgram(
+      List<ErrorMessage> errors, UserDetails user, Program program) {
+    if (!aclService.canDataRead(user, program)) {
+      errors.add(new ErrorMessage(E1096, user.getUid(), List.of(user.getUid(), program.getUid())));
+    }
+  }
+
+  private void checkDataReadAccessToProgramStage(
+      List<ErrorMessage> errors, UserDetails user, ProgramStage programStage) {
+    if (!aclService.canDataRead(user, programStage)) {
+      errors.add(
+          new ErrorMessage(E1097, user.getUid(), List.of(user.getUid(), programStage.getUid())));
+    }
+  }
+
+  private void checkDataReadAccessToTrackedEntityType(
+      List<ErrorMessage> errors, UserDetails user, TrackedEntityType trackedEntityType) {
+    if (!aclService.canDataRead(user, trackedEntityType)) {
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1131,
+              user.getUid(),
+              List.of(user.getUid(), trackedEntityType.getUid())));
+    }
+  }
+
+  private void checkDataReadAccessToProgramTrackedEntityType(
+      List<ErrorMessage> errors, UserDetails user, Program program) {
+    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1104,
+              user.getUid(),
+              List.of(user.getUid(), program.getUid(), program.getTrackedEntityType().getUid())));
+    }
+  }
+
+  private void checkDataWriteAccessToTrackedEntityType(
+      List<ErrorMessage> errors, UserDetails user, TrackedEntityType trackedEntityType) {
+    if (!aclService.canDataWrite(user, trackedEntityType)) {
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1001,
+              user.getUid(),
+              List.of(user.getUid(), trackedEntityType.getUid())));
+    }
+  }
+
+  private void checkDataWriteAccessToProgram(
+      List<ErrorMessage> errors, UserDetails user, Program program) {
+    if (!aclService.canDataWrite(user, program)) {
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1091, user.getUid(), List.of(user.getUid(), program.getUid())));
+    }
+  }
+
+  private void checkDataWriteAccessToProgramStage(
+      List<ErrorMessage> errors, UserDetails user, ProgramStage programStage) {
+    if (!aclService.canDataWrite(user, programStage)) {
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1095, user.getUid(), List.of(user.getUid(), programStage.getUid())));
+    }
+  }
+
+  private void checkDataReadAccessToCategoryOptionCombo(
+      List<ErrorMessage> errors, UserDetails user, CategoryOptionCombo categoryOptionCombo) {
+    if (categoryOptionCombo == null) {
+      return;
+    }
+
+    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
+      if (!aclService.canDataRead(user, categoryOption)) {
+        errors.add(
+            new ErrorMessage(
+                E1098, user.getUid(), List.of(user.getUid(), categoryOption.getUid())));
+      }
+    }
+  }
+
+  private void checkDataWriteAccessToCategoryOptionCombo(
+      List<ErrorMessage> errors, UserDetails user, CategoryOptionCombo categoryOptionCombo) {
+    if (categoryOptionCombo == null) {
+      return;
+    }
+
+    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
+      if (!aclService.canDataWrite(user, categoryOption)) {
+        errors.add(
+            new ErrorMessage(
+                E1099, user.getUid(), List.of(user.getUid(), categoryOption.getUid())));
+      }
+    }
+  }
+
+  private void checkOwnershipAccess(
+      List<ErrorMessage> errors, UserDetails user, TrackedEntity trackedEntity, Program program) {
+    if (!ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
+      errors.add(
+          new ErrorMessage(
+              E1102,
+              user.getUid(),
+              List.of(user.getUid(), trackedEntity.getUid(), program.getUid())));
+    }
+  }
+
+  private void checkOrgUnitInSearchScope(
+      List<ErrorMessage> errors, UserDetails user, OrganisationUnit orgUnit) {
+    if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
+      errors.add(new ErrorMessage(E1105, user.getUid(), List.of(user.getUid(), orgUnit.getUid())));
+    }
+  }
+
+  private void checkOrgUnitInCaptureScope(
+      List<ErrorMessage> errors, UserDetails user, OrganisationUnit orgUnit) {
+    if (!user.isInUserHierarchy(orgUnit.getStoredPath())) {
+      errors.add(new ErrorMessage(E1000, user.getUid(), List.of(user.getUid(), orgUnit.getUid())));
+    }
+  }
+
+  private void checkOrgUnitInScope(
+      List<ErrorMessage> errors,
+      UserDetails user,
+      @Nonnull Program program,
+      @Nonnull OrganisationUnit orgUnit) {
+    if (user.isSuper()) {
+      return;
+    }
+
+    if (program.isClosed() || program.isProtected()) {
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    } else {
+      checkOrgUnitInSearchScope(errors, user, orgUnit);
+    }
+  }
+
+  private void checkTrackedEntityProgramAccess(
+      List<ErrorMessage> errors,
+      UserDetails user,
+      List<Program> programs,
+      TrackedEntity trackedEntity) {
+    if (programs.stream()
+        .noneMatch(p -> ownershipAccessManager.hasAccess(user, trackedEntity, p))) {
+      errors.add(
+          new ErrorMessage(E1324, user.getUid(), List.of(user.getUid(), trackedEntity.getUid())));
+    }
+  }
+}

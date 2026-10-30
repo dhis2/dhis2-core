@@ -118,6 +118,11 @@ public class TestDhisConfigurationProvider implements DhisConfigurationProvider 
   }
 
   @Override
+  public String getConnectionUrl() {
+    return null;
+  }
+
+  @Override
   public boolean isReadOnlyMode() {
     return false;
   }

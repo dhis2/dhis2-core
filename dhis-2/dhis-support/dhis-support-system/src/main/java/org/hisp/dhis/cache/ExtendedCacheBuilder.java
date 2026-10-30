@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.cache;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -45,7 +46,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V> {
   private final DhisConfigurationProvider configuration;
 
-  private final RedisTemplate<String, ?> redisTemplate;
+  @Getter private final RedisTemplate<String, ?> redisTemplate;
 
   private boolean forceInMemory;
 
@@ -57,7 +58,7 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V> {
   }
 
   /**
-   * Configure the cache instance to use local inmemory storage even in clustered or standalone
+   * Configure the cache instance to use local in-memory storage even in clustered or standalone
    * environment. Ideally used in scenarios where stale data is not critical and faster lookup is
    * preferred.
    *
@@ -85,24 +86,20 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V> {
    */
   @Override
   public Cache<V> build() {
+    final String region = getRegion();
     if (getMaximumSize() == 0 || isDisabled()) {
-      log.debug(String.format("NoOp Cache instance created for region:'%s'", getRegion()));
+      log.debug("NoOp Cache instance created for region: '{}'", region);
       return new NoOpCache<>(this);
     }
     if (forceInMemory) {
-      log.debug(
-          String.format("Local Cache (forced) instance created for region:'%s'", getRegion()));
+      log.debug("Local Cache (forced) instance created for region:'{}'", region);
       return new LocalCache<>(this);
     }
     if (configuration.isEnabled(ConfigurationKey.REDIS_ENABLED)) {
-      log.debug(String.format("Redis Cache instance created for region:'%s'", getRegion()));
+      log.debug("Redis Cache instance created for region:'{}'", region);
       return new RedisCache<>(this);
     }
-    log.debug(String.format("Local Cache instance created for region:'%s'", getRegion()));
+    log.debug("Local Cache instance created for region:'{}'", region);
     return new LocalCache<>(this);
-  }
-
-  public RedisTemplate<String, ?> getRedisTemplate() {
-    return redisTemplate;
   }
 }

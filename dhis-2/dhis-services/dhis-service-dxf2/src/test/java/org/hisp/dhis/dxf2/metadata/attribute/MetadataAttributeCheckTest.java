@@ -101,7 +101,7 @@ class MetadataAttributeCheckTest {
     schema.getPropertyMap().put(BaseIdentifiableObject_.ATTRIBUTE_VALUES, property);
     SchemaService schemaService = Mockito.mock(SchemaService.class);
 
-    when(schemaService.getDynamicSchema(OrganisationUnit.class)).thenReturn(schema);
+    when(schemaService.getSchema(OrganisationUnit.class)).thenReturn(schema);
     when(validationContext.getSchemaService()).thenReturn(schemaService);
 
     preheat = Mockito.mock(Preheat.class);

@@ -48,6 +48,7 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
@@ -107,6 +108,8 @@ public class DefaultResourceTableService implements ResourceTableService {
   private final AnalyticsTableSettings analyticsTableSettings;
 
   private final PeriodDataProvider periodDataProvider;
+
+  private final ConfigurationService configurationService;
 
   @Override
   @Transactional
@@ -286,5 +289,13 @@ public class DefaultResourceTableService implements ResourceTableService {
                 .collect(Collectors.toList());
     progress.startingStage("Drop SQL views", nonQueryViews.size(), SKIP_ITEM);
     progress.runStage(nonQueryViews, SqlView::getViewName, sqlViewService::dropViewTable);
+  }
+
+  @Override
+  @Transactional
+  public void updatePeriodResourceTable() {
+    Logged logged = analyticsTableSettings.getTableLogged();
+    ResourceTable table = new PeriodResourceTable(logged, periodService.getAllPeriods());
+    resourceTableStore.generateResourceTable(table);
   }
 }

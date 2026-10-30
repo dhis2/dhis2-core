@@ -33,7 +33,7 @@ package org.hisp.dhis.test.webapi.json.domain;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public interface JsonApiToken extends JsonIdentifiableObject {
-  default String getKey() {
+  default String key() {
     return getString("key").string();
   }
 }

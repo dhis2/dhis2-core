@@ -70,11 +70,11 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.expression.Operator;
@@ -438,7 +438,7 @@ public class DataAnalysisController {
 
       DataExportValue dv =
           dataExportService.exportValue(
-              new DataEntryKey(
+              new DataValueKey(
                   dataElement, period, source, categoryOptionCombo, attributeOptionCombo));
 
       if (dv != null)
@@ -459,7 +459,7 @@ public class DataAnalysisController {
     if (!dataValues.isEmpty()) {
       dataEntryService.upsertGroup(
           new DataEntryGroup.Options(false, true, false),
-          new DataEntryGroup(null, dataValues),
+          new DataEntryGroup(null, null, null, dataValues),
           transitory());
     }
   }
@@ -670,17 +670,12 @@ public class DataAnalysisController {
 
   private List<DeflatedDataValue> deflatedValuesListToResponse(
       List<DeflatedDataValue> deflatedDataValues) {
-    I18nFormat format = i18nManager.getI18nFormat();
     if (deflatedDataValues == null) {
       return Collections.emptyList();
     }
 
     if (deflatedDataValues.size() > DataAnalysisService.MAX_OUTLIERS) {
       return deflatedDataValues.subList(0, DataAnalysisService.MAX_OUTLIERS);
-    }
-
-    for (DeflatedDataValue dataValue : deflatedDataValues) {
-      dataValue.getPeriod().setName(format.formatPeriod(dataValue.getPeriod()));
     }
 
     return deflatedDataValues;

@@ -35,6 +35,10 @@ import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -56,10 +60,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataDumpService;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -71,21 +75,21 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
@@ -238,10 +242,10 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityAttributeValue trackedEntityAttributeValue =
         new TrackedEntityAttributeValue(entityAttribute, trackedEntity);
     trackedEntityAttributeValue.setValue("123");
-    entityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
+    saveTrackedEntityAttributeValue(entityManager, trackedEntityAttributeValue);
     trackedEntity.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValue));
     manager.update(trackedEntity);
-    Program program = createProgram('A', null, Sets.newHashSet(entityAttribute), orgUnitASet, null);
+    Program program = createProgram('A', null, Sets.newHashSet(entityAttribute), orgUnitASet);
     program.setUid(PROGRAM_UID);
     programService.addProgram(program);
     ProgramStage stageA = createProgramStage('A', 0);
@@ -395,7 +399,7 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
    * @return the value
    */
   private String getDataValue(DataElement dataElement, Period period) {
-    DataEntryKey key = new DataEntryKey(dataElement, period, orgUnitA, defaultCombo, defaultCombo);
+    DataValueKey key = new DataValueKey(dataElement, period, orgUnitA, defaultCombo, defaultCombo);
     try {
       DataExportValue dv = dataExportService.exportValue(key);
       if (dv != null) return dv.value();

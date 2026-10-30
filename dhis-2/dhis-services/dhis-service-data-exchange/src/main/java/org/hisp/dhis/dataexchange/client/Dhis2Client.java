@@ -130,7 +130,7 @@ public class Dhis2Client {
    *
    * @return a resolved {@link UriComponentsBuilder}.
    */
-  UriComponentsBuilder getResolvedUriBuilder(String path) {
+  public UriComponentsBuilder getResolvedUriBuilder(String path) {
     return UriComponentsBuilder.fromUriString(url).pathSegment("api").path(path);
   }
 
@@ -157,7 +157,7 @@ public class Dhis2Client {
    * @param type the response type.
    * @return a {@link ResponseEntity}.
    */
-  private <T, U extends Dhis2Response> ResponseEntity<U> executeJsonPostRequest(
+  public <T, U extends Dhis2Response> ResponseEntity<U> executeJsonPostRequest(
       URI uri, T body, Class<U> type) {
     HttpEntity<T> requestEntity = new HttpEntity<>(body, getJsonAuthHeaders());
 

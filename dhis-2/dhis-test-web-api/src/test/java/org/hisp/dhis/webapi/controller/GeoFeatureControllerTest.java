@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author viet@dhis2.org
  */
 @Transactional
-class GeoFeatureControllerTest extends H2ControllerIntegrationTestBase {
+class GeoFeatureControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testGetWithCoordinateField() {
     @Language("json")
@@ -67,5 +67,24 @@ class GeoFeatureControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "[[[100.0,0.0],[101.0,0.0],[101.0,1.0],[100.0,1.0],[100.0,0.0]]]",
         response.getObject(0).get("co").node().value().toString());
+  }
+
+  /**
+   * When no organisation unit at the requested level has a geometry, geoFeatures must still return
+   * an empty array with 200, not raise E7143. The geometry pre-filter resolves the org unit
+   * dimension to an empty set, which previously would have tripped the empty-dimension guard.
+   */
+  @Test
+  void testGeoFeaturesReturnsEmptyWhenNoOrgUnitHasGeometry() {
+    @Language("json")
+    String json =
+        """
+        {"organisationUnits":[
+          {"id":"rXnqqH2Pu6N","name":"No Geometry","shortName":"NG","openingDate":"2020-01-01"}
+        ]}""";
+    POST("/metadata", json).content(HttpStatus.OK);
+
+    JsonArray response = GET("/geoFeatures?ou=ou:LEVEL-1").content(HttpStatus.OK);
+    assertEquals(0, response.size());
   }
 }

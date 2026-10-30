@@ -1,0 +1,270 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,created&totalPages=false&rowContext=true&created=LAST_YEAR&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&desc=created&relativePeriodDate=2018-01-28",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 120,
+          "max": 300,
+          "mean": 215
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,created&totalPages=false&rowContext=true&created=YESTERDAY&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=created&relativePeriodDate=2017-01-27",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 140,
+          "max": 320,
+          "mean": 210
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=8&page=1&includeMetadataDetails=true&asc=gHGyrwKPzej&relativePeriodDate=2017-01-27",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 85,
+          "max": 235,
+          "mean": 160
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=10&page=1&includeMetadataDetails=true&desc=IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&relativePeriodDate=2017-01-27",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 2750,
+          "max": 4100,
+          "mean": 3900
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=gHGyrwKPzej,ciq2USN94oJ,IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO,ou:USER_ORGUNIT&headers=ouname&totalPages=false&rowContext=true&programStatus=IpHINAT79UW.ACTIVE&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=oucode&relativePeriodDate=2017-01-27",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 80,
+          "max": 280,
+          "mean": 170
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=gHGyrwKPzej,ciq2USN94oJ,IpHINAT79UW.A03MvHHogjR.occurreddate&totalPages=false&rowContext=true&IpHINAT79UW.A03MvHHogjR.occurreddate=LAST_YEAR&displayProperty=NAME&pageSize=50&page=1&includeMetadataDetails=true&desc=IpHINAT79UW.A03MvHHogjR.occurreddate&relativePeriodDate=2018-01-28",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 1900,
+          "max": 3000,
+          "mean": 2800
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&totalPages=false&rowContext=true&IpHINAT79UW[-1].A03MvHHogjR[-1].occurreddate=LAST_YEAR&displayProperty=NAME&pageSize=10&page=1&includeMetadataDetails=true&desc=lastupdated&relativePeriodDate=2018-01-28",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 90,
+          "max": 345,
+          "mean": 250
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,cejWyOfXge6,w75KJ2mc4zz,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,ur1Edk5Oe2n.EPEcjy3FWmI.fTZFU8cWvb3&headers=ouname,cejWyOfXge6,w75KJ2mc4zz,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,IpHINAT79UW.ouname,ur1Edk5Oe2n.EPEcjy3FWmI.fTZFU8cWvb3,ur1Edk5Oe2n.enrollmentdate&totalPages=false&rowContext=true&enrollmentDate=ur1Edk5Oe2n.LAST_12_MONTHS,ur1Edk5Oe2n.LAST_5_YEARS&displayProperty=NAME&pageSize=30&page=1&includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&relativePeriodDate=2022-01-27",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 1650,
+          "max": 2610,
+          "mean": 2350
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,created&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=20&page=1&includeMetadataDetails=true&desc=created&relativePeriodDate=2017-01-27",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 110,
+          "max": 360,
+          "mean": 255
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ&headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC,IpHINAT79UW.ouname,lastupdated&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=20&page=1&includeMetadataDetails=true&asc=IpHINAT79UW.oucode,lastupdated&relativePeriodDate=2017-01-27",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 420,
+          "max": 765,
+          "mean": 640
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ&headers=IpHINAT79UW.programstatus&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=10&page=1&includeMetadataDetails=true&asc=IpHINAT79UW.programstatus&relativePeriodDate=2017-01-27",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 440,
+          "max": 760,
+          "mean": 610
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/Zy2SEgA61ys?dimension=ou:ImspTQPwCqd;O6uvpzGd5pu;fdc6uOvgoji,B6TnnFMgmCk,qDkgAbB5Jlk.ou:USER_ORGUNIT,qDkgAbB5Jlk.C0aLZo75dgJ.JuTpJ2Ywq5b,qDkgAbB5Jlk.hYyB7FUS5eR.fazCI2ygYkq:IN:PASSIVE;PROACTIVE;REACTIVE,qDkgAbB5Jlk.wYTF0YCHMWr.rzhHSqK3lQq:IN:1,qDkgAbB5Jlk.hYyB7FUS5eR.GyJHQUWZ9Rl,qDkgAbB5Jlk.hYyB7FUS5eR.JINgGHgqzSN:GT:1&headers=ouname,B6TnnFMgmCk,qDkgAbB5Jlk.programstatus,qDkgAbB5Jlk.enrollmentdate,qDkgAbB5Jlk.ouname,qDkgAbB5Jlk.C0aLZo75dgJ.JuTpJ2Ywq5b,qDkgAbB5Jlk.hYyB7FUS5eR.fazCI2ygYkq,qDkgAbB5Jlk.wYTF0YCHMWr.rzhHSqK3lQq,qDkgAbB5Jlk.hYyB7FUS5eR.GyJHQUWZ9Rl,qDkgAbB5Jlk.hYyB7FUS5eR.JINgGHgqzSN&totalPages=false&rowContext=true&enrollmentDate=qDkgAbB5Jlk.LAST_YEAR,qDkgAbB5Jlk.LAST_5_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=qDkgAbB5Jlk.enrollmentdate&relativePeriodDate=2023-01-01",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 95,
+          "max": 245,
+          "mean": 175
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:jNb63DIHuwU,RG7uGl4w5Jq,lw1SqmMlnfh:GT:180&headers=ouname,RG7uGl4w5Jq,lw1SqmMlnfh&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=RG7uGl4w5Jq&relativePeriodDate=2024-06-13",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 85,
+          "max": 315,
+          "mean": 145
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:tEgxbwwrwUd,WSGAb5XwJ3Y.bbKtnxRZKEP.QWVRukwa83h:IN:NV;1&headers=ouname,WSGAb5XwJ3Y.bbKtnxRZKEP.QWVRukwa83h&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2024-06-13",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 85,
+          "max": 295,
+          "mean": 155
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:tEgxbwwrwUd,WSGAb5XwJ3Y.bbKtnxRZKEP.QWVRukwa83h:IN:NV;0;1,WSGAb5XwJ3Y.edqlbukwRfQ.yTDoF5b1OhI,WSGAb5XwJ3Y.edqlbukwRfQ.DCUDZxqOxUo,WSGAb5XwJ3Y.edqlbukwRfQ.w7enwqzx90I,WSGAb5XwJ3Y.PFDfvmGpsR3.hib4oz2sOLw,WSGAb5XwJ3Y.WZbXY0S00lP.Itl05OEupgQ,WSGAb5XwJ3Y.PFDfvmGpsR3.FIHEeJwfhZH,WSGAb5XwJ3Y.PFDfvmGpsR3.BmaBjPQX8ME,WSGAb5XwJ3Y.bbKtnxRZKEP.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.m3XQrgadVK9,WSGAb5XwJ3Y.WZbXY0S00lP.DecmCMPDPdS,WSGAb5XwJ3Y.WZbXY0S00lP.QFX1FLWBwtq&headers=ouname,WSGAb5XwJ3Y.bbKtnxRZKEP.QWVRukwa83h,WSGAb5XwJ3Y.edqlbukwRfQ.yTDoF5b1OhI,WSGAb5XwJ3Y.edqlbukwRfQ.DCUDZxqOxUo,WSGAb5XwJ3Y.edqlbukwRfQ.w7enwqzx90I,WSGAb5XwJ3Y.PFDfvmGpsR3.hib4oz2sOLw,WSGAb5XwJ3Y.WZbXY0S00lP.Itl05OEupgQ,WSGAb5XwJ3Y.PFDfvmGpsR3.FIHEeJwfhZH,WSGAb5XwJ3Y.PFDfvmGpsR3.BmaBjPQX8ME,WSGAb5XwJ3Y.bbKtnxRZKEP.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.m3XQrgadVK9,WSGAb5XwJ3Y.WZbXY0S00lP.DecmCMPDPdS,WSGAb5XwJ3Y.WZbXY0S00lP.QFX1FLWBwtq,WSGAb5XwJ3Y.programstatus&totalPages=false&rowContext=true&programStatus=WSGAb5XwJ3Y.COMPLETED,WSGAb5XwJ3Y.ACTIVE&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=WSGAb5XwJ3Y.bbKtnxRZKEP.QWVRukwa83h&relativePeriodDate=2024-06-13",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 100,
+          "max": 325,
+          "mean": 185
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:tEgxbwwrwUd,WSGAb5XwJ3Y.bbKtnxRZKEP.QWVRukwa83h:IN:NV;0;1,WSGAb5XwJ3Y.edqlbukwRfQ.yTDoF5b1OhI,WSGAb5XwJ3Y.edqlbukwRfQ.DCUDZxqOxUo:IN:0,WSGAb5XwJ3Y.edqlbukwRfQ.w7enwqzx90I:IN:1;NV,WSGAb5XwJ3Y.PFDfvmGpsR3.hib4oz2sOLw,WSGAb5XwJ3Y.WZbXY0S00lP.Itl05OEupgQ,WSGAb5XwJ3Y.PFDfvmGpsR3.FIHEeJwfhZH:IN:0;1,WSGAb5XwJ3Y.PFDfvmGpsR3.BmaBjPQX8ME:IN:1,WSGAb5XwJ3Y.bbKtnxRZKEP.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.m3XQrgadVK9,WSGAb5XwJ3Y.WZbXY0S00lP.DecmCMPDPdS,WSGAb5XwJ3Y.WZbXY0S00lP.QFX1FLWBwtq&headers=ouname,WSGAb5XwJ3Y.bbKtnxRZKEP.QWVRukwa83h,WSGAb5XwJ3Y.edqlbukwRfQ.yTDoF5b1OhI,WSGAb5XwJ3Y.edqlbukwRfQ.DCUDZxqOxUo,WSGAb5XwJ3Y.edqlbukwRfQ.w7enwqzx90I,WSGAb5XwJ3Y.PFDfvmGpsR3.hib4oz2sOLw,WSGAb5XwJ3Y.WZbXY0S00lP.Itl05OEupgQ,WSGAb5XwJ3Y.PFDfvmGpsR3.FIHEeJwfhZH,WSGAb5XwJ3Y.PFDfvmGpsR3.BmaBjPQX8ME,WSGAb5XwJ3Y.bbKtnxRZKEP.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.m3XQrgadVK9,WSGAb5XwJ3Y.WZbXY0S00lP.DecmCMPDPdS,WSGAb5XwJ3Y.WZbXY0S00lP.QFX1FLWBwtq,WSGAb5XwJ3Y.programstatus&totalPages=false&rowContext=true&programStatus=WSGAb5XwJ3Y.COMPLETED,WSGAb5XwJ3Y.ACTIVE&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=WSGAb5XwJ3Y.bbKtnxRZKEP.QWVRukwa83h&relativePeriodDate=2024-06-13",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 100,
+          "max": 320,
+          "mean": 195
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:tEgxbwwrwUd;ObV5AR1NECl;Uwcj0mz78BV;nDwbwJZQUYU;OjTS752GbZE;mt47bcb0Rcj;ZxuSbAmsLCn;ImspTQPwCqd,WSGAb5XwJ3Y.bbKtnxRZKEP.QWVRukwa83h:IN:NV;0;1,WSGAb5XwJ3Y.edqlbukwRfQ.yTDoF5b1OhI,WSGAb5XwJ3Y.edqlbukwRfQ.DCUDZxqOxUo:IN:0,WSGAb5XwJ3Y.edqlbukwRfQ.w7enwqzx90I,WSGAb5XwJ3Y.PFDfvmGpsR3.hib4oz2sOLw,WSGAb5XwJ3Y.WZbXY0S00lP.Itl05OEupgQ,WSGAb5XwJ3Y.PFDfvmGpsR3.FIHEeJwfhZH,WSGAb5XwJ3Y.PFDfvmGpsR3.BmaBjPQX8ME:IN:1,WSGAb5XwJ3Y.bbKtnxRZKEP.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.m3XQrgadVK9,WSGAb5XwJ3Y.WZbXY0S00lP.DecmCMPDPdS,WSGAb5XwJ3Y.WZbXY0S00lP.QFX1FLWBwtq,ur1Edk5Oe2n.ZkbAXlQUYJG.HmkXnHJxcD1,ur1Edk5Oe2n.ZkbAXlQUYJG.U5ubm6PPYrM,ur1Edk5Oe2n.ZkbAXlQUYJG.vAzDOljIN1o,ur1Edk5Oe2n.jdRD35YwbRH.yLIPuJHRgey,ur1Edk5Oe2n.EPEcjy3FWmI.lJTx9EZ1dk1,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO,IpHINAT79UW.ZzYYXq4fJie.HLmTEmupdX0,IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU,uy2gU8kT1jF.Xgk8Wvl0jHr.Rbv6wcblbxe,uy2gU8kT1jF.eaDHS084uMp.utliJZmDeeC,uy2gU8kT1jF.eaDHS084uMp.pB5sL7Ts4fb,uy2gU8kT1jF.oRySG82BKE6.EzMxXuVww2z,uy2gU8kT1jF.grIfo3oOf4Y.gAbD3uDVHHh,uy2gU8kT1jF.eaDHS084uMp.OuJ6sgPyAbC,uy2gU8kT1jF.oRySG82BKE6.UXz7xuGCEhU,uy2gU8kT1jF.grIfo3oOf4Y.g9eOBujte1U,uy2gU8kT1jF.eaDHS084uMp.NALlPhMmMTQ,fDd25txQckK.lST1OZ5BDJ2.qpQinIDQ6Uy,fDd25txQckK.lST1OZ5BDJ2.fQMBEt42CSl,fDd25txQckK.lST1OZ5BDJ2.Mnkodq2wzlV&headers=ouname,WSGAb5XwJ3Y.bbKtnxRZKEP.QWVRukwa83h,WSGAb5XwJ3Y.edqlbukwRfQ.yTDoF5b1OhI,WSGAb5XwJ3Y.edqlbukwRfQ.DCUDZxqOxUo,WSGAb5XwJ3Y.edqlbukwRfQ.w7enwqzx90I,WSGAb5XwJ3Y.PFDfvmGpsR3.hib4oz2sOLw,WSGAb5XwJ3Y.WZbXY0S00lP.Itl05OEupgQ,WSGAb5XwJ3Y.PFDfvmGpsR3.FIHEeJwfhZH,WSGAb5XwJ3Y.PFDfvmGpsR3.BmaBjPQX8ME,WSGAb5XwJ3Y.bbKtnxRZKEP.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.m3XQrgadVK9,WSGAb5XwJ3Y.WZbXY0S00lP.DecmCMPDPdS,WSGAb5XwJ3Y.WZbXY0S00lP.QFX1FLWBwtq,WSGAb5XwJ3Y.programstatus,ur1Edk5Oe2n.ZkbAXlQUYJG.HmkXnHJxcD1,ur1Edk5Oe2n.ZkbAXlQUYJG.U5ubm6PPYrM,ur1Edk5Oe2n.ZkbAXlQUYJG.vAzDOljIN1o,ur1Edk5Oe2n.jdRD35YwbRH.yLIPuJHRgey,ur1Edk5Oe2n.EPEcjy3FWmI.lJTx9EZ1dk1,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO,IpHINAT79UW.ZzYYXq4fJie.HLmTEmupdX0,IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU,uy2gU8kT1jF.Xgk8Wvl0jHr.Rbv6wcblbxe,uy2gU8kT1jF.eaDHS084uMp.utliJZmDeeC,uy2gU8kT1jF.eaDHS084uMp.pB5sL7Ts4fb,uy2gU8kT1jF.oRySG82BKE6.EzMxXuVww2z,uy2gU8kT1jF.grIfo3oOf4Y.gAbD3uDVHHh,uy2gU8kT1jF.eaDHS084uMp.OuJ6sgPyAbC,uy2gU8kT1jF.oRySG82BKE6.UXz7xuGCEhU,uy2gU8kT1jF.grIfo3oOf4Y.g9eOBujte1U,uy2gU8kT1jF.eaDHS084uMp.NALlPhMmMTQ,uy2gU8kT1jF.incidentdate,fDd25txQckK.lST1OZ5BDJ2.qpQinIDQ6Uy,fDd25txQckK.lST1OZ5BDJ2.fQMBEt42CSl,fDd25txQckK.lST1OZ5BDJ2.Mnkodq2wzlV,created&totalPages=false&rowContext=true&programStatus=WSGAb5XwJ3Y.COMPLETED,WSGAb5XwJ3Y.ACTIVE&created=LAST_10_YEARS&displayProperty=NAME&pageSize=5&page=1&includeMetadataDetails=true&asc=ouname&relativePeriodDate=2024-06-13",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 175,
+          "max": 515,
+          "mean": 325
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/Zy2SEgA61ys.json?dimension=ou:O6uvpzGd5pu,TfdH5KvFmMy:ILIKE:la,B6TnnFMgmCk,CklPZdOd6H1,qDkgAbB5Jlk.ou:USER_ORGUNIT,qDkgAbB5Jlk.hYyB7FUS5eR.fazCI2ygYkq:IN:PASSIVE,qDkgAbB5Jlk.hYyB7FUS5eR.SzVk2KvkSSd,qDkgAbB5Jlk.hYyB7FUS5eR.GyJHQUWZ9Rl,qDkgAbB5Jlk.C0aLZo75dgJ.lezQpdvvGjY:EQ:5:NE:NV&headers=ouname,TfdH5KvFmMy,B6TnnFMgmCk,created,lastupdated,createdbydisplayname,lastupdatedbydisplayname,CklPZdOd6H1,qDkgAbB5Jlk.programstatus,qDkgAbB5Jlk.enrollmentdate,qDkgAbB5Jlk.ouname,qDkgAbB5Jlk.hYyB7FUS5eR.fazCI2ygYkq,qDkgAbB5Jlk.hYyB7FUS5eR.SzVk2KvkSSd,qDkgAbB5Jlk.hYyB7FUS5eR.GyJHQUWZ9Rl,qDkgAbB5Jlk.C0aLZo75dgJ.lezQpdvvGjY&totalPages=false&rowContext=true&lastUpdated=LAST_5_YEARS&programStatus=qDkgAbB5Jlk.ACTIVE,qDkgAbB5Jlk.COMPLETED&enrollmentDate=qDkgAbB5Jlk.THIS_YEAR&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2022-07-01",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 85,
+          "max": 250,
+          "mean": 170
+        }
+      ],
+      "version": {
+        "min": 41
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:USER_ORGUNIT,iESIqZ0R0R0,NDXw0cluzSw,lw1SqmMlnfh,OvY4VVhSDeJ,ZcBPrXKahq2:IEQ:9999,WSGAb5XwJ3Y.PFDfvmGpsR3.z8m3llJYuh9,WSGAb5XwJ3Y.edqlbukwRfQ[1].rHgrmXfa57b:IN:0;NV,WSGAb5XwJ3Y.edqlbukwRfQ[0].rHgrmXfa57b:IN:0;NV,WSGAb5XwJ3Y.PFDfvmGpsR3.V5PR8Kw8ZnC,WSGAb5XwJ3Y.edqlbukwRfQ.yTDoF5b1OhI:IN:notchecked;remaining,WSGAb5XwJ3Y.PFDfvmGpsR3.MH33VLmOOqm,WSGAb5XwJ3Y.bbKtnxRZKEP.B3bDhNpCcEM,WSGAb5XwJ3Y.ou:O6uvpzGd5pu;LEVEL-H1KlN4QIauv;OU_GROUP-CXw2yu5fodb;OU_GROUP-w1Atoz18PCL&headers=ouname,iESIqZ0R0R0,NDXw0cluzSw,lw1SqmMlnfh,OvY4VVhSDeJ,ZcBPrXKahq2,WSGAb5XwJ3Y.PFDfvmGpsR3.z8m3llJYuh9,WSGAb5XwJ3Y.edqlbukwRfQ[1].rHgrmXfa57b,WSGAb5XwJ3Y.edqlbukwRfQ[0].rHgrmXfa57b,WSGAb5XwJ3Y.PFDfvmGpsR3.V5PR8Kw8ZnC,WSGAb5XwJ3Y.edqlbukwRfQ.yTDoF5b1OhI,WSGAb5XwJ3Y.PFDfvmGpsR3.MH33VLmOOqm,WSGAb5XwJ3Y.bbKtnxRZKEP.B3bDhNpCcEM,createdbydisplayname,created,WSGAb5XwJ3Y.programstatus,WSGAb5XwJ3Y.ouname&totalPages=false&rowContext=true&created=MONTHS_THIS_YEAR,LAST_5_YEARS,THIS_YEAR,LAST_10_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2022-07-01",
+      "expectations": [
+        {
+          "release": "42.0",
+          "min": 4750,
+          "max": 6550,
+          "mean": 6000
+        }
+      ],
+      "version": {
+        "min": 41
+      }
+    }
+  ]
+}

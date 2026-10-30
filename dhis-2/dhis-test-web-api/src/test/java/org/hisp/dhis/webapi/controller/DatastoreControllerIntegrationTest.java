@@ -135,7 +135,8 @@ class DatastoreControllerIntegrationTest extends PostgresControllerIntegrationTe
   void testUpdateKeyJsonValue() {
     doInTransaction(() -> assertStatus(HttpStatus.CREATED, POST("/dataStore/animals/cat", "[]")));
     doInTransaction(() -> assertStatus(HttpStatus.OK, PUT("/dataStore/animals/cat", "[1,2,3]")));
-    assertEquals(asList(1, 2, 3), GET("/dataStore/animals/cat").content().numberValues());
+    assertEquals(
+        asList(1, 2, 3), GET("/dataStore/animals/cat").content().intValues().boxed().toList());
   }
 
   @Test

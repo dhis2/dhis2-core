@@ -67,7 +67,27 @@ public class DocumentObjectBundleHook extends AbstractObjectBundleHook<Document>
     } else if (!document.isExternal() && fileResource == null) {
       addReports.accept(new ErrorReport(Document.class, ErrorCode.E4015, "url", document.getUrl()));
     } else if (!document.isExternal() && fileResource.isAssigned()) {
-      addReports.accept(new ErrorReport(Document.class, ErrorCode.E4016, "url", document.getUrl()));
+      Document persistedDocument = bundle.getPreheat().get(bundle.getPreheatIdentifier(), document);
+      // An update may keep the file already assigned to this document.
+      if (persistedDocument == null
+          || persistedDocument.getId() == 0
+          || persistedDocument.isExternal()
+          || !document.getUrl().equals(persistedDocument.getUrl())) {
+        addReports.accept(
+            new ErrorReport(Document.class, ErrorCode.E4016, "url", document.getUrl()));
+      }
+    } else if (!document.isExternal()
+        && !fileResourceService.canAssign(
+            bundle.getUserDetails(), fileResource, FileResourceDomain.DOCUMENT)) {
+      // the sharing of the document decides who may read the file, so only a document file of the
+      // current user can be bound to it
+      addReports.accept(
+          new ErrorReport(
+              Document.class,
+              ErrorCode.E4094,
+              "url",
+              FileResourceDomain.DOCUMENT,
+              document.getUrl()));
     }
   }
 
@@ -84,12 +104,11 @@ public class DocumentObjectBundleHook extends AbstractObjectBundleHook<Document>
   private void saveDocument(Document document) {
     if (!document.isExternal()) {
       FileResource fileResource = fileResourceService.getFileResource(document.getUrl());
-      fileResource.setDomain(FileResourceDomain.DOCUMENT);
       fileResource.setAssigned(true);
       document.setFileResource(fileResource);
       fileResourceService.updateFileResource(fileResource);
     }
 
-    idObjectManager.save(document);
+    idObjectManager.save(document, false);
   }
 }

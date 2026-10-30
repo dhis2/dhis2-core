@@ -29,14 +29,10 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import static java.util.stream.Collectors.toUnmodifiableSet;
+import static java.util.stream.Collectors.joining;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,297 +42,225 @@ class FieldFilterParserTest {
 
   @Test
   void testDepth0Filters() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("id, name,    abc");
-
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "name");
-    assertFieldPathContains(fieldPaths, "abc");
+    assertFieldsEquals(
+        List.of(FieldPath.of("id"), FieldPath.of("name"), FieldPath.of("abc")), "id, name,    abc");
   }
 
   @Test
   void testDepth1Filters() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("id,name,group[id,name]");
-
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "name");
-    assertFieldPathContains(fieldPaths, "group.id");
-    assertFieldPathContains(fieldPaths, "group.name");
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("id"),
+            FieldPath.of("name"),
+            FieldPath.of("group"),
+            FieldPath.of("group.id"),
+            FieldPath.of("group.name")),
+        "id,name,group[id,name]");
   }
 
   @Test
   void testDepthXFilters() {
-    List<FieldPath> fieldPaths =
-        FieldFilterParser.parse(
-            "id,name,group[id,name],group[id,name,group[id,name,group[id,name]]]");
-
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "name");
-    assertFieldPathContains(fieldPaths, "group.id");
-    assertFieldPathContains(fieldPaths, "group.name");
-    assertFieldPathContains(fieldPaths, "group.group.id");
-    assertFieldPathContains(fieldPaths, "group.group.name");
-    assertFieldPathContains(fieldPaths, "group.group.group.id");
-    assertFieldPathContains(fieldPaths, "group.group.group.name");
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("id"),
+            FieldPath.of("name"),
+            FieldPath.of("group"),
+            FieldPath.of("group.id"),
+            FieldPath.of("group.name"),
+            FieldPath.of("group.group"),
+            FieldPath.of("group.group.id"),
+            FieldPath.of("group.group.name"),
+            FieldPath.of("group.group.group"),
+            FieldPath.of("group.group.group.id"),
+            FieldPath.of("group.group.group.name")),
+        "id,name,group[id,name],group[id,name,group[id,name,group[id,name]]]");
   }
 
   @Test
   void testOnlyBlockFilters() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("group[id,name]");
-
-    assertFieldPathContains(fieldPaths, "group.id");
-    assertFieldPathContains(fieldPaths, "group.name");
+    assertFieldsEquals(
+        List.of(FieldPath.of("group"), FieldPath.of("group.id"), FieldPath.of("group.name")),
+        "group[id,name]");
   }
 
   @Test
   void testOnlySpringBlockFilters() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("group[id,name]");
-
-    assertFieldPathContains(fieldPaths, "group.id");
-    assertFieldPathContains(fieldPaths, "group.name");
-  }
-
-  @Test
-  void testParseWithPrefix1() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parseWithPrefix("a,b", "prefix");
-
-    assertFieldPathContains(fieldPaths, "prefix.a");
-    assertFieldPathContains(fieldPaths, "prefix.b");
-  }
-
-  @Test
-  void testParseWithPrefix2() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parseWithPrefix("aaa[a],bbb[b]", "prefix");
-
-    assertFieldPathContains(fieldPaths, "prefix.aaa.a");
-    assertFieldPathContains(fieldPaths, "prefix.bbb.b");
+    assertFieldsEquals(
+        List.of(FieldPath.of("group"), FieldPath.of("group.id"), FieldPath.of("group.name")),
+        "group[id,name]");
   }
 
   @Test
   void testParseWithTransformer1() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::x(a;b),id~y(a;b;c),code|z(t)");
-
-    assertFieldPathContains(fieldPaths, "name");
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "code");
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("name").withTransformers(new FieldPathTransformer("x", List.of("a", "b"))),
+            FieldPath.of("id")
+                .withTransformers(new FieldPathTransformer("y", List.of("a", "b", "c"))),
+            FieldPath.of("code").withTransformers(new FieldPathTransformer("z", List.of("t")))),
+        "name::x(a;b),id~y(a;b;c),code|z(t)");
   }
 
   @Test
   void testParseWithTransformer2() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("groups[name::x(a;b)]");
-
-    assertFieldPathContains(fieldPaths, "groups");
-    assertFieldPathContains(fieldPaths, "groups.name");
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("groups"),
+            FieldPath.of("groups.name")
+                .withTransformers(new FieldPathTransformer("x", List.of("a", "b")))),
+        "groups[name::x(a;b)]");
   }
 
   @Test
   void testParseWithTransformer3() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("groups[name::x(a;b), code~y(a)]");
-
-    assertFieldPathContains(fieldPaths, "groups");
-    assertFieldPathContains(fieldPaths, "groups.name");
-    assertFieldPathContains(fieldPaths, "groups.code");
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("groups"),
+            FieldPath.of("groups.name")
+                .withTransformers(new FieldPathTransformer("x", List.of("a", "b"))),
+            FieldPath.of("groups.code")
+                .withTransformers(new FieldPathTransformer("y", List.of("a")))),
+        "groups[name::x(a;b), code~y(a)]");
   }
 
   @Test
   void testParseWithTransformer4() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::rename(n),groups[name]");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    assertFieldPathContains(fieldPaths, "groups");
-    assertFieldPathContains(fieldPaths, "groups.name", false);
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("name").withTransformers(new FieldPathTransformer("rename", List.of("n"))),
+            FieldPath.of("groups"),
+            FieldPath.of("groups.name")),
+        "name::rename(n),groups[name]");
   }
 
   @Test
   void testParseWithTransformer5() {
-    List<FieldPath> fieldPaths =
-        FieldFilterParser.parse("name::rename(n),groups::rename(g)[name::rename(n)]");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    assertFieldPathContains(fieldPaths, "groups", true);
-    assertFieldPathContains(fieldPaths, "groups.name", true);
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("name").withTransformers(new FieldPathTransformer("rename", List.of("n"))),
+            FieldPath.of("groups")
+                .withTransformers(new FieldPathTransformer("rename", List.of("g"))),
+            FieldPath.of("groups.name")
+                .withTransformers(new FieldPathTransformer("rename", List.of("n")))),
+        "name::rename(n),groups::rename(g)[name::rename(n)]");
   }
 
   @Test
   void testParseWithTransformer6() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::rename(n),groups::rename(g)[name]");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    assertFieldPathContains(fieldPaths, "groups", true);
-    assertFieldPathContains(fieldPaths, "groups.name", false);
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("name").withTransformers(new FieldPathTransformer("rename", List.of("n"))),
+            FieldPath.of("groups")
+                .withTransformers(new FieldPathTransformer("rename", List.of("g"))),
+            FieldPath.of("groups.name")),
+        "name::rename(n),groups::rename(g)[name]");
   }
 
   @Test
   void testParseWithTransformer7() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::size,group::isEmpty");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    assertFieldPathContains(fieldPaths, "group", true);
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("name").withTransformers(new FieldPathTransformer("size")),
+            FieldPath.of("group").withTransformers(new FieldPathTransformer("isEmpty"))),
+        "name::size,group::isEmpty");
   }
 
   @Test
   void testParseWithTransformer8() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::rename(n)");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    FieldPathTransformer fieldPathTransformer = fieldPaths.get(0).getTransformers().get(0);
-    assertEquals("rename", fieldPathTransformer.getName());
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("name")
+                .withTransformers(new FieldPathTransformer("rename", List.of("n")))),
+        "name::rename(n)");
   }
 
   @Test
   void testParseWithMultipleTransformers() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::size::rename(n)");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    FieldPathTransformer fieldPathTransformer = fieldPaths.get(0).getTransformers().get(0);
-    assertEquals("size", fieldPathTransformer.getName());
-    fieldPathTransformer = fieldPaths.get(0).getTransformers().get(1);
-    assertEquals("rename", fieldPathTransformer.getName());
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("name")
+                .withTransformers(
+                    new FieldPathTransformer("size"),
+                    new FieldPathTransformer("rename", List.of("n")))),
+        "name::size::rename(n)");
   }
 
   @Test
   void testParseWithPresetAndExclude1() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("id,name,!code,:owner");
-
-    FieldPath id = getFieldPath(fieldPaths, "id");
-    assertNotNull(id);
-    assertFalse(id.isExclude());
-    assertFalse(id.isPreset());
-    FieldPath name = getFieldPath(fieldPaths, "name");
-    assertNotNull(name);
-    assertFalse(name.isExclude());
-    assertFalse(name.isPreset());
-    FieldPath code = getFieldPath(fieldPaths, "code");
-    assertNotNull(code);
-    assertTrue(code.isExclude());
-    assertFalse(code.isPreset());
-    FieldPath owner = getFieldPath(fieldPaths, "owner");
-    assertNotNull(owner);
-    assertFalse(owner.isExclude());
-    assertTrue(owner.isPreset());
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("id"),
+            FieldPath.of("name"),
+            FieldPath.of("!code"),
+            FieldPath.of(":owner")),
+        "id,name,!code,:owner");
   }
 
   @Test
   void testParseWithPresetAndExclude() {
-    List<FieldPath> fieldPaths =
-        FieldFilterParser.parse("id,name,!code,:owner,group[:owner,:all,!code,hello]");
-
-    FieldPath id = getFieldPath(fieldPaths, "id");
-    assertNotNull(id);
-    assertFalse(id.isExclude());
-    assertFalse(id.isPreset());
-    FieldPath name = getFieldPath(fieldPaths, "name");
-    assertNotNull(name);
-    assertFalse(name.isExclude());
-    assertFalse(name.isPreset());
-    FieldPath code = getFieldPath(fieldPaths, "code");
-    assertNotNull(code);
-    assertTrue(code.isExclude());
-    assertFalse(code.isPreset());
-    FieldPath owner = getFieldPath(fieldPaths, "owner");
-    assertNotNull(owner);
-    assertFalse(owner.isExclude());
-    assertTrue(owner.isPreset());
-    FieldPath groupOwner = getFieldPath(fieldPaths, "group.owner");
-    assertNotNull(groupOwner);
-    assertFalse(groupOwner.isExclude());
-    assertTrue(groupOwner.isPreset());
-    FieldPath groupAll = getFieldPath(fieldPaths, "group.all");
-    assertNotNull(groupAll);
-    assertFalse(groupAll.isExclude());
-    assertTrue(groupAll.isPreset());
-    FieldPath groupCode = getFieldPath(fieldPaths, "group.code");
-    assertNotNull(groupCode);
-    assertTrue(groupCode.isExclude());
-    assertFalse(groupCode.isPreset());
-    FieldPath groupHello = getFieldPath(fieldPaths, "group.hello");
-    assertNotNull(groupHello);
-    assertFalse(groupHello.isExclude());
-    assertFalse(groupHello.isPreset());
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("id"),
+            FieldPath.of("name"),
+            FieldPath.of("!code"),
+            FieldPath.of(":owner"),
+            FieldPath.of("group"),
+            FieldPath.of("group.:owner"),
+            FieldPath.of("group.:all"),
+            FieldPath.of("group.!code"),
+            FieldPath.of("group.hello")),
+        "id,name,!code,:owner,group[:owner,:all,!code,hello]");
   }
 
   @Test
   void testParseWithAsterisk1() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("*,!code");
-
-    FieldPath asterisk = getFieldPath(fieldPaths, "all");
-    assertNotNull(asterisk);
-    assertFalse(asterisk.isExclude());
-    assertTrue(asterisk.isPreset());
-    FieldPath code = getFieldPath(fieldPaths, "code");
-    assertNotNull(code);
-    assertTrue(code.isExclude());
-    assertFalse(code.isPreset());
+    assertFieldsEquals(List.of(FieldPath.of(":all"), FieldPath.of("!code")), "*,!code");
   }
 
   @Test
   void testParseWithAsterisk2() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("*,!code,group[*]");
-
-    FieldPath asterisk = getFieldPath(fieldPaths, "all");
-    assertNotNull(asterisk);
-    assertFalse(asterisk.isExclude());
-    assertTrue(asterisk.isPreset());
-    FieldPath code = getFieldPath(fieldPaths, "code");
-    assertNotNull(code);
-    assertTrue(code.isExclude());
-    assertFalse(code.isPreset());
-    FieldPath groupAsterisk = getFieldPath(fieldPaths, "group.all");
-    assertNotNull(groupAsterisk);
-    assertFalse(groupAsterisk.isExclude());
-    assertTrue(groupAsterisk.isPreset());
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of(":all"),
+            FieldPath.of("!code"),
+            FieldPath.of("group"),
+            FieldPath.of("group.:all")),
+        "*,!code,group[*]");
   }
 
   @Test
   void testMixedBlockSingleFields() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("id,name,group[id,name],code");
-
-    assertEquals(6, fieldPaths.size());
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "name");
-    assertFieldPathContains(fieldPaths, "group");
-    assertFieldPathContains(fieldPaths, "group.id");
-    assertFieldPathContains(fieldPaths, "group.name");
-    assertFieldPathContains(fieldPaths, "code");
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("id"),
+            FieldPath.of("name"),
+            FieldPath.of("group"),
+            FieldPath.of("group.id"),
+            FieldPath.of("group.name"),
+            FieldPath.of("code")),
+        "id,name,group[id,name],code");
   }
 
   @Test
   void testMixedBlockWithTransformation() {
-    List<FieldPath> fieldPaths =
-        FieldFilterParser.parse("id,categoryCombo[categoryOptionCombos~size],displayName");
-
-    assertEquals(4, fieldPaths.size());
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "categoryCombo");
-    assertFieldPathContains(fieldPaths, "categoryCombo.categoryOptionCombos");
-    assertFieldPathContains(fieldPaths, "displayName");
+    assertFieldsEquals(
+        List.of(
+            FieldPath.of("id"),
+            FieldPath.of("categoryCombo"),
+            FieldPath.of("categoryCombo.categoryOptionCombos")
+                .withTransformers(new FieldPathTransformer("size")),
+            FieldPath.of("displayName")),
+        "id,categoryCombo[categoryOptionCombos~size],displayName");
   }
 
-  private void assertFieldPathContains(
-      List<FieldPath> fieldPaths, String expected, boolean isTransformer) {
-    boolean condition = false;
-    for (FieldPath fieldPath : fieldPaths) {
-      String path = fieldPath.toFullPath();
-      if (path.equals(expected)) {
-        condition = fieldPath.isTransformer() == isTransformer;
-        break;
-      }
-    }
-    assertTrue(condition);
+  private void assertFieldsEquals(List<FieldPath> expected, String fields) {
+    List<FieldPath> actual = FieldFilterParser.parse(fields);
+    assertEquals(expected.size(), actual.size(), list(expected) + " vs " + list(actual));
+    for (int i = 0; i < expected.size(); i++)
+      assertEquals(expected.get(i), actual.get(i), "%d field is different: ".formatted(i));
   }
 
-  private void assertFieldPathContains(List<FieldPath> fieldPaths, String expected) {
-    Set<String> actual =
-        fieldPaths.stream().map(FieldPath::toFullPath).collect(toUnmodifiableSet());
-    assertTrue(actual.contains(expected), () -> actual + " does not contain " + expected);
-  }
-
-  private FieldPath getFieldPath(List<FieldPath> fieldPaths, String path) {
-    for (FieldPath fieldPath : fieldPaths) {
-      String fullPath = fieldPath.toFullPath();
-      if (path.equals(fullPath)) {
-        return fieldPath;
-      }
-    }
-    return null;
+  private static String list(List<FieldPath> fields) {
+    return fields.stream().map(FieldPath::toString).collect(joining(","));
   }
 }

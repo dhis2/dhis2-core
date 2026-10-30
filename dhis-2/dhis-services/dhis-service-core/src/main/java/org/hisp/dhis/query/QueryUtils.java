@@ -180,28 +180,6 @@ public final class QueryUtils {
   }
 
   /**
-   * Convert a List of select fields into a string as in SQL select query.
-   *
-   * <p>If input is null, return "*" means the query will select all fields.
-   *
-   * @param fields list of fields in a select query.
-   * @return a string which is concatenated of list fields, separate by comma.
-   */
-  public static String parseSelectFields(List<String> fields) {
-    if (fields == null || fields.isEmpty()) {
-      return " * ";
-    }
-    StringBuilder str = new StringBuilder(StringUtils.EMPTY);
-    for (int i = 0; i < fields.size(); i++) {
-      str.append(fields.get(i));
-      if (i < fields.size() - 1) {
-        str.append(",");
-      }
-    }
-    return str.toString();
-  }
-
-  /**
    * Converts a String with JSON format [x,y,z] into an SQL query collection format (x,y,z).
    *
    * @param value a string contains a collection with JSON format [x,y,z].
@@ -233,49 +211,6 @@ public final class QueryUtils {
     str.append(")");
 
     return str.toString();
-  }
-
-  /**
-   * Converts a filter operator into an SQL operator.
-   *
-   * <p>Example: {@code parseFilterOperator('eq', 5)} will return "=5".
-   *
-   * @param operator the filter operator.
-   * @param value value of the current SQL query condition.
-   * @return a string contains an SQL expression with operator and value.
-   */
-  public static String parseFilterOperator(String operator, String value) {
-
-    if (StringUtils.isEmpty(operator)) {
-      throw new QueryParserException("Filter Operator is null");
-    }
-
-    return switch (operator) {
-      case "eq" -> "= " + QueryUtils.parseValue(value);
-      case "ieq" -> " ilike '" + value + "'";
-      case "!eq", "ne", "neq" -> "!= " + QueryUtils.parseValue(value);
-      case "gt" -> "> " + QueryUtils.parseValue(value);
-      case "lt" -> "< " + QueryUtils.parseValue(value);
-      case "gte", "ge" -> ">= " + QueryUtils.parseValue(value);
-      case "lte", "le" -> "<= " + QueryUtils.parseValue(value);
-      case "like" -> "like '%" + value + "%'";
-      case "!like" -> "not like '%" + value + "%'";
-      case "^like" -> " like '" + value + "%'";
-      case "!^like" -> " not like '" + value + "%'";
-      case "$like" -> " like '%" + value + "'";
-      case "!$like" -> " not like '%" + value + "'";
-      case "ilike" -> " ilike '%" + value + "%'";
-      case "!ilike" -> " not ilike '%" + value + "%'";
-      case "^ilike" -> " ilike '" + value + "%'";
-      case "!^ilike" -> " not ilike '" + value + "%'";
-      case "$ilike" -> " ilike '%" + value + "'";
-      case "!$ilike" -> " not ilike '%" + value + "'";
-      case "in" -> "in " + QueryUtils.convertCollectionValue(value);
-      case "!in" -> " not in " + QueryUtils.convertCollectionValue(value);
-      case "null" -> "is null";
-      case "!null" -> "is not null";
-      default -> throw new QueryParserException("`" + operator + "` is not a valid operator.");
-    };
   }
 
   /**

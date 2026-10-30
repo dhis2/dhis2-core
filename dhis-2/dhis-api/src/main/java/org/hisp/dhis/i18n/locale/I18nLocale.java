@@ -30,8 +30,8 @@
 package org.hisp.dhis.i18n.locale;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Locale;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.Locale;
 
 /**
  * Wrapper for java.util.Locale for persistence purposes.

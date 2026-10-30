@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -225,18 +226,14 @@ public class DefaultMetadataVersionService implements MetadataVersionService {
 
   @Override
   @Transactional(readOnly = true)
-  public String getVersionData(String versionName) {
-    DatastoreEntry entry = metaDataDatastoreService.getMetaDataVersion(versionName);
+  public boolean streamVersionData(String versionName, OutputStream out) throws IOException {
+    return versionStore.streamMetadataVersionData(versionName, out);
+  }
 
-    if (entry != null) {
-      try {
-        return renderService.fromJson(entry.getValue(), MetadataWrapper.class).getMetadata();
-      } catch (IOException e) {
-        log.error("Exception occurred while deserializing metadata.", e);
-      }
-    }
-
-    return null;
+  @Override
+  @Transactional(readOnly = true)
+  public boolean snapshotExists(String versionName) {
+    return versionStore.metadataVersionSnapshotExists(versionName);
   }
 
   @Override
@@ -320,7 +317,7 @@ public class DefaultMetadataVersionService implements MetadataVersionService {
       }
 
       os = new ByteArrayOutputStream(1024);
-      ObjectNode metadata = metadataExportService.getMetadataAsObjectNode(exportParams);
+      ObjectNode metadata = metadataExportService.exportMetadataVersion(exportParams);
       renderService.toJson(os, metadata);
     } catch (Exception ex) // We have to catch the "Exception" object as no
     // specific exception on the contract.

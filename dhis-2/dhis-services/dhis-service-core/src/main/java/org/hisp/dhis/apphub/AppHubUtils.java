@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.apphub;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.hisp.dhis.feedback.ConflictException;
@@ -94,7 +94,8 @@ public class AppHubUtils {
    */
   public static <T> HttpEntity<T> getJsonRequestEntity() {
     HttpHeaders headers = new HttpHeaders();
-    headers.setAccept(Lists.newArrayList(MediaType.APPLICATION_JSON));
+    headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+    headers.set(HttpHeaders.USER_AGENT, "");
     return new HttpEntity<>(headers);
   }
 }

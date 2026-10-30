@@ -283,7 +283,7 @@ class EventQueryPlannerTest extends PostgresIntegrationTestBase {
             .withProgramDataElements(getList(pdeA, pdeB, pdeC, pdeD))
             .withProgramAttributes(getList(patA, patB))
             .withOrganisationUnits(getList(ouA, ouB, ouC))
-            .withPeriods(createPeriods("200101", "200103", "200105", "200107"))
+            .withPeriods(createPeriodDimensions("200101", "200103", "200105", "200107"))
             .build();
     EventQueryParams params = EventQueryParams.fromDataQueryParams(dataQueryParams);
     assertEquals(6, params.getItems().size());
@@ -301,7 +301,7 @@ class EventQueryPlannerTest extends PostgresIntegrationTestBase {
             .withProgramDataElements(getList(pdeA, pdeB, pdeC, pdeD))
             .withProgramAttributes(getList(patA, patB))
             .withOrganisationUnits(getList(ouA, ouB, ouC))
-            .withPeriods(createPeriods("200101", "200103", "200105", "200107"))
+            .withPeriods(createPeriodDimensions("200101", "200103", "200105", "200107"))
             .build();
     EventQueryParams params = EventQueryParams.fromDataQueryParams(dataQueryParams);
     List<EventQueryParams> queries = queryPlanner.planAggregateQuery(params);
@@ -317,7 +317,7 @@ class EventQueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withProgramDataElements(getList(pdeE))
             .withOrganisationUnits(getList(ouA))
-            .withPeriods(createPeriods("200101", "200103", "200105", "200107"))
+            .withPeriods(createPeriodDimensions("200101", "200103", "200105", "200107"))
             .build();
     EventQueryParams params = EventQueryParams.fromDataQueryParams(dataQueryParams);
     List<EventQueryParams> queries = queryPlanner.planAggregateQuery(params);
@@ -336,7 +336,8 @@ class EventQueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withProgramDataElements(getList(pdeE))
             .withOrganisationUnits(getList(ouA))
-            .withPeriods(createPeriods("200101", "200103", "200105", "200107", "200109", "200111"))
+            .withPeriods(
+                createPeriodDimensions("200101", "200103", "200105", "200107", "200109", "200111"))
             .withAggregationType(
                 new AnalyticsAggregationType(AggregationType.AVERAGE, AggregationType.FIRST))
             .build();
@@ -358,7 +359,7 @@ class EventQueryPlannerTest extends PostgresIntegrationTestBase {
             .withProgramDataElements(getList(pdeA, pdeB, pdeC, pdeD))
             .withProgramAttributes(getList(patA, patB))
             .withOrganisationUnits(getList(ouA, ouB, ouC))
-            .withPeriods(createPeriods("200101", "200103", "200105", "200107"))
+            .withPeriods(createPeriodDimensions("200101", "200103", "200105", "200107"))
             .build();
     EventQueryParams params =
         new EventQueryParams.Builder(dataQueryParams).withCollapseDataDimensions(true).build();
@@ -386,7 +387,7 @@ class EventQueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withProgramDataElements(getList(pdeA))
             .withOrganisationUnits(getList(ouA))
-            .withPeriods(createPeriods("200101", "200103", "200105", "200107"))
+            .withPeriods(createPeriodDimensions("200101", "200103", "200105", "200107"))
             .withAggregationType(analyticsAggregationType)
             .build();
     EventQueryParams params = EventQueryParams.fromDataQueryParams(dataQueryParams);

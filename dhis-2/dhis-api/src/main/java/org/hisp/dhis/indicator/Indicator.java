@@ -139,6 +139,7 @@ public class Indicator extends BaseDataDimensionalItemObject implements Metadata
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.INDICATOR;
   }
@@ -285,7 +286,7 @@ public class Indicator extends BaseDataDimensionalItemObject implements Metadata
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "dataSets", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "dataSet", namespace = DxfNamespaces.DXF_2_0)
   public Set<DataSet> getDataSets() {
@@ -316,5 +317,17 @@ public class Indicator extends BaseDataDimensionalItemObject implements Metadata
   @Override
   public void setFormName(String formName) {
     this.formName = formName;
+  }
+
+  /**
+   * Checks if the denominator contains a periodOffset function.
+   *
+   * @return true if the denominator contains .periodOffset(), false otherwise
+   */
+  public boolean numeratorContainsPeriodOffset() {
+    if (numerator == null || numerator.isEmpty()) {
+      return false;
+    }
+    return numerator.contains(".periodOffset(");
   }
 }

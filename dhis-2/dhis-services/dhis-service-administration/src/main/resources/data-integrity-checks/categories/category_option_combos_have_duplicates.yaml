@@ -26,7 +26,7 @@
 #
 ---
 name: category_option_combos_have_duplicates
-description: Category option combo duplicates, same category options and same category combo
+description: Category option combos with identical category options and category combos
 section: Categories
 section_order: 6
 summary_sql: >-
@@ -41,7 +41,6 @@ summary_sql: >-
   FROM categorycombos_optioncombos a
   RIGHT OUTER JOIN categoryoptioncombos_categoryoptions b on a.categoryoptioncomboid = b.categoryoptioncomboid
   ORDER BY a.categorycomboid,b.categoryoptionid
-  
   ) as x
   JOIN categorycombo cc on cc.categorycomboid = x.categorycomboid
   JOIN categoryoptioncombo coc on coc.categoryoptioncomboid = x.categoryoptioncomboid

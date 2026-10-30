@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.sharing;
 
+import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +76,13 @@ public class DefaultSharingService implements SharingService {
       @Nonnull Class<T> entityClass, @Nonnull T entity, @Nonnull Sharing sharing) {
     ObjectReport objectReport = new ObjectReport(Sharing.class, 0);
 
+    List<ErrorReport> updateErrors =
+        userService.validateSharingUpdate(entity, CurrentUserUtil.getCurrentUserDetails());
+    if (!updateErrors.isEmpty()) {
+      updateErrors.forEach(objectReport::addErrorReport);
+      return objectReport;
+    }
+
     if (entity instanceof SystemDefaultMetadataObject sdmo && sdmo.isDefault()) {
       objectReport.addErrorReport(
           new ErrorReport(Sharing.class, ErrorCode.E3013, entityClass.getSimpleName())
@@ -93,18 +101,10 @@ public class DefaultSharingService implements SharingService {
     }
 
     // ---------------------------------------------------------------------
-    // Ignore externalAccess if user is not allowed to make objects external
-    // ---------------------------------------------------------------------
-
-    if (aclService.canMakeClassExternal(CurrentUserUtil.getCurrentUserDetails(), entityClass)) {
-      entity.getSharing().setExternal(sharing.isExternal());
-    }
-
-    // ---------------------------------------------------------------------
     // Ignore publicAccess if user is not allowed to make objects public
     // ---------------------------------------------------------------------
 
-    Schema schema = schemaService.getDynamicSchema(entityClass);
+    Schema schema = schemaService.getSchema(entityClass);
 
     if (aclService.canMakePublic(CurrentUserUtil.getCurrentUserDetails(), entity)) {
       entity.getSharing().setPublicAccess(sharing.getPublicAccess());

@@ -45,8 +45,6 @@ public class SharingObject {
 
   private String publicAccess;
 
-  private boolean externalAccess;
-
   private SharingUser user = new SharingUser();
 
   private List<SharingUserGroupAccess> userGroupAccesses = new ArrayList<>();
@@ -89,16 +87,6 @@ public class SharingObject {
 
   public void setPublicAccess(String publicAccess) {
     this.publicAccess = publicAccess;
-  }
-
-  @JsonProperty("externalAccess")
-  public boolean hasExternalAccess() {
-    return externalAccess;
-  }
-
-  @JsonProperty("externalAccess")
-  public void setExternalAccess(boolean externalAccess) {
-    this.externalAccess = externalAccess;
   }
 
   @JsonProperty

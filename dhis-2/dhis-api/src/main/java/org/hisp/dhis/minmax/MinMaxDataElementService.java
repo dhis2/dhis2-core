@@ -51,9 +51,9 @@ public interface MinMaxDataElementService {
       OrganisationUnit source, Collection<DataElement> dataElements);
 
   // TODO replace with use of QueryService once it does no longer require IdentifiableObject
-  List<MinMaxDataElement> getMinMaxDataElements(MinMaxDataElementQueryParams query);
+  List<MinMaxDataElement> getMinMaxDataElements(MinMaxDataElementParams query);
 
-  int countMinMaxDataElements(MinMaxDataElementQueryParams query);
+  int countMinMaxDataElements(MinMaxDataElementParams query);
 
   void removeMinMaxDataElements(OrganisationUnit organisationUnit);
 

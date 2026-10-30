@@ -59,6 +59,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobKey;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
@@ -233,7 +234,7 @@ public class SystemController {
     if (!notifications.getFirst().isCompleted()) {
       JobConfiguration job = jobConfigurationService.getJobConfigurationByUid(jobId.getValue());
       if (job == null || job.getJobStatus() != JobStatus.RUNNING) {
-        notifier.clear(getJobSafe(job, jobType, jobId.getValue()));
+        notifier.clear(new JobKey(jobId, jobType));
         Notification notification = notifications.getFirst();
         notification.setCompleted(true);
         return ResponseEntity.ok().cacheControl(noStore()).body(List.of(notification));
@@ -273,7 +274,7 @@ public class SystemController {
       value = "/info",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody ResponseEntity<ObjectNode> getSystemInfo(
-      @RequestParam(defaultValue = "*") List<String> fields,
+      @RequestParam(defaultValue = "*") String fields,
       HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser) {
@@ -299,14 +300,6 @@ public class SystemController {
   @GetMapping(value = "/objectCounts")
   public @ResponseBody ObjectCount getObjectCounts() {
     return new ObjectCount(statisticsProvider.getObjectCounts());
-  }
-
-  @GetMapping("/ping")
-  @ResponseStatus(HttpStatus.OK)
-  public @ResponseBody String ping(HttpServletResponse response) {
-    setNoStore(response);
-
-    return "pong";
   }
 
   @GetMapping(value = "/flags", produces = APPLICATION_JSON_VALUE)
@@ -338,15 +331,6 @@ public class SystemController {
     }
 
     return codeList;
-  }
-
-  private JobConfiguration getJobSafe(JobConfiguration job, JobType jobType, String uid) {
-    if (job == null) {
-      job = new JobConfiguration();
-      job.setJobType(jobType);
-      job.setUid(uid);
-    }
-    return job;
   }
 
   private static final List<String> FLAGS =

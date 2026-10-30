@@ -35,19 +35,22 @@ import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dependsOn.DependsOn;
+import org.hisp.dhis.test.e2e.dependsOn.Resource;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -135,7 +138,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
   @Test
   public void tableLayoutKeepOrderOfColumnsHeaders() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -160,7 +163,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         12,
-        11,
+        8,
         8); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -297,7 +300,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
   @Test
   public void tableLayoutDownloadPivotTable() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -321,7 +324,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         996,
-        47,
+        44,
         44); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -730,5 +733,680 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
     // Validate selected values for row index 995
     validateRowValueByName(response, actualHeaders, 995, "Data ID", "IpHINAT79UW.wQLfBvPrXqq");
     validateRowValueByName(response, actualHeaders, 995, "december 2020", "");
+  }
+
+  @Test
+  public void lastValueOrgUniDataValue_AllOuLevels() throws JSONException {
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd;O6uvpzGd5pu;YuQRtpLP10I")
+            .add("skipData=false")
+            .add("includeMetadataDetails=true")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add("dimension=dx:zx8exJrQpR5,pe:LAST_12_MONTHS")
+            .add("relativePeriodDate=2025-11-01");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response, true, 10, 8, 8); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"202509\":{\"uid\":\"202509\",\"code\":\"202509\",\"endDate\":\"2025-09-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"September 2025\",\"startDate\":\"2025-09-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202507\":{\"uid\":\"202507\",\"code\":\"202507\",\"endDate\":\"2025-07-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"July 2025\",\"startDate\":\"2025-07-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"202508\":{\"uid\":\"202508\",\"code\":\"202508\",\"endDate\":\"2025-08-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"August 2025\",\"startDate\":\"2025-08-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202505\":{\"uid\":\"202505\",\"code\":\"202505\",\"endDate\":\"2025-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"May 2025\",\"startDate\":\"2025-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202506\":{\"uid\":\"202506\",\"code\":\"202506\",\"endDate\":\"2025-06-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"June 2025\",\"startDate\":\"2025-06-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"O6uvpzGd5pu\":{\"uid\":\"O6uvpzGd5pu\",\"code\":\"OU_264\",\"valueType\":\"TEXT\",\"name\":\"Bo\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"202503\":{\"uid\":\"202503\",\"code\":\"202503\",\"endDate\":\"2025-03-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"March 2025\",\"startDate\":\"2025-03-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202504\":{\"uid\":\"202504\",\"code\":\"202504\",\"endDate\":\"2025-04-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"April 2025\",\"startDate\":\"2025-04-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202501\":{\"uid\":\"202501\",\"code\":\"202501\",\"endDate\":\"2025-01-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"January 2025\",\"startDate\":\"2025-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202502\":{\"uid\":\"202502\",\"code\":\"202502\",\"endDate\":\"2025-02-28T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"February 2025\",\"startDate\":\"2025-02-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"YuQRtpLP10I\":{\"uid\":\"YuQRtpLP10I\",\"code\":\"OU_539\",\"valueType\":\"TEXT\",\"name\":\"Badjia\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"202411\":{\"uid\":\"202411\",\"code\":\"202411\",\"endDate\":\"2024-11-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"November 2024\",\"startDate\":\"2024-11-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202510\":{\"uid\":\"202510\",\"code\":\"202510\",\"endDate\":\"2025-10-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"October 2025\",\"startDate\":\"2025-10-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"zx8exJrQpR5\":{\"uid\":\"zx8exJrQpR5\",\"aggregationType\":\"LAST\",\"valueType\":\"NUMBER\",\"name\":\"LAST_VALUE_TEST\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"202412\":{\"uid\":\"202412\",\"code\":\"202412\",\"endDate\":\"2024-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2024\",\"startDate\":\"2024-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"dx\":{\"uid\":\"dx\",\"dimensionType\":\"DATA_X\",\"name\":\"Data\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\",\"name\":\"Period\"},\"HllvX50cXC0\":{\"uid\":\"HllvX50cXC0\",\"code\":\"default\",\"valueType\":\"NUMBER\",\"name\":\"default\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"dx\":[\"zx8exJrQpR5\"],\"pe\":[\"202411\",\"202412\",\"202501\",\"202502\",\"202503\",\"202504\",\"202505\",\"202506\",\"202507\",\"202508\",\"202509\",\"202510\"],\"ou\":[\"ImspTQPwCqd\",\"O6uvpzGd5pu\",\"YuQRtpLP10I\"],\"co\":[\"HllvX50cXC0\"]}}\n";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "numerator",
+        "Numerator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "denominator",
+        "Denominator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "factor", "Factor", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "multiplier",
+        "Multiplier",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
+
+    validateRow(response, List.of("zx8exJrQpR5", "202508", "374", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202509", "374", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202506", "374", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202507", "374", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202504", "1326", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202505", "374", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202502", "136", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202503", "1078", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202501", "1101", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202510", "374", "", "", "", "", ""));
+  }
+
+  @Test
+  public void lastValueOrgUniDataValue_FacilityLevel() throws JSONException {
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:DiszpKrYNg8")
+            .add("skipData=false")
+            .add("includeMetadataDetails=true")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add("dimension=dx:zx8exJrQpR5,pe:LAST_12_MONTHS")
+            .add("relativePeriodDate=2025-11-01");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    validateResponseStructure(
+        response, true, 9, 8, 8); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"DiszpKrYNg8\":{\"uid\":\"DiszpKrYNg8\",\"code\":\"OU_559\",\"valueType\":\"TEXT\",\"name\":\"Ngelehun CHC\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"202509\":{\"uid\":\"202509\",\"code\":\"202509\",\"endDate\":\"2025-09-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"September 2025\",\"startDate\":\"2025-09-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202507\":{\"uid\":\"202507\",\"code\":\"202507\",\"endDate\":\"2025-07-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"July 2025\",\"startDate\":\"2025-07-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"202508\":{\"uid\":\"202508\",\"code\":\"202508\",\"endDate\":\"2025-08-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"August 2025\",\"startDate\":\"2025-08-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202505\":{\"uid\":\"202505\",\"code\":\"202505\",\"endDate\":\"2025-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"May 2025\",\"startDate\":\"2025-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202506\":{\"uid\":\"202506\",\"code\":\"202506\",\"endDate\":\"2025-06-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"June 2025\",\"startDate\":\"2025-06-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202503\":{\"uid\":\"202503\",\"code\":\"202503\",\"endDate\":\"2025-03-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"March 2025\",\"startDate\":\"2025-03-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202504\":{\"uid\":\"202504\",\"code\":\"202504\",\"endDate\":\"2025-04-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"April 2025\",\"startDate\":\"2025-04-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202501\":{\"uid\":\"202501\",\"code\":\"202501\",\"endDate\":\"2025-01-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"January 2025\",\"startDate\":\"2025-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202502\":{\"uid\":\"202502\",\"code\":\"202502\",\"endDate\":\"2025-02-28T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"February 2025\",\"startDate\":\"2025-02-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202411\":{\"uid\":\"202411\",\"code\":\"202411\",\"endDate\":\"2024-11-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"November 2024\",\"startDate\":\"2024-11-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202510\":{\"uid\":\"202510\",\"code\":\"202510\",\"endDate\":\"2025-10-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"October 2025\",\"startDate\":\"2025-10-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"zx8exJrQpR5\":{\"uid\":\"zx8exJrQpR5\",\"aggregationType\":\"LAST\",\"valueType\":\"NUMBER\",\"name\":\"LAST_VALUE_TEST\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"202412\":{\"uid\":\"202412\",\"code\":\"202412\",\"endDate\":\"2024-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2024\",\"startDate\":\"2024-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"dx\":{\"uid\":\"dx\",\"dimensionType\":\"DATA_X\",\"name\":\"Data\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\",\"name\":\"Period\"},\"HllvX50cXC0\":{\"uid\":\"HllvX50cXC0\",\"code\":\"default\",\"valueType\":\"NUMBER\",\"name\":\"default\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"dx\":[\"zx8exJrQpR5\"],\"pe\":[\"202411\",\"202412\",\"202501\",\"202502\",\"202503\",\"202504\",\"202505\",\"202506\",\"202507\",\"202508\",\"202509\",\"202510\"],\"ou\":[\"DiszpKrYNg8\"],\"co\":[\"HllvX50cXC0\"]}}\n";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "numerator",
+        "Numerator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "denominator",
+        "Denominator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "factor", "Factor", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "multiplier",
+        "Multiplier",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
+
+    validateRow(response, List.of("zx8exJrQpR5", "202508", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202509", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202506", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202507", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202504", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202505", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202502", "12", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202503", "12", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202510", "314", "", "", "", "", ""));
+  }
+
+  @Test
+  public void lastValueOrgUniDataValue_DistrictLevel() {
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:O6uvpzGd5pu")
+            .add("skipData=false")
+            .add("includeMetadataDetails=true")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add("dimension=dx:zx8exJrQpR5,pe:LAST_12_MONTHS")
+            .add("relativePeriodDate=2025-11-01");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response, true, 10, 8, 8); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"202509\":{\"uid\":\"202509\",\"code\":\"202509\",\"endDate\":\"2025-09-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"September 2025\",\"startDate\":\"2025-09-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202507\":{\"uid\":\"202507\",\"code\":\"202507\",\"endDate\":\"2025-07-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"July 2025\",\"startDate\":\"2025-07-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"202508\":{\"uid\":\"202508\",\"code\":\"202508\",\"endDate\":\"2025-08-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"August 2025\",\"startDate\":\"2025-08-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202505\":{\"uid\":\"202505\",\"code\":\"202505\",\"endDate\":\"2025-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"May 2025\",\"startDate\":\"2025-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202506\":{\"uid\":\"202506\",\"code\":\"202506\",\"endDate\":\"2025-06-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"June 2025\",\"startDate\":\"2025-06-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"O6uvpzGd5pu\":{\"uid\":\"O6uvpzGd5pu\",\"code\":\"OU_264\",\"valueType\":\"TEXT\",\"name\":\"Bo\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"202503\":{\"uid\":\"202503\",\"code\":\"202503\",\"endDate\":\"2025-03-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"March 2025\",\"startDate\":\"2025-03-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202504\":{\"uid\":\"202504\",\"code\":\"202504\",\"endDate\":\"2025-04-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"April 2025\",\"startDate\":\"2025-04-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202501\":{\"uid\":\"202501\",\"code\":\"202501\",\"endDate\":\"2025-01-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"January 2025\",\"startDate\":\"2025-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202502\":{\"uid\":\"202502\",\"code\":\"202502\",\"endDate\":\"2025-02-28T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"February 2025\",\"startDate\":\"2025-02-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202411\":{\"uid\":\"202411\",\"code\":\"202411\",\"endDate\":\"2024-11-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"November 2024\",\"startDate\":\"2024-11-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202510\":{\"uid\":\"202510\",\"code\":\"202510\",\"endDate\":\"2025-10-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"October 2025\",\"startDate\":\"2025-10-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202412\":{\"uid\":\"202412\",\"code\":\"202412\",\"endDate\":\"2024-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2024\",\"startDate\":\"2024-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"dx\":{\"uid\":\"dx\",\"dimensionType\":\"DATA_X\",\"name\":\"Data\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\",\"name\":\"Period\"},\"jU1ivuoWAEp\":{\"uid\":\"jU1ivuoWAEp\",\"aggregationType\":\"LAST\",\"code\":\"LVT001\",\"valueType\":\"NUMBER\",\"name\":\"LAST_VALUE_TEST\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"HllvX50cXC0\":{\"uid\":\"HllvX50cXC0\",\"code\":\"default\",\"valueType\":\"NUMBER\",\"name\":\"default\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"dx\":[\"jU1ivuoWAEp\"],\"pe\":[\"202411\",\"202412\",\"202501\",\"202502\",\"202503\",\"202504\",\"202505\",\"202506\",\"202507\",\"202508\",\"202509\",\"202510\"],\"ou\":[\"O6uvpzGd5pu\"],\"co\":[\"HllvX50cXC0\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "numerator",
+        "Numerator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "denominator",
+        "Denominator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "factor", "Factor", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "multiplier",
+        "Multiplier",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
+
+    validateRow(response, List.of("zx8exJrQpR5", "202508", "354", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202509", "354", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202506", "354", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202507", "354", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202504", "1306", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202505", "354", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202502", "116", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202503", "1058", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202510", "354", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202501", "1101", "", "", "", "", ""));
+  }
+
+  @Test
+  public void fixedPeriod2021Sep() {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
+            .add("skipData=false")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:GSae40Fyppf,pe:2021Sep");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        8,
+        8); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // metaData not found or is empty in response, skipping assertion.
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "numerator",
+        "Numerator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "denominator",
+        "Denominator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "factor", "Factor", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "multiplier",
+        "Multiplier",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "GSae40Fyppf"),
+            Map.entry("pe", "2021Sep"),
+            Map.entry("value", "14.55"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+  }
+
+  @Test
+  @DependsOn(
+      files = {"pi-with-program-stage-in-filter.json"},
+      delete = true)
+  public void enrollmentProgramIndicatorsWithStageElementFilters(List<Resource> resource)
+      throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+    String piUid = resource.get(0).uid();
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=pe:LAST_12_MONTHS,ou:USER_ORGUNIT")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:" + piUid)
+            .add("relativePeriodDate=2024-01-01");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // metaData not found or is empty in response, skipping assertion.
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "value", "1.0"));
+  }
+
+  @Test
+  public void outputIdSchemeWithId() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("showHierarchy=false")
+            .add("includeMetadataDetails=true")
+            .add("filter=pe:LAST_5_YEARS")
+            .add("includeNumDen=true")
+            .add("hierarchyMeta=false")
+            .add("outputIdScheme=ID")
+            .add("completedOnly=false")
+            .add(
+                "dimension=dx:cYeuwXTCPkU;Jtf34kNZhzP;hfdmMSPBgLG;fbfJHSPpUQD,ou:USER_ORGUNIT_CHILDREN")
+            .add("skipRounding=false")
+            .add("relativePeriodDate=2026-06-01");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"jUb8gELQApl\":{\"uid\":\"jUb8gELQApl\",\"code\":\"OU_204856\",\"name\":\"Kailahun\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"eIQbndfxQMb\":{\"uid\":\"eIQbndfxQMb\",\"code\":\"OU_268149\",\"name\":\"Tonkolili\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"Vth0fbpFcsO\":{\"uid\":\"Vth0fbpFcsO\",\"code\":\"OU_233310\",\"name\":\"Kono\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"O6uvpzGd5pu\":{\"uid\":\"O6uvpzGd5pu\",\"code\":\"OU_264\",\"name\":\"Bo\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"bL4ooGhyHRQ\":{\"uid\":\"bL4ooGhyHRQ\",\"code\":\"OU_260377\",\"name\":\"Pujehun\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"kJq2mPyFEHo\":{\"uid\":\"kJq2mPyFEHo\",\"code\":\"OU_222616\",\"name\":\"Kenema\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"hfdmMSPBgLG\":{\"uid\":\"hfdmMSPBgLG\",\"code\":\"DE_359599\",\"name\":\"ANC 4th or more visits\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"at6UHUQatSo\":{\"uid\":\"at6UHUQatSo\",\"code\":\"OU_278310\",\"name\":\"Western Area\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"dx\":{\"uid\":\"dx\",\"name\":\"Data\",\"dimensionType\":\"DATA_X\"},\"pq2XI5kz2BY\":{\"uid\":\"pq2XI5kz2BY\",\"code\":\"COC_167661\",\"name\":\"Fixed\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"2025\":{\"uid\":\"2025\",\"code\":\"2025\",\"name\":\"2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2025-01-01T00:00:00.000\",\"endDate\":\"2025-12-31T00:00:00.000\"},\"Jtf34kNZhzP\":{\"uid\":\"Jtf34kNZhzP\",\"code\":\"DE_359598\",\"name\":\"ANC 3rd visit\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"2024\":{\"uid\":\"2024\",\"code\":\"2024\",\"name\":\"2024\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2024-01-01T00:00:00.000\",\"endDate\":\"2024-12-31T00:00:00.000\"},\"PT59n8BQbqM\":{\"uid\":\"PT59n8BQbqM\",\"code\":\"COC_167660\",\"name\":\"Outreach\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"TEQlaapDQoK\":{\"uid\":\"TEQlaapDQoK\",\"code\":\"OU_254945\",\"name\":\"Port Loko\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"PMa2VCrupOd\":{\"uid\":\"PMa2VCrupOd\",\"code\":\"OU_211212\",\"name\":\"Kambia\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"2023\":{\"uid\":\"2023\",\"code\":\"2023\",\"name\":\"2023\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2023-01-01T00:00:00.000\",\"endDate\":\"2023-12-31T00:00:00.000\"},\"2022\":{\"uid\":\"2022\",\"code\":\"2022\",\"name\":\"2022\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2022-01-01T00:00:00.000\",\"endDate\":\"2022-12-31T00:00:00.000\"},\"2021\":{\"uid\":\"2021\",\"code\":\"2021\",\"name\":\"2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-01-01T00:00:00.000\",\"endDate\":\"2021-12-31T00:00:00.000\"},\"fbfJHSPpUQD\":{\"uid\":\"fbfJHSPpUQD\",\"code\":\"DE_359596\",\"name\":\"ANC 1st visit\",\"legendSet\":\"fqs276KXCXi\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"USER_ORGUNIT_CHILDREN\":{\"organisationUnits\":[\"at6UHUQatSo\",\"TEQlaapDQoK\",\"PMa2VCrupOd\",\"qhqAxPSTUXp\",\"kJq2mPyFEHo\",\"jmIPBj66vD6\",\"Vth0fbpFcsO\",\"jUb8gELQApl\",\"fdc6uOvgoji\",\"eIQbndfxQMb\",\"O6uvpzGd5pu\",\"lc3eMKXaEfw\",\"bL4ooGhyHRQ\"]},\"fdc6uOvgoji\":{\"uid\":\"fdc6uOvgoji\",\"code\":\"OU_193190\",\"name\":\"Bombali\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"name\":\"Period\",\"dimensionType\":\"PERIOD\"},\"cYeuwXTCPkU\":{\"uid\":\"cYeuwXTCPkU\",\"code\":\"DE_359597\",\"name\":\"ANC 2nd visit\",\"legendSet\":\"fqs276KXCXi\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"lc3eMKXaEfw\":{\"uid\":\"lc3eMKXaEfw\",\"code\":\"OU_197385\",\"name\":\"Bonthe\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"qhqAxPSTUXp\":{\"uid\":\"qhqAxPSTUXp\",\"code\":\"OU_226213\",\"name\":\"Koinadugu\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"jmIPBj66vD6\":{\"uid\":\"jmIPBj66vD6\",\"code\":\"OU_246990\",\"name\":\"Moyamba\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"dx\":[\"cYeuwXTCPkU\",\"Jtf34kNZhzP\",\"hfdmMSPBgLG\",\"fbfJHSPpUQD\"],\"pe\":[\"2021\",\"2022\",\"2023\",\"2024\",\"2025\"],\"ou\":[\"O6uvpzGd5pu\",\"fdc6uOvgoji\",\"lc3eMKXaEfw\",\"jUb8gELQApl\",\"PMa2VCrupOd\",\"kJq2mPyFEHo\",\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\",\"eIQbndfxQMb\",\"at6UHUQatSo\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "numerator",
+        "Numerator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "denominator",
+        "Denominator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "factor", "Factor", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "multiplier",
+        "Multiplier",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "hfdmMSPBgLG"),
+            Map.entry("ou", "jmIPBj66vD6"),
+            Map.entry("value", "20618"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 7
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "Jtf34kNZhzP"),
+            Map.entry("ou", "eIQbndfxQMb"),
+            Map.entry("value", "21178"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 14
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "cYeuwXTCPkU"),
+            Map.entry("ou", "lc3eMKXaEfw"),
+            Map.entry("value", "12854"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 21
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "hfdmMSPBgLG"),
+            Map.entry("ou", "PMa2VCrupOd"),
+            Map.entry("value", "9012"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 28
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "Jtf34kNZhzP"),
+            Map.entry("ou", "kJq2mPyFEHo"),
+            Map.entry("value", "44756"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 35
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "hfdmMSPBgLG"),
+            Map.entry("ou", "qhqAxPSTUXp"),
+            Map.entry("value", "7620"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 42
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "hfdmMSPBgLG"),
+            Map.entry("ou", "O6uvpzGd5pu"),
+            Map.entry("value", "26410"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 49
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "fbfJHSPpUQD"),
+            Map.entry("ou", "TEQlaapDQoK"),
+            Map.entry("value", "47546"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 51
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "Jtf34kNZhzP"),
+            Map.entry("ou", "Vth0fbpFcsO"),
+            Map.entry("value", "12956"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+  }
+
+  @Test
+  @DependsOn(
+      files = {"pi-has-value-in-filter.json"},
+      delete = true)
+  public void enrollmentProgramIndicatorWithHasValueFilter(@NonNull List<Resource> resource)
+      throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+    String piUid = resource.get(0).uid();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:%s,pe:202211;202212;202301;202302;202303".formatted(piUid));
+
+    // When
+    ApiResponse response = actions.get(params);
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        5,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // metaData not found or is empty in response, skipping assertion.
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Only the enrollment carrying an Apgar comment passes the d2:hasValue filter.
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202211", "value", "0.0"));
+
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202212", "value", "0.0"));
+
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202301", "value", "1.0"));
+
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202302", "value", "0.0"));
+
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202303", "value", "0.0"));
   }
 }

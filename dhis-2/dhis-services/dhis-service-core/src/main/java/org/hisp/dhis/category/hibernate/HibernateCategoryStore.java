@@ -29,12 +29,17 @@
  */
 package org.hisp.dhis.category.hibernate;
 
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hibernate.LockOptions;
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -104,5 +109,23 @@ public class HibernateCategoryStore extends HibernateIdentifiableObjectStore<Cat
             Category.class)
         .setParameter("categoryOptions", categoryOptions)
         .getResultList();
+  }
+
+  @Override
+  public int removeCatOptionCategoryRefs(Set<Long> sourceCategoryIds) {
+    if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
+    String sql =
+        """
+              delete from categories_categoryoptions c_co
+              where c_co.categoryid in :sourceCategoryIds
+              """;
+    return nativeSynchronizedQuery(sql)
+        // categories_categoryoptions is the Category.categoryOptions collection table. Collection
+        // regions are keyed by the collection's element entity, so CategoryOption is what reaches
+        // that region, not the owning Category.
+        .addSynchronizedEntityClass(CategoryOption.class)
+        .setParameter("sourceCategoryIds", sourceCategoryIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
   }
 }

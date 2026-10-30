@@ -29,9 +29,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +43,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -49,8 +51,10 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonImportReport;
@@ -65,6 +69,11 @@ import org.springframework.transaction.annotation.Transactional;
 class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTestBase {
   private static final String INVALID_DATE = "2025-22-22";
   private static final String DATE_TODAY = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+  private static final String DATE_NEXT_WEEK =
+      LocalDate.now()
+          .plusWeeks(1)
+          .atStartOfDay()
+          .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
 
   private User importUser;
   private User readOnlyUser;
@@ -197,7 +206,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
     createProgramRuleWithAction(
         'R', "V{current_date}!=V{event_date}", "V{current_date}", programStageA, programStageB);
     JsonImportReport importReport =
-        POST("/tracker?async=false&reportMode=FULL", buildEventJson("2025-11-11"))
+        POST("/tracker?async=false&reportMode=FULL", buildEventJson(DATE_NEXT_WEEK))
             .content(HttpStatus.OK)
             .as(JsonImportReport.class);
 
@@ -217,7 +226,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
     createProgramRuleWithAction(
         'R', "V{current_date}!=V{event_date}", "V{current_date}", programStageA, programStageB);
     JsonImportReport importReport =
-        POST("/tracker?async=false&reportMode=FULL", buildEventJson("2025-11-11"))
+        POST("/tracker?async=false&reportMode=FULL", buildEventJson(DATE_NEXT_WEEK))
             .content(HttpStatus.OK)
             .as(JsonImportReport.class);
 
@@ -252,7 +261,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
                     .formatted(
                         eventUid,
                         enrollment.getUid(),
-                        "2025-11-11",
+                        DATE_NEXT_WEEK,
                         enrollment.getOrganisationUnit().getUid(),
                         enrollment.getProgram().getUid(),
                         programStageA.getUid(),
@@ -315,8 +324,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
   }
 
   private Enrollment createEnrollment(TrackedEntity te, Program program, OrganisationUnit orgUnit) {
-    Enrollment enrollmentA = new Enrollment(program, te, orgUnit);
-    enrollmentA.setAutoFields();
+    Enrollment enrollmentA = TrackerTestBase.createEnrollment(program, te, orgUnit);
     enrollmentA.setEnrollmentDate(new Date());
     enrollmentA.setOccurredDate(new Date());
     enrollmentA.setStatus(EnrollmentStatus.COMPLETED);

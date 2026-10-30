@@ -77,9 +77,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("datavalue");
     emptyTable("completedatasetregistration");
 
-    emptyTable("pushanalysisrecipientusergroups");
-    emptyTable("pushanalysis");
-
     emptyTable("potentialduplicate");
 
     emptyTable("dashboarditem_users");
@@ -95,6 +92,7 @@ public class HibernateDbmsManager implements DbmsManager {
 
     emptyTable("report");
     emptyTable("datastatisticsevent");
+    emptyTable("datastatistics");
 
     emptyTable("visualization_yearlyseries");
     emptyTable("visualization_rows");
@@ -227,9 +225,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("programmessage_deliverychannels");
     emptyTable("programmessage");
 
-    emptyTable("trackerevent_notes");
-    emptyTable("singleevent_notes");
-    emptyTable("enrollment_notes");
     emptyTable("note");
     emptyTable("singleevent");
     emptyTable("trackerevent");

@@ -41,6 +41,16 @@ import org.hisp.dhis.period.Period;
  * @author Lars Helge Overland
  */
 public interface CompleteDataSetRegistrationService {
+
+  /**
+   * Registers the completion of a DS-OU-PE-AOC slice of data on a specified date.
+   *
+   * <p>If an entry already exists it is deleted first, before inserting a new one.
+   *
+   * @param completion the record of completion to persist
+   */
+  void importCompletion(DataSetCompletion completion) throws ConflictException;
+
   /**
    * Saves a CompleteDataSetRegistration.
    *

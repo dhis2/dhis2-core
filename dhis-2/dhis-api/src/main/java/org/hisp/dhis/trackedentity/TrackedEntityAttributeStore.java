@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.program.Program;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -58,14 +57,6 @@ public interface TrackedEntityAttributeStore
   List<TrackedEntityAttribute> getDisplayInListNoProgram();
 
   /**
-   * Fetches all {@link TrackedEntityAttribute} linked to all {@link TrackedEntityType} present in
-   * the system
-   *
-   * @return a Set of {@link TrackedEntityAttribute}
-   */
-  Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes();
-
-  /**
    * Retrieve all attributes that are either configured as trigram indexable and at least one of the
    * operators `LIKE` or `EW` is not blocked.
    *
@@ -82,9 +73,10 @@ public interface TrackedEntityAttributeStore
   Set<UID> getAllTrigramIndexedTrackedEntityAttributes();
 
   /**
-   * Fetches all {@link TrackedEntityAttribute} UIDs of the given {@link Program}
+   * Fetches UIDs of all {@link TrackedEntityAttribute} that have {@code skipSynchronization} set to
+   * true.
    *
    * @return a Set of {@link TrackedEntityAttribute} UIDs
    */
-  Set<String> getTrackedEntityAttributesInProgram(Program program);
+  Set<UID> getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue();
 }

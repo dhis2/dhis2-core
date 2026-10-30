@@ -60,8 +60,10 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodDimension;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,12 +78,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class QueryPlannerGroupByAggregationTypeTest {
   @Mock private PartitionManager partitionManager;
 
+  @Mock private DataElementStore dataElementStore;
+
   @InjectMocks private DefaultQueryPlanner subject;
 
   @Test
   void verifyMultipleDataElementIsAggregatedWithTwoQueryGroupWhenDataTypeIsDifferent() {
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
+    periods.add(
+        PeriodDimension.of(
+            new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
     // DataQueryParams with **two** DataElement with different data type as
     // dimension
     DataQueryParams queryParams =
@@ -141,7 +147,9 @@ class QueryPlannerGroupByAggregationTypeTest {
   @Test
   void verifySingleNonDataElementRetainAggregationTypeButNullDataType() {
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
+    periods.add(
+        PeriodDimension.of(
+            new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
     // DataQueryParams with **one** Indicator
     DataQueryParams queryParams =
         DataQueryParams.newBuilder()
@@ -339,7 +347,9 @@ class QueryPlannerGroupByAggregationTypeTest {
 
   private DataQueryParams createDataQueryParams(DimensionalObject filterDataElements) {
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
+    periods.add(
+        PeriodDimension.of(
+            new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
 
     return DataQueryParams.newBuilder()
         .withDimensions(

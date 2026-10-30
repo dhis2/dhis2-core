@@ -38,12 +38,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 
 /**
@@ -76,8 +81,6 @@ public class App implements Serializable {
   private String[] installsAllowedFrom;
 
   private String defaultLocale;
-
-  private AppStorageSource appStorageSource;
 
   private String folderName;
 
@@ -118,6 +121,10 @@ public class App implements Serializable {
   private List<AppShortcut> shortcuts = new ArrayList<>();
 
   private boolean isLocalised = false;
+
+  private AppCacheConfig cacheConfig;
+
+  private String cacheBustKey;
 
   // -------------------------------------------------------------------------
   // Logic
@@ -379,6 +386,12 @@ public class App implements Serializable {
     this.folderName = folderName;
   }
 
+  /** Returns the blob-store folder for this app. Only valid after {@link #setFolderName}. */
+  @JsonIgnore
+  public AppFolderName appFolder() {
+    return new AppFolderName(folderName);
+  }
+
   @JsonProperty
   public String getLaunchUrl() {
     return launchUrl;
@@ -401,18 +414,8 @@ public class App implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public AppStorageSource getAppStorageSource() {
-    return appStorageSource;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public List<AppShortcut> getShortcuts() {
     return shortcuts;
-  }
-
-  public void setAppStorageSource(AppStorageSource appStorageSource) {
-    this.appStorageSource = appStorageSource;
   }
 
   @JsonProperty
@@ -455,6 +458,26 @@ public class App implements Serializable {
 
   private void setIsLocalised(boolean localised) {
     this.isLocalised = localised;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AppCacheConfig getCacheConfig() {
+    return cacheConfig;
+  }
+
+  public void setCacheConfig(AppCacheConfig cacheConfig) {
+    this.cacheConfig = cacheConfig;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getCacheBustKey() {
+    return cacheBustKey;
+  }
+
+  public void setCacheBustKey(String cacheBustKey) {
+    this.cacheBustKey = cacheBustKey;
   }
 
   // -------------------------------------------------------------------------
@@ -626,9 +649,9 @@ public class App implements Serializable {
   }
 
   private AppManifestTranslation getTranslationToUse(Locale locale) {
-    String language = locale.getLanguage();
-    String country = locale.getCountry();
-    String script = locale.getScript();
+    String language = locale.language();
+    String country = locale.region();
+    String script = locale.script();
 
     AppManifestTranslation matchingLocale = getMatchingLocale(language, country, script);
     AppManifestTranslation matchingLanguage = getMatchingLanguage(language);
@@ -650,8 +673,9 @@ public class App implements Serializable {
         .filter(
             translation ->
                 language.equals(translation.getLanguageCode())
-                    && country.equals(translation.getCountryCode())
-                    && (script.isEmpty() || script.equals(translation.getScriptCode())))
+                        && Objects.equals(country, translation.getCountryCode())
+                        && Objects.equals(script, translation.getScriptCode())
+                    || script != null && script.isEmpty())
         .findFirst()
         .orElse(new AppManifestTranslation());
   }

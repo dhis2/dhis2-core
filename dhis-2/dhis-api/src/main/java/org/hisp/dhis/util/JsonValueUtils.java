@@ -53,7 +53,7 @@ public class JsonValueUtils {
    */
   @CheckForNull
   public static String toJavaString(@Nonnull JsonMixed value) throws ConflictException {
-    return switch (value.node().getType()) {
+    return switch (value.type()) {
       case NULL -> null;
       case STRING -> value.string();
       case OBJECT, ARRAY ->

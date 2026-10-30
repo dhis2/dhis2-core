@@ -57,10 +57,12 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
+@Transactional
 class PredictorServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private PredictorService predictorService;
@@ -434,6 +436,8 @@ class PredictorServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testCannotDeleteCategoryOptionComboUsedByPredictor() {
     setUpPredictorGroups();
+    // flush so the raw-SQL deletion-veto query sees the predictor rows
+    entityManager.flush();
     DeleteNotAllowedException ex =
         assertThrows(
             DeleteNotAllowedException.class,

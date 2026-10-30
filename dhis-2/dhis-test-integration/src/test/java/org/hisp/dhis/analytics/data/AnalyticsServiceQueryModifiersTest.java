@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -65,6 +66,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -122,6 +124,8 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
+    createPeriodTypes();
+
     jan = createPeriod("2022-01");
     feb = createPeriod("2022-02");
     mar = createPeriod("2022-03");
@@ -433,6 +437,22 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
     assertEquals(expected, result);
   }
 
+  @Test
+  void testPeriodOffsetSubExpression() {
+    expected =
+        List.of("inabcdefghA-202201-1.0", "inabcdefghA-202202-3.0", "inabcdefghA-202203-5.0");
+
+    result =
+        query("subExpression(#{deabcdefghA} + #{deabcdefghA}.periodOffset(-1))", jan, feb, mar);
+
+    assertEquals(expected, result);
+  }
+
+  @AfterAll
+  void cleanUpRefs() {
+    cleanPeriodTypes();
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
@@ -462,7 +482,7 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
             .withIndicators(List.of(indicatorA))
             .withAggregationType(AnalyticsAggregationType.SUM)
             .withFilterOrganisationUnits(List.of(ouA))
-            .withPeriods(List.of(periods))
+            .withPeriods(Stream.of(periods).map(PeriodDimension::of).toList())
             .withOutputFormat(OutputFormat.ANALYTICS)
             .build();
 

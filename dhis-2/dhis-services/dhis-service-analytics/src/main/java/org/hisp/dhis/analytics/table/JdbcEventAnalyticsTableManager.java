@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,11 +78,16 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
@@ -92,7 +97,6 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -108,6 +112,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   static final String[] EXPORTABLE_EVENT_STATUSES = {"'COMPLETED'", "'ACTIVE'", "'SCHEDULE'"};
 
+  private static final List<String> PRIMARY_KEY = List.of("event", "year");
+
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -121,7 +127,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       ColumnMapper columnMapper,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      ConfigurationService configurationService) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -135,7 +142,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         analyticsTableSettings,
         periodDataProvider,
         columnMapper,
-        sqlBuilder);
+        sqlBuilder,
+        configurationService);
   }
 
   @Override
@@ -175,10 +183,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     List<Program> programs =
         params.isSkipPrograms()
-            ? idObjectManager.getAllNoAcl(Program.class)
-            : idObjectManager.getAllNoAcl(Program.class).stream()
+            ? idObjectManager.getAllNoAcl(Program.class).stream()
                 .filter(p -> !params.getSkipPrograms().contains(p.getUid()))
-                .toList();
+                .toList()
+            : idObjectManager.getAllNoAcl(Program.class);
 
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
@@ -190,7 +198,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       Collections.sort(yearsForPartitionTables);
 
       AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
+          new AnalyticsTable(
+              getAnalyticsTableType(),
+              getColumns(program),
+              sqlBuilder.requiresUniqueKeyAnalyticsTables() ? PRIMARY_KEY : List.of(),
+              logged,
+              program);
 
       for (Integer year : yearsForPartitionTables) {
         List<String> checks = getPartitionChecks(year, PartitionUtils.getEndDate(calendar, year));
@@ -220,14 +233,20 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTable> getLatestAnalyticsTables(AnalyticsTableUpdateParams params) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     Date lastFullTableUpdate = settings.getLastSuccessfulAnalyticsTablesUpdate();
-    Date lastLatestPartitionUpdate = settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
-    Date lastAnyTableUpdate = DateUtils.getLatest(lastLatestPartitionUpdate, lastFullTableUpdate);
+    Date lastAnyTableUpdate = getLastAnyTableUpdate(settings);
 
     Assert.isTrue(
         lastFullTableUpdate.getTime() > 0L,
         "A full analytics table update process must be run prior to a latest partition update");
 
-    Date startDate = lastFullTableUpdate;
+    // Engines without a unique key on analytics tables (Postgres) wholesale-replace the latest
+    // partition on every run, so its window must always span back to the last full rebuild, or
+    // data captured by an earlier continuous run would be discarded rather than carried forward.
+    // Engines with a unique key (Doris) instead merge into the persistent main table with
+    // natural-key deduplication, so it's safe and correct to only (re)process what changed since
+    // the last continuous run.
+    Date startDate =
+        sqlBuilder.requiresUniqueKeyAnalyticsTables() ? lastAnyTableUpdate : lastFullTableUpdate;
     Date endDate = params.getStartTime();
 
     List<AnalyticsTable> tables = new ArrayList<>();
@@ -242,25 +261,41 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             : idObjectManager.getAllNoAcl(Program.class);
 
     for (Program program : programs) {
-      boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate, program);
+      // On databases which merge the latest partition into the main table (Doris), a program
+      // without a main table yet (e.g. created after the last full rebuild) gets all of its data,
+      // since its staging table becomes the main table and later runs only merge into it. A window
+      // starting at the last update would leave out its events last updated before then. Other
+      // databases replace the latest partition with the same window on every run.
+      boolean fullHistory =
+          sqlBuilder.requiresUniqueKeyAnalyticsTables()
+              && !tableExists(AnalyticsTable.getTableName(getAnalyticsTableType(), program));
+      Date programStartDate = fullHistory ? new Date(0L) : startDate;
+      Date updatedSince = fullHistory ? new Date(0L) : lastAnyTableUpdate;
+
+      boolean hasUpdatedData = hasUpdatedLatestData(updatedSince, endDate, program);
 
       if (hasUpdatedData) {
         AnalyticsTable table =
-            new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
+            new AnalyticsTable(
+                getAnalyticsTableType(),
+                getColumns(program),
+                sqlBuilder.requiresUniqueKeyAnalyticsTables() ? PRIMARY_KEY : List.of(),
+                logged,
+                program);
         table.addTablePartition(
-            List.of(), AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
+            List.of(), AnalyticsTablePartition.LATEST_PARTITION, programStartDate, endDate);
         tables.add(table);
 
         log.info(
             "Added latest event analytics partition for program: '{}', start: '{}' and end: '{}'",
             program.getUid(),
-            toLongDate(startDate),
+            toLongDate(programStartDate),
             toLongDate(endDate));
       } else {
         log.info(
             "No updated latest event data found for program: '{}', start: '{}' and end: '{}",
             program.getUid(),
-            toLongDate(lastAnyTableUpdate),
+            toLongDate(updatedSince),
             toLongDate(endDate));
       }
     }
@@ -356,59 +391,202 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     for (AnalyticsTable table : tables) {
       AnalyticsTablePartition partition = table.getLatestTablePartition();
-      String sql = null;
       Program program = table.getProgram();
 
-      if (table.getProgram().isRegistration()) {
+      if (sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
+        removeUpdatedDataViaStagingKeys(table, program, partition);
+      } else {
+        String sql = getSubquerySql(table, program, partition);
+
+        if (isNotBlank(sql)) {
+          invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getMainName());
+        }
+      }
+    }
+  }
+
+  /**
+   * Removes updated and deleted events on databases which do not require a unique key for analytics
+   * tables (Postgres, ClickHouse). Runs entirely against local tables, so the federated-join
+   * problem {@link #removeUpdatedDataViaStagingKeys} works around does not apply here.
+   */
+  private String getSubquerySql(
+      AnalyticsTable table, Program program, AnalyticsTablePartition partition) {
+
+    String sql = null;
+    if (table.getProgram().isRegistration()) {
+      sql =
+          replaceQualify(
+              sqlBuilder,
+              """
+                  delete from ${tableName} ax \
+                  where ax.event in ( \
+                  select ev.uid \
+                  from ${trackerevent} ev \
+                  inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+                  where en.programid = ${programId} \
+                  and ev.lastupdated >= '${startDate}' \
+                  and ev.lastupdated < '${endDate}');""",
+              Map.of(
+                  "tableName", sqlBuilder.qualifyTable(table.getMainName()),
+                  "programId", String.valueOf(program.getId()),
+                  "startDate", toLongDate(partition.getStartDate()),
+                  "endDate", toLongDate(partition.getEndDate())));
+    } else {
+      if (isEmpty(program.getProgramStages()) || program.getProgramStages().size() > 1) {
+        log.warn("Single event program {}, must have one stage", program.getUid());
+      } else {
+        String programStageId =
+            String.valueOf(
+                program.isSingleProgramStage()
+                    ? program.getProgramStages().stream().toList().get(0).getId()
+                    : EMPTY);
         sql =
             replaceQualify(
                 sqlBuilder,
                 """
-                    delete from ${tableName} ax \
-                    where ax.event in ( \
-                    select ev.uid \
-                    from ${trackerevent} ev \
-                    inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
-                    where en.programid = ${programId} \
-                    and ev.lastupdated >= '${startDate}' \
-                    and ev.lastupdated < '${endDate}');""",
+                  delete from ${tableName} ax \
+                  where ax.event in ( \
+                  select ev.uid \
+                  from ${singleevent} ev \
+                  where ev.programstageid = ${programStageId} \
+                  and ev.lastupdated >= '${startDate}' \
+                  and ev.lastupdated < '${endDate}');""",
                 Map.of(
-                    "tableName", sqlBuilder.qualifyTable(table.getName()),
-                    "programId", String.valueOf(program.getId()),
+                    "tableName", sqlBuilder.qualifyTable(table.getMainName()),
+                    "programStageId", String.valueOf(programStageId),
                     "startDate", toLongDate(partition.getStartDate()),
                     "endDate", toLongDate(partition.getEndDate())));
-      } else {
-        if (isEmpty(program.getProgramStages()) || program.getProgramStages().size() > 1) {
-          log.warn("Single event program {}, must have one stage", program.getUid());
-        } else {
-          String programStageId =
-              String.valueOf(
-                  program.isSingleProgramStage()
-                      ? program.getProgramStages().stream().toList().get(0).getId()
-                      : EMPTY);
-          sql =
-              replaceQualify(
-                  sqlBuilder,
-                  """
-                    delete from ${tableName} ax \
-                    where ax.event in ( \
-                    select ev.uid \
-                    from ${singleevent} ev \
-                    where ev.programstageid = ${programStageId} \
-                    and ev.lastupdated >= '${startDate}' \
-                    and ev.lastupdated < '${endDate}');""",
-                  Map.of(
-                      "tableName", sqlBuilder.qualifyTable(table.getName()),
-                      "programStageId", String.valueOf(programStageId),
-                      "startDate", toLongDate(partition.getStartDate()),
-                      "endDate", toLongDate(partition.getEndDate())));
-        }
-      }
-
-      if (isNotBlank(sql)) {
-        invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getName());
       }
     }
+    return sql;
+  }
+
+  /**
+   * Removes updated and deleted events on databases which require a unique key for analytics tables
+   * (Doris). The equivalent single {@code delete ... using <federated table>} statement is avoided
+   * here because it joins a live federated table (the operational database's {@code
+   * trackerevent}/{@code singleevent}) against local tables inside a {@code delete}, which is
+   * dramatically slower than the same join shape used as a plain {@code select} (as {@link
+   * #populateTable} already does). Instead, the matching rows' {@code event} UID is first
+   * materialized into a small native staging table via that proven-fast federated {@code select},
+   * and the actual delete runs entirely locally against that staging table. Unlike the aggregate
+   * ({@code DATA_VALUE}) case, an analytics event row is identified by its {@code event} UID alone
+   * (one physical table per program, one row per event). {@link #PRIMARY_KEY} also includes {@code
+   * year} only because Doris requires the partition column in a unique key. The staging table
+   * therefore carries just {@code event}, and the delete matches on it across all years, so an
+   * event whose date moved to a different year is still removed.
+   */
+  private void removeUpdatedDataViaStagingKeys(
+      AnalyticsTable table, Program program, AnalyticsTablePartition partition) {
+    if (program.isRegistration()) {
+      removeUpdatedTrackerEventsViaStagingKeys(table, program, partition);
+    } else if (isEmpty(program.getProgramStages()) || program.getProgramStages().size() > 1) {
+      log.warn("Single event program {}, must have one stage", program.getUid());
+    } else {
+      removeUpdatedSingleEventsViaStagingKeys(table, program, partition);
+    }
+  }
+
+  private void removeUpdatedTrackerEventsViaStagingKeys(
+      AnalyticsTable table, Program program, AnalyticsTablePartition partition) {
+    String keysTableName = getDeleteKeysTableName();
+
+    invokeTimeAndLog(
+        sqlBuilder.dropTableIfExistsCascade(keysTableName), "Drop delete-keys staging table (pre)");
+
+    invokeTimeAndLog(
+        sqlBuilder.createTable(newDeleteKeysTable(keysTableName)),
+        "Create delete-keys staging table");
+
+    String insertSql =
+        replaceQualify(
+            sqlBuilder,
+            """
+            insert into ${keysTableName} (event) \
+            select ev.uid \
+            from ${trackerevent} ev \
+            inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+            where en.programid = ${programId} \
+            and ev.lastupdated >= '${startDate}' and ev.lastupdated < '${endDate}';""",
+            Map.of(
+                "keysTableName", quote(keysTableName),
+                "programId", String.valueOf(program.getId()),
+                "startDate", toLongDate(partition.getStartDate()),
+                "endDate", toLongDate(partition.getEndDate())));
+
+    invokeTimeAndLog(insertSql, "Populate delete-keys staging table");
+
+    invokeTimeAndLog(
+        deleteFromMainTableUsingKeysSql(table, keysTableName),
+        "Remove updated events for table: '{}'",
+        table.getMainName());
+
+    invokeTimeAndLog(
+        sqlBuilder.dropTableIfExistsCascade(keysTableName),
+        "Drop delete-keys staging table (post)");
+  }
+
+  private void removeUpdatedSingleEventsViaStagingKeys(
+      AnalyticsTable table, Program program, AnalyticsTablePartition partition) {
+    String programStageId =
+        String.valueOf(
+            program.isSingleProgramStage()
+                ? program.getProgramStages().stream().toList().get(0).getId()
+                : EMPTY);
+    String keysTableName = getDeleteKeysTableName();
+
+    invokeTimeAndLog(
+        sqlBuilder.dropTableIfExistsCascade(keysTableName), "Drop delete-keys staging table (pre)");
+
+    invokeTimeAndLog(
+        sqlBuilder.createTable(newDeleteKeysTable(keysTableName)),
+        "Create delete-keys staging table");
+
+    String insertSql =
+        replaceQualify(
+            sqlBuilder,
+            """
+            insert into ${keysTableName} (event) \
+            select ev.uid \
+            from ${singleevent} ev \
+            where ev.programstageid = ${programStageId} \
+            and ev.lastupdated >= '${startDate}' and ev.lastupdated < '${endDate}';""",
+            Map.of(
+                "keysTableName", quote(keysTableName),
+                "programStageId", programStageId,
+                "startDate", toLongDate(partition.getStartDate()),
+                "endDate", toLongDate(partition.getEndDate())));
+
+    invokeTimeAndLog(insertSql, "Populate delete-keys staging table");
+
+    invokeTimeAndLog(
+        deleteFromMainTableUsingKeysSql(table, keysTableName),
+        "Remove updated events for table: '{}'",
+        table.getMainName());
+
+    invokeTimeAndLog(
+        sqlBuilder.dropTableIfExistsCascade(keysTableName),
+        "Drop delete-keys staging table (post)");
+  }
+
+  private String deleteFromMainTableUsingKeysSql(AnalyticsTable table, String keysTableName) {
+    return replace(
+        """
+        delete from ${tableName} ax \
+        using ${keysTableName} k \
+        where ax.event=k.event;""",
+        Map.of(
+            "tableName", quote(table.getMainName()),
+            "keysTableName", quote(keysTableName)));
+  }
+
+  private String getDeleteKeysTableName() {
+    return getAnalyticsTableType().getTableName() + "_delete_keys";
+  }
+
+  private Table newDeleteKeysTable(String keysTableName) {
+    return new Table(keysTableName, List.of(new Column("event", CHARACTER_11)), List.of());
   }
 
   @Override
@@ -467,6 +645,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             program.isSingleProgramStage()
                 ? program.getProgramStages().stream().toList().get(0).getId()
                 : EMPTY);
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String fromClauseSingleEvent =
         qualifyResourceTables(
             replaceQualify(
@@ -479,28 +658,28 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
                 left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
                 inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
+                ${extraJoinClause}\
                 where ev.lastupdated < '${startTime}' ${partitionClause} \
                 and ev.programstageid = ${programStageId} \
-                and ev.organisationunitid is not null \
                 and (${eventDateExpression}) is not null \
                 and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
                 and dps.year >= ${firstYear} \
                 and dps.year <= ${latestYear} \
                 and ev.status in (${exportableEventStatues}) \
                 and ${evDeletedClause}""",
-                Map.of(
-                    "eventDateExpression", "ev.occurreddate",
-                    "partitionClause", partitionClauseSingleEvent,
-                    "startTime", toLongDate(params.getStartTime()),
-                    "programStageId", programStageId,
-                    "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
-                    "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
-                    "firstYear", String.valueOf(firstYear),
-                    "latestYear", String.valueOf(latestYear),
-                    "evDeletedClause", sqlBuilder.isFalse("ev", "deleted"),
-                    "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES))));
+                Map.ofEntries(
+                    Map.entry("eventDateExpression", "ev.occurreddate"),
+                    Map.entry("partitionClause", partitionClauseSingleEvent),
+                    Map.entry("startTime", toLongDate(params.getStartTime())),
+                    Map.entry("programStageId", programStageId),
+                    Map.entry("enDeletedClause", sqlBuilder.isFalse("en", "deleted")),
+                    Map.entry("teDeletedClause", sqlBuilder.isFalse("te", "deleted")),
+                    Map.entry("firstYear", String.valueOf(firstYear)),
+                    Map.entry("latestYear", String.valueOf(latestYear)),
+                    Map.entry("evDeletedClause", sqlBuilder.isFalse("ev", "deleted")),
+                    Map.entry("exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)),
+                    Map.entry("extraJoinClause", collectColumnJoinClauses(columns)))));
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     populateTableInternal(tableName, columns, fromClauseSingleEvent);
   }
 
@@ -524,6 +703,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       String partitionClause,
       String attributeJoinClause,
       String tableName) {
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String fromClause =
         replaceQualify(
             sqlBuilder,
@@ -541,28 +721,28 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
                 inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
                 ${attributeJoinClause}\
+                ${extraJoinClause}\
                 where ev.lastupdated < '${startTime}' ${partitionClause} \
                 and pr.programid = ${programId} \
-                and ev.organisationunitid is not null \
                 and (${eventDateExpression}) is not null \
                 and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
                 and dps.year >= ${firstYear} \
                 and dps.year <= ${latestYear} \
                 and ev.status in (${exportableEventStatues}) \
                 and ev.deleted = false""",
-            Map.of(
-                "eventDateExpression", eventDateExpression,
-                "partitionClause", partitionClause,
-                "attributeJoinClause", attributeJoinClause,
-                "startTime", toLongDate(params.getStartTime()),
-                "programId", String.valueOf(program.getId()),
-                "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
-                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
-                "firstYear", String.valueOf(firstYear),
-                "latestYear", String.valueOf(latestYear),
-                "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)));
+            Map.ofEntries(
+                Map.entry("eventDateExpression", eventDateExpression),
+                Map.entry("partitionClause", partitionClause),
+                Map.entry("attributeJoinClause", attributeJoinClause),
+                Map.entry("startTime", toLongDate(params.getStartTime())),
+                Map.entry("programId", String.valueOf(program.getId())),
+                Map.entry("enDeletedClause", sqlBuilder.isFalse("en", "deleted")),
+                Map.entry("teDeletedClause", sqlBuilder.isFalse("te", "deleted")),
+                Map.entry("firstYear", String.valueOf(firstYear)),
+                Map.entry("latestYear", String.valueOf(latestYear)),
+                Map.entry("exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)),
+                Map.entry("extraJoinClause", collectColumnJoinClauses(columns))));
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     populateTableInternal(tableName, columns, fromClause);
   }
 
@@ -749,12 +929,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getAttributeColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(
-        program.getNonConfidentialTrackedEntityAttributes().stream()
+        program.getAnalyzableTrackedEntityAttributes().stream()
             .map(this::getColumnForAttribute)
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
-        program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
+        program.getAnalyzableTrackedEntityAttributesWithLegendSet().stream()
             .map(this::getColumnForAttributeWithLegendSet)
             .flatMap(Collection::stream)
             .toList());
@@ -827,7 +1007,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       String dataFilterClause,
       ProgramType programType) {
     if (!sqlBuilder.supportsCorrelatedSubquery()) {
-      return List.of();
+      return getLegendCaseColumns(dataElement, selectExpression);
     }
 
     String eventTable =
@@ -869,6 +1049,58 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   .build();
             })
         .toList();
+  }
+
+  /**
+   * Builds legend-set companion columns using an inline {@code CASE} expression rather than the
+   * correlated subquery the default path relies on. Used when the underlying engine does not
+   * support correlated subqueries (e.g. ClickHouse). Legend ranges are static metadata loaded with
+   * the {@link LegendSet}, so the lookup compiles to a per-row decision tree that yields the same
+   * legend UID the correlated subquery would have returned.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @param valueExpression SQL fragment that evaluates to the data element's numeric value, with
+   *     non-numeric inputs already coerced to {@code NULL} by the column-expression machinery.
+   * @return one {@link AnalyticsTableColumn} per legend set on the data element.
+   */
+  private List<AnalyticsTableColumn> getLegendCaseColumns(
+      DataElement dataElement, String valueExpression) {
+    return dataElement.getLegendSets().stream()
+        .map(
+            ls -> {
+              String column = dataElement.getUid() + PartitionUtils.SEP + ls.getUid();
+              String sql = buildLegendCaseExpression(ls, valueExpression) + " as " + column;
+              return AnalyticsTableColumn.builder()
+                  .name(column)
+                  .dataType(CHARACTER_11)
+                  .selectExpression(sql)
+                  .build();
+            })
+        .toList();
+  }
+
+  /**
+   * Renders a {@code CASE WHEN start <= value AND value < end THEN 'legendUid' ... END} expression
+   * for the given legend set. Mirrors the {@code l.startvalue <= v AND l.endvalue > v} predicate
+   * used by the correlated-subquery path so semantics match across engines.
+   */
+  private String buildLegendCaseExpression(LegendSet legendSet, String valueExpression) {
+    StringBuilder sb = new StringBuilder("(case ");
+    for (Legend legend : legendSet.getLegends()) {
+      sb.append("when ")
+          .append(valueExpression)
+          .append(" >= ")
+          .append(legend.getStartValue())
+          .append(" and ")
+          .append(valueExpression)
+          .append(" < ")
+          .append(legend.getEndValue())
+          .append(" then '")
+          .append(legend.getUid())
+          .append("' ");
+    }
+    sb.append("else null end)");
+    return sb.toString();
   }
 
   /**

@@ -35,10 +35,9 @@ import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
 import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
 import static org.hisp.dhis.common.collection.CollectionUtils.mapOf;
-import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
+import static org.hisp.dhis.period.Period.of;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
@@ -48,13 +47,16 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 
@@ -225,40 +227,74 @@ class PredictionDisaggregatorTest extends TestBase {
 
   // Periods
 
-  private final Period per1 = getPeriodFromIsoString("202201");
+  private final Period per1 = of("202201");
 
-  private final Period per2 = getPeriodFromIsoString("202202");
+  private final Period per2 = of("202202");
 
-  // Context values before disaggregating
+  // Program indicators
 
-  // Period 1 values found in data:
-  private final MapMap<Period, DimensionalItemObject, Object> pvMap1 =
+  // piA has category combo ccA, so it may have values for catA=coA and catA=coB
+  private final ProgramIndicator piA = createProgramIndicator('A', createProgram('A'), "1", null);
+
+  // piB has no disaggregation, so its values have no COC
+  private final ProgramIndicator piB = createProgramIndicator('B', createProgram('B'), "1", null);
+
+  // Organisation unit
+
+  private final OrganisationUnit ouA = createOrganisationUnit('A');
+
+  // Values found in data (all for the same attribute option combo)
+
+  private final List<FoundDimensionItemValue> values =
+      List.of(
+          // Period 1 values:
+          value(per1, deoAa, 1.0), // deA: catA=coA
+          value(per1, deoAb, 2.0), // deA: catA=coB
+          value(per1, deoBac, 3.0), // deB: catA=coA, catC=coC
+          value(per1, deoBad, 4.0), // deB: catA=coA, catC=coD
+          value(per1, deoBbc, 5.0), // deB: catA=coB, catC=coC
+          value(per1, deoBbd, 6.0), // deB: catA=coB, catC=coD
+          value(per1, deoCac, 7.0), // deC: catB=coA, catC=coC
+          value(per1, deoCad, 8.0), // deC: catB=coA, catC=coD
+          value(per1, deoCbc, 9.0), // deC: catB=coB, catC=coC
+          value(per1, deoCbd, 10.0), // deC: catB=coB, catC=coD
+          value(per1, deoDe, 11.0), // deD: catD=coE
+          value(per1, deoDf, 12.0), // deD: catD=coF
+          value(per1, deoEa, 13.0), // deE: catA=coA
+          value(per1, cocAa, piA, 20.0), // piA: catA=coA
+          value(per1, cocAb, piA, 30.0), // piA: catA=coB
+          value(per1, null, piB, 40.0), // piB: no COC
+          // Period 2 values:
+          value(per2, deoAa, 14.0)); // deA: catA=coA
+
+  // Period value map without disaggregating
+
+  private final MapMap<Period, DimensionalItemObject, Object> pvMap =
       MapMap.ofEntries(
           immutableEntry(
               per1,
               mapOf(
-                  deoAa, 1.0, // deA: catA=coA
-                  deoAb, 2.0, // deA: catA=coB
-                  deoBac, 3.0, // deB: catA=coA, catC=coC
-                  deoBad, 4.0, // deB: catA=coA, catC=coD
-                  deoBbc, 5.0, // deB: catA=coB, catC=coC
-                  deoBbd, 6.0, // deB: catA=coB, catC=coD
-                  deoCac, 7.0, // deC: catB=coA, catC=coC
-                  deoCad, 8.0, // deC: catB=coA, catC=coD
-                  deoCbc, 9.0, // deC: catB=coB, catC=coC
-                  deoCbd, 10.0, // deC: catB=coB, catC=coD
-                  deoDe, 11.0, // deD: catD=coE
-                  deoDf, 12.0, // deD: catD=coF
-                  deoEa, 13.0))); // deE: catA=coA
+                  deoAa, 1.0,
+                  deoAb, 2.0,
+                  deoBac, 3.0,
+                  deoBad, 4.0,
+                  deoBbc, 5.0,
+                  deoBbd, 6.0,
+                  deoCac, 7.0,
+                  deoCad, 8.0,
+                  deoCbc, 9.0,
+                  deoCbd, 10.0,
+                  deoDe, 11.0,
+                  deoDf, 12.0,
+                  deoEa, 13.0,
+                  piA, 50.0, // piA sum
+                  piB, 40.0)),
+          immutableEntry(per2, Map.of(deoAa, 14.0)));
 
-  // Period 2 values found in data:
-  private final MapMap<Period, DimensionalItemObject, Object> pvMap2 =
-      MapMap.ofEntries(immutableEntry(per2, Map.of(deoAa, 14.0))); // deA: catA=coA
+  // Period value maps after disaggregating
 
-  // Context values after disaggregating
-
-  // Period 1 expression values for coA (removing coB):
-  private final MapMap<Period, DimensionalItemObject, Object> pvMap1a =
+  // Expression values for coA (removing coB):
+  private final MapMap<Period, DimensionalItemObject, Object> pvMapA =
       MapMap.ofEntries(
           immutableEntry(
               per1,
@@ -275,10 +311,17 @@ class PredictionDisaggregatorTest extends TestBase {
                   deB, 7.0, // deB sum
                   deC, 15.0, // deC sum
                   deD, 23.0, // deD sum
-                  deE, 13.0))); // deE sum
+                  deE, 13.0, // deE sum
+                  piA, 20.0, // piA: catA=coA
+                  piB, 40.0)), // piB: no COC
+          immutableEntry(
+              per2,
+              Map.of(
+                  deoAa, 14.0, // deA: catA=coA
+                  deA, 14.0))); // deA sum
 
-  // Period 1 expression values for coB (removing coA):
-  private final MapMap<Period, DimensionalItemObject, Object> pvMap1b =
+  // Expression values for coB (removing coA):
+  private final MapMap<Period, DimensionalItemObject, Object> pvMapB =
       MapMap.ofEntries(
           immutableEntry(
               per1,
@@ -293,39 +336,9 @@ class PredictionDisaggregatorTest extends TestBase {
                   deA, 2.0, // deA sum
                   deB, 11.0, // deB sum
                   deC, 19.0, // deC sum
-                  deD, 23.0))); // deE sum
-
-  // Period 2 expression values for coA (removing coB):
-  private final MapMap<Period, DimensionalItemObject, Object> pvMap2a =
-      MapMap.ofEntries(
-          immutableEntry(
-              per2,
-              Map.of(
-                  deoAa, 14.0, // deA: catA=coA
-                  deA, 14.0))); // deA sum
-
-  // Period 2 expression values for coB (removing coA):
-  private final MapMap<Period, DimensionalItemObject, Object> pvMap2b = new MapMap<>();
-
-  // Prediction contexts without disaggregating
-
-  private final PredictionContext ctx1 = new PredictionContext(cocAa, cocDefault, per1, pvMap1);
-
-  private final PredictionContext ctx2 = new PredictionContext(cocAa, cocDefault, per2, pvMap2);
-
-  // Prediction contexts after disaggregating
-
-  private final PredictionContext ctx1a = new PredictionContext(cocAa, cocDefault, per1, pvMap1a);
-
-  private final PredictionContext ctx1b = new PredictionContext(cocAb, cocDefault, per1, pvMap1b);
-
-  private final PredictionContext ctx2a = new PredictionContext(cocAa, cocDefault, per2, pvMap2a);
-
-  private final PredictionContext ctx2b = new PredictionContext(cocAb, cocDefault, per2, pvMap2b);
-
-  // List of starting (undisaggregated) prediction contexts
-
-  private final List<PredictionContext> startingContexts = List.of(ctx1, ctx2);
+                  deD, 23.0, // deD sum
+                  piA, 30.0, // piA: catA=coB
+                  piB, 40.0))); // piB: no COC
 
   // Target for tests
 
@@ -354,26 +367,17 @@ class PredictionDisaggregatorTest extends TestBase {
   }
 
   @Test
-  void testGetDisaggregateContextsWithoutDisaggregation() {
+  void testGetPeriodValueMapsWithoutDisaggregation() {
     setUpWithoutDisag();
 
-    assertEquals(startingContexts, target.getDisaggregateContexts(startingContexts));
+    assertPeriodValueMaps(Map.of(cocAa, pvMap), target.getPeriodValueMaps(values));
   }
 
   @Test
-  void testGetDisaggregateContextsWithDisaggregation() {
+  void testGetPeriodValueMapsWithDisaggregation() {
     setUpWithDisag();
 
-    List<PredictionContext> actual = target.getDisaggregateContexts(startingContexts);
-
-    assertContextInList(ctx1a, actual);
-    assertContextInList(ctx1b, actual);
-    assertContextInList(ctx2a, actual);
-    assertContextInList(ctx2b, actual);
-
-    assertEquals(4, actual.size());
-
-    assertPeriodsInOrder(actual);
+    assertPeriodValueMaps(Map.of(cocAa, pvMapA, cocAb, pvMapB), target.getPeriodValueMaps(values));
   }
 
   // -------------------------------------------------------------------------
@@ -401,33 +405,33 @@ class PredictionDisaggregatorTest extends TestBase {
     target = new PredictionDisaggregator(pWithDisag, expressionItems, cocDefault);
   }
 
-  private void assertContextInList(PredictionContext ctx, List<PredictionContext> list) {
-    assertTrue(
-        list.contains(ctx),
-        String.format(
-            "\n %s not found in [\n %s ]",
-            formatPredictionContext(ctx), formatPredictionContextList(list)));
+  private FoundDimensionItemValue value(Period period, DataElementOperand deo, Double value) {
+    return value(period, deo.getCategoryOptionCombo(), deo, value);
   }
 
-  private String formatPredictionContextList(List<PredictionContext> list) {
-    return list.stream().map(this::formatPredictionContext).collect(joining(",\n "));
+  private FoundDimensionItemValue value(
+      Period period, CategoryOptionCombo coc, DimensionalItemObject item, Double value) {
+    return new FoundDimensionItemValue(ouA, period, coc, cocDefault, item, value);
   }
 
-  private String formatPredictionContext(PredictionContext ctx) {
-    return "OutputPeriod: "
-        + ctx.getOutputPeriod().getName()
-        + ", OutputCOC: "
-        + ctx.getCategoryOptionCombo().getName()
-        + ", AOC: "
-        + ctx.getAttributeOptionCombo().getName()
-        + ", PVM: {"
-        + formatPeriodValueMap(ctx.getPeriodValueMap())
-        + "}";
+  /** Asserts period value maps are as expected, formatted for ease of reading any differences. */
+  private void assertPeriodValueMaps(
+      Map<CategoryOptionCombo, MapMap<Period, DimensionalItemObject, Object>> expected,
+      Map<CategoryOptionCombo, MapMap<Period, DimensionalItemObject, Object>> actual) {
+    assertEquals(formatPeriodValueMaps(expected), formatPeriodValueMaps(actual));
+  }
+
+  private String formatPeriodValueMaps(
+      Map<CategoryOptionCombo, MapMap<Period, DimensionalItemObject, Object>> maps) {
+    return maps.entrySet().stream()
+        .map(e -> "\n" + e.getKey().getName() + ": {" + formatPeriodValueMap(e.getValue()) + "}")
+        .sorted()
+        .collect(joining());
   }
 
   private String formatPeriodValueMap(MapMap<Period, DimensionalItemObject, Object> pvm) {
     return pvm.entrySet().stream()
-        .map(e -> e.getKey().getName() + ": {" + formatValueMap(e.getValue()) + "}")
+        .map(e -> e.getKey().getIsoDate() + ": {" + formatValueMap(e.getValue()) + "}")
         .sorted()
         .collect(joining(", "));
   }
@@ -437,17 +441,5 @@ class PredictionDisaggregatorTest extends TestBase {
         .map(e -> e.getKey().getName() + ": " + e.getValue())
         .sorted()
         .collect(joining(", "));
-  }
-
-  /** Asserts that context periods are in order (never going back in time). */
-  private void assertPeriodsInOrder(List<PredictionContext> cList) {
-    for (int i = 0; i < cList.size() - 1; i++) {
-      String period = cList.get(i).getOutputPeriod().getIsoDate();
-      String nextPeriod = cList.get(i + 1).getOutputPeriod().getIsoDate();
-
-      assertTrue(
-          period.compareTo(nextPeriod) <= 0,
-          "Expected period " + period + " [" + i + "] <= " + nextPeriod);
-    }
   }
 }

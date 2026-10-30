@@ -49,12 +49,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
  */
 public class CspFilter extends OncePerRequestFilter {
   public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
-
   public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
 
   private final boolean enabled;
 
-  ConfigurationService configurationService;
+  private final ConfigurationService configurationService;
 
   public CspFilter(
       DhisConfigurationProvider dhisConfig, ConfigurationService configurationService) {
@@ -84,7 +83,7 @@ public class CspFilter extends OncePerRequestFilter {
   }
 
   private void setFrameAncestorsCspRule(HttpServletResponse res) {
-    Set<String> corsWhitelist = configurationService.getConfiguration().getCorsWhitelist();
+    Set<String> corsWhitelist = configurationService.getCorsWhitelist();
     if (!corsWhitelist.isEmpty()) {
       String corsAllowedOrigins = String.join(" ", corsWhitelist);
       res.addHeader(

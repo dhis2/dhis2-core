@@ -1,3 +1,4 @@
+.api_cache/**
 target
 *.log
 *.log.*
@@ -40,8 +41,12 @@ node_modules
 CLAUDE.local.md
 # ignore generated artifact directory
 docker/artifacts
+# ignore downloaded curl binary used for container healthchecks
+dhis-2/dhis-web-server/src/main/jib/usr/local/bin/curl
 # ignore local docker override files
 docker-compose.override.yml
 .env
 # ignore JMH benchmark results
 jmh-result*.csv
+# ignore performance test results downloaded from CI
+gatling-report-*/

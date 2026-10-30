@@ -53,7 +53,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.system.util.CodecUtils;
@@ -62,6 +62,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.FavoritableOperations;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -82,7 +83,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Deprecated
 @Controller
 @RequestMapping("/api/eventCharts")
-public class EventChartController extends AbstractCrudController<EventChart, GetObjectListParams> {
+public class EventChartController extends AbstractCrudController<EventChart, GetObjectListParams>
+    implements FavoritableOperations<EventChart> {
+
   @Autowired private EventChartService eventChartService;
 
   @Autowired private ChartService chartService;
@@ -210,8 +213,8 @@ public class EventChartController extends AbstractCrudController<EventChart, Get
     I18nFormat format = i18nManager.getI18nFormat();
 
     if (eventChart.getPeriods() != null && !eventChart.getPeriods().isEmpty()) {
-      for (Period period : eventChart.getPeriods()) {
-        period.setName(format.formatPeriod(period));
+      for (PeriodDimension period : eventChart.getPeriods()) {
+        period.setName(format.formatPeriod(period.getPeriod()));
       }
     }
   }

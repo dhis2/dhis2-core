@@ -30,6 +30,7 @@
 package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
@@ -44,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.OAuth2AuthorizationContext;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -64,7 +66,7 @@ public class OAuth2ClientCredentialsAuthScheme implements AuthScheme {
   public static final String OAUTH2_CLIENT_CREDENTIALS_TYPE = "oauth2-client-credentials";
 
   public static final Authentication ANONYMOUS_AUTHENTICATION =
-      new AbstractAuthenticationToken(null) {
+      new AbstractAuthenticationToken((Collection<? extends GrantedAuthority>) null) {
         @Override
         public Object getCredentials() {
           return "";

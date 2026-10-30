@@ -32,11 +32,15 @@ package org.hisp.dhis.analytics.enrollment.aggregate;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
+import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -81,7 +85,99 @@ public class EnrollmentsAggregate4AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"lZGmxYbs97q\":{\"uid\":\"lZGmxYbs97q\",\"aggregationType\":\"NONE\",\"code\":\"MMD_PER_ID\",\"valueType\":\"TEXT\",\"name\":\"Unique ID\",\"description\":\"Unique identiifer\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"totalAggregationType\":\"NONE\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"aggregationType\":\"AVERAGE\",\"code\":\"DE_2006098\",\"valueType\":\"NUMBER\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"Mnp3oXrpAbK\":{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"202208\":{\"uid\":\"202208\",\"code\":\"202208\",\"endDate\":\"2022-08-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"August 2022\",\"startDate\":\"2022-08-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202307\":{\"uid\":\"202307\",\"code\":\"202307\",\"endDate\":\"2023-07-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"July 2023\",\"startDate\":\"2023-07-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202209\":{\"uid\":\"202209\",\"code\":\"202209\",\"endDate\":\"2022-09-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"September 2022\",\"startDate\":\"2022-09-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202305\":{\"uid\":\"202305\",\"code\":\"202305\",\"endDate\":\"2023-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"May 2023\",\"startDate\":\"2023-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202306\":{\"uid\":\"202306\",\"code\":\"202306\",\"endDate\":\"2023-06-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"June 2023\",\"startDate\":\"2023-06-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202303\":{\"uid\":\"202303\",\"code\":\"202303\",\"endDate\":\"2023-03-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"March 2023\",\"startDate\":\"2023-03-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202304\":{\"uid\":\"202304\",\"code\":\"202304\",\"endDate\":\"2023-04-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"April 2023\",\"startDate\":\"2023-04-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202301\":{\"uid\":\"202301\",\"code\":\"202301\",\"endDate\":\"2023-01-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"January 2023\",\"startDate\":\"2023-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202302\":{\"uid\":\"202302\",\"code\":\"202302\",\"endDate\":\"2023-02-28T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"February 2023\",\"startDate\":\"2023-02-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"cejWyOfXge6\":{\"uid\":\"cejWyOfXge6\",\"aggregationType\":\"NONE\",\"valueType\":\"TEXT\",\"name\":\"Gender\",\"description\":\"Gender\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"totalAggregationType\":\"NONE\"},\"202211\":{\"uid\":\"202211\",\"code\":\"202211\",\"endDate\":\"2022-11-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"November 2022\",\"startDate\":\"2022-11-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202212\":{\"uid\":\"202212\",\"code\":\"202212\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2022\",\"startDate\":\"2022-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202210\":{\"uid\":\"202210\",\"code\":\"202210\",\"endDate\":\"2022-10-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"October 2022\",\"startDate\":\"2022-10-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"lc3eMKXaEfw\":{\"uid\":\"lc3eMKXaEfw\",\"code\":\"OU_197385\",\"valueType\":\"TEXT\",\"name\":\"Bonthe\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\",\"202307\"],\"ou\":[\"lc3eMKXaEfw\"],\"cejWyOfXge6\":[\"Mnp3oXrpAbK\"]}}\n";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"lZGmxYbs97q\":{\"uid\":\"lZGmxYbs97q\",\"aggregationType\":\"NONE\",\"code\":\"MMD_PER_ID\",\"valueType\":\"TEXT\",\"name\":\"Unique ID\",\"description\":\"Unique identiifer\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"totalAggregationType\":\"NONE\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"aggregationType\":\"AVERAGE\",\"code\":\"DE_2006098\",\"valueType\":\"NUMBER\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"Mnp3oXrpAbK\":{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\",\"name\":\"Male\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"202208\":{\"uid\":\"202208\",\"code\":\"202208\",\"endDate\":\"2022-08-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"August 2022\",\"startDate\":\"2022-08-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202307\":{\"uid\":\"202307\",\"code\":\"202307\",\"endDate\":\"2023-07-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"July 2023\",\"startDate\":\"2023-07-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202209\":{\"uid\":\"202209\",\"code\":\"202209\",\"endDate\":\"2022-09-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"September 2022\",\"startDate\":\"2022-09-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202305\":{\"uid\":\"202305\",\"code\":\"202305\",\"endDate\":\"2023-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"May 2023\",\"startDate\":\"2023-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202306\":{\"uid\":\"202306\",\"code\":\"202306\",\"endDate\":\"2023-06-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"June 2023\",\"startDate\":\"2023-06-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202303\":{\"uid\":\"202303\",\"code\":\"202303\",\"endDate\":\"2023-03-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"March 2023\",\"startDate\":\"2023-03-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202304\":{\"uid\":\"202304\",\"code\":\"202304\",\"endDate\":\"2023-04-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"April 2023\",\"startDate\":\"2023-04-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202301\":{\"uid\":\"202301\",\"code\":\"202301\",\"endDate\":\"2023-01-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"January 2023\",\"startDate\":\"2023-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202302\":{\"uid\":\"202302\",\"code\":\"202302\",\"endDate\":\"2023-02-28T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"February 2023\",\"startDate\":\"2023-02-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"cejWyOfXge6\":{\"uid\":\"cejWyOfXge6\",\"aggregationType\":\"NONE\",\"valueType\":\"TEXT\",\"name\":\"Gender\",\"description\":\"Gender\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"totalAggregationType\":\"NONE\"},\"202211\":{\"uid\":\"202211\",\"code\":\"202211\",\"endDate\":\"2022-11-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"November 2022\",\"startDate\":\"2022-11-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202212\":{\"uid\":\"202212\",\"code\":\"202212\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2022\",\"startDate\":\"2022-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202210\":{\"uid\":\"202210\",\"code\":\"202210\",\"endDate\":\"2022-10-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"October 2022\",\"startDate\":\"2022-10-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"enrollmentdate\":{\"name\":\"Date of enrollment\"},\"lc3eMKXaEfw\":{\"uid\":\"lc3eMKXaEfw\",\"code\":\"OU_197385\",\"valueType\":\"TEXT\",\"name\":\"Bonthe\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"A03MvHHogjR.a3kGcGDCuk6\":[],\"ou\":[\"lc3eMKXaEfw\"],\"enrollmentdate\":[\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\",\"202307\"],\"cejWyOfXge6\":[\"Mnp3oXrpAbK\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response,
+        0,
+        "A03MvHHogjR.a3kGcGDCuk6",
+        "MCH Apgar Score",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
+    validateHeader(
+        response, 1, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 2, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+
+    // Assert rows.
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+  }
+
+  /**
+   * This test is identical to "queryAggregatedenrollmentsmacase1" but instead of using the
+   * "enrollmentDate" filter, it uses the "dimension" filter with "ENROLLMENT_DATE:LAST_12_MONTHS".
+   */
+  @Test
+  public void queryAggregatedenrollmentsmacase1_with_staticDimension() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("headers=A03MvHHogjR.a3kGcGDCuk6,lZGmxYbs97q,cejWyOfXge6")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("outputType=ENROLLMENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add(
+                "dimension=ENROLLMENT_DATE:LAST_12_MONTHS,ou:lc3eMKXaEfw,A03MvHHogjR.a3kGcGDCuk6,lZGmxYbs97q,cejWyOfXge6:IN:Female")
+            .add("relativePeriodDate=2023-08-01");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(3)))
+        .body("rows", hasSize(equalTo(36)))
+        .body("height", equalTo(36))
+        .body("width", equalTo(3))
+        .body("headerWidth", equalTo(3));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"lZGmxYbs97q\":{\"uid\":\"lZGmxYbs97q\",\"aggregationType\":\"NONE\",\"code\":\"MMD_PER_ID\",\"valueType\":\"TEXT\",\"name\":\"Unique ID\",\"description\":\"Unique identiifer\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"totalAggregationType\":\"NONE\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"aggregationType\":\"AVERAGE\",\"code\":\"DE_2006098\",\"valueType\":\"NUMBER\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"Mnp3oXrpAbK\":{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\",\"name\":\"Male\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"202208\":{\"uid\":\"202208\",\"code\":\"202208\",\"endDate\":\"2022-08-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"August 2022\",\"startDate\":\"2022-08-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202307\":{\"uid\":\"202307\",\"code\":\"202307\",\"endDate\":\"2023-07-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"July 2023\",\"startDate\":\"2023-07-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202209\":{\"uid\":\"202209\",\"code\":\"202209\",\"endDate\":\"2022-09-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"September 2022\",\"startDate\":\"2022-09-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202305\":{\"uid\":\"202305\",\"code\":\"202305\",\"endDate\":\"2023-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"May 2023\",\"startDate\":\"2023-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202306\":{\"uid\":\"202306\",\"code\":\"202306\",\"endDate\":\"2023-06-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"June 2023\",\"startDate\":\"2023-06-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202303\":{\"uid\":\"202303\",\"code\":\"202303\",\"endDate\":\"2023-03-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"March 2023\",\"startDate\":\"2023-03-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202304\":{\"uid\":\"202304\",\"code\":\"202304\",\"endDate\":\"2023-04-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"April 2023\",\"startDate\":\"2023-04-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202301\":{\"uid\":\"202301\",\"code\":\"202301\",\"endDate\":\"2023-01-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"January 2023\",\"startDate\":\"2023-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202302\":{\"uid\":\"202302\",\"code\":\"202302\",\"endDate\":\"2023-02-28T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"February 2023\",\"startDate\":\"2023-02-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"cejWyOfXge6\":{\"uid\":\"cejWyOfXge6\",\"aggregationType\":\"NONE\",\"valueType\":\"TEXT\",\"name\":\"Gender\",\"description\":\"Gender\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"totalAggregationType\":\"NONE\"},\"202211\":{\"uid\":\"202211\",\"code\":\"202211\",\"endDate\":\"2022-11-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"November 2022\",\"startDate\":\"2022-11-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202212\":{\"uid\":\"202212\",\"code\":\"202212\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2022\",\"startDate\":\"2022-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202210\":{\"uid\":\"202210\",\"code\":\"202210\",\"endDate\":\"2022-10-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"October 2022\",\"startDate\":\"2022-10-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"enrollmentdate\":{\"name\":\"Date of enrollment\"},\"lc3eMKXaEfw\":{\"uid\":\"lc3eMKXaEfw\",\"code\":\"OU_197385\",\"valueType\":\"TEXT\",\"name\":\"Bonthe\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"A03MvHHogjR.a3kGcGDCuk6\":[],\"ou\":[\"lc3eMKXaEfw\"],\"enrollmentdate\":[\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\",\"202307\"],\"cejWyOfXge6\":[\"Mnp3oXrpAbK\"]}}\n\n";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -139,6 +235,368 @@ public class EnrollmentsAggregate4AutoTest extends AnalyticsApiTest {
   }
 
   @Test
+  public void createdDimensionEnrollmentDateFilter() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ENROLLMENT_DATE:2023")
+            .add("totalPages=false")
+            .add("dimension=ou:ImspTQPwCqd,CREATED:2017");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2017\":{\"name\":\"2017\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"created\":{\"name\":\"Created\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"enrollmentdate\":{\"name\":\"Date of enrollment\"}},\"dimensions\":{\"created\":[\"2017\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "created", "Created", "TEXT", "java.lang.String", false, true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("value", "8005", "ou", "ImspTQPwCqd", "created", "2017"));
+  }
+
+  @Test
+  public void enrollmentDateDimensionCreatedFilter() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=CREATED:2016")
+            .add("totalPages=false")
+            .add("dimension=ou:ImspTQPwCqd,ENROLLMENT_DATE:2022;2023");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"created\":{\"name\":\"Created\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"},\"enrollmentdate\":{\"name\":\"Date of enrollment\"}},\"dimensions\":{\"ou\":[\"ImspTQPwCqd\"],\"enrollmentdate\":[\"2022\",\"2023\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentdate",
+        "Date of enrollment",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("value", "16", "ou", "ImspTQPwCqd", "enrollmentdate", "2022"));
+  }
+
+  @Test
+  public void enrollmentDateDimensionBarePeFilter() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=pe:2022")
+            .add("totalPages=false")
+            .add("dimension=ou:ImspTQPwCqd,ENROLLMENT_DATE:2022;2023");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"},\"enrollmentdate\":{\"name\":\"Date of enrollment\"}},\"dimensions\":{\"ou\":[\"ImspTQPwCqd\"],\"enrollmentdate\":[\"2022\",\"2023\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentdate",
+        "Date of enrollment",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("value", "11025", "ou", "ImspTQPwCqd", "enrollmentdate", "2022"));
+  }
+
+  @Test
+  public void barePeDimensionCreatedFilter() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=CREATED:2016")
+            .add("totalPages=false")
+            .add("dimension=ou:ImspTQPwCqd,pe:2022;2023");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"created\":{\"name\":\"Created\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"}},\"dimensions\":{\"pe\":[\"2022\",\"2023\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("value", "16", "ou", "ImspTQPwCqd", "pe", "2022"));
+  }
+
+  @Test
+  public void enrollmentDateDimensionAndFilterSameField() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ENROLLMENT_DATE:2023")
+            .add("totalPages=false")
+            .add("dimension=ou:ImspTQPwCqd,ENROLLMENT_DATE:2022;2023");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"},\"enrollmentdate\":{\"name\":\"Date of enrollment\"}},\"dimensions\":{\"ou\":[\"ImspTQPwCqd\"],\"enrollmentdate\":[\"2022\",\"2023\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentdate",
+        "Date of enrollment",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("value", "8005", "ou", "ImspTQPwCqd", "enrollmentdate", "2023"));
+  }
+
+  @Test
   public void queryAggregatedenrollmentsmacase2() throws JSONException {
     // Given
     QueryParamsBuilder params =
@@ -164,7 +622,7 @@ public class EnrollmentsAggregate4AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"ou\":{\"name\":\"Organisation unit\"},\"202208\":{\"name\":\"August 2022\"},\"202307\":{\"name\":\"July 2023\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"202211\":{\"name\":\"November 2022\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{},\"VBqh0ynB2wv\":{\"name\":\"Malaria case registration\"},\"pTo4uMt3xur.F3ogKBuviRA\":{\"name\":\"Household location\"},\"pTo4uMt3xur\":{\"name\":\"Malaria case registration\"}},\"dimensions\":{\"F3ogKBuviRA\":[],\"pe\":[\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\",\"202307\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"ou\":{\"name\":\"Organisation unit\"},\"202208\":{\"name\":\"August 2022\"},\"202307\":{\"name\":\"July 2023\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"202211\":{\"name\":\"November 2022\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{},\"VBqh0ynB2wv\":{\"name\":\"Malaria case registration\"},\"pTo4uMt3xur.F3ogKBuviRA\":{\"name\":\"Household location\"},\"pTo4uMt3xur\":{\"name\":\"Malaria case registration\"}},\"dimensions\":{\"pTo4uMt3xur.F3ogKBuviRA\":[],\"pe\":[\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\",\"202307\"],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -201,7 +659,7 @@ public class EnrollmentsAggregate4AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"VBqh0ynB2wv\":{\"name\":\"Malaria case registration\"},\"ou\":{\"name\":\"Organisation unit\"},\"pTo4uMt3xur.oZg33kd9taw\":{\"name\":\"Gender\"},\"pTo4uMt3xur\":{\"name\":\"Malaria case registration\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"oZg33kd9taw\":[\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"VBqh0ynB2wv\":{\"name\":\"Malaria case registration\"},\"ou\":{\"name\":\"Organisation unit\"},\"pTo4uMt3xur.oZg33kd9taw\":{\"name\":\"Gender\"},\"pTo4uMt3xur\":{\"name\":\"Malaria case registration\"}},\"dimensions\":{\"ou\":[\"ImspTQPwCqd\"],\"pTo4uMt3xur.oZg33kd9taw\":[\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -242,7 +700,7 @@ public class EnrollmentsAggregate4AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

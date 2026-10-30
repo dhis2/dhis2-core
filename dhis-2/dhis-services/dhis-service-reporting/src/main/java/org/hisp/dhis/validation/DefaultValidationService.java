@@ -56,9 +56,9 @@ import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionInfo;
 import org.hisp.dhis.expression.ExpressionParams;
@@ -188,8 +188,8 @@ public class DefaultValidationService implements ValidationService {
       for (DataElement de : dataSet.getDataElements()) {
         for (CategoryOptionCombo co : de.getCategoryOptionCombos()) {
           DataExportValue dv = null;
-          DataEntryKey key =
-              new DataEntryKey(de, period, organisationUnit, co, attributeOptionCombo);
+          DataValueKey key =
+              new DataValueKey(de, period, organisationUnit, co, attributeOptionCombo);
           try {
             dv = dataExportService.exportValue(key);
           } catch (ConflictException ex) {

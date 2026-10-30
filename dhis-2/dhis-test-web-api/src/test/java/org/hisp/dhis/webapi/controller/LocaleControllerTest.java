@@ -75,7 +75,7 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
         409,
         "ERROR",
         "Invalid country or language code.",
-        POST("/locales/dbLocales?language=en&country=").content(HttpStatus.CONFLICT));
+        POST("/locales/dbLocales?language=en&country=ZZ").content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -84,8 +84,34 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
         "Conflict",
         409,
         "ERROR",
-        "Invalid country or language code.",
+        "Invalid language code: ",
         POST("/locales/dbLocales?language=&country=GB").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testAddLocaleWithScript() {
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Locale created successfully",
+        POST("/locales/dbLocales?language=uz&country=UZ&script=Cyrl").content(HttpStatus.CREATED));
+    JsonArray response = GET("/locales/db").content();
+    assertEquals(1, response.size());
+    JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
+    assertEquals("uz_UZ_Cyrl", firstElement.getLocale());
+    assertEquals("ўзбекча (Кирил, Ўзбекистон)", firstElement.getName());
+    assertEquals("Uzbek (Cyrillic, Uzbekistan)", firstElement.getDisplayName());
+  }
+
+  @Test
+  void testAddLocaleWithScriptNoCountry() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Script must be used with region",
+        POST("/locales/dbLocales?language=uz&script=Cyrl").content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -97,6 +123,16 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
         "ERROR",
         "Locale code existed.",
         POST("/locales/dbLocales?language=en&country=GB").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testAddLocaleWithInvalidScript() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Invalid script: XXXX",
+        POST("/locales/dbLocales?language=uz&country=UZ&script=XXXX").content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -139,10 +175,14 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
   void testGetUiLocaleAfterUserLanguageChange() {
     POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=fr");
     JsonArray response = GET("/locales/ui").content();
-    JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
-    assertEquals("en", firstElement.getLocale());
-    assertEquals("English", firstElement.getName());
-    assertEquals("anglais", firstElement.getDisplayName());
+    JsonWebLocale enLocale =
+        response.stream()
+            .map(o -> o.as(JsonWebLocale.class))
+            .filter(l -> "en".equals(l.getLocale()))
+            .findFirst()
+            .orElseThrow();
+    assertEquals("English", enLocale.getName());
+    assertEquals("anglais", enLocale.getDisplayName());
   }
 
   @Test
@@ -150,10 +190,14 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
     POST("/systemSettings/keyUiLocale/?value=es");
     DELETE("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID);
     JsonArray response = GET("/locales/ui").content();
-    JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
-    assertEquals("bn", firstElement.getLocale());
-    assertEquals("বাংলা", firstElement.getName());
-    assertEquals("bengalí", firstElement.getDisplayName());
+    JsonWebLocale bnLocale =
+        response.stream()
+            .map(o -> o.as(JsonWebLocale.class))
+            .filter(l -> "bn".equals(l.getLocale()))
+            .findFirst()
+            .orElseThrow();
+    assertEquals("বাংলা", bnLocale.getName());
+    assertEquals("bengalí", bnLocale.getDisplayName());
   }
 
   @Test
@@ -176,6 +220,7 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("en_IE", firstElement.getLocale());
     assertEquals("English (Ireland)", firstElement.getName());
     assertEquals("English (Ireland)", firstElement.getDisplayName());
+    assertEquals("en-IE", firstElement.getLanguageTag());
   }
 
   @Test
@@ -194,5 +239,22 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("en_IE", dbLocaleElement.getLocale());
     assertEquals("English (Ireland)", dbLocaleElement.getName());
     assertEquals("anglais (Irlande)", dbLocaleElement.getDisplayName());
+  }
+
+  @Test
+  void testDeleteDbLocale() {
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=de"));
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales?language=de"));
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=de&country=DE"));
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales?language=de&country=DE"));
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=de&country=DE&script=Latn"));
+    assertStatus(
+        HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales?language=de&country=DE&script=Latn"));
+  }
+
+  @Test
+  void testDeleteDbLocale_BlankUrlParameters() {
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=de&country=&script="));
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales?language=de&country=&script="));
   }
 }

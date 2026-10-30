@@ -39,6 +39,10 @@ public interface JsonWebLocale extends JsonObject {
     return getString("locale").string();
   }
 
+  default String getLanguageTag() {
+    return getString("languageTag").string();
+  }
+
   default String getName() {
     return getString("name").string();
   }

@@ -41,6 +41,5 @@ public interface NoteMapper {
   @Mapping(target = "storedAt", source = "created")
   @Mapping(target = "value", source = "noteText")
   @Mapping(target = "createdBy", source = "lastUpdatedBy")
-  @Mapping(target = "storedBy", source = "creator")
   Note map(org.hisp.dhis.note.Note note);
 }

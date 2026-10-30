@@ -60,10 +60,10 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.datavalue.DeflatedDataValueParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -245,7 +245,7 @@ public class PredictionDataValueFetcher implements Runnable {
   /** In a separate thread, fetches all the requested data values. */
   @Override
   public void run() {
-    DataExportStoreParams params = new DataExportStoreParams();
+    DeflatedDataValueParams params = new DeflatedDataValueParams();
     params.setDataElements(dataElements);
     params.setDataElementOperands(dataElementOperands);
     params.setPeriods(queryPeriods);
@@ -495,8 +495,10 @@ public class PredictionDataValueFetcher implements Runnable {
         for (Map.Entry<DimensionalItemObject, Object> e3 : e2.getValue().entrySet()) {
           DimensionalItemObject obj = e3.getKey();
           Object value = e3.getValue();
+          CategoryOptionCombo coc =
+              (obj instanceof DataElementOperand deo) ? deo.getCategoryOptionCombo() : null;
 
-          values.add(new FoundDimensionItemValue(orgUnit, period, aoc, obj, value));
+          values.add(new FoundDimensionItemValue(orgUnit, period, coc, aoc, obj, value));
         }
       }
     }

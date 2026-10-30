@@ -57,13 +57,13 @@ public class NotLikeOperator<T extends Comparable<T>> extends Operator<T> {
     if (caseSensitive) {
       return JpaQueryUtils.stringPredicateCaseSensitive(
           builder,
-          root.get(path.getPath()),
+          getPropertyPath(root, path),
           String.valueOf(args.get(0)).replace("%", ""),
           jpaMatchMode);
     }
     return JpaQueryUtils.stringPredicateIgnoreCase(
         builder,
-        root.get(path.getPath()),
+        getPropertyPath(root, path),
         String.valueOf(args.get(0)).replace("%", ""),
         jpaMatchMode);
   }

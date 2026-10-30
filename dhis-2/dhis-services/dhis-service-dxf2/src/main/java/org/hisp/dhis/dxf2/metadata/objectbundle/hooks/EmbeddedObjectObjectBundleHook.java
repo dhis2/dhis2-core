@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
+
 import java.util.Collection;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
@@ -60,14 +62,13 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
   public void validate(
       IdentifiableObject object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
     Class<? extends IdentifiableObject> klass = object.getClass();
-    Schema schema = schemaService.getDynamicSchema(klass);
+    Schema schema = schemaService.getSchema(klass);
 
     schema.getEmbeddedObjectProperties().keySet().stream()
         .forEach(
             propertyName -> {
               Property property = schema.getEmbeddedObjectProperties().get(propertyName);
-              Object propertyObject =
-                  ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+              Object propertyObject = safeInvoke(object, property.getGetterMethod());
 
               if (property.getPropertyType().equals(PropertyType.COMPLEX)) {
                 schemaValidator
@@ -98,7 +99,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
 
   @Override
   public void preCreate(IdentifiableObject object, ObjectBundle bundle) {
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     if (schema == null || schema.getEmbeddedObjectProperties().isEmpty()) {
       return;
@@ -112,7 +113,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
   @Override
   public void preUpdate(
       IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle) {
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     if (schema == null || schema.getEmbeddedObjectProperties().isEmpty()) {
       return;
@@ -131,7 +132,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
         if (ReflectionUtils.isSharingProperty(property) && bundle.isSkipSharing()) {
           continue;
         }
-        Collection<?> collection = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+        Collection<?> collection = safeInvoke(object, property.getGetterMethod());
         if (collection != null) collection.clear();
       } else {
         ReflectionUtils.invokeMethod(object, property.getSetterMethod(), (Object) null);
@@ -142,7 +143,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
   private void handleEmbeddedObjects(
       IdentifiableObject object, ObjectBundle bundle, Collection<Property> properties) {
     for (Property property : properties) {
-      Object propertyObject = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      Object propertyObject = safeInvoke(object, property.getGetterMethod());
 
       if (property.isCollection()) {
         Collection<?> objects = (Collection<?>) propertyObject;
@@ -167,8 +168,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
       obj.setAutoFields();
     }
 
-    Schema embeddedSchema =
-        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema embeddedSchema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     for (Property embeddedProperty : embeddedSchema.getPropertyMap().values()) {
       if (PeriodType.class.isAssignableFrom(embeddedProperty.getKlass())) {
@@ -191,7 +191,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
       return;
     }
 
-    Schema propertySchema = schemaService.getDynamicSchema(property.getItemKlass());
+    Schema propertySchema = schemaService.getSchema(property.getItemKlass());
 
     analyticalObjectImportHandler.handleAnalyticalObject(
         entityManager, propertySchema, (BaseAnalyticalObject) identifiableObject, bundle);

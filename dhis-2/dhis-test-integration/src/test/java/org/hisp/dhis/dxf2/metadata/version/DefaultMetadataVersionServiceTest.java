@@ -38,6 +38,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.lang3.time.DateUtils;
@@ -236,24 +239,24 @@ class DefaultMetadataVersionServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testShouldGiveValidVersionDataIfExists() {
-    versionService.createMetadataVersionInDataStore("myVersion", "myJson");
-
-    assertEquals("myJson", versionService.getVersionData("myVersion"));
+  void testShouldReturnFalseWhenAVersionDoesNotExist() throws IOException {
+    assertFalse(
+        versionService.streamVersionData("myNonExistingVersion", new ByteArrayOutputStream()));
   }
 
   @Test
-  void testShouldReturnNullWhenAVersionDoesNotExist() {
-    assertNull(versionService.getVersionData("myNonExistingVersion"));
-  }
-
-  @Test
-  void testShouldStoreSnapshotInMetadataStore() {
+  void testShouldStoreSnapshotInMetadataStore() throws IOException {
     versionService.createMetadataVersionInDataStore("myVersion", "mySnapshot");
 
     dbmsManager.flushSession();
 
-    assertEquals("mySnapshot", versionService.getVersionData("myVersion"));
+    assertEquals("mySnapshot", streamToString("myVersion"));
+  }
+
+  private String streamToString(String versionName) throws IOException {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    assertTrue(versionService.streamVersionData(versionName, out));
+    return out.toString(StandardCharsets.UTF_8);
   }
 
   @Test

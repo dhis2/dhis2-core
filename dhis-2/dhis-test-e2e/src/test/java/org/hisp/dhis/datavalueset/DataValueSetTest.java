@@ -42,6 +42,8 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.dto.ImportSummary;
 import org.hisp.dhis.test.e2e.helpers.JsonParserUtils;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.AfterAll;
@@ -85,6 +87,27 @@ class DataValueSetTest extends ApiTest {
   }
 
   @Test
+  void dataValuesCanBeDeletedWithScope() {
+    String json =
+        """
+        {
+          "dataSet": "DataSetUID8",
+          "deletion": {
+            "orgUnits": ["OrgUnitUid7"],
+            "periods": ["202405"],
+            "elements": [
+              {"dataElement": "DataElUID08"}
+            ]
+          }
+        }
+        """;
+    ApiResponse response = dataValueSetActions.post(json);
+    ImportSummary summary = response.getImportSummaries().get(0);
+    assertEquals("SUCCESS", summary.getStatus());
+    assertEquals(1, summary.getImportCount().getDeleted());
+  }
+
+  @Test
   @DisplayName("Getting data values in xml zip format returns a valid payload")
   void dataValueXmlZipTest() throws IOException {
     // When a request for data values in xml zip format is sent
@@ -98,7 +121,7 @@ class DataValueSetTest extends ApiTest {
 
     // Then the expected headers & values are present
     assertEquals(
-        "attachment; filename=dataValues_2024-01-01_2050-01-30.xml.zip",
+        "attachment; filename=\"dataValues_2024-01-01_2050-01-30.xml.zip\"",
         zipPayload.getHeader("Content-Disposition"));
     assertEquals("binary", zipPayload.getHeader("Content-Transfer-Encoding"));
 
@@ -125,14 +148,14 @@ class DataValueSetTest extends ApiTest {
 
     // Then the expected headers & values are present
     assertEquals(
-        "attachment; filename=dataValues_2024-01-01_2050-01-30.xml.zip",
+        "attachment; filename=\"dataValues_2024-01-01_2050-01-30.adx.xml.zip\"",
         zipPayload.getHeader("Content-Disposition"));
     assertEquals("binary", zipPayload.getHeader("Content-Transfer-Encoding"));
 
     // And when unzipping it has the expected values
     String xmlString =
         mapZipEntryToStringContent(zipPayload.body().asByteArray())
-            .get("dataValues_2024-01-01_2050-01-30.xml");
+            .get("dataValues_2024-01-01_2050-01-30.adx.xml");
 
     assertTrue(xmlString.contains("adx"), "unzipped value should contain 'adx'");
   }
@@ -151,7 +174,7 @@ class DataValueSetTest extends ApiTest {
 
     // Then the expected headers & values are present
     assertEquals(
-        "attachment; filename=dataValues_2024-01-01_2050-01-30.xml.gz",
+        "attachment; filename=\"dataValues_2024-01-01_2050-01-30.xml.gz\"",
         zipPayload.getHeader("Content-Disposition"));
     assertEquals("binary", zipPayload.getHeader("Content-Transfer-Encoding"));
 

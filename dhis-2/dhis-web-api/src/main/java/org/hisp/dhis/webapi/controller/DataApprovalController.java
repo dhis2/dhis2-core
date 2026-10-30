@@ -44,8 +44,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -66,7 +68,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -84,7 +85,6 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.approval.ApprovalDto;
 import org.hisp.dhis.webapi.webdomain.approval.ApprovalStatusDto;
 import org.hisp.dhis.webapi.webdomain.approval.ApprovalsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -107,6 +107,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dataApprovals")
+@RequiredArgsConstructor
 public class DataApprovalController {
 
   private static final String STATUS_PATH = "/status";
@@ -115,25 +116,25 @@ public class DataApprovalController {
 
   private static final String MULTIPLE_APPROVALS_PATH = "/multiple";
 
-  @Autowired private DataApprovalService dataApprovalService;
+  private final DataApprovalService dataApprovalService;
 
-  @Autowired private DataApprovalLevelService dataApprovalLevelService;
+  private final DataApprovalLevelService dataApprovalLevelService;
 
-  @Autowired private DataSetService dataSetService;
+  private final DataSetService dataSetService;
 
-  @Autowired private IdentifiableObjectManager objectManager;
+  private final IdentifiableObjectManager objectManager;
 
-  @Autowired private OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-  @Autowired private UserService userService;
+  private final UserService userService;
 
-  @Autowired private PeriodService periodService;
+  private final PeriodService periodService;
 
-  @Autowired private CategoryService categoryService;
+  private final CategoryService categoryService;
 
-  @Autowired private FieldFilterService fieldFilterService;
+  private final FieldFilterService fieldFilterService;
 
-  @Autowired private ContextService contextService;
+  private final ContextService contextService;
 
   // -------------------------------------------------------------------------
   // Get
@@ -152,7 +153,7 @@ public class DataApprovalController {
           String aoc)
       throws WebMessageException {
     DataApprovalWorkflow workflow = getAndValidateWorkflow(ds, wf);
-    Period period = getAndValidatePeriod(pe);
+    Period period = Period.of(pe);
     OrganisationUnit organisationUnit = getAndValidateOrgUnit(ou);
     CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
 
@@ -196,7 +197,7 @@ public class DataApprovalController {
       periods = new ArrayList<>();
 
       for (String period : pe) {
-        Period periodObj = periodService.getPeriod(getAndValidatePeriod(period).getIsoDate());
+        Period periodObj = periodService.getPeriod(Period.of(period).getIsoDate());
 
         if (periodObj != null) {
           periods.add(periodObj);
@@ -245,16 +246,12 @@ public class DataApprovalController {
       @RequestParam(required = false) Date endDate,
       @OpenApi.Param({UID[].class, OrganisationUnit.class}) @RequestParam Set<String> ou,
       @RequestParam(required = false) boolean children,
+      @RequestParam(required = false) String fields,
       HttpServletResponse response)
       throws WebMessageException, BadRequestException {
-    List<String> fields = new ArrayList<>(contextService.getParameterValues("fields"));
-
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-      List<String> defaults = new ArrayList<>();
-      defaults.add(
-          "period[id,name,code],organisationUnit[id,name,created,lastUpdated],dataSet[code,name,created,lastUpdated,id]");
-      fields.addAll(defaults);
+    if (fields == null || fields.isEmpty()) {
+      fields =
+          "*,period[id,name,code],organisationUnit[id,name,created,lastUpdated],dataSet[code,name,created,lastUpdated,id]";
     }
 
     Set<DataSet> dataSets = parseDataSetsWithWorkflow(ds);
@@ -343,7 +340,7 @@ public class DataApprovalController {
           Set<String> aoc)
       throws WebMessageException {
     Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows(ds, wf);
-    Period period = getAndValidatePeriod(pe);
+    Period period = Period.of(pe);
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ou);
     OrganisationUnit orgUnitFilter = organisationUnitService.getOrganisationUnit(ouFilter);
     Set<CategoryOptionCombo> attributeOptionCombos =
@@ -410,7 +407,7 @@ public class DataApprovalController {
           String aoc)
       throws WebMessageException {
     DataApprovalWorkflow workflow = getAndValidateWorkflow(ds, wf);
-    Period period = getAndValidatePeriod(pe);
+    Period period = Period.of(pe);
     OrganisationUnit organisationUnit = getAndValidateOrgUnit(ou);
     DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel(organisationUnit);
     CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
@@ -459,7 +456,7 @@ public class DataApprovalController {
           String aoc)
       throws WebMessageException {
     DataApprovalWorkflow workflow = getAndValidateWorkflow(ds, wf);
-    Period period = getAndValidatePeriod(pe);
+    Period period = Period.of(pe);
     OrganisationUnit organisationUnit = getAndValidateOrgUnit(ou);
     DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel(organisationUnit);
     CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
@@ -510,7 +507,7 @@ public class DataApprovalController {
       throws WebMessageException {
     Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows(ds, wf);
 
-    Period period = getAndValidatePeriod(pe);
+    Period period = Period.of(pe);
     OrganisationUnit organisationUnit = getAndValidateOrgUnit(ou);
     DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel(organisationUnit);
     CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
@@ -547,7 +544,7 @@ public class DataApprovalController {
           String aoc)
       throws WebMessageException {
     DataApprovalWorkflow workflow = getAndValidateWorkflow(ds, wf);
-    Period period = getAndValidatePeriod(pe);
+    Period period = Period.of(pe);
     OrganisationUnit organisationUnit = getAndValidateOrgUnit(ou);
     DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel(organisationUnit);
     CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
@@ -615,7 +612,8 @@ public class DataApprovalController {
       throws WebMessageException {
     Set<DataApprovalWorkflow> workflows =
         getAndValidateWorkflows(approvals.getDs(), approvals.getWf());
-    List<Period> periods = PeriodType.getPeriodsFromIsoStrings(approvals.getPe());
+    List<Period> periods =
+        approvals.getPe().stream().map(Period::ofNullable).filter(Objects::nonNull).toList();
     periods = periodService.reloadPeriods(periods);
 
     if (periods.isEmpty()) {
@@ -728,16 +726,6 @@ public class DataApprovalController {
     }
 
     return workflows;
-  }
-
-  private Period getAndValidatePeriod(String pe) throws WebMessageException {
-    Period period = PeriodType.getPeriodFromIsoString(pe);
-
-    if (period == null) {
-      throw new WebMessageException(conflict("Illegal period identifier: " + pe));
-    }
-
-    return period;
   }
 
   private OrganisationUnit getAndValidateOrgUnit(String ou) throws WebMessageException {

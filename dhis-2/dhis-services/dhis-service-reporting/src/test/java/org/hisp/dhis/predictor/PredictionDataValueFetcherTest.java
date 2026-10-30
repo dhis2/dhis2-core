@@ -50,10 +50,10 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.datavalue.DeflatedDataValueParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.test.TestBase;
@@ -230,10 +230,6 @@ class PredictionDataValueFetcherTest extends TestBase {
     periodB = createPeriod("202202");
     periodC = createPeriod("202203");
 
-    periodA.setUid("Perio202201");
-    periodB.setUid("Perio202202");
-    periodC.setUid("Perio202203");
-
     periodA.setId(10);
     periodB.setId(11);
     periodC.setId(12);
@@ -324,12 +320,16 @@ class PredictionDataValueFetcherTest extends TestBase {
     deflatedDataValueD = new DeflatedDataValue(dataValueD);
     deflatedDataValueAB = new DeflatedDataValue(dataValueAB);
 
-    foundValueA = new FoundDimensionItemValue(orgUnitB, periodA, aocC, dataElementA, 85.0);
-    foundValueB = new FoundDimensionItemValue(orgUnitC, periodB, aocC, dataElementB, 18.0);
-    foundValueC = new FoundDimensionItemValue(orgUnitB, periodA, aocC, dataElementOperandA, 10.0);
-    foundValueD = new FoundDimensionItemValue(orgUnitB, periodA, aocD, dataElementOperandX, 30.0);
-    foundValueE = new FoundDimensionItemValue(orgUnitB, periodC, aocC, dataElementOperandX, 50.0);
-    foundValueAB = new FoundDimensionItemValue(orgUnitB, periodA, aocC, dataElementOperandAB, 75.0);
+    foundValueA = new FoundDimensionItemValue(orgUnitB, periodA, null, aocC, dataElementA, 85.0);
+    foundValueB = new FoundDimensionItemValue(orgUnitC, periodB, null, aocC, dataElementB, 18.0);
+    foundValueC =
+        new FoundDimensionItemValue(orgUnitB, periodA, cocA, aocC, dataElementOperandA, 10.0);
+    foundValueD =
+        new FoundDimensionItemValue(orgUnitB, periodA, cocA, aocD, dataElementOperandX, 30.0);
+    foundValueE =
+        new FoundDimensionItemValue(orgUnitB, periodC, cocA, aocC, dataElementOperandX, 50.0);
+    foundValueAB =
+        new FoundDimensionItemValue(orgUnitB, periodA, cocB, aocC, dataElementOperandAB, 75.0);
 
     when(categoryService.getAllCategoryOptionCombos()).thenReturn(List.of(cocA, cocB, aocC, aocD));
 
@@ -343,11 +343,11 @@ class PredictionDataValueFetcherTest extends TestBase {
 
   @Test
   void testGetDataValues() {
-    when(dataValueService.getDeflatedDataValues(any(DataExportStoreParams.class)))
+    when(dataValueService.getDeflatedDataValues(any(DeflatedDataValueParams.class)))
         .thenAnswer(
             p -> {
               BlockingQueue<DeflatedDataValue> blockingQueue =
-                  ((DataExportStoreParams) p.getArgument(0)).getBlockingQueue();
+                  ((DeflatedDataValueParams) p.getArgument(0)).getBlockingQueue();
               blockingQueue.put(deflatedDataValueA);
               blockingQueue.put(deflatedDataValueAB);
               blockingQueue.put(deflatedDataValueB);
@@ -392,11 +392,11 @@ class PredictionDataValueFetcherTest extends TestBase {
 
   @Test
   void testGetDataValuesWithAllDisaggregations() {
-    when(dataValueService.getDeflatedDataValues(any(DataExportStoreParams.class)))
+    when(dataValueService.getDeflatedDataValues(any(DeflatedDataValueParams.class)))
         .thenAnswer(
             p -> {
               BlockingQueue<DeflatedDataValue> blockingQueue =
-                  ((DataExportStoreParams) p.getArgument(0)).getBlockingQueue();
+                  ((DeflatedDataValueParams) p.getArgument(0)).getBlockingQueue();
               blockingQueue.put(deflatedDataValueA);
               blockingQueue.put(deflatedDataValueAB);
               blockingQueue.put(deflatedDataValueB);
@@ -439,11 +439,11 @@ class PredictionDataValueFetcherTest extends TestBase {
 
   @Test
   void testNoDataValues() {
-    when(dataValueService.getDeflatedDataValues(any(DataExportStoreParams.class)))
+    when(dataValueService.getDeflatedDataValues(any(DeflatedDataValueParams.class)))
         .thenAnswer(
             p -> {
               BlockingQueue<DeflatedDataValue> blockingQueue =
-                  ((DataExportStoreParams) p.getArgument(0)).getBlockingQueue();
+                  ((DeflatedDataValueParams) p.getArgument(0)).getBlockingQueue();
               blockingQueue.put(END_OF_DDV_DATA);
               return new ArrayList<>();
             });

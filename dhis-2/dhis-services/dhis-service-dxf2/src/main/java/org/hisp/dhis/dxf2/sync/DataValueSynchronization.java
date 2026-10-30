@@ -179,8 +179,8 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
                   CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
 
           try {
-            DataExportParams params =
-                DataExportParams.builder()
+            DataExportParams.Input params =
+                DataExportParams.Input.builder()
                     .lastUpdated(lastUpdatedAfter)
                     .limit(syncPageSize)
                     .offset((page - 1) * syncPageSize)

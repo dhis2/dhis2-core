@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hisp.dhis.common.IdentifiableObjectSnapshot;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

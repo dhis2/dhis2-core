@@ -47,7 +47,6 @@ import java.util.Set;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.DateUtils;
 
 /**
@@ -198,7 +197,7 @@ public class PdfDataEntryFormUtil {
           throw new InvalidIdentifierReferenceException(ERROR_EMPTY_ORG_UNIT);
         }
 
-        Period period = PeriodType.getPeriodFromIsoString(periodId);
+        Period period = Period.ofNullable(periodId);
 
         if (period == null) {
           throw new InvalidIdentifierReferenceException(ERROR_INVALID_PERIOD + periodId);
@@ -206,7 +205,6 @@ public class PdfDataEntryFormUtil {
 
         // Loop Through the Fields and get data.
 
-        @SuppressWarnings("unchecked")
         Set<String> fldNames = form.getAllFields().keySet();
 
         for (String fldName : fldNames) {

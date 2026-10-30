@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,7 @@ public enum ErrorCode {
   E1004("API query cannot be performed"),
   E1005("API query object not found"),
   E1006("API request not permitted for the current user"),
+  E1007("Feature is disabled by configuration, requires `{0} = on` in dhis.conf"),
 
   /* Basic metadata */
   E1100("Data element not found or not accessible: `{0}`"),
@@ -57,7 +58,7 @@ public enum ErrorCode {
   E1103("Category option combo not found or not accessible: `{0}`"),
   E1104("Attribute option combo not found or not accessible: `{0}`"),
   E1105("Data set not found or not accessible: `{0}`"),
-  E1106("There are duplicate translation records for property `{0}` and locale `{1}` on {2} `{3}`"),
+  E1106("There are duplicate translation records for property `{0}` and locale `{1}`"),
   E1107("Object type `{0}` is not translatable"),
   E1108("Could not add item to collection: {0}"),
   E1109("Could not remove item from collection: {0}"),
@@ -90,6 +91,10 @@ public enum ErrorCode {
       "Unexpected CategoryOptionCombo provided with CategoryOptions: {0} for CategoryCombo: {1}. Missing expected CategoryOptionCombos with CategoryOption sets: {2}"),
   E1132(
       "Provided CategoryOptionCombo {0} cannot be processed (potential duplicate). An existing CategoryOptionCombo {1} has the same CategoryCombo {2} and same CategoryOptions {3}"),
+  E1133("CategoryCombo must be provided for Category option combo {0}"),
+  E1134(
+      "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
+  E1135("Locale `${locale:{0}}` is not configured for usage; available are: ${locales:{1}}"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),
@@ -114,20 +119,39 @@ public enum ErrorCode {
   E1523("User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`"),
 
   /* Generic merge errors */
+  E1505("Another merge is already in progress, please try again later"),
   E1530("At least one source {0} must be specified"),
   E1531("Target {0} must be specified"),
   E1532("Target {0} cannot be a source {1}"),
   E1533("{0} {1} does not exist: `{2}`"),
   E1534("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
+  /* Category merge */
+  E1535("Source CategoryOptions: {0} do not match target CategoryOptions: {1}"),
+  E1536(
+      "Source and target Categories cannot share a CategoryCombo. Shared CategoryCombos found: {0}"),
+  E1537("Source Categories cannot share a CategoryCombo. Shared CategoryCombos found: {0}"),
+
   /* CategoryOptionCombo merge */
   E1540(
       "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge"),
+
+  /* CategoryCombo merge */
+  E1545("Source and target CategoryCombos must have identical Categories: source {0} has {1}"),
+  E1546(
+      "CategoryOptionCombo has incorrect number of CategoryOptions. Expected {0} but found {1} for COC: {2}"),
+  E1547(
+      "CategoryOptionCombo has CategoryOptions that are not valid for the CategoryCombo categories: {0}"),
+  E1548(
+      "Duplicate CategoryOptionCombo `{0}` found for CategoryCombo `{1}`. Fix this before attempting the merge."),
 
   /* DataElement merge */
   E1550("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
   E1551(
       "All source DataElementDomains must match target DataElementDomain: `{0}`. Other DataElementDomains found: `{1}`"),
+
+  /* ExternalMapLayer */
+  E1552("Invalid image"),
 
   /* Data */
   E2000("Query parameters cannot be null"),
@@ -141,9 +165,9 @@ public enum ErrorCode {
   E2007("Organisation unit children cannot be included for organisation unit groups"),
   E2008("At least one organisation unit must be specified when children are included"),
   E2009("Limit cannot be less than zero: `{0}`"),
-  E2010("User is not allowed to read data for data set: `{0}`"),
-  E2011("User is not allowed to read data for attribute option combo: `{0}`"),
-  E2012("User is not allowed to view org unit: `{0}`"),
+  E2010("User is not allowed to read data for data set(s): `${ds:{0}}`"),
+  E2011("User is not allowed to read data for attribute option combo(s): `${aoc:{0}}`"),
+  E2012("User is not allowed to view org unit(s): `${ou:{0}}`"),
   E2013("At least one data set must be specified"),
   E2014("Unable to parse filter `{0}`"),
   E2015("Unable to parse order param: `{0}`"),
@@ -180,6 +204,12 @@ public enum ErrorCode {
   E2046("Error parsing CSV file: {0}"),
   E2047("Data value key combination does not exist: {0}"),
   E2048("Error processing gzipped content: {0}"),
+  E2049("Attribute option combo(s) do not belong to an attribute category combo: `${aoc:{0}}`"),
+  E2050("User is not allowed to read data of the data value: `{0}`, `{1}`, `{2}`"),
+  E2051(
+      "An unpaged data value change log returns at most `{0}` entries to a user who is not a superuser, use paging"),
+  E2052(
+      "Data value change log pages end at entry `{0}` for a user who is not a superuser, use filters to read older entries"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
@@ -207,7 +237,6 @@ public enum ErrorCode {
   E3003("User `{0}` is not allowed to grant users access to user role `{1}`"),
   E3004("User `{0}` is not allowed to grant users access to user groups"),
   E3005("User `{0}` is not allowed to grant users access to user group `{1}`"),
-  E3006("User `{0}` is not allowed to externalize objects of type `{1}`"),
   E3008("User `{0}` is not allowed to make public objects of type `{1}`"),
   E3009("User `{0}` is not allowed to make private objects of type `{1}`"),
   E3010("Invalid access string `{0}`"),
@@ -250,6 +279,7 @@ public enum ErrorCode {
   E3050("2FA code can not be null or empty"),
   E3051("2FA code was sent to the user's email"),
   E3052("Email 2FA is enabled on user, can not change email. Disable 2FA first"),
+  E3053("User `{0}` is not allowed to replicate a user lacking their dimension constraints"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
@@ -271,6 +301,8 @@ public enum ErrorCode {
   E4015("Property `{0}` refers to an object that does not exist, could not find `{1}`"),
   E4016(
       "Object referenced by the `{0}` property is already associated with another object, value: `{1}`"),
+  E4094(
+      "Property `{0}` must refer to an unassigned `{1}` file resource uploaded by the current user, but was given `{2}`"),
   E4017("RenderingType `{0}` is not supported for ValueType `{1}`"),
   E4018("Property `{0}` must be set when property `{1}` is `{2}`"),
   E4019("Failed to parse pattern `{0}` {1}"),
@@ -312,6 +344,7 @@ public enum ErrorCode {
   E4055("User needs to have at least one user role associated with it"),
   E4050(
       "One of DataElement, TrackedEntityAttribute or ProgramRuleVariable is required for program rule `{0}`"),
+  E4093("ProgramRuleAction `{0}` must reference a program rule"),
 
   /* ProgramRuleVariable validation */
   E4051("A program rule variable with name `{0}` and program uid `{1}` already exists"),
@@ -321,6 +354,11 @@ public enum ErrorCode {
   E4057("The Program Rule name {0} already exist in Program {1}"),
 
   E4058("Program Rule `{0}` with Action Type `{1}` has irrelevant reference objects"),
+  E4059("ProgramRuleVariable `{0}` with source type `{1}` requires a data element"),
+  E4089("ProgramRuleVariable `{0}` with source type `{1}` requires a tracked entity attribute"),
+  E4090("ProgramRuleVariable `{0}` is missing a source type"),
+  E4091("ProgramRuleVariable `{0}` with source type `{1}` requires a program stage"),
+  E4092("ProgramRuleVariable `{0}` with source type `{1}` requires a value type"),
 
   /* Metadata Validation (continued) */
   E4060("Object could not be deleted: {0}"),
@@ -355,6 +393,11 @@ public enum ErrorCode {
   E4083(
       "ProgramRule `{0}` must be associated with a Tracker Program (a program with registration)"),
   E4084("ProgramStage `{0}` is not part of Program `{1}`"),
+  E4085("Program is required for tracker data synchronization job"),
+  E4086("Program `{0}` does not exist"),
+  E4087("Program `{0}` must be of type `{1}`"),
+  E4088(
+      "The operator(s) `{0}` cannot be blocked. The following operators cannot be blocked: `{1}`."),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -414,6 +457,13 @@ public enum ErrorCode {
   E6020("AttributeValue `{0}` is an invalid username"),
   E6021("AttributeValue `{0}` is an invalid phone number"),
   E6022("Object cannot reference itself by property `{0}`"),
+  E6023("Type `{0}` cannot be imported via metadata"),
+  E6024("Object reference `{0}` is not of the form `type:id`"),
+  E6026("Type `{0}` is not supported as a dependency export root, supported types are: {1}"),
+  E6028("At least one `objects` parameter must be given, of the form `type:id`"),
+  E6029(
+      "Type `{0}` is not yet available for multi-object dependency export, use that type''s"
+          + " single-object metadata endpoint instead. Available types: {1}"),
 
   /* File resource */
   E6100("Filename not present"),
@@ -444,6 +494,9 @@ public enum ErrorCode {
   E6304("Aggregate data exchange target API must be specified when target type is EXTERNAL"),
   E6305(
       "Aggregate data exchange target API must specify either access token or username and password"),
+  E6306("Aggregate data exchange source using periods of different types: `{0}` ({1}) vs `{2}`"),
+  E6307(
+      "Aggregate data exchange source request contains data item with unsupported type: `{0}`, allowed types are: {1}"),
 
   /*Analytics table hook*/
   E6400("Analytics table hook `{0}` is a duplicate of `{1}`"),
@@ -501,6 +554,7 @@ public enum ErrorCode {
   E7133("Query cannot be executed, possibly because of invalid types or invalid operation"),
   E7134("Cannot retrieve total value for data elements with skip total category combination"),
   E7135("Date time is not parsable: `{0}`"),
+  E7136("Query exceeded the maximum allowed execution time"),
   E7137("Expression is not parsable: `{0}`"),
   E7138("Invalid offset: `{0}`"),
   E7139("Parameters programStatus and enrollmentStatus cannot be used together"),
@@ -518,6 +572,9 @@ public enum ErrorCode {
   E7149("Invalid measure filter operator: `{0}`"),
   E7150("No periods found for subexpression query"),
   E7151("Too many combinations of columns or rows."),
+  E7152("Periods as filter not supported with Indicator with period offset"),
+  E7153(
+      "Query would compute `{0}` indicator values, more than the max of `{1}`. Remove dimensions or dimension items, or move dimensions to filters"),
   /* Analytics outliers */
 
   E7180(
@@ -528,7 +585,7 @@ public enum ErrorCode {
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E7201("Dimensions cannot be specified more than once: `{0}`"),
   E7202("Query items cannot be specified more than once: `{0}`"),
-  E7203("Value dimension cannot also be specified as an item or item filter"),
+  E7203("Value dimension cannot also be specified as a dimension without a legend set"),
   E7204("Value dimension or aggregate data must be specified when aggregation type is specified"),
   E7205("Start and end date or at least one period must be specified"),
   E7206("Start date is after end date: `{0}`, `{1}`"),
@@ -551,7 +608,7 @@ public enum ErrorCode {
   E7221("Coordinate field is invalid: `{0}`"),
   E7222("Query item or filter is invalid: `{0}`"),
   E7223(
-      "Value does not refer to a data element or attribute which are numeric and part of the program: `{0}`"),
+      "Value does not refer to a data element or attribute which are numeric or boolean and part of the program: `{0}`"),
   E7224(
       "Item identifier does not reference any data element, attribute or indicator part of the program: `{0}`"),
   E7225(
@@ -569,10 +626,42 @@ public enum ErrorCode {
   E7237("Sorting must have a valid dimension and a direction"),
   E7238("Sorting dimension ‘{0}’ is not a column"),
   E7239("Invalid operator for 'null' value: `{0}`"),
+  E7240("Event query with org unit ownership does not support time fields"),
+  E7241("Stage parameter cannot be used with stage-specific dimension identifiers"),
+  E7242(
+      "Period dimension cannot be used with stage-specific date dimensions (ie: EVENT_DATE, SCHEDULED_DATE)"),
+  E7243("Duplicate stage dimension identifier: `{0}`"),
+  E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
+  E7245("Program stage `{0}` does not belong to program `{1}`"),
+  E7246("Sorting by `{0}` requires ENROLLMENT_OU as a dimension or filter"),
+  E7247("Query filter keyword `{0}` can only be used with option set dimensions"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
   E7251("Query does not support program indicators: `{0}`"),
+  E7252("Sorting is only supported on grouped dimensions in an aggregate query: `{0}`"),
+  E7253(
+      "Dimension `{0}` is not supported for program stage `{1}`. Only event-level dimensions are supported for stage-specific scope"),
+  E7254("Aggregation type is not supported by tracked entity aggregate queries: `{0}`"),
+  E7255("Aggregation type `{0}` requires the `value` parameter"),
+  E7256("Value `{0}` is not a numeric tracked entity attribute of tracked entity type `{1}`"),
+  E7257(
+      "Value `{0}` does not reference a numeric data element of a program stage; expected format `programUid.programStageUid.dataElementUid`"),
+  E7258(
+      "Dimension is not supported as a group by in a tracked entity aggregate query: `{0}`. Supported dimensions are the registration organisation unit, tracked entity static fields, tracked entity attributes, and program or program stage scoped organisation units, dates, statuses and data elements"),
+  E7259("Dimension `{0}` is not supported for a program without registration"),
+  E7260("Dimension `{0}` must specify organisation units in an aggregate query"),
+  E7261(
+      "Dimension `{0}` does not support organisation units at different hierarchy levels in an aggregate query"),
+  E7262("Sorting by `{0}` requires the `{1}` dimension"),
+  E7263(
+      "Dimensions `{0}` and `{1}` are reported under the same name `{2}` in a tracked entity aggregate query. Request one offset of a program stage dimension at a time"),
+  E7264("Repeatable stage offset is not supported in `value`: `{0}`"),
+  E7265("Value `{0}` has aggregation type NONE, specify an `aggregationType`"),
+  E7266(
+      "Value `{0}` must be a data element prefixed with a program stage that contains it, or an attribute of the program without a stage prefix"),
+  E7267(
+      "Aggregation type `{0}` is not supported by enrollment aggregate queries, specify `aggregationType` as one of COUNT, SUM, AVERAGE, MIN, MAX, STDDEV or VARIANCE"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
@@ -630,6 +719,9 @@ public enum ErrorCode {
   E8005("Data set not found: `${id:{0}}`"),
   E8006("PDF file error : ${error:{0}}"),
   E8007("XML file error : ${error:{0}}"),
+  E8008("Data set `completeDate` is not a valid date string: `${date:{0}}`"),
+  E8009(
+      "Data set `completeDate` requires data set, org unit, period and attribute option combo to be defined at the group level."),
 
   // set level current user access issues: Current user cannot enter...
   E8010("Current user cannot enter data for data set: `${ds:{0}}`"),
@@ -650,6 +742,8 @@ public enum ErrorCode {
       "Untimely data entry for attribute option combo ${combo:{0}} and period(s): `${periods:{1}}`"),
   E8033(
       "Untimely data entry (already approved) for attribute option combo ${combo:{0}}, org unit ${unit:{1}} and periods: `${periods:{2}}`"),
+  E8034("Data set deletion scope ID refers to a non-existing object: `${id:{0}}`"),
+  E8035("Data set deletion scope ID is not a valid UID: `${id:{0}}`"),
   // value level decoding and input issues
   E8100("Value #${index:{0}} period not defined in group or value: `${dv:{1}}`"),
   E8101("Value #${index:{0}} data set is required to decode category options: `${options:{1}}`"),
@@ -675,6 +769,18 @@ public enum ErrorCode {
   E8127(
       "Value #${index:{0}} category combo ${combo:{1}} has no option combo for options: `${options:{2}}`"),
   E8128("Value #${indexes:{0}} all affect the same data value: `${key:{1}}`"),
+
+  /* Data export - data encoding */
+  E8200(
+      "Export as ${schema:{0}} not possible as the property is undefined for data set: `${id:{1}}`"),
+  E8201(
+      "Export as ${schema:{0}} not possible as the property is undefined for data element(s): `${ids:{1}}`"),
+  E8202(
+      "Export as ${schema:{0}} not possible as the property is undefined for org unit(s): `${ids:{1}}`"),
+  E8203(
+      "Export as ${schema:{0}} not possible as the property is undefined for category option combo(s): `${ids:{1}}`"),
+  E8204(
+      "Export as category ${schema:{0}} and category options ${schema:{1}} not possible as the property is undefined for at least one of them linked to category option combo(s): `${ids:{1}}`"),
   ;
 
   private final String message;

@@ -30,6 +30,7 @@
 package org.hisp.dhis.datavalue;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -45,8 +46,11 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
+import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -289,7 +293,7 @@ public class DataValue implements Serializable {
     return "[Data element: "
         + dataElement.getUid()
         + ", period: "
-        + period.getUid()
+        + period.getIsoDate()
         + ", source: "
         + source.getUid()
         + ", category option combo: "
@@ -308,12 +312,14 @@ public class DataValue implements Serializable {
   // -------------------------------------------------------------------------
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   public DataElement getDataElement() {
     return dataElement;
   }
 
   @JsonProperty
+  @JsonSerialize(using = JacksonPeriodSerializer.class)
+  @JsonDeserialize(using = JacksonPeriodDeserializer.class)
   public Period getPeriod() {
     return period;
   }
@@ -325,7 +331,7 @@ public class DataValue implements Serializable {
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   public CategoryOptionCombo getCategoryOptionCombo() {
     return categoryOptionCombo;
   }
@@ -347,23 +353,24 @@ public class DataValue implements Serializable {
   }
 
   @UsageTestOnly
-  public DataEntryKey toKey() {
-    return new DataEntryKey(
+  public DataValueKey toKey() {
+    return new DataValueKey(
         UID.of(dataElement),
         UID.of(source),
         UID.of(categoryOptionCombo),
         UID.of(attributeOptionCombo),
-        period.getIsoDate());
+        period);
   }
 
   @UsageTestOnly
   public DataExportValue toEntry() {
     return new DataExportValue(
         UID.of(dataElement),
-        period.getIsoDate(),
+        period,
         UID.of(source),
         UID.of(categoryOptionCombo),
         UID.of(attributeOptionCombo),
+        dataElement.getValueType(),
         value,
         comment,
         followup,
@@ -380,7 +387,7 @@ public class DataValue implements Serializable {
         UID.of(getSource()),
         UID.of(getCategoryOptionCombo()),
         UID.of(getAttributeOptionCombo()),
-        getPeriod().getIsoDate(),
+        getPeriod(),
         value,
         comment,
         followup,
