@@ -152,6 +152,10 @@
       <artifactId>dhis-support-hibernate</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.jasypt</groupId>
+      <artifactId>jasypt</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-main</artifactId>
     </dependency>
