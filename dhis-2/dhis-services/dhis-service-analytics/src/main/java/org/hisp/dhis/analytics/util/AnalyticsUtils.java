@@ -1168,12 +1168,15 @@ public class AnalyticsUtils {
       log.error("Internal runtime exception", ex);
       throw ex;
     } catch (DataIntegrityViolationException ex) {
-      if (!isMultipleQueries) {
-        if ((ex.getCause() instanceof SQLException sqlexception)
-            && (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception))) {
-          log.error(E7154.getMessage(), ex);
-          throw new QueryRuntimeException(E7154);
-        }
+      if ((ex.getCause() instanceof SQLException sqlexception)
+          && (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception))) {
+        log.error(E7154.getMessage(), ex);
+        throw new QueryRuntimeException(E7154);
+      }
+      if ((ex.getCause() instanceof SQLException sqlexception)
+          && (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception))) {
+        log.error(E7154.getMessage(), ex);
+        throw new QueryRuntimeException(E7154);
       }
 
       log.error(E7132.getMessage(), ex);
