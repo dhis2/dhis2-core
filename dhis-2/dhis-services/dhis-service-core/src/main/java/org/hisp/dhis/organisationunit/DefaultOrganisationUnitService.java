@@ -162,6 +162,12 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<String> getOrganisationUnitPathsByUid(@Nonnull Collection<UID> uids) {
+    return organisationUnitStore.getOrganisationUnitPathsByUid(uids);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public OrganisationUnit getOrganisationUnit(String uid) {
     return organisationUnitStore.getByUid(uid);
   }
