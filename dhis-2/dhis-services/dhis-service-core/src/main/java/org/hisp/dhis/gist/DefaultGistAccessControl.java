@@ -127,7 +127,11 @@ public class DefaultGistAccessControl implements GistAccessControl {
                       .filters(singletonList(new Filter("id", Comparison.EQ, uid)))
                       .build())
               .values();
-      sharing = res == null ? new Sharing() : (Sharing) res[0];
+      if (res == null) {
+        // the owner does not exist, or its sharing hides it from the current user
+        return isSuperuser();
+      }
+      sharing = (Sharing) res[0];
     } catch (BadRequestException ex) {
       // programming error
       throw new RuntimeException(ex);
