@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.jsontree.Validation.YesNo.NO;
+
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
@@ -38,6 +40,7 @@ import org.hisp.dhis.common.input.UrlParams;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.jsontree.Collapsed;
+import org.hisp.dhis.jsontree.Validation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -55,6 +58,12 @@ public record DataValueChangelogQueryParams(
     @OpenApi.Property({UID[].class, CategoryOptionCombo.class}) UID co, // COC
     @OpenApi.Property({UID[].class, CategoryOptionCombo.class}) UID cc, // AOC
     List<DataValueChangelogType> type,
+    @OpenApi.Description(
+            "Get the total number of items and pages in the pager. Only enable this if necessary"
+                + " as it counts all entries. Use the pager's prev/nextPage to determine if there"
+                + " is a previous or a next page instead.")
+        @Validation(required = NO)
+        boolean totalPages,
     @Collapsed PagedParams paged)
     implements UrlParams {
 
@@ -70,6 +79,7 @@ public record DataValueChangelogQueryParams(
         null,
         null,
         List.of(types),
+        false,
         PagedParams.DEFAULT);
   }
 }

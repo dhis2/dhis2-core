@@ -111,6 +111,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
   @Column(nullable = false, unique = true, length = 50)
   private String shortName;
 
+  @Type(type = "text")
   @Column(columnDefinition = "text")
   private String description;
 
