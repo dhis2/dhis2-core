@@ -458,6 +458,20 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return !jdbcTemplate.queryForList(sqlBuilder.tableExists(name)).isEmpty();
   }
 
+  /**
+   * Checks which of the given tables exist, using a single query.
+   *
+   * @param names the table names.
+   * @return the names of the given tables which exist.
+   */
+  protected Set<String> getExistingTables(Collection<String> names) {
+    if (names.isEmpty()) {
+      return Set.of();
+    }
+
+    return Set.copyOf(jdbcTemplate.queryForList(sqlBuilder.tablesExist(names), String.class));
+  }
+
   @Override
   public boolean isReadyForContinuousUpdate(List<AnalyticsTable> tables) {
     if (!sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
