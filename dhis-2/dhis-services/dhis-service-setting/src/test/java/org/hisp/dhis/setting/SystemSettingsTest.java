@@ -213,6 +213,16 @@ class SystemSettingsTest {
   }
 
   @Test
+  void testLastSuccessfulTrackedEntityAttributeValueReplicaSync() {
+    assertTrue(
+        SystemSettings.keysWithDefaults()
+            .contains("keyLastSuccessfulTrackedEntityAttributeValueReplicaSync"));
+    assertEquals(
+        new Date(0L),
+        SystemSettings.of(Map.of()).getLastSuccessfulTrackedEntityAttributeValueReplicaSync());
+  }
+
+  @Test
   void testKeyLastSuccessfulLatestAnalyticsPartitionUpdate_PerType() {
     assertEquals(
         "keyLastSuccessfulLatestAnalyticsPartitionUpdateDataValue",
