@@ -37,7 +37,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.HashSet;
 import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -77,7 +76,7 @@ public class OptionGroup extends BaseDimensionalItemObject implements MetadataOb
   // -------------------------------------------------------------------------
 
   @JsonProperty("options")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "options", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "option", namespace = DxfNamespaces.DXF_2_0)
   public Set<Option> getMembers() {
