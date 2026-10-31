@@ -138,8 +138,8 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
   @Override
   protected void preCreateEntity(Route route) throws ConflictException {
     routeService.validateRoute(route);
-    if (route.getPublicAccess() == null) {
-      route.setPublicAccess(AccessStringHelper.DEFAULT);
+    if (route.getSharing().getPublicAccess() == null) {
+      route.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     }
   }
 
