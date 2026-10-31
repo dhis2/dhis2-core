@@ -38,6 +38,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.SoftwareUpdateResponse;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.SystemUpdateNotificationService;
 import org.hisp.dhis.webapi.controller.Server;
+import org.hisp.dhis.webapi.security.RejectCrossOriginGet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,6 +60,7 @@ public class SystemUpdateNotifyController {
   @Autowired private SystemUpdateNotificationService service;
 
   @GetMapping
+  @RejectCrossOriginGet
   @ResponseBody
   public WebMessage checkForSystemUpdates(
       @RequestParam(value = "forceVersion", required = false) String forceVersion) {
