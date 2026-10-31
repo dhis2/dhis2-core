@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,7 +88,7 @@ class MappingBatchHandlerTest {
   private MappingBatchHandler target;
 
   @BeforeEach
-  public void setUp() throws SQLException {
+  void setUp() throws SQLException {
     JdbcConfiguration config = new JdbcConfiguration(StatementDialect.POSTGRESQL, dataSource);
 
     target =
@@ -146,6 +146,28 @@ class MappingBatchHandlerTest {
   @Test
   void testGetValues() {
     assertEquals(testValues, target.getValues(testRow));
+  }
+
+  @Test
+  void testColumnQuoterAppliesToSqlColumnsButNotValueLookup() {
+    MappingBatchHandler quoted =
+        MappingBatchHandler.builder()
+            .jdbcConfiguration(new JdbcConfiguration(StatementDialect.POSTGRESQL, dataSource))
+            .tableName(testTableName)
+            .columns(testColumns)
+            .autoIncrementColumn(testAutoIncrementColumn)
+            .identifierColumns(testIdentifierColumns)
+            .uniqueColumns(testUniqueColumns)
+            .columnQuoter(col -> "\"" + col + "\"")
+            .build();
+
+    assertEquals(List.of("\"colA\"", "\"colB\"", "\"colC\"", "\"colD\""), quoted.getColumns());
+    assertEquals("\"" + testAutoIncrementColumn + "\"", quoted.getAutoIncrementColumn());
+    assertEquals(List.of("\"colA\"", "\"colB\""), quoted.getIdentifierColumns());
+    assertEquals(List.of("\"colA\"", "\"colB\"", "\"colC\""), quoted.getUniqueColumns());
+    assertEquals(testValues, quoted.getValues(testRow));
+    assertEquals(testIdentifierValues, quoted.getIdentifierValues(testRow));
+    assertEquals(testUniqueValues, quoted.getUniqueValues(testRow));
   }
 
   @Test
