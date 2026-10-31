@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,7 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.tablereplication.ReplicaSyncOutcome;
 import org.hisp.dhis.tablereplication.TableReplicationService;
 import org.springframework.stereotype.Service;
 
@@ -124,6 +125,16 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
         log.info("Replicating tracked entity attribute value table");
         tableReplicationService.replicateTrackedEntityAttributeValue();
       }
+    }
+
+    if (params.isLatestUpdate() && settings.isAnalyticsDatabase() && !skipTypes.contains(EVENT)) {
+      progress.startingStage("Syncing tracked entity attribute value copy");
+      ReplicaSyncOutcome outcome =
+          progress.runStage(
+              null,
+              result -> "Outcome: " + result,
+              () -> tableReplicationService.syncTrackedEntityAttributeValue(params));
+      log.info("Tracked entity attribute value copy sync outcome: {}", outcome);
     }
 
     Set<AnalyticsTableType> publishedTypes = EnumSet.noneOf(AnalyticsTableType.class);
