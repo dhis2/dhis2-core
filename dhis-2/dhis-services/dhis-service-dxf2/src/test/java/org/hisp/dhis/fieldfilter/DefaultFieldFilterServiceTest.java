@@ -96,9 +96,7 @@ class DefaultFieldFilterServiceTest {
     final Map<String, Property> propertyMap = new HashMap<>();
     addProperty(propertyMap, attribute, "dataElementAttribute");
     addProperty(propertyMap, attribute, "user");
-    addProperty(propertyMap, attribute, "publicAccess");
-    addProperty(propertyMap, attribute, "userGroupAccesses");
-    addProperty(propertyMap, attribute, "userAccesses");
+    addProperty(propertyMap, attribute, "sharing");
 
     final Schema rootSchema = new Schema(Attribute.class, "attribute", "attributes");
     rootSchema.setPropertyMap(propertyMap);
@@ -115,9 +113,7 @@ class DefaultFieldFilterServiceTest {
     Set<String> names = extractNodeNames(node.getChildren().get(0).getChildren());
     Assertions.assertTrue(names.contains("dataElementAttribute"));
     Assertions.assertFalse(names.contains("user"));
-    Assertions.assertFalse(names.contains("publicAccess"));
-    Assertions.assertFalse(names.contains("userGroupAccesses"));
-    Assertions.assertFalse(names.contains("userAccesses"));
+    Assertions.assertFalse(names.contains("sharing"));
   }
 
   @Test
@@ -129,9 +125,7 @@ class DefaultFieldFilterServiceTest {
     p.setOwner(true);
     p.setPersisted(true);
     addProperty(propertyMap, attribute, "user");
-    addProperty(propertyMap, attribute, "publicAccess");
-    addProperty(propertyMap, attribute, "userGroupAccesses");
-    addProperty(propertyMap, attribute, "userAccesses");
+    addProperty(propertyMap, attribute, "sharing");
 
     final Schema rootSchema = new Schema(Attribute.class, "attribute", "attributes");
     rootSchema.setPropertyMap(propertyMap);
@@ -150,9 +144,7 @@ class DefaultFieldFilterServiceTest {
     Assertions.assertFalse(names.contains("dataElementAttribute"));
     Assertions.assertTrue(names.contains("dataSetAttribute"));
     Assertions.assertFalse(names.contains("user"));
-    Assertions.assertFalse(names.contains("publicAccess"));
-    Assertions.assertFalse(names.contains("userGroupAccesses"));
-    Assertions.assertFalse(names.contains("userAccesses"));
+    Assertions.assertFalse(names.contains("sharing"));
   }
 
   private static Set<String> extractNodeNames(Collection<Node> nodes) {

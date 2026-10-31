@@ -33,29 +33,62 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
+import jakarta.persistence.Access;
+import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Sortable;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -78,12 +111,20 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.Property.Value;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.visualization.Visualization;
@@ -91,8 +132,11 @@ import org.hisp.dhis.visualization.Visualization;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Entity
+@Table(name = "attribute")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "attribute", namespace = DxfNamespaces.DXF_2_0)
-public class Attribute extends BaseNameableObject implements MetadataObject {
+public class Attribute extends BaseMetadataObject implements NameableObject, MetadataObject {
   /** The types of {@link IdentifiableObject}s that can have attributes */
   public enum ObjectType {
     DATA_ELEMENT(DataElement.class),
@@ -189,17 +233,50 @@ public class Attribute extends BaseNameableObject implements MetadataObject {
     }
   }
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "attributeid")
+  private long id;
+
+  @Column(name = "code", unique = true, length = 50)
+  @AuditAttribute
+  private String code;
+
+  @Column(name = "name", nullable = false, unique = true, length = 230)
+  private String name;
+
+  @Column(name = "shortname", length = 50)
+  private String shortName;
+
+  @Type(type = "text")
+  @Column(name = "description", columnDefinition = "text")
+  private String description;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "valuetype", nullable = false, length = 50)
   private ValueType valueType;
 
-  private EnumSet<ObjectType> objectTypes = EnumSet.noneOf(ObjectType.class);
+  /** Mapped through {@link #getObjectTypes()}, which stores the enum names as a jsonb set. */
+  @Transient private EnumSet<ObjectType> objectTypes = EnumSet.noneOf(ObjectType.class);
 
+  @Column(name = "mandatory", nullable = false)
   private boolean mandatory;
 
+  @Column(name = "isunique")
   private boolean unique;
 
+  @Column(name = "sortorder")
   private Integer sortOrder;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "optionsetid")
   private OptionSet optionSet;
+
+  @Embedded private TranslationProperty translations = new TranslationProperty();
+
+  @Type(type = "jsbObjectSharing")
+  @Column(name = "sharing")
+  private Sharing sharing = new Sharing();
 
   public Attribute() {}
 
@@ -214,22 +291,39 @@ public class Attribute extends BaseNameableObject implements MetadataObject {
 
   @Override
   public int hashCode() {
-    return 31 * super.hashCode()
-        + Objects.hash(valueType, objectTypes, mandatory, unique, optionSet);
+    return Objects.hash(
+        getUid(),
+        getCode(),
+        getName(),
+        getShortName(),
+        getDescription(),
+        getValueType(),
+        getObjectTypes(),
+        isMandatory(),
+        isUnique(),
+        getOptionSet());
   }
 
+  /**
+   * Compares uid, code, name, shortName and description like {@link BaseNameableObject}, plus
+   * valueType, objectTypes, mandatory, unique and optionSet. Uses get-methods and the real class to
+   * handle proxied objects.
+   */
   @Override
   public boolean equals(Object obj) {
     return this == obj
-        || obj instanceof Attribute && super.equals(obj) && objectEquals((Attribute) obj);
-  }
-
-  private boolean objectEquals(Attribute other) {
-    return Objects.equals(this.valueType, other.valueType)
-        && Objects.equals(this.objectTypes, other.objectTypes)
-        && Objects.equals(this.mandatory, other.mandatory)
-        && Objects.equals(this.unique, other.unique)
-        && Objects.equals(this.optionSet, other.optionSet);
+        || obj instanceof Attribute other
+            && getRealClass(this) == getRealClass(obj)
+            && Objects.equals(getUid(), other.getUid())
+            && Objects.equals(getCode(), other.getCode())
+            && Objects.equals(getName(), other.getName())
+            && Objects.equals(getShortName(), other.getShortName())
+            && Objects.equals(getDescription(), other.getDescription())
+            && getValueType() == other.getValueType()
+            && Objects.equals(getObjectTypes(), other.getObjectTypes())
+            && isMandatory() == other.isMandatory()
+            && isUnique() == other.isUnique()
+            && Objects.equals(getOptionSet(), other.getOptionSet());
   }
 
   @JsonIgnore
@@ -245,6 +339,9 @@ public class Attribute extends BaseNameableObject implements MetadataObject {
     }
   }
 
+  @Access(AccessType.PROPERTY)
+  @Type(type = "jbSet")
+  @Column(name = "objecttypes", nullable = false)
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @Property(access = Property.Access.READ_ONLY, required = FALSE)
   public Set<String> getObjectTypes() {
@@ -706,5 +803,257 @@ public class Attribute extends BaseNameableObject implements MetadataObject {
         .add("objectTypes", objectTypes)
         .add("mandatory", mandatory)
         .toString();
+  }
+
+  // -------------------------------------------------------------------------
+  // Identifiable and nameable object getters and setters
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  @Override
+  @JsonProperty(value = "id")
+  @JacksonXmlProperty(localName = "id", isAttribute = true)
+  @Description("The Unique Identifier for this Object.")
+  @Property(value = PropertyType.IDENTIFIER, required = Value.FALSE)
+  @PropertyRange(min = 11, max = 11)
+  public String getUid() {
+    return uid;
+  }
+
+  @Override
+  @Sortable(value = false)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(isAttribute = true)
+  @Property(PropertyType.URL)
+  public String getHref() {
+    return href;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The unique code for this Object.")
+  @Property(PropertyType.IDENTIFIER)
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  public void setCode(String code) {
+    this.code = code;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The name of this Object. Required and unique.")
+  @PropertyRange(min = 1)
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
+  public String getDisplayName() {
+    return translations.getTranslation("NAME", getName());
+  }
+
+  @Override
+  @Sortable
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @PropertyRange(min = 1, max = 50)
+  public String getShortName() {
+    return shortName;
+  }
+
+  public void setShortName(String shortName) {
+    this.shortName = shortName;
+  }
+
+  @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "shortName", key = "SHORT_NAME")
+  public String getDisplayShortName() {
+    return translations.getTranslation("SHORT_NAME", getShortName());
+  }
+
+  @Override
+  @Sortable
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 1)
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  @Override
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
+  public String getDisplayDescription() {
+    return translations.getTranslation("DESCRIPTION", getDescription());
+  }
+
+  /** Falls back to the display name, as an attribute has no form name. */
+  @JsonProperty
+  @Sortable(whenPersisted = false)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "formName", key = "FORM_NAME")
+  public String getDisplayFormName() {
+    return translations.getTranslation("FORM_NAME", getDisplayName());
+  }
+
+  @Override
+  @JsonIgnore
+  public String getDisplayProperty(DisplayProperty displayProperty) {
+    if (DisplayProperty.SHORTNAME == displayProperty && getDisplayShortName() != null) {
+      return getDisplayShortName();
+    } else {
+      return getDisplayName();
+    }
+  }
+
+  @Override
+  @Gist(included = Include.FALSE)
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Translation> getTranslations() {
+    return translations.getTranslations();
+  }
+
+  /** Clears out the translation cache. */
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    this.translations.setTranslations(translations);
+  }
+
+  @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Sharing getSharing() {
+    if (sharing == null) {
+      sharing = new Sharing();
+    }
+
+    return sharing;
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {
+    this.sharing = sharing;
+  }
+
+  @Override
+  public void setUser(User user) {
+    setCreatedBy(createdBy == null ? user : createdBy);
+    setOwner(user != null ? user.getUid() : null);
+  }
+
+  @Override
+  public void setOwner(String userId) {
+    getSharing().setOwner(userId);
+  }
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    } else if (idScheme.is(IdentifiableProperty.CODE)) {
+      return code;
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return name;
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    }
+    return null;
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    }
+    return getPropertyValue(idScheme);
+  }
+
+  // -------------------------------------------------------------------------
+  // Unsupported properties (no column in the attribute table)
+  // -------------------------------------------------------------------------
+
+  /** Attribute does not support form name. */
+  @Deprecated(since = "2.44")
+  @Sortable
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getFormName() {
+    return null;
+  }
+
+  /** Attribute does not support form name. */
+  @Deprecated(since = "2.44")
+  public void setFormName(String formName) {
+    // Not supported
+  }
+
+  /** Attribute does not support attribute values. */
+  @Override
+  @Deprecated(since = "2.44")
+  @OpenApi.Property(BaseIdentifiableObject.AttributeValue[].class)
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
+  public AttributeValues getAttributeValues() {
+    return AttributeValues.empty();
+  }
+
+  /** Attribute does not support attribute values. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void setAttributeValues(AttributeValues attributeValues) {
+    // Not supported
+  }
+
+  /** Attribute does not support attribute values. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void addAttributeValue(String attributeUid, String value) {
+    // Not supported
+  }
+
+  /** Attribute does not support attribute values. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void removeAttributeValue(String attributeId) {
+    // Not supported
   }
 }
