@@ -33,9 +33,11 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +45,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Tests that a unique name violation caused by the {@code trg_trim_name} trigger trimming the
- * {@code name} on update is reported to the client, so that the duplicate name can be fixed.
+ * {@code name} on update is reported to the client, so that the duplicate name can be fixed, and
+ * that a blank name, which the trigger would trim to an empty string, is rejected as missing.
  */
 class TrimNameTriggerControllerTest extends PostgresControllerIntegrationTestBase {
 
@@ -101,6 +104,53 @@ class TrimNameTriggerControllerTest extends PostgresControllerIntegrationTestBas
 
     assertContains("Key (name)=(ANC) already exists", response.getString("message").string());
     assertEquals("ANC ", selectName(untrimmedUid));
+  }
+
+  @Test
+  void createOfObjectWithBlankNameReturnsConflict() {
+    JsonWebMessage message =
+        POST(
+                "/dataElements",
+                """
+                {
+                  "name": " \\t ",
+                  "shortName": "Blank name",
+                  "domainType": "AGGREGATE",
+                  "aggregationType": "SUM",
+                  "valueType": "NUMBER"
+                }""")
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+
+    assertEquals(
+        "Missing required property `name`", message.findErrorReport(ErrorCode.E4000).getMessage());
+    assertEquals(
+        0,
+        jdbcTemplate.queryForObject(
+            "select count(*) from dataelement where shortname = 'Blank name'", Integer.class));
+  }
+
+  @Test
+  void updateOfObjectToBlankNameReturnsConflict() {
+    String uid = postDataElement("Blank update", "Blank update short");
+
+    JsonWebMessage message =
+        PUT(
+                "/dataElements/" + uid,
+                """
+                {
+                  "name": "   ",
+                  "shortName": "Blank update short",
+                  "domainType": "AGGREGATE",
+                  "aggregationType": "SUM",
+                  "valueType": "NUMBER"
+                }""")
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+
+    assertEquals(
+        "Missing required property `name`", message.findErrorReport(ErrorCode.E4000).getMessage());
+    assertEquals("Blank update", selectName(uid));
   }
 
   private String postDataElement(String name, String shortName) {
