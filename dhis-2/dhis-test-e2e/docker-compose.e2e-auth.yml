@@ -1,0 +1,42 @@
+# Overlay for the auth-idp e2e suite (external IdP tests; on this branch: LDAP).
+# Usage:
+#   DHIS2_E2E_TEST_ARGS="-Pauth-idp" docker compose \
+#     -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-auth.yml \
+#     up --remove-orphans --exit-code-from test
+#
+# The web service gets a dedicated DHIS2_HOME (config/dhis2_home_auth/) so the extra
+# login provider never affects the default e2e suite.
+
+services:
+  web:
+    volumes:
+      - ./config/dhis2_home_auth/dhis.conf:/opt/dhis2/dhis.conf:ro
+    depends_on:
+      openldap:
+        condition: service_healthy
+
+  openldap:
+    image: osixia/openldap:1.5.0
+    command: ["--copy-service"]
+    environment:
+      LDAP_ORGANISATION: "DHIS2"
+      LDAP_DOMAIN: "dhis2.org"
+      LDAP_ADMIN_PASSWORD: "admin"
+      LDAP_TLS: "false"
+    volumes:
+      - ./config/ldap/users.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/users.ldif:ro
+      - ./config/ldap/allow-unauthenticated-bind.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/allow-unauthenticated-bind.ldif:ro
+    ports:
+      - "389"
+    healthcheck:
+      # Healthy once the seed entries are readable and an unauthenticated bind
+      # (DN with an empty password) is accepted, i.e. both bootstrap LDIFs applied.
+      test:
+        - CMD-SHELL
+        - >-
+          ldapsearch -x -H ldap://localhost -D cn=admin,dc=dhis2,dc=org -w admin
+          -b ou=users,dc=dhis2,dc=org '(cn=ldapcn1)' dn | grep -q '^dn: cn=ldapcn1,'
+          && ldapwhoami -x -H ldap://localhost -D cn=ldapcn1,ou=users,dc=dhis2,dc=org -w ''
+      interval: 5s
+      timeout: 5s
+      retries: 24
