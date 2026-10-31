@@ -38,7 +38,7 @@ import static org.hisp.dhis.common.IdCoder.ObjectType.DS;
 import static org.hisp.dhis.common.IdCoder.ObjectType.OU;
 import static org.hisp.dhis.common.IdCoder.ObjectType.OUG;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
-import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
+import static org.hisp.dhis.util.DateUtils.toLongGmtDateText;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -340,8 +340,8 @@ public class DefaultDataExportService implements DataExportService {
                     emptyAsNull(dv.comment()),
                     dv.followUp(),
                     emptyAsNull(dv.storedBy()),
-                    toLongGmtDate(dv.created()),
-                    toLongGmtDate(dv.lastUpdated()),
+                    toLongGmtDateText(dv.created()),
+                    toLongGmtDateText(dv.lastUpdated()),
                     dv.deleted())));
   }
 

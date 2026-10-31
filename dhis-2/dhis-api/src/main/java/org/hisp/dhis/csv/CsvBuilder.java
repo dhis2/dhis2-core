@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.csv;
 
-import static java.util.stream.Collectors.joining;
-
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
@@ -126,11 +123,11 @@ public final class CsvBuilder {
         if (row.length == 0) continue;
         for (int c = 0; c < columns; c++) {
           if (i > 0) out.appendAscii(delimiter);
-          writeField(toCsvValue(row[c]), i == 0);
+          writeField(row[c], i == 0);
           i++;
         }
       } else {
-        writeField(toCsvValue(value), true);
+        writeField(value, true);
       }
       endRecord();
     }
@@ -140,38 +137,148 @@ public final class CsvBuilder {
     return !preferences.contains(Preference.EXPLICIT_NULLS);
   }
 
-  private void writeField(String value, boolean first) {
+  private void writeField(Object value, boolean first) {
+    if (value instanceof Object[] arr) {
+      writeArrayValue(arr, first);
+    } else if (value instanceof Collection<?> c) {
+      writeCollectionValue(c, first);
+    } else writeSimpleValue(value, first);
+  }
+
+  private void writeSimpleValue(Object value, boolean first) {
     if (value == null) {
+      writeNullValue(first);
+    } else if (value instanceof Boolean b) {
+      out.appendAscii(b ? "true" : "false");
+    } else if (value instanceof Number n) {
+      writeNumber(n, first);
+    } else if (value instanceof Date date) {
+      writeCharSequence(DateUtils.toIso8601(date), first);
+    } else if (value instanceof CharSequence cs) {
+      writeCharSequence(cs, first);
+    } else writeCharSequence(value.toString(), first);
+  }
+
+  private void writeNumber(Number value, boolean first) {
+    if (value instanceof Integer || value instanceof Short || value instanceof Byte) {
+      out.appendInt(value.intValue());
+    } else if (value instanceof Long l) {
+      out.appendLong(l);
+    } else if (value instanceof Double d) {
+      out.appendDouble(d);
+    } else if (value instanceof Float f) {
+      out.appendDouble(f.doubleValue());
+    } else
+      // BigInteger, BigDecimal, or custom Number — their toString may differ from
+      // the Appender primitive writers, so route through the
+      // general CharSequence path to preserve the exact text and quote check.
+      writeCharSequence(value.toString(), first);
+  }
+
+  private void writeNullValue(boolean first) {
+    if (isNullEmpty()) {
       if (first) out.appendAscii("\"\"");
-      return;
+    } else {
+      out.appendAscii("null");
     }
-    String trimmed = value.trim();
-    if (trimmed.isEmpty()) {
-      if (first) out.appendAscii("\"\"");
-      return;
-    }
-    if (!needsQuoting(trimmed)) {
-      out.appendEncoded(trimmed);
-      return;
-    }
-    int len = trimmed.length();
-    out.appendAscii('"');
+  }
+
+  /**
+   * Writes a {@link CharSequence} value with trim and quote handling. Trimming is done by computing
+   * {@code start}/{@code end} offsets on the original sequence rather than materialising a
+   * substring — the whole path works on views and never allocates a {@code String} for the trimmed
+   * value.
+   */
+  private void writeCharSequence(CharSequence value, boolean first) {
     int start = 0;
-    for (int i = 0; i < len; i++) {
-      if (trimmed.charAt(i) == '"') {
-        if (i > start) out.appendEncoded(trimmed, start, i);
+    int end = value.length();
+    // trim leading and trailing whitespace (matches String.trim: chars <= ' ')
+    while (start < end && value.charAt(start) <= ' ') start++;
+    while (end > start && value.charAt(end - 1) <= ' ') end--;
+
+    if (start == end) {
+      if (first) out.appendAscii("\"\"");
+      return;
+    }
+    if (!needsQuoting(value, start, end)) {
+      out.appendEncoded(value, start, end);
+      return;
+    }
+    out.appendAscii('"');
+    int runStart = start;
+    for (int i = start; i < end; i++) {
+      if (value.charAt(i) == '"') {
+        if (i > runStart) out.appendEncoded(value, runStart, i);
         out.appendAscii('"');
         out.appendAscii('"');
-        start = i + 1;
+        runStart = i + 1;
       }
     }
-    if (start < len) out.appendEncoded(trimmed, start, len);
+    if (runStart < end) out.appendEncoded(value, runStart, end);
     out.appendAscii('"');
   }
 
-  private boolean needsQuoting(String value) {
-    int len = value.length();
-    for (int i = 0; i < len; i++) {
+  private void writeArrayValue(Object[] items, boolean first) {
+    if (items.length == 0) {
+      writeNullValue(first);
+      return;
+    }
+    if (items.length == 1) {
+      writeField(items[0], first);
+      return;
+    }
+    if (items.length < 10 && items[0] instanceof Number) {
+      // few numbers — space-separated, no quoting needed (numbers have no special chars)
+      for (int i = 0; i < items.length; i++) {
+        if (i > 0) out.appendAscii(' ');
+        writeNumElement(items[i]);
+      }
+      return;
+    }
+    writeNumElements(items.length);
+  }
+
+  private void writeNumElement(Object e) {
+    if (e instanceof Number n) {
+      writeNumber(n, false);
+    } else {
+      out.appendAscii('?');
+    }
+  }
+
+  private void writeCollectionValue(Collection<?> items, boolean first) {
+    int size = items.size();
+    if (size == 0) {
+      writeNullValue(first);
+      return;
+    }
+    if (size == 1) {
+      writeField(items.iterator().next(), first);
+      return;
+    }
+    if (size < 10) {
+      Iterator<?> it = items.iterator();
+      Object firstItem = it.next();
+      if (firstItem instanceof Number n) {
+        writeNumElement(n);
+        while (it.hasNext()) {
+          out.appendAscii(' ');
+          writeNumElement(it.next());
+        }
+        return;
+      }
+    }
+    writeNumElements(size);
+  }
+
+  private void writeNumElements(int n) {
+    out.appendAscii('(');
+    out.appendInt(n);
+    out.appendAscii(" elements)");
+  }
+
+  private boolean needsQuoting(CharSequence value, int start, int end) {
+    for (int i = start; i < end; i++) {
       char c = value.charAt(i);
       if (c == delimiter || c == '"' || c == '\r' || c == '\n') return true;
     }
@@ -180,29 +287,5 @@ public final class CsvBuilder {
 
   private void endRecord() {
     out.appendAscii('\n');
-  }
-
-  private String toCsvValue(Object value) {
-    if (value == null) return isNullEmpty() ? "" : "null";
-    if (value instanceof Object[] arr) return toCsvValue(arr);
-    if (value instanceof Collection<?> c) return toCsvValue(c);
-    if (value instanceof Date date) return DateUtils.toIso8601(date);
-    return value.toString();
-  }
-
-  private String toCsvValue(Object[] items) {
-    if (items.length == 0) return toCsvValue((Object) null);
-    if (items.length == 1) return toCsvValue(items[0]);
-    if (items.length < 10 && items[0] instanceof Number)
-      return Arrays.stream(items).map(String::valueOf).collect(joining(" "));
-    return "(" + items.length + " elements)";
-  }
-
-  private String toCsvValue(Collection<?> items) {
-    if (items.isEmpty()) return toCsvValue((Object) null);
-    if (items.size() == 1) return toCsvValue(items.iterator().next());
-    if (items.size() < 10 && items.iterator().next() instanceof Number)
-      return items.stream().map(String::valueOf).collect(joining(" "));
-    return "(" + items.size() + " elements)";
   }
 }

@@ -164,24 +164,26 @@ final class DataExportOutput {
       String groupOrgUnit = group.orgUnit();
       String groupPeriod = group.period();
       String groupAoc = group.attributeOptionCombo();
-      Stream<String[]> rows =
+      Object[] row = new Object[CSV_HEADER_ROW.length];
+      Stream<Object[]> rows =
           group
               .values()
               .map(
-                  dv ->
-                      new String[] {
-                        dv.dataElement(),
-                        dv.period() == null ? groupPeriod : dv.period(),
-                        dv.orgUnit() == null ? groupOrgUnit : dv.orgUnit(),
-                        dv.categoryOptionCombo(),
-                        dv.attributeOptionCombo() == null ? groupAoc : dv.attributeOptionCombo(),
-                        dv.value(),
-                        dv.storedBy(),
-                        dv.lastUpdated(),
-                        dv.comment(),
-                        dv.followUp() == null ? null : String.valueOf(dv.followUp()),
-                        String.valueOf(dv.deleted())
-                      });
+                  dv -> {
+                    row[0] = dv.dataElement();
+                    row[1] = dv.period() == null ? groupPeriod : dv.period();
+                    row[2] = dv.orgUnit() == null ? groupOrgUnit : dv.orgUnit();
+                    row[3] = dv.categoryOptionCombo();
+                    row[4] =
+                        dv.attributeOptionCombo() == null ? groupAoc : dv.attributeOptionCombo();
+                    row[5] = dv.value();
+                    row[6] = dv.storedBy();
+                    row[7] = dv.lastUpdated();
+                    row[8] = dv.comment();
+                    row[9] = dv.followUp() == null ? null : dv.followUp();
+                    row[10] = dv.deleted();
+                    return row; // row is consume once so we can reuse it
+                  });
       new CsvBuilder(out).toRows(Arrays.asList(CSV_HEADER_ROW), rows);
     }
   }
@@ -229,8 +231,9 @@ final class DataExportOutput {
                 out.writeAttribute("attributeOptionCombo", dv.attributeOptionCombo());
               if (dv.value() != null) out.writeAttribute("value", dv.value());
               if (dv.storedBy() != null) out.writeAttribute("storedBy", dv.storedBy());
-              if (dv.created() != null) out.writeAttribute("created", dv.created());
-              if (dv.lastUpdated() != null) out.writeAttribute("lastUpdated", dv.lastUpdated());
+              if (dv.created() != null) out.writeAttribute("created", dv.created().toString());
+              if (dv.lastUpdated() != null)
+                out.writeAttribute("lastUpdated", dv.lastUpdated().toString());
               if (dv.comment() != null) out.writeAttribute("comment", dv.comment());
               if (Boolean.TRUE.equals(dv.followUp())) out.writeAttribute("followUp", "true");
               if (dv.deleted()) out.writeAttribute("deleted", "true");
