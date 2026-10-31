@@ -37,13 +37,27 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.util.Date;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Type;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
@@ -63,36 +77,66 @@ import org.hisp.dhis.user.User;
  *
  * @author Jan Bernitt
  */
+@Entity
+@Table(name = "metadataproposal")
 @Builder
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @JacksonXmlRootElement(localName = "metadataProposal", namespace = DxfNamespaces.DXF_2_0)
 public class MetadataProposal implements PrimaryKeyObject {
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "proposalid")
   private long id;
 
-  @Immutable private String uid;
+  @Column(name = "uid", unique = true, nullable = false, length = 11)
+  private String uid;
 
-  @Immutable private MetadataProposalType type;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "type", nullable = false, length = 6)
+  private MetadataProposalType type;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false, length = 12)
   private MetadataProposalStatus status;
 
-  @Immutable private MetadataProposalTarget target;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "target", nullable = false, length = 30)
+  private MetadataProposalTarget target;
 
-  @Immutable private String targetId;
+  @Column(name = "targetuid", length = 11)
+  private String targetId;
 
-  @Immutable private User createdBy;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "createdby",
+      nullable = false,
+      foreignKey = @ForeignKey(name = "fk_createdby_userid"))
+  private User createdBy;
 
-  @Immutable private Date created;
+  @Column(name = "created", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date created;
 
-  @Immutable private JsonNode change;
+  // the concrete Jackson node types are Serializable, and the field must stay persistent
+  @SuppressWarnings("java:S1948")
+  @Type(type = "jbJsonNode")
+  @Column(name = "change", nullable = false)
+  private JsonNode change;
 
+  @Column(name = "comment")
   private String comment;
 
+  @Column(name = "reason", length = 1024)
   private String reason;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "finalisedby", foreignKey = @ForeignKey(name = "fk_finalisedby_userid"))
   private User finalisedBy;
 
+  @Column(name = "finalised")
+  @Temporal(TemporalType.TIMESTAMP)
   private Date finalised;
 
   @Override
