@@ -38,7 +38,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
 import java.util.regex.Pattern;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -83,9 +83,9 @@ public class CspFilter extends OncePerRequestFilter {
   }
 
   private void setFrameAncestorsCspRule(HttpServletResponse res) {
-    Set<String> corsWhitelist = configurationService.getCorsWhitelist();
-    if (!corsWhitelist.isEmpty()) {
-      String corsAllowedOrigins = String.join(" ", corsWhitelist);
+    List<String> trustedOrigins = configurationService.getCorsAllowlistOrigins();
+    if (!trustedOrigins.isEmpty()) {
+      String corsAllowedOrigins = String.join(" ", trustedOrigins);
       res.addHeader(
           CONTENT_SECURITY_POLICY_HEADER_NAME,
           FRAME_ANCESTORS_DEFAULT_CSP + " " + corsAllowedOrigins + ";");

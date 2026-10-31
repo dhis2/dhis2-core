@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.configuration;
 
+import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -53,27 +55,41 @@ public interface ConfigurationService {
   Configuration getConfiguration();
 
   /**
-   * Returns the configured CORS whitelist. The result is cached for fast read access on hot paths
-   * (CORS preflight checks, CSP {@code frame-ancestors} composition); the cache is invalidated by
-   * {@link #setCorsWhitelist(Set)}.
+   * Returns the CORS allowlist as stored, including entries that are not valid {@link
+   * CorsAllowlistEntry allowlist entries}. The result is cached for fast read access; the cache is
+   * invalidated by {@link #setCorsWhitelist(Set)}.
    *
-   * @return the whitelist (never {@code null}).
+   * @return the stored allowlist (never {@code null}).
    */
   Set<String> getCorsWhitelist();
 
   /**
-   * Replaces the CORS whitelist and invalidates the read cache populated by {@link
+   * Returns the normalised origins of the valid CORS allowlist entries, for example to compose the
+   * CSP {@code frame-ancestors} directive. Stored entries that are not valid {@link
+   * CorsAllowlistEntry allowlist entries} are left out. Shares the cache of {@link
    * #getCorsWhitelist()}.
    *
-   * @param corsWhitelist the new whitelist (may be empty, must not be {@code null}).
+   * @return the trusted origins (never {@code null}).
    */
-  void setCorsWhitelist(Set<String> corsWhitelist);
+  List<String> getCorsAllowlistOrigins();
 
   /**
-   * Indicates whether the given origin is CORS white listed.
+   * Validates and replaces the CORS allowlist and invalidates the read cache populated by {@link
+   * #getCorsWhitelist()}. Entries are stored in their normalised form, see {@link
+   * CorsAllowlistEntry}.
+   *
+   * @param corsWhitelist the new allowlist (may be empty, must not be {@code null}).
+   * @throws ConflictException if an entry is not a valid {@link CorsAllowlistEntry}; nothing is
+   *     stored in that case.
+   */
+  void setCorsWhitelist(Set<String> corsWhitelist) throws ConflictException;
+
+  /**
+   * Indicates whether the given origin is trusted by a valid entry of the CORS allowlist. Stored
+   * entries that are not valid {@link CorsAllowlistEntry allowlist entries} are ignored.
    *
    * @param origin the origin.
-   * @return true if the given origin is CORS white listed.
+   * @return true if the given origin is CORS allowlisted.
    */
   boolean isCorsWhitelisted(String origin);
 

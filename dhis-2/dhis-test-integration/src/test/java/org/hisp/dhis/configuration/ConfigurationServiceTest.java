@@ -33,11 +33,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -88,27 +92,52 @@ class ConfigurationServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testCorsWhitelist() {
-    Set<String> cors = new HashSet<>();
-    cors.add("http://localhost:3000/");
-    cors.add("http://*.local.tld:3000/");
-    cors.add("*.remote.tld/");
-    configurationService.setCorsWhitelist(cors);
+  void testCorsWhitelist() throws ConflictException {
+    configurationService.setCorsWhitelist(
+        Set.of("http://localhost:3000/", "http://*.local.tld:3000", "https://remote.tld"));
 
-    assertTrue(configurationService.isCorsWhitelisted("http://localhost:3000/"));
-    assertTrue(configurationService.isCorsWhitelisted("http://foobar.local.tld:3000/"));
-    assertTrue(configurationService.isCorsWhitelisted("http://magic.remote.tld/"));
-    assertFalse(configurationService.isCorsWhitelisted("http://localhost:9000/"));
-    assertFalse(configurationService.isCorsWhitelisted("http://another.local.tld/"));
-    assertFalse(configurationService.isCorsWhitelisted("http://some.other.tld/"));
+    assertTrue(configurationService.isCorsWhitelisted("http://localhost:3000"));
+    assertTrue(configurationService.isCorsWhitelisted("http://foobar.local.tld:3000"));
+    assertTrue(configurationService.isCorsWhitelisted("https://remote.tld"));
+    assertFalse(configurationService.isCorsWhitelisted("http://localhost:9000"));
+    assertFalse(configurationService.isCorsWhitelisted("http://another.local.tld"));
+    assertFalse(configurationService.isCorsWhitelisted("https://magic.remote.tld"));
+    assertFalse(configurationService.isCorsWhitelisted("https://remote.tld.other.tld"));
   }
 
   @Test
-  void testSetCorsWhitelistInvalidatesCachedRead() {
+  void testSetCorsWhitelistInvalidatesCachedRead() throws ConflictException {
     configurationService.setCorsWhitelist(Set.of("http://first.example/"));
-    assertEquals(Set.of("http://first.example/"), configurationService.getCorsWhitelist());
+    assertEquals(Set.of("http://first.example"), configurationService.getCorsWhitelist());
 
     configurationService.setCorsWhitelist(Set.of("http://second.example/"));
-    assertEquals(Set.of("http://second.example/"), configurationService.getCorsWhitelist());
+    assertEquals(Set.of("http://second.example"), configurationService.getCorsWhitelist());
+  }
+
+  @Test
+  void testSetCorsWhitelistRejectsInvalidEntryAndKeepsStoredList() throws ConflictException {
+    configurationService.setCorsWhitelist(Set.of("https://kept.example"));
+
+    ConflictException ex =
+        assertThrows(
+            ConflictException.class,
+            () -> configurationService.setCorsWhitelist(Set.of("https://new.example", "*")));
+
+    assertEquals(ErrorCode.E1136, ex.getCode());
+    assertEquals(Set.of("https://kept.example"), configurationService.getCorsWhitelist());
+  }
+
+  @Test
+  void testStoredInvalidEntryIsIgnored() throws ConflictException {
+    configurationService.setCorsWhitelist(Set.of());
+    Configuration configuration = configurationService.getConfiguration();
+    configuration.setCorsWhitelist(new HashSet<>(Set.of("*", "https://trusted.example")));
+    configurationService.setConfiguration(configuration);
+
+    assertEquals(Set.of("*", "https://trusted.example"), configurationService.getCorsWhitelist());
+    assertEquals(
+        List.of("https://trusted.example"), configurationService.getCorsAllowlistOrigins());
+    assertTrue(configurationService.isCorsWhitelisted("https://trusted.example"));
+    assertFalse(configurationService.isCorsWhitelisted("https://other.example"));
   }
 }
