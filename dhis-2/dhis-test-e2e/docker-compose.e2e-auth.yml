@@ -15,7 +15,7 @@ services:
       keycloak:
         condition: service_started
       openldap:
-        condition: service_started
+        condition: service_healthy
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
@@ -38,7 +38,21 @@ services:
       LDAP_ORGANISATION: "DHIS2"
       LDAP_DOMAIN: "dhis2.org"
       LDAP_ADMIN_PASSWORD: "admin"
+      LDAP_TLS: "false"
     volumes:
       - ./config/ldap/users.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/users.ldif:ro
+      - ./config/ldap/allow-unauthenticated-bind.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/allow-unauthenticated-bind.ldif:ro
     ports:
       - "389"
+    healthcheck:
+      # Healthy once the seed entries are readable and an unauthenticated bind
+      # (DN with an empty password) is accepted, i.e. both bootstrap LDIFs applied.
+      test:
+        - CMD-SHELL
+        - >-
+          ldapsearch -x -H ldap://localhost -D cn=admin,dc=dhis2,dc=org -w admin
+          -b ou=users,dc=dhis2,dc=org '(cn=ldapcn1)' dn | grep -q '^dn: cn=ldapcn1,'
+          && ldapwhoami -x -H ldap://localhost -D cn=ldapcn1,ou=users,dc=dhis2,dc=org -w ''
+      interval: 5s
+      timeout: 5s
+      retries: 24
