@@ -284,6 +284,28 @@ class SmsCommandMetadataControllerTest extends PostgresControllerIntegrationTest
   }
 
   @Test
+  void shouldDescribeTextColumnsWithUnlimitedLength() {
+    Map<String, JsonObject> properties =
+        schemaProperties().collect(Collectors.toMap(p -> p.getString("name").string(), p -> p));
+
+    for (String name :
+        List.of(
+            "name",
+            "separator",
+            "codeValueSeparator",
+            "defaultMessage",
+            "receivedMessage",
+            "wrongFormatMessage",
+            "noUserMessage",
+            "moreThanOneOrgUnitMessage",
+            "successMessage")) {
+      JsonObject property = properties.get(name);
+      assertEquals(Integer.MAX_VALUE, property.getNumber("length").intValue(), name + " length");
+      assertEquals(Integer.MAX_VALUE, property.getNumber("max").intValue(), name + " max");
+    }
+  }
+
+  @Test
   void shouldDescribeCommandSchemaNameAndFlags() {
     JsonObject schema = GET("/schemas/smsCommand").content(HttpStatus.OK);
 

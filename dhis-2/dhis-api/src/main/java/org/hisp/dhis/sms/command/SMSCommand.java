@@ -132,7 +132,7 @@ public class SMSCommand implements IdentifiableObject, MetadataObject {
   @Column(name = "uid", nullable = false, length = 11)
   private String uid;
 
-  @Column(name = "name")
+  @Column(name = "name", columnDefinition = "text")
   @Type(type = "text")
   private String name;
 
@@ -185,7 +185,7 @@ public class SMSCommand implements IdentifiableObject, MetadataObject {
   @Column(name = "completenessmethod")
   private CompletenessMethod completenessMethod = CompletenessMethod.AT_LEAST_ONE_DATAVALUE;
 
-  @Column(name = "defaultmessage")
+  @Column(name = "defaultmessage", columnDefinition = "text")
   @Type(type = "text")
   private String defaultMessage;
 
@@ -207,11 +207,11 @@ public class SMSCommand implements IdentifiableObject, MetadataObject {
   /** Mapped through {@link #getSuccessMessage()}, which writes the default when none is set. */
   @Transient private String successMessage;
 
-  @Column(name = "separatorkey")
+  @Column(name = "separatorkey", columnDefinition = "text")
   @Type(type = "text")
   private String separator;
 
-  @Column(name = "codeseparator")
+  @Column(name = "codeseparator", columnDefinition = "text")
   @Type(type = "text")
   private String codeValueSeparator;
 
@@ -454,7 +454,7 @@ public class SMSCommand implements IdentifiableObject, MetadataObject {
   @JsonProperty
   @JacksonXmlProperty
   @jakarta.persistence.Access(AccessType.PROPERTY)
-  @Column(name = "receivedmessage")
+  @Column(name = "receivedmessage", columnDefinition = "text")
   @Type(type = "text")
   public String getReceivedMessage() {
     return receivedMessage != null ? receivedMessage : SUCCESS_MESSAGE;
@@ -508,7 +508,7 @@ public class SMSCommand implements IdentifiableObject, MetadataObject {
   @JsonProperty
   @JacksonXmlProperty
   @jakarta.persistence.Access(AccessType.PROPERTY)
-  @Column(name = "wrongformatmessage")
+  @Column(name = "wrongformatmessage", columnDefinition = "text")
   @Type(type = "text")
   public String getWrongFormatMessage() {
     return wrongFormatMessage != null ? wrongFormatMessage : WRONG_FORMAT_MESSAGE;
@@ -521,7 +521,7 @@ public class SMSCommand implements IdentifiableObject, MetadataObject {
   @JsonProperty
   @JacksonXmlProperty
   @jakarta.persistence.Access(AccessType.PROPERTY)
-  @Column(name = "nousermessage")
+  @Column(name = "nousermessage", columnDefinition = "text")
   @Type(type = "text")
   @Nonnull
   public String getNoUserMessage() {
@@ -535,7 +535,7 @@ public class SMSCommand implements IdentifiableObject, MetadataObject {
   @JsonProperty
   @JacksonXmlProperty
   @jakarta.persistence.Access(AccessType.PROPERTY)
-  @Column(name = "successmessage")
+  @Column(name = "successmessage", columnDefinition = "text")
   @Type(type = "text")
   public @Nonnull String getSuccessMessage() {
     return successMessage != null ? successMessage : SUCCESS_MESSAGE;
@@ -548,7 +548,7 @@ public class SMSCommand implements IdentifiableObject, MetadataObject {
   @JsonProperty
   @JacksonXmlProperty
   @jakarta.persistence.Access(AccessType.PROPERTY)
-  @Column(name = "morethanoneorgunitmessage")
+  @Column(name = "morethanoneorgunitmessage", columnDefinition = "text")
   @Type(type = "text")
   @Nonnull
   public String getMoreThanOneOrgUnitMessage() {
