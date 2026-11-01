@@ -64,23 +64,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class Dhis2OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
 
-  private static final List<String> TOKENS =
-      List.of(
-          "authorizationCode",
-          "accessToken",
-          "refreshToken",
-          "oidcIdToken",
-          "userCode",
-          "deviceCode");
+  /** A token kind: its property name prefix and its column name prefix. */
+  private record Token(String property, String column) {}
 
-  private static final Map<String, String> TOKEN_COLUMNS =
-      Map.of(
-          "authorizationCode", "authorization_code",
-          "accessToken", "access_token",
-          "refreshToken", "refresh_token",
-          "oidcIdToken", "oidc_id_token",
-          "userCode", "user_code",
-          "deviceCode", "device_code");
+  private static final List<Token> TOKENS =
+      List.of(
+          new Token("authorizationCode", "authorization_code"),
+          new Token("accessToken", "access_token"),
+          new Token("refreshToken", "refresh_token"),
+          new Token("oidcIdToken", "oidc_id_token"),
+          new Token("userCode", "user_code"),
+          new Token("deviceCode", "device_code"));
 
   @Autowired private Dhis2OAuth2AuthorizationStore oauth2AuthorizationStore;
 
@@ -299,12 +293,11 @@ class Dhis2OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     columns.put("accessTokenType", "access_token_type");
     columns.put("accessTokenScopes", "access_token_scopes");
     columns.put("oidcIdTokenClaims", "oidc_id_token_claims");
-    for (String token : TOKENS) {
-      String column = TOKEN_COLUMNS.get(token);
-      columns.put(token + "Value", column + "_value");
-      columns.put(token + "IssuedAt", column + "_issued_at");
-      columns.put(token + "ExpiresAt", column + "_expires_at");
-      columns.put(token + "Metadata", column + "_metadata");
+    for (Token token : TOKENS) {
+      columns.put(token.property() + "Value", token.column() + "_value");
+      columns.put(token.property() + "IssuedAt", token.column() + "_issued_at");
+      columns.put(token.property() + "ExpiresAt", token.column() + "_expires_at");
+      columns.put(token.property() + "Metadata", token.column() + "_metadata");
     }
     assertEquals(
         columns.keySet().stream().sorted().toList(),
@@ -351,7 +344,8 @@ class Dhis2OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     assertInstanceOf(TextType.class, persister.getPropertyType("oidcIdTokenClaims"));
     assertInstanceOf(TimestampType.class, persister.getPropertyType("created"));
     assertInstanceOf(TimestampType.class, persister.getPropertyType("lastUpdated"));
-    for (String token : TOKENS) {
+    for (Token tokenKind : TOKENS) {
+      String token = tokenKind.property();
       assertInstanceOf(StringType.class, persister.getPropertyType(token + "Value"), token);
       assertInstanceOf(TimestampType.class, persister.getPropertyType(token + "IssuedAt"), token);
       assertInstanceOf(TimestampType.class, persister.getPropertyType(token + "ExpiresAt"), token);
@@ -392,7 +386,7 @@ class Dhis2OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     authorization.setAccessTokenScopes("openid");
     authorization.setOidcIdTokenClaims("{\"sub\":\"admin\"}");
     for (int i = 0; i < TOKENS.size(); i++) {
-      setToken(authorization, TOKENS.get(i), i);
+      setToken(authorization, TOKENS.get(i).property(), i);
     }
     authorization.setDeviceCodeMetadata(longMetadata);
     oauth2AuthorizationStore.save(authorization);
@@ -416,9 +410,9 @@ class Dhis2OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     assertEquals(admin.getId(), ((Number) row.get("createdby")).longValue());
     assertEquals(admin.getId(), ((Number) row.get("lastupdatedby")).longValue());
     for (int i = 0; i < TOKENS.size(); i++) {
-      String column = TOKEN_COLUMNS.get(TOKENS.get(i));
+      String column = TOKENS.get(i).column();
       String expectedMetadata =
-          "deviceCode".equals(TOKENS.get(i)) ? longMetadata : "{\"token\":" + i + "}";
+          "deviceCode".equals(TOKENS.get(i).property()) ? longMetadata : "{\"token\":" + i + "}";
       assertEquals("value-" + i, row.get(column + "_value"), column);
       assertEquals(issuedAt(i).getTime(), ((Date) row.get(column + "_issued_at")).getTime());
       assertEquals(expiresAt(i).getTime(), ((Date) row.get(column + "_expires_at")).getTime());

@@ -112,8 +112,9 @@ import org.hisp.dhis.user.sharing.Sharing;
  * <p>The table maps the creator to {@code createdby} and has no sharing, translations or attribute
  * values columns, so this entity implements {@link IdentifiableObject} directly instead of
  * extending {@code BaseMetadataObject}. Sharing and translations are kept in memory only: the store
- * sets owner and public access on save, and the metadata importer rejects translations for this
- * non-translatable type. Attribute values are no-op stubs at the end of the class.
+ * sets owner and public access on save, and translations stay whatever the caller set (the metadata
+ * importer rejects any change to this runtime type). Attribute values are no-op stubs at the end of
+ * the class.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

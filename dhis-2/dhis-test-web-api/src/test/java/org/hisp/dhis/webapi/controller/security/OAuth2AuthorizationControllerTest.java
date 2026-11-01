@@ -54,6 +54,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class OAuth2AuthorizationControllerTest extends PostgresControllerIntegrationTestBase {
 
+  /** Every persisted field that holds token material and must never be served. */
+  private static final List<String> SECRET_FIELDS =
+      List.of(
+          "attributes",
+          "state",
+          "authorizationCodeValue",
+          "authorizationCodeMetadata",
+          "accessTokenValue",
+          "accessTokenMetadata",
+          "refreshTokenValue",
+          "refreshTokenMetadata",
+          "oidcIdTokenValue",
+          "oidcIdTokenMetadata",
+          "oidcIdTokenClaims",
+          "userCodeValue",
+          "userCodeMetadata",
+          "deviceCodeValue",
+          "deviceCodeMetadata");
+
   private static final Date ISSUED_AT = new Date(1_700_000_000_000L);
 
   private static final Date EXPIRES_AT = new Date(1_800_000_000_000L);
@@ -130,6 +149,19 @@ class OAuth2AuthorizationControllerTest extends PostgresControllerIntegrationTes
     assertEquals(getAdminUid(), json.getObject("lastUpdatedBy").getString("id").string());
     assertTrue(json.getArray("translations").isEmpty());
     assertTrue(json.getArray("attributeValues").isEmpty());
+  }
+
+  @Test
+  void testGetAuthorizationOmitsExplicitlyRequestedTokenValues() {
+    Dhis2OAuth2Authorization authorization = saveAuthorization("authorization-user");
+
+    JsonObject json =
+        GET(
+                "/oAuth2Authorizations/{uid}?fields=id," + String.join(",", SECRET_FIELDS),
+                authorization.getUid())
+            .content(HttpStatus.OK);
+
+    assertEquals(Set.of("id"), Set.copyOf(json.names()));
   }
 
   @Test
@@ -272,6 +304,21 @@ class OAuth2AuthorizationControllerTest extends PostgresControllerIntegrationTes
     authorization.setUserCodeExpiresAt(EXPIRES_AT);
     authorization.setDeviceCodeIssuedAt(ISSUED_AT);
     authorization.setDeviceCodeExpiresAt(EXPIRES_AT);
+    authorization.setAttributes("{\"java.security.Principal\":\"admin\"}");
+    authorization.setState("SECRET-STATE");
+    authorization.setAuthorizationCodeValue("SECRET-AUTHORIZATION-CODE");
+    authorization.setAuthorizationCodeMetadata("{\"secret\":1}");
+    authorization.setAccessTokenValue("SECRET-ACCESS-TOKEN-" + principalName);
+    authorization.setAccessTokenMetadata("{\"secret\":2}");
+    authorization.setRefreshTokenValue("SECRET-REFRESH-TOKEN-" + principalName);
+    authorization.setRefreshTokenMetadata("{\"secret\":3}");
+    authorization.setOidcIdTokenValue("SECRET-ID-TOKEN");
+    authorization.setOidcIdTokenMetadata("{\"secret\":4}");
+    authorization.setOidcIdTokenClaims("{\"sub\":\"admin\"}");
+    authorization.setUserCodeValue("SECRET-USER-CODE");
+    authorization.setUserCodeMetadata("{\"secret\":5}");
+    authorization.setDeviceCodeValue("SECRET-DEVICE-CODE");
+    authorization.setDeviceCodeMetadata("{\"secret\":6}");
     authorization.setLastUpdatedBy(getAdminUser());
     return authorization;
   }
