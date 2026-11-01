@@ -35,8 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManagerFactory;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.id.enhanced.NoopOptimizer;
@@ -126,10 +128,7 @@ class RelativePeriodsMappingTest extends PostgresIntegrationTestBase {
 
     assertEquals(FLAGS.size(), persister.getPropertyNames().length);
     for (String flag : FLAGS) {
-      assertEquals(
-          flag.toLowerCase(),
-          persister.getPropertyColumnNames(flag)[0].toLowerCase(),
-          flag + " column");
+      assertEquals(flag.toLowerCase(), persister.getPropertyColumnNames(flag)[0], flag + " column");
       assertInstanceOf(BooleanType.class, persister.getPropertyType(flag), flag + " type");
     }
   }
@@ -177,24 +176,17 @@ class RelativePeriodsMappingTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReadEachFlagFromItsOwnColumn() {
     AbstractEntityPersister persister = persister();
-    String columns = String.join(", ", FLAGS.stream().map(String::toLowerCase).toList());
-    String falseValues = String.join(", ", FLAGS.stream().map(flag -> "false").toList());
+    String insert =
+        "insert into relativeperiods (relativeperiodsid, "
+            + String.join(", ", FLAGS.stream().map(String::toLowerCase).toList())
+            + ") values ("
+            + String.join(", ", Collections.nCopies(FLAGS.size() + 1, "?"))
+            + ")";
 
     for (String flag : FLAGS) {
       int id = jdbcTemplate.queryForObject("select nextval('hibernate_sequence')", Integer.class);
       jdbcTemplate.update(
-          "insert into relativeperiods (relativeperiodsid, "
-              + columns
-              + ") values ("
-              + id
-              + ", "
-              + falseValues
-              + ")");
-      jdbcTemplate.update(
-          "update relativeperiods set "
-              + flag.toLowerCase()
-              + " = true where relativeperiodsid = ?",
-          id);
+          insert, Stream.concat(Stream.of(id), FLAGS.stream().map(flag::equals)).toArray());
 
       RelativePeriods loaded = entityManager.find(RelativePeriods.class, id);
 
