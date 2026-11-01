@@ -29,6 +29,13 @@
  */
 package org.hisp.dhis.user;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
@@ -37,6 +44,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Type;
 
 /**
  * @author Nguyen Hong Duc
@@ -47,13 +55,25 @@ import lombok.ToString;
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
+@Table(name = "usersetting")
 public class UserSetting implements Serializable {
 
-  @Nonnull private User user;
+  @Id
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "userinfoid")
+  @Nonnull
+  private User user;
 
-  @Nonnull private String name;
+  @Id
+  @Column(name = "name")
+  @Nonnull
+  private String name;
 
-  @EqualsAndHashCode.Exclude private Serializable value;
+  @Column(name = "value", length = 65535)
+  @Type(type = "serializable")
+  @EqualsAndHashCode.Exclude
+  private Serializable value;
 
   public boolean hasValue() {
     return value != null;
