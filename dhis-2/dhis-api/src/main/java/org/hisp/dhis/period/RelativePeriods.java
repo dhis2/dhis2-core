@@ -78,9 +78,9 @@ import org.joda.time.DateTime;
 @Table(name = "relativeperiods")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class RelativePeriods implements Serializable {
-  private static final String THISDAY = "thisDay";
+  private static final String THIS_DAY = "thisDay";
 
-  private static final String YESTERDAY = "yesterday";
+  private static final String PREVIOUS_DAY = "yesterday";
 
   private static final String LAST_WEEK = "last_week";
 
@@ -522,14 +522,14 @@ public class RelativePeriods implements Serializable {
 
     if (isThisDay()) {
       periods.add(
-          getRelativePeriod(new DailyPeriodType(), THISDAY, dateField, dynamicNames, format));
+          getRelativePeriod(new DailyPeriodType(), THIS_DAY, dateField, dynamicNames, format));
     }
 
     if (isYesterday()) {
       periods.add(
           getRelativePeriod(
               new DailyPeriodType(),
-              YESTERDAY,
+              PREVIOUS_DAY,
               dateField.withDate(new DateTime(dateField.date()).minusDays(1).toDate()),
               dynamicNames,
               format));
