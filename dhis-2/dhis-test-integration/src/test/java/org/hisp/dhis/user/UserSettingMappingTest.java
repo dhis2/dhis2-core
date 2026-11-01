@@ -37,15 +37,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.lang3.SerializationUtils;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.type.ComponentType;
@@ -111,7 +108,7 @@ class UserSettingMappingTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldWriteValueAsSerializedObject() throws Exception {
+  void shouldWriteValueAsSerializedObject() {
     entityManager.persist(new UserSetting(user, "keyStyle", "light_blue/light_blue.css"));
     entityManager.flush();
 
@@ -122,16 +119,16 @@ class UserSettingMappingTest extends PostgresIntegrationTestBase {
             user.getId(),
             "keyStyle");
 
-    assertEquals("light_blue/light_blue.css", deserialize(stored));
+    assertEquals("light_blue/light_blue.css", SerializationUtils.deserialize(stored));
   }
 
   @Test
-  void shouldFindSettingByUserAndName() throws IOException {
+  void shouldFindSettingByUserAndName() {
     jdbcTemplate.update(
         "insert into usersetting (userinfoid, name, value) values (?, ?, ?)",
         user.getId(),
         "keyDbLocale",
-        serialize("fr"));
+        SerializationUtils.serialize("fr"));
     jdbcTemplate.update(
         "insert into usersetting (userinfoid, name, value) values (?, ?, null)",
         user.getId(),
@@ -163,41 +160,28 @@ class UserSettingMappingTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldJoinUiLocaleSettingInNotifiableUsersQuery() {
-    ZonedDateTime now = ZonedDateTime.now();
+  void shouldJoinUiLocaleSettingInNotifiableUsersQueries() {
+    Date tenDaysAgo = Date.from(ZonedDateTime.now().minusDays(10).toInstant());
     User withLocale = createAndAddUser("localeuser");
+    for (User u : List.of(withLocale, user)) {
+      u.setLastLogin(tenDaysAgo);
+      u.setPasswordLastUpdated(tenDaysAgo);
+    }
     withLocale.setEmail("locale@example.org");
-    withLocale.setLastLogin(Date.from(now.minusDays(10).toInstant()));
     user.setEmail("nolocale@example.org");
-    user.setLastLogin(Date.from(now.minusDays(10).toInstant()));
     userService.updateUser(withLocale);
     userService.updateUser(user);
     entityManager.flush();
     userSettingStore.put(withLocale.getUsername(), "keyUiLocale", "fr");
     userSettingStore.put(user.getUsername(), "keyDbLocale", "es");
+    Date from = Date.from(ZonedDateTime.now().minusDays(20).toInstant());
+    Date to = new Date();
 
-    Map<String, Optional<Locale>> users =
-        userService.findNotifiableUsersWithLastLoginBetween(
-            Date.from(now.minusDays(20).toInstant()), Date.from(now.toInstant()));
-
-    assertEquals(
+    Map<String, Optional<Locale>> expected =
         Map.of(
             "locale@example.org", Optional.of(Locale.of("fr")),
-            "nolocale@example.org", Optional.empty()),
-        users);
-  }
-
-  private static byte[] serialize(String value) throws IOException {
-    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-    try (ObjectOutputStream out = new ObjectOutputStream(bytes)) {
-      out.writeObject(value);
-    }
-    return bytes.toByteArray();
-  }
-
-  private static Object deserialize(byte[] value) throws Exception {
-    try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(value))) {
-      return in.readObject();
-    }
+            "nolocale@example.org", Optional.empty());
+    assertEquals(expected, userService.findNotifiableUsersWithLastLoginBetween(from, to));
+    assertEquals(expected, userService.findNotifiableUsersWithPasswordLastUpdatedBetween(from, to));
   }
 }
