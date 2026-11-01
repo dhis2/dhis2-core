@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.hisp.dhis.util.DateUtils.toIso8601NoTz;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -141,8 +142,8 @@ class OAuth2AuthorizationControllerTest extends PostgresControllerIntegrationTes
             "oidcIdToken",
             "userCode",
             "deviceCode")) {
-      assertEquals("2023-11-14T22:13:20.000", json.getString(token + "IssuedAt").string(), token);
-      assertEquals("2027-01-15T08:00:00.000", json.getString(token + "ExpiresAt").string(), token);
+      assertEquals(toIso8601NoTz(ISSUED_AT), json.getString(token + "IssuedAt").string(), token);
+      assertEquals(toIso8601NoTz(EXPIRES_AT), json.getString(token + "ExpiresAt").string(), token);
     }
     assertEquals(getAdminUid(), json.getObject("createdBy").getString("id").string());
     assertEquals(getAdminUid(), json.getObject("user").getString("id").string());
