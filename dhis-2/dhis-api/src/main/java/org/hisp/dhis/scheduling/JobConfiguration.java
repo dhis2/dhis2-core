@@ -295,7 +295,7 @@ public class JobConfiguration implements IdentifiableObject, SecondaryMetadataOb
 
   @CheckForNull
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @Column(name = "errorcodes", insertable = false, updatable = false)
+  @Column(name = "errorcodes", insertable = false, updatable = false, columnDefinition = "text")
   @Type(type = "text")
   private String errorCodes;
 
