@@ -36,6 +36,12 @@ import static org.hisp.dhis.analytics.AnalyticsWeeklyStartKey.WEEKLY;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,6 +55,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.analytics.AnalyticsWeeklyStartKey;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -66,6 +74,9 @@ import org.joda.time.DateTime;
 @EqualsAndHashCode
 @ToString
 @JacksonXmlRootElement(localName = "relativePeriods", namespace = DxfNamespaces.DXF_2_0)
+@Entity
+@Table(name = "relativeperiods")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class RelativePeriods implements Serializable {
   private static final String THISDAY = "thisDay";
 
@@ -176,97 +187,191 @@ public class RelativePeriods implements Serializable {
         .collect(toUnmodifiableList());
   }
 
-  @EqualsAndHashCode.Exclude private int id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "relativeperiodsid")
+  @EqualsAndHashCode.Exclude
+  private int id;
 
-  @JsonProperty private boolean thisDay = false;
+  @Column(name = "thisday", nullable = false)
+  @JsonProperty
+  private boolean thisDay = false;
 
-  @JsonProperty private boolean yesterday = false;
+  @Column(name = "yesterday", nullable = false)
+  @JsonProperty
+  private boolean yesterday = false;
 
-  @JsonProperty private boolean last3Days = false;
+  @Column(name = "last3days", nullable = false)
+  @JsonProperty
+  private boolean last3Days = false;
 
-  @JsonProperty private boolean last7Days = false;
+  @Column(name = "last7days", nullable = false)
+  @JsonProperty
+  private boolean last7Days = false;
 
-  @JsonProperty private boolean last14Days = false;
+  @Column(name = "last14days", nullable = false)
+  @JsonProperty
+  private boolean last14Days = false;
 
-  @JsonProperty private boolean last30Days = false;
+  @Column(name = "last30days", nullable = false)
+  @JsonProperty
+  private boolean last30Days = false;
 
-  @JsonProperty private boolean last60Days = false;
+  @Column(name = "last60days", nullable = false)
+  @JsonProperty
+  private boolean last60Days = false;
 
-  @JsonProperty private boolean last90Days = false;
+  @Column(name = "last90days", nullable = false)
+  @JsonProperty
+  private boolean last90Days = false;
 
-  @JsonProperty private boolean last180Days = false;
+  @Column(name = "last180days", nullable = false)
+  @JsonProperty
+  private boolean last180Days = false;
 
-  @JsonProperty private boolean thisMonth = false;
+  @Column(name = "thismonth", nullable = false)
+  @JsonProperty
+  private boolean thisMonth = false;
 
-  @JsonProperty private boolean lastMonth = false;
+  @Column(name = "lastmonth", nullable = false)
+  @JsonProperty
+  private boolean lastMonth = false;
 
-  @JsonProperty private boolean thisBimonth = false;
+  @Column(name = "thisbimonth", nullable = false)
+  @JsonProperty
+  private boolean thisBimonth = false;
 
-  @JsonProperty private boolean lastBimonth = false;
+  @Column(name = "lastbimonth", nullable = false)
+  @JsonProperty
+  private boolean lastBimonth = false;
 
-  @JsonProperty private boolean thisQuarter = false;
+  @Column(name = "thisquarter", nullable = false)
+  @JsonProperty
+  private boolean thisQuarter = false;
 
-  @JsonProperty private boolean lastQuarter = false;
+  @Column(name = "lastquarter", nullable = false)
+  @JsonProperty
+  private boolean lastQuarter = false;
 
-  @JsonProperty private boolean thisSixMonth = false;
+  @Column(name = "thissixmonth", nullable = false)
+  @JsonProperty
+  private boolean thisSixMonth = false;
 
-  @JsonProperty private boolean lastSixMonth = false;
+  @Column(name = "lastsixmonth", nullable = false)
+  @JsonProperty
+  private boolean lastSixMonth = false;
 
-  @JsonProperty private boolean weeksThisYear = false;
+  @Column(name = "weeksthisyear")
+  @JsonProperty
+  private boolean weeksThisYear = false;
 
-  @JsonProperty private boolean monthsThisYear = false;
+  @Column(name = "monthsthisyear", nullable = false)
+  @JsonProperty
+  private boolean monthsThisYear = false;
 
-  @JsonProperty private boolean biMonthsThisYear = false;
+  @Column(name = "bimonthsthisyear")
+  @JsonProperty
+  private boolean biMonthsThisYear = false;
 
-  @JsonProperty private boolean quartersThisYear = false;
+  @Column(name = "quartersthisyear", nullable = false)
+  @JsonProperty
+  private boolean quartersThisYear = false;
 
-  @JsonProperty private boolean thisYear = false;
+  @Column(name = "thisyear", nullable = false)
+  @JsonProperty
+  private boolean thisYear = false;
 
-  @JsonProperty private boolean monthsLastYear = false;
+  @Column(name = "monthslastyear", nullable = false)
+  @JsonProperty
+  private boolean monthsLastYear = false;
 
-  @JsonProperty private boolean quartersLastYear = false;
+  @Column(name = "quarterslastyear", nullable = false)
+  @JsonProperty
+  private boolean quartersLastYear = false;
 
-  @JsonProperty private boolean lastYear = false;
+  @Column(name = "lastyear", nullable = false)
+  @JsonProperty
+  private boolean lastYear = false;
 
-  @JsonProperty private boolean last5Years = false;
+  @Column(name = "last5years", nullable = false)
+  @JsonProperty
+  private boolean last5Years = false;
 
-  @JsonProperty private boolean last10Years = false;
+  @Column(name = "last10years", nullable = false)
+  @JsonProperty
+  private boolean last10Years = false;
 
-  @JsonProperty private boolean last12Months = false;
+  @Column(name = "last12months", nullable = false)
+  @JsonProperty
+  private boolean last12Months = false;
 
-  @JsonProperty private boolean last6Months = false;
+  @Column(name = "last6months", nullable = false)
+  @JsonProperty
+  private boolean last6Months = false;
 
-  @JsonProperty private boolean last3Months = false;
+  @Column(name = "last3months", nullable = false)
+  @JsonProperty
+  private boolean last3Months = false;
 
-  @JsonProperty private boolean last6BiMonths = false;
+  @Column(name = "last6bimonths", nullable = false)
+  @JsonProperty
+  private boolean last6BiMonths = false;
 
-  @JsonProperty private boolean last4Quarters = false;
+  @Column(name = "last4quarters", nullable = false)
+  @JsonProperty
+  private boolean last4Quarters = false;
 
-  @JsonProperty private boolean last2SixMonths = false;
+  @Column(name = "last2sixmonths", nullable = false)
+  @JsonProperty
+  private boolean last2SixMonths = false;
 
-  @JsonProperty private boolean thisFinancialYear = false;
+  @Column(name = "thisfinancialyear", nullable = false)
+  @JsonProperty
+  private boolean thisFinancialYear = false;
 
-  @JsonProperty private boolean lastFinancialYear = false;
+  @Column(name = "lastfinancialyear", nullable = false)
+  @JsonProperty
+  private boolean lastFinancialYear = false;
 
-  @JsonProperty private boolean last5FinancialYears = false;
+  @Column(name = "last5financialyears", nullable = false)
+  @JsonProperty
+  private boolean last5FinancialYears = false;
 
-  @JsonProperty private boolean last10FinancialYears = false;
+  @Column(name = "last10financialyears", nullable = false)
+  @JsonProperty
+  private boolean last10FinancialYears = false;
 
-  @JsonProperty private boolean thisWeek = false;
+  @Column(name = "thisweek", nullable = false)
+  @JsonProperty
+  private boolean thisWeek = false;
 
-  @JsonProperty private boolean lastWeek = false;
+  @Column(name = "lastweek", nullable = false)
+  @JsonProperty
+  private boolean lastWeek = false;
 
-  @JsonProperty private boolean thisBiWeek = false;
+  @Column(name = "thisbiweek")
+  @JsonProperty
+  private boolean thisBiWeek = false;
 
-  @JsonProperty private boolean lastBiWeek = false;
+  @Column(name = "lastbiweek")
+  @JsonProperty
+  private boolean lastBiWeek = false;
 
-  @JsonProperty private boolean last4Weeks = false;
+  @Column(name = "last4weeks", nullable = false)
+  @JsonProperty
+  private boolean last4Weeks = false;
 
-  @JsonProperty private boolean last4BiWeeks = false;
+  @Column(name = "last4biweeks")
+  @JsonProperty
+  private boolean last4BiWeeks = false;
 
-  @JsonProperty private boolean last12Weeks = false;
+  @Column(name = "last12weeks", nullable = false)
+  @JsonProperty
+  private boolean last12Weeks = false;
 
-  @JsonProperty private boolean last52Weeks = false;
+  @Column(name = "last52weeks", nullable = false)
+  @JsonProperty
+  private boolean last52Weeks = false;
 
   // -------------------------------------------------------------------------
   // Constructors
