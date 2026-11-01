@@ -240,6 +240,8 @@ class ExternalMapLayerMetadataControllerTest extends PostgresControllerIntegrati
     assertEquals(50, properties.get("code").getNumber("length").intValue());
     assertEquals(Integer.MAX_VALUE, properties.get("url").getNumber("length").intValue());
     assertEquals(Integer.MAX_VALUE, properties.get("attribution").getNumber("length").intValue());
+    assertEquals(Integer.MAX_VALUE, properties.get("layers").getNumber("length").intValue());
+    assertEquals(Integer.MAX_VALUE, properties.get("legendSetUrl").getNumber("length").intValue());
     assertEquals(1024, properties.get("description").getNumber("length").intValue());
     assertEquals(255, properties.get("descriptionUrl").getNumber("length").intValue());
     assertEquals(2097152, properties.get("image").getNumber("length").intValue());

@@ -108,15 +108,15 @@ public class ExternalMapLayer extends BaseMetadataObject
   private MapService mapService;
 
   @Type(type = "text")
-  @Column(name = "url", nullable = false)
+  @Column(name = "url", nullable = false, columnDefinition = "text")
   private String url;
 
   @Type(type = "text")
-  @Column(name = "attribution")
+  @Column(name = "attribution", columnDefinition = "text")
   private String attribution;
 
   @Type(type = "text")
-  @Column(name = "layers")
+  @Column(name = "layers", columnDefinition = "text")
   private String layers;
 
   @Type(type = "org.hisp.dhis.mapping.ImageFormat")
@@ -132,7 +132,7 @@ public class ExternalMapLayer extends BaseMetadataObject
   private LegendSet legendSet;
 
   @Type(type = "text")
-  @Column(name = "legendseturl")
+  @Column(name = "legendseturl", columnDefinition = "text")
   private String legendSetUrl;
 
   @Column(name = "description", length = 1024)
