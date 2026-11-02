@@ -30,11 +30,13 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -44,6 +46,8 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataApprovalPermissions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -217,5 +221,86 @@ class DataApprovalControllerTest extends H2ControllerIntegrationTestBase {
     permissions = status_t1.getObject("permissions");
     assertFalse(permissions.getBoolean("mayReadAcceptedBy").exists());
     assertTrue(permissions.getString("acceptedAt").exists());
+  }
+
+  @Test
+  void testApproveAndUnapprove() {
+    assertStatus(
+        HttpStatus.NO_CONTENT, POST("/api/dataApprovals?ou={ou}&pe=202101&wf={wf}", ouId, wfId));
+    assertEquals("APPROVED_HERE", getApprovalState());
+
+    assertStatus(
+        HttpStatus.NO_CONTENT, DELETE("/api/dataApprovals?ou={ou}&pe=202101&wf={wf}", ouId, wfId));
+    assertEquals("UNAPPROVED_READY", getApprovalState());
+  }
+
+  @Test
+  void testApproveAndUnapproveBatch() {
+    assertStatus(HttpStatus.NO_CONTENT, POST("/api/dataApprovals/approvals", batchBody()));
+    assertEquals("APPROVED_HERE", getApprovalState());
+
+    assertStatus(HttpStatus.NO_CONTENT, POST("/api/dataApprovals/unapprovals", batchBody()));
+    assertEquals("UNAPPROVED_READY", getApprovalState());
+  }
+
+  @Test
+  void testAcceptAndUnaccept() {
+    enableAcceptance();
+    assertStatus(
+        HttpStatus.NO_CONTENT, POST("/api/dataApprovals?ou={ou}&pe=202101&wf={wf}", ouId, wfId));
+    assertEquals("APPROVED_HERE", getApprovalState());
+
+    assertStatus(
+        HttpStatus.NO_CONTENT, POST("/api/dataAcceptances?ou={ou}&pe=202101&wf={wf}", ouId, wfId));
+    assertEquals("ACCEPTED_HERE", getApprovalState());
+
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        DELETE("/api/dataAcceptances?ou={ou}&pe=202101&wf={wf}", ouId, wfId));
+    assertEquals("APPROVED_HERE", getApprovalState());
+  }
+
+  @Test
+  void testAcceptAndUnacceptBatch() {
+    enableAcceptance();
+    assertStatus(
+        HttpStatus.NO_CONTENT, POST("/api/dataApprovals?ou={ou}&pe=202101&wf={wf}", ouId, wfId));
+    assertEquals("APPROVED_HERE", getApprovalState());
+
+    assertStatus(HttpStatus.NO_CONTENT, POST("/api/dataAcceptances/acceptances", batchBody()));
+    assertEquals("ACCEPTED_HERE", getApprovalState());
+
+    assertStatus(HttpStatus.NO_CONTENT, POST("/api/dataAcceptances/unacceptances", batchBody()));
+    assertEquals("APPROVED_HERE", getApprovalState());
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "POST, /api/dataApprovals/dataAcceptances",
+    "POST, /api/dataApprovals/dataAcceptances/acceptances",
+    "POST, /api/dataApprovals/dataAcceptances/unacceptances",
+    "DELETE, /api/dataApprovals/dataAcceptances"
+  })
+  void testAcceptancesAreNotNestedUnderApprovals(HttpMethod method, String path) {
+    String url = path + "?ou=" + ouId + "&pe=202101&wf=" + wfId;
+    assertStatus(HttpStatus.NOT_FOUND, perform(method, url, Body(batchBody())));
+  }
+
+  private void enableAcceptance() {
+    assertStatus(
+        HttpStatus.OK, POST("/api/systemSettings/keyAcceptanceRequiredForApproval?value=true"));
+  }
+
+  private String getApprovalState() {
+    // approval status is read with JDBC, so pending Hibernate writes must be flushed first
+    dbmsManager.flushSession();
+    return GET("/api/dataApprovals?ou={ou}&pe=202101&wf={wf}", ouId, wfId)
+        .content(HttpStatus.OK)
+        .as(JsonDataApprovalPermissions.class)
+        .getState();
+  }
+
+  private String batchBody() {
+    return "{'wf':['" + wfId + "'], 'pe':['202101'], 'approvals':[{'ou':'" + ouId + "'}]}";
   }
 }
