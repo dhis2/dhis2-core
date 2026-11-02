@@ -105,13 +105,35 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     preheatParams.setUser(params.getUser());
     preheatParams.setObjects(params.getObjects());
 
-    Preheat preheat = preheatService.preheat(preheatParams);
+    Preheat preheat = preheatWithoutAutoFlush(preheatParams);
 
     ObjectBundle bundle = new ObjectBundle(params, preheat, params.getObjects());
     bundle.setObjectBundleStatus(ObjectBundleStatus.CREATED);
     bundle.setObjectReferences(preheatService.collectObjectReferences(params.getObjects()));
 
     return bundle;
+  }
+
+  /**
+   * Preheat only reads, but it runs inside the import's write transaction. In Hibernate's {@code
+   * FlushMode.AUTO} every query first dirty-checks all managed entities, and preheat loads every
+   * referenced object into the session. With a large reference collection (an org unit group with
+   * 100k members) each preheat query then walks 100k entities, which makes the preheat quadratic.
+   * Pending changes are flushed once so preheat queries still see them; flushing is then deferred
+   * to commit until preheat is done.
+   */
+  private Preheat preheatWithoutAutoFlush(PreheatParams preheatParams) {
+    Session session = entityManager.unwrap(Session.class);
+    org.hibernate.FlushMode flushMode = session.getHibernateFlushMode();
+    if (flushMode == org.hibernate.FlushMode.AUTO || flushMode == org.hibernate.FlushMode.ALWAYS) {
+      session.flush();
+      session.setHibernateFlushMode(org.hibernate.FlushMode.COMMIT);
+    }
+    try {
+      return preheatService.preheat(preheatParams);
+    } finally {
+      session.setHibernateFlushMode(flushMode);
+    }
   }
 
   @Override
