@@ -313,7 +313,8 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       }
 
       if (dim.getDimensionType() == DimensionType.CATEGORY
-          && !programCategories.contains(dim.getDimensionName())) {
+          && !programCategories.contains(dim.getDimensionName())
+          && !isIgnoredEnrollmentFilter(params, dim)) {
         return new ErrorMessage(ErrorCode.E7268, dim.getDimensionName(), program.getUid());
       }
 
@@ -324,6 +325,17 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     }
 
     return null;
+  }
+
+  /**
+   * Checks if a category filter is left out of the enrollment SQL. Enrollment queries skip
+   * attribute category filters, such as user category dimension constraints, so they never
+   * reference an analytics table column.
+   */
+  private boolean isIgnoredEnrollmentFilter(EventQueryParams params, DimensionalObject dim) {
+    return params.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT
+        && params.getFilters().contains(dim)
+        && JdbcEnrollmentAnalyticsManager.isAttributeCategory(dim);
   }
 
   /**

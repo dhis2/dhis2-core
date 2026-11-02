@@ -699,13 +699,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * Attribute categories are not included in enrollment tables, so category user dimension
    * restrictions (which use attribute categories) do not apply.
    */
-  private boolean isAttributeCategory(DimensionalObject categoryDim) {
-    return ((CategoryOption) categoryDim.getItems().get(0))
-            .getCategories()
-            .iterator()
-            .next()
-            .getDataDimensionType()
-        == ATTRIBUTE;
+  static boolean isAttributeCategory(DimensionalObject categoryDim) {
+    return !categoryDim.getItems().isEmpty()
+        && ((CategoryOption) categoryDim.getItems().get(0))
+                .getCategories()
+                .iterator()
+                .next()
+                .getDataDimensionType()
+            == ATTRIBUTE;
   }
 
   @Override

@@ -47,6 +47,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
@@ -1118,6 +1119,54 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
+  void validateSuccessEnrollmentAttributeCategoryFilterNotInProgramCategoryCombo() {
+    Category category = createAttributeCategory();
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.ENROLLMENT)
+            .addFilter(
+                new BaseDimensionalObject(
+                    category.getUid(),
+                    DimensionType.CATEGORY,
+                    List.copyOf(category.getCategoryOptions())))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateFailsEnrollmentAttributeCategoryDimensionNotInProgramCategoryCombo() {
+    Category category = createAttributeCategory();
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.ENROLLMENT)
+            .addDimension(
+                new BaseDimensionalObject(
+                    category.getUid(),
+                    DimensionType.CATEGORY,
+                    List.copyOf(category.getCategoryOptions())))
+            .build();
+
+    assertValidationError(ErrorCode.E7268, params);
+  }
+
+  @Test
+  void validateFailsEventAttributeCategoryFilterNotInProgramCategoryCombo() {
+    Category category = createAttributeCategory();
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.EVENT)
+            .addFilter(
+                new BaseDimensionalObject(
+                    category.getUid(),
+                    DimensionType.CATEGORY,
+                    List.copyOf(category.getCategoryOptions())))
+            .build();
+
+    assertValidationError(ErrorCode.E7268, params);
+  }
+
+  @Test
   void validateSuccessCategoryWithoutProgram() {
     Category category = createCategory('A');
 
@@ -1185,6 +1234,13 @@ class EventQueryValidatorTest extends TestBase {
 
   private BaseDimensionalObject categoryDimension(Category category) {
     return new BaseDimensionalObject(category.getUid(), DimensionType.CATEGORY, List.of());
+  }
+
+  /** Creates an attribute category, the kind used for user category dimension constraints. */
+  private Category createAttributeCategory() {
+    Category category = createCategory('A', createCategoryOption('A'));
+    category.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    return category;
   }
 
   /** Builds a stage-prefixed dimension the way {@code DefaultDataQueryService} does. */
