@@ -48,7 +48,7 @@ BEGIN
     -- Any reference => fail; nothing is deleted -------------------------------
     IF total > 0 THEN
         RAISE EXCEPTION
-            'Refusing to delete periodtype ''TwoYearly'' (id=%): still referenced by % row(s) in:%s',
+            'Refusing to delete periodtype ''TwoYearly'' (id=%): still referenced by % row(s) in:%',
             pt_id, total, offending
             USING HINT = 'Reassign or delete the referencing rows, then re-run this migration. No rows were changed.';
     END IF;
