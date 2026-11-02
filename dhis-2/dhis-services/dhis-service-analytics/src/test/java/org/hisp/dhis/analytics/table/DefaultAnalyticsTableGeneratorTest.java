@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.ENROLLMENT;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -81,6 +82,8 @@ class DefaultAnalyticsTableGeneratorTest {
   private void setUp() {
     when(dataValueTableService.getAnalyticsTableType()).thenReturn(DATA_VALUE);
     when(eventTableService.getAnalyticsTableType()).thenReturn(EVENT);
+    lenient().when(dataValueTableService.create(any(), any())).thenReturn(true);
+    lenient().when(eventTableService.create(any(), any())).thenReturn(true);
     when(settingsService.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     generator =
         new DefaultAnalyticsTableGenerator(
@@ -136,8 +139,30 @@ class DefaultAnalyticsTableGeneratorTest {
   }
 
   @Test
+  void abortedTypeGetsNoPerTypeLatestPartitionKey_publishedTypeDoes() {
+    setUp();
+    // e.g. the continuous update readiness check or removeUpdatedData() failed for EVENT
+    when(eventTableService.create(any(), any())).thenReturn(false);
+    Date startTime = new Date();
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .skipResourceTables(true)
+            .startTime(startTime)
+            .build()
+            .withLatestPartition();
+
+    generator.generateAnalyticsTables(params, JobProgress.noop());
+
+    verify(settingsService, never())
+        .put(eq(SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(EVENT)), any());
+    verify(settingsService)
+        .put(SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(DATA_VALUE), startTime);
+  }
+
+  @Test
   void typeWithoutLatestPartitionSupportGetsNoPerTypeKeyEvenWhenProcessed() {
     when(dataValueTableService.getAnalyticsTableType()).thenReturn(ENROLLMENT);
+    when(dataValueTableService.create(any(), any())).thenReturn(true);
     when(settingsService.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     generator =
         new DefaultAnalyticsTableGenerator(

@@ -87,5 +87,6 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   @Mapping(target = "expiryDays")
   @Mapping(target = "expiryPeriodType")
   @Mapping(target = "completeEventsExpiryDays")
+  @Mapping(target = "openDaysAfterCoEndDate")
   Program mapProgram(Program p);
 }

@@ -166,4 +166,11 @@ class DataSetControllerTest extends H2ControllerIntegrationTestBase {
     // then the response type should be 'ObjectReport'
     assertEquals("ObjectReport", content.getString("response.responseType").string());
   }
+
+  @Test
+  void testGetDimensionItemType() {
+    JsonObject dataSet =
+        GET("/dataSets/{id}?fields=dimensionItemType", dsId).content(HttpStatus.OK);
+    assertEquals("REPORTING_RATE", dataSet.getString("dimensionItemType").string());
+  }
 }

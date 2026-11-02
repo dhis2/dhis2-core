@@ -155,6 +155,7 @@ public class ExpressionDimensionItem extends BaseDataDimensionalItemObject
   }
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.EXPRESSION_DIMENSION_ITEM;
   }

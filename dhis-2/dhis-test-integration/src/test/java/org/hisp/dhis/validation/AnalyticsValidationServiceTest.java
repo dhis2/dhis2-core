@@ -37,6 +37,7 @@ import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.hisp.dhis.expression.Operator.not_equal_to;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
@@ -93,7 +94,6 @@ import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -108,8 +108,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityAttributeService entityAttributeService;
-
-  @Autowired private TrackedEntityAttributeValueService entityAttributeValueService;
 
   @Autowired private ProgramService programService;
 
@@ -205,7 +203,7 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityAttributeValue trackedEntityAttributeValue =
         new TrackedEntityAttributeValue(entityAttribute, trackedEntity);
     trackedEntityAttributeValue.setValue("123");
-    entityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
+    saveTrackedEntityAttributeValue(entityManager, trackedEntityAttributeValue);
     trackedEntity.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValue));
     manager.update(trackedEntity);
     Program program =

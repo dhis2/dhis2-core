@@ -41,6 +41,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -48,6 +49,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -233,6 +235,21 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertThat(sql.getValue(), containsString("as registrationou"));
     assertThat(sql.getValue(), containsString("as registrationouname"));
+  }
+
+  /** ENROLLMENT_OU is supported on the event endpoints only, so it contributes no column here. */
+  @Test
+  void verifyEnrollmentOuContributesNoAggregateColumn() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withEnrollmentOuDimension(List.of(createOrganisationUnit('E')))
+            .build();
+
+    List<String> columns = new ArrayList<>(subject.getSelectColumns(params, true));
+    columns.addAll(subject.getGroupByColumnNames(params, true));
+
+    assertTrue(columns.stream().noneMatch(c -> c.contains("enrous")), columns.toString());
+    assertTrue(columns.stream().noneMatch(c -> c.contains("enrollmentou")), columns.toString());
   }
 
   @Test

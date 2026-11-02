@@ -1460,4 +1460,69 @@ public class EventsAggregate12AutoTest extends AnalyticsApiTest {
         actualHeaders,
         Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "puI3YpLJ3fC", "pe", "202210", "value", "84.0"));
   }
+
+  @Test
+  public void enrollmentDateInMetadata() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("skipData=false")
+            .add("skipMeta=false")
+            .add("dimension=ou:USER_ORGUNIT,ENROLLMENT_DATE:LAST_12_MONTHS")
+            .add("relativePeriodDate=2026-10-08");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response, false, 0, 3, 3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"202608\":{\"name\":\"August 2026\"},\"202609\":{\"name\":\"September 2026\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"name\":\"Organisation unit\"},\"202606\":{\"name\":\"June 2026\"},\"202607\":{\"name\":\"July 2026\"},\"202604\":{\"name\":\"April 2026\"},\"202605\":{\"name\":\"May 2026\"},\"202602\":{\"name\":\"February 2026\"},\"202603\":{\"name\":\"March 2026\"},\"202512\":{\"name\":\"December 2025\"},\"202601\":{\"name\":\"January 2026\"},\"202510\":{\"name\":\"October 2025\"},\"202511\":{\"name\":\"November 2025\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"enrollmentdate\":{\"name\":\"Date of enrollment\"}},\"dimensions\":{\"ou\":[\"ImspTQPwCqd\"],\"enrollmentdate\":[\"202510\",\"202511\",\"202512\",\"202601\",\"202602\",\"202603\",\"202604\",\"202605\",\"202606\",\"202607\",\"202608\",\"202609\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentdate",
+        "Date of enrollment",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // No rows found in response, skipping row assertions.
+  }
 }

@@ -49,6 +49,7 @@ public enum ErrorCode {
   E1004("API query cannot be performed"),
   E1005("API query object not found"),
   E1006("API request not permitted for the current user"),
+  E1007("Feature is disabled by configuration, requires `{0} = on` in dhis.conf"),
 
   /* Basic metadata */
   E1100("Data element not found or not accessible: `{0}`"),
@@ -57,7 +58,7 @@ public enum ErrorCode {
   E1103("Category option combo not found or not accessible: `{0}`"),
   E1104("Attribute option combo not found or not accessible: `{0}`"),
   E1105("Data set not found or not accessible: `{0}`"),
-  E1106("There are duplicate translation records for property `{0}` and locale `{1}` on {2} `{3}`"),
+  E1106("There are duplicate translation records for property `{0}` and locale `{1}`"),
   E1107("Object type `{0}` is not translatable"),
   E1108("Could not add item to collection: {0}"),
   E1109("Could not remove item from collection: {0}"),
@@ -93,6 +94,7 @@ public enum ErrorCode {
   E1133("CategoryCombo must be provided for Category option combo {0}"),
   E1134(
       "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
+  E1135("Locale `${locale:{0}}` is not configured for usage; available are: ${locales:{1}}"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),
@@ -202,6 +204,12 @@ public enum ErrorCode {
   E2046("Error parsing CSV file: {0}"),
   E2047("Data value key combination does not exist: {0}"),
   E2048("Error processing gzipped content: {0}"),
+  E2049("Attribute option combo(s) do not belong to an attribute category combo: `${aoc:{0}}`"),
+  E2050("User is not allowed to read data of the data value: `{0}`, `{1}`, `{2}`"),
+  E2051(
+      "An unpaged data value change log returns at most `{0}` entries to a user who is not a superuser, use paging"),
+  E2052(
+      "Data value change log pages end at entry `{0}` for a user who is not a superuser, use filters to read older entries"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
@@ -271,6 +279,7 @@ public enum ErrorCode {
   E3050("2FA code can not be null or empty"),
   E3051("2FA code was sent to the user's email"),
   E3052("Email 2FA is enabled on user, can not change email. Disable 2FA first"),
+  E3053("User `{0}` is not allowed to replicate a user lacking their dimension constraints"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
@@ -292,6 +301,8 @@ public enum ErrorCode {
   E4015("Property `{0}` refers to an object that does not exist, could not find `{1}`"),
   E4016(
       "Object referenced by the `{0}` property is already associated with another object, value: `{1}`"),
+  E4094(
+      "Property `{0}` must refer to an unassigned `{1}` file resource uploaded by the current user, but was given `{2}`"),
   E4017("RenderingType `{0}` is not supported for ValueType `{1}`"),
   E4018("Property `{0}` must be set when property `{1}` is `{2}`"),
   E4019("Failed to parse pattern `{0}` {1}"),
@@ -562,6 +573,10 @@ public enum ErrorCode {
   E7150("No periods found for subexpression query"),
   E7151("Too many combinations of columns or rows."),
   E7152("Periods as filter not supported with Indicator with period offset"),
+  E7153(
+      "Query would compute `{0}` indicator values, more than the max of `{1}`. Remove dimensions or dimension items, or move dimensions to filters"),
+  E7154(
+      "Analytics tables are out of date. Ask your administrator to run a full analytics tables update."),
   /* Analytics outliers */
 
   E7180(
@@ -645,6 +660,10 @@ public enum ErrorCode {
       "Dimensions `{0}` and `{1}` are reported under the same name `{2}` in a tracked entity aggregate query. Request one offset of a program stage dimension at a time"),
   E7264("Repeatable stage offset is not supported in `value`: `{0}`"),
   E7265("Value `{0}` has aggregation type NONE, specify an `aggregationType`"),
+  E7266(
+      "Value `{0}` must be a data element prefixed with a program stage that contains it, or an attribute of the program without a stage prefix"),
+  E7267(
+      "Aggregation type `{0}` is not supported by enrollment aggregate queries, specify `aggregationType` as one of COUNT, SUM, AVERAGE, MIN, MAX, STDDEV or VARIANCE"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

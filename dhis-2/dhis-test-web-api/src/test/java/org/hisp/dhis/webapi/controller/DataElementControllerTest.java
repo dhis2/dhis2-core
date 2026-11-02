@@ -36,6 +36,7 @@ import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
 import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
@@ -524,5 +525,16 @@ class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
         Arguments.of("/333/dataElements"),
         Arguments.of("/3/dataElements"),
         Arguments.of("/test/dataElements"));
+  }
+
+  @Test
+  @DisplayName("Data elements expose dimensionItemType when requested in fields")
+  void getDataElementsWithDimensionItemTypeTest() {
+    JsonArray dataElements =
+        GET("/dataElements?fields=dimensionItemType").content(OK).getArray("dataElements");
+
+    assertFalse(dataElements.isEmpty());
+    dataElements.forEach(
+        de -> assertEquals("DATA_ELEMENT", de.asObject().getString("dimensionItemType").string()));
   }
 }

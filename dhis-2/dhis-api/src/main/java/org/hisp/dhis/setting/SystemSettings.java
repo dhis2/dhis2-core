@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -304,6 +304,14 @@ public non-sealed interface SystemSettings extends Settings {
 
   default int getAnalyticsMaxLimit() {
     return asInt("keyAnalyticsMaxLimit", 100000);
+  }
+
+  /**
+   * @return the max number of indicator values (indicators times dimension item permutations) an
+   *     analytics query may compute, 0 means unlimited
+   */
+  default int getAnalyticsMaxIndicatorPermutations() {
+    return asInt("keyAnalyticsMaxIndicatorPermutations", 1000000);
   }
 
   default int getDataQualityMaxLimit() {
