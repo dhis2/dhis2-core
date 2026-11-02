@@ -29,12 +29,17 @@
  */
 package org.hisp.dhis.configuration;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,13 +49,22 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service("org.hisp.dhis.configuration.ConfigurationService")
 public class DefaultConfigurationService implements ConfigurationService {
   private static final String CORS_WHITELIST_CACHE_KEY = "CORS_WHITELIST";
 
   private final GenericStore<Configuration> configurationStore;
 
-  private final Cache<Set<String>> corsWhitelistCache;
+  private final Cache<CorsAllowlist> corsWhitelistCache;
+
+  /**
+   * The CORS allowlist as stored and its valid entries, parsed once per cache load.
+   *
+   * @param stored the entries as stored, returned by the API so invalid ones can be corrected
+   * @param entries the valid entries used to decide which origins are trusted
+   */
+  private record CorsAllowlist(Set<String> stored, List<CorsAllowlistEntry> entries) {}
 
   public DefaultConfigurationService(
       @Qualifier("org.hisp.dhis.configuration.ConfigurationStore")
@@ -88,18 +102,38 @@ public class DefaultConfigurationService implements ConfigurationService {
   @Override
   @Transactional(readOnly = true)
   public Set<String> getCorsWhitelist() {
-    return corsWhitelistCache.get(
-        CORS_WHITELIST_CACHE_KEY, key -> Set.copyOf(getConfiguration().getCorsWhitelist()));
+    return getCorsAllowlist().stored();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getCorsAllowlistOrigins() {
+    return getCorsAllowlist().entries().stream().map(CorsAllowlistEntry::getOrigin).toList();
   }
 
   @Override
   @Transactional
-  public void setCorsWhitelist(Set<String> corsWhitelist) {
+  public void setCorsWhitelist(Set<String> corsWhitelist) throws ConflictException {
     if (corsWhitelist == null) {
       throw new IllegalArgumentException("corsWhitelist must not be null");
     }
+    Set<String> origins = new LinkedHashSet<>();
+    for (String value : corsWhitelist) {
+      CorsAllowlistEntry entry;
+      try {
+        entry = CorsAllowlistEntry.parse(value);
+      } catch (IllegalArgumentException ex) {
+        throw new ConflictException(ErrorCode.E1136, value, ex.getMessage());
+      }
+      if (entry.isSubdomainWildcard()) {
+        log.warn(
+            "CORS allowlist entry `{}` trusts every subdomain; list exact origins where possible",
+            entry.getOrigin());
+      }
+      origins.add(entry.getOrigin());
+    }
     Configuration configuration = getConfiguration();
-    configuration.setCorsWhitelist(corsWhitelist);
+    configuration.setCorsWhitelist(origins);
     setConfiguration(configuration);
     corsWhitelistCache.invalidate(CORS_WHITELIST_CACHE_KEY);
   }
@@ -107,15 +141,33 @@ public class DefaultConfigurationService implements ConfigurationService {
   @Override
   @Transactional(readOnly = true)
   public boolean isCorsWhitelisted(String origin) {
-    for (String cors : getCorsWhitelist()) {
-      String regex = TextUtils.createRegexFromGlob(cors);
-
-      if (origin.matches(regex)) {
+    for (CorsAllowlistEntry entry : getCorsAllowlist().entries()) {
+      if (entry.matches(origin)) {
         return true;
       }
     }
-
     return false;
+  }
+
+  private CorsAllowlist getCorsAllowlist() {
+    return corsWhitelistCache.get(CORS_WHITELIST_CACHE_KEY, key -> loadCorsAllowlist());
+  }
+
+  private CorsAllowlist loadCorsAllowlist() {
+    Set<String> stored = Set.copyOf(getConfiguration().getCorsWhitelist());
+    List<CorsAllowlistEntry> entries = new ArrayList<>(stored.size());
+    for (String value : stored) {
+      try {
+        entries.add(CorsAllowlistEntry.parse(value));
+      } catch (IllegalArgumentException ex) {
+        log.warn(
+            "Ignoring invalid CORS allowlist entry `{}`: {}. Origins it was meant to trust are"
+                + " not trusted until it is corrected via /api/configuration/corsAllowlist",
+            value,
+            ex.getMessage());
+      }
+    }
+    return new CorsAllowlist(stored, List.copyOf(entries));
   }
 
   @Override
