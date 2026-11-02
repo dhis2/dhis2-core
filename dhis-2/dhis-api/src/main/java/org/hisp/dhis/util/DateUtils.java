@@ -154,9 +154,6 @@ public class DateUtils {
   private static final DateTimeFormatter HTTP_DATE_FORMAT =
       DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'").withLocale(Locale.ENGLISH);
 
-  private static final DateTimeFormatter TIMESTAMP_UTC_TZ_FORMAT =
-      DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").withZoneUTC();
-
   public static final double DAYS_IN_YEAR = 365.0;
 
   private static final long MS_PER_DAY = 86400000;
@@ -1025,7 +1022,7 @@ public class DateUtils {
     b[p++] = '0';
     b[p++] = '0';
     b[p++] = '0';
-    b[p++] = '0';
+    b[p] = '0';
   }
 
   private static final byte[] DIGITS = "0123456789".getBytes(US_ASCII);

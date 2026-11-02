@@ -386,6 +386,48 @@ class DateUtilsCoverageTest {
     assertNull(DateUtils.getPrettyInterval(null, null));
   }
 
+  @Test
+  void testGetPrettyIntervalZero() {
+    Date d = new Date(0L);
+    assertEquals("0 s", DateUtils.getPrettyInterval(d, d));
+  }
+
+  @Test
+  void testGetPrettyIntervalSecondsOnly() {
+    Date start = new Date(0L);
+    Date end = new Date(5 * 1000L);
+    assertEquals("5 s", DateUtils.getPrettyInterval(start, end));
+  }
+
+  @Test
+  void testGetPrettyIntervalExactlyOneHour() {
+    Date start = new Date(0L);
+    Date end = new Date(3600 * 1000L);
+    assertEquals("1 h", DateUtils.getPrettyInterval(start, end));
+  }
+
+  @Test
+  void testGetPrettyIntervalExactlyOneWeek() {
+    Date start = new Date(0L);
+    Date end = new Date(7 * 86400000L);
+    // 7 days are folded into hours by the DAY_SECOND formatter (matches 2-day -> "48 h")
+    assertEquals("168 h", DateUtils.getPrettyInterval(start, end));
+  }
+
+  @Test
+  void testGetPrettyIntervalThirtyDays() {
+    Date start = new Date(0L);
+    Date end = new Date(30 * 86400000L);
+    assertEquals("720 h", DateUtils.getPrettyInterval(start, end));
+  }
+
+  @Test
+  void testGetPrettyIntervalOneYear() {
+    Date start = new Date(0L);
+    Date end = new Date(365L * 86400000L);
+    assertEquals("8760 h", DateUtils.getPrettyInterval(start, end));
+  }
+
   // -------------------------------------------------------------------
   // getSqlDateString / removeTimeStamp
   // -------------------------------------------------------------------
@@ -721,46 +763,9 @@ class DateUtilsCoverageTest {
     assertEquals(86399999L, diffMillis); // 23:59:59.999
   }
 
-  @Test
-  void testGetPrettyIntervalZero() {
-    Date d = new Date(0L);
-    System.out.println("ZERO: [" + DateUtils.getPrettyInterval(d, d) + "]");
-  }
-
-  @Test
-  void testGetPrettyIntervalSecondsOnly() {
-    Date start = new Date(0L);
-    Date end = new Date(5 * 1000L);
-    System.out.println("5s: [" + DateUtils.getPrettyInterval(start, end) + "]");
-  }
-
-  @Test
-  void testGetPrettyIntervalExactlyOneHour() {
-    Date start = new Date(0L);
-    Date end = new Date(3600 * 1000L);
-    System.out.println("1h: [" + DateUtils.getPrettyInterval(start, end) + "]");
-  }
-
-  @Test
-  void testGetPrettyIntervalExactlyOneWeek() {
-    Date start = new Date(0L);
-    Date end = new Date(7 * 86400000L);
-    System.out.println("7d: [" + DateUtils.getPrettyInterval(start, end) + "]");
-  }
-
-  @Test
-  void testGetPrettyIntervalThirtyDays() {
-    Date start = new Date(0L);
-    Date end = new Date(30 * 86400000L);
-    System.out.println("30d: [" + DateUtils.getPrettyInterval(start, end) + "]");
-  }
-
-  @Test
-  void testGetPrettyIntervalOneYear() {
-    Date start = new Date(0L);
-    Date end = new Date(365L * 86400000L);
-    System.out.println("365d: [" + DateUtils.getPrettyInterval(start, end) + "]");
-  }
+  // -------------------------------------------------------------------
+  // toLongGmtDate
+  // -------------------------------------------------------------------
 
   @Test
   void toLongGmtDate_preEpoch() {
