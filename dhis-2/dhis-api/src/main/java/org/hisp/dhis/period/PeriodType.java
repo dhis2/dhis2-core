@@ -33,6 +33,17 @@ import static java.lang.Math.abs;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Maps;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.time.DayOfWeek;
@@ -45,6 +56,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.calendar.CalendarService;
@@ -63,6 +75,11 @@ import org.hisp.dhis.i18n.I18n;
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement(localName = "periodType", namespace = DxfNamespaces.DXF_2_0)
+@Entity
+@Table(name = "periodtype")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "name", discriminatorType = DiscriminatorType.STRING, length = 50)
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public abstract class PeriodType implements Serializable {
   /** Determines if a deserialized file is compatible with this class. */
   private static final long serialVersionUID = 2402122626196305083L;
@@ -110,7 +127,7 @@ public abstract class PeriodType implements Serializable {
     return Iso8601Calendar.getInstance();
   }
 
-  protected PeriodTypeParser dateUnitFormat = new DateUnitPeriodTypeParser();
+  @Transient protected PeriodTypeParser dateUnitFormat = new DateUnitPeriodTypeParser();
 
   // -------------------------------------------------------------------------
   // Available PeriodTypes
@@ -248,6 +265,9 @@ public abstract class PeriodType implements Serializable {
   // Persistable
   // -------------------------------------------------------------------------
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "periodtypeid")
   private int id;
 
   public void setId(int id) {

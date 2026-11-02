@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.period;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -39,6 +41,8 @@ import org.hisp.dhis.calendar.DateTimeUnit;
  *
  * @author Torgeir Lorange Ostby
  */
+@Entity
+@DiscriminatorValue("Quarterly")
 public class QuarterlyPeriodType extends QuarterlyAbstractPeriodType {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = -5973809094923012052L;

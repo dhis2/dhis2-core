@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.period;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -36,6 +38,8 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
+@Entity
+@DiscriminatorValue("QuarterlyNov")
 public class QuarterlyNovemberPeriodType extends QuarterlyAbstractPeriodType {
   private static final String ISO_FORMAT = "yyyyNovQn";
 
