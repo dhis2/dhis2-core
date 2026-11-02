@@ -31,6 +31,7 @@ package org.hisp.dhis.period;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -85,13 +86,17 @@ class PeriodTypeMappingTest extends PostgresIntegrationTestBase {
     assertEquals("periodtype", persister.getTableName());
     assertArrayEquals(new String[] {"periodtypeid"}, persister.getIdentifierColumnNames());
     assertInstanceOf(IntegerType.class, persister.getIdentifierType());
-    assertArrayEquals(new String[0], persister.getPropertyNames());
 
     SequenceStyleGenerator generator =
         assertInstanceOf(SequenceStyleGenerator.class, persister.getIdentifierGenerator());
     assertEquals("hibernate_sequence", generator.getDatabaseStructure().getPhysicalName().render());
     assertEquals(1, generator.getDatabaseStructure().getIncrementSize());
     assertInstanceOf(NoopOptimizer.class, generator.getOptimizer());
+  }
+
+  @Test
+  void shouldMapNoPropertiesBesidesIdAndDiscriminator() {
+    assertArrayEquals(new String[0], persister.getPropertyNames());
   }
 
   @Test
@@ -113,8 +118,10 @@ class PeriodTypeMappingTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldCacheWithNonstrictReadWrite() {
+  void shouldCacheWithNonstrictReadWriteInPeriodTypeRegion() {
     assertTrue(persister.canReadFromCache());
+    assertEquals(
+        PeriodType.class.getName(), persister.getCacheAccessStrategy().getRegion().getName());
     assertEquals(
         AccessType.NONSTRICT_READ_WRITE, persister.getCacheAccessStrategy().getAccessType());
   }
@@ -170,6 +177,7 @@ class PeriodTypeMappingTest extends PostgresIntegrationTestBase {
 
     PeriodType reference = entityManager.getReference(PeriodType.class, id);
 
+    assertFalse(Hibernate.isInitialized(reference));
     assertEquals("WeeklyWednesday", reference.getName());
     assertEquals(new WeeklyWednesdayPeriodType(), reference);
     assertInstanceOf(WeeklyWednesdayPeriodType.class, Hibernate.unproxy(reference));
