@@ -130,12 +130,23 @@ public class CspConstants {
           + COMMON_HARDENING;
 
   /**
-   * CSP policy for the rendered OpenAPI HTML documentation pages, which emit inline {@code onclick}
-   * handlers from {@code OpenApiRenderer}. Allows {@code script-src 'self' 'unsafe-inline'} so the
-   * interactive doc page works under the default-deny baseline. Scoped to the OpenAPI HTML
-   * endpoints only via {@link org.hisp.dhis.webapi.security.csp.CspOpenApiDocs @CspOpenApiDocs}.
+   * CSP policy for the rendered OpenAPI HTML documentation pages, scoped to the OpenAPI HTML
+   * endpoints only via {@link org.hisp.dhis.webapi.security.csp.CspOpenApiDocs @CspOpenApiDocs}. It
+   * allows exactly what {@code OpenApiRenderer} emits:
+   *
+   * <ul>
+   *   <li>{@code script-src 'self' 'unsafe-inline'} for the inline script and {@code onclick}
+   *       handlers of the interactive page.
+   *   <li>{@code img-src 'self' data:} for the logo and the source links, drawn as {@code data:}
+   *       PNG backgrounds.
+   *   <li>{@code https://fonts.googleapis.com} in {@code style-src} and {@code font-src
+   *       https://fonts.gstatic.com} for the Google Fonts stylesheet the page imports and the font
+   *       files that stylesheet loads.
+   * </ul>
    */
   public static final String OPENAPI_DOCS_CSP_POLICY =
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+      "default-src 'self'; script-src 'self' 'unsafe-inline';"
+          + " style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;"
+          + " font-src https://fonts.gstatic.com; img-src 'self' data:; "
           + COMMON_HARDENING;
 }
