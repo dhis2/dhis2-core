@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import jakarta.persistence.EntityManager;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -67,7 +66,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private CollectionService collectionService;
-  @Autowired private EntityManager entityManager;
   @Autowired private PlatformTransactionManager transactionManager;
   @Autowired private SessionFactory sessionFactory;
 
@@ -77,30 +75,39 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
     String b = organisationUnit("Delta B");
     String c = organisationUnit("Delta C");
     String absent = organisationUnit("Delta absent");
-    String group = assertStatus(HttpStatus.CREATED,
-        POST("/organisationUnitGroups/", "{'name':'Delta group','shortName':'Delta'}"));
-    transaction(() -> {
-      OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
-      owner.getMembers().add(manager.get(OrganisationUnit.class, a));
-      owner.getMembers().add(manager.get(OrganisationUnit.class, b));
-      manager.update(owner);
-      return null;
-    });
+    String group =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/organisationUnitGroups/", "{'name':'Delta group','shortName':'Delta'}"));
+    transaction(
+        () -> {
+          OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
+          owner.getMembers().add(manager.get(OrganisationUnit.class, a));
+          owner.getMembers().add(manager.get(OrganisationUnit.class, b));
+          manager.update(owner);
+          return null;
+        });
     warmGroupAndInverseCaches(group, a, c);
 
-    TypeReport report = transaction(() -> {
-      OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
-      assertFalse(Hibernate.isInitialized(owner.getMembers()));
-      var lastUpdated = owner.getLastUpdated();
-      var lastUpdatedBy = owner.getLastUpdatedBy();
-      TypeReport result = merge(owner, "organisationUnits", List.of(b, c, "Unknown0001"),
-          List.of(a, absent, "Unknown0002"));
-      assertFalse(Hibernate.isInitialized(owner.getMembers()));
-      assertEquals(lastUpdated, owner.getLastUpdated());
-      assertEquals(lastUpdatedBy, owner.getLastUpdatedBy());
-      assertEquals(Set.of(b, c), uids(owner.getMembers()));
-      return result;
-    });
+    TypeReport report =
+        transaction(
+            () -> {
+              OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
+              assertFalse(Hibernate.isInitialized(owner.getMembers()));
+              var lastUpdated = owner.getLastUpdated();
+              var lastUpdatedBy = owner.getLastUpdatedBy();
+              TypeReport result =
+                  merge(
+                      owner,
+                      "organisationUnits",
+                      List.of(b, c, "Unknown0001"),
+                      List.of(a, absent, "Unknown0002"));
+              assertFalse(Hibernate.isInitialized(owner.getMembers()));
+              assertEquals(lastUpdated, owner.getLastUpdated());
+              assertEquals(lastUpdatedBy, owner.getLastUpdatedBy());
+              assertEquals(Set.of(b, c), uids(owner.getMembers()));
+              return result;
+            });
     assertEquals(1, report.getStats().updated());
     assertEquals(1, report.getStats().deleted());
     assertEquals(2, report.getStats().ignored());
@@ -108,98 +115,125 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
     assertFalse(report.hasObjectReports());
     assertGroupMembers(group, b, c);
     assertGroupMembers(group, b, c);
-    transaction(() -> {
-      assertFalse(uids(manager.get(OrganisationUnit.class, a).getGroups()).contains(group));
-      assertTrue(uids(manager.get(OrganisationUnit.class, c).getGroups()).contains(group));
-      return null;
-    });
+    transaction(
+        () -> {
+          assertFalse(uids(manager.get(OrganisationUnit.class, a).getGroups()).contains(group));
+          assertTrue(uids(manager.get(OrganisationUnit.class, c).getGroups()).contains(group));
+          return null;
+        });
   }
 
   @Test
   void dataSetSourcesUseTheSameMechanismAndKeepLoadedInverseConsistent() {
     String ou = organisationUnit("Delta dataset OU");
-    String ds = assertStatus(HttpStatus.CREATED, POST("/dataSets/",
-        "{'name':'Delta dataset','shortName':'DeltaDS','periodType':'Monthly'}"));
-    transaction(() -> {
-      manager.get(DataSet.class, ds).getSources().size();
-      manager.get(OrganisationUnit.class, ou).getDataSets().size();
-      return null;
-    });
-    transaction(() -> {
-      DataSet owner = manager.get(DataSet.class, ds);
-      OrganisationUnit item = manager.get(OrganisationUnit.class, ou);
-      assertTrue(item.getDataSets().isEmpty());
-      TypeReport report = merge(owner, "organisationUnits", List.of(ou), List.of());
-      assertEquals(1, report.getStats().updated());
-      assertFalse(Hibernate.isInitialized(owner.getSources()));
-      assertTrue(item.getDataSets().contains(owner));
-      return null;
-    });
-    transaction(() -> {
-      assertEquals(Set.of(ou), uids(manager.get(DataSet.class, ds).getSources()));
-      assertEquals(Set.of(ds), uids(manager.get(OrganisationUnit.class, ou).getDataSets()));
-      return null;
-    });
+    String ds =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'name':'Delta dataset','shortName':'DeltaDS','periodType':'Monthly'}"));
+    transaction(
+        () -> {
+          manager.get(DataSet.class, ds).getSources().size();
+          manager.get(OrganisationUnit.class, ou).getDataSets().size();
+          return null;
+        });
+    transaction(
+        () -> {
+          DataSet owner = manager.get(DataSet.class, ds);
+          OrganisationUnit item = manager.get(OrganisationUnit.class, ou);
+          assertTrue(item.getDataSets().isEmpty());
+          TypeReport report = merge(owner, "organisationUnits", List.of(ou), List.of());
+          assertEquals(1, report.getStats().updated());
+          assertFalse(Hibernate.isInitialized(owner.getSources()));
+          assertTrue(item.getDataSets().contains(owner));
+          return null;
+        });
+    transaction(
+        () -> {
+          assertEquals(Set.of(ou), uids(manager.get(DataSet.class, ds).getSources()));
+          assertEquals(Set.of(ds), uids(manager.get(OrganisationUnit.class, ou).getDataSets()));
+          return null;
+        });
   }
 
   @Test
   void initializedOwnerUsesInMemoryPathAndRollbackDoesNotPublishMembership() {
     String ou = organisationUnit("Delta rollback OU");
-    String group = assertStatus(HttpStatus.CREATED,
-        POST("/organisationUnitGroups/", "{'name':'Delta rollback','shortName':'DeltaRB'}"));
-    transaction(() -> {
-      OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
-      assertTrue(owner.getMembers().isEmpty());
-      assertEquals(1, merge(owner, "organisationUnits", List.of(ou), List.of()).getStats().updated());
-      assertEquals(Set.of(ou), uids(owner.getMembers()));
-      return null;
-    });
-    new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
-      entityManager.clear();
-      OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
-      assertFalse(Hibernate.isInitialized(owner.getMembers()));
-      assertEquals(1, merge(owner, "organisationUnits", List.of(), List.of(ou)).getStats().deleted());
-      assertFalse(Hibernate.isInitialized(owner.getMembers()));
-      status.setRollbackOnly();
-    });
+    String group =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/organisationUnitGroups/", "{'name':'Delta rollback','shortName':'DeltaRB'}"));
+    transaction(
+        () -> {
+          OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
+          assertTrue(owner.getMembers().isEmpty());
+          assertEquals(
+              1, merge(owner, "organisationUnits", List.of(ou), List.of()).getStats().updated());
+          assertEquals(Set.of(ou), uids(owner.getMembers()));
+          return null;
+        });
+    new TransactionTemplate(transactionManager)
+        .executeWithoutResult(
+            status -> {
+              entityManager.clear();
+              OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
+              assertFalse(Hibernate.isInitialized(owner.getMembers()));
+              assertEquals(
+                  1,
+                  merge(owner, "organisationUnits", List.of(), List.of(ou)).getStats().deleted());
+              assertFalse(Hibernate.isInitialized(owner.getMembers()));
+              status.setRollbackOnly();
+            });
     assertGroupMembers(group, ou);
   }
 
   private String organisationUnit(String name) {
-    return assertStatus(HttpStatus.CREATED, POST("/organisationUnits/",
-        "{'name':'" + name + "','shortName':'" + name + "','openingDate':'2020-01-01'}"));
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits/",
+            "{'name':'" + name + "','shortName':'" + name + "','openingDate':'2020-01-01'}"));
   }
 
   private void warmGroupAndInverseCaches(String group, String... items) {
-    long id = transaction(() -> {
-      OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
-      owner.getMembers().size();
-      for (String item : items) {
-        manager.get(OrganisationUnit.class, item).getGroups().size();
-      }
-      return owner.getId();
-    });
-    assertTrue(sessionFactory.getCache().containsCollection(
-        OrganisationUnitGroup.class.getName() + ".members", id));
+    long id =
+        transaction(
+            () -> {
+              OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
+              owner.getMembers().size();
+              for (String item : items) {
+                manager.get(OrganisationUnit.class, item).getGroups().size();
+              }
+              return owner.getId();
+            });
+    assertTrue(
+        sessionFactory
+            .getCache()
+            .containsCollection(OrganisationUnitGroup.class.getName() + ".members", id));
   }
 
   private void assertGroupMembers(String group, String... expected) {
-    transaction(() -> {
-      assertEquals(Set.copyOf(Arrays.asList(expected)),
-          uids(manager.get(OrganisationUnitGroup.class, group).getMembers()));
-      return null;
-    });
+    transaction(
+        () -> {
+          assertEquals(
+              Set.copyOf(Arrays.asList(expected)),
+              uids(manager.get(OrganisationUnitGroup.class, group).getMembers()));
+          return null;
+        });
   }
 
   private static Set<String> uids(java.util.Collection<? extends IdentifiableObject> items) {
     return items.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet());
   }
 
-  private TypeReport merge(IdentifiableObject owner, String property, List<String> additions,
-      List<String> deletions) {
+  private TypeReport merge(
+      IdentifiableObject owner, String property, List<String> additions, List<String> deletions) {
     IdentifiableObjects items = new IdentifiableObjects();
-    items.setAdditions(additions.stream().map(uid -> new BaseIdentifiableObject(uid, "", "")).toList());
-    items.setDeletions(deletions.stream().map(uid -> new BaseIdentifiableObject(uid, "", "")).toList());
+    items.setAdditions(
+        additions.stream().map(uid -> new BaseIdentifiableObject(uid, "", "")).toList());
+    items.setDeletions(
+        deletions.stream().map(uid -> new BaseIdentifiableObject(uid, "", "")).toList());
     try {
       return collectionService.mergeCollectionItems(owner, property, items);
     } catch (Exception ex) {
@@ -208,12 +242,14 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
   }
 
   private <T> T transaction(Supplier<T> action) {
-    return new TransactionTemplate(transactionManager).execute(status -> {
-      entityManager.clear();
-      T result = action.get();
-      entityManager.flush();
-      entityManager.clear();
-      return result;
-    });
+    return new TransactionTemplate(transactionManager)
+        .execute(
+            status -> {
+              entityManager.clear();
+              T result = action.get();
+              entityManager.flush();
+              entityManager.clear();
+              return result;
+            });
   }
 }

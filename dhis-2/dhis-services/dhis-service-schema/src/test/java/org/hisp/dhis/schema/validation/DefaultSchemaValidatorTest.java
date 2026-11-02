@@ -348,7 +348,8 @@ class DefaultSchemaValidatorTest {
 
   @Test
   void testScalarCollectionSizeHasTheSameValidationAsMaterializedCollection() {
-    for (List<Integer> values : List.of(List.<Integer>of(), List.of(1, 2, 3), List.of(1, 2, 3, 4, 5))) {
+    for (List<Integer> values :
+        List.of(List.<Integer>of(), List.of(1, 2, 3), List.of(1, 2, 3, 4, 5))) {
       var property = schema.getProperty("list");
       List<ErrorReport> materialized =
           validator.validateProperty(property, SimpleFields.builder().list(values).build());

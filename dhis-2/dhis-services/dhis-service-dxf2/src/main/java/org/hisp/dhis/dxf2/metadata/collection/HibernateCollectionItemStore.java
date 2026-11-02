@@ -53,8 +53,8 @@ import org.springframework.stereotype.Repository;
 
 /**
  * Applies small deltas to unloaded owning many-to-many sets. Hibernate's collection persister
- * supplies both the membership queries and row mutation SQL, including mapping-specific types
- * and column names. A temporary set contains only the delta, never the existing membership.
+ * supplies both the membership queries and row mutation SQL, including mapping-specific types and
+ * column names. A temporary set contains only the delta, never the existing membership.
  *
  * <p>Extra-lazy sets still initialize on owning-side writes: Hibernate only queues inverse-side
  * operations. Do not mark the real wrapper dirty or replace its snapshot with the partial set.

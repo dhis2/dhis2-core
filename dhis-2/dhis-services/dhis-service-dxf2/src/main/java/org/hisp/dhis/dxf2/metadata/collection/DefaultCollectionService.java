@@ -214,10 +214,7 @@ public class DefaultCollectionService implements CollectionService {
   }
 
   private void delOwnedCollectionItems(
-      IdentifiableObject object,
-      Property property,
-      Collection<String> itemCodes,
-      TypeReport report)
+      IdentifiableObject object, Property property, Collection<String> itemCodes, TypeReport report)
       throws BadRequestException {
     Collection<IdentifiableObject> collection = getCollection(object, property);
     CollectionPersister persister = collectionItemStore.prepare(collection);
