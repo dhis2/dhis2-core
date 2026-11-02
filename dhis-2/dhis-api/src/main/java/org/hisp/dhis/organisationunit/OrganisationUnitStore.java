@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
 
@@ -67,6 +68,12 @@ public interface OrganisationUnitStore
    * @return
    */
   List<String> getDataViewOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns non-null stored paths for the given UIDs without loading organisation unit entities.
+   * Missing UIDs are omitted; an empty collection returns no paths.
+   */
+  List<String> getOrganisationUnitPathsByUid(Collection<UID> uids);
 
   /**
    * Returns all OrganisationUnits by lastUpdated.
