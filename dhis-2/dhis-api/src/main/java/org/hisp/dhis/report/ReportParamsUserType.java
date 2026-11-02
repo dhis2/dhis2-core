@@ -47,7 +47,8 @@ import org.hisp.dhis.visualization.ReportingParams;
  * flags of a visualization, so it cannot be mapped as an embeddable on the report table.
  *
  * <p>A row with both columns null loads as a null {@link ReportingParams}, and a null {@link
- * ReportingParams} is stored as two nulls.
+ * ReportingParams} is stored as two nulls. Copies, including the second-level cache entry, keep
+ * only the two stored flags, so a cached report reads the same as one loaded from the database.
  */
 public class ReportParamsUserType implements CompositeUserType {
   private static final String[] PROPERTY_NAMES = {"reportingPeriod", "organisationUnit"};
@@ -142,10 +143,7 @@ public class ReportParamsUserType implements CompositeUserType {
     }
     ReportingParams params = (ReportingParams) value;
     return new ReportingParams(
-        params.isReportingPeriod(),
-        params.isGrandParentOrganisationUnit(),
-        params.isParentOrganisationUnit(),
-        params.isOrganisationUnit());
+        params.isReportingPeriod(), false, false, params.isOrganisationUnit());
   }
 
   @Override

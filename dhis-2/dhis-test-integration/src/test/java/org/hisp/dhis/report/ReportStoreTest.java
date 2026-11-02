@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -314,19 +315,20 @@ class ReportStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("an uninitialized proxy equals the loaded report")
+  @DisplayName("an uninitialized proxy equals the report loaded in another session")
   void shouldEqualProxyOfSameReport() {
     Report saved = save(createReport("Proxy"));
+    Report loaded = reload(saved);
     clearSession();
     entityManagerFactory.getCache().evict(Report.class);
 
     Report proxy = entityManager.getReference(Report.class, saved.getId());
-    assertFalse(Hibernate.isInitialized(proxy));
-    Report loaded = store.get(saved.getId());
 
-    assertEquals(loaded, proxy);
-    assertEquals(proxy, loaded);
+    assertNotSame(loaded, proxy);
+    assertFalse(Hibernate.isInitialized(proxy));
     assertEquals(loaded.hashCode(), proxy.hashCode());
+    assertEquals(proxy, loaded);
+    assertEquals(loaded, proxy);
   }
 
   private Report createFullReport(Visualization visualization) {

@@ -43,14 +43,14 @@ class ReportParamsUserTypeTest {
   private final ReportParamsUserType type = new ReportParamsUserType();
 
   @Test
-  void testDeepCopyKeepsEveryFlagInANewInstance() {
-    ReportingParams params = new ReportingParams(true, true, false, true);
+  void testDeepCopyKeepsOnlyTheStoredFlagsInANewInstance() {
+    ReportingParams params = new ReportingParams(true, true, true, true);
 
     ReportingParams copy = (ReportingParams) type.deepCopy(params);
 
     assertNotSame(params, copy);
     assertTrue(copy.isReportingPeriod());
-    assertTrue(copy.isGrandParentOrganisationUnit());
+    assertFalse(copy.isGrandParentOrganisationUnit());
     assertFalse(copy.isParentOrganisationUnit());
     assertTrue(copy.isOrganisationUnit());
     assertNull(type.deepCopy(null));
@@ -85,13 +85,16 @@ class ReportParamsUserTypeTest {
   }
 
   @Test
-  void testCachedFormIsACopy() {
-    ReportingParams params = new ReportingParams(false, false, false, true);
+  void testCachedFormIsACopyWithOnlyTheStoredFlags() {
+    ReportingParams params = new ReportingParams(false, true, true, true);
 
     ReportingParams assembled =
         (ReportingParams) type.assemble(type.disassemble(params, null), null, null);
 
     assertNotSame(params, assembled);
-    assertTrue(type.equals(params, assembled));
+    assertFalse(assembled.isReportingPeriod());
+    assertFalse(assembled.isGrandParentOrganisationUnit());
+    assertFalse(assembled.isParentOrganisationUnit());
+    assertTrue(assembled.isOrganisationUnit());
   }
 }
