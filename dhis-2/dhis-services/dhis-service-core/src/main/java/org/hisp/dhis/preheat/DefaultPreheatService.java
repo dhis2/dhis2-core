@@ -34,6 +34,7 @@ import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,7 +46,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.FlushMode;
 import org.hibernate.Hibernate;
+import org.hibernate.Session;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.CategoryDimension;
@@ -113,9 +116,33 @@ public class DefaultPreheatService implements PreheatService {
 
   private final UserService userService;
 
+  private final EntityManager entityManager;
+
+  /**
+   * Preheat only reads, but it runs inside the import's write transaction. In {@link
+   * FlushMode#AUTO} Hibernate dirty-checks every managed entity before each query, and preheat
+   * loads all referenced objects into the session. With a large reference collection (an org unit
+   * group with 100k members) every query then walks 100k entities, which makes the preheat
+   * quadratic. Pending changes are flushed once up front so preheat queries still see them, then
+   * flushing is deferred to commit until preheat is done.
+   */
   @Override
   @Transactional(readOnly = true)
   public Preheat preheat(PreheatParams params) {
+    Session session = entityManager.unwrap(Session.class);
+    FlushMode flushMode = session.getHibernateFlushMode();
+    if (flushMode == FlushMode.AUTO || flushMode == FlushMode.ALWAYS) {
+      session.flush();
+      session.setHibernateFlushMode(FlushMode.COMMIT);
+    }
+    try {
+      return loadPreheat(params);
+    } finally {
+      session.setHibernateFlushMode(flushMode);
+    }
+  }
+
+  private Preheat loadPreheat(PreheatParams params) {
     Timer timer = new SystemTimer().start();
 
     Preheat preheat = new Preheat();
