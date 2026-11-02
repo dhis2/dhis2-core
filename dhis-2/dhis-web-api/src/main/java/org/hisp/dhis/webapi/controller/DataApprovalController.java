@@ -106,7 +106,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Document(
     entity = DataApprovalWorkflow.class,
-    classifiers = {"team:platform", "purpose:metadata"})
+    classifiers = {"team:platform", "purpose:metadata", "path:/api/dataApprovals"})
 @Controller
 @RequestMapping("/api")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
