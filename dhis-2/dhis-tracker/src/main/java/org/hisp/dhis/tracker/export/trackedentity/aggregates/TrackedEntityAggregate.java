@@ -97,7 +97,7 @@ public class TrackedEntityAggregate {
     final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync =
         conditionalAsyncFetch(
             fields.isIncludesProgramOwners(),
-            () -> trackedEntityStore.getProgramOwners(ids),
+            () -> trackedEntityStore.getProgramOwners(queryParams, ids, ctx.userDetails()),
             getPool(),
             mdc);
     final CompletableFuture<Map<String, TrackedEntity>> trackedEntitiesAsync =
