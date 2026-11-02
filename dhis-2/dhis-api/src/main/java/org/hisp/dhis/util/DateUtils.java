@@ -186,9 +186,7 @@ public class DateUtils {
    * yyyy-MM-dd'T'HH:mm:ss.SSS+0000}.
    *
    * <p><b>Year numbering.</b> Year {@code 0000} follows ISO 8601 / RFC 3339 astronomical numbering
-   * (= 1 BC in the proleptic Gregorian calendar). This differs from Joda-Time's {@code yyyy}
-   * pattern, which is year-of-era and would render the same instant as {@code 0001}. Because the
-   * output carries an explicit {@code +0000} offset, ISO 8601 is the authoritative convention here.
+   * (= 1 BC in the proleptic Gregorian calendar).
    *
    * <p><b>Year range.</b> The fixed-width buffer accommodates years {@code 0000}–{@code 9999} only
    * — extended-year notation ({@code +YYYYY} / {@code -YYYYY}) is not produced. Instants outside
@@ -1005,9 +1003,7 @@ public class DateUtils {
    * representable value rather than throwing.
    *
    * <p>The returned {@code CharSequence} supports {@link CharSequence#length()}, {@link
-   * CharSequence#charAt(int)}, and {@link Object#toString()} without further allocation. {@link
-   * CharSequence#subSequence(int, int)} currently materializes a {@link String} and is not
-   * allocation-free.
+   * CharSequence#charAt(int)} without further allocation.
    *
    * @param date the date to format; may be {@code null}
    * @return a {@code CharSequence} view of the formatted timestamp, or {@code null} if {@code date}

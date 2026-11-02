@@ -438,7 +438,7 @@ class CsvBuilderTest {
   }
 
   @Test
-  void testArray_FirstElementNumber_ContainsNull_ProducesQuestionMark() {
+  void testArray_FirstElementNumber_ContainsNull_ProducesNull() {
     assertEquals(
         "a\n1 null 3\n",
         csv(
