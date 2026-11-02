@@ -2424,6 +2424,82 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.update(program);
   }
 
+  @Test
+  void shouldNotReturnProgramOwnerWhenUserHasNoDataReadAccessToProgram()
+      throws ForbiddenException, NotFoundException {
+    injectSecurityContextUser(superuser);
+    makeProgramDataInaccessible(programA);
+    injectSecurityContextUser(user);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    assertContainsOnly(Set.of(enrollmentB.getUid()), uids(trackedEntity.getEnrollments()));
+    assertContainsOnly(Set.of(programB.getUid()), programOwnerProgramUids(trackedEntity));
+  }
+
+  @Test
+  void shouldReturnProgramOwnerWhenTrackedEntityHasNoEnrollmentInAccessibleProgram()
+      throws ForbiddenException, NotFoundException {
+    Program programWithoutEnrollment = createProgramOwnedWithoutEnrollment(trackedEntityA);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    assertContainsOnly(
+        Set.of(programA.getUid(), programB.getUid(), programWithoutEnrollment.getUid()),
+        programOwnerProgramUids(trackedEntity));
+  }
+
+  @Test
+  void shouldReturnProgramOwnerWhenEnrollmentHiddenByOwnershipInProtectedProgram()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        trackedEntityA, programB, orgUnitB);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    assertContainsOnly(Set.of(enrollmentA.getUid()), uids(trackedEntity.getEnrollments()));
+    assertContainsOnly(
+        Set.of(programA.getUid(), programB.getUid()), programOwnerProgramUids(trackedEntity));
+    assertEquals(
+        orgUnitB.getUid(),
+        trackedEntity.getProgramOwners().stream()
+            .filter(po -> po.getProgram().getUid().equals(programB.getUid()))
+            .findFirst()
+            .orElseThrow()
+            .getOrganisationUnit()
+            .getUid());
+  }
+
+  /**
+   * Creates a program the user has data read access to, in which the tracked entity is owned but
+   * not enrolled. Leaves the user in the security context.
+   */
+  private Program createProgramOwnedWithoutEnrollment(TrackedEntity trackedEntity) {
+    injectSecurityContextUser(superuser);
+    Program program = createProgram('D', new HashSet<>(), orgUnitA);
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    program.setTrackedEntityType(trackedEntityTypeA);
+    program.setCategoryCombo(programA.getCategoryCombo());
+    program.getSharing().setPublicAccess(AccessStringHelper.FULL);
+    manager.save(program, false);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntity, program, orgUnitA);
+    injectSecurityContextUser(user);
+    return program;
+  }
+
+  private static Set<String> programOwnerProgramUids(TrackedEntity trackedEntity) {
+    return trackedEntity.getProgramOwners().stream()
+        .map(po -> po.getProgram().getUid())
+        .collect(Collectors.toSet());
+  }
+
   private void makeProgramDataInaccessible(Program program) {
     program.setSharing(Sharing.builder().publicAccess("rw------").build());
     manager.update(program);
