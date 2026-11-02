@@ -329,6 +329,35 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyGetEventSqlAndsPeriodFilterWithDateFieldPeriodDimension() {
+    mockEmptyRowSet();
+
+    PeriodDimension lastUpdatedPeriod =
+        createPeriodDimensions("2017").get(0).setDateField("LAST_UPDATED");
+    PeriodDimension filterPeriod = createPeriodDimensions("2022").get(0);
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(QUERY)
+            .withOutputType(EventOutputType.EVENT)
+            .withPeriods(List.of(lastUpdatedPeriod), "yearly")
+            .addFilter(new BaseDimensionalObject("pe", DimensionType.PERIOD, List.of(filterPeriod)))
+            .withStartEndDatesForPeriods()
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "((ax.\"lastupdated\" >= '2017-01-01' and ax.\"lastupdated\" < '2018-01-01')) "
+                + "and ((ax.\"occurreddate\" >= '2022-01-01' and ax.\"occurreddate\" < '2023-01-01'))"));
+  }
+
+  @Test
   void verifyGetEventSqlKeepsNonStageTimeFiltersWithStageSpecificEventDate() {
     mockEmptyRowSet();
 

@@ -35,7 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.jsontree.Appender;
 import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.jsontree.TextBuilder;
 
@@ -98,8 +100,23 @@ final class OpenApiMarkdown {
     IMAGE
   }
 
-  private final StringBuilder html;
+  private final Appender html;
   private final Set<Text> keywords;
+
+  /**
+   * Renders the given markdown directly to the given HTML target.
+   *
+   * @param markdown the markdown source; if null or blank, nothing is written
+   * @param keywords {@code code} span values that should be rendered with the {@code keyword} CSS
+   *     class
+   * @param html the target to append HTML to
+   * @since 2.44
+   */
+  public static void markdownToHTML(
+      @CheckForNull String markdown, Set<Text> keywords, Appender html) {
+    if (markdown == null || markdown.isBlank()) return;
+    new OpenApiMarkdown(html, keywords).renderText(MarkdownParser.parse(markdown));
+  }
 
   public static String markdownToHTML(String markdown) {
     return markdownToHTML(markdown, Set.of());
@@ -107,9 +124,9 @@ final class OpenApiMarkdown {
 
   public static String markdownToHTML(String markdown, Set<Text> keywords) {
     if (markdown == null || markdown.isBlank()) return null;
-    OpenApiMarkdown renderer = new OpenApiMarkdown(new StringBuilder(markdown.length()), keywords);
-    renderer.renderText(MarkdownParser.parse(markdown));
-    return renderer.html.toString();
+    TextBuilder out = new TextBuilder(markdown.length());
+    markdownToHTML(markdown, keywords, out);
+    return out.toString();
   }
 
   private void render(MarkdownBlock block) {
@@ -133,37 +150,41 @@ final class OpenApiMarkdown {
   }
 
   private void renderCodeBlock(MarkupCodeBlock block) {
-    html.append("<pre");
+    html.appendAscii("<pre");
     if (!block.language.isEmpty()) {
-      html.append(" lang='");
+      html.appendAscii(" lang='");
       appendEscaped(block.language, html);
-      html.append("'");
+      html.appendAscii("'");
     }
-    html.append(">\n");
+    html.appendAscii(">\n");
     appendEscaped(block.verbatim, html);
-    html.append("</pre>\n");
+    html.appendAscii("</pre>\n");
   }
 
   private void renderBlockQuote(MarkdownBlockQuote block) {
-    html.append("<blockquote>");
+    html.appendAscii("<blockquote>");
     renderLines(block.quoted);
-    html.append("</blockquote>\n");
+    html.appendAscii("</blockquote>\n");
   }
 
   private void renderSpacer(MarkupSpacer spacer) {
-    html.append("\n\n");
+    html.appendAscii("\n\n");
   }
 
   private void renderListing(MarkupListing listing) {
     String tag = listing.type == MarkupListType.BULLET ? "ul" : "ol";
-    html.append("<").append(tag).append(">\n");
+    html.appendAscii("<");
+    html.appendAscii(tag);
+    html.appendAscii(">\n");
     listing.items.forEach(
         li -> {
-          html.append("  <li>");
+          html.appendAscii("  <li>");
           renderLines(li);
-          html.append("</li>\n");
+          html.appendAscii("</li>\n");
         });
-    html.append("</").append(tag).append(">\n");
+    html.appendAscii("</");
+    html.appendAscii(tag);
+    html.appendAscii(">\n");
   }
 
   private void renderText(MarkupText text) {
@@ -171,9 +192,9 @@ final class OpenApiMarkdown {
     Runnable addPar =
         () -> {
           if (!lines.isEmpty()) {
-            html.append("<p>");
+            html.appendAscii("<p>");
             renderLines(lines);
-            html.append("</p>");
+            html.appendAscii("</p>");
             lines.clear();
           }
         };
@@ -189,18 +210,22 @@ final class OpenApiMarkdown {
   }
 
   private void renderRuler(MarkupRuler ruler) {
-    html.append("<hr/>\n");
+    html.appendAscii("<hr/>\n");
   }
 
   private void renderHeading(MarkupHeading heading) {
-    html.append("<h").append(heading.level).append(">");
+    html.appendAscii("<h");
+    html.appendInt(heading.level);
+    html.appendAscii(">");
     renderLine(heading.text);
-    html.append("</h").append(heading.level).append(">\n");
+    html.appendAscii("</h");
+    html.appendInt(heading.level);
+    html.appendAscii(">\n");
   }
 
   private void renderLines(List<MarkupLine> lines) {
     for (int i = 0; i < lines.size(); i++) {
-      if (i > 0) html.append('\n');
+      if (i > 0) html.appendAscii('\n');
       renderLine(lines.get(i));
     }
   }
@@ -212,36 +237,36 @@ final class OpenApiMarkdown {
   private void renderSpan(MarkupSpan span) {
     switch (span.type) {
       case ITALIC -> {
-        html.append("<em>");
+        html.appendAscii("<em>");
         span.inner.forEach(this::renderSpan);
-        html.append("</em>");
+        html.appendAscii("</em>");
       }
       case BOLD -> {
-        html.append("<strong>");
+        html.appendAscii("<strong>");
         span.inner.forEach(this::renderSpan);
-        html.append("</strong>");
+        html.appendAscii("</strong>");
       }
       case IMAGE -> {
-        html.append("<img src=\"");
+        html.appendAscii("<img src=\"");
         appendEscaped(span.value, html);
-        html.append("\" alt=\"");
+        html.appendAscii("\" alt=\"");
         appendEscaped(span.inner.get(0).value, html);
-        html.append(" />");
+        html.appendAscii(" />");
       }
       case LINK -> {
-        html.append("<a target=\"_blank\" href=\"");
+        html.appendAscii("<a target=\"_blank\" href=\"");
         appendEscaped(span.value, html);
-        html.append("\">");
+        html.appendAscii("\">");
         span.inner.forEach(this::renderSpan);
-        html.append("</a>");
+        html.appendAscii("</a>");
       }
       case PLAIN -> appendEscaped(span.value, html);
       case CODE -> {
-        html.append("<code");
-        if (keywords.contains(span.value)) html.append(" class=\"keyword\"");
-        html.append(">");
+        html.appendAscii("<code");
+        if (keywords.contains(span.value)) html.appendAscii(" class=\"keyword\"");
+        html.appendAscii(">");
         appendEscaped(span.value, html);
-        html.append("</code>");
+        html.appendAscii("</code>");
       }
     }
   }
