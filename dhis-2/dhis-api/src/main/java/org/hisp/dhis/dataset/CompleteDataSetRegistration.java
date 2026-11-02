@@ -36,6 +36,17 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import java.io.Serializable;
 import java.util.Date;
 import javax.annotation.Nonnull;
@@ -52,29 +63,58 @@ import org.hisp.dhis.period.Period;
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement(localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0)
+@Entity
+@Table(name = "completedatasetregistration")
 public class CompleteDataSetRegistration implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 334738541365949298L;
 
+  @Id
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "datasetid",
+      foreignKey = @ForeignKey(name = "fk_datasetcompleteregistration_datasetid"))
   private DataSet dataSet;
 
+  @Id
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "periodid",
+      foreignKey = @ForeignKey(name = "fk_datasetcompleteregistration_periodid"))
   private Period period;
 
+  @Id
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "sourceid",
+      foreignKey = @ForeignKey(name = "fk_completedatasetregistration_organisationunitid"))
   private OrganisationUnit source;
 
+  @Id
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "attributeoptioncomboid",
+      foreignKey = @ForeignKey(name = "fk_completedatasetregistration_attributeoptioncomboid"))
   private CategoryOptionCombo attributeOptionCombo;
 
+  @Column(name = "date")
+  @Temporal(TemporalType.TIMESTAMP)
   private Date date; // TO-DO rename to created
 
+  @Column(name = "storedby")
   private String storedBy; // TO-DO rename to createdBy
 
+  @Column(name = "lastupdated")
+  @Temporal(TemporalType.TIMESTAMP)
   private Date lastUpdated;
 
+  @Column(name = "lastupdatedby")
   private String lastUpdatedBy;
 
+  @Column(name = "completed", nullable = false)
   private Boolean completed;
 
-  private transient String periodName;
+  @Transient private transient String periodName;
 
   // -------------------------------------------------------------------------
   // Constructors
