@@ -38,7 +38,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.BaseE2ETest;
 import org.hisp.dhis.login.LoginResponse;
 import org.hisp.dhis.login.LoginResponse.STATUS;
@@ -79,7 +78,6 @@ import org.springframework.web.client.RestTemplate;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Tag("auth-idp")
-@Slf4j
 class LdapLoginTest extends BaseE2ETest {
 
   private static final String MAINTENANCE_PATH = "/maintenance/categoryOptionComboUpdate";
