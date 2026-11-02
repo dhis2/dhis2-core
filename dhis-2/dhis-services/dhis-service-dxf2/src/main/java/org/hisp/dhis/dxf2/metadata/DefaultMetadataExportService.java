@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +78,8 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -143,6 +146,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private final UserService userService;
 
+  private final FileResourceService fileResourceService;
+
   @Override
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true)
@@ -196,6 +201,10 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
       List<? extends IdentifiableObject> objects = queryService.query(query);
 
+      if (klass == FileResource.class) {
+        objects = readableFileResources(objects, params.getCurrentUserDetails());
+      }
+
       if (!objects.isEmpty()) {
         log.info(
             "("
@@ -212,6 +221,22 @@ public class DefaultMetadataExportService implements MetadataExportService {
     log.info("(" + username + ") Export:Done took " + timer.toString());
 
     return metadata;
+  }
+
+  /**
+   * {@link FileResource} is not a shareable type, so its query applies no row level access and
+   * returns every file resource. This keeps only those the user may read by the rule of {@link
+   * FileResourceService#canRead}, which the file resource API applies to each of them. A superuser,
+   * and an export without a user, keep all of them.
+   */
+  private List<? extends IdentifiableObject> readableFileResources(
+      List<? extends IdentifiableObject> objects, @CheckForNull UserDetails user) {
+    if (user == null || user.isSuper()) {
+      return objects;
+    }
+    return objects.stream()
+        .filter(object -> fileResourceService.canRead(user, (FileResource) object))
+        .toList();
   }
 
   /**

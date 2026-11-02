@@ -32,16 +32,64 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.Properties;
+import org.hisp.dhis.analytics.AnalyticsTableHook;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpClientAdapter.HttpResponse;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Analytics table hooks are disabled by default ({@code analytics.table_hooks.enabled=off}). This
+ * suite enables the feature so create/update/duplicate behaviour can be exercised, and includes an
+ * explicit default-off denial case in {@link AnalyticsTableHookDisabledControllerTest}.
+ *
+ * @author Lars Helge Overland
+ */
 @Transactional
+@ContextConfiguration(classes = {AnalyticsTableHookControllerTest.DhisConfig.class})
 class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
+
+  static class DhisConfig {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
+      Properties properties = new Properties();
+      properties.put(ConfigurationKey.ANALYTICS_TABLE_HOOKS_ENABLED.getKey(), "on");
+      provider.addProperties(properties);
+      return provider;
+    }
+  }
+
+  private static final String HOOK_SQL =
+      "update analytics_rs_orgunitstructure set organisationunitid=1";
+
+  private static String hookJson(String uid, String sql) {
+    return "{'id':'%s','name':'Hook %s','phase':'RESOURCE_TABLE_POPULATED','resourceTableType':'ORG_UNIT_STRUCTURE','sql':'%s'}"
+        .formatted(uid, uid, sql);
+  }
+
+  private static void assertRejected(ErrorCode expected, HttpResponse response) {
+    assertNotNull(
+        response
+            .content(HttpStatus.CONFLICT)
+            .find(JsonErrorReport.class, report -> report.getErrorCode() == expected));
+  }
+
+  private AnalyticsTableHook getHook(String uid) {
+    manager.clear();
+    return manager.get(AnalyticsTableHook.class, uid);
+  }
 
   @Test
   void testImportAnalyticsTableHook() {
@@ -91,5 +139,61 @@ class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
             .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E6400);
     assertNotNull(error);
     assertEquals("Analytics table hook `NameB` is a duplicate of `NameA`", error.getMessage());
+  }
+
+  @Test
+  void canDeleteHookWhileFeatureEnabled() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/analyticsTableHooks/",
+                "{'name':'ToDelete', 'phase':'RESOURCE_TABLE_POPULATED', 'resourceTableType':'ORG_UNIT_STRUCTURE', 'sql':'update analytics_rs_orgunitstructure set organisationunitid=9'}"));
+    assertStatus(HttpStatus.OK, DELETE("/analyticsTableHooks/" + uid));
+  }
+
+  @Test
+  void nonSuperuserWithHookAuthorityCannotCreateHook() {
+    switchToNewUser("hookuser", "F_ANALYTICSTABLEHOOK_ADD", "F_METADATA_IMPORT");
+
+    assertRejected(
+        ErrorCode.E3000, POST("/analyticsTableHooks/", hookJson("HookUser001", HOOK_SQL)));
+    assertRejected(
+        ErrorCode.E3000,
+        POST("/analyticsTableHooks?skipValidation=true", hookJson("HookUser002", HOOK_SQL)));
+    assertRejected(
+        ErrorCode.E3000,
+        POST(
+            "/metadata?skipValidation=true",
+            "{'analyticsTableHooks':[" + hookJson("HookUser003", HOOK_SQL) + "]}"));
+
+    switchToAdminUser();
+    assertNull(getHook("HookUser001"));
+    assertNull(getHook("HookUser002"));
+    assertNull(getHook("HookUser003"));
+  }
+
+  @Test
+  void nonSuperuserWithHookAuthorityCannotUpdateHook() {
+    assertStatus(
+        HttpStatus.CREATED, POST("/analyticsTableHooks/", hookJson("HookUser004", HOOK_SQL)));
+    switchToNewUser("hookuser", "F_ANALYTICSTABLEHOOK_ADD", "F_METADATA_IMPORT");
+
+    assertRejected(
+        ErrorCode.E3001,
+        PUT("/analyticsTableHooks/HookUser004", hookJson("HookUser004", "select 2")));
+    assertRejected(
+        ErrorCode.E3001,
+        PATCH(
+            "/analyticsTableHooks/HookUser004",
+            "[{'op':'replace','path':'/sql','value':'select 3'}]"));
+    assertRejected(
+        ErrorCode.E3001,
+        POST(
+            "/metadata?importStrategy=UPDATE",
+            "{'analyticsTableHooks':[" + hookJson("HookUser004", "select 4") + "]}"));
+
+    switchToAdminUser();
+    assertEquals(HOOK_SQL, getHook("HookUser004").getSql());
   }
 }

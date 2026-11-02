@@ -33,8 +33,10 @@ import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.audit.Audit;
 import org.hisp.dhis.audit.AuditOperationType;
@@ -51,6 +54,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
@@ -66,6 +70,9 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
@@ -73,17 +80,23 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
@@ -93,6 +106,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -121,15 +135,23 @@ public class AuditController {
 
   private final DhisConfigurationProvider dhisConfig;
 
+  private final AclService aclService;
+
   @GetMapping("/files/{uid}")
   public void getFileAudit(
       @OpenApi.Param({UID.class, FileResource.class}) @PathVariable String uid,
-      HttpServletResponse response)
-      throws WebMessageException {
+      HttpServletResponse response,
+      @CurrentUser UserDetails currentUser)
+      throws WebMessageException, ForbiddenException {
     FileResource fileResource = fileResourceService.getFileResource(uid);
 
     if (fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE) {
       throw new WebMessageException(notFound("No file found with uid '" + uid + "'"));
+    }
+
+    if (!fileResourceService.canReadDataValueFile(currentUser, fileResource)) {
+      throw new ForbiddenException(
+          String.format("File resource not found or not accessible: %s", uid));
     }
 
     FileResourceStorageStatus storageStatus = fileResource.getStorageStatus();
@@ -175,8 +197,16 @@ public class AuditController {
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
-      @RequestParam(required = false, defaultValue = "1") int page)
-      throws WebMessageException {
+      @RequestParam(required = false, defaultValue = "1") int page,
+      @OpenApi.Description(
+              "Get the total number of items and pages in the pager. Only enable this if necessary"
+                  + " as it counts all entries. Use the pager's prev/nextPage to determine if there"
+                  + " is a previous or a next page instead.")
+          @RequestParam(required = false, defaultValue = "false")
+          boolean totalPages,
+      @CurrentUser UserDetails currentUser,
+      HttpServletRequest request)
+      throws WebMessageException, ConflictException {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
@@ -185,7 +215,7 @@ public class AuditController {
 
     List<DataElement> dataElements = new ArrayList<>();
     dataElements.addAll(manager.loadByUid(DataElement.class, de));
-    dataElements.addAll(getDataElementsByDataSet(ds));
+    dataElements.addAll(getDataElementsByDataSet(ds, currentUser));
 
     List<Period> periods = getPeriods(pe);
     List<OrganisationUnit> organisationUnits = manager.loadByUid(OrganisationUnit.class, ou);
@@ -203,15 +233,14 @@ public class AuditController {
             .setAuditTypes(auditOperationTypes);
 
     List<DataValueAudit> dataValueAudits;
-    Pager pager = null;
+    Node pager = null;
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
       dataValueAudits = dataValueAuditService.getDataValueAudits(params);
     } else {
-      int total = dataValueAuditService.countDataValueAudits(params);
-
-      pager = new Pager(page, total, pageSize);
-
+      int requestedPage = Math.max(page, 1);
+      int size = Math.max(pageSize, 1);
+      // the requested page, not limited to the last page: its depth is what the read costs
       dataValueAudits =
           dataValueAuditService.getDataValueAudits(
               new DataValueAuditQueryParams()
@@ -221,13 +250,19 @@ public class AuditController {
                   .setCategoryOptionCombo(categoryOptionCombo)
                   .setAttributeOptionCombo(attributeOptionCombo)
                   .setAuditTypes(auditOperationTypes)
-                  .setPager(pager));
+                  .setPager(new SlimPager(requestedPage, size, null)));
+
+      // a paged read has one more entry than the page when there is a next page
+      boolean hasNextPage = dataValueAudits.size() > size;
+      if (hasNextPage) dataValueAudits = dataValueAudits.subList(0, size);
+      Integer total = totalPages ? dataValueAuditService.countDataValueAudits(params) : null;
+      pager = createPager(requestedPage, size, total, hasNextPage, getRequestURL(request));
     }
 
     RootNode rootNode = NodeUtils.createMetadata();
 
     if (pager != null) {
-      rootNode.addChild(NodeUtils.createPager(pager));
+      rootNode.addChild(pager);
     }
 
     CollectionNode trackedEntityAttributeValueAudits =
@@ -238,6 +273,38 @@ public class AuditController {
             .getChildren());
 
     return rootNode;
+  }
+
+  /**
+   * The pager of the tracker exports: {@code total} and {@code pageCount} only with {@code
+   * totalPages=true}, {@code prevPage} and {@code nextPage} links only when there is such a page.
+   */
+  private static Node createPager(
+      int page, int pageSize, @CheckForNull Integer total, boolean hasNextPage, String requestUrl) {
+    Pager totals = total == null ? null : new Pager(page, total, pageSize);
+    // a pager with totals reports the last page for a page beyond it
+    int current = totals == null ? page : totals.getPage();
+    String prevPage = current > 1 ? getPageLink(requestUrl, current - 1) : null;
+    String nextPage = hasNextPage ? getPageLink(requestUrl, current + 1) : null;
+    if (totals != null) {
+      totals.setPrevPage(prevPage);
+      totals.setNextPage(nextPage);
+      return NodeUtils.createPager(totals);
+    }
+    ComplexNode pager = new ComplexNode("pager");
+    pager.setMetadata(true);
+    pager.addChild(new SimpleNode("page", current));
+    pager.addChild(new SimpleNode("pageSize", pageSize));
+    pager.addChild(new SimpleNode("prevPage", prevPage));
+    pager.addChild(new SimpleNode("nextPage", nextPage));
+    return pager;
+  }
+
+  private static String getPageLink(String requestUrl, int page) {
+    return UriComponentsBuilder.fromUriString(requestUrl)
+        .replaceQueryParam("page", page)
+        .build()
+        .toUriString();
   }
 
   @GetMapping("dataApproval")
@@ -357,8 +424,18 @@ public class AuditController {
   // Helpers
   // -----------------------------------------------------------------------------------------------------------------
 
-  private List<DataElement> getDataElementsByDataSet(List<String> uids) {
+  private List<DataElement> getDataElementsByDataSet(List<String> uids, UserDetails currentUser)
+      throws ConflictException {
     List<DataSet> dataSets = manager.loadByUid(DataSet.class, uids);
+
+    List<String> noDataRead =
+        dataSets.stream()
+            .filter(dataSet -> !aclService.canDataRead(currentUser, dataSet))
+            .map(DataSet::getUid)
+            .toList();
+    if (!noDataRead.isEmpty()) {
+      throw new ConflictException(ErrorCode.E2010, String.join(",", noDataRead));
+    }
 
     return dataSets.stream().map(DataSet::getDataElements).flatMap(Set::stream).toList();
   }

@@ -43,6 +43,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -72,7 +73,7 @@ public class DataValueContextController {
   private final DataValidator dataValidator;
 
   @GetMapping("/dataValueContext")
-  public DataValueContextDto getChangeLog(DataValueQueryParams params) {
+  public DataValueContextDto getChangeLog(DataValueQueryParams params) throws ForbiddenException {
     DataElement de = dataValidator.getAndValidateDataElement(params.getDe());
     Period pe = dataValidator.getAndValidatePeriod(params.getPe());
     OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(params.getOu());

@@ -119,7 +119,7 @@ class GistDescribeControllerTest extends AbstractGistControllerTest {
 
   @Test
   void testDescribe_Authorisation_Admin() {
-    switchToNewUser("guest", "Test_skipSharingCheck", "F_METADATA_EXPORT");
+    switchToNewUser("guest", "F_METADATA_EXPORT");
     assertBaseDescription(GET("/users/{uid}/gist?describe=true", getAdminUid()).content());
   }
 

@@ -38,6 +38,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -230,5 +231,36 @@ class JpaQueryUtilsTest {
         JpaQueryUtils.generateSQlQueryForSharingCheck(
             "x.sharing", UserDetails.fromUser(userA), "__r_____");
     Assertions.assertEquals(expected, actual);
+  }
+
+  /** Only superusers skip the sharing check; no other authority does. */
+  @Test
+  void testSharingCheckAppliesToUserWithoutAllAuthority() {
+    UserDetails user = userWithAuthorities("randomUserB", "Test_skipSharingCheck");
+
+    String sql = JpaQueryUtils.generateSQlQueryForSharingCheck("x.sharing", user, "__r_____");
+    String hql = JpaQueryUtils.generateHqlQueryForSharingCheck("x", user, "__r_____");
+
+    Assertions.assertNotEquals("1=1", sql);
+    Assertions.assertTrue(sql.contains("x.sharing->>'owner' = 'randomUserB'"), sql);
+    Assertions.assertNotEquals("1=1", hql);
+    Assertions.assertTrue(hql.contains("jsonb_has_user_id( x.sharing, 'randomUserB')"), hql);
+  }
+
+  @Test
+  void testSharingCheckIsSkippedForSuperuser() {
+    UserDetails user = userWithAuthorities("randomUserC", "ALL");
+
+    Assertions.assertEquals(
+        "1=1", JpaQueryUtils.generateHqlQueryForSharingCheck("x", user, "__r_____"));
+  }
+
+  private static UserDetails userWithAuthorities(String uid, String... authorities) {
+    UserRole role = new UserRole();
+    role.setAuthorities(Sets.newHashSet(authorities));
+    User user = new User();
+    user.setUid(uid);
+    user.setUserRoles(Sets.newHashSet(role));
+    return UserDetails.fromUser(user);
   }
 }

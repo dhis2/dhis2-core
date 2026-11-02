@@ -38,6 +38,8 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -155,7 +157,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testAddGetDataValueAuditSingleRecord() {
+  void testAddGetDataValueAuditSingleRecord() throws ConflictException {
     DataValueAudit dataValueAuditA =
         new DataValueAudit(
             dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditOperationType.UPDATE);
@@ -178,7 +180,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAudit() {
+  void testGetDataValueAudit() throws ConflictException {
     DataValueAudit dvaA =
         new DataValueAudit(
             dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditOperationType.UPDATE);
@@ -228,7 +230,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditNoResult() {
+  void testGetDataValueAuditNoResult() throws ConflictException {
     DataValueAudit dvaA =
         new DataValueAudit(
             dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditOperationType.UPDATE);
@@ -258,7 +260,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditWithFakeCreate() {
+  void testGetDataValueAuditWithFakeCreate() throws ForbiddenException, ConflictException {
     DataValueAuditQueryParams params =
         new DataValueAuditQueryParams()
             .setDataElements(List.of(dataElementA))
@@ -278,7 +280,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditWithFakeCreate2() {
+  void testGetDataValueAuditWithFakeCreate2() throws ForbiddenException {
     dataValueA.setValue("10");
     dataValueService.updateDataValue(dataValueA);
 
@@ -292,7 +294,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditWithFakeCreateDeleteAndCreate() {
+  void testGetDataValueAuditWithFakeCreateDeleteAndCreate() throws ForbiddenException {
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValueA, "10", dataValueA.getStoredBy(), AuditOperationType.UPDATE));
 
@@ -315,7 +317,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled
-  void testGetDataValueAuditWithFakeCreateDelete2() {
+  void testGetDataValueAuditWithFakeCreateDelete2() throws ForbiddenException {
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValueA, "10", dataValueA.getStoredBy(), AuditOperationType.UPDATE));
 
@@ -340,7 +342,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled
-  void testGetDataValueAuditWithFakeCreateDeleteAndUndelete() {
+  void testGetDataValueAuditWithFakeCreateDeleteAndUndelete() throws ForbiddenException {
     DataElement dataElement = createDataElement('F');
     DataValue dataValue =
         createDataValue(dataElement, periodA, orgUnitA, optionCombo, optionCombo, "1");

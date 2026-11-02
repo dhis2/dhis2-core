@@ -81,18 +81,30 @@ public interface DataValueAuditStore {
   void deleteDataValueAudits(@Nonnull CategoryOptionCombo categoryOptionCombo);
 
   /**
-   * Returns data value audits for the given query.
+   * Returns data value audits for the given query that the current user may read.
    *
    * @param params the {@link DataValueAuditQueryParams}.
-   * @return a list of {@link DataValueAudit}.
+   * @return a list of {@link DataValueAudit}; paged, one more than the page size when there is a
+   *     next page
    */
   List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
 
   /**
-   * Counts data value audits for the given query.
+   * Counts data value audits for the given query that the current user may read.
    *
    * @param params the {@link DataValueAuditQueryParams}.
    * @return a list of {@link DataValueAudit}.
    */
   int countDataValueAudits(DataValueAuditQueryParams params);
+
+  /**
+   * Whether the current user may read the data of the data value with the given dimensions.
+   *
+   * @return true, if the current user may read the data of the data value
+   */
+  boolean isReadable(
+      @Nonnull DataElement dataElement,
+      @Nonnull OrganisationUnit organisationUnit,
+      @Nonnull CategoryOptionCombo categoryOptionCombo,
+      @Nonnull CategoryOptionCombo attributeOptionCombo);
 }
