@@ -30,84 +30,42 @@ description: Users which have a data capture organisation unit which is not in t
 section: Users
 section_order: 1
 summary_sql: >-
-  WITH user_data_orgunits AS (
-  SELECT u.userinfoid, array_agg(ou.path) AS data_orgunits_paths
-  FROM usermembership u
-  JOIN organisationunit ou ON ou.organisationunitid = u.organisationunitid
-  WHERE ou.path IS NOT NULL
-  GROUP BY userinfoid
-  ),
-  user_view_orgunits AS (
-  SELECT u.userinfoid, array_agg(ou.path) AS view_orgunit_paths
-  FROM userdatavieworgunits u
-  JOIN organisationunit ou ON ou.organisationunitid = u.organisationunitid
-  WHERE path IS NOT NULL
-  GROUP BY userinfoid
-  ),
-  rs as (
-  SELECT ui.uid,
-  ui.username as name,
-  NULL as comment,
-  array_agg(ou.name) as refs
-  FROM userinfo ui
-  INNER JOIN (
-  SELECT u.userinfoid, ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL) AS invalid_data_orgunits
-  FROM user_data_orgunits u
-  INNER JOIN user_view_orgunits v ON u.userinfoid = v.userinfoid
-  LEFT JOIN LATERAL (
-  SELECT path AS dop
-  FROM unnest(u.data_orgunits_paths) AS path
-  WHERE NOT EXISTS (
+  WITH flagged AS (
+  SELECT um.userinfoid, ou.name
+  FROM usermembership um
+  JOIN organisationunit ou ON ou.organisationunitid = um.organisationunitid
+  WHERE EXISTS (SELECT 1 FROM userdatavieworgunits h WHERE h.userinfoid = um.userinfoid)
+  AND NOT EXISTS (
   SELECT 1
-  FROM unnest(COALESCE(v.view_orgunit_paths, '{}')) AS view_path
-  WHERE path LIKE view_path || '%'
+  FROM userdatavieworgunits h
+  JOIN organisationunit hou ON hou.organisationunitid = h.organisationunitid
+  WHERE h.userinfoid = um.userinfoid
+  AND hou.uid = ANY(ou.patharray)
   )
-  ) invalid_paths ON true
-  GROUP BY u.userinfoid
-  HAVING array_length(ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL), 1) > 0
-  ) x on x.userinfoid = ui.userinfoid
-  INNER JOIN organisationunit ou on ou.path = any(x.invalid_data_orgunits)
-  GROUP BY ui.uid, ui.username)
-  SELECT COUNT(*) as count, 
-     100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM userinfo), 0) as percent
-        FROM rs;
+  )
+  SELECT COUNT(DISTINCT userinfoid) as count,
+  100.0 * COUNT(DISTINCT userinfoid) / NULLIF((SELECT COUNT(*) FROM userinfo), 0) as percent
+  FROM flagged;
 details_sql: >-
-  WITH user_data_orgunits AS (
-  SELECT u.userinfoid, array_agg(ou.path) AS data_orgunits_paths
-  FROM usermembership u
-  JOIN organisationunit ou ON ou.organisationunitid = u.organisationunitid
-  WHERE ou.path IS NOT NULL
-  GROUP BY userinfoid
-  ),
-  user_view_orgunits AS (
-  SELECT u.userinfoid, array_agg(ou.path) AS view_orgunit_paths
-  FROM userdatavieworgunits u
-  JOIN organisationunit ou ON ou.organisationunitid = u.organisationunitid
-  WHERE path IS NOT NULL
-  GROUP BY userinfoid
+  WITH flagged AS (
+  SELECT um.userinfoid, ou.name
+  FROM usermembership um
+  JOIN organisationunit ou ON ou.organisationunitid = um.organisationunitid
+  WHERE EXISTS (SELECT 1 FROM userdatavieworgunits h WHERE h.userinfoid = um.userinfoid)
+  AND NOT EXISTS (
+  SELECT 1
+  FROM userdatavieworgunits h
+  JOIN organisationunit hou ON hou.organisationunitid = h.organisationunitid
+  WHERE h.userinfoid = um.userinfoid
+  AND hou.uid = ANY(ou.patharray)
+  )
   )
   SELECT ui.uid,
   ui.username as name,
   NULL as comment,
-  array_agg(ou.name) as refs
-  FROM userinfo ui
-  INNER JOIN (
-  SELECT u.userinfoid, ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL) AS invalid_data_orgunits
-  FROM user_data_orgunits u
-  INNER JOIN user_view_orgunits v ON u.userinfoid = v.userinfoid
-  LEFT JOIN LATERAL (
-  SELECT path AS dop
-  FROM unnest(u.data_orgunits_paths) AS path
-  WHERE NOT EXISTS (
-  SELECT 1
-  FROM unnest(COALESCE(v.view_orgunit_paths, '{}')) AS view_path
-  WHERE path LIKE view_path || '%'
-  )
-  ) invalid_paths ON true
-  GROUP BY u.userinfoid
-  HAVING array_length(ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL), 1) > 0
-  ) x on x.userinfoid = ui.userinfoid
-  INNER JOIN organisationunit ou on ou.path = any(x.invalid_data_orgunits)
+  array_agg(f.name ORDER BY f.name) as refs
+  FROM flagged f
+  JOIN userinfo ui ON ui.userinfoid = f.userinfoid
   GROUP BY ui.uid, ui.username;
 details_id_type: users
 severity: SEVERE
