@@ -36,6 +36,9 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
@@ -52,6 +55,8 @@ import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dxf2.datavalue.DataValue;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
@@ -119,7 +124,7 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
     programA = createProgram('A');
     programB = createProgram('B');
 
-    fetcher = new PredictionAnalyticsDataFetcher(analyticsService, categoryService);
+    fetcher = new PredictionAnalyticsDataFetcher(analyticsService, categoryService, false);
   }
 
   // -------------------------------------------------------------------------
@@ -153,7 +158,7 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
             .withPeriods(Lists.newArrayList(periods))
             .withDataDimensionItems(Lists.newArrayList(aocItems))
             .withOrganisationUnits(orgUnits)
-            .withAttributeOptionCombos(Collections.emptyList())
+            .withAttributeOptionCombos(List.of())
             .build();
 
     Grid aocGrid = new ListGrid();
@@ -205,10 +210,11 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
     FoundDimensionItemValue expected3;
     FoundDimensionItemValue expected4;
 
-    expected1 = new FoundDimensionItemValue(orgUnitA, periodA, aocC, programIndicatorA, 10.0);
-    expected2 = new FoundDimensionItemValue(orgUnitA, periodB, aocC, programIndicatorB, 20.0);
-    expected3 = new FoundDimensionItemValue(orgUnitA, periodB, aocD, trackedEntityAttributeA, 30.0);
-    expected4 = new FoundDimensionItemValue(orgUnitB, periodA, aocC, programIndicatorA, 40.0);
+    expected1 = new FoundDimensionItemValue(orgUnitA, periodA, null, aocC, programIndicatorA, 10.0);
+    expected2 = new FoundDimensionItemValue(orgUnitA, periodB, null, aocC, programIndicatorB, 20.0);
+    expected3 =
+        new FoundDimensionItemValue(orgUnitA, periodB, null, aocD, trackedEntityAttributeA, 30.0);
+    expected4 = new FoundDimensionItemValue(orgUnitB, periodA, null, aocC, programIndicatorA, 40.0);
 
     // ---------------------------------------------------------------------
     // Items without Attribute Option Combos
@@ -269,9 +275,12 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
 
     CategoryOptionCombo noAoc = null;
 
-    expected5 = new FoundDimensionItemValue(orgUnitA, periodA, noAoc, programIndicatorC, 100.0);
-    expected6 = new FoundDimensionItemValue(orgUnitB, periodA, noAoc, programIndicatorD, 200.0);
-    expected7 = new FoundDimensionItemValue(orgUnitA, periodB, noAoc, programIndicatorC, 300.0);
+    expected5 =
+        new FoundDimensionItemValue(orgUnitA, periodA, null, noAoc, programIndicatorC, 100.0);
+    expected6 =
+        new FoundDimensionItemValue(orgUnitB, periodA, null, noAoc, programIndicatorD, 200.0);
+    expected7 =
+        new FoundDimensionItemValue(orgUnitA, periodB, null, noAoc, programIndicatorC, 300.0);
 
     // ---------------------------------------------------------------------
     // Do the test
@@ -289,11 +298,362 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
   }
 
   @Test
+  void testGetValuesWithDisaggregatedProgramIndicator() {
+    fetcher = new PredictionAnalyticsDataFetcher(analyticsService, categoryService, true);
+
+    CategoryOptionCombo cocE = createCategoryOptionCombo('E');
+    CategoryOptionCombo cocF = createCategoryOptionCombo('F');
+    CategoryOptionCombo aocC = createCategoryOptionCombo('C');
+    CategoryOptionCombo aocDefault = createCategoryOptionCombo('Z');
+
+    when(categoryService.getCategoryOptionCombo(cocE.getUid())).thenReturn(cocE);
+    when(categoryService.getCategoryOptionCombo(cocF.getUid())).thenReturn(cocF);
+    when(categoryService.getCategoryOptionCombo(aocC.getUid())).thenReturn(aocC);
+    when(categoryService.getDefaultCategoryOptionCombo()).thenReturn(aocDefault);
+
+    // ---------------------------------------------------------------------
+    // Disaggregated event program indicator, fetched in data value set
+    // format. A value without an AOC gets the default AOC.
+    // ---------------------------------------------------------------------
+
+    ProgramIndicator programIndicatorE =
+        createProgramIndicator('E', programA, "expressionE", "filterE");
+    programIndicatorE.setCategoryCombo(createCategoryCombo('E'));
+    programIndicatorE.setAggregateExportDataElement("aggExportDE");
+
+    DataValueSet disagGrid = new DataValueSet();
+
+    // Note: analytics returns the aggregate export data element instead of the program indicator
+    disagGrid
+        .getDataValues()
+        .add(
+            dataValue(
+                "aggExportDE", periodA.getIsoDate(), orgUnitA.getUid(), cocE.getUid(), null, 1.0));
+
+    disagGrid
+        .getDataValues()
+        .add(
+            dataValue(
+                "aggExportDE",
+                periodA.getIsoDate(),
+                orgUnitA.getUid(),
+                cocF.getUid(),
+                aocC.getUid(),
+                2));
+
+    when(analyticsService.getAggregatedDataValueSet(disagParamsFor(programIndicatorE)))
+        .thenReturn(disagGrid);
+
+    FoundDimensionItemValue expected1 =
+        new FoundDimensionItemValue(orgUnitA, periodA, cocE, aocDefault, programIndicatorE, 1.0);
+    FoundDimensionItemValue expected2 =
+        new FoundDimensionItemValue(orgUnitA, periodA, cocF, aocC, programIndicatorE, 2.0);
+
+    // ---------------------------------------------------------------------
+    // Disaggregated enrollment program indicator. A value without an AOC
+    // keeps no AOC, so it is used for all AOCs.
+    // ---------------------------------------------------------------------
+
+    ProgramIndicator programIndicatorH =
+        createProgramIndicator('H', programA, "expressionH", "filterH");
+    programIndicatorH.setAnalyticsType(ENROLLMENT);
+    programIndicatorH.setCategoryCombo(createCategoryCombo('H'));
+
+    DataValueSet enrollmentGrid = new DataValueSet();
+
+    enrollmentGrid
+        .getDataValues()
+        .add(
+            dataValue(
+                programIndicatorH.getUid(),
+                periodB.getIsoDate(),
+                orgUnitB.getUid(),
+                cocE.getUid(),
+                null,
+                4.0));
+
+    when(analyticsService.getAggregatedDataValueSet(disagParamsFor(programIndicatorH)))
+        .thenReturn(enrollmentGrid);
+
+    FoundDimensionItemValue expected4 =
+        new FoundDimensionItemValue(orgUnitB, periodB, cocE, null, programIndicatorH, 4.0);
+
+    // ---------------------------------------------------------------------
+    // Program indicator without disaggregation, fetched as usual
+    // ---------------------------------------------------------------------
+
+    ProgramIndicator programIndicatorG =
+        createProgramIndicator('G', programB, "expressionG", "filterG");
+
+    DataQueryParams aocParams =
+        DataQueryParams.newBuilder()
+            .withPeriods(Lists.newArrayList(periods))
+            .withDataDimensionItems(List.of(programIndicatorG))
+            .withOrganisationUnits(orgUnits)
+            .withAttributeOptionCombos(List.of())
+            .build();
+
+    Grid aocGrid = new ListGrid();
+
+    aocGrid.addHeader(new GridHeader(PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true));
+    aocGrid.addHeader(new GridHeader(DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true));
+    aocGrid.addHeader(
+        new GridHeader(ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true));
+    aocGrid.addHeader(
+        new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, false, true));
+    aocGrid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, true));
+
+    aocGrid
+        .addRow()
+        .addValue(periodB.getIsoDate())
+        .addValue(programIndicatorG.getUid())
+        .addValue(orgUnitB.getUid())
+        .addValue(aocC.getUid())
+        .addValue(3.0);
+
+    when(analyticsService.getAggregatedDataValues(aocParams)).thenReturn(aocGrid);
+
+    FoundDimensionItemValue expected3 =
+        new FoundDimensionItemValue(orgUnitB, periodB, null, aocC, programIndicatorG, 3.0);
+
+    // ---------------------------------------------------------------------
+    // Do the test
+    // ---------------------------------------------------------------------
+
+    fetcher.init(periods, Set.of(programIndicatorE, programIndicatorG, programIndicatorH));
+
+    List<FoundDimensionItemValue> actual = fetcher.getValues(orgUnits);
+
+    assertContainsOnly(List.of(expected1, expected2, expected3, expected4), actual);
+  }
+
+  @Test
+  void testGetValuesWithAttributeComboNotDisaggregated() {
+    CategoryOptionCombo cocE = createCategoryOptionCombo('E');
+    CategoryOptionCombo cocF = createCategoryOptionCombo('F');
+    CategoryOptionCombo aocC = createCategoryOptionCombo('C');
+    CategoryOptionCombo aocD = createCategoryOptionCombo('D');
+
+    when(categoryService.getCategoryOptionCombo(cocE.getUid())).thenReturn(cocE);
+    when(categoryService.getCategoryOptionCombo(cocF.getUid())).thenReturn(cocF);
+    when(categoryService.getCategoryOptionCombo(aocC.getUid())).thenReturn(aocC);
+    when(categoryService.getCategoryOptionCombo(aocD.getUid())).thenReturn(aocD);
+
+    // ---------------------------------------------------------------------
+    // Program indicator with a category combo and attribute combo is
+    // fetched with its mapped option combos, even though the predictions
+    // are not disaggregated. (Its COC values are summed later.)
+    // ---------------------------------------------------------------------
+
+    ProgramIndicator programIndicatorJ =
+        createProgramIndicator('J', programA, "expressionJ", "filterJ");
+    programIndicatorJ.setCategoryCombo(createCategoryCombo('J'));
+    programIndicatorJ.setAttributeCombo(createCategoryCombo('K'));
+
+    DataValueSet disagGrid = new DataValueSet();
+
+    disagGrid
+        .getDataValues()
+        .add(
+            dataValue(
+                programIndicatorJ.getUid(),
+                periodA.getIsoDate(),
+                orgUnitA.getUid(),
+                cocE.getUid(),
+                aocC.getUid(),
+                1.0));
+
+    disagGrid
+        .getDataValues()
+        .add(
+            dataValue(
+                programIndicatorJ.getUid(),
+                periodA.getIsoDate(),
+                orgUnitA.getUid(),
+                cocF.getUid(),
+                aocC.getUid(),
+                2.0));
+
+    when(analyticsService.getAggregatedDataValueSet(disagParamsFor(programIndicatorJ)))
+        .thenReturn(disagGrid);
+
+    FoundDimensionItemValue expected1 =
+        new FoundDimensionItemValue(orgUnitA, periodA, cocE, aocC, programIndicatorJ, 1.0);
+    FoundDimensionItemValue expected2 =
+        new FoundDimensionItemValue(orgUnitA, periodA, cocF, aocC, programIndicatorJ, 2.0);
+
+    // ---------------------------------------------------------------------
+    // Program indicator with only a category combo is fetched as usual,
+    // because the predictions are not disaggregated.
+    // ---------------------------------------------------------------------
+
+    ProgramIndicator programIndicatorL =
+        createProgramIndicator('L', programB, "expressionL", "filterL");
+    programIndicatorL.setCategoryCombo(createCategoryCombo('L'));
+
+    Grid aocGrid = newAocGrid();
+
+    aocGrid
+        .addRow()
+        .addValue(periodB.getIsoDate())
+        .addValue(programIndicatorL.getUid())
+        .addValue(orgUnitB.getUid())
+        .addValue(aocD.getUid())
+        .addValue(3.0);
+
+    when(analyticsService.getAggregatedDataValues(aocParamsFor(programIndicatorL)))
+        .thenReturn(aocGrid);
+
+    FoundDimensionItemValue expected3 =
+        new FoundDimensionItemValue(orgUnitB, periodB, null, aocD, programIndicatorL, 3.0);
+
+    // ---------------------------------------------------------------------
+    // Do the test
+    // ---------------------------------------------------------------------
+
+    fetcher.init(periods, Set.of(programIndicatorJ, programIndicatorL));
+
+    List<FoundDimensionItemValue> actual = fetcher.getValues(orgUnits);
+
+    assertContainsOnly(List.of(expected1, expected2, expected3), actual);
+  }
+
+  @Test
+  void testGetValuesWithAttributeComboOnlyDisaggregated() {
+    fetcher = new PredictionAnalyticsDataFetcher(analyticsService, categoryService, true);
+
+    CategoryOptionCombo aocC = createCategoryOptionCombo('C');
+
+    when(categoryService.getCategoryOptionCombo(aocC.getUid())).thenReturn(aocC);
+
+    // Program indicator with only an attribute combo is fetched with its
+    // mapped option combos. It has no COC, so it is used for all COCs.
+    ProgramIndicator programIndicatorM =
+        createProgramIndicator('M', programA, "expressionM", "filterM");
+    programIndicatorM.setAttributeCombo(createCategoryCombo('M'));
+
+    DataValueSet disagGrid = new DataValueSet();
+
+    disagGrid
+        .getDataValues()
+        .add(
+            dataValue(
+                programIndicatorM.getUid(),
+                periodA.getIsoDate(),
+                orgUnitA.getUid(),
+                null,
+                aocC.getUid(),
+                5.0));
+
+    when(analyticsService.getAggregatedDataValueSet(disagParamsFor(programIndicatorM)))
+        .thenReturn(disagGrid);
+
+    FoundDimensionItemValue expected =
+        new FoundDimensionItemValue(orgUnitA, periodA, null, aocC, programIndicatorM, 5.0);
+
+    fetcher.init(periods, Set.of(programIndicatorM));
+
+    List<FoundDimensionItemValue> actual = fetcher.getValues(orgUnits);
+
+    assertContainsOnly(List.of(expected), actual);
+  }
+
+  @Test
+  void testGetValuesWithUnknownCategoryOptionCombo() {
+    fetcher = new PredictionAnalyticsDataFetcher(analyticsService, categoryService, true);
+
+    ProgramIndicator programIndicatorE =
+        createProgramIndicator('E', programA, "expressionE", "filterE");
+    programIndicatorE.setCategoryCombo(createCategoryCombo('E'));
+
+    DataValueSet disagGrid = new DataValueSet();
+
+    disagGrid
+        .getDataValues()
+        .add(
+            dataValue(
+                programIndicatorE.getUid(),
+                periodA.getIsoDate(),
+                orgUnitA.getUid(),
+                "unknownCoc1",
+                null,
+                1.0));
+
+    when(analyticsService.getAggregatedDataValueSet(disagParamsFor(programIndicatorE)))
+        .thenReturn(disagGrid);
+
+    fetcher.init(periods, Set.of(programIndicatorE));
+
+    IllegalStateException ex =
+        assertThrows(IllegalStateException.class, () -> fetcher.getValues(orgUnits));
+    assertEquals(
+        "Can't find category option combo unknownCoc1 returned by analytics", ex.getMessage());
+  }
+
+  @Test
   void testGetValuesEmpty() {
     fetcher.init(periods, Collections.emptySet());
 
     List<FoundDimensionItemValue> actual = fetcher.getValues(orgUnits);
 
     assertIsEmpty(actual);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Matches the query parameters for a disaggregated program indicator. (DataQueryParams.equals
+   * doesn't compare dimension items, so the program indicator is also checked.)
+   */
+  private DataQueryParams disagParamsFor(ProgramIndicator pi) {
+    DataQueryParams expected =
+        DataQueryParams.newBuilder()
+            .withPeriods(Lists.newArrayList(periods))
+            .withDataDimensionItems(List.of(pi))
+            .withOrganisationUnits(orgUnits)
+            .build();
+
+    return argThat(p -> expected.equals(p) && List.of(pi).equals(p.getProgramIndicators()));
+  }
+
+  /** Makes the query parameters for an item fetched by attribute option combo. */
+  private DataQueryParams aocParamsFor(DimensionalItemObject item) {
+    DataQueryParams expected =
+        DataQueryParams.newBuilder()
+            .withPeriods(Lists.newArrayList(periods))
+            .withDataDimensionItems(List.of(item))
+            .withOrganisationUnits(orgUnits)
+            .withAttributeOptionCombos(List.of())
+            .build();
+
+    return argThat(p -> expected.equals(p) && List.of(item).equals(p.getAllDataDimensionItems()));
+  }
+
+  /** Makes an empty grid as returned for items fetched by attribute option combo. */
+  private Grid newAocGrid() {
+    Grid grid = new ListGrid();
+
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, true));
+
+    return grid;
+  }
+
+  /** Makes a data value as returned by analytics in a data value set. */
+  private DataValue dataValue(
+      String dataElement, String period, String orgUnit, String coc, String aoc, Object value) {
+    DataValue dv = new DataValue();
+    dv.setDataElement(dataElement);
+    dv.setPeriod(period);
+    dv.setOrgUnit(orgUnit);
+    dv.setCategoryOptionCombo(coc);
+    dv.setAttributeOptionCombo(aoc);
+    dv.setValue(String.valueOf(value));
+    return dv;
   }
 }

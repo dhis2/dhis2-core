@@ -324,12 +324,16 @@ class PredictionDataValueFetcherTest extends TestBase {
     deflatedDataValueD = new DeflatedDataValue(dataValueD);
     deflatedDataValueAB = new DeflatedDataValue(dataValueAB);
 
-    foundValueA = new FoundDimensionItemValue(orgUnitB, periodA, aocC, dataElementA, 85.0);
-    foundValueB = new FoundDimensionItemValue(orgUnitC, periodB, aocC, dataElementB, 18.0);
-    foundValueC = new FoundDimensionItemValue(orgUnitB, periodA, aocC, dataElementOperandA, 10.0);
-    foundValueD = new FoundDimensionItemValue(orgUnitB, periodA, aocD, dataElementOperandX, 30.0);
-    foundValueE = new FoundDimensionItemValue(orgUnitB, periodC, aocC, dataElementOperandX, 50.0);
-    foundValueAB = new FoundDimensionItemValue(orgUnitB, periodA, aocC, dataElementOperandAB, 75.0);
+    foundValueA = new FoundDimensionItemValue(orgUnitB, periodA, null, aocC, dataElementA, 85.0);
+    foundValueB = new FoundDimensionItemValue(orgUnitC, periodB, null, aocC, dataElementB, 18.0);
+    foundValueC =
+        new FoundDimensionItemValue(orgUnitB, periodA, cocA, aocC, dataElementOperandA, 10.0);
+    foundValueD =
+        new FoundDimensionItemValue(orgUnitB, periodA, cocA, aocD, dataElementOperandX, 30.0);
+    foundValueE =
+        new FoundDimensionItemValue(orgUnitB, periodC, cocA, aocC, dataElementOperandX, 50.0);
+    foundValueAB =
+        new FoundDimensionItemValue(orgUnitB, periodA, cocB, aocC, dataElementOperandAB, 75.0);
 
     when(categoryService.getAllCategoryOptionCombos()).thenReturn(List.of(cocA, cocB, aocC, aocD));
 
