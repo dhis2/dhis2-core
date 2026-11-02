@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.sharing;
 
+import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +75,13 @@ public class DefaultSharingService implements SharingService {
   public <T extends IdentifiableObject> ObjectReport saveSharing(
       @Nonnull Class<T> entityClass, @Nonnull T entity, @Nonnull Sharing sharing) {
     ObjectReport objectReport = new ObjectReport(Sharing.class, 0);
+
+    List<ErrorReport> updateErrors =
+        userService.validateSharingUpdate(entity, CurrentUserUtil.getCurrentUserDetails());
+    if (!updateErrors.isEmpty()) {
+      updateErrors.forEach(objectReport::addErrorReport);
+      return objectReport;
+    }
 
     if (entity instanceof SystemDefaultMetadataObject sdmo && sdmo.isDefault()) {
       objectReport.addErrorReport(

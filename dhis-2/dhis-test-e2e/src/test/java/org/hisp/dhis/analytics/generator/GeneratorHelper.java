@@ -78,6 +78,13 @@ public class GeneratorHelper {
   static final String ACTION_INSTANCE = GEN.getActionDeclaration();
   static final String PACKAGE = GEN.getPackage();
   static final String TOP_CLASS_COMMENT = GEN.getTopClassComment();
+  static final boolean GEOSPATIAL_HEADERS_DEPEND_ON_DATABASE =
+      GEN.geospatialHeadersDependOnDatabase();
+
+  /** Headers that analytics returns only when the database supports geospatial data. */
+  static final List<String> POSTGIS_HEADERS =
+      List.of("geometry", "enrollmentgeometry", "geometrySource", "longitude", "latitude");
+
   static final String TEST_OUTPUT_LOCATION =
       "./src/test/java/org/hisp/dhis/analytics/generator/output/";
 
@@ -207,32 +214,9 @@ public class GeneratorHelper {
         rowContextPresent = false;
       }
 
-      // --- Calculate Expected Header Counts based on Live Response ---
-      int observedHeaderCount = actualHeadersFromCtx.size();
-      long observedPostgisHeaderCount =
-          actualHeadersFromCtx.stream()
-              .map(h -> (String) h.get("name"))
-              .filter(
-                  aName ->
-                      aName != null && List.of("geometry", "longitude", "latitude").contains(aName))
-              .count();
-
-      int expectedHeaderCountWithPostgis;
-      int expectedHeaderCountWithoutPostgis;
-
-      // Determine the expected counts based on what was observed
-      if (observedPostgisHeaderCount > 0) {
-        // Live response included PostGIS headers (e.g., generator run against PostGIS)
-        expectedHeaderCountWithPostgis = observedHeaderCount;
-        expectedHeaderCountWithoutPostgis = observedHeaderCount - (int) observedPostgisHeaderCount;
-      } else {
-        // Live response did NOT include PostGIS headers (e.g., generator run against Doris)
-        expectedHeaderCountWithoutPostgis = observedHeaderCount;
-        // Estimate what the count *would* be with PostGIS headers (assuming only the 3 standard
-        // ones are added)
-        expectedHeaderCountWithPostgis = observedHeaderCount + 3;
-      }
-      // --- End Calculate Expected Header Counts ---
+      // The live response comes from Postgres, so these headers are absent on Doris and ClickHouse
+      List<String> databaseDependentHeaders =
+          getDatabaseDependentHeaders(actualHeadersFromCtx, GEOSPATIAL_HEADERS_DEPEND_ON_DATABASE);
 
       // --- Generate Test Components (Always Name-Based Style) ---
 
@@ -242,10 +226,7 @@ public class GeneratorHelper {
       // 2. Structure Assertion
       String structureAssertions =
           buildStructureAssertion(
-              ctx,
-              actualRowCount,
-              expectedHeaderCountWithPostgis,
-              expectedHeaderCountWithoutPostgis);
+              actualRowCount, actualHeadersFromCtx.size(), databaseDependentHeaders);
 
       // 3. Headers Extraction (Generates 'actualHeaders' variable)
       String headersExtractionBlock = buildHeadersExtractionBlock(ctx);
@@ -253,7 +234,8 @@ public class GeneratorHelper {
       // 4. Metadata Assertion
       String metaDataAssertion = buildMetaDataAssertion(ctx);
       // 5. Headers Assertion
-      String headersAssertion = buildHeadersAssertion(ctx, actualHeadersFromCtx);
+      String headersAssertion =
+          buildHeadersAssertion(actualHeadersFromCtx, databaseDependentHeaders);
       // 6. Row Context Assertion
       String rowContextAssertion =
           buildRowContextAssertion(ctx, actualHeadersFromCtx, rowContextPresent);
@@ -310,19 +292,39 @@ public class GeneratorHelper {
   }
 
   /**
+   * Finds the PostGIS headers in the live (Postgres) response that Doris and ClickHouse responses
+   * do not return.
+   *
+   * @param headers The headers of the live response.
+   * @param geospatialHeadersDependOnDatabase Whether the endpoint returns PostGIS headers only on
+   *     Postgres.
+   * @return The names of the database-dependent headers, in response order.
+   */
+  static List<String> getDatabaseDependentHeaders(
+      List<Map<String, Object>> headers, boolean geospatialHeadersDependOnDatabase) {
+    if (!geospatialHeadersDependOnDatabase) {
+      return List.of();
+    }
+
+    return headers.stream()
+        .map(h -> (String) h.get("name"))
+        .filter(POSTGIS_HEADERS::contains)
+        .toList();
+  }
+
+  /**
    * Builds the initial structure validation assertions using validateResponseStructure.
    *
-   * @param ctx ReadContext for the JSON response.
    * @param actualRowCount The row count observed during generation.
-   * @param expectedHeaderCountWithPostgis The expected header count when PostGIS is enabled.
-   * @param expectedHeaderCountWithoutPostgis The expected header count when PostGIS is disabled.
+   * @param actualHeaderCount The header count observed during generation (on Postgres).
+   * @param databaseDependentHeaders The headers absent on Doris and ClickHouse.
    * @return The generated Java code string for the structure assertion.
    */
-  private static String buildStructureAssertion(
-      ReadContext ctx,
-      int actualRowCount,
-      int expectedHeaderCountWithPostgis,
-      int expectedHeaderCountWithoutPostgis) {
+  static String buildStructureAssertion(
+      int actualRowCount, int actualHeaderCount, List<String> databaseDependentHeaders) {
+    int expectedHeaderCountWithPostgis = actualHeaderCount;
+    int expectedHeaderCountWithoutPostgis = actualHeaderCount - databaseDependentHeaders.size();
+
     // Generate the call using the runtime 'expectPostgis' variable and the calculated counts
     return """
              // 1. Validate Response Structure (Counts, Headers, Height/Width)
@@ -762,12 +764,12 @@ public class GeneratorHelper {
    * Builds the assertions for headers, generating conditional logic based on the 'expectPostgis'
    * flag read at runtime within the test.
    *
-   * @param ctx ReadContext for the JSON response (used to get header details).
    * @param actualHeadersFromCtx The list of headers extracted from the context.
+   * @param databaseDependentHeaders The headers absent on Doris and ClickHouse.
    * @return The generated Java code string for header assertions.
    */
-  private static String buildHeadersAssertion(
-      ReadContext ctx, List<Map<String, Object>> actualHeadersFromCtx) {
+  static String buildHeadersAssertion(
+      List<Map<String, Object>> actualHeadersFromCtx, List<String> databaseDependentHeaders) {
     StringBuilder headersAssertion = new StringBuilder();
 
     if (actualHeadersFromCtx == null || actualHeadersFromCtx.isEmpty()) {
@@ -789,7 +791,7 @@ public class GeneratorHelper {
       boolean meta = Boolean.TRUE.equals(headerMap.get("meta"));
 
       // Check if it's a PostGIS-specific header
-      boolean isPostGisHeader = List.of("geometry", "longitude", "latitude").contains(name);
+      boolean isPostGisHeader = databaseDependentHeaders.contains(name);
 
       // Start conditional block in generated code if it's a PostGIS header
       if (isPostGisHeader) {
@@ -828,18 +830,25 @@ public class GeneratorHelper {
       }
     } // End loop through actualHeadersFromCtx
 
+    if (databaseDependentHeaders.isEmpty()) {
+      return headersAssertion.toString();
+    }
+
     // Add assertions for PostGIS headers existence based on expectPostgis flag
     headersAssertion.append(
         "\n    // Assert PostGIS-specific headers existence based on 'expectPostgis' flag\n");
     headersAssertion.append("    if (expectPostgis) {\n");
-    headersAssertion.append("      validateHeaderExistence(actualHeaders, \"geometry\", true);\n");
-    headersAssertion.append("      validateHeaderExistence(actualHeaders, \"longitude\", true);\n");
-    headersAssertion.append("      validateHeaderExistence(actualHeaders, \"latitude\", true);\n");
+    databaseDependentHeaders.forEach(
+        name ->
+            headersAssertion.append(
+                "      validateHeaderExistence(actualHeaders, \"%s\", true);\n"
+                    .formatted(escapeJava(name))));
     headersAssertion.append("    } else {\n");
-    headersAssertion.append("      validateHeaderExistence(actualHeaders, \"geometry\", false);\n");
-    headersAssertion.append(
-        "      validateHeaderExistence(actualHeaders, \"longitude\", false);\n");
-    headersAssertion.append("      validateHeaderExistence(actualHeaders, \"latitude\", false);\n");
+    databaseDependentHeaders.forEach(
+        name ->
+            headersAssertion.append(
+                "      validateHeaderExistence(actualHeaders, \"%s\", false);\n"
+                    .formatted(escapeJava(name))));
     headersAssertion.append("    }\n");
 
     return headersAssertion.toString();
