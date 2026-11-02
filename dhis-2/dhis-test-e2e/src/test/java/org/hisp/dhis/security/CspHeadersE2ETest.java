@@ -82,82 +82,25 @@ public class CspHeadersE2ETest extends BaseE2ETest {
 
   @Test
   void testGlobalShellEndpointWithAppHostCspPolicy() {
-    // AppController.renderApp has @CspAppHost
-    ResponseEntity<String> response =
-        restTemplate.exchange(serverHostUrl + "apps/maps", HttpMethod.GET, null, String.class);
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-
-    // Verify CSP header is present
-    String cspHeader = response.getHeaders().getFirst(CSP_HEADER);
-    assertNotNull(cspHeader, "CSP header should be present");
-
-    // Verify custom policy directives are in the CSP header
-    assertTrue(
-        cspHeader.contains("default-src 'self'"),
-        "CSP policy should contain default-src 'self' directive");
-    assertTrue(
-        cspHeader.contains("style-src 'self' 'unsafe-inline'"),
-        "CSP policy should contain style-src with unsafe-inline");
-
-    // Verify frame-ancestors directive is added
-    assertTrue(
-        cspHeader.contains("frame-ancestors 'self'"),
-        "CSP should include frame-ancestors directive");
+    // GlobalShellFilter forwards /apps/{app} to AppController.renderApp, which has @CspAppHost
+    ResponseEntity<String> response = getAuthenticatedFromHost("apps/maps");
+    assertAppHostCsp(response, "/apps/maps");
   }
 
   @Test
   void testAppResourceEndpointWithAppHostCspPolicy() {
     // AppController.renderApp has @CspAppHost
-    ResponseEntity<String> response =
-        restTemplate.exchange(
-            serverApiUrl + "/apps/maps-app/index.html", HttpMethod.GET, null, String.class);
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-
-    // Verify CSP header is present
-    String cspHeader = response.getHeaders().getFirst(CSP_HEADER);
-    assertNotNull(cspHeader, "CSP header should be present");
-
-    // Verify custom policy directives are in the CSP header
-    assertTrue(
-        cspHeader.contains("default-src 'self'"),
-        "CSP policy should contain default-src 'self' directive");
-    assertTrue(
-        cspHeader.contains("style-src 'self' 'unsafe-inline'"),
-        "CSP policy should contain style-src with unsafe-inline");
-
-    // Verify frame-ancestors directive is added
-    assertTrue(
-        cspHeader.contains("frame-ancestors 'self'"),
-        "CSP should include frame-ancestors directive");
+    ResponseEntity<String> response = getAuthenticated("/apps/maps/index.html");
+    assertAppHostCsp(response, "/api/apps/maps/index.html");
   }
 
   @Test
   void testLegacyAppResourceEndpointWithAppHostCspPolicy() {
-    // AppController.renderApp has @CspAppHost
+    // AppOverrideFilter forwards /dhis-web-{app}/ to AppController.renderApp, which has
+    // @CspAppHost. Without redirect=false, GlobalShellFilter redirects to the global shell instead.
     ResponseEntity<String> response =
-        restTemplate.exchange(
-            serverHostUrl + "dhis-web-maps/index.html", HttpMethod.GET, null, String.class);
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-
-    // Verify CSP header is present
-    String cspHeader = response.getHeaders().getFirst(CSP_HEADER);
-    assertNotNull(cspHeader, "CSP header should be present");
-
-    // Verify custom policy directives are in the CSP header
-    assertTrue(
-        cspHeader.contains("default-src 'self'"),
-        "CSP policy should contain default-src 'self' directive");
-    assertTrue(
-        cspHeader.contains("style-src 'self' 'unsafe-inline'"),
-        "CSP policy should contain style-src with unsafe-inline");
-
-    // Verify frame-ancestors directive is added
-    assertTrue(
-        cspHeader.contains("frame-ancestors 'self'"),
-        "CSP should include frame-ancestors directive");
+        getAuthenticatedFromHost("dhis-web-maps/index.html?redirect=false");
+    assertAppHostCsp(response, "/dhis-web-maps/index.html");
   }
 
   // ========================================================================
@@ -180,13 +123,9 @@ public class CspHeadersE2ETest extends BaseE2ETest {
 
   @Test
   void testAuditEndpointWithUserUploadedContentCsp() {
-    // AuditController.getAuditReports() has @CspUserUploadedContent annotation
-    ResponseEntity<String> response =
-        restTemplate.exchange(
-            serverApiUrl + "/audits/files/X1234567890", HttpMethod.GET, null, String.class);
-
-    String cspHeader = response.getHeaders().getFirst(CSP_HEADER);
-    assertNotNull(cspHeader, "CSP header should be present on audit endpoint");
+    // AuditController.getFileAudit has @CspUserUploadedContent
+    ResponseEntity<String> response = getAuthenticated("/audits/files/X1234567890");
+    assertUserUploadedContentCsp(response, "/audits/files/...");
   }
 
   @Test
@@ -285,21 +224,18 @@ public class CspHeadersE2ETest extends BaseE2ETest {
   }
 
   @Test
-  void testMessageConversationEndpointWithUserUploadedContentCsp() {
-    // MessageConversationController has @CspUserUploadedContent annotation
-    String cookie = performInitialLogin("admin", "district");
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("Cookie", cookie);
+  void testMessageConversationListHasDefaultCsp() {
+    // Only the attachment download of MessageConversationController has @CspUserUploadedContent;
+    // the conversation list keeps the default policy.
+    ResponseEntity<String> response = getAuthenticated("/messageConversations");
 
-    ResponseEntity<String> response =
-        restTemplate.exchange(
-            serverApiUrl + "/messageConversations",
-            HttpMethod.GET,
-            new org.springframework.http.HttpEntity<>(headers),
-            String.class);
-
-    // Verify CSP and security headers
-    verifySecurityHeadersPresent(response);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    String csp = response.getHeaders().getFirst(CSP_HEADER);
+    assertNotNull(csp, "CSP header should be present on /messageConversations");
+    assertTrue(
+        csp.startsWith("default-src 'self';"),
+        "/messageConversations should carry the default policy, got: " + csp);
+    verifyStandardSecurityHeaders(response);
   }
 
   // ========================================================================
@@ -478,17 +414,52 @@ public class CspHeadersE2ETest extends BaseE2ETest {
    * test can inspect headers (set by {@code CspInterceptor.preHandle}) on 4xx/5xx responses too.
    */
   private ResponseEntity<String> getAuthenticated(String relativeApiPath) {
+    return getAuthenticatedUrl(serverApiUrl + relativeApiPath);
+  }
+
+  /** Like {@link #getAuthenticated(String)}, for a path relative to the server root. */
+  private ResponseEntity<String> getAuthenticatedFromHost(String relativeHostPath) {
+    return getAuthenticatedUrl(serverHostUrl + relativeHostPath);
+  }
+
+  private ResponseEntity<String> getAuthenticatedUrl(String url) {
     String cookie = performInitialLogin("admin", "district");
     HttpHeaders headers = new HttpHeaders();
     headers.set("Cookie", cookie);
     try {
-      return restTemplate.exchange(
-          serverApiUrl + relativeApiPath, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+      return restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
     } catch (HttpStatusCodeException e) {
       return ResponseEntity.status(e.getStatusCode())
           .headers(e.getResponseHeaders())
           .body(e.getResponseBodyAsString());
     }
+  }
+
+  /**
+   * Asserts that the app document was served with the app-host policy. The {@code child-src} and
+   * {@code img-src} directives only exist in that policy, so a response that fell back to the
+   * default policy, for example a login page after an authentication redirect, fails here.
+   */
+  private void assertAppHostCsp(ResponseEntity<String> response, String label) {
+    assertEquals(HttpStatus.OK, response.getStatusCode(), label + " should be served");
+    String csp = response.getHeaders().getFirst(CSP_HEADER);
+    assertNotNull(csp, "CSP header should be present on " + label);
+    assertTrue(
+        csp.startsWith("default-src 'self';"),
+        "CSP for " + label + " should start with default-src 'self', got: " + csp);
+    assertTrue(
+        csp.contains("child-src 'self' blob:;"),
+        "CSP for " + label + " should contain the app-host child-src, got: " + csp);
+    assertTrue(
+        csp.contains("img-src 'self' data: blob: https://apps.dhis2.org "),
+        "CSP for " + label + " should contain the app-host img-src, got: " + csp);
+    assertTrue(
+        csp.contains("connect-src 'self' https://"),
+        "CSP for " + label + " should contain the app-host connect-src, got: " + csp);
+    assertTrue(
+        csp.contains("frame-ancestors 'self'"),
+        "CSP for " + label + " should contain frame-ancestors 'self', got: " + csp);
+    verifyStandardSecurityHeaders(response);
   }
 
   /** Asserts that the response carries the user-uploaded-content CSP policy. */
