@@ -144,7 +144,18 @@ public class DefaultObjectBundleService implements ObjectBundleService {
       commitHooks.forEach(hook -> hook.postCommit(bundle));
     }
 
-    dbmsManager.clearSession();
+    // With FlushMode.AUTO every commitObjectType call ends with a flush. Only postCommit hooks run
+    // after the last one, so without them another flush would only dirty-check every managed
+    // entity again, which takes seconds when the bundle references 100k org units.
+    boolean flushedAfterLastChange =
+        FlushMode.AUTO == bundle.getFlushMode()
+            && !klasses.isEmpty()
+            && (commitHooks.isEmpty() || bundle.getImportMode().isDelete());
+    if (flushedAfterLastChange) {
+      entityManager.clear();
+    } else {
+      dbmsManager.clearSession();
+    }
     cacheManager.clearCache();
 
     bundle.setObjectBundleStatus(ObjectBundleStatus.COMMITTED);
