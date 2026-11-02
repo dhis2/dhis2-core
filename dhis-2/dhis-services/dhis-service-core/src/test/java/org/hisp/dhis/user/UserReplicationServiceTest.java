@@ -40,6 +40,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Set;
 import java.util.UUID;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.Cache;
@@ -134,7 +135,11 @@ class UserReplicationServiceTest {
             .accountNonExpired(true)
             .accountNonLocked(true)
             .credentialsNonExpired(true)
+            .isSuper(true)
+            .allAuthorities(Set.of("ALL"))
             .build());
+    // Replication needs rights over the source user (see checkCanReplicateUser).
+    when(aclService.canUpdate(any(UserDetails.class), any(User.class))).thenReturn(true);
 
     User existingUser = new User();
     existingUser.setUid("b1234567890");
@@ -218,7 +223,11 @@ class UserReplicationServiceTest {
             .accountNonExpired(true)
             .accountNonLocked(true)
             .credentialsNonExpired(true)
+            .isSuper(true)
+            .allAuthorities(Set.of("ALL"))
             .build());
+    // Replication needs rights over the source user (see checkCanReplicateUser).
+    when(aclService.canUpdate(any(UserDetails.class), any(User.class))).thenReturn(true);
 
     User existingUser = new User();
     existingUser.setUid("b1234567890");

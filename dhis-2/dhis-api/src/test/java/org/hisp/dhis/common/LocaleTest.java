@@ -44,6 +44,21 @@ import org.junit.jupiter.api.Test;
 class LocaleTest {
 
   @Test
+  void testNewLocale() {
+    assertLocaleEquals("de", new Locale("de", null, null));
+    assertLocaleEquals("de_DE", new Locale("de", "DE", null));
+    assertLocaleEquals("de_DE_Latn", new Locale("de", "DE", "Latn"));
+  }
+
+  @Test
+  void testLocaleOf_Blank() {
+    assertEquals(new Locale("de", null, null), Locale.of("de", ""));
+    assertEquals(new Locale("de", null, null), Locale.of("de", " "));
+    assertEquals(new Locale("de", null, null), Locale.of("de", "", ""));
+    assertEquals(new Locale("de", null, null), Locale.of("de", " ", " "));
+  }
+
+  @Test
   void testLocaleOf_Language() {
     assertLocaleEquals("en", Locale.of("en"));
     assertLocaleEquals("eng", Locale.of("eng"));

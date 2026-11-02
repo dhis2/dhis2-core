@@ -443,7 +443,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       throws ConflictException, BadRequestException {
     List<DataEntryError> errors = new ArrayList<>(1);
     ValidationSource source = ValidationSource.of(List.of(value));
-    DataEntryGroup valid = validate(force, dataSet, source, errors);
+    DataEntryGroup valid =
+        validate(force, Boolean.TRUE.equals(value.deleted()), dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     int n = store.upsertValues(List.of(value));
     if (n > 0)
@@ -456,7 +457,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public DataEntrySummary upsertGroup(
       @Nonnull Options options, @Nonnull DataEntryGroup group, @Nonnull JobProgress progress)
       throws ConflictException {
-
     List<DataEntryError> errors = new ArrayList<>();
     DataEntryGroup.Scope deletion = group.deletion();
     if (deletion != null) {
@@ -464,20 +464,21 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       progress.startingStage("Validating deletion scope " + deletion);
       progress.runStageAndRethrow(
           ConflictException.class,
-          () -> validate(options.force(), group.dataSet(), source, errors));
+          () -> validate(options.force(), true, group.dataSet(), source, errors));
     }
 
     DataEntryGroup valid = null;
     List<DataEntryValue> values = group.values();
     int entered = values.size();
     int attempted = entered;
+    boolean deletionsOnly = group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE);
     if (!values.isEmpty()) {
-      ValidationSource source = new ValuesValidationSource(values);
+      ValidationSource source = ValidationSource.of(values);
       progress.startingStage("Validating group " + group.describe());
       valid =
           progress.runStageAndRethrow(
               ConflictException.class,
-              () -> validate(options.force(), group.dataSet(), source, errors));
+              () -> validate(options.force(), deletionsOnly, group.dataSet(), source, errors));
       attempted = valid.values().size();
       if (options.atomic() && entered > attempted) {
         // keep original single error if possible
@@ -501,7 +502,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     int succeeded = 0;
     if (valid != null) {
       String verb = "Upserting";
-      if (group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE)) verb = "Deleting";
+      if (deletionsOnly) verb = "Deleting";
       int drySucceeded = attempted;
       List<DataEntryValue> validValues = valid.values();
       progress.startingStage("%s group %s".formatted(verb, valid.describe()));
@@ -532,8 +533,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       throws ConflictException, BadRequestException {
     DataEntryValue value = key.toDeletedValue();
     List<DataEntryError> errors = new ArrayList<>(1);
-    ValidationSource source = new ValuesValidationSource(List.of(value));
-    DataEntryGroup valid = validate(force, dataSet, source, errors);
+    ValidationSource source = ValidationSource.of(List.of(value));
+    DataEntryGroup valid = validate(force, true, dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     boolean deleted = store.deleteByKeys(List.of(key)) > 0;
     if (deleted)
@@ -546,7 +547,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public LockStatus getEntryStatus(UID dataSet, @Nonnull DataValueKey key)
       throws ConflictException {
     DataEntryValue e = key.toDeletedValue();
-    ValidationSource source = new ValuesValidationSource(List.of(e));
+    ValidationSource source = ValidationSource.of(List.of(e));
     UID ds = dataSet != null ? dataSet : autoTargetDataSet(source);
     try {
       validateEntryTimeliness(ds, source);
@@ -578,14 +579,18 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   private DataEntryGroup validate(
-      boolean force, UID ds, ValidationSource source, List<DataEntryError> errors)
+      boolean force,
+      boolean deletionsOnly,
+      UID ds,
+      ValidationSource source,
+      List<DataEntryError> errors)
       throws ConflictException {
     if (ds == null) ds = autoTargetDataSet(source);
 
     validateUserAccess(ds, source);
-    validateKeyConsistency(ds, source);
-    boolean skipTimeliness = force && getCurrentUserDetails().isSuper();
-    if (!skipTimeliness) validateEntryTimeliness(ds, source);
+    boolean canSkip = force && getCurrentUserDetails().isSuper();
+    if (!canSkip || !deletionsOnly) validateKeyConsistency(ds, source);
+    if (!canSkip) validateEntryTimeliness(ds, source);
 
     return new DataEntryGroup(ds, null, null, validateValues(ds, source.values(), errors));
   }
@@ -649,37 +654,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       if (ouAocNotInHierarchy != null)
         throw new ConflictException(
             ErrorCode.E8025, ouAocNotInHierarchy.to(), List.of(ouAocNotInHierarchy.from()));
-    }
-
-    // - require: PEs must be within the OU's operational span
-    List<Period> isoPeriods = source.periods().toList();
-    Map<String, DateRange> ouOpSpan =
-        store.getEntrySpanByOrgUnit(source.orgUnits(), timeframeOf(isoPeriods));
-    if (!ouOpSpan.isEmpty()) {
-      List<Map.Entry<UID, Period>> peNotInOuSpan =
-          source
-              .orgUnitPeriodPairs()
-              .filter(
-                  e -> {
-                    DateRange operational = ouOpSpan.get(e.getKey().getValue());
-                    if (operational == null) return false; // null => no issue with the timeframe
-                    Period pe = e.getValue();
-                    return !operational.includes(pe.getStartDate());
-                  })
-              .distinct()
-              .toList();
-      if (!peNotInOuSpan.isEmpty()) {
-        // this error only indicates issues for the first OU in conflict
-        // as there is no good way to describe more than one combination
-        UID ou = peNotInOuSpan.get(0).getKey();
-        List<Period> ouPeriods =
-            peNotInOuSpan.stream()
-                .filter(e -> ou.equals(e.getKey()))
-                .map(Map.Entry::getValue)
-                .distinct()
-                .toList();
-        throw new ConflictException(ErrorCode.E8031, ou, ouPeriods);
-      }
     }
   }
 
@@ -796,6 +770,37 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   */
 
   private void validateEntryTimeliness(UID ds, ValidationSource source) throws ConflictException {
+    // - require: PEs must be within the OU's operational span
+    List<Period> isoPeriods = source.periods().toList();
+    Map<String, DateRange> ouOpSpan =
+        store.getEntrySpanByOrgUnit(source.orgUnits(), timeframeOf(isoPeriods));
+    if (!ouOpSpan.isEmpty()) {
+      List<Map.Entry<UID, Period>> peNotInOuSpan =
+          source
+              .orgUnitPeriodPairs()
+              .filter(
+                  e -> {
+                    DateRange operational = ouOpSpan.get(e.getKey().getValue());
+                    if (operational == null) return false; // null => no issue with the timeframe
+                    Period pe = e.getValue();
+                    return !operational.includes(pe.getStartDate());
+                  })
+              .distinct()
+              .toList();
+      if (!peNotInOuSpan.isEmpty()) {
+        // this error only indicates issues for the first OU in conflict
+        // as there is no good way to describe more than one combination
+        UID ou = peNotInOuSpan.get(0).getKey();
+        List<Period> ouPeriods =
+            peNotInOuSpan.stream()
+                .filter(e -> ou.equals(e.getKey()))
+                .map(Map.Entry::getValue)
+                .distinct()
+                .toList();
+        throw new ConflictException(ErrorCode.E8031, ou, ouPeriods);
+      }
+    }
+
     Date now = new Date();
     Map<String, List<DateRange>> entrySpansByIso = store.getEntrySpansByIsoPeriod(ds);
     // only if no explicit ranges are defined use expiry and future periods
@@ -839,7 +844,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
           // - require: DS entry for period already allowed?
           // (how much earlier can data be entered relative to the current period)
           int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
-          List<Period> isoPeriods = source.periods().toList();
           PeriodType type = isoPeriods.get(0).getPeriodType();
           Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
           List<Period> isoNotYetOpen =
