@@ -33,10 +33,22 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Objects;
+import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.valves.RemoteIpValve;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullSource;
@@ -46,6 +58,8 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class ForwardHeadersTest {
+  private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+
   @ParameterizedTest
   @CsvSource({
     ",,false",
@@ -70,8 +84,9 @@ class ForwardHeadersTest {
   }
 
   @Test
-  void leavesPipelineUnchangedWhenDisabled() {
+  void leavesPipelineUnchangedWhenDisabled(@TempDir Path baseDir) {
     Tomcat tomcat = new Tomcat();
+    tomcat.setBaseDir(baseDir.toString());
     var pipeline = tomcat.getEngine().getPipeline();
     var valves = pipeline.getValves();
     Main.configureForwardHeaders(tomcat, false, "127\\.0\\.0\\.1");
@@ -81,9 +96,8 @@ class ForwardHeadersTest {
   @ParameterizedTest
   @NullSource
   @ValueSource(strings = {"127\\.0\\.0\\.1", "192\\.0\\.2\\.1", ""})
-  void installsNativeValveWithSelectedProxyTrust(String proxies) {
-    Tomcat tomcat = new Tomcat();
-    Main.configureForwardHeaders(tomcat, true, proxies);
+  void installsNativeValveWithSelectedProxyTrust(String proxies, @TempDir Path baseDir) {
+    Tomcat tomcat = Main.createTomcat(baseDir.toString(), 8080, true, proxies);
     var valves =
         Arrays.stream(tomcat.getEngine().getPipeline().getValves())
             .filter(RemoteIpValve.class::isInstance)
@@ -102,5 +116,69 @@ class ForwardHeadersTest {
             ? new RemoteIpValve().getInternalProxies()
             : proxies.isEmpty() ? null : proxies,
         valve.getInternalProxies());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void keepsConfiguredBaseDir(boolean forwardHeaders, @TempDir Path baseDir) throws IOException {
+    Tomcat tomcat = Main.createTomcat(baseDir.toString(), 8081, forwardHeaders, null);
+
+    assertEquals(
+        baseDir.toFile().getCanonicalFile(),
+        tomcat.getServer().getCatalinaBase().getCanonicalFile());
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+      delimiter = '|',
+      value = {
+        // native | internal proxies | X-Forwarded-For sent | app remote addr | app X-Forwarded-For
+        "true  |    | 203.0.113.77, 198.51.100.2 | 198.51.100.2 | ''",
+        "true  |    | 198.51.100.2               | 198.51.100.2 | ''",
+        "true  | '' | 203.0.113.77               | 127.0.0.1    | ''",
+        "false |    | 203.0.113.77               | 127.0.0.1    | 203.0.113.77"
+      })
+  void exposesOnlyTheResolvedClientAddressToTheApplication(
+      boolean forwardHeaders,
+      String internalProxies,
+      String forwardedFor,
+      String expectedRemoteAddr,
+      String expectedForwardedFor,
+      @TempDir Path baseDir)
+      throws Exception {
+    Tomcat tomcat = Main.createTomcat(baseDir.toString(), 0, forwardHeaders, internalProxies);
+    tomcat.getConnector();
+    Context context = tomcat.addContext("", baseDir.toString());
+    Tomcat.addServlet(context, "echo", new ClientAddressServlet());
+    context.addServletMappingDecoded("/", "echo");
+    tomcat.start();
+    try {
+      HttpRequest request =
+          HttpRequest.newBuilder(
+                  URI.create("http://127.0.0.1:" + tomcat.getConnector().getLocalPort() + "/"))
+              .header("X-Forwarded-For", forwardedFor)
+              .build();
+      HttpResponse<String> response =
+          HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+
+      assertEquals(expectedRemoteAddr + "|" + expectedForwardedFor, response.body());
+    } finally {
+      tomcat.stop();
+      tomcat.destroy();
+    }
+  }
+
+  /** Echoes what application code such as the API token IP allow-list sees. */
+  private static class ClientAddressServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+        throws IOException {
+      response
+          .getWriter()
+          .write(
+              request.getRemoteAddr()
+                  + "|"
+                  + Objects.toString(request.getHeader("X-Forwarded-For"), ""));
+    }
   }
 }

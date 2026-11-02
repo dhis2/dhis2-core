@@ -126,26 +126,40 @@ public class Main {
     if (internalProxies != null) {
       valve.setInternalProxies(internalProxies);
     }
-    tomcat.getEngine().getPipeline().addValve(valve);
+    var pipeline = tomcat.getEngine().getPipeline();
+    pipeline.addValve(valve);
+    // The application must read the client address the valve resolved, never the client-supplied
+    // entries the valve leaves in the header.
+    pipeline.addValve(new RemoteIpHeaderRemovalValve(valve.getRemoteIpHeader()));
     String trusted = valve.getInternalProxies();
     log.info(
         "Forwarded headers are honoured; trusted internal proxies: {}",
         trusted == null ? "none" : trusted);
   }
 
-  public static void main(String[] args) throws Exception {
+  static Tomcat createTomcat(
+      String baseDir, int port, boolean forwardHeaders, String internalProxies) {
     Tomcat tomcat = new Tomcat();
-    configureForwardHeaders(
-        tomcat,
-        useForwardHeaders(
-            System.getProperty("server.forward-headers-strategy"),
-            System.getenv("SERVER_FORWARD_HEADERS_STRATEGY")),
-        ObjectUtils.firstNonNull(
-            System.getProperty("server.tomcat.remoteip.internal-proxies"),
-            System.getenv("SERVER_TOMCAT_REMOTEIP_INTERNAL_PROXIES")));
-    tomcat.setBaseDir(createTempDir());
-    int port = getPort();
+    // Tomcat fixes its base directory the first time the server is created, so the base dir and
+    // port must be set before anything (such as the forwarded headers valve) calls getServer().
+    tomcat.setBaseDir(baseDir);
     tomcat.setPort(port);
+    configureForwardHeaders(tomcat, forwardHeaders, internalProxies);
+    return tomcat;
+  }
+
+  public static void main(String[] args) throws Exception {
+    int port = getPort();
+    Tomcat tomcat =
+        createTomcat(
+            createTempDir(),
+            port,
+            useForwardHeaders(
+                System.getProperty("server.forward-headers-strategy"),
+                System.getenv("SERVER_FORWARD_HEADERS_STRATEGY")),
+            ObjectUtils.firstNonNull(
+                System.getProperty("server.tomcat.remoteip.internal-proxies"),
+                System.getenv("SERVER_TOMCAT_REMOTEIP_INTERNAL_PROXIES")));
 
     Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
     connector.setThrowOnFailure(true);
