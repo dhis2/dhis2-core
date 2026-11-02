@@ -26,6 +26,26 @@
     <packaging.type>war</packaging.type>
   </properties>
 
+  <dependencyManagement>
+    <dependencies>
+      <!--
+        spring-boot-starter-tomcat brings these Tomcat modules at Spring Boot's
+        Tomcat version, and the embedded profile packages them into
+        WEB-INF/lib-provided. Keep them on tomcat.version, next to tomcat-embed-core.
+      -->
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-el</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-websocket</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
