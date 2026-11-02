@@ -208,7 +208,7 @@ class CompleteDataSetRegistrationMappingTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  void shouldLoadEveryColumnByCompositeId() {
+  void shouldLoadEveryColumnIncludingIdColumns() {
     jdbcTemplate.update(
         "insert into completedatasetregistration (datasetid, periodid, sourceid,"
             + " attributeoptioncomboid, date, storedby, lastupdated, lastupdatedby, completed)"
@@ -223,12 +223,13 @@ class CompleteDataSetRegistrationMappingTest extends PostgresIntegrationTestBase
         "updater",
         true);
 
-    CompleteDataSetRegistration registration =
-        entityManager.find(
-            CompleteDataSetRegistration.class,
-            new CompleteDataSetRegistration(dataSet, period, sourceA, attributeOptionCombo, null));
+    entityManager.clear();
 
-    assertNotNull(registration);
+    List<CompleteDataSetRegistration> registrations =
+        registrationStore.getAllCompleteDataSetRegistrations();
+
+    assertEquals(1, registrations.size());
+    CompleteDataSetRegistration registration = registrations.get(0);
     assertEquals(dataSet.getUid(), registration.getDataSet().getUid());
     assertEquals(period.getIsoDate(), registration.getPeriod().getIsoDate());
     assertEquals(sourceA.getUid(), registration.getSource().getUid());
@@ -241,7 +242,7 @@ class CompleteDataSetRegistrationMappingTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  void shouldQueryAndDeleteThroughCompositeIdInStore() {
+  void shouldFindByCompositeIdCountDistinctAndDeleteBySource() {
     registrationStore.saveCompleteDataSetRegistration(
         new CompleteDataSetRegistration(dataSet, period, sourceA, attributeOptionCombo, true));
     registrationStore.saveCompleteDataSetRegistration(
@@ -252,6 +253,7 @@ class CompleteDataSetRegistrationMappingTest extends PostgresIntegrationTestBase
     CompleteDataSetRegistration found =
         registrationStore.getCompleteDataSetRegistration(
             dataSet, period, sourceB, attributeOptionCombo);
+    assertNotNull(found);
     assertEquals(sourceB.getUid(), found.getSource().getUid());
     assertFalse(found.getCompleted());
     assertEquals(2, registrationStore.getCompleteDataSetCountLastUpdatedAfter(getDate(2000, 1, 1)));
