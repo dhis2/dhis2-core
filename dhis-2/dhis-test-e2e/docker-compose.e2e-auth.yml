@@ -1,6 +1,6 @@
 # Overlay for the auth-idp e2e suite (external IdP tests: Keycloak OIDC, LDAP).
 # Usage:
-#   DHIS2_E2E_TEST_ARGS="-Pauth-idp" docker compose \
+#   docker compose \
 #     -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-auth.yml \
 #     up --remove-orphans --exit-code-from test
 #
@@ -8,6 +8,10 @@
 # login providers never affect the default e2e suite.
 
 services:
+  test:
+    environment:
+      DHIS2_E2E_TEST_ARGS: "--activate-profiles auth-idp"
+
   web:
     volumes:
       - ./config/dhis2_home_auth/dhis.conf:/opt/dhis2/dhis.conf:ro
