@@ -39,11 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonPeriodType;
 import org.junit.jupiter.api.AfterEach;
@@ -90,6 +92,32 @@ class PeriodTypeControllerTest extends PostgresControllerIntegrationTestBase {
     JsonMap<JsonObject> relativePeriods = daily.getRelativePeriods();
     assertEquals(9, relativePeriods.size());
     assertEquals("Today", relativePeriods.get("TODAY").getString("displayName").string());
+  }
+
+  @Test
+  void testGetPeriodTypes_RelativePeriodsOrder() {
+    JsonPeriodType weekly = GET("/periodTypes/Weekly").content().as(JsonPeriodType.class);
+    assertEquals(
+        List.of(
+            "THIS_WEEK",
+            "LAST_WEEK",
+            "LAST_4_WEEKS",
+            "LAST_12_WEEKS",
+            "LAST_52_WEEKS",
+            "WEEKS_THIS_YEAR"),
+        weekly.getRelativePeriods().keys().map(Text::toString).toList());
+
+    JsonPeriodType monthly = GET("/periodTypes/Monthly").content().as(JsonPeriodType.class);
+    assertEquals(
+        List.of(
+            "THIS_MONTH",
+            "LAST_MONTH",
+            "LAST_3_MONTHS",
+            "LAST_6_MONTHS",
+            "LAST_12_MONTHS",
+            "MONTHS_THIS_YEAR",
+            "MONTHS_LAST_YEAR"),
+        monthly.getRelativePeriods().keys().map(Text::toString).toList());
   }
 
   @Test

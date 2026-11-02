@@ -92,12 +92,14 @@ public abstract class PeriodType implements Serializable {
    */
   public static void invalidatePeriodCache() {
     PERIOD_CACHE.invalidateAll();
+    Period.clearCache();
   }
 
   private static CalendarService calendarService;
 
   public static void setCalendarService(CalendarService calendarService) {
     PeriodType.calendarService = calendarService;
+    invalidatePeriodCache();
   }
 
   public static org.hisp.dhis.calendar.Calendar getCalendar() {

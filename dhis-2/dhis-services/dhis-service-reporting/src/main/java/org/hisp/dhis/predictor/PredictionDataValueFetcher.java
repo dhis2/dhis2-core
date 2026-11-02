@@ -495,8 +495,10 @@ public class PredictionDataValueFetcher implements Runnable {
         for (Map.Entry<DimensionalItemObject, Object> e3 : e2.getValue().entrySet()) {
           DimensionalItemObject obj = e3.getKey();
           Object value = e3.getValue();
+          CategoryOptionCombo coc =
+              (obj instanceof DataElementOperand deo) ? deo.getCategoryOptionCombo() : null;
 
-          values.add(new FoundDimensionItemValue(orgUnit, period, aoc, obj, value));
+          values.add(new FoundDimensionItemValue(orgUnit, period, coc, aoc, obj, value));
         }
       }
     }
