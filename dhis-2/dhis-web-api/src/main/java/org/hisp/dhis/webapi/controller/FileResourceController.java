@@ -50,7 +50,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -101,8 +100,6 @@ public class FileResourceController
   private final FileResourceService fileResourceService;
 
   private final FileResourceUtils fileResourceUtils;
-
-  private final DhisConfigurationProvider dhisConfig;
 
   /**
    * Overridden to only use it when {@code fields} parameter is present.

@@ -35,8 +35,6 @@ import java.util.stream.Collectors;
 public class CspConstants {
   private CspConstants() {}
 
-  public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
-
   public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
   public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
 

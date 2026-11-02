@@ -54,7 +54,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -120,7 +119,6 @@ public class MessageConversationController
   private final ConfigurationService configurationService;
   private final FileResourceUtils fileResourceUtils;
   private final FileResourceService fileResourceService;
-  private final DhisConfigurationProvider dhisConfig;
 
   @Data
   @EqualsAndHashCode(callSuper = true)
