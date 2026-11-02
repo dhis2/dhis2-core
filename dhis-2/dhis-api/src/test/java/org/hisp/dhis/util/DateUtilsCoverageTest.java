@@ -50,6 +50,7 @@ import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -349,8 +350,8 @@ class DateUtilsCoverageTest {
 
   @Test
   void testMaxMinEmptyCollections() {
-    assertNull(DateUtils.max(Collections.emptyList()));
-    assertNull(DateUtils.min(Collections.emptyList()));
+    assertNull(DateUtils.max(List.of()));
+    assertNull(DateUtils.min(List.of()));
     assertNull(DateUtils.max(Collections.singletonList(null)));
     assertNull(DateUtils.min(Collections.singletonList(null)));
   }
@@ -825,6 +826,51 @@ class DateUtilsCoverageTest {
   void testToLongGmtDate() {
     assertLongGmtDateEquals("2024-03-15T14:30:00.000+0000", getDate(2024, 3, 15, 14, 30));
     assertLongGmtDateEquals(null, null);
+  }
+
+  @Test
+  void toLongGmtDate_yearAboveMaxClamps() {
+    // Long.MAX_VALUE ms is ~292 million years in the future. The renderer
+    // clamps the year to 9999 instead of throwing from w4. Month/day/time
+    // are whatever the underlying date happens to be — we only assert the
+    // year prefix and the fixed-length contract.
+    String actual = toLongGmtDate(new Date(Long.MAX_VALUE));
+    assertNotNull(actual);
+    assertEquals(28, actual.length());
+    assertTrue(actual.startsWith("9999-"), "Got: " + actual);
+  }
+
+  @Test
+  void toLongGmtDate_yearBelowMinClamps() {
+    // Long.MIN_VALUE ms is ~292 million years in the past. Clamped to 0000.
+    // Note: floorDiv/Math arithmetic overflows for this extreme input, so
+    // the month/day/time fields are garbage — that's fine, the point is
+    // "no exception, parseable-ish output for debugging".
+    String actual = toLongGmtDate(new Date(Long.MIN_VALUE));
+    assertNotNull(actual);
+    assertEquals(28, actual.length());
+    assertTrue(actual.startsWith("0000-"), "Got: " + actual);
+  }
+
+  @Test
+  void toLongGmtDate_yearZero() {
+    // Astronomical year 0 == 1 BC in proleptic Gregorian (RFC 3339 / ISO 8601).
+    // The renderer emits "0000". This intentionally diverges from the old Joda
+    // path: Joda's `yyyy` is year-of-era, which has no year 0 and would render
+    // this instant as "0001". The +0000 suffix makes the output unambiguously
+    // an ISO 8601 timestamp, so astronomical numbering is authoritative here.
+    //
+    // Do NOT route this through assertLongGmtDateEquals — the Joda cross-check
+    // would (correctly) fail. That's the whole point of this test.
+    Date date = new Date(-62_167_219_200_000L); // 0000-01-01T00:00:00Z
+    String expected = "0000-01-01T00:00:00.000+0000";
+
+    String actual = toLongGmtDate(date);
+    assertEquals(expected, actual);
+
+    CharSequence text = DateUtils.toLongGmtDateText(date);
+    assertNotNull(text);
+    assertEquals(expected, text.toString());
   }
 
   /**

@@ -167,12 +167,29 @@ public final class CsvBuilder {
     } else if (value instanceof Double d) {
       out.appendDouble(d);
     } else if (value instanceof Float f) {
-      out.appendDouble(f.doubleValue());
+      appendFloat(f);
     } else
       // BigInteger, BigDecimal, or custom Number — their toString may differ from
       // the Appender primitive writers, so route through the
       // general CharSequence path to preserve the exact text and quote check.
       writeCharSequence(value.toString(), first);
+  }
+
+  private void appendFloat(float value) {
+    if (Float.isNaN(value)) {
+      out.appendAscii("NaN");
+    } else if (value == Float.POSITIVE_INFINITY) {
+      out.appendAscii("Infinity");
+    } else if (value == Float.NEGATIVE_INFINITY) {
+      out.appendAscii("-Infinity");
+    } else if (value == 0f) {
+      out.appendAscii(Float.compare(value, -0f) == 0 ? "-0.0" : "0.0");
+    } else if (value == Math.floor(value) && Math.abs(value) < 1e7) {
+      out.appendLong((long) value);
+      out.appendAscii(".0");
+    } else {
+      out.appendAscii(String.valueOf(value)); // Float.toString
+    }
   }
 
   private void writeNullValue(boolean first) {
@@ -241,6 +258,8 @@ public final class CsvBuilder {
   private void writeNumElement(Object e) {
     if (e instanceof Number n) {
       writeNumber(n, false);
+    } else if (e == null) {
+      out.appendAscii("null");
     } else {
       out.appendAscii('?');
     }

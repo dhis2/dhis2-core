@@ -29,14 +29,12 @@
  */
 package org.hisp.dhis.benchmarks;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import org.hisp.dhis.util.DateUtils;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.openjdk.jmh.annotations.*;
-import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
@@ -84,132 +82,19 @@ public class ToLongGmtDateBenchmark {
   // ---- Hand-rolled renderer + String ----
   @Benchmark
   public String handwritten_string() {
-    byte[] b = new byte[28];
-    Render.toLongGmtDate(next(), b);
-    return new String(b, 0, 28, StandardCharsets.US_ASCII);
+    return DateUtils.toLongGmtDate(next());
   }
 
   // ---- Hand-rolled renderer + CharSequence wrapper ----
   @Benchmark
-  public AsciiTimestamp handwritten_cs() {
-    byte[] b = new byte[28];
-    Render.toLongGmtDate(next(), b);
-    return new AsciiTimestamp(b, 28);
+  public CharSequence handwritten_cs() {
+    return DateUtils.toLongGmtDateText(next());
   }
 
   // ---- Trap: what if the consumer calls toString()? ----
   @Benchmark
   public String handwritten_cs_toString() {
-    byte[] b = new byte[28];
-    Render.toLongGmtDate(next(), b);
-    return new AsciiTimestamp(b, 28).toString();
-  }
-
-  // ---- Sink: true zero alloc (the floor to compare against) ----
-  @Benchmark
-  public void sink_zero_alloc(Blackhole bh) {
-    Render.toLongGmtDate(next(), sinkBuf);
-    bh.consume(Arrays.hashCode(sinkBuf)); // forces all 28 bytes to be materialized
-  }
-
-  // ---- The renderer (same as previous answer, inlined for self-containment) ----
-  static final class Render {
-    private static final byte[] DIGITS = "0123456789".getBytes(StandardCharsets.US_ASCII);
-
-    static void toLongGmtDate(Date date, byte[] b) {
-      long ms = date.getTime();
-      long epochDay = Math.floorDiv(ms, 86_400_000L);
-      long msOfDay = ms - epochDay * 86_400_000L;
-
-      long z = epochDay + 719468L;
-      long era = (z >= 0 ? z : z - 146096) / 146097;
-      long doe = z - era * 146097;
-      long yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-      long y = yoe + era * 400;
-      long doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-      long mp = (5 * doy + 2) / 153;
-      long d = doy - (153 * mp + 2) / 5 + 1;
-      long m = mp < 10 ? mp + 3 : mp - 9;
-      if (m <= 2) y++;
-
-      int hour = (int) (msOfDay / 3_600_000L);
-      int min = (int) (msOfDay / 60_000L % 60);
-      int sec = (int) (msOfDay / 1_000L % 60);
-      int mil = (int) (msOfDay % 1_000L);
-
-      int p = 0;
-      p = w4(b, p, (int) y);
-      b[p++] = '-';
-      p = w2(b, p, (int) m);
-      b[p++] = '-';
-      p = w2(b, p, (int) d);
-      b[p++] = 'T';
-      p = w2(b, p, hour);
-      b[p++] = ':';
-      p = w2(b, p, min);
-      b[p++] = ':';
-      p = w2(b, p, sec);
-      b[p++] = '.';
-      p = w3(b, p, mil);
-      b[p++] = '+';
-      b[p++] = '0';
-      b[p++] = '0';
-      b[p++] = '0';
-      b[p++] = '0';
-    }
-
-    private static int w2(byte[] b, int p, int v) {
-      b[p] = DIGITS[v / 10];
-      b[p + 1] = DIGITS[v % 10];
-      return p + 2;
-    }
-
-    private static int w3(byte[] b, int p, int v) {
-      b[p] = DIGITS[v / 100];
-      b[p + 1] = DIGITS[v / 10 % 10];
-      b[p + 2] = DIGITS[v % 10];
-      return p + 3;
-    }
-
-    private static int w4(byte[] b, int p, int v) {
-      b[p] = DIGITS[v / 1000];
-      b[p + 1] = DIGITS[v / 100 % 10];
-      b[p + 2] = DIGITS[v / 10 % 10];
-      b[p + 3] = DIGITS[v % 10];
-      return p + 4;
-    }
-  }
-
-  // ---- The CharSequence wrapper (final class, not record — see prior discussion) ----
-  public static final class AsciiTimestamp implements CharSequence {
-    private final byte[] buf;
-    private final int len;
-
-    AsciiTimestamp(byte[] buf, int len) {
-      this.buf = buf;
-      this.len = len;
-    }
-
-    @Override
-    public int length() {
-      return len;
-    }
-
-    @Override
-    public char charAt(int i) {
-      if (i < 0 || i >= len) throw new IndexOutOfBoundsException(i);
-      return (char) (buf[i] & 0xFF);
-    }
-
-    @Override
-    public CharSequence subSequence(int s, int e) {
-      throw new UnsupportedOperationException(); // not on the hot path
-    }
-
-    @Override
-    public String toString() {
-      return new String(buf, 0, len, StandardCharsets.US_ASCII);
-    }
+    return DateUtils.toLongGmtDateText(next()).toString();
   }
 
   public static void main(String[] args) throws RunnerException {

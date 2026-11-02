@@ -182,10 +182,29 @@ public class DateUtils {
   }
 
   /**
-   * Converts a Date to the GMT timezone and formats it to the format yyyy-MM-dd HH:mm:ssZ.
+   * Formats the given {@link Date} as an ISO 8601 / RFC 3339 timestamp in UTC: {@code
+   * yyyy-MM-dd'T'HH:mm:ss.SSS+0000}.
    *
-   * @param date the Date to parse.
-   * @return A formatted date string.
+   * <p><b>Year numbering.</b> Year {@code 0000} follows ISO 8601 / RFC 3339 astronomical numbering
+   * (= 1 BC in the proleptic Gregorian calendar). This differs from Joda-Time's {@code yyyy}
+   * pattern, which is year-of-era and would render the same instant as {@code 0001}. Because the
+   * output carries an explicit {@code +0000} offset, ISO 8601 is the authoritative convention here.
+   *
+   * <p><b>Year range.</b> The fixed-width buffer accommodates years {@code 0000}–{@code 9999} only
+   * — extended-year notation ({@code +YYYYY} / {@code -YYYYY}) is not produced. Instants outside
+   * that range (corrupt rows, overflow artifacts, or degenerate inputs such as {@link
+   * Long#MAX_VALUE} millis) are <em>clamped</em> to the nearest representable year rather than
+   * throwing. The resulting string is therefore not a faithful rendering of such an instant; the
+   * month, day, and time-of-day fields may also be meaningless due to overflow in the intermediate
+   * arithmetic. Callers that need the true instant for out-of-range dates must consult {@link
+   * Date#getTime()} directly.
+   *
+   * <p>The clamping is deliberate: rendering a visibly wrong year (e.g. {@code 9999-…}) is
+   * preferred over failing a UI page or log line when a corrupt value has leaked into the database.
+   * The truncated year prefix is intended to be recognizable as suspicious at a glance.
+   *
+   * @param date the date to format; may be {@code null}
+   * @return the formatted timestamp, or {@code null} if {@code date} is {@code null}
    */
   public static String toLongGmtDate(Date date) {
     if (date == null) return null;
@@ -977,6 +996,23 @@ public class DateUtils {
     }
   }
 
+  /**
+   * Formats the given {@link Date} as an ISO 8601 / RFC 3339 timestamp in UTC and returns it as a
+   * zero-copy {@link CharSequence} view over an ASCII {@code byte[]}.
+   *
+   * <p>Same conventions and caveats as {@link #toLongGmtDate(Date)}: year {@code 0000} follows
+   * astronomical numbering, and years outside {@code 0000}–{@code 9999} are clamped to the nearest
+   * representable value rather than throwing.
+   *
+   * <p>The returned {@code CharSequence} supports {@link CharSequence#length()}, {@link
+   * CharSequence#charAt(int)}, and {@link Object#toString()} without further allocation. {@link
+   * CharSequence#subSequence(int, int)} currently materializes a {@link String} and is not
+   * allocation-free.
+   *
+   * @param date the date to format; may be {@code null}
+   * @return a {@code CharSequence} view of the formatted timestamp, or {@code null} if {@code date}
+   *     is {@code null}
+   */
   public static CharSequence toLongGmtDateText(Date date) {
     if (date == null) return null;
     byte[] b = new byte[28];
@@ -998,6 +1034,16 @@ public class DateUtils {
     long d = doy - (153 * mp + 2) / 5 + 1;
     long m = mp < 10 ? mp + 3 : mp - 9;
     if (m <= 2) y++;
+
+    // The compact 28-byte format has no room for extended-year notation
+    // (+YYYYY / -YYYYY). Pathological inputs (corrupt DB values, overflow
+    // artifacts) that fall outside [0000, 9999] are clamped rather than
+    // allowed to throw AIOOBE from w4 — the intent is to be able to render
+    // such rows for logging and admin display. The output is not
+    // semantically faithful for the clamped cases; callers that need the
+    // true instant must read date.getTime() directly.
+    if (y < 0) y = 0;
+    else if (y > 9999) y = 9999;
 
     int hour = (int) (msOfDay / 3_600_000L);
     int min = (int) (msOfDay / 60_000L % 60);

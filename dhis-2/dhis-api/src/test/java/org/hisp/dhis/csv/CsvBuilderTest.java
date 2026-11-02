@@ -410,6 +410,12 @@ class CsvBuilderTest {
   }
 
   @Test
+  void testNumber_FloatWidening() {
+    assertEquals(
+        "a\n0.1\n", csv(b -> b.toRows(List.of("a"), Stream.<Object[]>of(new Object[] {0.1f}))));
+  }
+
+  @Test
   void testNumber_BigDecimal() {
     // BigInteger/BigDecimal fall through to CharSequence rather than the primitive writers
     assertEquals(
@@ -434,7 +440,7 @@ class CsvBuilderTest {
   @Test
   void testArray_FirstElementNumber_ContainsNull_ProducesQuestionMark() {
     assertEquals(
-        "a\n1 ? 3\n",
+        "a\n1 null 3\n",
         csv(
             b ->
                 b.toRows(
