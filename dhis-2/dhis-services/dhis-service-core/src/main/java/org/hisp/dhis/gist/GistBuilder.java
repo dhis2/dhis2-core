@@ -1042,20 +1042,27 @@ final class GistBuilder {
     for (Filter filter : query.getFilters()) {
       Comparison operator = filter.getOperator();
       if (!operator.isUnary() && !operator.isAccessCompare()) {
+        PropertyPath path = filter.getPropertyPath();
+        boolean attributeValuesAttribute = isAttributeValuesAttributePropertyPath(path);
         Property property =
-            filter.isAttribute() || isAttributeValuesAttributePropertyPath(filter.getPropertyPath())
+            filter.isAttribute() || attributeValuesAttribute
                 ? null
-                : context.resolveMandatory(filter.getPropertyPath());
+                : context.resolveMandatory(path);
         Object value =
             property == null
                 ? filter.getValue()[0]
                 : getParameterValue(property, filter, argumentParser);
+        // must match the property createFilterHQL uses to decide on lower() for the column
+        Property caseProperty =
+            attributeValuesAttribute
+                ? context.resolveMandatory(PropertyPath.of(path.property()))
+                : property;
         dest.accept(
             "f_" + i,
             operator.isStringCompare()
                 ? completeLikeExpression(
                     operator,
-                    stringParameterValue(isCaseInsensitiveFilter(filter, property), value))
+                    stringParameterValue(isCaseInsensitiveFilter(filter, caseProperty), value))
                 : value);
       }
       i++;
@@ -1063,7 +1070,8 @@ final class GistBuilder {
   }
 
   private static String stringParameterValue(boolean caseInsensitive, Object value) {
-    return value == null ? null : caseInsensitive ? value.toString().toLowerCase() : (String) value;
+    if (value == null) return null;
+    return caseInsensitive ? value.toString().toLowerCase() : (String) value;
   }
 
   private Object getParameterValue(

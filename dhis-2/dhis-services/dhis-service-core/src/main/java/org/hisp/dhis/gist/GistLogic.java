@@ -30,6 +30,7 @@
 package org.hisp.dhis.gist;
 
 import java.lang.reflect.Method;
+import java.util.regex.Pattern;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.PropertyPath;
@@ -48,6 +49,8 @@ import org.hisp.dhis.security.acl.Access;
  * @author Jan Bernitt
  */
 final class GistLogic {
+
+  private static final Pattern SHORT_NUMBER = Pattern.compile("\\d{1,5}");
 
   static boolean isIncludedField(Property p, GistAutoType all) {
     Include included = p.getGistPreferences().getIncluded();
@@ -163,7 +166,7 @@ final class GistLogic {
         && (op.isEmptinessCompare()
             || (op.isOrderCompare()
                 && filter.getValue().length == 1
-                && filter.getValue()[0].matches("[0-9]{1,5}")));
+                && SHORT_NUMBER.matcher(filter.getValue()[0]).matches()));
   }
 
   static Transform effectiveTransform(Property property, Transform fallback, Transform target) {

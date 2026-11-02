@@ -81,6 +81,22 @@ class GistControllerPostgresTest extends AbstractGistControllerPostgresTest {
     assertEquals(group1Id, groups.getObject(0).getString("id").string());
   }
 
+  @Test
+  void testFilter_AttributeValuesAttributeCodeMixedCase() {
+    String attrId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/attributes",
+                "{'name':'MixedCodeAttr', 'code':'MixedCode', 'valueType':'TEXT', 'userGroupAttribute':true}"));
+    String groupId = postNewUserGroupWithAttributeValue("GMixed", attrId, "hey");
+    JsonArray groups =
+        GET("/userGroups/gist?fields=id,name&headless=true&filter=attributeValues.attribute.code:startsWith:MixedCode")
+            .content();
+    assertEquals(1, groups.size());
+    assertEquals(groupId, groups.getObject(0).getString("id").string());
+  }
+
   private String postNewAttribute(
       String name, ValueType valueType, Attribute.ObjectType objectType) {
     String body =
