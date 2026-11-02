@@ -2455,7 +2455,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnProgramOwnerWhenEnrollmentHiddenByOwnershipInProtectedProgram()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, NotFoundException {
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
         trackedEntityA, programB, orgUnitB);
 
