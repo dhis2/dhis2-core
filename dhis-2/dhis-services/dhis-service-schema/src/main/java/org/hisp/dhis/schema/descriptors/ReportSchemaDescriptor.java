@@ -50,7 +50,7 @@ public class ReportSchemaDescriptor implements SchemaDescriptor {
   public Schema getSchema() {
     Schema schema = new Schema(Report.class, SINGULAR, PLURAL);
     schema.setRelativeApiEndpoint(API_ENDPOINT);
-    schema.setOrder(2000);
+    schema.setOrder(2010);
 
     schema.add(
         new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_REPORT_PUBLIC_ADD")));
