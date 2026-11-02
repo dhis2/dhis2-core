@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.persister.collection.CollectionPersister;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
@@ -82,6 +83,8 @@ public class DefaultCollectionService implements CollectionService {
 
   private final UserService userService;
 
+  private final HibernateCollectionItemStore collectionItemStore;
+
   @Override
   @Transactional(rollbackFor = FeedbackException.class)
   public TypeReport addCollectionItems(
@@ -122,6 +125,7 @@ public class DefaultCollectionService implements CollectionService {
       IdentifiableObject object, Property property, Collection<String> itemCodes, TypeReport report)
       throws BadRequestException {
     Collection<IdentifiableObject> collection = getCollection(object, property);
+    CollectionPersister persister = collectionItemStore.prepare(collection);
 
     updateCollectionItems(
         property,
@@ -129,14 +133,17 @@ public class DefaultCollectionService implements CollectionService {
         report,
         ErrorCode.E1108,
         item -> {
-          if (!collection.contains(item)) {
-            collection.add(item);
+          boolean changed =
+              persister != null
+                  ? collectionItemStore.update(persister, object, item, true)
+                  : !collection.contains(item) && collection.add(item);
+          if (changed) {
             report.updatedInc(1);
           } else {
             report.ignoredInc(1);
           }
         });
-    validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
+    validateOwnedCollection(object, property, persister);
   }
 
   private void addNonOwnedCollectionItems(
@@ -200,7 +207,9 @@ public class DefaultCollectionService implements CollectionService {
       delNonOwnedCollectionItems(object, property, itemCodes, report);
     }
 
-    validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
+    if (!property.isOwner()) {
+      validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
+    }
     return report;
   }
 
@@ -208,8 +217,10 @@ public class DefaultCollectionService implements CollectionService {
       IdentifiableObject object,
       Property property,
       Collection<String> itemCodes,
-      TypeReport report) {
+      TypeReport report)
+      throws BadRequestException {
     Collection<IdentifiableObject> collection = getCollection(object, property);
+    CollectionPersister persister = collectionItemStore.prepare(collection);
 
     updateCollectionItems(
         property,
@@ -217,13 +228,33 @@ public class DefaultCollectionService implements CollectionService {
         report,
         ErrorCode.E1109,
         item -> {
-          if (collection.contains(item)) {
-            collection.remove(item);
+          boolean changed =
+              persister != null
+                  ? collectionItemStore.update(persister, object, item, false)
+                  : collection.remove(item);
+          if (changed) {
             report.deletedInc(1);
           } else {
             report.ignoredInc(1);
           }
         });
+    validateOwnedCollection(object, property, persister);
+  }
+
+  private void validateOwnedCollection(
+      IdentifiableObject object, Property property, CollectionPersister persister)
+      throws BadRequestException {
+    if (persister == null) {
+      validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
+      return;
+    }
+    // Only cardinality is validated for a non-null collection. Unbounded sets need no count.
+    if ((property.getMin() != null && property.getMin() > 0)
+        || (property.getMax() != null && property.getMax() < Integer.MAX_VALUE)) {
+      int size = collectionItemStore.size(persister, object);
+      validateAndThrowErrors(
+          () -> schemaValidator.validateCollectionSize(property, object.getClass(), size));
+    }
   }
 
   private void delNonOwnedCollectionItems(

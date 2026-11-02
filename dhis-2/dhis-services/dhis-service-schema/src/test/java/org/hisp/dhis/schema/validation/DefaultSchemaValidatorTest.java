@@ -346,6 +346,22 @@ class DefaultSchemaValidatorTest {
     assertNoError(SimpleFields.builder().string("valid").list(asList(1, 2, 3)).build());
   }
 
+  @Test
+  void testScalarCollectionSizeHasTheSameValidationAsMaterializedCollection() {
+    for (List<Integer> values : List.of(List.<Integer>of(), List.of(1, 2, 3), List.of(1, 2, 3, 4, 5))) {
+      var property = schema.getProperty("list");
+      List<ErrorReport> materialized =
+          validator.validateProperty(property, SimpleFields.builder().list(values).build());
+      List<ErrorReport> scalar =
+          validator.validateCollectionSize(property, SimpleFields.class, values.size());
+      assertEquals(materialized.size(), scalar.size());
+      if (!scalar.isEmpty()) {
+        assertEquals(materialized.get(0).getErrorCode(), scalar.get(0).getErrorCode());
+        assertEquals(materialized.get(0).getMessage(), scalar.get(0).getMessage());
+      }
+    }
+  }
+
   private void assertError(ErrorCode expected, SimpleFields actual, String expectedMessage) {
     List<ErrorReport> reports = validator.validate(actual, false);
     assertEquals(1, reports.size(), "expected 1 report");
