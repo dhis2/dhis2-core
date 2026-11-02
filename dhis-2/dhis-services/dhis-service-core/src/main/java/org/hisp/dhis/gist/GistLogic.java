@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,13 @@
  */
 package org.hisp.dhis.gist;
 
+import java.lang.reflect.Method;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist.Include;
@@ -119,6 +121,29 @@ final class GistLogic {
   static boolean isAttributeFlagProperty(Property p) {
     return p.getName().endsWith("Attribute") && p.getKlass() == boolean.class
         || p.getKlass() == Boolean.class;
+  }
+
+  /**
+   * Identifiers (UID, code) are case-sensitive, and so is an organisation unit's path (a sequence
+   * of UIDs). Case-insensitive matching on them would match objects with a different identifier and
+   * keep the database from using an index on the column.
+   */
+  static boolean isIdentifierProperty(Property p) {
+    if (p.getKlass() != String.class) return false;
+    if (p.getPropertyType() == PropertyType.IDENTIFIER) return true;
+    Method getter = p.getGetterMethod();
+    return "path".equals(p.getName())
+        && getter != null
+        && getter.getDeclaringClass() == OrganisationUnit.class;
+  }
+
+  /**
+   * @param property the filtered property, null for attribute filters
+   * @return true, if the filter value should be compared ignoring case
+   */
+  static boolean isCaseInsensitiveFilter(Filter filter, Property property) {
+    return filter.getOperator().isCaseInsensitive()
+        && (property == null || !isIdentifierProperty(property));
   }
 
   static boolean isCollectionSizeFilter(Filter filter, Property property) {
