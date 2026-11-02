@@ -267,6 +267,29 @@ class DataValueMappingTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldLoadNullFollowupAsFalse() {
+    jdbcTemplate.update(
+        "insert into datavalue (dataelementid, periodid, sourceid, categoryoptioncomboid,"
+            + " attributeoptioncomboid, value, storedby, created, lastupdated, followup, deleted)"
+            + " values (?, ?, ?, ?, ?, ?, ?, now(), now(), null, false)",
+        dataElement.getId(),
+        period.getId(),
+        sourceA.getId(),
+        optionCombo.getId(),
+        optionCombo.getId(),
+        "17",
+        "storer");
+    entityManager.clear();
+
+    DataValue dataValue =
+        entityManager.find(
+            DataValue.class, new DataValue(dataElement, period, sourceA, optionCombo, optionCombo));
+
+    assertNotNull(dataValue);
+    assertFalse(dataValue.isFollowup());
+  }
+
+  @Test
   void shouldCountCheckAndDeleteThroughStoreQueries() {
     Date updated = getDate(2000, 6, 1);
     persist(sourceA, updated, false);
