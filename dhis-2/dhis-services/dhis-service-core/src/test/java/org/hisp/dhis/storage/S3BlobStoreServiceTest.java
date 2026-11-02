@@ -61,7 +61,7 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 /**
- * Unit tests for {@link S3BlobStoreService} behaviours that the MinIO-backed contract test can't
+ * Unit tests for {@link S3BlobStoreService} behaviours that the S3-backed contract test can't
  * easily exercise — pagination across multiple {@code ListObjectsV2} pages, and {@code
  * DeleteObjects} responses that report per-key errors. Uses Mockito-mocked {@link S3Client} via the
  * package-private constructor.

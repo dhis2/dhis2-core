@@ -32,6 +32,7 @@ package org.hisp.dhis.period;
 import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
@@ -62,6 +63,7 @@ public abstract class QuarterlyAbstractPeriodType extends CalendarPeriodType {
     return SQL_INTERVAL;
   }
 
+  @Nonnull
   @Override
   public String getIso8601Duration() {
     return ISO8601_DURATION;

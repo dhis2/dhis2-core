@@ -285,8 +285,12 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private ImportSummary importXml(InputStream json) {
+    return importXml(json, new ImportOptions());
+  }
+
+  private ImportSummary importXml(InputStream json, ImportOptions options) {
     try {
-      return dataEntryPipeline.importXml(json, new ImportOptions(), transitory());
+      return dataEntryPipeline.importXml(json, options, transitory());
     } catch (BadRequestException ex) {
       fail("Bad input", ex);
       return null;
@@ -500,7 +504,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   /**
-   * Import 12 data values where 4 are marked as deleted. Deleted values should count as imports
+   * Import 12 data values where 4 are marked as deleted. Deleted values should count as ignored
    * when there are no existing non-deleted matching values.
    */
   @Test
@@ -509,7 +513,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
 
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
   }
 
@@ -521,7 +525,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportReverseDeletedValuesXml() {
     assertDataValuesCount(0);
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
 
     // Reverse deletion and update
@@ -532,14 +536,14 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   /**
-   * Import 12 data values where 4 are marked as deleted. Then import 12 data values which reverse
-   * deletion of the 4 values, ignore 4 unchanged values and add 4 values.
+   * Import 12 data values where 4 are marked as deleted (so they are ignored). Then import 12 data
+   * values which reverse deletion of the ignored 4 values (8 updates + 4 inserts).
    */
   @Test
   void testImportAddAndReverseDeletedValuesXml() {
     assertDataValuesCount(0);
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
 
     // Reverse deletion and update
@@ -994,6 +998,28 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(ErrorCode.E8022, conflict.getErrorCode());
     assertEquals(
         "Data set pBOMPrpg1QX not usable with org unit(s): `[j7Hg26FpoIa]`", conflict.getValue());
+  }
+
+  @Test
+  void testImportForceDeleteDataValuesWithOrgUnitOutsideHierarchy() {
+    assertDataValuesCount(0);
+
+    ImportOptions options = new ImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetE.xml"), options);
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+
+    // now with force (tests runs as superuser)
+    options = new ImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+    options.setForce(true);
+    summary = importXml(readFile("dxf2/datavalueset/dataValueSetE.xml"), options);
+
+    assertEquals(ImportStatus.SUCCESS, summary.getStatus());
+    assertEquals(3, summary.getImportCount().getIgnored());
+    assertEquals(0, summary.getImportCount().getDeleted());
+    assertDataValuesCount(0);
   }
 
   @Test

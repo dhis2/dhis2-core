@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
+import org.hisp.dhis.feedback.ConflictException;
+
 /**
  * Main interface for org unit merge.
  *
@@ -36,11 +38,21 @@ package org.hisp.dhis.merge.orgunit;
  */
 public interface OrgUnitMergeService {
   /**
+   * Performs an org unit merge operation. Acquires the merge lock before the org units in the query
+   * are resolved, so that the merge operates on the state committed by any preceding merge.
+   *
+   * @param query the {@link OrgUnitMergeQuery}.
+   * @throws ConflictException if another merge is in progress.
+   */
+  void merge(OrgUnitMergeQuery query) throws ConflictException;
+
+  /**
    * Performs an org unit merge operation.
    *
    * @param request the {@link OrgUnitMergeRequest}.
+   * @throws ConflictException if another merge is in progress.
    */
-  void merge(OrgUnitMergeRequest request);
+  void merge(OrgUnitMergeRequest request) throws ConflictException;
 
   /**
    * Converts the given {@link OrgUnitMergeQuery} to an {@link OrgUnitMergeRequest}.

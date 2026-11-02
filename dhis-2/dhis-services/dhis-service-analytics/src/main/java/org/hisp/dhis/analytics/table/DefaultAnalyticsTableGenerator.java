@@ -126,18 +126,17 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
       }
     }
 
-    Set<AnalyticsTableType> processedTypes = EnumSet.noneOf(AnalyticsTableType.class);
+    Set<AnalyticsTableType> publishedTypes = EnumSet.noneOf(AnalyticsTableType.class);
 
     for (AnalyticsTableService service : analyticsTableServices) {
       AnalyticsTableType tableType = service.getAnalyticsTableType();
-      if (!skipTypes.contains(tableType)) {
-        service.create(params, progress);
-        processedTypes.add(tableType);
+      if (!skipTypes.contains(tableType) && service.create(params, progress)) {
+        publishedTypes.add(tableType);
       }
     }
 
     progress.startingStage("Updating system settings");
-    progress.runStage(() -> updateLastSuccessfulSystemSettings(params, clock, processedTypes));
+    progress.runStage(() -> updateLastSuccessfulSystemSettings(params, clock, publishedTypes));
 
     progress.startingStage("Invalidate analytics caches", SKIP_STAGE);
     progress.runStage(analyticsCache::invalidateAll);
@@ -151,31 +150,32 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param clock the {@link Clock}.
-   * @param processedTypes the {@link AnalyticsTableType} values actually processed in this run,
-   *     i.e. not in {@link AnalyticsTableUpdateParams#getSkipTableTypes()}.
+   * @param publishedTypes the {@link AnalyticsTableType} values published in this run, i.e. not in
+   *     {@link AnalyticsTableUpdateParams#getSkipTableTypes()} and not cancelled or aborted, see
+   *     {@link AnalyticsTableService#create}.
    */
   private void updateLastSuccessfulSystemSettings(
-      AnalyticsTableUpdateParams params, Clock clock, Set<AnalyticsTableType> processedTypes) {
+      AnalyticsTableUpdateParams params, Clock clock, Set<AnalyticsTableType> publishedTypes) {
     if (params.isLatestUpdate()) {
       settingsService.put("keyLastSuccessfulLatestAnalyticsPartitionUpdate", params.getStartTime());
       settingsService.put("keyLastSuccessfulLatestAnalyticsPartitionRuntime", clock.time());
       updatePerTypeSuccessfulSystemSettings(
           SystemSettings::keyLastSuccessfulLatestAnalyticsPartitionUpdate,
           params.getStartTime(),
-          processedTypes);
+          publishedTypes);
     } else {
       settingsService.put("keyLastSuccessfulAnalyticsTablesUpdate", params.getStartTime());
       settingsService.put("keyLastSuccessfulAnalyticsTablesRuntime", clock.time());
       updatePerTypeSuccessfulSystemSettings(
           SystemSettings::keyLastSuccessfulAnalyticsTablesUpdate,
           params.getStartTime(),
-          processedTypes);
+          publishedTypes);
     }
   }
 
   /**
    * Stamps the per-{@link AnalyticsTableType} counterpart of the shared "last successful update"
-   * clock, for every processed type that has one registered (see {@link
+   * clock, for every published type that has one registered (see {@link
    * AnalyticsTableType#isLatestPartition()}). A type without a registered key is skipped rather
    * than attempted, since {@link SystemSettingsService#put} silently drops writes for keys not in
    * {@link SystemSettings#keysWithDefaults()}.
@@ -183,8 +183,8 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   private void updatePerTypeSuccessfulSystemSettings(
       Function<AnalyticsTableType, String> keyFunction,
       Date startTime,
-      Set<AnalyticsTableType> processedTypes) {
-    processedTypes.stream()
+      Set<AnalyticsTableType> publishedTypes) {
+    publishedTypes.stream()
         .filter(AnalyticsTableType::isLatestPartition)
         .forEach(type -> settingsService.put(keyFunction.apply(type), startTime));
   }

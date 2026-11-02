@@ -77,6 +77,7 @@ import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryFilter;
@@ -484,6 +485,50 @@ class MetadataItemsHandlerTest {
       assertTrue(
           dimensions.getOrDefault(PERIOD_DIM_ID, List.of()).isEmpty(),
           "Query path should keep legacy behavior with empty pe dimension");
+    }
+
+    @Test
+    @DisplayName("should emit enrollmentdate in items for a date filter next to a date dimension")
+    void shouldEmitDateFilterMetadataNextToDateDimension() {
+      // Given - CREATED period dimension with an ENROLLMENT_DATE period filter
+      Grid grid = new ListGrid();
+
+      List<PeriodDimension> createdPeriods =
+          createPeriodDimensions("2023Q1").stream().map(pd -> pd.setDateField("CREATED")).toList();
+      PeriodDimension enrollmentFilterPeriod =
+          createPeriodDimensions("2023Q2").get(0).setDateField("ENROLLMENT_DATE");
+
+      EventQueryParams initialParams =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createdPeriods, "quarterly")
+              .addFilter(
+                  new BaseDimensionalObject(
+                      PERIOD_DIM_ID, DimensionType.PERIOD, List.of(enrollmentFilterPeriod)))
+              .build();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder(initialParams)
+              .withStartEndDatesForPeriods()
+              .withPeriods(createdPeriods, "")
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(items.containsKey("created"), "Items should contain 'created' metadata entry");
+      assertTrue(
+          items.containsKey("enrollmentdate"),
+          "Items should contain 'enrollmentdate' metadata entry");
     }
 
     @Test
@@ -1298,6 +1343,167 @@ class MetadataItemsHandlerTest {
   @Nested
   @DisplayName("Organisation Unit Hierarchy Tests")
   class OrgUnitHierarchyTests {
+
+    @ParameterizedTest
+    @CsvSource({
+      "LEVEL-2, true, false",
+      "OU_GROUP-CXw2yu5fodb, false, true",
+      "LEVEL-2;ImspTQPwCqd, true, true"
+    })
+    void shouldBuildHierarchyForActiveStageOrgUnits(
+        String selector, boolean showHierarchy, boolean hierarchyMeta) {
+      OrganisationUnit root = hierarchyRoot();
+      QueryItem item = stageOrgUnit("A03MvHHogjR", selector);
+      EventQueryParams params =
+          hierarchyParams()
+              .addItem(item)
+              .withShowHierarchy(showHierarchy)
+              .withHierarchyMeta(hierarchyMeta)
+              .build();
+      resolveStageOrgUnits(params, item, List.of(orgUnitA, orgUnitB));
+      Grid grid = new ListGrid();
+      grid.addHeader(new GridHeader("A03MvHHogjR.ou"));
+      grid.addRow().addValue(orgUnitB.getUid());
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      if (hierarchyMeta) {
+        assertEquals(
+            Map.of(orgUnitB.getUid(), root.getUid()),
+            grid.getMetaData().get(ORG_UNIT_HIERARCHY.getKey()));
+      }
+      if (showHierarchy) {
+        assertEquals(
+            Map.of(orgUnitB.getUid(), "/Country/" + orgUnitB.getName()),
+            grid.getMetaData().get(ORG_UNIT_NAME_HIERARCHY.getKey()));
+      }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void shouldKeepResolvedHierarchyForStageFiltersAndEmptyResults(boolean asFilter) {
+      OrganisationUnit root = hierarchyRoot();
+      QueryItem item = stageOrgUnit("A03MvHHogjR", "LEVEL-2");
+      EventQueryParams.Builder builder = hierarchyParams();
+      if (asFilter) {
+        builder.addItemFilter(item);
+      } else {
+        builder.addItem(item);
+      }
+      EventQueryParams params = builder.build();
+      resolveStageOrgUnits(params, item, List.of(orgUnitA, orgUnitB));
+      Grid grid = new ListGrid();
+      if (asFilter) {
+        grid.addHeader(new GridHeader("pe"));
+        grid.addRow().addValue("2021");
+      } else {
+        grid.addHeader(new GridHeader("A03MvHHogjR.ou"));
+      }
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      assertEquals(
+          Map.of(orgUnitA.getUid(), root.getUid(), orgUnitB.getUid(), root.getUid()),
+          grid.getMetaData().get(ORG_UNIT_HIERARCHY.getKey()));
+      assertEquals(
+          Map.of(
+              orgUnitA.getUid(), "/Country/" + orgUnitA.getName(),
+              orgUnitB.getUid(), "/Country/" + orgUnitB.getName()),
+          grid.getMetaData().get(ORG_UNIT_NAME_HIERARCHY.getKey()));
+    }
+
+    @Test
+    void shouldCombineHierarchyFromBareAndMultipleStageColumns() {
+      OrganisationUnit root = hierarchyRoot();
+      OrganisationUnit orgUnitC = createOrganisationUnit('C');
+      orgUnitC.setParent(root);
+      orgUnitC.setPath(root.getPath() + "/" + orgUnitC.getUid());
+      QueryItem firstStage = stageOrgUnit("A03MvHHogjR", "LEVEL-2");
+      QueryItem secondStage = stageOrgUnit("ZkbAXlQUYJG", "LEVEL-2");
+      EventQueryParams params =
+          hierarchyParams()
+              .withOrganisationUnits(List.of(orgUnitA, orgUnitB, orgUnitC))
+              .addItem(firstStage)
+              .addItem(secondStage)
+              .build();
+      resolveStageOrgUnits(params, firstStage, List.of(orgUnitA, orgUnitB));
+      when(organisationUnitResolver.resolveOrgUnits(params, secondStage))
+          .thenReturn(List.of(orgUnitA.getUid(), orgUnitC.getUid()));
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnitC.getUid(), IdScheme.UID))
+          .thenReturn(orgUnitC);
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem("LEVEL-2", IdScheme.UID))
+          .thenReturn(null);
+      Grid grid = new ListGrid();
+      grid.addHeader(new GridHeader("ou"));
+      grid.addHeader(new GridHeader("A03MvHHogjR.ou"));
+      grid.addHeader(new GridHeader("ZkbAXlQUYJG.ou"));
+      grid.addRow()
+          .addValue(orgUnitA.getUid())
+          .addValue(orgUnitB.getUid())
+          .addValue(orgUnitC.getUid());
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      assertEquals(
+          Map.of(
+              orgUnitA.getUid(), root.getUid(),
+              orgUnitB.getUid(), root.getUid(),
+              orgUnitC.getUid(), root.getUid()),
+          grid.getMetaData().get(ORG_UNIT_HIERARCHY.getKey()));
+      assertEquals(
+          Map.of(
+              orgUnitA.getUid(), "/Country/" + orgUnitA.getName(),
+              orgUnitB.getUid(), "/Country/" + orgUnitB.getName(),
+              orgUnitC.getUid(), "/Country/" + orgUnitC.getName()),
+          grid.getMetaData().get(ORG_UNIT_NAME_HIERARCHY.getKey()));
+    }
+
+    private OrganisationUnit hierarchyRoot() {
+      OrganisationUnit root = createOrganisationUnit('R');
+      root.setName("Country");
+      root.setPath("/" + root.getUid());
+      orgUnitA.setParent(root);
+      orgUnitB.setParent(root);
+      orgUnitA.setPath(root.getPath() + "/" + orgUnitA.getUid());
+      orgUnitB.setPath(root.getPath() + "/" + orgUnitB.getUid());
+      return root;
+    }
+
+    private EventQueryParams.Builder hierarchyParams() {
+      return new EventQueryParams.Builder()
+          .withProgram(programA)
+          .withEndpointAction(AGGREGATE)
+          .withPeriods(createPeriodDimensions("2021"), "yearly")
+          .withShowHierarchy(true)
+          .withHierarchyMeta(true);
+    }
+
+    private QueryItem stageOrgUnit(String stageUid, String selector) {
+      ProgramStage stage = createProgramStage('S', programA);
+      stage.setUid(stageUid);
+      QueryItem item =
+          new QueryItem(
+                  new BaseDimensionalItemObject("ou"),
+                  programA,
+                  null,
+                  ValueType.ORGANISATION_UNIT,
+                  AggregationType.NONE,
+                  null)
+              .withCustomHeader(AnalyticsCustomHeader.forOrgUnit(stage));
+      item.setProgramStage(stage);
+      item.addFilter(new QueryFilter(QueryOperator.IN, selector));
+      return item;
+    }
+
+    private void resolveStageOrgUnits(
+        EventQueryParams params, QueryItem item, List<OrganisationUnit> orgUnits) {
+      when(organisationUnitResolver.resolveOrgUnits(params, item))
+          .thenReturn(orgUnits.stream().map(OrganisationUnit::getUid).toList());
+      for (OrganisationUnit orgUnit : orgUnits) {
+        when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnit.getUid(), IdScheme.UID))
+            .thenReturn(orgUnit);
+      }
+    }
 
     @Test
     @DisplayName("should add org unit hierarchy when hierarchyMeta is true")
@@ -2304,6 +2510,167 @@ class MetadataItemsHandlerTest {
       assertNotNull(items);
       assertEquals("Program status", ((MetadataItem) items.get("programstatus")).getName());
       assertEquals("Active", ((MetadataItem) items.get("ACTIVE")).getName());
+    }
+  }
+
+  @Nested
+  @DisplayName("Stage Event Status Metadata Tests")
+  class StageEventStatusMetadataTests {
+
+    private QueryItem createStageEventStatusItem(String stageUid, String filter) {
+      ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid(stageUid);
+      programStage.setName("Birth");
+
+      QueryItem item =
+          new QueryItem(
+                  new BaseDimensionalItemObject("eventstatus"),
+                  programA,
+                  null,
+                  ValueType.TEXT,
+                  AggregationType.NONE,
+                  null)
+              .withCustomHeader(AnalyticsCustomHeader.forEventStatus(programStage));
+      item.setProgramStage(programStage);
+
+      if (filter != null) {
+        item.addFilter(new QueryFilter(QueryOperator.IN, filter));
+        QueryFilter.getFilterItems(filter).forEach(item::addDimensionValue);
+      }
+
+      return item;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, List<String>> getDimensions(Grid grid) {
+      return (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getItems(Grid grid) {
+      return (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"AGGREGATE", "QUERY"})
+    @DisplayName("should list requested statuses in dimensions and label them in items")
+    void shouldIncludeRequestedStatusesForStageEventStatusDimension(String endpointAction) {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction("QUERY".equals(endpointAction) ? QUERY : AGGREGATE)
+              .addItem(createStageEventStatusItem("A03MvHHogjR", "ACTIVE;COMPLETED"))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      assertEquals(
+          List.of("ACTIVE", "COMPLETED"), getDimensions(grid).get("A03MvHHogjR.eventstatus"));
+
+      Map<String, Object> items = getItems(grid);
+      assertEquals("Active", ((MetadataItem) items.get("ACTIVE")).getName());
+      assertEquals("Completed", ((MetadataItem) items.get("COMPLETED")).getName());
+      assertFalse(items.containsKey("SCHEDULE"));
+    }
+
+    @Test
+    @DisplayName("should list requested statuses for a stage event status filter")
+    void shouldIncludeRequestedStatusesForStageEventStatusFilter() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .addItemFilter(createStageEventStatusItem("A03MvHHogjR", "ACTIVE;COMPLETED"))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      assertEquals(
+          List.of("ACTIVE", "COMPLETED"), getDimensions(grid).get("A03MvHHogjR.eventstatus"));
+
+      Map<String, Object> items = getItems(grid);
+      assertEquals("Active", ((MetadataItem) items.get("ACTIVE")).getName());
+      assertEquals("Completed", ((MetadataItem) items.get("COMPLETED")).getName());
+    }
+
+    @Test
+    @DisplayName("should keep dimensions empty for a stage event status without items")
+    void shouldKeepDimensionsEmptyForStageEventStatusWithoutItems() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .addItem(createStageEventStatusItem("A03MvHHogjR", null))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      assertEquals(List.of(), getDimensions(grid).get("A03MvHHogjR.eventstatus"));
+
+      Map<String, Object> items = getItems(grid);
+      assertFalse(items.containsKey("ACTIVE"));
+      assertFalse(items.containsKey("COMPLETED"));
+    }
+
+    @Test
+    @DisplayName("should label every stage event status")
+    void shouldLabelEveryStageEventStatus() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .addItem(createStageEventStatusItem("A03MvHHogjR", "ACTIVE;COMPLETED;SCHEDULE"))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      Map<String, Object> items = getItems(grid);
+      assertEquals("Active", ((MetadataItem) items.get("ACTIVE")).getName());
+      assertEquals("Completed", ((MetadataItem) items.get("COMPLETED")).getName());
+      assertEquals("Schedule", ((MetadataItem) items.get("SCHEDULE")).getName());
+    }
+
+    @Test
+    @DisplayName("should list each stage's own statuses when two stages are requested")
+    void shouldListStatusesPerStage() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .addItem(createStageEventStatusItem("A03MvHHogjR", "ACTIVE"))
+              .addItem(createStageEventStatusItem("ZzYYXq4fJie", "COMPLETED;SCHEDULE"))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      Map<String, List<String>> dimensions = getDimensions(grid);
+      assertEquals(List.of("ACTIVE"), dimensions.get("A03MvHHogjR.eventstatus"));
+      assertEquals(List.of("COMPLETED", "SCHEDULE"), dimensions.get("ZzYYXq4fJie.eventstatus"));
     }
   }
 

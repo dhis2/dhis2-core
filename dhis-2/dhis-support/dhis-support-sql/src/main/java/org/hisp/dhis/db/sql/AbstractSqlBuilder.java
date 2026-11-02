@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -145,6 +145,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   @Override
   public String tableExists(Table table) {
     return tableExists(table.getName());
+  }
+
+  @Override
+  public String showCreateTable(String name) {
+    return notSupported();
   }
 
   @Override

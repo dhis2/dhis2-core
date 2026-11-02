@@ -67,6 +67,7 @@ public class OptionGroup extends BaseDimensionalItemObject implements MetadataOb
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.OPTION_GROUP;
   }

@@ -41,7 +41,6 @@ import static org.hisp.dhis.feedback.ErrorCode.E7256;
 import static org.hisp.dhis.feedback.ErrorCode.E7257;
 
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -75,17 +74,6 @@ public class TrackedEntityQueryRequestMapper {
   private final TrackedEntityTypeService trackedEntityTypeService;
 
   private final ProgramService programService;
-
-  /** The aggregation functions a tracked entity aggregate query supports. */
-  private static final Set<AggregationType> SUPPORTED_AGGREGATION_TYPES =
-      EnumSet.of(
-          AggregationType.COUNT,
-          AggregationType.SUM,
-          AggregationType.AVERAGE,
-          AggregationType.MIN,
-          AggregationType.MAX,
-          AggregationType.STDDEV,
-          AggregationType.VARIANCE);
 
   /**
    * Maps incoming query requests into a valid and usable {@link TrackedEntityQueryParams}. Be aware
@@ -163,7 +151,7 @@ public class TrackedEntityQueryRequestMapper {
       return;
     }
 
-    if (!SUPPORTED_AGGREGATION_TYPES.contains(aggregationType)) {
+    if (!aggregationType.isSingleValueAggregation()) {
       throw new IllegalQueryException(E7254, aggregationType.name());
     }
 

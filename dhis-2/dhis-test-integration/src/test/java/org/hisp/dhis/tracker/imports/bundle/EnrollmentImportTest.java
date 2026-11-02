@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -77,7 +76,6 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
   @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
 
   private User importUser;
-  @Autowired private DbmsManager dbmsManager;
 
   @BeforeAll
   void setUp() throws IOException {
@@ -149,8 +147,7 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldInsertNoteRowsAndJoinTableEntriesWhenEnrollmentIsCreatedWithNotes()
-      throws IOException {
+  void shouldInsertNoteRowsWhenEnrollmentIsCreatedWithNotes() throws IOException {
     testSetup.importTrackerData("tracker/one_te.json");
     ImportReport report =
         trackerImportService.importTracker(
@@ -158,24 +155,21 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
             testSetup.fromJson("tracker/one_enrollment_with_notes.json"));
     assertNoErrors(report);
 
-    List<Map<String, Object>> joinRows =
+    List<Map<String, Object>> noteRows =
         jdbcTemplate.queryForList(
-            "select n.uid as noteuid, n.notetext, en.sort_order"
-                + " from enrollment_notes en"
-                + " join enrollment e on e.enrollmentid = en.enrollmentid"
-                + " join note n on n.noteid = en.noteid"
+            "select n.uid as noteuid, n.notetext"
+                + " from note n"
+                + " join enrollment e on e.enrollmentid = n.enrollmentid"
                 + " where e.uid = :uid"
-                + " order by en.sort_order",
+                + " order by n.created, n.noteid",
             new MapSqlParameterSource("uid", "TvctPPhpD8u"));
 
-    assertEquals(2, joinRows.size(), "expected two notes linked to the enrollment");
+    assertEquals(2, noteRows.size(), "expected two notes owned by the enrollment");
     assertAll(
-        () -> assertEquals("NoteAlpha01", joinRows.get(0).get("noteuid")),
-        () -> assertEquals("First enrollment note", joinRows.get(0).get("notetext")),
-        () -> assertEquals(1, ((Number) joinRows.get(0).get("sort_order")).intValue()),
-        () -> assertEquals("NoteBeta002", joinRows.get(1).get("noteuid")),
-        () -> assertEquals("Second enrollment note", joinRows.get(1).get("notetext")),
-        () -> assertEquals(2, ((Number) joinRows.get(1).get("sort_order")).intValue()));
+        () -> assertEquals("NoteAlpha01", noteRows.get(0).get("noteuid")),
+        () -> assertEquals("First enrollment note", noteRows.get(0).get("notetext")),
+        () -> assertEquals("NoteBeta002", noteRows.get(1).get("noteuid")),
+        () -> assertEquals("Second enrollment note", noteRows.get(1).get("notetext")));
   }
 
   @Test
@@ -192,27 +186,23 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
             TrackerImportParams.builder().build(),
             testSetup.fromJson("tracker/one_enrollment_with_extra_note.json")));
 
-    List<Map<String, Object>> joinRows =
+    List<Map<String, Object>> noteRows =
         jdbcTemplate.queryForList(
-            "select n.uid as noteuid, n.notetext, en.sort_order"
-                + " from enrollment_notes en"
-                + " join enrollment e on e.enrollmentid = en.enrollmentid"
-                + " join note n on n.noteid = en.noteid"
+            "select n.uid as noteuid, n.notetext"
+                + " from note n"
+                + " join enrollment e on e.enrollmentid = n.enrollmentid"
                 + " where e.uid = :uid"
-                + " order by en.sort_order",
+                + " order by n.created, n.noteid",
             new MapSqlParameterSource("uid", "TvctPPhpD8u"));
 
-    assertEquals(3, joinRows.size(), "expected three notes (two from create, one appended)");
+    assertEquals(3, noteRows.size(), "expected three notes (two from create, one appended)");
     assertAll(
-        () -> assertEquals("NoteAlpha01", joinRows.get(0).get("noteuid")),
-        () -> assertEquals(1, ((Number) joinRows.get(0).get("sort_order")).intValue()),
-        () -> assertEquals("NoteBeta002", joinRows.get(1).get("noteuid")),
-        () -> assertEquals(2, ((Number) joinRows.get(1).get("sort_order")).intValue()),
-        () -> assertEquals("NoteGamma01", joinRows.get(2).get("noteuid")),
+        () -> assertEquals("NoteAlpha01", noteRows.get(0).get("noteuid")),
+        () -> assertEquals("NoteBeta002", noteRows.get(1).get("noteuid")),
+        () -> assertEquals("NoteGamma01", noteRows.get(2).get("noteuid")),
         () ->
             assertEquals(
-                "Third enrollment note appended on update", joinRows.get(2).get("notetext")),
-        () -> assertEquals(3, ((Number) joinRows.get(2).get("sort_order")).intValue()));
+                "Third enrollment note appended on update", noteRows.get(2).get("notetext")));
   }
 
   private void assertEnrollmentCompletedData(Enrollment enrollment) {

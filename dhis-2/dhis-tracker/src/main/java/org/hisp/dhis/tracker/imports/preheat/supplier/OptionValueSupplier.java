@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
-import com.google.common.collect.Lists;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -46,7 +45,6 @@ import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.util.Constant;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -88,10 +86,7 @@ public class OptionValueSupplier extends JdbcAbstractPreheatSupplier {
       return;
     }
 
-    for (List<Pair<Long, String>> chunk :
-        Lists.partition(new ArrayList<>(candidates), Constant.SPLIT_LIST_PARTITION_SIZE)) {
-      queryChunk(chunk, preheat);
-    }
+    query(new ArrayList<>(candidates), preheat);
   }
 
   Set<Pair<Long, String>> collectCandidates(TrackerObjects trackerObjects, TrackerPreheat preheat) {
@@ -152,12 +147,12 @@ public class OptionValueSupplier extends JdbcAbstractPreheatSupplier {
     }
   }
 
-  private void queryChunk(List<Pair<Long, String>> chunk, TrackerPreheat preheat) {
-    Long[] optionSetIds = new Long[chunk.size()];
-    String[] codes = new String[chunk.size()];
-    for (int i = 0; i < chunk.size(); i++) {
-      optionSetIds[i] = chunk.get(i).getLeft();
-      codes[i] = chunk.get(i).getRight();
+  private void query(List<Pair<Long, String>> candidates, TrackerPreheat preheat) {
+    Long[] optionSetIds = new Long[candidates.size()];
+    String[] codes = new String[candidates.size()];
+    for (int i = 0; i < candidates.size(); i++) {
+      optionSetIds[i] = candidates.get(i).getLeft();
+      codes[i] = candidates.get(i).getRight();
     }
 
     Set<Pair<Long, String>> confirmed = new HashSet<>();
@@ -178,7 +173,8 @@ public class OptionValueSupplier extends JdbcAbstractPreheatSupplier {
                   return null;
                 });
 
-    for (Pair<Long, String> pair : chunk) { // NOSONAR confirmed comes from the query in between
+    for (Pair<Long, String> pair :
+        candidates) { // NOSONAR confirmed comes from the query in between
       if (confirmed.contains(pair)) {
         preheat.addValidOptionCode(pair.getLeft(), pair.getRight());
       }

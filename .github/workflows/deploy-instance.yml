@@ -65,7 +65,7 @@ jobs:
           DATABASE_ID: test-dbs-sierra-leone-dev-sql-gz
         run: |
           ./findByName.sh dev $INSTANCE_NAME | jq --exit-status 'has("id")' &&
-          ./restart.sh $(./findByName.sh dev $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-core") | .id') ||
+          ./restart.sh $(./findByName.sh dev $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-v2") | .id') ||
           ./deploy-dhis2.sh dev $INSTANCE_NAME
 
       - name: Wait for instance
@@ -73,7 +73,7 @@ jobs:
         env:
           EXPECTED_STATUS: Running
         run: |
-          export INSTANCE_ID=$(./findByName.sh dev $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-core") | .id')
+          export INSTANCE_ID=$(./findByName.sh dev $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-v2") | .id')
           timeout 600 bash -ex -c 'until [[ "$(./status.sh $INSTANCE_ID | jq -r)" == "$EXPECTED_STATUS" ]]; do echo "Instance is not $EXPECTED_STATUS yet ..."; sleep 5; done'
 
       - name: Start analytics generation

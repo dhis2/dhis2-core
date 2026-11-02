@@ -87,6 +87,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TestNotes;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
@@ -121,6 +122,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private static final String EVENT_NO_VALUE = CodeGenerator.generateUid();
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TestNotes testNotes;
 
   @Autowired private FileResourceService fileResourceService;
 
@@ -218,8 +221,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   void getEventByPathIsIdenticalToQueryParam() {
     TrackedEntity to = trackedEntity();
     TrackerEvent event = event(enrollment(to));
-    event.setNotes(List.of(note("oqXG28h988k", "my notes")));
-    manager.update(event);
+    testNotes.save(event, "my notes");
     relationship(event, to);
     switchContextToUser(user);
 
@@ -268,8 +270,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void getEventByIdWithNotes() {
     TrackerEvent event = event(enrollment(trackedEntity()));
-    event.setNotes(List.of(note("oqXG28h988k", "my notes")));
-    manager.update(event);
+    Note saved = testNotes.save(event, "my notes");
     switchContextToUser(user);
 
     JsonEvent jsonEvent =
@@ -278,7 +279,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
             .as(JsonEvent.class);
 
     JsonNote note = jsonEvent.getNotes().get(0);
-    assertEquals("oqXG28h988k", note.getNote());
+    assertEquals(saved.getUid(), note.getNote());
     assertEquals("my notes", note.value());
   }
 
@@ -1216,13 +1217,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     manager.update(event);
 
     return event;
-  }
-
-  private Note note(String uid, String value) {
-    Note note = new Note(value);
-    note.setUid(uid);
-    manager.save(note, false);
-    return note;
   }
 
   static Stream<Arguments> callEventsEndpoint() {

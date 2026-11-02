@@ -314,6 +314,7 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.PROGRAM_INDICATOR;
   }

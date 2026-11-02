@@ -48,6 +48,7 @@ import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursBefore;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
@@ -73,7 +74,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AssignedUserQueryParam;
@@ -81,6 +84,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.ValueType;
@@ -104,6 +108,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TestNotes;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
@@ -115,7 +120,6 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.test.RelationshipUtils;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -124,6 +128,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Luciano Fiandesio
@@ -134,7 +139,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private TrackedEntityAttributeValueService attributeValueService;
+  @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Autowired private TestNotes testNotes;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
@@ -179,6 +186,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   private ProgramStage programStageA1;
 
   private TrackerEvent eventA;
+
+  private Note eventANote;
 
   private TrackerEvent eventB;
 
@@ -370,12 +379,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     eventA.setCompletedDate(parseDate("2021-02-27T11:05:00.000"));
     eventA.setCompletedBy("herb");
     eventA.setAssignedUser(user);
-    Note note = new Note("note1");
-    note.setUid(generateUid());
-    note.setCreated(new Date());
-    note.setLastUpdated(new Date());
-    eventA.setNotes(List.of(note));
     manager.save(eventA, false);
+    eventANote = testNotes.save(eventA, "note1");
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setFollowup(true);
     manager.save(enrollmentA, false);
@@ -419,18 +424,18 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
         trackedEntityA, programB, orgUnitA);
 
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaA, trackedEntityA, "A"));
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaA, trackedEntityChildA, "CA"));
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaA, trackedEntityGrandchildA, "GCA"));
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaB, trackedEntityA, "B"));
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaC, trackedEntityA, "C"));
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaE, trackedEntityA, "E"));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(teaA, trackedEntityA, "A"));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(teaA, trackedEntityChildA, "CA"));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(teaA, trackedEntityGrandchildA, "GCA"));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(teaB, trackedEntityA, "B"));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(teaC, trackedEntityA, "C"));
+    saveTrackedEntityAttributeValue(
+        entityManager, new TrackedEntityAttributeValue(teaE, trackedEntityA, "E"));
 
     RelationshipType relationshipTypeA = createRelationshipType('A');
     relationshipTypeA
@@ -1404,7 +1409,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .findFirst();
     Set<TrackerEvent> events = enrollmentA.get().getEvents();
     assertContainsOnly(Set.of(eventA), events, UidObject::getUid);
-    assertNotes(eventA.getNotes(), events.stream().findFirst().get().getNotes());
+    assertNotes(List.of(eventANote), events.stream().findFirst().get().getNotes());
   }
 
   @Test
@@ -2536,6 +2541,71 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntityB.getUid())));
   }
 
+  @Test
+  void shouldReturnTrackedEntityEnrolledInProgramWhenEnrollmentAttributeOptionComboAccessible()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .program(programA)
+            .build();
+    addAttributeOptionComboToEnrollment(enrollmentA, AccessStringHelper.READ_ONLY);
+
+    final List<TrackedEntity> trackedEntities =
+        trackedEntityService.findTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void
+      shouldNotReturnTrackedEntityEnrolledInProgramWhenEnrollmentAttributeOptionComboNotAccessible()
+          throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .program(programA)
+            .build();
+    addAttributeOptionComboToEnrollment(enrollmentA, AccessStringHelper.DEFAULT);
+
+    assertIsEmpty(trackedEntityService.findTrackedEntities(operationParams));
+  }
+
+  @Test
+  void shouldNotReturnTrackedEntityWhenEnrollmentCategoryOptionSharingHasNoUsersKey()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .program(programA)
+            .build();
+    addAttributeOptionComboToEnrollment(enrollmentA, AccessStringHelper.DEFAULT);
+    CategoryOption categoryOption =
+        enrollmentA.getAttributeOptionCombo().getCategoryOptions().iterator().next();
+    jdbcTemplate.update(
+        "update categoryoption set sharing = jsonb_build_object('owner', ?, 'public', ?) where uid = ?",
+        superuser.getUid(),
+        AccessStringHelper.DEFAULT,
+        categoryOption.getUid());
+
+    assertIsEmpty(trackedEntityService.findTrackedEntities(operationParams));
+  }
+
+  @Test
+  void
+      shouldNotReturnTrackedEntityOrderedByEnrolledAtWhenEnrollmentAttributeOptionComboNotAccessible()
+          throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .program(programA)
+            .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
+            .build();
+    addAttributeOptionComboToEnrollment(enrollmentA, AccessStringHelper.DEFAULT);
+
+    assertIsEmpty(trackedEntityService.findTrackedEntities(operationParams));
+  }
+
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
     // depends on createTrackedEntityAttribute() prefixing with "Attribute"
     return attributes.stream()
@@ -2637,5 +2707,33 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     event.setOccurredDate(Date.from(Instant.now()));
     event.setStatus(status);
     manager.save(event);
+  }
+
+  private void addAttributeOptionComboToEnrollment(Enrollment enrollment, String sharingAccess) {
+    injectSecurityContextUser(superuser);
+
+    CategoryOption categoryOption = createCategoryOption('A');
+    categoryOption.getSharing().setPublicAccess(sharingAccess);
+    manager.save(categoryOption, false);
+
+    Category category = createCategory('A');
+    category.setCategoryOptions(List.of(categoryOption));
+    manager.save(category, false);
+
+    CategoryCombo categoryCombo = createCategoryCombo('A');
+    categoryCombo.setCategories(List.of(category));
+    manager.save(categoryCombo, false);
+
+    CategoryOptionCombo attributeOptionCombo = createCategoryOptionCombo('A');
+    attributeOptionCombo.setCategoryCombo(categoryCombo);
+    attributeOptionCombo.setCategoryOptions(Set.of(categoryOption));
+    attributeOptionCombo.getSharing().setPublicAccess(AccessStringHelper.READ_ONLY);
+    manager.save(attributeOptionCombo, false);
+
+    enrollment.setAttributeOptionCombo(attributeOptionCombo);
+    manager.update(enrollment);
+    manager.flush();
+
+    injectSecurityContextUser(user);
   }
 }

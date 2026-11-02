@@ -81,6 +81,14 @@ public class ContextUtils {
 
   public static final String CONTENT_TYPE_XML_ADX = "application/adx+xml; charset=UTF-8";
 
+  public static final String CONTENT_TYPE_XML_GZIP = "application/xml+gzip";
+
+  public static final String CONTENT_TYPE_XML_ZIP = "application/xml+zip";
+
+  public static final String CONTENT_TYPE_XML_ADX_GZIP = "application/adx+xml+gzip";
+
+  public static final String CONTENT_TYPE_XML_ADX_ZIP = "application/adx+xml+zip";
+
   public static final String CONTENT_TYPE_CSV = "application/csv; charset=UTF-8";
 
   public static final String CONTENT_TYPE_TEXT_CSV = "text/csv";
