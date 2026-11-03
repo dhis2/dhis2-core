@@ -53,6 +53,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.program.Program;
@@ -229,6 +230,18 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     Property property = schema.getProperty("dimensionItemType");
     assertNotNull(property, "dimensionItemType is not a property of " + klass.getSimpleName());
     assertTrue(property.isReadable());
+  }
+
+  /** Members must be imported before the set that references them. */
+  @Test
+  void testOptionGroupSetIsImportedAfterOptionGroup() {
+    List<Schema> schemas = schemaService.getMetadataSchemas();
+    int group = schemas.indexOf(schemaService.getSchema(OptionGroup.class));
+    int groupSet = schemas.indexOf(schemaService.getSchema(OptionGroupSet.class));
+    assertTrue(
+        schemaService.getSchema(OptionGroup.class).getOrder()
+            < schemaService.getSchema(OptionGroupSet.class).getOrder());
+    assertTrue(group < groupSet);
   }
 
   /**
