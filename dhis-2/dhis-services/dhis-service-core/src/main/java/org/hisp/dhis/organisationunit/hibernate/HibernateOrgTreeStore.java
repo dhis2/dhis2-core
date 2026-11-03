@@ -87,7 +87,7 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
       roots_with_descendants_ids AS (
         SELECT DISTINCT ou.organisationunitid
         FROM organisationunit root
-        JOIN organisationunit ou ON (root.organisationunitid = ou.parentid OR ou.path LIKE root.path || '%')
+        JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
           AND ou.hierarchylevel = :level
           AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
         WHERE root.uid = ANY(:roots)
@@ -115,7 +115,7 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
             WHERE 1=1
               AND root.uid = ANY(:roots)
               AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
-              AND (ou.parentid = root.organisationunitid OR ou.path LIKE root.path || '%')
+              AND (ou.patharray && ARRAY[root.uid])
         ))
       ORDER BY ou.path""";
     String search = params.searchLike();
