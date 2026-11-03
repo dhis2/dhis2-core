@@ -70,6 +70,8 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
   private final PartitionManager partitionManager;
 
+  private final FirstOrLastStagePeriodPlanner firstOrLastStagePeriodPlanner;
+
   // -------------------------------------------------------------------------
   // EventQueryPlanner implementation
   // -------------------------------------------------------------------------
@@ -84,6 +86,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             .add(this::groupByOrgUnitLevel)
             .add(this::groupByPeriodType)
             .add(this::groupByPeriod)
+            .add(firstOrLastStagePeriodPlanner::plan)
             .build();
 
     for (Function<EventQueryParams, List<EventQueryParams>> grouper : groupers) {
@@ -143,7 +146,9 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
         params.getItems().stream()
             .anyMatch(
                 item ->
-                    EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId()));
+                    EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId())
+                        || EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME.equals(
+                            item.getItemId()));
 
     if (hasEventDateItem) {
       builder.withSkipPartitioning(true);

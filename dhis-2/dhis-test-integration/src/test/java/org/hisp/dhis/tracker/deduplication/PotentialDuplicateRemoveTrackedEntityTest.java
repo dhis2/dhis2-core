@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker.deduplication;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.getTrackedEntityAttributeValues;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTeToTeRelationship;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
@@ -59,7 +61,6 @@ import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionServi
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,8 +74,6 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   @Autowired private RelationshipTypeService relationshipTypeService;
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
-
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -140,12 +139,11 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     TrackedEntity trackedEntity = createTrackedEntityFromAttribute(trackedEntityAttribute);
     trackedEntity
         .getTrackedEntityAttributeValues()
-        .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
+        .forEach(value -> saveTrackedEntityAttributeValue(entityManager, value));
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
     removeTrackedEntity(trackedEntity);
     assertFalse(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
-    assertIsEmpty(
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity));
+    assertIsEmpty(getTrackedEntityAttributeValues(entityManager, trackedEntity));
   }
 
   @Test

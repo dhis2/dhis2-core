@@ -31,7 +31,6 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.function.Function.identity;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
@@ -62,6 +61,8 @@ import org.hisp.dhis.sql.SQL;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.intellij.lang.annotations.Language;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
@@ -70,6 +71,7 @@ import org.springframework.stereotype.Repository;
 public class HibernateDataExportStore implements DataExportStore {
 
   private final EntityManager entityManager;
+  private final JdbcTemplate jdbcTemplate;
 
   @Override
   @CheckForNull
@@ -118,7 +120,11 @@ public class HibernateDataExportStore implements DataExportStore {
   @Override
   @UsageTestOnly
   public List<DataExportValue> getAllDataValues() {
-    return exportValues(DataExportParams.builder().includeDeleted(false).build()).toList();
+    // closing the stream releases the connection when this is called outside a transaction
+    try (Stream<DataExportValue> values =
+        exportValues(DataExportParams.builder().includeDeleted(false).build())) {
+      return values.toList();
+    }
   }
 
   @Nonnull
@@ -135,7 +141,10 @@ public class HibernateDataExportStore implements DataExportStore {
             ? null
             : getAllowedAocIds(api, currentUser, params.getAttributeOptionCombos());
     if (aocAllowed != null && aocAllowed.length == 0) return Stream.empty();
-    return createExportQuery(params, api, currentUser, aocAllowed).stream()
+    // the export itself goes through plain JDBC: no per-column Hibernate type handling per row,
+    // and the JdbcTemplate's fetch size lets the driver stream rows instead of buffering them all
+    SQL.QueryAPI exportApi = NativeSQL.of(new NamedParameterJdbcTemplate(jdbcTemplate));
+    return createExportQuery(params, exportApi, currentUser, aocAllowed).stream()
         .map(DataExportValue::of);
   }
 
@@ -235,8 +244,9 @@ public class HibernateDataExportStore implements DataExportStore {
       lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
 
     boolean descendants = params.isIncludeDescendants();
+    // no default order: a plain export has no consumer of row order, and sorting by columns
+    // without a supporting index forces a blocking sort over the whole result set
     List<Order> orders = params.getOrders();
-    if (isEmpty(orders)) orders = List.of(Order.PE, Order.CREATED, Order.DE);
 
     List<UID> oug = params.getOrganisationUnitGroups();
     Set<String> ouCapture = currentUser.getUserOrgUnitIds();
