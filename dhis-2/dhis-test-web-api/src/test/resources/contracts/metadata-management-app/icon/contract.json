@@ -1,0 +1,7 @@
+{
+  "httpMethod": "GET",
+  "jsonSchema": "contracts/metadata-management-app/icon/json-schema.json",
+  "name": "icon",
+  "requestUrl": "/icons/{key}",
+  "responseStatus": 200
+}
