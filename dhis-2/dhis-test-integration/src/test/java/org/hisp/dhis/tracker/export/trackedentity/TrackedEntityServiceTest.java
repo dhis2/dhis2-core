@@ -2294,4 +2294,111 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     event.setStatus(status);
     manager.save(event);
   }
+
+  @Test
+  void shouldNotReturnProgramOwnerWhenUserHasNoDataReadAccessToProgram()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    makeProgramDataInaccessible(programA);
+
+    TrackedEntity trackedEntity = getTrackedEntityFromDatabase(trackedEntityA);
+
+    assertContainsOnly(Set.of(programB.getUid()), programOwnerProgramUids(trackedEntity));
+  }
+
+  @Test
+  void shouldNotReturnProgramOwnerInListWhenUserHasNoDataReadAccessToProgram()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    makeProgramDataInaccessible(programA);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .trackedEntityUids(Set.of(trackedEntityA.getUid()))
+            .trackedEntityParams(TrackedEntityParams.TRUE)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA.getUid()), uids(trackedEntities));
+    assertContainsOnly(Set.of(programB.getUid()), programOwnerProgramUids(trackedEntities.get(0)));
+  }
+
+  @Test
+  void shouldReturnProgramOwnerWhenTrackedEntityHasNoEnrollmentInAccessibleProgram()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Program programWithoutEnrollment = createProgramOwnedWithoutEnrollment(trackedEntityA);
+
+    TrackedEntity trackedEntity = getTrackedEntityFromDatabase(trackedEntityA);
+
+    assertContainsOnly(
+        Set.of(programA.getUid(), programB.getUid(), programWithoutEnrollment.getUid()),
+        programOwnerProgramUids(trackedEntity));
+  }
+
+  @Test
+  void shouldReturnProgramOwnerWhenEnrollmentHiddenByOwnershipInProtectedProgram()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        trackedEntityA, programB, orgUnitB);
+
+    TrackedEntity trackedEntity = getTrackedEntityFromDatabase(trackedEntityA);
+
+    assertContainsOnly(Set.of(enrollmentA.getUid()), uids(trackedEntity.getEnrollments()));
+    assertContainsOnly(
+        Set.of(programA.getUid(), programB.getUid()), programOwnerProgramUids(trackedEntity));
+    assertEquals(
+        orgUnitB.getUid(),
+        trackedEntity.getProgramOwners().stream()
+            .filter(po -> po.getProgram().getUid().equals(programB.getUid()))
+            .findFirst()
+            .orElseThrow()
+            .getOrganisationUnit()
+            .getUid());
+  }
+
+  /** Removes data read access to the program for the user. Leaves the user in the context. */
+  private void makeProgramDataInaccessible(Program program) {
+    injectSecurityContextUser(superuser);
+    program.getSharing().setPublicAccess("rw------");
+    manager.update(program);
+    injectSecurityContextUser(user);
+  }
+
+  /**
+   * Creates a program the user has data read access to, in which the tracked entity is owned but
+   * not enrolled. Leaves the user in the security context.
+   */
+  private Program createProgramOwnedWithoutEnrollment(TrackedEntity trackedEntity) {
+    injectSecurityContextUser(superuser);
+    Program program = createProgram('D', new HashSet<>(), orgUnitA);
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    program.setTrackedEntityType(trackedEntityTypeA);
+    program.setCategoryCombo(programA.getCategoryCombo());
+    program.getSharing().setPublicAccess(AccessStringHelper.FULL);
+    manager.save(program, false);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntity, program, orgUnitA);
+    injectSecurityContextUser(user);
+    return program;
+  }
+
+  /**
+   * Gets the tracked entity without program after clearing the session, so its program owners are
+   * loaded from the database instead of the stale entity cached in the session.
+   */
+  private TrackedEntity getTrackedEntityFromDatabase(TrackedEntity trackedEntity)
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    manager.flush();
+    manager.clear();
+    return trackedEntityService.getTrackedEntity(
+        trackedEntity.getUid(), null, TrackedEntityParams.TRUE, false);
+  }
+
+  private static Set<String> programOwnerProgramUids(TrackedEntity trackedEntity) {
+    return trackedEntity.getProgramOwners().stream()
+        .map(po -> po.getProgram().getUid())
+        .collect(Collectors.toSet());
+  }
 }

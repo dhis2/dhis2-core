@@ -65,7 +65,8 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
           + "join program p on teop.programid = p.programid "
           + "join organisationunit o on teop.organisationunitid = o.organisationunitid "
           + "join trackedentity te on teop.trackedentityid = te.trackedentityid "
-          + "where teop.trackedentityid in (:ids)";
+          + "where teop.trackedentityid in (:ids) "
+          + "and teop.programid in (:programIds)";
 
   private static final String FILTER_OUT_DELETED_TE = "te.deleted=false";
 
@@ -153,8 +154,22 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
   }
 
   @Override
-  public Multimap<String, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids) {
-    return fetch(GET_PROGRAM_OWNERS, new ProgramOwnerRowCallbackHandler(), ids);
+  public Multimap<String, TrackedEntityProgramOwner> getProgramOwners(
+      List<Long> ids, List<Long> programIds) {
+    Multimap<String, TrackedEntityProgramOwner> programOwners = ArrayListMultimap.create();
+    if (programIds.isEmpty()) {
+      return programOwners;
+    }
+
+    for (List<Long> partition : Lists.partition(ids, PARITITION_SIZE)) {
+      ProgramOwnerRowCallbackHandler handler = new ProgramOwnerRowCallbackHandler();
+      jdbcTemplate.query(
+          GET_PROGRAM_OWNERS,
+          createIdsParam(partition).addValue("programIds", programIds),
+          handler);
+      programOwners.putAll(handler.getItems());
+    }
+    return programOwners;
   }
 
   @Override

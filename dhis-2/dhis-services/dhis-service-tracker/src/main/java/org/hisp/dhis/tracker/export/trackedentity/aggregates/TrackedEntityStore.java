@@ -67,10 +67,12 @@ public interface TrackedEntityStore {
 
   /**
    * @param ids a list of Tracked Entity Primary Keys
+   * @param programIds the programs to return the owners of
    * @return a MultiMap where key is a {@see TrackedEntity} uid and the * key a List of {@see
    *     ProgramOwner} objects
    */
-  Multimap<String, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids);
+  Multimap<String, TrackedEntityProgramOwner> getProgramOwners(
+      List<Long> ids, List<Long> programIds);
 
   /**
    * For each te, get the list of programs for which the user has ownership.
