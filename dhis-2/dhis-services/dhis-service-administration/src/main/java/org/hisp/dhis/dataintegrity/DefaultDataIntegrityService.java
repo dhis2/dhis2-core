@@ -75,6 +75,7 @@ import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.configuration.ServerBaseUrlValidator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
@@ -84,6 +85,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.i18n.I18n;
@@ -148,6 +150,8 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   private final DataIntegrityStore dataIntegrityStore;
 
   private final SchemaService schemaService;
+
+  private final DhisConfigurationProvider dhisConfigurationProvider;
 
   private Cache<DataIntegritySummary> summaryCache;
 
@@ -367,9 +371,32 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     return issues;
   }
 
+  /**
+   * Reports a single issue when {@code server.base.url} is missing or invalid in {@code dhis.conf}.
+   * The same problem is logged as a warning at startup, but admins without log access only see it
+   * here.
+   */
+  List<DataIntegrityIssue> getServerBaseUrlIssues() {
+    return ServerBaseUrlValidator.validate(dhisConfigurationProvider.getServerBaseUrl())
+        .map(problem -> List.of(new DataIntegrityIssue(null, "server.base.url", problem, null)))
+        .orElse(List.of());
+  }
+
   private void registerNonDatabaseIntegrityCheck(
       DataIntegrityCheckType type,
       Class<? extends IdentifiableObject> issueIdType,
+      Supplier<List<DataIntegrityIssue>> check) {
+    registerNonDatabaseIntegrityCheck(type, issueIdType, true, check);
+  }
+
+  /**
+   * @param isSlow whether the check is expensive; slow checks are excluded when running checks
+   *     without naming them explicitly
+   */
+  private void registerNonDatabaseIntegrityCheck(
+      DataIntegrityCheckType type,
+      Class<? extends IdentifiableObject> issueIdType,
+      boolean isSlow,
       Supplier<List<DataIntegrityIssue>> check) {
     String name = type.getName();
     I18n i18n = i18nManager.getI18n(DataIntegrityService.class);
@@ -385,7 +412,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
           DataIntegrityCheck.builder()
               .name(name)
               .displayName(info.apply("name", name.replace('_', ' ')))
-              .isSlow(true)
+              .isSlow(isSlow)
               .isProgrammatic(true)
               .severity(
                   DataIntegritySeverity.valueOf(
@@ -480,6 +507,11 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE_ID,
         ProgramRule.class,
         this::getProgramRuleActionsWithNoProgramStageId);
+    registerNonDatabaseIntegrityCheck(
+        DataIntegrityCheckType.SERVER_BASE_URL_NOT_CONFIGURED,
+        null,
+        false,
+        this::getServerBaseUrlIssues);
   }
 
   Set<String> addSQLChecksToFlattedReport() {
