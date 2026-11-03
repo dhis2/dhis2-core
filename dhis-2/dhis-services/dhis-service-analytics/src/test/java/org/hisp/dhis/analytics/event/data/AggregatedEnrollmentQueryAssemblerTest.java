@@ -38,6 +38,10 @@ import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramStage;
+import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -48,6 +52,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
@@ -62,11 +68,13 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -89,9 +97,45 @@ class AggregatedEnrollmentQueryAssemblerTest {
   void addAggregatedColumnsEmitsCountValue() {
     SelectBuilder sb = new SelectBuilder().from("eb_table", "eb");
 
-    assembler.addAggregatedColumns(sb);
+    assembler.addAggregatedColumns(sb, new EventQueryParams.Builder().build());
 
     assertThat(sb.build(), containsString("count(eb.enrollment) as value"));
+  }
+
+  @Test
+  void addAggregatedColumnsAggregatesStageValueFromValueCte() {
+    DataElement element = createDataElement('A', ValueType.NUMBER, AggregationType.SUM);
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withValue(element)
+            .withValueProgramStage(createProgramStage('A', createProgram('A')))
+            .withAggregationType(AnalyticsAggregationType.AVERAGE)
+            .build();
+    SelectBuilder sb = new SelectBuilder().from("eb_table", "eb");
+
+    assembler.addAggregatedColumns(sb, params);
+
+    assertThat(sb.build(), containsString("avg(enrollment_value.value) as value"));
+    assertEquals(Optional.of("enrollment_value.value"), assembler.valueColumn(params));
+    assertEquals(Optional.empty(), assembler.valueBaseColumn(params));
+  }
+
+  @Test
+  void addAggregatedColumnsAggregatesAttributeFromBaseCte() {
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A', ValueType.NUMBER);
+    attribute.setUid("lw1SqmMlnfh");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withValue(attribute)
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .build();
+    SelectBuilder sb = new SelectBuilder().from("eb_table", "eb");
+
+    assembler.addAggregatedColumns(sb, params);
+
+    assertThat(sb.build(), containsString("sum(eb.\"lw1SqmMlnfh\") as value"));
+    assertEquals(Optional.of("eb.\"lw1SqmMlnfh\""), assembler.valueColumn(params));
+    assertEquals(Optional.of("\"lw1SqmMlnfh\""), assembler.valueBaseColumn(params));
   }
 
   @Test
