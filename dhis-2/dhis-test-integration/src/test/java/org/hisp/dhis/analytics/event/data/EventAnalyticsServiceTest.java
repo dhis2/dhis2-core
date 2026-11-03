@@ -1652,6 +1652,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA));
 
     return getBaseEventQueryParamsBuilder()
+        .withEndpointItem(RequestTypeAware.EndpointItem.ENROLLMENT)
         .withProgram(programA)
         .addItem(new QueryItem(atU, null, atU.getValueType(), atU.getAggregationType(), null))
         .addDimension(orgUnitDimension)
