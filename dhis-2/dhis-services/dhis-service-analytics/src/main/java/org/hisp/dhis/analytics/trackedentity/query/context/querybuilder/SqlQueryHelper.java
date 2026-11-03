@@ -34,6 +34,7 @@ import static org.apache.commons.text.StringSubstitutor.replace;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
 import static org.hisp.dhis.common.collection.CollectionUtils.mergeMaps;
+import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.Map;
 import lombok.NoArgsConstructor;
@@ -52,6 +53,13 @@ import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OffsetHe
  */
 @NoArgsConstructor(access = PRIVATE)
 class SqlQueryHelper {
+
+  /** Alias the collapsed event row is selected under. */
+  static final String COLLAPSED_EVENT_ALIAS = "ev";
+
+  // Row-level endpoint subqueries. These pick an enrollment first and then an event within it,
+  // so they can land on a different event than the aggregate collapse below. Used for display,
+  // sorting and filtering of per-tracked-entity rows; never for grouping.
 
   private static final String ENROLLMENT_ORDER_BY_SUBQUERY =
       """
@@ -170,6 +178,21 @@ class SqlQueryHelper {
              and ev.enrollment = %s)"""
           .formatted(ENROLLMENT_ORDER_BY_SUBQUERY);
 
+  // Aggregate endpoint subqueries. These collapse across all of a tracked entity's enrollments,
+  // partitioning by trackedentity, so each tracked entity contributes exactly one event and a
+  // count over the grouped query stays a count of tracked entities. Used for grouping, for the
+  // restriction of a grouped dimension, and for ordering by a grouped dimension.
+
+  private static final String COLLAPSED_EVENT_SELECT_SUBQUERY =
+      """
+          (select ${selectedEventExpression}
+           from (select *, row_number() over (partition by trackedentity order by occurreddate ${programStageOffsetDirection}) as rn
+                 from analytics_te_event_${trackedEntityTypeUid}
+                 where programstage = '${programStageUid}'
+                   and status != 'SCHEDULE') ev
+           where ev.rn = ${programStageOffset}
+             and ev.trackedentity = ${trackedEntityAlias}.trackedentity)""";
+
   private static final String EVENT_VALUE_COLLAPSE_TABLE =
       """
           (select trackedentity, eventdatavalues
@@ -178,6 +201,15 @@ class SqlQueryHelper {
                  from analytics_te_event_${trackedEntityTypeUid}
                  where programstage = '${programStageUid}'
                    and jsonb_exists(eventdatavalues, '${dataElementUid}')
+                   and status != 'SCHEDULE') e
+           where rn = ${offset}) ${alias}""";
+
+  private static final String GROUPED_EVENT_VALUE_COLLAPSE_TABLE =
+      """
+          (select *
+           from (select *, row_number() over (partition by trackedentity order by occurreddate ${direction}) as rn
+                 from analytics_te_event_${trackedEntityTypeUid}
+                 where programstage = '${programStageUid}'
                    and status != 'SCHEDULE') e
            where rn = ${offset}) ${alias}""";
 
@@ -200,10 +232,26 @@ class SqlQueryHelper {
    */
   static LeftJoin buildEventValueLeftJoin(
       EventValue eventValue, String trackedEntityTypeUid, String alias) {
+    return buildEventValueLeftJoin(
+        eventValue, trackedEntityTypeUid, alias, EVENT_VALUE_COLLAPSE_TABLE);
+  }
+
+  /**
+   * Shares the offset-selected event with grouped dimensions. Value presence must not change group
+   * membership: a missing value contributes null instead of being read from an older event.
+   */
+  static LeftJoin buildGroupedEventValueLeftJoin(
+      EventValue eventValue, String trackedEntityTypeUid, String alias) {
+    return buildEventValueLeftJoin(
+        eventValue, trackedEntityTypeUid, alias, GROUPED_EVENT_VALUE_COLLAPSE_TABLE);
+  }
+
+  private static LeftJoin buildEventValueLeftJoin(
+      EventValue eventValue, String trackedEntityTypeUid, String alias, String template) {
     Offset offset = OffsetHelper.getOffset(eventValue.offset());
     String table =
         replace(
-            EVENT_VALUE_COLLAPSE_TABLE,
+            template,
             Map.of(
                 "direction", offset.direction(),
                 "trackedEntityTypeUid", trackedEntityTypeUid,
@@ -214,6 +262,71 @@ class SqlQueryHelper {
 
     return LeftJoin.of(
         () -> table, () -> alias + ".trackedentity = " + TRACKED_ENTITY_ALIAS + ".trackedentity");
+  }
+
+  /**
+   * Builds a scalar subquery selecting a field from the single event each tracked entity has in the
+   * given program stage, chosen by the offset. Grouping on this expression puts a tracked entity in
+   * exactly one group, so a count over the grouped query stays a count of tracked entities.
+   *
+   * <p>The collapse partitions by {@code trackedentity} across <em>all</em> of the tracked entity's
+   * enrollments, matching {@link #buildEventValueLeftJoin} so that a grouped dimension and an
+   * aggregated {@code value} resolve to the same event. This is the difference from {@link
+   * #buildSelectSubquery}, which picks an enrollment first and then an event within it, and so can
+   * land on a different event.
+   *
+   * <p>Events with {@code SCHEDULE} status are excluded, as they carry no occurred date.
+   *
+   * @param dimId the dimension identifier, which must be event scoped.
+   * @param selectedField the event table column to select, for example {@code ou}.
+   * @return the renderable scalar subquery.
+   */
+  public static Renderable buildCollapsedEventSubquery(
+      DimensionIdentifier<DimensionParam> dimId, String selectedField) {
+    return buildCollapsedEventValueSubquery(dimId, () -> collapsedColumn(selectedField));
+  }
+
+  /**
+   * Builds the {@link #buildCollapsedEventSubquery} scalar subquery over an expression rather than
+   * a plain column, so that a value held in the event's data values can be read from the single
+   * event chosen for each tracked entity. The expression is rendered against {@link
+   * #COLLAPSED_EVENT_ALIAS}.
+   *
+   * <p>Unlike {@link #buildEventValueLeftJoin} this does not require the event to hold the data
+   * element. A grouped data element must keep the events that lack it, so that they group under no
+   * value rather than dropping out of the query.
+   *
+   * @param dimId the dimension identifier, which must be event scoped.
+   * @param selectedExpression the expression to select, rendered against the collapsed event.
+   * @return the renderable scalar subquery.
+   */
+  public static Renderable buildCollapsedEventValueSubquery(
+      DimensionIdentifier<DimensionParam> dimId, Renderable selectedExpression) {
+    if (!dimId.isEventDimension()) {
+      throw new IllegalArgumentException(
+          "buildCollapsedEventSubquery only supports event dimensions: " + dimId);
+    }
+    return () ->
+        replace(
+            COLLAPSED_EVENT_SELECT_SUBQUERY,
+            collapsedEventPlaceholders(dimId, selectedExpression.render()));
+  }
+
+  /** Returns the given column read off the collapsed event row. */
+  static String collapsedColumn(String selectedField) {
+    return COLLAPSED_EVENT_ALIAS + "." + doubleQuote(selectedField);
+  }
+
+  private static Map<String, String> collapsedEventPlaceholders(
+      DimensionIdentifier<DimensionParam> dimId, String selectedExpression) {
+    return mergeMaps(
+        getEnrollmentPlaceholders(dimId),
+        getEventPlaceholders(dimId),
+        Map.of(
+            "selectedEventExpression",
+            selectedExpression,
+            "trackedEntityAlias",
+            TRACKED_ENTITY_ALIAS));
   }
 
   /**

@@ -30,6 +30,8 @@
 package org.hisp.dhis.dataelement;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -132,5 +134,87 @@ class DataElementOperandStoreTest extends PostgresIntegrationTestBase {
     DataElement de = createDataElement(c, cc);
     manager.save(de);
     return de;
+  }
+
+  // -------------------------------------------------------------------------
+  // JPA migration verification (HBM -> annotations)
+  // -------------------------------------------------------------------------
+
+  @Test
+  @DisplayName("JPA: dataElement and categoryOptionCombo round-trip through their FK columns")
+  void testJpaAssociationsRoundTrip() {
+    DataElement de = createDataElementAndSave('R');
+    CategoryCombo cc = createCategoryCombo("2", "CatComUid02");
+    manager.save(cc);
+    CategoryOptionCombo coc = createCategoryOptionCombo(cc);
+    manager.save(coc);
+
+    DataElementOperand deo = new DataElementOperand(de, coc);
+    dataElementOperandStore.save(deo);
+    long id = deo.getId();
+
+    clearSession(); // force reload from DB
+
+    DataElementOperand reloaded = dataElementOperandStore.get(id);
+    assertNotNull(reloaded);
+    assertEquals(de.getUid(), reloaded.getDataElement().getUid());
+    assertEquals(coc.getUid(), reloaded.getCategoryOptionCombo().getUid());
+  }
+
+  @Test
+  @DisplayName(
+      "JPA: attributeOptionCombo is NOT persisted (no column in dataelementoperand, "
+          + "matches the HBM comment that this was intentional)")
+  void testJpaAttributeOptionComboNotPersisted() {
+    DataElement de = createDataElementAndSave('N');
+    CategoryCombo cc = createCategoryCombo("3", "CatComUid03");
+    manager.save(cc);
+    CategoryOptionCombo coc = createCategoryOptionCombo(cc);
+    CategoryOptionCombo aoc = createCategoryOptionCombo(cc);
+    manager.save(List.of(coc, aoc));
+
+    DataElementOperand deo = new DataElementOperand(de, coc, aoc);
+    dataElementOperandStore.save(deo);
+    long id = deo.getId();
+
+    clearSession();
+
+    DataElementOperand reloaded = dataElementOperandStore.get(id);
+    assertNotNull(reloaded.getCategoryOptionCombo());
+    assertNull(
+        reloaded.getAttributeOptionCombo(),
+        "attributeOptionCombo has no backing column and must not survive a reload");
+  }
+
+  @Test
+  @DisplayName("JPA: getUid()/getName()/getDisplayName() stay computed from dataElement + coc")
+  void testJpaComputedIdentityNotPersisted() {
+    DataElement de = createDataElementAndSave('C');
+    CategoryCombo cc = createCategoryCombo("4", "CatComUid04");
+    manager.save(cc);
+    CategoryOptionCombo coc = createCategoryOptionCombo(cc);
+    manager.save(coc);
+
+    DataElementOperand deo = new DataElementOperand(de, coc);
+    // getUid()/getName() are computed, not backed by a persisted column.
+    assertEquals(de.getUid() + DataElementOperand.SEPARATOR + coc.getUid(), deo.getUid());
+    assertTrue(deo.getName().startsWith(de.getName()));
+
+    dataElementOperandStore.save(deo);
+    long id = deo.getId();
+
+    clearSession();
+
+    DataElementOperand reloaded = dataElementOperandStore.get(id);
+    assertEquals(deo.getUid(), reloaded.getUid());
+  }
+
+  @Test
+  @DisplayName("JPA: id is generated (SEQUENCE) on save")
+  void testJpaIdGeneration() {
+    DataElement de = createDataElementAndSave('G');
+    DataElementOperand deo = new DataElementOperand(de);
+    dataElementOperandStore.save(deo);
+    assertTrue(deo.getId() > 0, "id must be generated on save");
   }
 }

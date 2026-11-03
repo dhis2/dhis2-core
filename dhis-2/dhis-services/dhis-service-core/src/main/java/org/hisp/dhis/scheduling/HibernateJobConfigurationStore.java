@@ -263,7 +263,7 @@ public class HibernateJobConfigurationStore
           now() > lastalive + :timeout * interval '1 second'
           or (schedulingtype = 'FIXED_DELAY'
             and delay is not null
-            and now() > lastexecuted + delay * interval '2 second'
+            and now() > lastexecuted + delay * interval '1 second'
           ))
         """;
     return runReadInStatelessSession(
@@ -592,7 +592,7 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  public int rescheduleStaleJobs(int timeoutMinutes) {
+  public int rescheduleStaleJobs(int timeoutMinutes, Set<JobType> types) {
     String sql =
         """
         update jobconfiguration
@@ -613,12 +613,15 @@ public class HibernateJobConfigurationStore
             when queueposition is not null then 'CRON'
             else schedulingtype end
         where jobstatus = 'RUNNING'
+        and jobtype = ANY(:types)
         and now() > lastalive + :timeout * interval '1 minute'
         """;
+    String[] jobTypes = types.stream().map(JobType::name).toArray(String[]::new);
     return runWriteInStatelessSession(
         q ->
             nativeSynchronizedQuery(q, sql)
                 .setParameter("timeout", max(1, timeoutMinutes))
+                .setParameter("types", jobTypes, StringArrayType.INSTANCE)
                 .executeUpdate());
   }
 

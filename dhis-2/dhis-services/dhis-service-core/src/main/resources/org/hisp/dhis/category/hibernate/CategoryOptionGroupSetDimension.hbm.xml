@@ -6,7 +6,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.category.CategoryOptionGroupSetDimension" table="categoryoptiongroupsetdimension">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="categoryoptiongroupsetdimensionid">
       <generator class="native" />
@@ -16,7 +16,7 @@
       foreign-key="fk_dimension_categoryoptiongroupsetid" />
     
     <list name="items" table="categoryoptiongroupsetdimension_items">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="categoryoptiongroupsetdimensionid" foreign-key="fk_dimension_items_categoryoptiongroupsetdimensionid" />
       <list-index column="sort_order" />
       <many-to-many class="org.hisp.dhis.category.CategoryOptionGroup" column="categoryoptiongroupid"

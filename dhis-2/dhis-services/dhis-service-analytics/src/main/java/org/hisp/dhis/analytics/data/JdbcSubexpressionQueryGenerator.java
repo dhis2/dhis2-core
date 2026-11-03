@@ -123,7 +123,7 @@ import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
  *             union all select -1, '202310', '202309'
  *             union all select 0, '202309', '202309'
  *             union all select 0, '202310', '202310')
- *              as shift on dataperiod = monthly
+ *              as shift on shift.dataperiod = ax.monthly
  *       where monthly in ('202308', '202309', '202310')
  *       and dx in ('A2VfEfPflHV') // (greatly improves performance)
  *       group by uidlevel2, monthly, ou) as ax

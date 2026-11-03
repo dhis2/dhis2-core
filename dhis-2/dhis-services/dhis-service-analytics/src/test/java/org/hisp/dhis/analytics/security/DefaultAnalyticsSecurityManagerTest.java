@@ -30,18 +30,21 @@
 package org.hisp.dhis.analytics.security;
 
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -78,14 +81,15 @@ class DefaultAnalyticsSecurityManagerTest extends TestBase {
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');
 
-    when(userService.getUserByUsername(nullable(String.class))).thenReturn(currentUser);
-    when(currentUser.isSuper()).thenReturn(true);
-    when(currentUser.getDimensionConstraints()).thenReturn(Set.of());
+    lenient().when(userService.getUserByUsername(nullable(String.class))).thenReturn(currentUser);
+    lenient().when(currentUser.isSuper()).thenReturn(true);
+    lenient().when(currentUser.getDimensionConstraints()).thenReturn(Set.of());
     lenient().when(currentUser.hasDataViewOrganisationUnit()).thenReturn(true);
     lenient().when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of(ouB));
     lenient().when(currentUser.getUsername()).thenReturn("tester");
 
-    UserDetails currentUserDetails = UserDetails.empty().username("tester").build();
+    UserDetails currentUserDetails =
+        UserDetails.empty().username("tester").userDataOrgUnitIds(Set.of(ouB.getUid())).build();
     CurrentUserUtil.injectUserInSecurityContext(currentUserDetails);
   }
 
@@ -119,6 +123,53 @@ class DefaultAnalyticsSecurityManagerTest extends TestBase {
 
     assertEquals(1, constrainedOus.size());
     assertEquals(ouA.getUid(), constrainedOus.get(0).getUid());
+  }
+
+  /**
+   * REGISTRATION_OU deliberately does not suppress the data view constraint the way ENROLLMENT_OU
+   * does, so an OU-less request is still clipped to the caller's scope.
+   */
+  @Test
+  void shouldAssignDefaultOuConstraintWhenRegistrationOuIsUsedWithoutExplicitOu() {
+    EventQueryParams params =
+        new EventQueryParams.Builder().withRegistrationOuFilter(List.of(ouB)).build();
+
+    EventQueryParams constrained = securityManager.withUserConstraints(params);
+    List<DimensionalItemObject> constrainedOus =
+        constrained.getDimensionOrFilterItems(ORGUNIT_DIM_ID);
+
+    assertEquals(1, constrainedOus.size());
+    assertEquals(ouB.getUid(), constrainedOus.get(0).getUid());
+  }
+
+  @Test
+  void shouldRejectRegistrationOuDimensionOutsideDataViewScope() {
+    EventQueryParams params =
+        new EventQueryParams.Builder().withRegistrationOuDimension(List.of(ouA)).build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> securityManager.decideAccess(params));
+
+    assertEquals(ErrorCode.E7120, exception.getErrorCode());
+  }
+
+  @Test
+  void shouldRejectRegistrationOuFilterOutsideDataViewScope() {
+    EventQueryParams params =
+        new EventQueryParams.Builder().withRegistrationOuFilter(List.of(ouA)).build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> securityManager.decideAccess(params));
+
+    assertEquals(ErrorCode.E7120, exception.getErrorCode());
+  }
+
+  @Test
+  void shouldAcceptRegistrationOuWithinDataViewScope() {
+    EventQueryParams params =
+        new EventQueryParams.Builder().withRegistrationOuDimension(List.of(ouB)).build();
+
+    assertDoesNotThrow(() -> securityManager.decideAccess(params));
   }
 
   @Test

@@ -39,8 +39,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Properties;
 import org.hibernate.cache.jcache.ConfigSettings;
-import org.hibernate.cache.jcache.internal.JCacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
+import org.hisp.dhis.cache.guard.GuardedJCacheRegionFactory;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,7 +86,7 @@ class HibernateConfigTest {
     assertEquals("true", properties.get(AvailableSettings.USE_SECOND_LEVEL_CACHE));
     assertEquals("true", properties.get(AvailableSettings.USE_QUERY_CACHE));
     assertEquals(
-        JCacheRegionFactory.class.getName(),
+        GuardedJCacheRegionFactory.class.getName(),
         properties.get(AvailableSettings.CACHE_REGION_FACTORY));
     assertFalse(properties.containsKey(ConfigSettings.CONFIG_URI));
   }

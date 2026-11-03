@@ -46,8 +46,7 @@ import org.hisp.dhis.tracker.model.SingleEvent;
 /**
  * Flushes staged {@link SingleEvent} writes. Mirrors {@link TrackerEventWriter} but writes to
  * {@code singleevent} (no {@code enrollmentid}, no {@code scheduleddate}); ids are pre-allocated
- * from {@code singleevent_sequence}. New notes cascade into {@code note} + {@code
- * singleevent_notes}.
+ * from {@code singleevent_sequence}. New notes are inserted into {@code note}.
  */
 final class SingleEventWriter extends UpsertTableWriter<SingleEvent> {
 
@@ -133,7 +132,7 @@ final class SingleEventWriter extends UpsertTableWriter<SingleEvent> {
           + " ) v where ev.eventid = v.eventid";
 
   private final UserInfoJsonCache userInfo;
-  private final NoteCascadeWriter notes = new NoteCascadeWriter("singleevent_notes", "eventid");
+  private final NoteWriter notes = new NoteWriter("singleeventid");
 
   SingleEventWriter(UserInfoJsonCache userInfo) {
     this.userInfo = userInfo;
@@ -143,7 +142,7 @@ final class SingleEventWriter extends UpsertTableWriter<SingleEvent> {
   void flush(Connection conn) throws SQLException {
     insert(conn);
     update(conn);
-    notes.cascade(conn, inserts, updates, SingleEvent::getId, SingleEvent::getNotes);
+    notes.write(conn, inserts, updates, SingleEvent::getId, SingleEvent::getNotes);
   }
 
   private void insert(Connection conn) throws SQLException {

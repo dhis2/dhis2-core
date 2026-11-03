@@ -258,7 +258,8 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    *
    * @param timeoutMinutes duration in minutes for which the job has not been updated for it to be
    *     considered stale and changed back to {@link JobStatus#SCHEDULED}.
+   * @param types set of types to include in the operation
    * @return number of job configurations that were affected
    */
-  int rescheduleStaleJobs(int timeoutMinutes);
+  int rescheduleStaleJobs(int timeoutMinutes, Set<JobType> types);
 }

@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +39,6 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -91,8 +89,8 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
           + " join trackedentity te on en.trackedentityid = te.trackedentityid "
           + " join program pr on pr.programid = en.programid "
           + " where en.deleted = false "
-          + " and te.uid in (:teuids)"
-          + " and pr.uid in (:pruids)";
+          + " and te.uid = any(:teuids)"
+          + " and pr.uid = any(:pruids)";
 
   protected TrackedEntityEnrollmentSupplier(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
@@ -100,37 +98,32 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    List<UID> trackedEntityList =
-        trackerObjects.getEnrollments().stream()
-            .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
-            .toList();
-
-    List<String> programList =
-        preheat.getAll(Program.class).stream().map(IdentifiableObject::getUid).toList();
-
-    List<List<UID>> trackedEntities =
-        Lists.partition(new ArrayList<>(trackedEntityList), Constant.SPLIT_LIST_PARTITION_SIZE);
-
-    if (programList.isEmpty() || trackedEntities.isEmpty()) return;
-
-    Map<UID, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
-
     if (trackerObjects.getEnrollments().isEmpty()) return;
 
-    for (List<UID> trackedEntityListSubList : trackedEntities) {
-      queryTeAndAddToMap(trackedEntityToEnrollmentMap, trackedEntityListSubList, programList);
-    }
+    List<Program> programs = preheat.getAll(Program.class);
+    if (programs.isEmpty()) return;
+
+    String[] trackedEntityUids =
+        trackerObjects.getEnrollments().stream()
+            .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
+            .map(UID::getValue)
+            .distinct()
+            .toArray(String[]::new);
+    String[] programUids = programs.stream().map(IdentifiableObject::getUid).toArray(String[]::new);
+
+    Map<UID, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
+    queryTeAndAddToMap(trackedEntityToEnrollmentMap, trackedEntityUids, programUids);
 
     preheat.setTrackedEntityToEnrollmentMap(trackedEntityToEnrollmentMap);
   }
 
   private void queryTeAndAddToMap(
       Map<UID, List<Enrollment>> trackedEntityToEnrollmentMap,
-      List<UID> trackedEntityListSubList,
-      List<String> programList) {
+      String[] trackedEntityUids,
+      String[] programUids) {
     MapSqlParameterSource parameters = new MapSqlParameterSource();
-    parameters.addValue("teuids", UID.toValueList(trackedEntityListSubList));
-    parameters.addValue("pruids", programList);
+    parameters.addValue("teuids", trackedEntityUids);
+    parameters.addValue("pruids", programUids);
 
     jdbcTemplate.query(
         SQL,

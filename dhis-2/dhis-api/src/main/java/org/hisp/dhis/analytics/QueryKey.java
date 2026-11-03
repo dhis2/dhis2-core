@@ -39,8 +39,31 @@ import org.hisp.dhis.common.HashUtils;
  * @author Lars Helge Overland
  */
 public class QueryKey {
-  // Null Value
+  /** Legacy no-value keyword, used to match a missing (null) value on non-option-set dimensions. */
   public static final String NV = "NV";
+
+  /** Reserved no-value keyword, used to match a missing (null) value on option-set dimensions. */
+  public static final String NO_VALUE = "D2__NOVALUE";
+
+  /**
+   * Returns the no-value filter keyword for the given dimension type: the reserved {@link
+   * #NO_VALUE} keyword for option-set dimensions, the legacy {@link #NV} keyword otherwise.
+   *
+   * @param isOptionSet whether the dimension is backed by an option set.
+   */
+  public static String noValueKeyword(boolean isOptionSet) {
+    return isOptionSet ? NO_VALUE : NV;
+  }
+
+  /**
+   * Indicates whether the given filter token is the no-value keyword for the given dimension type.
+   *
+   * @param token the filter token.
+   * @param isOptionSet whether the dimension is backed by an option set.
+   */
+  public static boolean isNoValue(String token, boolean isOptionSet) {
+    return noValueKeyword(isOptionSet).equals(token);
+  }
 
   private static final char VALUE_SEP = ':';
 

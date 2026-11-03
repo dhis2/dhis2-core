@@ -43,6 +43,8 @@ public enum ValidationCode {
   E1000("User: `{0}` has no capture scope access to OrganisationUnit: `{1}`."),
   E1001("User: `{0}` has no data write access to TrackedEntityType: `{1}`."),
   E1002("TrackedEntity: `{0}`, already exists."),
+  E1004(
+      "File resource: `{0}` must be an unassigned file resource of domain DATA_VALUE uploaded by the importing user."),
   E1005("Could not find TrackedEntityType: `{0}`."),
   E1006("Attribute: `{0}` does not exist."),
   E1007("Error validating attribute value type: `{0}`; Error: `{1}`."),
@@ -73,9 +75,11 @@ public enum ValidationCode {
   E1033("Event: `{0}`, Enrollment value is null."),
   E1039("ProgramStage: `{0}` is not repeatable and an Event already exists."),
   E1041("Enrollment OrganisationUnit: `{0}` and Program: `{1}` do not match."),
-  E1043("Event: `{0}` completeness date has expired, not allowed to make changes to this Event."),
+  E1043(
+      "Event: `{0}` completeness date has expired, not possible to create, edit or delete Event."),
   E1046("Event: `{0}` needs to have at least one Event or schedule date."),
-  E1047("Event: `{0}` date belongs to an expired period, not possible to create Event."),
+  E1047(
+      "Event: `{0}` date belongs to an expired period, not possible to create, edit or delete Event."),
   E1049("Could not find OrganisationUnit: `{0}` linked to TrackedEntity."),
   E1050("Event ScheduledAt date is missing."),
   E1051("Event: `{0}` completedAt must be null when status is `{1}`."),
@@ -84,6 +88,9 @@ public enum ValidationCode {
   E1055("Default AttributeOptionCombo is not allowed as Program has non-default CategoryCombo."),
   E1056("Event date: `{0}` is before start date: `{1}` for AttributeOption: `{2}`."),
   E1057("Event date: `{0}` is after end date: `{1}` for AttributeOption: `{2}` in Program: `{3}`."),
+  E1058("Enrollment date: `{0}` is before start date: `{1}` for AttributeOption: `{2}`."),
+  E1059(
+      "Enrollment date: `{0}` is after end date: `{1}` for AttributeOption: `{2}` in Program: `{3}`."),
   E1063("TrackedEntity: `{0}`, does not exist."),
   E1064("Non-unique attribute value `{0}` for attribute `{1}`."),
   E1068("Could not find TrackedEntity: `{0}` linked to Enrollment."),

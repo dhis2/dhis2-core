@@ -35,6 +35,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deadline.DeadlineQueries;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -67,6 +68,6 @@ public class HibernateTrackedEntityTypeAttributeStore
     query.where(root.get("trackedEntityType").in(trackedEntityTypes));
     query.distinct(true);
 
-    return entityManager.createQuery(query).getResultList();
+    return DeadlineQueries.resultList(entityManager.createQuery(query));
   }
 }

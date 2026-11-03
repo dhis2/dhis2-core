@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
+import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_VALUE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 
 import java.util.LinkedHashMap;
@@ -84,7 +84,7 @@ public class CteContext {
       String cteDefinition,
       int offset,
       boolean isRowContext) {
-    addCte(programStage, item, cteDefinition, offset, isRowContext, hasNonNvFilter(item));
+    addCte(programStage, item, cteDefinition, offset, isRowContext, hasActualValueFilter(item));
   }
 
   /**
@@ -157,6 +157,16 @@ public class CteContext {
    */
   public void addBaseAggregateCte(String cteDefinition, String whereClauses) {
     cteDefinitions.put(ENROLLMENT_AGGR_BASE, new CteDefinition(cteDefinition, whereClauses));
+  }
+
+  /**
+   * Adds the CTE reading the "value" data element of an enrollment aggregate query. It must be
+   * added after the base aggregate CTE, which it reads from.
+   *
+   * @param cteDefinition The CTE definition (the SQL query)
+   */
+  public void addEnrollmentValueCte(String cteDefinition) {
+    cteDefinitions.put(ENROLLMENT_VALUE, CteDefinition.forEnrollmentValue(cteDefinition));
   }
 
   /**
@@ -376,26 +386,26 @@ public class CteContext {
   }
 
   /**
-   * Checks if the item has filters that are not NV-only. NV (null value) filters require special
-   * handling - they should NOT be pushed into the CTE and should NOT trigger INNER JOIN
-   * optimization, because the semantics require checking if the most recent event's value is null,
-   * not finding events with null values.
+   * Checks if the item has filters that carry at least one actual value. No-value filters require
+   * special handling - they must NOT be pushed into the CTE and must NOT trigger INNER JOIN
+   * optimization, because their semantics require checking whether the most recent event's value is
+   * null, rather than finding events with null values.
    *
    * @param item the query item
-   * @return true if the item has filters with non-NV values
+   * @return true if the item has a filter with at least one actual value
    */
-  private boolean hasNonNvFilter(QueryItem item) {
+  private boolean hasActualValueFilter(QueryItem item) {
     if (!item.hasFilter()) {
       return false;
     }
-    // Check if any filter has non-NV values
+    // Check if any filter carries an actual value
     return item.getFilters().stream()
         .anyMatch(
             filter -> {
               List<String> filterItems =
                   org.hisp.dhis.common.QueryFilter.getFilterItems(filter.getFilter());
-              // Return true if there's at least one non-NV value
-              return filterItems.stream().anyMatch(v -> !NV.equals(v));
+              // Return true if there is at least one actual value
+              return filterItems.stream().anyMatch(v -> !item.isNoValue(v));
             });
   }
 

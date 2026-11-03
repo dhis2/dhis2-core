@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -221,9 +222,26 @@ class CombinationGeneratorTest {
       input.add(IntStream.range(0, 50).boxed().toList());
     }
 
-    int combinations = CombinationGenerator.newInstance(input).countCombinations();
+    long combinations = CombinationGenerator.newInstance(input).countCombinations();
 
     assertEquals(125000, combinations);
+  }
+
+  @Test
+  void testCountCombinationsBeyondIntRange() {
+    // 2^16 * 2^16 = 2^32, which wraps to 0 in int arithmetic
+    List<List<Integer>> input =
+        List.of(Collections.nCopies(65536, 0), Collections.nCopies(65536, 0));
+
+    assertEquals(4_294_967_296L, CombinationGenerator.newInstance(input).countCombinations());
+  }
+
+  @Test
+  void testCountCombinationsSaturatesAtLongMax() {
+    // 5 lists of 2^16 elements = 2^80, which does not fit in a long
+    List<List<Integer>> input = Collections.nCopies(5, Collections.nCopies(65536, 0));
+
+    assertEquals(Long.MAX_VALUE, CombinationGenerator.newInstance(input).countCombinations());
   }
 
   private static boolean equals(List<IdentifiableObject> objects, IdentifiableObject... integers) {

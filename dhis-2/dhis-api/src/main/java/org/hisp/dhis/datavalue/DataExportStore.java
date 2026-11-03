@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,24 @@ public interface DataExportStore {
   UID getAttributeOptionCombo(
       @CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions);
 
+  /**
+   * Resolves the default attribute option combo for an export that is scoped to data set(s), but
+   * only when every given data set uses the default attribute category combo.
+   *
+   * <p>In that case the only valid attribute option combo is the default one, so it can be applied
+   * as an explicit filter. This allows the export query to skip the (expensive) per-row attribute
+   * option combo data-sharing check that would otherwise scan the entire {@code
+   * categoryoptioncombo} table.
+   *
+   * @param dataSets the data sets that scope the export
+   * @return the UID of the default {@link org.hisp.dhis.category.CategoryOptionCombo} when every
+   *     given data set uses the default attribute {@link org.hisp.dhis.category.CategoryCombo};
+   *     {@code null} when any given data set uses a non-default attribute category combo, or when
+   *     none of the given data sets exist
+   */
+  @CheckForNull
+  UID getDefaultAttributeOptionComboForDataSets(@Nonnull Stream<UID> dataSets);
+
   /*
   Export
    */
@@ -79,6 +97,21 @@ public interface DataExportStore {
   @Nonnull
   List<String> getDataSetsNoDataReadAccess(@Nonnull Stream<UID> dataSets);
 
+  /**
+   * @param attributeOptionCombos requested attribute option combos
+   * @return the UIDs of the given combos that are not option combos of an attribute category combo
+   *     or the default category combo (invalid as attribute option combos). Empty for superusers.
+   */
+  @Nonnull
+  List<String> getAocNotOfAttributeCombo(@Nonnull Stream<UID> attributeOptionCombos);
+
+  /**
+   * @param attributeOptionCombos requested attribute option combos
+   * @return the UIDs of the given combos the current user may not read data for: combos with a
+   *     category option the user cannot read data of, and combos that are not option combos of an
+   *     attribute category combo or the default category combo. The default combo is always
+   *     readable (no sharing guards on default). Empty for superusers.
+   */
   @Nonnull
   List<String> getAocNoDataReadAccess(@Nonnull Stream<UID> attributeOptionCombos);
 

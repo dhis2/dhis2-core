@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import static org.hisp.dhis.common.adapter.BaseIdentifiableObject_.CREATED_AND_LAST_UPDATED;
+
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
@@ -41,13 +43,14 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
 /**
  * PropertyFilter that supports filtering using FieldPaths, also supports skipping of all fields
- * related to sharing.
+ * related to sharing, and of created/lastUpdated fields.
  *
  * <p>The filter _must_ be set on the ObjectMapper before serialising an object.
  *
@@ -58,6 +61,7 @@ import org.hisp.dhis.system.util.AnnotationUtils;
 public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter {
   private final Set<String> includePaths;
   private final Set<String> skipPaths;
+  private final boolean skipCreatedAndLastUpdated;
   private final boolean excludeDefaults;
 
   /** Cache that contains true/false for classes that should always be expanded. */
@@ -92,7 +96,14 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     if (ctx.alwaysExpand()) return true;
 
+    if (skipCreatedAndLastUpdated && isCreatedOrLastUpdatedProperty(writer, object)) return false;
+
     return includePaths.contains(ctx.fullPath());
+  }
+
+  private static boolean isCreatedOrLastUpdatedProperty(PropertyWriter writer, Object object) {
+    return object instanceof IdentifiableObject
+        && CREATED_AND_LAST_UPDATED.contains(writer.getName());
   }
 
   private PathContext getPath(PropertyWriter writer, JsonGenerator jgen) {

@@ -93,9 +93,24 @@ public class BinaryConditionRenderer extends BaseRenderable {
       ValueTypeMapping valueTypeMapping,
       QueryContext queryContext) {
     return BinaryConditionRenderer.of(
+        field, analyticsQueryOperator, values, valueTypeMapping, queryContext, false);
+  }
+
+  /**
+   * @param isOptionSet whether the dimension is backed by an option set, which selects the no-value
+   *     keyword ({@code D2__NOVALUE} for option sets, {@code NV} otherwise).
+   */
+  public static BinaryConditionRenderer of(
+      Renderable field,
+      AnalyticsQueryOperator analyticsQueryOperator,
+      List<String> values,
+      ValueTypeMapping valueTypeMapping,
+      QueryContext queryContext,
+      boolean isOptionSet) {
+    return BinaryConditionRenderer.of(
         field,
         analyticsQueryOperator,
-        ConstantValuesRenderer.of(values, valueTypeMapping, queryContext));
+        ConstantValuesRenderer.of(values, valueTypeMapping, queryContext, isOptionSet));
   }
 
   public static Renderable of(Renderable left, QueryOperator queryOperator, Renderable right) {

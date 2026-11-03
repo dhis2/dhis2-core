@@ -134,6 +134,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @JoinColumn(name = "lastupdatedby")
   private User lastUpdatedBy;
 
+  @Type(type = "text")
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
@@ -270,7 +271,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataSet getDataSet() {
     return dataSet;

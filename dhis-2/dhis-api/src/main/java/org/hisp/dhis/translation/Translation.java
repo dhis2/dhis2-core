@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.translation;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -84,6 +85,11 @@ public class Translation implements Serializable {
    */
   public static String getCacheKey(Locale locale, String property) {
     return locale != null && property != null ? (locale + property) : null;
+  }
+
+  @JsonIgnore
+  public String getCacheKey() {
+    return getCacheKey(locale, property);
   }
 
   // -------------------------------------------------------------------------------

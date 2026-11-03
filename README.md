@@ -63,6 +63,12 @@ To run DHIS2 from latest `master` branch (as it is on GitHub) run the command be
 DHIS2_IMAGE=dhis2/core-dev:latest docker compose up
 ```
 
+To run the image built for a PR, use the `run-pr.sh` script. It pulls the latest `dhis2/core-pr` image for the PR and starts it with Docker Compose. Any extra arguments are passed on to `docker compose up`.
+
+```sh
+./run-pr.sh 25126
+```
+
 ### Local image
 
 Build a DHIS2 Docker image as described in [Docker image](#docker-image) and execute the following command.
@@ -158,7 +164,7 @@ version: "3.8"
 
 services:
   db:
-    image: postgis/postgis:14-3.3-alpine
+    image: postgis/postgis:16-3.5-alpine
     ports:
       - 127.0.0.1:6432:5432
 ```

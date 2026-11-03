@@ -68,6 +68,8 @@ public class UserQueryParams {
 
   @ToString.Include private Date inactiveSince;
 
+  @ToString.Include private boolean neverLoggedIn;
+
   @ToString.Include private Date passwordLastUpdated;
 
   @ToString.Include private Integer inactiveMonths;

@@ -48,16 +48,20 @@ import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.exception.JDBCConnectionException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -67,6 +71,9 @@ import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dataexchange.client.Dhis2ClientException;
+import org.hisp.dhis.deadline.Deadline;
+import org.hisp.dhis.deadline.DeadlineExceededException;
+import org.hisp.dhis.deadline.DeadlineHolder;
 import org.hisp.dhis.dxf2.metadata.MetadataExportException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
@@ -76,10 +83,12 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
+import org.hisp.dhis.storage.BlobReadTimeoutException;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
@@ -103,11 +112,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.server.resource.BearerTokenError;
+import org.springframework.transaction.CannotCreateTransactionException;
+import org.springframework.transaction.TransactionException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -141,7 +153,12 @@ public class CrudControllerAdvice {
   private static final String GENERIC_ERROR_MESSAGE =
       "An unexpected error has occured. Please contact your system administrator";
 
+  /** Safe to state, unlike the exception message which carries pool sizes and timings. */
+  private static final String NO_CONNECTION_MESSAGE =
+      "The server could not obtain a database connection. Please try again later";
+
   private final List<Class<?>> enumClasses;
+  private final Map<Class<?>, Function<String, Object>> enumFromText = new HashMap<>();
 
   public CrudControllerAdvice() {
     this.enumClasses =
@@ -152,6 +169,7 @@ public class CrudControllerAdvice {
             .getAllClasses()
             .getEnums()
             .loadClasses();
+    enumFromText.put(PeriodTypeEnum.class, PeriodTypeEnum::of);
   }
 
   @InitBinder
@@ -159,7 +177,8 @@ public class CrudControllerAdvice {
     binder.registerCustomEditor(Date.class, new FromTextPropertyEditor(DateUtils::parseDate));
     binder.registerCustomEditor(
         IdentifiableProperty.class, new FromTextPropertyEditor(String::toUpperCase));
-    this.enumClasses.forEach(c -> binder.registerCustomEditor(c, new ConvertEnum(c)));
+    this.enumClasses.forEach(
+        c -> binder.registerCustomEditor(c, new ConvertEnum(c, enumFromText.get(c))));
     binder.registerCustomEditor(TrackerIdSchemeParam.class, new IdSchemeParamEditor());
   }
 
@@ -217,6 +236,99 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage restClientExceptionHandler(RestClientException ex) {
     return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
+  }
+
+  /**
+   * Reports an exhausted connection pool as 503 so clients retry rather than treat it as a defect.
+   * Spring also raises {@link DataAccessResourceFailureException} for failures unrelated to
+   * obtaining a connection, which stay 500 with a message scrubbed by {@link
+   * #SENSITIVE_EXCEPTIONS}.
+   */
+  @ExceptionHandler(DataAccessResourceFailureException.class)
+  @ResponseBody
+  public WebMessage dataAccessResourceFailureException(DataAccessResourceFailureException ex) {
+    log.error(DataAccessResourceFailureException.class.getName(), ex);
+    if (failedToObtainConnection(ex)) {
+      return createWebMessage(NO_CONNECTION_MESSAGE, Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+    return error(getExceptionMessage(ex));
+  }
+
+  /**
+   * Same failure as {@link #dataAccessResourceFailureException}, but raised while starting the
+   * transaction rather than while running a query. Spring wraps that in a {@link
+   * TransactionException}, a separate hierarchy from {@link
+   * org.springframework.dao.DataAccessException}, so it needs its own handler. Its message is not
+   * scrubbed by {@link #SENSITIVE_EXCEPTIONS}, hence the generic message on the 500 branch.
+   */
+  @ExceptionHandler(CannotCreateTransactionException.class)
+  @ResponseBody
+  public WebMessage cannotCreateTransactionException(CannotCreateTransactionException ex) {
+    log.error(CannotCreateTransactionException.class.getName(), ex);
+    if (failedToObtainConnection(ex)) {
+      return createWebMessage(NO_CONNECTION_MESSAGE, Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+    return error(GENERIC_ERROR_MESSAGE);
+  }
+
+  /**
+   * Whether the failure was a failure to obtain a database connection, most commonly an exhausted
+   * connection pool.
+   *
+   * <p>Do not narrow this to transient JDBC exceptions or SQL states: {@code hikari} raises {@code
+   * SQLTransientConnectionException} on pool timeout while {@code unpooled} raises a plain {@code
+   * PSQLException} with state 53300, which is neither transient nor non-transient. What they share
+   * is failing at connection acquisition, which both types below capture.
+   */
+  private static boolean failedToObtainConnection(Throwable ex) {
+    for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+      if (cause instanceof CannotGetJdbcConnectionException
+          || cause instanceof JDBCConnectionException) {
+        return true;
+      }
+      if (cause.getCause() == cause) {
+        break;
+      }
+    }
+    return false;
+  }
+
+  @ExceptionHandler(DeadlineExceededException.class)
+  @ResponseBody
+  public WebMessage deadlineExceededExceptionHandler(DeadlineExceededException ex) {
+    return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.GATEWAY_TIMEOUT);
+  }
+
+  /**
+   * For callers that do not translate this themselves, as the tracker export does to name the
+   * budget in the message.
+   */
+  @ExceptionHandler(BlobReadTimeoutException.class)
+  @ResponseBody
+  public WebMessage blobReadTimeoutExceptionHandler(BlobReadTimeoutException ex) {
+    return createWebMessage(
+        "Reading the file exceeded the time allowed", Status.ERROR, HttpStatus.GATEWAY_TIMEOUT);
+  }
+
+  /**
+   * Without this a query cancelled by the deadline is a {@link PersistenceException} and reported
+   * as 409. Hibernate's own {@code QueryTimeoutException} does not extend the JPA one, so both are
+   * listed.
+   */
+  @ExceptionHandler({
+    jakarta.persistence.QueryTimeoutException.class,
+    org.hibernate.QueryTimeoutException.class
+  })
+  @ResponseBody
+  public WebMessage queryTimeoutExceptionHandler(RuntimeException ex) {
+    Deadline deadline = DeadlineHolder.get();
+    if (deadline == null) {
+      return conflict(getHelpfulMessage(ex)); // not ours to translate
+    }
+    return createWebMessage(
+        new DeadlineExceededException(deadline.budget(), ex).getMessage(),
+        Status.ERROR,
+        HttpStatus.GATEWAY_TIMEOUT);
   }
 
   @ExceptionHandler(IllegalQueryException.class)
@@ -721,15 +833,18 @@ public class CrudControllerAdvice {
 
   private static final class ConvertEnum<T extends Enum<T>> extends PropertyEditorSupport {
     private final Class<T> enumClass;
+    private final @CheckForNull Function<String, Object> fromText;
 
-    private ConvertEnum(Class<T> enumClass) {
+    private ConvertEnum(Class<T> enumClass, @CheckForNull Function<String, Object> fromText) {
       this.enumClass = enumClass;
+      this.fromText = fromText;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void setAsText(String text) {
       Enum<T> enumValue = EnumUtils.getEnumIgnoreCase(enumClass, text);
-
+      if (enumValue == null && fromText != null) enumValue = (Enum<T>) fromText.apply(text);
       if (enumValue == null) {
         throw new IllegalArgumentException(
             MessageFormat.format(" Cannot convert {0} to {1}", text, enumClass));

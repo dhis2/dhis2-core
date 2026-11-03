@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.indicator.IndicatorType" table="indicatortype">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="indicatortypeid">
       <generator class="native" />

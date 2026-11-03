@@ -128,6 +128,9 @@ class TrackerEventQueryParams {
 
   @Getter private CategoryOptionCombo categoryOptionCombo;
 
+  /** Indicates whether to include notes in the event */
+  @Getter private boolean includeNotes;
+
   /**
    * Events can be ordered by field names (given as {@link String}), data elements (given as {@link
    * DataElement}) and tracked entity attributes (given as {@link TrackedEntityAttribute}). It is
@@ -349,6 +352,11 @@ class TrackerEventQueryParams {
 
   public TrackerEventQueryParams setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
     this.categoryOptionCombo = categoryOptionCombo;
+    return this;
+  }
+
+  public TrackerEventQueryParams setIncludeNotes(boolean includeNotes) {
+    this.includeNotes = includeNotes;
     return this;
   }
 
