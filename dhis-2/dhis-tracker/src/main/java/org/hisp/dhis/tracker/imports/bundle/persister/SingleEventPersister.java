@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
+import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
@@ -68,6 +69,8 @@ import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserDetails;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -78,8 +81,11 @@ public class SingleEventPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.SingleEvent, SingleEvent> {
   public SingleEventPersister(
-      DataSource dataSource, FileResourceStore fileResourceStore, ObjectMapper objectMapper) {
-    super(dataSource, fileResourceStore, objectMapper);
+      DataSource dataSource,
+      FileResourceStore fileResourceStore,
+      ObjectMapper objectMapper,
+      @Qualifier(AES_128_STRING_ENCRYPTOR) PBEStringEncryptor encryptor) {
+    super(dataSource, fileResourceStore, objectMapper, encryptor);
   }
 
   @Override

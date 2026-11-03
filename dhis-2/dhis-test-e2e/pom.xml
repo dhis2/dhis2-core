@@ -20,7 +20,7 @@
     <jackson.version.databind>2.22.4</jackson.version.databind>
     <jackson.version.annotation>2.22</jackson.version.annotation>
     <guava.version>33.7.2-jre</guava.version>
-    <json-tree.version>1.11.0</json-tree.version>
+    <json-tree.version>1.12.0</json-tree.version>
     <javafaker.version>1.0.2</javafaker.version>
     <opencsv.version>5.12.0</opencsv.version>
     <owner.version>1.0.12</owner.version>
@@ -31,7 +31,7 @@
     <awaitility.version>4.3.0</awaitility.version>
     <lombok.version>1.18.48</lombok.version>
     <allure.version>2.29.1</allure.version>
-    <selenium-java.version>4.51.0</selenium-java.version>
+    <selenium-java.version>4.52.0</selenium-java.version>
     <slf4j-simple.version>2.0.20</slf4j-simple.version>
     <fluent-hc.version>4.5.14</fluent-hc.version>
     <httpclient5.version>5.6.5</httpclient5.version>
@@ -295,7 +295,7 @@
   </build>
 
   <profiles>
-    <!-- Default profile will run all e2e tests except the analytics ones -->
+    <!-- Default profile will run all e2e tests except analytics and external-IdP (auth-idp) ones -->
     <profile>
       <id>default</id>
       <activation>
@@ -307,7 +307,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <excludedGroups>analytics</excludedGroups>
+              <excludedGroups>analytics,auth-idp</excludedGroups>
             </configuration>
           </plugin>
         </plugins>
@@ -343,6 +343,20 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <groups>uitests</groups>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>auth-idp</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <groups>auth-idp</groups>
             </configuration>
           </plugin>
         </plugins>

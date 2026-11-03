@@ -31,7 +31,6 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.function.Function.identity;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
@@ -235,8 +234,9 @@ public class HibernateDataExportStore implements DataExportStore {
       lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
 
     boolean descendants = params.isIncludeDescendants();
+    // no default order: a plain export has no consumer of row order, and sorting by columns
+    // without a supporting index forces a blocking sort over the whole result set
     List<Order> orders = params.getOrders();
-    if (isEmpty(orders)) orders = List.of(Order.PE, Order.CREATED, Order.DE);
 
     List<UID> oug = params.getOrganisationUnitGroups();
     Set<String> ouCapture = currentUser.getUserOrgUnitIds();

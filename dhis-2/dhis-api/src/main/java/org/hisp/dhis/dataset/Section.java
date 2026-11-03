@@ -134,6 +134,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @JoinColumn(name = "lastupdatedby")
   private User lastUpdatedBy;
 
+  @Type(type = "text")
   @Column(name = "description", columnDefinition = "text")
   private String description;
 

@@ -83,6 +83,7 @@ import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserDetails;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
 /**
@@ -111,6 +112,9 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
   protected final ObjectMapper objectMapper;
 
+  /** Encrypts confidential attribute values, see {@link TeavWriter}. */
+  protected final PBEStringEncryptor encryptor;
+
   /**
    * Template method that can be used by classes extending this class to execute the persistence
    * flow of Tracker entities
@@ -127,7 +131,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
     List<EntityNotifications> notifications = new ArrayList<>();
     ChangeLogAccumulator changeLogs = new ChangeLogAccumulator();
-    EntityWriteBatch batch = new EntityWriteBatch(objectMapper);
+    EntityWriteBatch batch = new EntityWriteBatch(objectMapper, encryptor);
 
     //
     // Extract the entities to persist from the Bundle

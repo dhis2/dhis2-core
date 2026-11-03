@@ -308,7 +308,7 @@ class JdbcEnrollmentStore {
           """
           left join lateral (
               select json_agg(json_build_object('uid', tea.uid, 'name', tea.name,
-              'code', tea.code, 'value', teav.value, 'encryptedValue', teav.encryptedvalue,
+              'code', tea.code, 'value', teav.value,
               'valueType', tea.valuetype, 'confidential', tea.confidential, 'created', teav.created,
               'lastUpdated', teav.lastupdated, 'storedBy', teav.storedby,
               'skipSynchronization', tea.skipsynchronization)) as jsonattributes
@@ -744,8 +744,8 @@ class JdbcEnrollmentStore {
         teav.setStoredBy(attribute.getStoredBy());
         teav.setCreated(DateUtils.safeParseDate(attribute.getCreated()));
         teav.setLastUpdated(DateUtils.safeParseDate(attribute.getLastUpdated()));
-        teav.setEncryptedValue(attribute.getEncryptedValue());
-        teav.setPlainValue(attribute.getValue());
+        // value holds plain text for confidential attributes too; encryptedvalue is raw ciphertext
+        teav.setValue(attribute.getValue());
         teav.setTrackedEntity(trackedEntity);
 
         trackedEntityAttributeValues.add(teav);
@@ -770,7 +770,6 @@ class JdbcEnrollmentStore {
     private String name;
     private String code;
     private String value;
-    private String encryptedValue;
     private String valueType;
     private boolean confidential;
     private String created;

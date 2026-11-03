@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.Text;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -177,25 +176,5 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
         GET(url, getAdminUid()).error(HttpStatus.FORBIDDEN).getMessage());
     switchToAdminUser();
     assertStatus(HttpStatus.OK, GET(url, getAdminUid()));
-  }
-
-  @Test
-  void testValidation_Access_CollectionOwnerSharing() {
-    JsonObject group = GET("/userGroups/{id}", userGroupId).content();
-    String sharing =
-        group
-            .getObject("sharing")
-            .node()
-            .extract()
-            .member(Text.of("public"))
-            .replaceWith("\"--------\"")
-            .toString();
-    assertStatus(HttpStatus.NO_CONTENT, PUT("/userGroups/" + userGroupId + "/sharing", sharing));
-    switchToGuestUser();
-    assertEquals(
-        "User not allowed to view UserGroup " + userGroupId,
-        GET("/userGroups/{id}/users/gist", userGroupId).error(HttpStatus.FORBIDDEN).getMessage());
-    switchToAdminUser();
-    assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
   }
 }

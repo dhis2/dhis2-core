@@ -55,6 +55,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
@@ -184,7 +185,8 @@ public class DefaultIconService implements IconService {
     Icon icon = iconStore.getIconByKey(key);
     if (icon == null) throw new NotFoundException(Icon.class, key);
     FileResource image = icon.getFileResource();
-    if (image == null) throw new NotFoundException(Icon.class, key);
+    // an icon only ever serves an icon image, whatever file an existing icon might point to
+    if (image == null || image.getDomain() != ICON) throw new NotFoundException(Icon.class, key);
     if (!fileResourceContentStore.fileResourceContentExists(image.getStorageKey()))
       throw new NotFoundException(Icon.class, key);
     return icon;
@@ -204,7 +206,7 @@ public class DefaultIconService implements IconService {
   @Override
   @Transactional
   public Icon addIcon(@Nonnull AddIconRequest request, @CheckForNull DefaultIcon origin)
-      throws BadRequestException, NotFoundException {
+      throws BadRequestException, NotFoundException, ConflictException {
     validateIconKey(request.getKey());
     validateIconDoesNotExists(request.getKey());
 
@@ -212,6 +214,15 @@ public class DefaultIconService implements IconService {
     FileResource image = fileResourceService.getFileResource(fileResourceId);
     if (image == null || FileResourceStorageStatus.PENDING == image.getStorageStatus())
       throw new NotFoundException(FileResource.class, fileResourceId);
+
+    // A default icon uses the image the server just stored for it (see addDefaultIconImage). A
+    // custom icon may only use an icon image of the current user that is not in use yet.
+    boolean validImage =
+        origin == null
+            ? fileResourceService.canAssign(CurrentUserUtil.getCurrentUserDetails(), image, ICON)
+            : image.getDomain() == ICON;
+    if (!validImage)
+      throw new ConflictException(ErrorCode.E4094, "fileResourceId", ICON, fileResourceId);
 
     image.setAssigned(true);
     fileResourceService.updateFileResource(image);
@@ -254,7 +265,8 @@ public class DefaultIconService implements IconService {
     Icon icon = getModifiableIcon(key, "Not allowed to delete default icon");
 
     FileResource image = icon.getFileResource();
-    if (image != null) {
+    // only release an icon image; a file of another domain belongs to (or waits for) another owner
+    if (image != null && image.getDomain() == ICON) {
       image.setAssigned(false);
       fileResourceService.updateFileResource(image);
     }
