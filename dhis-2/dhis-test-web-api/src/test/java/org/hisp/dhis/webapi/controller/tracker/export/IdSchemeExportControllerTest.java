@@ -42,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,6 +67,7 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
+import org.hisp.dhis.webapi.controller.tracker.JsonImportReport;
 import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.junit.jupiter.api.BeforeAll;
@@ -121,24 +121,11 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
     SingleEvent event = get(SingleEvent.class, "QRYjLTiJTrA");
     assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
 
-    List<String> idSchemeRequestParams =
-        List.of(
-            "orgUnit",
-            "program",
-            "programStage",
-            "categoryOptionCombo",
-            "categoryOption",
-            "dataElement");
-    String idSchemes =
-        idSchemeRequestParams.stream()
-            .map(p -> p + "IdScheme=" + idSchemeParam)
-            .collect(Collectors.joining("&"));
-
     JsonEvent actual =
         GET(
-                "/tracker/events/{id}?fields=orgUnit,program,programStage,attributeOptionCombo,attributeCategoryOptions,dataValues&{idSchemes}",
+                "/tracker/events/{id}?fields=orgUnit,program,programStage,attributeOptionCombo,dataValues&{idSchemes}",
                 event.getUid(),
-                idSchemes)
+                idSchemes(idSchemeParam))
             .content(HttpStatus.OK)
             .as(JsonEvent.class);
 
@@ -168,27 +155,37 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
                 actual,
                 idSchemeParam,
                 "attributeOptionCombo"),
-        () -> {
-          String field = "attributeCategoryOptions";
-          List<String> expected =
-              event.getAttributeOptionCombo().getCategoryOptions().stream()
-                  .map(co -> idSchemeParam.getIdentifier(co))
-                  .toList();
-          assertNotEmpty(
-              expected,
-              String.format(
-                  "metadata corresponding to field \"%s\" has no value in test data for"
-                      + " idScheme '%s'",
-                  field, idSchemeParam));
-          assertTrue(
-              actual.has(field),
-              () ->
-                  String.format(
-                      "field \"%s\" is not in response %s for idScheme '%s'",
-                      field, actual, idSchemeParam));
-          assertContainsOnly(expected, Arrays.asList(actual.getString(field).string().split(",")));
-        },
         () -> assertDataValues(actual, event, idSchemeParam));
+  }
+
+  @ParameterizedTest
+  @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
+  void shouldImportExportedEventUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
+    SingleEvent event = get(SingleEvent.class, "QRYjLTiJTrA");
+    assertEquals(
+        2,
+        event.getAttributeOptionCombo().getCategoryOptions().size(),
+        "test expects an event with an attribute option combo made up of multiple category options");
+    String idSchemes = idSchemes(idSchemeParam);
+
+    String exported =
+        GET("/tracker/events/{id}?{idSchemes}", event.getUid(), idSchemes)
+            .content(HttpStatus.OK)
+            .toJson();
+
+    JsonImportReport importReport =
+        POST(
+                "/tracker?async=false&importStrategy=UPDATE&" + idSchemes,
+                "{\"events\": [" + exported + "]}")
+            .content(HttpStatus.OK)
+            .as(JsonImportReport.class);
+
+    assertEquals(HttpStatus.OK.toString(), importReport.getStatus(), importReport.toJson());
+    assertEquals(1, importReport.getStats().getUpdated(), importReport.toJson());
+    manager.clear();
+    assertEquals(
+        event.getAttributeOptionCombo().getUid(),
+        get(SingleEvent.class, event.getUid()).getAttributeOptionCombo().getUid());
   }
 
   @Test
@@ -309,7 +306,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
             GET(
                 "/tracker/events"
                     + urlPortion
-                    + "fields=orgUnit,program,programStage,attributeOptionCombo,attributeCategoryOptions,dataValues&idScheme=ATTRIBUTE:{attribute}",
+                    + "fields=orgUnit,program,programStage,attributeOptionCombo,dataValues&idScheme=ATTRIBUTE:{attribute}",
                 event.getUid(),
                 UNUSED_METADATA_ATTRIBUTE));
 
@@ -411,6 +408,12 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
         TrackerIdSchemeParam.CODE,
         TrackerIdSchemeParam.NAME,
         TrackerIdSchemeParam.ofAttribute(METADATA_ATTRIBUTE));
+  }
+
+  private static String idSchemes(TrackerIdSchemeParam idSchemeParam) {
+    return Stream.of("orgUnit", "program", "programStage", "categoryOptionCombo", "dataElement")
+        .map(p -> p + "IdScheme=" + idSchemeParam)
+        .collect(Collectors.joining("&"));
   }
 
   private static void assertIdScheme(

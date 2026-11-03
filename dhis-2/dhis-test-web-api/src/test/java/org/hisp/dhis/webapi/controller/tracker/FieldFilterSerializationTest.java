@@ -305,7 +305,6 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         .followUp(true)
         .createdAt(DATE)
         .attributeOptionCombo(UID.generate().getValue())
-        .attributeCategoryOptions(UID.generate().getValue())
         .geometry(GEOMETRY_FACTORY.createPoint(new Coordinate(4, 12)))
         .createdBy(
             User.builder()

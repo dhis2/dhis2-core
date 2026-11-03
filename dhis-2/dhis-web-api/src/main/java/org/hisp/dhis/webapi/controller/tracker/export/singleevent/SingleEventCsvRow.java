@@ -101,6 +101,10 @@ class SingleEventCsvRow {
 
   private String attributeOptionCombo;
 
+  /**
+   * Always empty. Kept so the column layout does not change now that the attribute option combos
+   * category options are no longer exported.
+   */
   private String attributeCategoryOptions;
 
   private String assignedUser;
@@ -126,7 +130,6 @@ class SingleEventCsvRow {
     orgUnit = dataValue.getOrgUnit();
     occurredAt = dataValue.getOccurredAt();
     attributeOptionCombo = dataValue.getAttributeOptionCombo();
-    attributeCategoryOptions = dataValue.getAttributeCategoryOptions();
     deleted = dataValue.isDeleted();
     createdAt = dataValue.getCreatedAt();
     updatedAt = dataValue.getUpdatedAt();

@@ -107,7 +107,8 @@ public interface EventMapper {
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
   @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo")
-  @Mapping(target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions")
+  // attributeCategoryOptions is only deserialized on import, it is not exported
+  @Mapping(target = "attributeCategoryOptions", ignore = true)
   @Mapping(target = "completedAt", source = "completedDate")
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
@@ -129,7 +130,8 @@ public interface EventMapper {
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
   @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo")
-  @Mapping(target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions")
+  // attributeCategoryOptions is only deserialized on import, it is not exported
+  @Mapping(target = "attributeCategoryOptions", ignore = true)
   @Mapping(target = "completedAt", source = "completedDate")
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")

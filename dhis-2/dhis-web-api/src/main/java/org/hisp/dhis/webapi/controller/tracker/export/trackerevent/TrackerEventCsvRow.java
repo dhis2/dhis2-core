@@ -113,6 +113,10 @@ class TrackerEventCsvRow {
 
   private String attributeOptionCombo;
 
+  /**
+   * Always empty. Kept so the column layout does not change now that the attribute option combos
+   * category options are no longer exported.
+   */
   private String attributeCategoryOptions;
 
   private String assignedUser;
@@ -140,7 +144,6 @@ class TrackerEventCsvRow {
     orgUnit = dataValue.getOrgUnit();
     occurredAt = dataValue.getOccurredAt();
     attributeOptionCombo = dataValue.getAttributeOptionCombo();
-    attributeCategoryOptions = dataValue.getAttributeCategoryOptions();
     scheduledAt = dataValue.getScheduledAt();
     followUp = dataValue.isFollowUp();
     deleted = dataValue.isDeleted();
