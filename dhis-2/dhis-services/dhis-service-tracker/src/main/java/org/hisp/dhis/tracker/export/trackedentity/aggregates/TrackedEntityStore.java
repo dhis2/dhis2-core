@@ -29,15 +29,18 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityRowCallbackHandler;
@@ -63,7 +66,8 @@ class TrackedEntityStore extends AbstractStore {
           + "join program p on teop.programid = p.programid "
           + "join organisationunit o on teop.organisationunitid = o.organisationunitid "
           + "join trackedentity te on teop.trackedentityid = te.trackedentityid "
-          + "where teop.trackedentityid in (:ids)";
+          + "where teop.trackedentityid in (:ids) "
+          + "and teop.programid in (:programIds)";
 
   TrackedEntityStore(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
@@ -92,7 +96,26 @@ class TrackedEntityStore extends AbstractStore {
     return fetch(GET_TE_ATTRIBUTES, new TrackedEntityAttributeRowCallbackHandler(), ids);
   }
 
-  Multimap<String, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids) {
-    return fetch(GET_PROGRAM_OWNERS, new ProgramOwnerRowCallbackHandler(), ids);
+  /** Returns the owners of programs the user has data read access to. */
+  Multimap<String, TrackedEntityProgramOwner> getProgramOwners(
+      TrackedEntityQueryParams queryParams, List<Long> ids) {
+    Multimap<String, TrackedEntityProgramOwner> programOwners = ArrayListMultimap.create();
+    List<Long> programIds =
+        queryParams.hasEnrolledInTrackerProgram()
+            ? List.of(queryParams.getEnrolledInTrackerProgram().getId())
+            : queryParams.getAccessibleTrackerPrograms().stream().map(Program::getId).toList();
+    if (programIds.isEmpty()) {
+      return programOwners;
+    }
+
+    for (List<Long> partition : Lists.partition(ids, PARITITION_SIZE)) {
+      ProgramOwnerRowCallbackHandler handler = new ProgramOwnerRowCallbackHandler();
+      jdbcTemplate.query(
+          GET_PROGRAM_OWNERS,
+          createIdsParam(partition).addValue("programIds", programIds),
+          handler);
+      programOwners.putAll(handler.getItems());
+    }
+    return programOwners;
   }
 }

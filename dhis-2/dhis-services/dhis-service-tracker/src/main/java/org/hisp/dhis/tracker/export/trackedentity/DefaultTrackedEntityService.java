@@ -57,7 +57,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
@@ -222,17 +221,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return trackedEntities.getItems().get(0);
   }
 
-  private static Set<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(
-      TrackedEntity trackedEntity, Program program) {
-    if (program == null) {
-      return trackedEntity.getProgramOwners();
-    }
-
-    return trackedEntity.getProgramOwners().stream()
-        .filter(te -> te.getProgram().getUid().equals(program.getUid()))
-        .collect(Collectors.toSet());
-  }
-
   @Nonnull
   @Override
   @IndirectTransactional
@@ -296,13 +284,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
                 UID.of(trackedEntity),
                 operationParams.getFields().getRelationshipFields(),
                 queryParams.isIncludeDeleted()));
-      }
-    }
-    for (TrackedEntity trackedEntity : trackedEntities) {
-      if (operationParams.getFields().isIncludesProgramOwners()) {
-        trackedEntity.setProgramOwners(
-            getTrackedEntityProgramOwners(
-                trackedEntity, queryParams.getEnrolledInTrackerProgram()));
       }
     }
     if (operationParams.getFields().isIncludesAttributes()) {
