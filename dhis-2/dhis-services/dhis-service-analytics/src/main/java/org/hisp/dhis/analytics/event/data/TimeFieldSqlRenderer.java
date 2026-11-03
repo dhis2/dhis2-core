@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
@@ -46,8 +47,10 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -81,8 +84,14 @@ public abstract class TimeFieldSqlRenderer {
 
     if (params.hasNonDefaultBoundaries()) {
       sql.append(getConditionForNonDefaultBoundaries(params));
-    } else if (params.useStartEndDates() || params.hasTimeDateRanges()) {
-      sql.append(getDateRangeCondition(params));
+    } else if (params.useStartEndDates()
+        || params.hasTimeDateRanges()
+        || params.hasFilterDateRanges()) {
+      sql.append(
+          joinWithAnd(
+              getDateRangeCondition(params),
+              getFilterDateRangeCondition(params),
+              getDefaultPeriodDimensionCondition(params)));
     } else // Periods condition only for pivot table (aggregated).
     {
       sql.append(getAggregatedConditionForPeriods(params));
@@ -136,6 +145,50 @@ public abstract class TimeFieldSqlRenderer {
               }
             });
 
+    return joinConditions(conditions);
+  }
+
+  /**
+   * Returns a SQL statement based on the date ranges of period filters, which apply in "AND" with
+   * the period dimension. Filter periods without a time field target the default time column.
+   *
+   * @param params the {@link EventQueryParams}
+   * @return the SQL statement
+   */
+  private String getFilterDateRangeCondition(EventQueryParams params) {
+    Map<String, List<String>> conditions = new HashMap<>();
+
+    params
+        .getFilterTimeDateRanges()
+        .forEach(
+            (timeField, dateRanges) ->
+                dateRanges.forEach(
+                    dateRange ->
+                        collectDateRangeSqlConditions(params, timeField, dateRange, conditions)));
+
+    String defaultColumn = getColumnName(getTimeField(params), params.getOutputType());
+
+    params
+        .getFilterDateRanges()
+        .forEach(
+            dateRange ->
+                conditions
+                    .computeIfAbsent(defaultColumn, column -> new ArrayList<>())
+                    .add(
+                        getDateRangeCondition(
+                            ColumnWithDateRange.of(defaultColumn, dateRange), params)));
+
+    return joinConditions(conditions);
+  }
+
+  /**
+   * Joins the given conditions, grouped by column. Conditions on the same column are in the "OR"
+   * relation, conditions on different columns are in the "AND" relation.
+   *
+   * @param conditions the SQL conditions grouped by column
+   * @return the SQL statement
+   */
+  private String joinConditions(Map<String, List<String>> conditions) {
     // the same columns are in the "OR" relation
     // different columns are in the "AND" relation
     String dateRangeCondition =
@@ -146,6 +199,38 @@ public abstract class TimeFieldSqlRenderer {
                 .collect(Collectors.toSet()));
 
     return isEmpty(dateRangeCondition) ? EMPTY : dateRangeCondition;
+  }
+
+  private static String joinWithAnd(String... conditions) {
+    return Stream.of(conditions)
+        .filter(StringUtils::isNotEmpty)
+        .collect(Collectors.joining(" and "));
+  }
+
+  /** Keeps gaps between default periods retained for aggregate grouping after date conversion. */
+  private String getDefaultPeriodDimensionCondition(EventQueryParams params) {
+    List<DimensionalItemObject> periods =
+        params.getDimensionOptions(PERIOD_DIM_ID).stream()
+            .filter(this::isPeriod)
+            .filter(period -> StringUtils.isBlank(((PeriodDimension) period).getDateField()))
+            .toList();
+
+    return periods.isEmpty() ? EMPTY : getAggregatedConditionForPeriods(params, periods);
+  }
+
+  /**
+   * Generates a period SQL statement for aggregated queries. Period dimensions and period filters
+   * are rendered separately and applied in "AND".
+   *
+   * @param params {@link EventQueryParams}
+   * @return the SQL statement
+   */
+  private String getAggregatedConditionForPeriods(EventQueryParams params) {
+    return Stream.of(
+            params.getDimensionOptions(PERIOD_DIM_ID), params.getFilterOptions(PERIOD_DIM_ID))
+        .filter(periods -> !periods.isEmpty())
+        .map(periods -> getAggregatedConditionForPeriods(params, periods))
+        .collect(Collectors.joining(" and "));
   }
 
   /**
@@ -245,12 +330,14 @@ public abstract class TimeFieldSqlRenderer {
   }
 
   /**
-   * It generates a period SQL statement for aggregated queries based on the given params.
+   * It generates a period SQL statement for aggregated queries based on the given periods.
    *
    * @param params {@link EventQueryParams}
+   * @param periods the period items, either of the period dimension or of the period filter
    * @return the SQL statement
    */
-  protected abstract String getAggregatedConditionForPeriods(EventQueryParams params);
+  protected abstract String getAggregatedConditionForPeriods(
+      EventQueryParams params, List<DimensionalItemObject> periods);
 
   /**
    * Returns the field/column associated with the given {@link TimeField}. If the time field is

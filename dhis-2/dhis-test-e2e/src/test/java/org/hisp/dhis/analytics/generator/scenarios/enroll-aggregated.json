@@ -279,6 +279,62 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "createdDimensionEnrollmentDateFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=CREATED:2017&filter=ENROLLMENT_DATE:2023&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentDateDimensionCreatedFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=ENROLLMENT_DATE:2022;2023&filter=CREATED:2016&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentDateDimensionBarePeFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=ENROLLMENT_DATE:2022;2023&filter=pe:2022&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "barePeDimensionCreatedFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2022;2023&filter=CREATED:2016&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentDateDimensionAndFilterSameField",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=ENROLLMENT_DATE:2022;2023&filter=ENROLLMENT_DATE:2023&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageEventStatusAsFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=pe:2022&filter=ou:ImspTQPwCqd,A03MvHHogjR.EVENT_STATUS:ACTIVE;COMPLETED&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "orgUnitGroupSetDimension",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=uIuxlbV1vRT,ou:ImspTQPwCqd,pe:2022;2023&totalPages=false",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "orgUnitGroupSetDimensionWithItems",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=uIuxlbV1vRT:jqBqIXoXpfy;nlX2VoouN63,ou:ImspTQPwCqd,pe:2022&totalPages=false",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

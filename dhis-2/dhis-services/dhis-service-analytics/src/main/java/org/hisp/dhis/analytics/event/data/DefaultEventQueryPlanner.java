@@ -70,6 +70,8 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
   private final PartitionManager partitionManager;
 
+  private final FirstOrLastStagePeriodPlanner firstOrLastStagePeriodPlanner;
+
   // -------------------------------------------------------------------------
   // EventQueryPlanner implementation
   // -------------------------------------------------------------------------
@@ -84,6 +86,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             .add(this::groupByOrgUnitLevel)
             .add(this::groupByPeriodType)
             .add(this::groupByPeriod)
+            .add(firstOrLastStagePeriodPlanner::plan)
             .build();
 
     for (Function<EventQueryParams, List<EventQueryParams>> grouper : groupers) {

@@ -2901,7 +2901,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"total\":1,\"pageCount\":1,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"2021\":{\"name\":\"2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"ZkbAXlQUYJG.eventstatus\":{\"name\":\"Event status\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"ZkbAXlQUYJG.eventstatus\":[]}}";
+        "{\"pager\":{\"total\":1,\"pageCount\":1,\"pageSize\":100,\"page\":1},\"items\":{\"ACTIVE\":{\"name\":\"Active\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"2021\":{\"name\":\"2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"ZkbAXlQUYJG.eventstatus\":{\"name\":\"Event status\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"ZkbAXlQUYJG.eventstatus\":[\"ACTIVE\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
