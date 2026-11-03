@@ -72,6 +72,8 @@ class DefaultSchemaValidatorTest {
   @Builder
   public static class SimpleFields {
 
+    String name;
+
     String optional;
 
     String string;
@@ -91,6 +93,11 @@ class DefaultSchemaValidatorTest {
     Double aDouble;
 
     List<Integer> list;
+
+    @JsonProperty
+    public String getName() {
+      return name;
+    }
 
     @JsonProperty
     public String getOptional() {
@@ -199,6 +206,33 @@ class DefaultSchemaValidatorTest {
         ErrorCode.E4003,
         SimpleFields.builder().string("valid").email("   ").build(),
         "Property `email` requires a valid email address, was given `   `");
+  }
+
+  @Test
+  void testPersistedNameIsTrimmed() {
+    schema.getPropertyMap().get("name").setPersisted(true);
+    SimpleFields object =
+        SimpleFields.builder().string("valid").name(" \t\n\r\f\u000BANC \t\n\r\f\u000B").build();
+
+    assertNoError(object);
+    assertEquals("ANC", object.getName());
+  }
+
+  @Test
+  void testNotPersistedNameIsNotTrimmed() {
+    SimpleFields object = SimpleFields.builder().string("valid").name(" ANC ").build();
+
+    assertNoError(object);
+    assertEquals(" ANC ", object.getName());
+  }
+
+  @Test
+  void testOtherPropertyIsNotTrimmed() {
+    SimpleFields object = SimpleFields.builder().string(" valid ").optional(" ANC ").build();
+
+    assertNoError(object);
+    assertEquals(" valid ", object.getString());
+    assertEquals(" ANC ", object.getOptional());
   }
 
   @Test

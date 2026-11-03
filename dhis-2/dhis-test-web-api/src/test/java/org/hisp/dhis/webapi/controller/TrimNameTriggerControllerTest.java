@@ -153,6 +153,36 @@ class TrimNameTriggerControllerTest extends PostgresControllerIntegrationTestBas
     assertEquals("Blank update", selectName(uid));
   }
 
+  @Test
+  void createOfObjectWithPaddedNameReturnsTrimmedName() {
+    String uid = postDataElement(" \\t Padded create \\n ", "Padded create short");
+
+    assertEquals("Padded create", GET("/dataElements/" + uid).content().getString("name").string());
+    assertEquals("Padded create", selectName(uid));
+  }
+
+  @Test
+  void updateOfObjectWithPaddedNameReturnsTrimmedName() {
+    String uid = postDataElement("Padded update", "Padded update short");
+
+    assertStatus(
+        HttpStatus.OK,
+        PUT(
+            "/dataElements/" + uid,
+            """
+            {
+              "name": "  Padded update changed  ",
+              "shortName": "Padded update short",
+              "domainType": "AGGREGATE",
+              "aggregationType": "SUM",
+              "valueType": "NUMBER"
+            }"""));
+
+    assertEquals(
+        "Padded update changed", GET("/dataElements/" + uid).content().getString("name").string());
+    assertEquals("Padded update changed", selectName(uid));
+  }
+
   private String postDataElement(String name, String shortName) {
     return assertStatus(
         HttpStatus.CREATED,
