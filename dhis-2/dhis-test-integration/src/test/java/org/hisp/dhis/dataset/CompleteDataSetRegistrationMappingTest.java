@@ -204,7 +204,7 @@ class CompleteDataSetRegistrationMappingTest extends PostgresIntegrationTestBase
     assertEquals("storer", row.get("storedby"));
     assertEquals(registration.getLastUpdated(), row.get("lastupdated"));
     assertEquals("updater", row.get("lastupdatedby"));
-    assertEquals(false, row.get("completed"));
+    assertFalse((Boolean) row.get("completed"));
   }
 
   @Test
