@@ -42,14 +42,22 @@ import org.hisp.dhis.user.User;
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "userAccess", namespace = DxfNamespaces.DXF_2_0)
 public class UserAccess extends AccessObject {
-  // ------------------------------------------------------------------------------------------
-  // Constructors
-  // ------------------------------------------------------------------------------------------
-
+  /**
+   * Constructor.
+   *
+   * @param access the access string.
+   * @param id the user UID.
+   */
   public UserAccess(String access, String id) {
     super(access, id);
   }
 
+  /**
+   * Constructor.
+   *
+   * @param user the {@link User}.
+   * @param access the access string.
+   */
   public UserAccess(User user, String access) {
     super(access, user.getUid());
   }
@@ -70,6 +78,7 @@ public class UserAccess extends AccessObject {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public UserAccess copy() {
     return new UserAccess(this.access, this.id);
   }
