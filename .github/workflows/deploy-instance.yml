@@ -65,7 +65,7 @@ jobs:
           DATABASE_ID: test-dbs-sierra-leone-dev-sql-gz
         run: |
           ./findByName.sh dev $INSTANCE_NAME | jq --exit-status 'has("id")' &&
-          ./restart.sh $(./findByName.sh dev $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-v2") | .id') ||
+          ./restart.sh $(./findByName.sh dev $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-v2") | .id') dhis2 ||
           ./deploy-dhis2.sh dev $INSTANCE_NAME
 
       - name: Wait for instance
