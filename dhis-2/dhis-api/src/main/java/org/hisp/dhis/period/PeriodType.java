@@ -63,7 +63,6 @@ import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.calendar.DateUnitPeriodTypeParser;
-import org.hisp.dhis.calendar.PeriodTypeParser;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -127,7 +126,7 @@ public abstract class PeriodType implements Serializable {
     return Iso8601Calendar.getInstance();
   }
 
-  @Transient protected PeriodTypeParser dateUnitFormat = new DateUnitPeriodTypeParser();
+  @Transient protected DateUnitPeriodTypeParser dateUnitFormat = new DateUnitPeriodTypeParser();
 
   // -------------------------------------------------------------------------
   // Available PeriodTypes
