@@ -52,6 +52,8 @@ class ServerBaseUrlValidatorTest {
         "http://localhost:8080",
         "http://dhis-server:8080/dhis",
         "http://dhis2_core:8080",
+        "http://dhis2_core/dhis",
+        "http://admin@dhis2_core:8080",
         "http://10.0.0.5:8080/dhis",
         "http://[::1]:8080/dhis",
         "HTTPS://DHIS2.EXAMPLE.ORG"
@@ -77,7 +79,12 @@ class ServerBaseUrlValidatorTest {
         "ftp://dhis2.example.org",
         "https://",
         "https:///dhis",
-        "https://dhis2 example.org"
+        "https://dhis2 example.org",
+        "http://:8080/dhis",
+        "http://user@/dhis",
+        "https://dhis2.example.org:abc/dhis",
+        "http://dhis2_core:abc",
+        "http://dhis2_core:/dhis"
       })
   void testInvalidUrl(String baseUrl) {
     assertEquals(

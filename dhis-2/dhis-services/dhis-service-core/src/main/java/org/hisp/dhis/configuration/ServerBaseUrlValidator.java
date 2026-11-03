@@ -34,6 +34,7 @@ import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
@@ -58,6 +59,10 @@ public final class ServerBaseUrlValidator {
 
   private static final Set<String> SCHEMES = Set.of("http", "https");
 
+  private static final Pattern HOST = Pattern.compile("[A-Za-z0-9._-]+");
+
+  private static final Pattern PORT = Pattern.compile("\\d{1,5}");
+
   /**
    * @param baseUrl the configured server base URL, may be null or blank when not set
    * @return a description of the problem, or empty if the base URL is valid
@@ -80,18 +85,36 @@ public final class ServerBaseUrlValidator {
   /**
    * Requires an absolute http(s) URL with a host. Deliberately does not check the host against
    * public top-level domains, so intranet names such as {@code dhis2.moh.local}, {@code localhost}
-   * or {@code dhis-server} are accepted. {@link URI} reports no host for names containing an
-   * underscore (e.g. Docker service names like {@code dhis2_core}), so a non-empty authority is
-   * accepted too.
+   * or {@code dhis-server} are accepted.
    */
   private static boolean isAbsoluteHttpUrl(String baseUrl) {
     try {
       URI uri = new URI(baseUrl);
-      return uri.getScheme() != null
-          && SCHEMES.contains(uri.getScheme().toLowerCase(Locale.ROOT))
-          && (StringUtils.isNotEmpty(uri.getHost()) || StringUtils.isNotEmpty(uri.getAuthority()));
+      if (uri.getScheme() == null || !SCHEMES.contains(uri.getScheme().toLowerCase(Locale.ROOT))) {
+        return false;
+      }
+      if (StringUtils.isNotEmpty(uri.getHost())) {
+        return true;
+      }
+      return isValidRegistryAuthority(uri.getRawAuthority());
     } catch (URISyntaxException ex) {
       return false;
     }
+  }
+
+  /**
+   * {@link URI} reports no host when the authority is not a valid server authority, which includes
+   * hostnames containing an underscore (e.g. Docker service names like {@code dhis2_core}). Accept
+   * those, but still require a non-empty host and a numeric port when one is given.
+   */
+  private static boolean isValidRegistryAuthority(String authority) {
+    if (StringUtils.isEmpty(authority)) {
+      return false;
+    }
+    String hostAndPort = authority.substring(authority.lastIndexOf('@') + 1);
+    int colon = hostAndPort.lastIndexOf(':');
+    String host = colon < 0 ? hostAndPort : hostAndPort.substring(0, colon);
+    String port = colon < 0 ? null : hostAndPort.substring(colon + 1);
+    return HOST.matcher(host).matches() && (port == null || PORT.matcher(port).matches());
   }
 }
