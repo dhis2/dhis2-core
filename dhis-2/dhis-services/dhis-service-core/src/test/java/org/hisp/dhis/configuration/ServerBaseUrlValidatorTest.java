@@ -45,7 +45,16 @@ class ServerBaseUrlValidatorTest {
       strings = {
         "https://dhis2.example.org",
         "https://dhis2.example.org/dhis",
-        "http://dhis2.example.org:8080/dhis"
+        "http://dhis2.example.org:8080/dhis",
+        "https://dhis2.moh.local",
+        "https://dhis.ministry.internal/dhis",
+        "http://dhis.lan",
+        "http://localhost:8080",
+        "http://dhis-server:8080/dhis",
+        "http://dhis2_core:8080",
+        "http://10.0.0.5:8080/dhis",
+        "http://[::1]:8080/dhis",
+        "HTTPS://DHIS2.EXAMPLE.ORG"
       })
   void testValidUrl(String baseUrl) {
     assertTrue(ServerBaseUrlValidator.validate(baseUrl).isEmpty());
@@ -60,11 +69,20 @@ class ServerBaseUrlValidatorTest {
         ServerBaseUrlValidator.validate(baseUrl));
   }
 
-  @Test
-  void testInvalidUrl() {
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "not-a-url",
+        "dhis2.example.org/dhis",
+        "ftp://dhis2.example.org",
+        "https://",
+        "https:///dhis",
+        "https://dhis2 example.org"
+      })
+  void testInvalidUrl(String baseUrl) {
     assertEquals(
-        Optional.of("'server.base.url' is not a valid URL: 'not-a-url'."),
-        ServerBaseUrlValidator.validate("not-a-url"));
+        Optional.of("'server.base.url' is not a valid URL: '" + baseUrl + "'."),
+        ServerBaseUrlValidator.validate(baseUrl));
   }
 
   @Test

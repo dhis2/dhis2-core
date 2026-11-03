@@ -386,17 +386,21 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       DataIntegrityCheckType type,
       Class<? extends IdentifiableObject> issueIdType,
       Supplier<List<DataIntegrityIssue>> check) {
-    registerNonDatabaseIntegrityCheck(type, issueIdType, true, check);
+    registerNonDatabaseIntegrityCheck(
+        type, issueIdType, true, DataIntegritySeverity.WARNING, check);
   }
 
   /**
    * @param isSlow whether the check is expensive; slow checks are excluded when running checks
    *     without naming them explicitly
+   * @param severity set in code rather than read from i18n, because translated i18n values would
+   *     not parse as a {@link DataIntegritySeverity}
    */
   private void registerNonDatabaseIntegrityCheck(
       DataIntegrityCheckType type,
       Class<? extends IdentifiableObject> issueIdType,
       boolean isSlow,
+      DataIntegritySeverity severity,
       Supplier<List<DataIntegrityIssue>> check) {
     String name = type.getName();
     I18n i18n = i18nManager.getI18n(DataIntegrityService.class);
@@ -414,9 +418,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
               .displayName(info.apply("name", name.replace('_', ' ')))
               .isSlow(isSlow)
               .isProgrammatic(true)
-              .severity(
-                  DataIntegritySeverity.valueOf(
-                      info.apply("severity", DataIntegritySeverity.WARNING.name()).toUpperCase()))
+              .severity(severity)
               .section(info.apply("section", "Other"))
               .description(info.apply("description", null))
               .introduction(info.apply("introduction", null))
@@ -511,6 +513,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.SERVER_BASE_URL_NOT_CONFIGURED,
         null,
         false,
+        DataIntegritySeverity.SEVERE,
         this::getServerBaseUrlIssues);
   }
 

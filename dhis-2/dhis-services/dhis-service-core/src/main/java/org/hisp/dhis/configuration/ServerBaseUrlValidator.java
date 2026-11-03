@@ -29,13 +29,16 @@
  */
 package org.hisp.dhis.configuration;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.routines.UrlValidator;
 
 /**
  * Validates the {@code server.base.url} configured in {@code dhis.conf}. Shared by the startup log
@@ -53,8 +56,7 @@ public final class ServerBaseUrlValidator {
           + " correctly without it. See the 'Server base URL' section in the dhis.conf"
           + " reference documentation.";
 
-  private static final UrlValidator URL_VALIDATOR =
-      new UrlValidator(new String[] {"http", "https"});
+  private static final Set<String> SCHEMES = Set.of("http", "https");
 
   /**
    * @param baseUrl the configured server base URL, may be null or blank when not set
@@ -65,7 +67,7 @@ public final class ServerBaseUrlValidator {
     if (StringUtils.isBlank(baseUrl)) {
       return Optional.of("'server.base.url' is not set in dhis.conf.");
     }
-    if (!URL_VALIDATOR.isValid(baseUrl)) {
+    if (!isAbsoluteHttpUrl(baseUrl)) {
       return Optional.of("'server.base.url' is not a valid URL: '" + baseUrl + "'.");
     }
     if (baseUrl.endsWith("/")) {
@@ -73,5 +75,23 @@ public final class ServerBaseUrlValidator {
           "'server.base.url' must not end with a trailing slash: '" + baseUrl + "'.");
     }
     return Optional.empty();
+  }
+
+  /**
+   * Requires an absolute http(s) URL with a host. Deliberately does not check the host against
+   * public top-level domains, so intranet names such as {@code dhis2.moh.local}, {@code localhost}
+   * or {@code dhis-server} are accepted. {@link URI} reports no host for names containing an
+   * underscore (e.g. Docker service names like {@code dhis2_core}), so a non-empty authority is
+   * accepted too.
+   */
+  private static boolean isAbsoluteHttpUrl(String baseUrl) {
+    try {
+      URI uri = new URI(baseUrl);
+      return uri.getScheme() != null
+          && SCHEMES.contains(uri.getScheme().toLowerCase(Locale.ROOT))
+          && (StringUtils.isNotEmpty(uri.getHost()) || StringUtils.isNotEmpty(uri.getAuthority()));
+    } catch (URISyntaxException ex) {
+      return false;
+    }
   }
 }
