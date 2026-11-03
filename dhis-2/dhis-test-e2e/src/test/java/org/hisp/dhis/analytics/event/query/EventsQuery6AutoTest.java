@@ -4519,7 +4519,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         19,
-        24,
+        25,
         20); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
