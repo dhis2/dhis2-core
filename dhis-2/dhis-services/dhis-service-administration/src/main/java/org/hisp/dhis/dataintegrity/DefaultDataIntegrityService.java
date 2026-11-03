@@ -769,12 +769,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         String pattern =
             name.toLowerCase()
                 .replace('-', '_') // make uniform
-                .replaceAll("[^*_a-z0-9]+", "") // sanitise against regex attacks
-                .replace("*", ".*"); // expand regex wildcard match
+                .replaceAll("[^*_a-z0-9]+", "");
         for (DataIntegrityCheck check : checksByName.values()) {
-          if (check
-              .getName()
-              .matches(pattern)) { // NOSONAR javasecurity:S2631 - pattern sanitised above
+          if (matchesWildcard(check.getName(), pattern)) {
             expanded.add(check.getName());
           }
         }
@@ -789,6 +786,36 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
             .collect(toUnmodifiableSet()));
 
     return expanded;
+  }
+
+  /**
+   * Matches {@code text} against {@code pattern}, where {@code *} matches any sequence of
+   * characters (including none) and every other character matches itself. The whole text must
+   * match. Runs in O(text length x pattern length).
+   */
+  static boolean matchesWildcard(String text, String pattern) {
+    int t = 0;
+    int p = 0;
+    int star = -1;
+    int starMatchEnd = 0;
+    while (t < text.length()) {
+      if (p < pattern.length() && pattern.charAt(p) == '*') {
+        star = p++;
+        starMatchEnd = t;
+      } else if (p < pattern.length() && pattern.charAt(p) == text.charAt(t)) {
+        p++;
+        t++;
+      } else if (star >= 0) {
+        p = star + 1;
+        t = ++starMatchEnd;
+      } else {
+        return false;
+      }
+    }
+    while (p < pattern.length() && pattern.charAt(p) == '*') {
+      p++;
+    }
+    return p == pattern.length();
   }
 
   private Set<String> getDefaultChecks(boolean restricted) {
