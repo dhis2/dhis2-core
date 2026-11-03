@@ -79,10 +79,11 @@ import org.slf4j.LoggerFactory;
  *
  * <ul>
  *   <li><b>relationships</b> -- tracker import ({@code POST /api/tracker}) of {@code rows / 2}
- *       relationships from a Child Programme birth event (tracker event) to an Antenatal care visit
- *       event (single event). Each relationship writes 2 {@code relationshipitem} rows, one with
- *       {@code trackereventid} and one with {@code singleeventid} set. A new relationship type is
- *       created on every run, so repeated runs (warmups) never import duplicate relationships.
+ *       relationships from a Child Programme birth event (tracker event) to an Inpatient morbidity
+ *       and mortality event (single event). Each relationship writes 2 {@code relationshipitem}
+ *       rows, one with {@code trackereventid} and one with {@code singleeventid} set. A new
+ *       relationship type is created on every run, so repeated runs (warmups) never import
+ *       duplicate relationships.
  *   <li><b>messages</b> -- {@code POST /api/messages} of {@code rows} program messages, one per
  *       request ({@code batchSize} does not apply, see {@link #messagesScenario()}), with one SMS
  *       delivery channel each, cycling through: enrollment with the tracked entity as recipient,
@@ -137,7 +138,8 @@ public class TrackerLinkedRowsWriteTest extends Simulation {
   // Sierra Leone demo DB
   private static final String CHILD_PROGRAM = "IpHINAT79UW";
   private static final String CHILD_BIRTH_STAGE = "A03MvHHogjR";
-  private static final String ANC_PROGRAM = "lxAQ7Zs9VYR";
+  // event program with ~100k single events (Antenatal care visit has only 3)
+  private static final String SINGLE_EVENT_PROGRAM = "eBAyeGv0exc";
 
   // fixed so that repeated runs update instead of duplicating them
   private static final String NOTIFICATION_TEMPLATE = "PerfNotTpl2";
@@ -246,7 +248,7 @@ public class TrackerLinkedRowsWriteTest extends Simulation {
               "event");
       this.singleEvents =
           fetchUids(
-              "/api/tracker/events?program=" + ANC_PROGRAM + "&fields=event&pageSize=1000",
+              "/api/tracker/events?program=" + SINGLE_EVENT_PROGRAM + "&fields=event&pageSize=1000",
               "events",
               "event");
       long pairs = (long) this.trackerEvents.size() * this.singleEvents.size();
@@ -300,22 +302,22 @@ public class TrackerLinkedRowsWriteTest extends Simulation {
 
   private String createRelationshipType() throws Exception {
     String uid = generateUid();
-    // an event constraint needs a program stage; the ANC event program has exactly one
-    String ancStage =
-        get("/api/programs/" + ANC_PROGRAM + "?fields=programStages[id]")
+    // an event constraint needs a program stage; an event program has exactly one
+    String singleEventStage =
+        get("/api/programs/" + SINGLE_EVENT_PROGRAM + "?fields=programStages[id]")
             .path("programStages")
             .path(0)
             .path("id")
             .asText();
     String body =
         """
-        {"relationshipTypes":[{"id":"%s","name":"Perf birth to ANC visit %s",
-          "fromToName":"ANC visit","toFromName":"Birth","bidirectional":false,
+        {"relationshipTypes":[{"id":"%s","name":"Perf birth to inpatient event %s",
+          "fromToName":"Inpatient event","toFromName":"Birth","bidirectional":false,
           "fromConstraint":{"relationshipEntity":"PROGRAM_STAGE_INSTANCE","programStage":{"id":"%s"}},
           "toConstraint":{"relationshipEntity":"PROGRAM_STAGE_INSTANCE","programStage":{"id":"%s"}},
           "sharing":{"public":"rwrw----"}}]}
         """
-            .formatted(uid, uid, CHILD_BIRTH_STAGE, ancStage);
+            .formatted(uid, uid, CHILD_BIRTH_STAGE, singleEventStage);
     postMetadata(body);
     logger.info("Created relationship type {}", uid);
     return uid;
