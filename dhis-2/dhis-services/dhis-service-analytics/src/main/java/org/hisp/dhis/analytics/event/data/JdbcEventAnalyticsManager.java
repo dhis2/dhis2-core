@@ -53,6 +53,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -67,11 +68,9 @@ import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
-import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
@@ -98,6 +97,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.ListBuilder;
 import org.postgresql.util.PSQLException;
@@ -165,7 +165,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         new EventItemSelectColumnResolver(
             sqlBuilder,
             organisationUnitResolver,
-            this::getStageOuValueColumnTableAlias,
             (item, queryParams) -> getColumnAndAlias(item, queryParams, false, false),
             this::handleRowContext);
   }
@@ -385,7 +384,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
     sb.from(params.getTableName(), ANALYTICS_TBL_ALIAS);
     OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
-    RegistrationOuSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
   }
 
   /**
@@ -472,8 +470,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   @Override
   protected String getFromClause(EventQueryParams params) {
     StringBuilder sql = new StringBuilder(" from ");
+    boolean isFirstOrLast =
+        params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType();
 
-    if (params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
+    if (isFirstOrLast) {
       sql.append(firstOrLastRenderer.render(params));
     } else {
       sql.append(params.getTableName());
@@ -494,11 +494,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
           .append(" ");
     }
 
-    resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
-        .forEach(join -> sql.append(join.toSql()).append(" "));
+    // First/last queries hold a single period, rendered as a literal, so no period bucket is read
+    if (!isFirstOrLast) {
+      resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
+          .forEach(join -> sql.append(join.toSql()).append(" "));
+    }
 
-    OrgUnitSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
-    sql.append(RegistrationOuSqlCoordinator.joinClause(params, sqlBuilder));
+    sql.append(OrgUnitSqlCoordinator.joinClause(params, sqlBuilder));
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
@@ -648,14 +650,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // Program stage
     // ---------------------------------------------------------------------
 
-    if (params.hasProgramStage()) {
-      sql +=
-          hlp.whereAnd()
-              + " "
-              + quoteAlias("ps")
-              + " = '"
-              + params.getProgramStage().getUid()
-              + "' ";
+    Optional<ProgramStage> programStage =
+        params.hasProgramStage()
+            ? Optional.of(params.getProgramStage())
+            : params.getStageOfStageSpecificItemsWithoutFilter();
+
+    if (programStage.isPresent()) {
+      sql += hlp.whereAnd() + " " + quoteAlias("ps") + " = '" + programStage.get().getUid() + "' ";
     }
 
     // ---------------------------------------------------------------------
@@ -740,11 +741,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       sql += hlp.whereAnd() + " completeddate is not null ";
     }
 
-    StringBuilder enrollmentOuSql = new StringBuilder();
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params, sqlBuilder);
-    sql += enrollmentOuSql;
-
-    sql += RegistrationOuSqlCoordinator.wherePredicate(params, hlp, sqlBuilder);
+    sql += OrgUnitSqlCoordinator.wherePredicate(params, hlp, sqlBuilder);
 
     if (params.hasBbox()) {
       sql +=
@@ -925,8 +922,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     List<String> columns = new ArrayList<>(getStandardColumns(params));
     addDimensionSelectColumns(columns, params, false, false);
-    OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
-    columns.addAll(RegistrationOuSqlCoordinator.querySelectColumns(params, sqlBuilder));
+    columns.addAll(OrgUnitSqlCoordinator.querySelectColumns(params, sqlBuilder));
     columns.addAll(eventItemSelectColumnResolver.resolve(params, cteContext));
 
     columns.forEach(
@@ -944,12 +940,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (cteContext.hasCteDefinitions() && sqlBuilder.supportsCorrelatedSubquery()) {
       getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
     }
-  }
-
-  private String getStageOuValueColumnTableAlias(EventQueryParams params) {
-    return params.hasEnrollmentOu()
-        ? OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS
-        : ANALYTICS_TBL_ALIAS;
   }
 
   /**

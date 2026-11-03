@@ -27,30 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.registrationou;
+package org.hisp.dhis.query;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Shared identifiers for REGISTRATION_OU query and aggregate handling. */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class RegistrationOuSqlConstants {
+import java.util.List;
+import org.hisp.dhis.query.operators.DescendantOfOperator;
+import org.junit.jupiter.api.Test;
 
-  /** The dimension keyword as written in a request. */
-  public static final String DIMENSION_NAME = "REGISTRATION_OU";
+/**
+ * @author Morten Svanæs
+ */
+class DescendantOfOperatorTest {
+  @Test
+  void matchesRootsAndDescendantsOfAnyRoot() {
+    DescendantOfOperator scope =
+        new DescendantOfOperator(List.of("/top/first", "/top/second", "/top/first/nested"));
 
-  public static final String STRUCT_TABLE = OrganisationUnitStructureResourceTable.TABLE_NAME;
+    assertTrue(scope.test("/top/first"));
+    assertTrue(scope.test("/top/second/child"));
+    assertTrue(scope.test("/top/first/nested/child"));
+    assertFalse(scope.test("/top"));
+    assertFalse(scope.test("/top/sibling"));
+    assertFalse(scope.test("/other/first/child"));
+    assertFalse(scope.test("/top/firstSibling/child"));
+  }
 
-  /**
-   * Distinct from the {@code ous} alias used for the default org unit join, so both can appear in
-   * one query.
-   */
-  public static final String STRUCT_ALIAS = "regous";
-
-  public static final String STRUCT_UID_COLUMN = "organisationunituid";
-
-  public static final String STRUCT_NAME_COLUMN = "name";
-
-  public static final String UID_LEVEL_PREFIX = "uidlevel";
+  @Test
+  void missingRootsAndMissingPathsDoNotMatch() {
+    assertFalse(new DescendantOfOperator(List.of()).test("/top/first"));
+    assertFalse(new DescendantOfOperator(List.of("/top")).test(null));
+  }
 }

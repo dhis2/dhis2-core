@@ -433,6 +433,20 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldPassWhenOccurredAtIsWithinOpenDaysAfterCategoryOptionEndDate() throws IOException {
+    Program program = manager.get(Program.class, "rT3rvcn2vid");
+    program.setOpenDaysAfterCoEndDate(365);
+    manager.update(program);
+
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/validations/events_combo-date-wrong.json"));
+
+    assertHasOnlyErrors(importReport, ValidationCode.E1056);
+  }
+
+  @Test
   void testValidateAndAddNotesToEvent() throws IOException, NotFoundException {
     Date now = new Date();
     // When

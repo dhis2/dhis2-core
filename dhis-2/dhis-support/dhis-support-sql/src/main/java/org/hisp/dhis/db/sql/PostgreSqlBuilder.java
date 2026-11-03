@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Collation;
@@ -220,6 +221,16 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public boolean requiresIndexesForAnalytics() {
     return true;
+  }
+
+  @Override
+  public boolean supportsContinuousAnalytics() {
+    return true;
+  }
+
+  @Override
+  public boolean requiresUniqueKeyAnalyticsTables() {
+    return false;
   }
 
   @Override
@@ -469,6 +480,15 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
         select t.table_name from information_schema.tables t \
         where t.table_schema = 'public' and t.table_name = %s;""",
         singleQuote(name));
+  }
+
+  @Override
+  public String tablesExist(Collection<String> names) {
+    return String.format(
+        """
+        select t.table_name from information_schema.tables t \
+        where t.table_schema = 'public' and t.table_name in (%s);""",
+        singleQuotedCommaDelimited(names));
   }
 
   @Override

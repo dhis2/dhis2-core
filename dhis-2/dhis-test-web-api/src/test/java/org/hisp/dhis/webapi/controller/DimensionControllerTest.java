@@ -55,6 +55,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -266,6 +268,22 @@ class DimensionControllerTest extends H2ControllerIntegrationTestBase {
     assertNotNull(response);
     int rowCount = getRowCountFromCsv(response);
     assertEquals(10, rowCount);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"displayShortName:ilike:female", "identifiable:token:female"})
+  void testGetCategoryItemsFiltered(String filter) {
+    String categoryId = createCategoryCombo(0).getCategories().get(0).getUid();
+    JsonObject response =
+        GET(
+                "/dimensions/{uid}/items?fields=id,displayShortName~rename(name)&order=displayShortName:asc&filter={filter}",
+                categoryId,
+                filter)
+            .content();
+    JsonArray items = response.getArray("items");
+
+    assertEquals(1, items.size());
+    assertEquals("Female0", items.getObject(0).getString("name").string());
   }
 
   @Test

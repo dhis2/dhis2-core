@@ -49,7 +49,7 @@ import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
-import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlConstants;
+import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.DimensionType;
@@ -74,7 +74,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DefaultEventQueryValidator implements EventQueryValidator {
 
-  private static final String REGISTRATION_OU_DIMENSION = RegistrationOuSqlConstants.DIMENSION_NAME;
+  private static final String REGISTRATION_OU_DIMENSION =
+      TrackerOrgUnitDimension.REGISTRATION_OU.getDimensionName();
 
   private static final Set<String> REGISTRATION_OU_SORT_ITEMS =
       Set.of(ColumnHeader.REGISTRATION_OU.getItem(), ColumnHeader.REGISTRATION_OU_NAME.getItem());
@@ -133,7 +134,8 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       return new ErrorMessage(ErrorCode.E7202, params.getDuplicateQueryItems());
     }
     if (params.hasValueDimension()
-        && params.getDimensionalObjectItems().contains(params.getValue())) {
+        && params.getItems().stream()
+            .anyMatch(item -> !item.hasLegendSet() && params.getValue().equals(item.getItem()))) {
       return new ErrorMessage(ErrorCode.E7203);
     }
     if (params.hasAggregationType() && !(params.hasValueDimension() || params.isAggregateData())) {

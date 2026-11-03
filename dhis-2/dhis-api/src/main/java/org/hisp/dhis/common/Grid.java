@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -508,4 +508,14 @@ public interface Grid extends JRDataSource, Serializable {
   boolean hasLastDataRow();
 
   void setLastDataRow(boolean lastDataRow);
+
+  /**
+   * Creates a structurally independent copy of this Grid: mutating the copy's headers, rows,
+   * metadata or references does not affect the original, and vice versa. Values held within those
+   * structures (header objects, row cell values, metadata entries) are not themselves deep-copied,
+   * only the containing structures.
+   *
+   * @return a new Grid instance with the same content as this one.
+   */
+  Grid copy();
 }

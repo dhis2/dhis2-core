@@ -42,11 +42,13 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import java.io.File;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -78,6 +80,10 @@ class FileResourceServiceTest {
 
   @Mock private EntityManager entityManager;
 
+  @Mock private AclService aclService;
+
+  @Mock private IdentifiableObjectManager idObjectManager;
+
   @Mock private UserDetails userDetails;
 
   @Captor private ArgumentCaptor<FileSavedEvent> fileSavedEventCaptor;
@@ -98,7 +104,9 @@ class FileResourceServiceTest {
             periodService,
             fileResourceContentStore,
             fileEventPublisher,
-            entityManager);
+            entityManager,
+            aclService,
+            idObjectManager);
 
     user.setUid("userUid0001");
   }

@@ -60,6 +60,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockserver.client.MockServerClient;
+import org.mockserver.version.Version;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.transaction.TestTransaction;
@@ -83,8 +84,12 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
   @BeforeAll
   static void beforeAll() {
     targetMockServerContainer =
-        new GenericContainer<>("mockserver/mockserver:5.15.0")
-            .waitingFor(new HttpWaitStrategy().forStatusCode(404))
+        new GenericContainer<>("mockserver/mockserver:" + Version.getVersion())
+            .waitingFor(
+                new HttpWaitStrategy()
+                    .withMethod("PUT")
+                    .forPath("/mockserver/status")
+                    .forStatusCode(200))
             .withExposedPorts(1080);
     targetMockServerContainer.start();
   }

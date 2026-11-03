@@ -294,7 +294,8 @@ final class OpenApiMarkdown {
       String language = lines[lineNo++].trim().substring(3);
       String line = lines[lineNo++];
       while (!REGEX_CODE_BLOCK.matcher(line).matches()) {
-        verbatim.append(line).append('\n');
+        verbatim.appendEncoded(line);
+        verbatim.appendAscii('\n');
         line = lines[lineNo++];
       }
       return new MarkupCodeBlock(Text.of(language), verbatim.textValue());

@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -48,18 +49,26 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.document.Document;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.FileResourceStore.DataValueFileReference;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -91,6 +100,10 @@ public class DefaultFileResourceService implements FileResourceService {
   private final ApplicationEventPublisher fileEventPublisher;
 
   private final EntityManager entityManager;
+
+  private final AclService aclService;
+
+  private final IdentifiableObjectManager idObjectManager;
 
   // -------------------------------------------------------------------------
   // FileResourceService implementation
@@ -186,6 +199,116 @@ public class DefaultFileResourceService implements FileResourceService {
               .toList();
       case JOB_DATA -> List.of(new FileResourceOwner(FileResourceDomain.JOB_DATA, uid));
     };
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canRead(@Nonnull UserDetails user, @Nonnull FileResource fileResource) {
+    FileResourceDomain domain = fileResource.getDomain();
+    if (domain == null) {
+      // a file resource without a domain has no owner to authorize against
+      return false;
+    }
+
+    if (user.isSuper() || fileResource.isCreatedBy(user)) {
+      return true;
+    }
+
+    String uid = fileResource.getUid();
+    return switch (domain) {
+      // No object level rule: the content of a data value file is only served by the data value
+      // API and the audit API (canReadDataValueFile), which apply the data access rules of the
+      // owning data value. Its metadata is covered by canReadMetadata.
+      // Note that FileResourceController refuses to serve the content of this domain outright.
+      case DATA_VALUE -> false;
+
+      // Icons and organisation unit images are public interface assets: every client renders them
+      // and both are already served by their own endpoints without an object level check.
+      case ICON, ORG_UNIT -> true;
+
+      case USER_AVATAR ->
+          user.isAuthorized(Authorities.F_USER_VIEW)
+              || fileResourceStore.findUsersByAvatarFileResource(uid).contains(user.getUid());
+
+      // Only the participants of the conversation the attachment belongs to. An attachment that is
+      // not part of any conversation yet is reachable by its uploader through the check above.
+      case MESSAGE_ATTACHMENT ->
+          fileResourceStore.findMessageAttachmentParticipants(uid).contains(user.getUid());
+
+      // The sharing of the owning document decides. An unassigned upload has no document yet and
+      // is reachable by its uploader only.
+      case DOCUMENT -> canReadAnyDocument(user, fileResourceStore.findDocumentsByFileResource(uid));
+
+      // Job payloads follow the job log rule used by JobConfigurationController: the executing user
+      // (the uploader, covered above), a job log reader, or a superuser.
+      case JOB_DATA -> user.isAuthorized(Authorities.F_JOB_LOG_READ);
+    };
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canReadMetadata(@Nonnull UserDetails user, @Nonnull FileResource fileResource) {
+    // Only the content of a data value file is restricted to the data value API; its metadata
+    // stays readable for the clients that resolve it from a data value.
+    return fileResource.getDomain() == FileResourceDomain.DATA_VALUE || canRead(user, fileResource);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canReadDataValueFile(
+      @Nonnull UserDetails user, @Nonnull FileResource fileResource) {
+    if (fileResource.getDomain() != FileResourceDomain.DATA_VALUE) {
+      return false;
+    }
+    if (canRead(user, fileResource)) {
+      return true;
+    }
+
+    List<DataValueFileReference> references =
+        fileResourceStore.findDataValueReferencesByFileResourceValue(fileResource.getUid()).stream()
+            .filter(
+                ref ->
+                    user.isInUserHierarchy(ref.orgUnitPath())
+                        || user.isInUserDataHierarchy(ref.orgUnitPath()))
+            .toList();
+    if (references.isEmpty()) {
+      return false;
+    }
+
+    Set<String> comboUids = new HashSet<>();
+    for (DataValueFileReference ref : references) {
+      comboUids.add(ref.categoryOptionCombo());
+      comboUids.add(ref.attributeOptionCombo());
+    }
+    Set<String> readableCombos =
+        idObjectManager.getNoAcl(CategoryOptionCombo.class, comboUids).stream()
+            .filter(combo -> aclService.canDataRead(user, combo))
+            .map(CategoryOptionCombo::getUid)
+            .collect(Collectors.toSet());
+    return references.stream()
+        .anyMatch(
+            ref ->
+                readableCombos.contains(ref.categoryOptionCombo())
+                    && readableCombos.contains(ref.attributeOptionCombo()));
+  }
+
+  @Override
+  @NonTransactional
+  public boolean canAssign(
+      @Nonnull UserDetails user,
+      @Nonnull FileResource fileResource,
+      @Nonnull FileResourceDomain domain) {
+    return fileResource.getDomain() == domain
+        && !fileResource.isAssigned()
+        && (user.isSuper() || fileResource.isCreatedBy(user));
+  }
+
+  private boolean canReadAnyDocument(UserDetails user, List<String> documentUids) {
+    if (documentUids.isEmpty()) {
+      return false;
+    }
+    return idObjectManager.getNoAcl(Document.class, documentUids).stream()
+        .anyMatch(document -> aclService.canRead(user, document));
   }
 
   @Override

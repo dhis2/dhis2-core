@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Optional;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -185,13 +184,13 @@ public class AnalyticsCache {
 
   private Grid getGridClone(Grid grid) {
     if (grid != null) {
-      return SerializationUtils.clone(grid);
+      return grid.copy();
     }
 
     return null;
   }
 
   private Optional<Grid> getGridClone(Optional<Grid> grid) {
-    return grid.map(SerializationUtils::clone);
+    return grid.map(Grid::copy);
   }
 }

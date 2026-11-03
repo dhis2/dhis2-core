@@ -27,21 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.ou;
+package org.hisp.dhis.setting;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
-/** Column names used when reading ENROLLMENT_OU values from result rows. */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class OrgUnitRowAccess {
+/**
+ * Can be implemented by Spring beans to observe {@link SystemSettings} changes.
+ *
+ * <p>The method names are intentionally specific as we assume that they are implemented by other
+ * services where their name has to transport the context of settings.
+ *
+ * @author Jan Bernitt
+ * @since 2.44
+ */
+@FunctionalInterface
+public interface SystemSettingsObserver {
 
   /**
-   * Returns the result-set column alias used for ENROLLMENT_OU values in aggregated event rows.
+   * Observers are notified after the DB update has taken place. Exceptions thrown by observers are
+   * logged but otherwise ignored.
    *
-   * @return enrollment OU result column alias
+   * @param key the setting that changed
+   * @param value the new value ({@code null} for delete)
    */
-  public static String enrollmentOuResultColumn() {
-    return OrgUnitSqlConstants.ENROLLMENT_OU_RESULT_ALIAS;
-  }
+  void onSystemSettingChange(String key, String value);
 }

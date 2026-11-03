@@ -43,7 +43,8 @@ import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettings;
-import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.SystemSettingsObserver;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -51,8 +52,8 @@ import org.springframework.stereotype.Service;
  */
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.calendar.CalendarService")
-public class DefaultCalendarService implements CalendarService {
-  private final SystemSettingsProvider settingsProvider;
+public class DefaultCalendarService implements CalendarService, SystemSettingsObserver {
+  private final SystemSettingsService settingsService;
 
   private final Set<Calendar> calendars;
 
@@ -76,6 +77,7 @@ public class DefaultCalendarService implements CalendarService {
     PeriodType.setCalendarService(this);
     Cal.setCalendarService(this);
     DateUnitPeriodTypeParser.setCalendarService(this);
+    settingsService.registerObserver(Set.of("keyCalendar", "keyDateFormat"), this);
   }
 
   @Override
@@ -94,7 +96,7 @@ public class DefaultCalendarService implements CalendarService {
   @Override
   @IndirectTransactional
   public Calendar getSystemCalendar() {
-    SystemSettings settings = settingsProvider.getCurrentSettings();
+    SystemSettings settings = settingsService.getCurrentSettings();
     String calendarKey = settings.getCalendar();
     String dateFormat = settings.getDateFormat();
 
@@ -114,7 +116,7 @@ public class DefaultCalendarService implements CalendarService {
   @Override
   @IndirectTransactional
   public DateFormat getSystemDateFormat() {
-    String dateFormatKey = settingsProvider.getCurrentSettings().getDateFormat();
+    String dateFormatKey = settingsService.getCurrentSettings().getDateFormat();
 
     for (DateFormat dateFormat : DATE_FORMATS) {
       if (dateFormat.name().equals(dateFormatKey)) {
@@ -123,5 +125,16 @@ public class DefaultCalendarService implements CalendarService {
     }
 
     return DATE_FORMATS.get(0);
+  }
+
+  /*
+   * Handle calendar setting changes...
+   */
+
+  @Override
+  public void onSystemSettingChange(String key, String value) {
+    // we will only get called for the keys we observe
+    // so any call means we clear the caches
+    PeriodType.invalidatePeriodCache();
   }
 }

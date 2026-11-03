@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.EnumSet;
 import java.util.List;
@@ -54,6 +56,8 @@ import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -68,8 +72,9 @@ public class EnrollmentPersister
       DataSource dataSource,
       FileResourceStore fileResourceStore,
       ObjectMapper objectMapper,
+      @Qualifier(AES_128_STRING_ENCRYPTOR) PBEStringEncryptor encryptor,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
-    super(dataSource, fileResourceStore, objectMapper);
+    super(dataSource, fileResourceStore, objectMapper, encryptor);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 

@@ -356,12 +356,10 @@ class HeaderHelperTest {
 
     QueryItem item = queryItem("deUidA001", "Item A", TEXT);
 
-    BaseDimensionalItemObject ouItem = new BaseDimensionalItemObject("ouUid", "ou", "Ngelehun");
-
     EventQueryParams params =
         new EventQueryParams.Builder()
             .addItem(item)
-            .withEnrollmentOuDimension(List.of(ouItem))
+            .withEnrollmentOuDimension(List.of(createOrganisationUnit('A')))
             .withDisplayProperty(DisplayProperty.NAME)
             .build();
 

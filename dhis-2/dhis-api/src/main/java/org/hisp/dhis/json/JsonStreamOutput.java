@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
@@ -108,7 +109,7 @@ public final class JsonStreamOutput {
       @Nonnull Stream<IntFunction<Object>> elements) {
     checkCardinality(paths, adders);
     JsonLayoutNode element = createLayoutTree(paths, adders);
-    elements.forEach(e -> arr.addObject(obj -> element.add(obj, e)));
+    arr.addObjects(elements, element::add);
   }
 
   public static void addObjectMembers(
@@ -234,7 +235,8 @@ public final class JsonStreamOutput {
       public void add(
           JsonBuilder.JsonObjectBuilder to, IntFunction<java.lang.Object> valueAtPathIndex) {
         if (name.isEmpty()) { // root
-          members.forEach(m -> m.add(to, valueAtPathIndex));
+          // avoid lambda in a loop by using for-each
+          for (JsonLayoutNode m : members) m.add(to, valueAtPathIndex);
         } else {
           to.addObject(name, obj -> members.forEach(m -> m.add(obj, valueAtPathIndex)));
         }
@@ -299,18 +301,34 @@ public final class JsonStreamOutput {
                 values[i] = (Object[]) valueAtPathIndex.apply(members.get(i).index);
               int len = 0;
               for (Object[] value : values) if (value != null) len = Math.max(len, value.length);
+              // RowEncoder is to prevent lambda allocation in a loop
+              RowEncoder encoder = new RowEncoder();
               for (int j = 0; j < len; j++) {
-                final int jFinal = j;
-                arr.addObject(
-                    e -> {
-                      for (int i = 0; i < values.length; i++) {
-                        PropertyLayoutNode p = members.get(i);
-                        Object[] value = values[i];
-                        p.adder.add(e, p.name, value.length <= jFinal ? null : value[jFinal]);
-                      }
-                    });
+                encoder.set(members, values, j);
+                arr.addObject(encoder);
               }
             });
+      }
+
+      static final class RowEncoder implements Consumer<JsonBuilder.JsonObjectBuilder> {
+        private List<PropertyLayoutNode> members;
+        private Object[][] values;
+        private int rowIndex;
+
+        void set(List<PropertyLayoutNode> members, Object[][] values, int rowIndex) {
+          this.members = members;
+          this.values = values;
+          this.rowIndex = rowIndex;
+        }
+
+        @Override
+        public void accept(JsonBuilder.JsonObjectBuilder e) {
+          for (int i = 0; i < values.length; i++) {
+            PropertyLayoutNode p = members.get(i);
+            Object[] value = values[i];
+            p.adder.add(e, p.name, value.length <= rowIndex ? null : value[rowIndex]);
+          }
+        }
       }
     }
 

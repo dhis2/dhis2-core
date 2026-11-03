@@ -42,13 +42,17 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -111,7 +115,6 @@ class TrackedEntityStore {
           select pa.trackedentityattributeid from program_attributes pa where pa.programid = :programId
         )""";
 
-  // language=SQL
   private static final String GET_PROGRAM_OWNERS =
       """
       select te.uid as key, p.uid as prguid, o.uid as ouuid
@@ -119,7 +122,45 @@ class TrackedEntityStore {
       join program p on teop.programid = p.programid
       join organisationunit o on teop.organisationunitid = o.organisationunitid
       join trackedentity te on teop.trackedentityid = te.trackedentityid
-      where teop.trackedentityid in (:ids)""";
+      where teop.trackedentityid in (:ids)
+      and p.programid in (:programIds)
+      """;
+
+  /** True if the tracked entity has no enrollment in the program of the owner. */
+  private static final String NO_ENROLLMENT =
+      """
+      not exists (select 1 from enrollment e
+                  where e.trackedentityid = teop.trackedentityid
+                    and e.programid = teop.programid)""";
+
+  /**
+   * True if the tracked entity has an enrollment in the program of the owner whose attribute option
+   * combo the user can read.
+   */
+  private static final String READABLE_ENROLLMENT =
+      """
+      exists (select 1 from enrollment e
+              where e.trackedentityid = teop.trackedentityid
+                and e.programid = teop.programid
+                and e.attributeoptioncomboid in (:readableAttributeOptionComboIds))""";
+
+  /**
+   * Returns the attribute option combos of the given tracked entities' enrollments the user can
+   * read, so the sharing is evaluated once per attribute option combo instead of once per
+   * enrollment.
+   */
+  private static final String GET_READABLE_ENROLLMENT_ATTRIBUTE_OPTION_COMBOS =
+      """
+      select cocco.categoryoptioncomboid
+      from categoryoptioncombos_categoryoptions cocco
+      join categoryoption co on co.categoryoptionid = cocco.categoryoptionid
+      where cocco.categoryoptioncomboid in (
+        select distinct e.attributeoptioncomboid from enrollment e
+        where e.trackedentityid in (:ids)
+      )
+      group by cocco.categoryoptioncomboid
+      having bool_and(coalesce((%s), false))
+      """;
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -155,13 +196,50 @@ class TrackedEntityStore {
     return attributes;
   }
 
-  Multimap<String, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids) {
+  /**
+   * Returns the owners of programs the user has data read access to. Owners of programs in which
+   * the tracked entity only has enrollments the user cannot read due to the attribute option combo
+   * are left out, as they would reveal that the tracked entity is enrolled in the program.
+   */
+  Multimap<String, TrackedEntityProgramOwner> getProgramOwners(
+      TrackedEntityQueryParams queryParams, List<Long> ids, UserDetails user) {
     Multimap<String, TrackedEntityProgramOwner> programOwners = ArrayListMultimap.create();
+    List<Long> programIds =
+        queryParams.hasEnrolledInTrackerProgram()
+            ? List.of(queryParams.getEnrolledInTrackerProgram().getId())
+            : queryParams.getAccessibleTrackerPrograms().stream().map(Program::getId).toList();
+    if (programIds.isEmpty()) {
+      return programOwners;
+    }
+
+    MapSqlParameterSource params =
+        new MapSqlParameterSource().addValue("ids", ids).addValue("programIds", programIds);
+    String sql = GET_PROGRAM_OWNERS;
+    if (!user.isSuper()) {
+      List<Long> readableAttributeOptionComboIds =
+          getReadableEnrollmentAttributeOptionCombos(ids, user);
+      if (readableAttributeOptionComboIds.isEmpty()) {
+        sql += " and " + NO_ENROLLMENT;
+      } else {
+        sql += " and (" + NO_ENROLLMENT + " or " + READABLE_ENROLLMENT + ")";
+        params.addValue("readableAttributeOptionComboIds", readableAttributeOptionComboIds);
+      }
+    }
+
     jdbcTemplate.query(
-        GET_PROGRAM_OWNERS,
-        new MapSqlParameterSource("ids", ids),
+        sql,
+        params,
         (RowCallbackHandler) rs -> programOwners.put(rs.getString("key"), mapProgramOwner(rs)));
     return programOwners;
+  }
+
+  private List<Long> getReadableEnrollmentAttributeOptionCombos(List<Long> ids, UserDetails user) {
+    String sql =
+        String.format(
+            GET_READABLE_ENROLLMENT_ATTRIBUTE_OPTION_COMBOS,
+            JpaQueryUtils.generateSQlQueryForSharingCheck(
+                "co.sharing", user, AclService.LIKE_READ_DATA));
+    return jdbcTemplate.queryForList(sql, new MapSqlParameterSource("ids", ids), Long.class);
   }
 
   private static TrackedEntity mapTrackedEntity(ResultSet rs) throws SQLException {

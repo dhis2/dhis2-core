@@ -40,7 +40,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -54,6 +56,7 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -297,6 +300,24 @@ class EnrollmentImportValidationTest extends PostgresIntegrationTestBase {
     ImportReport importReport =
         trackerImportService.importTracker(
             params, testSetup.fromJson("tracker/validations/enrollments_bad-note-no-value.json"));
+
+    assertNoErrors(importReport);
+  }
+
+  @Test
+  void shouldPassWhenEnrolledAtIsWithinOpenDaysAfterCategoryOptionEndDate() throws IOException {
+    CategoryOption categoryOption = manager.get(CategoryOption.class, "zRXSQ4AQu7I");
+    categoryOption.setEndDate(DateUtils.getDate(2019, 8, 1));
+    manager.update(categoryOption);
+    Program program = manager.get(Program.class, "E8o1E9tAppy");
+    program.setOpenDaysAfterCoEndDate(30);
+    manager.update(program);
+
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params,
+            testSetup.fromJson("tracker/validations/enrollments_te_enrollments-data_2.json"));
 
     assertNoErrors(importReport);
   }

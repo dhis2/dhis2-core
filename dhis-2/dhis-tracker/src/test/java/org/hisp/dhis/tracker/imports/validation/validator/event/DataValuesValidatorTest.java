@@ -33,6 +33,7 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
@@ -44,6 +45,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
@@ -61,6 +63,8 @@ import org.hisp.dhis.tracker.imports.preheat.ProgramStageDataElements;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -466,9 +470,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
-
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1302);
@@ -770,26 +771,8 @@ class DataValuesValidatorTest {
 
   @Test
   void failValidationWhenFileResourceIsAlreadyAssigned() {
-    DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
-        .thenReturn(validDataElement);
-
-    ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
-        .thenReturn(programStage);
-    stubProgramStageDataElements(programStage);
-
-    FileResource fileResource = new FileResource();
-    fileResource.setAssigned(true);
-    DataValue validDataValue = dataValue("QX4LpiTZmUH");
-    when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
-    Event event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
+    FileResource fileResource = dataValueFile(true);
+    Event event = fileEvent(UID.generate(), fileResource);
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
@@ -797,9 +780,26 @@ class DataValuesValidatorTest {
 
     assertHasError(reporter, event, ValidationCode.E1009);
 
+    // a file without a recorded owner is not free to be bound to another event
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
 
     reporter = new Reporter(idSchemes);
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, ValidationCode.E1009);
+  }
+
+  @Test
+  void successValidationWhenEventAlreadyHoldsAssignedFileResource() {
+    FileResource fileResource = dataValueFile(true);
+    UID uid = UID.generate();
+    Event event = fileEvent(uid, fileResource);
+    org.hisp.dhis.tracker.model.TrackerEvent savedEvent =
+        new org.hisp.dhis.tracker.model.TrackerEvent();
+    savedEvent.setEventDataValues(
+        Set.of(new EventDataValue(DATA_ELEMENT_UID, fileResource.getUid())));
+    when(preheat.getTrackerEvent(uid)).thenReturn(savedEvent);
 
     validator.validate(reporter, bundle, event);
 
@@ -807,27 +807,27 @@ class DataValuesValidatorTest {
   }
 
   @Test
+  void failValidationWhenOnlyAnotherDataElementOfTheEventHoldsFileResource() {
+    FileResource fileResource = dataValueFile(true);
+    fileResource.setFileResourceOwner(UID.generate().getValue());
+    UID uid = UID.generate();
+    Event event = fileEvent(uid, fileResource);
+    org.hisp.dhis.tracker.model.TrackerEvent savedEvent =
+        new org.hisp.dhis.tracker.model.TrackerEvent();
+    savedEvent.setEventDataValues(
+        Set.of(new EventDataValue(MANDATORY_DATA_ELEMENT_UID, fileResource.getUid())));
+    when(preheat.getTrackerEvent(uid)).thenReturn(savedEvent);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, ValidationCode.E1009);
+  }
+
+  @Test
   void validateFileResourceOwner() {
-    DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
-        .thenReturn(validDataElement);
-
-    ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
-        .thenReturn(programStage);
-    stubProgramStageDataElements(programStage);
-
-    FileResource fileResource = new FileResource();
-    fileResource.setAssigned(true);
-    DataValue validDataValue = dataValue("QX4LpiTZmUH");
-    when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
-    Event event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
+    FileResource fileResource = dataValueFile(true);
+    Event event = fileEvent(UID.generate(), fileResource);
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
@@ -835,13 +835,7 @@ class DataValuesValidatorTest {
 
     assertHasError(reporter, event, ValidationCode.E1009);
 
-    event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
+    event = fileEvent(UID.generate(), fileResource);
     UID uid = UID.generate();
     fileResource.setFileResourceOwner(uid.getValue());
 
@@ -853,18 +847,64 @@ class DataValuesValidatorTest {
 
     assertHasError(reporter, event, ValidationCode.E1009);
 
-    event =
-        TrackerEvent.builder()
-            .event(uid)
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
-    fileResource.setFileResourceOwner(uid.getValue());
+    event = fileEvent(uid, fileResource);
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
 
     reporter = new Reporter(idSchemes);
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void failValidationWhenFileResourceIsOfAnotherDomain() {
+    FileResource fileResource = dataValueFile(false);
+    fileResource.setDomain(FileResourceDomain.DOCUMENT);
+    Event event = fileEvent(UID.generate(), fileResource);
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, ValidationCode.E1004);
+  }
+
+  @Test
+  void failValidationWhenFileResourceWasUploadedByAnotherUser() {
+    FileResource fileResource = dataValueFile(false);
+    fileResource.setCreatedBy(user(1L));
+    Event event = fileEvent(UID.generate(), fileResource);
+    UserDetails importer = mock(UserDetails.class);
+    when(importer.getId()).thenReturn(2L);
+    when(bundle.getUser()).thenReturn(importer);
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, ValidationCode.E1004);
+  }
+
+  @Test
+  void successValidationWhenFileResourceWasUploadedByImporter() {
+    FileResource fileResource = dataValueFile(false);
+    fileResource.setCreatedBy(user(1L));
+    Event event = fileEvent(UID.generate(), fileResource);
+    UserDetails importer = mock(UserDetails.class);
+    when(importer.getId()).thenReturn(1L);
+    when(bundle.getUser()).thenReturn(importer);
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void successValidationWhenSuperuserImportsFileResourceOfAnotherUser() {
+    FileResource fileResource = dataValueFile(false);
+    fileResource.setCreatedBy(user(1L));
+    Event event = fileEvent(UID.generate(), fileResource);
+    UserDetails importer = mock(UserDetails.class);
+    when(importer.isSuper()).thenReturn(true);
+    when(bundle.getUser()).thenReturn(importer);
 
     validator.validate(reporter, bundle, event);
 
@@ -1117,6 +1157,37 @@ class DataValuesValidatorTest {
     event.setUid(uid.getValue());
     event.setStatus(status);
     return event;
+  }
+
+  private FileResource dataValueFile(boolean assigned) {
+    FileResource fileResource = new FileResource();
+    fileResource.setUid("QX4LpiTZmUH");
+    fileResource.setDomain(FileResourceDomain.DATA_VALUE);
+    fileResource.setAssigned(assigned);
+    return fileResource;
+  }
+
+  private Event fileEvent(UID uid, FileResource fileResource) {
+    DataElement fileDataElement = dataElement(ValueType.FILE_RESOURCE);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
+        .thenReturn(fileDataElement);
+    ProgramStage programStage = programStage(fileDataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
+        .thenReturn(programStage);
+    stubProgramStageDataElements(programStage);
+    when(preheat.get(FileResource.class, fileResource.getUid())).thenReturn(fileResource);
+    return TrackerEvent.builder()
+        .event(uid)
+        .programStage(idSchemes.toMetadataIdentifier(programStage))
+        .status(EventStatus.ACTIVE)
+        .dataValues(Set.of(dataValue(fileResource.getUid())))
+        .build();
+  }
+
+  private static User user(long id) {
+    User user = new User();
+    user.setId(id);
+    return user;
   }
 
   private DataElement dataElement(ValueType type) {

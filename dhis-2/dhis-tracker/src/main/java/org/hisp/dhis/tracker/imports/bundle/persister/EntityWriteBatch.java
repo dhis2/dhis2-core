@@ -39,6 +39,7 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 
 /**
  * Accumulates entity-level writes staged during the persist loop and applies them at a single flush
@@ -101,9 +102,10 @@ class EntityWriteBatch {
   private final RelationshipWriter relationshipWriter = new RelationshipWriter();
   private final TrackedEntityProgramOwnerWriter ownershipWriter =
       new TrackedEntityProgramOwnerWriter();
-  private final TeavWriter teavWriter = new TeavWriter();
+  private final TeavWriter teavWriter;
 
-  EntityWriteBatch(ObjectMapper objectMapper) {
+  EntityWriteBatch(ObjectMapper objectMapper, PBEStringEncryptor encryptor) {
+    this.teavWriter = new TeavWriter(encryptor);
     UserInfoJsonCache userInfo = new UserInfoJsonCache(objectMapper);
     this.trackedEntityWriter = new TrackedEntityWriter(userInfo);
     this.enrollmentWriter = new EnrollmentWriter(userInfo);

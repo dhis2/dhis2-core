@@ -29,24 +29,36 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -55,13 +67,31 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrackedEntityProgramAttributeEncryptionTest extends PostgresIntegrationTestBase {
+  private static final String CONFIDENTIAL_ATTRIBUTE = "CWMLspQP2RH";
+
+  private static final String NON_CONFIDENTIAL_ATTRIBUTE = "TsfP85GKsU5";
+
+  private static final String CONFIDENTIAL_VALUE = "Value To Encrypt";
+
+  private static final String DATA = "tracker/te_program_with_tea_encryption_data.json";
+
+  private static final UID ENROLLMENT = UID.of("NfX6INLTOVq");
+
   @Autowired private TestSetup testSetup;
+
+  @Autowired private TrackerImportService trackerImportService;
+
+  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Autowired
+  @Qualifier(AES_128_STRING_ENCRYPTOR)
+  private PBEStringEncryptor encryptor;
 
   private User importUser;
 
@@ -75,21 +105,123 @@ class TrackedEntityProgramAttributeEncryptionTest extends PostgresIntegrationTes
   }
 
   @Test
-  void testTrackedEntityProgramAttributeEncryptedValue() throws IOException {
-    testSetup.importTrackerData("tracker/te_program_with_tea_encryption_data.json");
+  void shouldEncryptConfidentialAttributeValueOnCreate() throws IOException {
+    testSetup.importTrackerData(DATA);
 
+    assertEquals(CONFIDENTIAL_VALUE, value(CONFIDENTIAL_ATTRIBUTE));
+    assertEquals(CONFIDENTIAL_VALUE, encryptor.decrypt(encryptedValue(CONFIDENTIAL_ATTRIBUTE)));
+    assertNull(encryptedValue(NON_CONFIDENTIAL_ATTRIBUTE));
+  }
+
+  @Test
+  void shouldEncryptConfidentialAttributeValueOnUpdate() throws IOException {
+    TrackerObjects trackerObjects = testSetup.importTrackerData(DATA);
+    confidentialAttribute(trackerObjects).setValue("Updated value");
+
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build(),
+            trackerObjects));
+
+    assertEquals("Updated value", value(CONFIDENTIAL_ATTRIBUTE));
+    assertEquals("Updated value", encryptor.decrypt(encryptedValue(CONFIDENTIAL_ATTRIBUTE)));
+  }
+
+  @Test
+  void shouldReadConfidentialAttributeValueThroughHibernate() throws IOException {
+    testSetup.importTrackerData(DATA);
+
+    assertEquals(CONFIDENTIAL_VALUE, confidentialAttributeValue().getValue());
+  }
+
+  @Test
+  void shouldFallBackToPlainValueWhenConfidentialValueWasNotEncrypted() throws IOException {
+    testSetup.importTrackerData(DATA);
+    clearEncryptedValue();
+
+    assertEquals(CONFIDENTIAL_VALUE, confidentialAttributeValue().getValue());
+  }
+
+  @Test
+  void shouldExportPlainConfidentialAttributeValueWithEnrollment()
+      throws IOException, NotFoundException {
+    testSetup.importTrackerData(DATA);
+
+    assertEquals(CONFIDENTIAL_VALUE, exportedConfidentialAttributeValue().getValue());
+  }
+
+  @Test
+  void shouldExportPlainConfidentialAttributeValueWithEnrollmentWhenNotEncrypted()
+      throws IOException, NotFoundException {
+    testSetup.importTrackerData(DATA);
+    clearEncryptedValue();
+
+    assertEquals(CONFIDENTIAL_VALUE, exportedConfidentialAttributeValue().getValue());
+  }
+
+  private Attribute confidentialAttribute(TrackerObjects trackerObjects) {
+    return trackerObjects.getTrackedEntities().get(0).getAttributes().stream()
+        .filter(a -> CONFIDENTIAL_ATTRIBUTE.equals(a.getAttribute().getIdentifier()))
+        .findFirst()
+        .orElseThrow();
+  }
+
+  private TrackedEntityAttributeValue exportedConfidentialAttributeValue()
+      throws NotFoundException {
+    return enrollmentService
+        .getEnrollment(ENROLLMENT, EnrollmentFields.builder().includeAttributes().build())
+        .getTrackedEntity()
+        .getTrackedEntityAttributeValues()
+        .stream()
+        .filter(v -> CONFIDENTIAL_ATTRIBUTE.equals(v.getAttribute().getUid()))
+        .findFirst()
+        .orElseThrow();
+  }
+
+  private TrackedEntityAttributeValue confidentialAttributeValue() {
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());
+    manager.clear();
 
-    TrackedEntity trackedEntity = trackedEntities.get(0);
-    List<TrackedEntityAttributeValue> attributeValues =
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
-    assertEquals(5, attributeValues.size());
-    // not really a great test, but we are using a random seed for salt, so
-    // it changes on every run... we might want to
-    // add another EncryptionConfig test profile
-    RowCallbackHandler handler = resultSet -> assertNotNull(resultSet.getString("encryptedvalue"));
-    jdbcTemplate.query(
-        "select * from trackedentityattributevalue where encryptedvalue is not null ", handler);
+    return trackedEntityAttributeValueService
+        .getTrackedEntityAttributeValues(trackedEntities.get(0))
+        .stream()
+        .filter(v -> CONFIDENTIAL_ATTRIBUTE.equals(v.getAttribute().getUid()))
+        .findFirst()
+        .orElseThrow();
+  }
+
+  /** Simulates a row written by the JDBC importer before it encrypted confidential values. */
+  private void clearEncryptedValue() {
+    jdbcTemplate.update(
+        """
+        update trackedentityattributevalue set encryptedvalue = null
+        where trackedentityattributeid =
+          (select trackedentityattributeid from trackedentityattribute where uid = ?)""",
+        CONFIDENTIAL_ATTRIBUTE);
+    assertNull(encryptedValue(CONFIDENTIAL_ATTRIBUTE));
+  }
+
+  private String value(String attribute) {
+    return column("value", attribute);
+  }
+
+  private String encryptedValue(String attribute) {
+    return column("encryptedvalue", attribute);
+  }
+
+  private String column(String column, String attribute) {
+    List<String> values =
+        jdbcTemplate.queryForList(
+            "select teav."
+                + column
+                + " from trackedentityattributevalue teav"
+                + " join trackedentityattribute tea"
+                + " on tea.trackedentityattributeid = teav.trackedentityattributeid"
+                + " where tea.uid = ?",
+            String.class,
+            attribute);
+    assertEquals(1, values.size(), () -> "expected one value for attribute " + attribute);
+    return values.get(0);
   }
 }

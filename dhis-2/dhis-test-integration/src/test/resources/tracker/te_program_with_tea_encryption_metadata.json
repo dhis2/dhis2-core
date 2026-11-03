@@ -290,6 +290,19 @@
       },
       "programTrackedEntityAttributes": [
         {
+          "id": "Kc7xPbdJn2Q",
+          "name": "Program Attribute_Confidential_Text",
+          "mandatory": false,
+          "valueType": "TEXT",
+          "sortOrder": 5,
+          "program": {
+            "id": "hJUBNVQWl4e"
+          },
+          "trackedEntityAttribute": {
+            "id": "CWMLspQP2RH"
+          }
+        },
+        {
           "lastUpdated": "2020-02-20T12:08:40.006",
           "id": "OQeqChgVcMi",
           "created": "2020-02-12T15:07:06.260",

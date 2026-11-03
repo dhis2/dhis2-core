@@ -1,0 +1,83 @@
+# Copyright (c) 2004-2026, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: user_roles_with_authorities_not_held_by_creator
+description: User roles carrying authorities their creator does not hold
+section: Users
+section_order: 8
+summary_sql: >-
+  SELECT COUNT(*) as value,
+  100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM userrole), 0) as percent
+  FROM userrole r
+  WHERE EXISTS (
+    SELECT 1 FROM userroleauthorities a
+    WHERE a.userroleid = r.userroleid
+    AND (a.authority = 'Test_skipSharingCheck'
+      OR (r.userid IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM userrolemembers m
+        INNER JOIN userrole cr ON cr.userroleid = m.userroleid
+        INNER JOIN userroleauthorities ca ON ca.userroleid = m.userroleid
+        WHERE m.userid = r.userid
+        AND ca.authority IN ('ALL', a.authority)
+        AND (cr.userid IS DISTINCT FROM r.userid
+          OR (ca.authority = 'ALL' AND a.authority <> 'ALL'))))));
+details_sql: >-
+  SELECT r.uid, r.name,
+  'Created by ' || COALESCE(u.username, 'unknown user') as comment,
+  array_agg(a.authority ORDER BY a.authority) as refs
+  FROM userrole r
+  INNER JOIN userroleauthorities a ON a.userroleid = r.userroleid
+  LEFT JOIN userinfo u ON u.userinfoid = r.userid
+  WHERE a.authority = 'Test_skipSharingCheck'
+  OR (r.userid IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM userrolemembers m
+    INNER JOIN userrole cr ON cr.userroleid = m.userroleid
+    INNER JOIN userroleauthorities ca ON ca.userroleid = m.userroleid
+    WHERE m.userid = r.userid
+    AND ca.authority IN ('ALL', a.authority)
+    AND (cr.userid IS DISTINCT FROM r.userid
+      OR (ca.authority = 'ALL' AND a.authority <> 'ALL'))))
+  GROUP BY r.uid, r.name, u.username;
+details_id_type: userRoles
+severity: WARNING
+introduction: >
+  A user may only create or change a user role carrying authorities they hold themselves. Earlier
+  versions did not enforce this, so a user allowed to create roles could give a role authorities
+  they did not hold, and then give that role to users. This check lists user roles carrying
+  authorities that the user who created the role does not currently hold (the refs list those
+  authorities), and user roles carrying the Test_skipSharingCheck authority, which no longer has
+  any effect. Roles created by a user having the ALL authority, and roles without a recorded
+  creator, are not listed for the first reason. An authority other than ALL that the creator holds
+  only through roles they created themselves does not count as held, as such a role (for example a
+  role its creator then assigned to themselves) is what this check looks for. A role carrying ALL
+  is listed when its creator holds ALL only through roles they created themselves; this can include
+  the superuser role of the user who set up the system. A role is also listed when someone else
+  later added the authorities, or when its creator has since lost them.
+recommendation: >
+  Review each listed role and the users it is assigned to. Remove the authorities the role should
+  not carry, or confirm with a user holding them that the role is intended. Remove the
+  Test_skipSharingCheck authority from any role carrying it.

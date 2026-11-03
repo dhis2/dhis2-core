@@ -190,4 +190,60 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
     switchToAdminUser();
     DELETE("/dashboards/f1OijtLnf8a").content(HttpStatus.OK);
   }
+
+  @Test
+  void testGetDashboardWithLocaleAppliesTranslationByDefault() {
+    // Given: a dashboard exists
+    POST("/metadata", Path.of("dashboard/create_dashboard.json")).content(HttpStatus.OK);
+
+    String dashboardId = "f1OijtLnf8a";
+
+    // Capture the untranslated displayName
+    String originalDisplayName =
+        GET("/dashboards/" + dashboardId + "?fields=displayName")
+            .content()
+            .getString("displayName")
+            .string();
+
+    // Add a Norwegian translation for the dashboard name
+    String translatedName = "Norsk dashbordnavn";
+
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        PUT(
+            "/dashboards/" + dashboardId + "/translations",
+            """
+            {
+                'translations': [
+                    {
+                        'locale': 'no',
+                        'property': 'name',
+                        'value': '%s'
+                    }
+                ]
+            }
+            """
+                .formatted(translatedName)));
+
+    // When: requesting with only the locale parameter (no translate param)
+    JsonObject translatedResponse =
+        GET("/dashboards/" + dashboardId + "?fields=displayName&locale=no").content();
+
+    // Then: the translation is applied
+    assertEquals(
+        translatedName,
+        translatedResponse.getString("displayName").string(),
+        "locale should imply translate=true");
+
+    // When: explicitly opting out with translate=false
+    JsonObject untranslatedResponse =
+        GET("/dashboards/" + dashboardId + "?fields=displayName&locale=no&translate=false")
+            .content();
+
+    // Then: the original displayName is returned
+    assertEquals(
+        originalDisplayName,
+        untranslatedResponse.getString("displayName").string(),
+        "translate=false should skip translation");
+  }
 }
