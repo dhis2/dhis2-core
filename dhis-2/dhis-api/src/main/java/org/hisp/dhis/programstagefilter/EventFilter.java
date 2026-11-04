@@ -94,7 +94,7 @@ public class EventFilter extends BaseMetadataObject implements IdentifiableObjec
   private String name;
 
   /** Description of the filter. */
-  @Column(name = "description")
+  @Column(name = "description", length = 255)
   private String description;
 
   /** Property for filtering events by program */
