@@ -146,13 +146,13 @@ public class UserDatastoreEntry implements IdentifiableObject {
   /** A namespace represents a collection of keys */
   @JsonProperty
   @ToString.Include
-  @Column(name = "namespace", nullable = false)
+  @Column(name = "namespace", length = 255, nullable = false)
   private String namespace;
 
   /** A key belongs to a namespace, and represent a value */
   @JsonProperty
   @ToString.Include
-  @Column(name = "userkey", nullable = false)
+  @Column(name = "userkey", length = 255, nullable = false)
   private String key;
 
   /**
