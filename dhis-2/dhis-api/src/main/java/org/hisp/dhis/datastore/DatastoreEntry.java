@@ -149,13 +149,13 @@ public class DatastoreEntry implements IdentifiableObject {
   /** A namespace represents a collection of keys */
   @JsonProperty
   @ToString.Include
-  @Column(name = "namespace", nullable = false)
+  @Column(name = "namespace", length = 255, nullable = false)
   private String namespace;
 
   /** A key belongs to a namespace, and represent a value */
   @JsonProperty
   @ToString.Include
-  @Column(name = "namespacekey", nullable = false)
+  @Column(name = "namespacekey", length = 255, nullable = false)
   private String key;
 
   /**
