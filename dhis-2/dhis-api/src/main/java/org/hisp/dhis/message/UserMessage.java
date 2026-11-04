@@ -74,7 +74,7 @@ public class UserMessage {
   @Column(name = "usermessageid")
   private int id;
 
-  @Column(name = "usermessagekey")
+  @Column(name = "usermessagekey", length = 255)
   private String key;
 
   @ManyToOne(fetch = FetchType.LAZY)
