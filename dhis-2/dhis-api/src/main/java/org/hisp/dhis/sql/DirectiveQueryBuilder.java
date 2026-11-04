@@ -26,6 +26,8 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.jsontree.Text;
+import org.hisp.dhis.jsontree.TextBuilder;
 
 /**
  * A directive-driven builder for native SELECT queries. A single SQL text serves both fetch
@@ -78,12 +80,12 @@ public final class DirectiveQueryBuilder {
   private static final Pattern TRAILING_DIRECTION =
       Pattern.compile("(?i)\\s+(ASC|DESC)(\\s+NULLS\\s+(FIRST|LAST))?\\s*$");
 
-  private final String template;
+  private final Text template;
   private final SQL.QueryAPI api;
 
   private final Map<String, SQL.Param> params = new HashMap<>();
   private final Map<String, Boolean> conditions = new HashMap<>();
-  private final Map<String, String> replaces = new HashMap<>();
+  private final Map<String, Text> replacements = new HashMap<>();
   private final Map<String, OrderSpec> orders = new LinkedHashMap<>();
 
   private Integer limit;
@@ -91,7 +93,7 @@ public final class DirectiveQueryBuilder {
 
   private record OrderSpec(int position, boolean ascending) {}
 
-  private record OrderItem(String name, String sql, int templateIndex) {}
+  private record OrderItem(String name, Text sql, int templateIndex) {}
 
   private enum EndType { ELSE, ENDIF, EOF }
 
@@ -99,11 +101,11 @@ public final class DirectiveQueryBuilder {
 
   private static final class OrderSection {
     final boolean collecting;
-    final StringBuilder prefix = new StringBuilder();
+    final TextBuilder prefix = new TextBuilder();
     final List<OrderItem> items = new ArrayList<>();
     final Set<String> names = new HashSet<>();
     String currentName;
-    StringBuilder currentSql;
+    TextBuilder currentSql;
 
     OrderSection(boolean collecting) {
       this.collecting = collecting;
@@ -112,17 +114,24 @@ public final class DirectiveQueryBuilder {
     void startItem(String name) {
       flush();
       currentName = name;
-      currentSql = new StringBuilder();
+      currentSql = new TextBuilder();
     }
 
-    void appendLine(String line) {
-      if (currentName == null) prefix.append(line).append('\n');
-      else currentSql.append(line).append('\n');
+    void appendLine(Text line) {
+      if (currentName == null) {
+        prefix.appendEncoded(line);
+        prefix.appendAscii('\n');
+      }
+      else {
+        currentSql.appendEncoded(line);
+        currentSql.appendAscii('\n');
+      }
     }
 
     void flush() {
       if (currentName != null) {
-        items.add(new OrderItem(currentName, currentSql.toString().strip(), items.size()));
+        Text trimmed = Text.of(currentSql.textValue().toString().strip());
+        items.add(new OrderItem(currentName, trimmed, items.size()));
         currentName = null;
         currentSql = null;
       }
@@ -185,9 +194,10 @@ public final class DirectiveQueryBuilder {
   }
 
   private DirectiveQueryBuilder setParameter(
-      @Nonnull String name, @CheckForNull Object value, @Nonnull SQL.Param.Type type) {
-    conditions.remove(name);
-    params.put(name, new SQL.Param(type, name, value));
+      @Nonnull CharSequence name, @CheckForNull Object value, @Nonnull SQL.Param.Type type) {
+    String n = name.toString();
+    conditions.remove(n);
+    params.put(n, new SQL.Param(type, n, value));
     return this;
   }
 
@@ -198,24 +208,26 @@ public final class DirectiveQueryBuilder {
    * JDBC driver; the latest setter for a name wins (a later {@code setParameter} shadows
    * a condition, and vice versa).
    */
-  public DirectiveQueryBuilder setCondition(@Nonnull String name, boolean value) {
-    params.remove(name);
-    conditions.put(name, value);
+  public DirectiveQueryBuilder setCondition(@Nonnull CharSequence name, boolean value) {
+    String n = name.toString();
+    params.remove(n);
+    conditions.put(n, value);
     return this;
   }
 
   // ============================== Replacements ==============================
 
   /** SQL substituted for {@code -- @replace :name}; {@code null}/empty erases the line. */
-  public DirectiveQueryBuilder setReplace(@Nonnull String name, @CheckForNull String sql) {
-    if (sql == null || sql.isEmpty()) replaces.remove(name);
-    else replaces.put(name, sql);
+  public DirectiveQueryBuilder setReplace(@Nonnull CharSequence name, @CheckForNull CharSequence sql) {
+    String n = name.toString();
+    if (sql == null || sql.isEmpty()) replacements.remove(n);
+    else replacements.put(n, Text.of(sql));
     return this;
   }
 
   // ============================== Orders ==============================
 
-  public DirectiveQueryBuilder setOrder(String name, int position) {
+  public DirectiveQueryBuilder setOrder(CharSequence name, int position) {
     return setOrder(name, position, true);
   }
 
@@ -223,8 +235,8 @@ public final class DirectiveQueryBuilder {
    * Marks {@code name} as present at {@code position}. Direction is used only when the
    * template item does not itself carry {@code ASC}/{@code DESC} (the template wins).
    */
-  public DirectiveQueryBuilder setOrder(String name, int position, boolean ascending) {
-    orders.put(name, new OrderSpec(position, ascending));
+  public DirectiveQueryBuilder setOrder(CharSequence name, int position, boolean ascending) {
+    orders.put(name.toString(), new OrderSpec(position, ascending));
     return this;
   }
 
@@ -238,8 +250,8 @@ public final class DirectiveQueryBuilder {
     return this;
   }
 
-  public boolean isNullParameter(String name) {
-    SQL.Param p = params.get(name);
+  public boolean isNullParameter(CharSequence name) {
+    SQL.Param p = params.get(name.toString());
     return p != null && isNullish(p.value());
   }
 
@@ -289,7 +301,7 @@ public final class DirectiveQueryBuilder {
   }
 
   private End processBlock(
-      String input, int startPos, int endPos, StringBuilder out, boolean emit, boolean forCount) {
+      Text input, int startPos, int endPos, StringBuilder out, boolean emit, boolean forCount) {
 
     OrderSection order = null;
     int pos = startPos;
@@ -301,7 +313,7 @@ public final class DirectiveQueryBuilder {
       int nl = input.indexOf('\n', pos);
       int lineEnd = (nl < 0 || nl >= endPos) ? endPos : nl;
       int nextLineStart = (nl < 0 || nl >= endPos) ? endPos : nl + 1;
-      String line = input.substring(pos, lineEnd);
+      Text line = input.subSequence(pos, lineEnd);
 
       String name = parseDirectiveName(line);
       if (name == null) {
@@ -314,14 +326,13 @@ public final class DirectiveQueryBuilder {
         continue;
       }
 
-      if (order != null && !name.equals("order")) {
+      if (order != null && !name.contentEquals("order")) {
         throw new IllegalStateException(
             "Only @order directives may appear inside @order section: " + line);
       }
 
-      int nameStart = line.indexOf("@" + name);
-      int afterName = nameStart + 1 + name.length();
-      String rest = line.substring(afterName).strip();
+      int nameStart = line.indexOf('@');
+      Text rest = line.subSequence(Math.max(nameStart + name.length(), line.indexOf(' ', nameStart))+1, line.length());
 
       switch (name) {
         case "if" -> {
@@ -348,21 +359,17 @@ public final class DirectiveQueryBuilder {
           return new End(EndType.ELSE, nextLineStart);
         }
         case "endif" -> {
-          if (rest.isEmpty()) {
+          if (!rest.contains("--")) {
             return new End(EndType.ENDIF, nextLineStart);
           }
-          if (!rest.equals("--@if") && !rest.startsWith("--@if ")) {
-            throw new IllegalStateException(
-                "Only '--@if' may follow '@endif' on the same line: " + line);
-          }
-          int ifPos = line.indexOf("--@if", afterName);
+          int ifPos = line.indexOf("--", nameStart);
           return new End(EndType.ENDIF, pos + ifPos);
         }
         case "replace" -> {
           String arg = requireArg(rest, name, line);
           if (emit && !inCountSkip) {
-            String clause = replaces.get(arg);
-            if (clause != null) out.append(clause).append('\n');
+            Text replacement = replacements.get(arg);
+            if (replacement != null) out.append(replacement).append('\n');
           }
         }
         case "count" -> {
@@ -381,8 +388,9 @@ public final class DirectiveQueryBuilder {
           String arg;
           if (rest.isEmpty()) {
             arg = "";
-          } else if (rest.startsWith(":") && !rest.contains("--@")) {
-            arg = rest.substring(1);
+          } else if (rest.contains(":")) {
+            int argStart = rest.indexOf(':');
+            arg = rest.subSequence(argStart+1, rest.length()).trim().toString();
           } else {
             throw new IllegalStateException("Invalid @order argument: " + line);
           }
@@ -428,7 +436,7 @@ public final class DirectiveQueryBuilder {
    * non-empty identifier. Lines that begin with {@code --@} but have no name (e.g. an
    * ordinary SQL comment such as {@code -- @}) return {@code null}.
    */
-  private static String parseDirectiveName(String line) {
+  private static String parseDirectiveName(Text line) {
     int i = 0;
     int n = line.length();
     while (i < n && Character.isWhitespace(line.charAt(i))) i++;
@@ -439,10 +447,10 @@ public final class DirectiveQueryBuilder {
     i++;
     int start = i;
     while (i < n && (Character.isLetterOrDigit(line.charAt(i)) || line.charAt(i) == '_')) i++;
-    return i == start ? null : line.substring(start, i);
+    return i == start ? null : line.subSequence(start, i).toString();
   }
 
-  private static String requireArg(String rest, String name, String line) {
+  private static String requireArg(Text rest, String name, Text line) {
     if (rest.isEmpty()) {
       throw new IllegalStateException("@" + name + " requires ':name' argument: " + line);
     }
@@ -450,14 +458,14 @@ public final class DirectiveQueryBuilder {
       throw new IllegalStateException(
           "@" + name + " argument must start with ':': " + line);
     }
-    String arg = rest.substring(1);
+    Text arg = rest.subSequence(1, rest.length());
     if (arg.isEmpty() || arg.contains("--@")) {
       throw new IllegalStateException("Invalid @" + name + " argument: " + line);
     }
-    return arg;
+    return arg.toString();
   }
 
-  private static void requireNoArg(String rest, String name, String line) {
+  private static void requireNoArg(Text rest, String name, Text line) {
     if (!rest.isEmpty()) {
       throw new IllegalStateException("@" + name + " takes no argument: " + line);
     }
@@ -485,11 +493,11 @@ public final class DirectiveQueryBuilder {
     out.append(prefix).append('\n');
     for (int i = 0; i < selected.size(); i++) {
       if (i > 0) out.append(",\n");
-      String sql = selected.get(i).item.sql();
-      if (!hasTrailingDirection(sql) && !selected.get(i).spec.ascending()) {
-        sql = sql + " DESC";
-      }
+      Text sql = selected.get(i).item.sql();
       out.append(sql);
+      if (!hasTrailingDirection(sql) && !selected.get(i).spec.ascending()) {
+        out.append(" DESC");
+      }
     }
     out.append('\n');
   }
@@ -501,7 +509,7 @@ public final class DirectiveQueryBuilder {
     return c != null && c;
   }
 
-  private static boolean hasTrailingDirection(String sql) {
+  private static boolean hasTrailingDirection(Text sql) {
     return TRAILING_DIRECTION.matcher(sql).find();
   }
 

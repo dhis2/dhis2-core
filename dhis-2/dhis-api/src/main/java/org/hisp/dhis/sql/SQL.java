@@ -41,6 +41,7 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.jsontree.Text;
 import org.intellij.lang.annotations.Language;
 
 /**
@@ -137,7 +138,7 @@ public final class SQL {
   }
 
   public static DirectiveQueryBuilder ofDirective(@Language("sql") String sql, @Nonnull QueryAPI api) {
-    return new DirectiveQueryBuilder(sql, api);
+    return new DirectiveQueryBuilder(Text.of(sql), api);
   }
 
   /** Facade for specific implementations of query APIs, such as hibernate or JDBC. */

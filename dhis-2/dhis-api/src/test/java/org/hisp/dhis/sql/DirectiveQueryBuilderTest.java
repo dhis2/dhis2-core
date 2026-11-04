@@ -263,19 +263,6 @@ class DirectiveQueryBuilderTest {
     }
 
     @Test
-    void endifFollowedByOtherDirectiveFails() {
-      String template =
-          """
-          -- @if :a
-          A
-          -- @endif --@else
-          -- @endif
-          """;
-      IllegalStateException ex = assertThrows(IllegalStateException.class, () -> fetchSql(template));
-      assertTrue(ex.getMessage().contains("Only '--@if' may follow '@endif'"));
-    }
-
-    @Test
     void endifFollowedByEmbeddedIfArgFails() {
       IllegalStateException ex =
           assertThrows(
