@@ -79,7 +79,7 @@ class DirectiveQueryBuilderTest {
         """
         -- @if :flag
         SELECT 1
-        -- @endif
+        -- @end
         """;
 
     @Test
@@ -101,27 +101,27 @@ class DirectiveQueryBuilderTest {
     void boundNonNullParameterIsTruthy() {
       assertEquals(
           "AND x = :name\n",
-          fetchSql("-- @if :name\nAND x = :name\n-- @endif", b -> b.setParameter("name", "abc")));
+          fetchSql("-- @if :name\nAND x = :name\n-- @end", b -> b.setParameter("name", "abc")));
     }
 
     @Test
     void nullBoundParameterIsFalsy() {
       assertTrue(
-          fetchSql("-- @if :name\nAND x = :name\n-- @endif", b -> b.setParameter("name", (String) null))
+          fetchSql("-- @if :name\nAND x = :name\n-- @end", b -> b.setParameter("name", (String) null))
               .isEmpty());
     }
 
     @Test
     void emptyArrayParameterIsFalsy() {
       assertTrue(
-          fetchSql("-- @if :ids\nAND x IN (:ids)\n-- @endif", b -> b.setParameter("ids", new long[0])).isEmpty());
+          fetchSql("-- @if :ids\nAND x IN (:ids)\n-- @end", b -> b.setParameter("ids", new long[0])).isEmpty());
     }
 
     @Test
     void nonEmptyArrayParameterIsTruthy() {
       assertEquals(
           "AND x IN (:ids)\n",
-          fetchSql("-- @if :ids\nAND x IN (:ids)\n-- @endif", b -> b.setParameter("ids", "a", "b")));
+          fetchSql("-- @if :ids\nAND x IN (:ids)\n-- @end", b -> b.setParameter("ids", "a", "b")));
     }
   }
 
@@ -136,7 +136,7 @@ class DirectiveQueryBuilderTest {
         A
         -- @else
         B
-        -- @endif
+        -- @end
         """;
 
     @Test
@@ -159,10 +159,10 @@ class DirectiveQueryBuilderTest {
           B
           -- @else
           C
-          -- @endif
+          -- @end
           """;
       IllegalStateException ex = assertThrows(IllegalStateException.class, () -> fetchSql(template));
-      assertTrue(ex.getMessage().contains("Duplicate or unclosed @else"));
+      assertEquals("@else block did not close with @end but with ELSE: -- @if :a", ex.getMessage());
     }
   }
 
@@ -177,9 +177,9 @@ class DirectiveQueryBuilderTest {
         O
         -- @if :inner
         I
-        -- @endif
+        -- @end
         O2
-        -- @endif
+        -- @end
         """;
 
     @Test
@@ -204,7 +204,7 @@ class DirectiveQueryBuilderTest {
     }
   }
 
-  // ============================== @endif --@if ==============================
+  // ============================== @end --@if ==============================
 
   @Nested
   class EndifIf {
@@ -213,9 +213,9 @@ class DirectiveQueryBuilderTest {
         """
         -- @if :a
         A
-        -- @endif --@if :b
+        -- @end --@if :b
         B
-        -- @endif
+        -- @end
         """;
 
     @Test
@@ -244,11 +244,11 @@ class DirectiveQueryBuilderTest {
           """
           -- @if :a
           A
-          -- @endif --@if :b
+          -- @end --@if :b
           B
-          -- @endif --@if :c
+          -- @end --@if :c
           C
-          -- @endif
+          -- @end
           """;
       assertEquals("C\n", fetchSql(template, b -> b.setCondition("c", true)));
     }
@@ -265,9 +265,9 @@ class DirectiveQueryBuilderTest {
           A
           -- @if :b --@if :c
           B
-          -- @endif
+          -- @end
           """));
-      assertEquals("Unclosed @if in: -- @if :a", ex.getMessage());
+      assertEquals("@if block did not close with @end but with EOF: -- @if :a", ex.getMessage());
     }
   }
 
@@ -304,7 +304,7 @@ class DirectiveQueryBuilderTest {
           """
           -- @if :flag
           -- @insert :mid
-          -- @endif
+          -- @end
           """;
       assertTrue(fetchSql(template, b -> b.setInsert("mid", "X")).isEmpty());
     }
@@ -320,7 +320,7 @@ class DirectiveQueryBuilderTest {
         SELECT
         -- @replace :count count(*)
           a, b
-        -- @replace
+        -- @end
         FROM x
         """;
 
@@ -340,7 +340,7 @@ class DirectiveQueryBuilderTest {
           assertThrows(
               IllegalStateException.class,
               () -> countSql("SELECT\n-- @replace :count count(*)\n  a, b\nFROM x\n", b -> {}));
-      assertEquals("Unclosed @replace in: -- @replace :count count(*)", ex.getMessage());
+      assertEquals("@replace block did not close with @end but with EOF: -- @replace :count count(*)", ex.getMessage());
     }
 
     @Test
@@ -350,8 +350,8 @@ class DirectiveQueryBuilderTest {
           -- @if :flag
           -- @replace :count count(*)
           A
-          -- @replace
-          -- @endif
+          -- @end
+          -- @end
           SELECT 1
           """;
       assertEquals(
@@ -475,7 +475,7 @@ class DirectiveQueryBuilderTest {
           ORDER BY
           -- @if :x
           x.name
-          -- @endif
+          -- @end
           -- @order
           """;
       IllegalStateException ex = assertThrows(IllegalStateException.class, () -> fetchSql(template));
@@ -492,7 +492,7 @@ class DirectiveQueryBuilderTest {
           -- @order :name
           x.name
           -- @order
-          -- @endif
+          -- @end
           SELECT 1
           """;
       assertEquals(
@@ -510,7 +510,7 @@ class DirectiveQueryBuilderTest {
           -- @order :name
           x.name
           -- @order
-          -- @endif
+          -- @end
           SELECT 1
           """;
       assertEquals("SELECT 1\n", fetchSql(template, b -> b.setOrder("name", 1)));
@@ -528,7 +528,7 @@ class DirectiveQueryBuilderTest {
       Map<String, SQL.Param> sent = new LinkedHashMap<>();
       SQL.QueryAPI api = SQL.spy(sqls::add, sent::put);
 
-      SQL.ofDirective("SELECT * FROM x WHERE a = :a\n-- @if :flag\nAND b = 1\n-- @endif", api)
+      SQL.ofDirective("SELECT * FROM x WHERE a = :a\n-- @if :flag\nAND b = 1\n-- @end", api)
           .setParameter("a", "hello")
           .setCondition("flag", true)
           .stream()
@@ -544,7 +544,7 @@ class DirectiveQueryBuilderTest {
       Map<String, SQL.Param> sent = new LinkedHashMap<>();
       SQL.QueryAPI api = SQL.spy(sqls::add, sent::put);
 
-      SQL.ofDirective("SELECT 1\n-- @if :flag\nWHERE 1=1\n-- @endif", api)
+      SQL.ofDirective("SELECT 1\n-- @if :flag\nWHERE 1=1\n-- @end", api)
           .setCondition("flag", true)
           .stream()
           .toList();
@@ -556,7 +556,7 @@ class DirectiveQueryBuilderTest {
     void setConditionOverridesPreviousParameterOfSameName() {
       assertTrue(
           fetchSql(
-              "-- @if :x\nA\n-- @endif",
+              "-- @if :x\nA\n-- @end",
               b -> b.setParameter("x", "v").setCondition("x", false))
               .isEmpty());
     }
@@ -566,7 +566,7 @@ class DirectiveQueryBuilderTest {
       assertEquals(
           "A\n",
           fetchSql(
-              "-- @if :x\nA\n-- @endif",
+              "-- @if :x\nA\n-- @end",
               b -> b.setCondition("x", false).setParameter("x", "v")));
     }
 
@@ -594,7 +594,7 @@ class DirectiveQueryBuilderTest {
     void unclosedIfFails() {
       IllegalStateException ex =
           assertThrows(IllegalStateException.class, () -> fetchSql("-- @if :x\nA"));
-      assertTrue(ex.getMessage().contains("Unclosed @if"));
+      assertEquals("@if block did not close with @end but with EOF: -- @if :x", ex.getMessage());
     }
 
     @Test
@@ -607,7 +607,7 @@ class DirectiveQueryBuilderTest {
     @Test
     void orphanEndifFails() {
       IllegalStateException ex =
-          assertThrows(IllegalStateException.class, () -> fetchSql("-- @endif\nA"));
+          assertThrows(IllegalStateException.class, () -> fetchSql("-- @end\nA"));
       assertTrue(ex.getMessage().contains("Unbalanced directive at top level"));
     }
 
@@ -622,7 +622,7 @@ class DirectiveQueryBuilderTest {
     void ifWithoutArgumentFails() {
       IllegalStateException ex =
           assertThrows(
-              IllegalStateException.class, () -> fetchSql("-- @if\nA\n-- @endif"));
+              IllegalStateException.class, () -> fetchSql("-- @if\nA\n-- @end"));
       assertTrue(ex.getMessage().contains("requires ':name' argument"));
     }
 
@@ -630,7 +630,7 @@ class DirectiveQueryBuilderTest {
     void ifWithNonColonArgumentFails() {
       IllegalStateException ex =
           assertThrows(
-              IllegalStateException.class, () -> fetchSql("-- @if flag\nA\n-- @endif"));
+              IllegalStateException.class, () -> fetchSql("-- @if flag\nA\n-- @end"));
       assertEquals("@if requires ':name' argument: -- @if flag", ex.getMessage());
     }
 
@@ -638,7 +638,7 @@ class DirectiveQueryBuilderTest {
     void elseWithArgumentFails() {
       IllegalStateException ex =
           assertThrows(
-              IllegalStateException.class, () -> fetchSql("-- @if :a\nA\n-- @else :x\nB\n-- @endif"));
+              IllegalStateException.class, () -> fetchSql("-- @if :a\nA\n-- @else :x\nB\n-- @end"));
       assertEquals("@else takes no argument: -- @else :x", ex.getMessage());
     }
 

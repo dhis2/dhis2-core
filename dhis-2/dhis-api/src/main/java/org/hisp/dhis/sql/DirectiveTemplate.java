@@ -10,20 +10,25 @@ import org.hisp.dhis.jsontree.TextBuilder;
 /**
  * A general-purpose processor for {@code -- @directive} lines. Handles conditional blocks,
  * replacement blocks and single-line insertions. Directives must be on their own line as
- * {@code -- @name}, except for {@code -- @endif --@<any>} which resumes mid-line at the
+ * {@code -- @name}, except for {@code -- @end --@<any>} which resumes mid-line at the
  * embedded directive.
  *
  * <h3>Built-in directives</h3>
  * <pre>
- *   -- @if :name ... [-- @else ...] -- @endif
- *   -- @replace :name [replacement] ... -- @replace
+ *   -- @if :name ... [-- @else ...] -- @end
+ *   -- @replace :name [replacement] ... -- @end
  *   -- @insert :name
  * </pre>
+ *
+ * <p>{@code @end} closes the innermost open block, whether the block was opened by
+ * {@code @if} or {@code @replace}. {@code @endif} is accepted as an alias of {@code @end}.
+ * A bare {@code @replace} (no {@code :condition}) is no longer valid; use {@code @end} to
+ * close a replacement block.
  */
 public record DirectiveTemplate(
-    Predicate<Text> isDirectiveLine,
-    Predicate<String> isTrueCondition,
-    Function<String, Text> insert) {
+    Predicate<Text> directives,
+    Predicate<String> tests,
+    Function<String, Text> inserts) {
 
   public Text render(Text template) {
     TextBuilder out = new TextBuilder((int) (template.length() * 1.5));
@@ -36,13 +41,13 @@ public record DirectiveTemplate(
   }
 
   private enum Directive {
-    IF, ELSE, ENDIF, INSERT, REPLACE;
+    IF, ELSE, END, INSERT, REPLACE;
 
     static Directive of(Text name) {
       if (name == null) throw new IllegalArgumentException("Directive must not be null");
       if (name.contentEquals("if")) return IF;
       if (name.contentEquals("else")) return ELSE;
-      if (name.contentEquals("endif")) return ENDIF;
+      if (name.contentEquals("end") || name.contentEquals("endif")) return END;
       if (name.contentEquals("insert")) return INSERT;
       if (name.contentEquals("replace")) return REPLACE;
       throw new IllegalStateException("Unknown directive @" + name);
@@ -55,7 +60,7 @@ public record DirectiveTemplate(
   }
 
   private enum EndType {
-    ELSE, ENDIF, REPLACE, EOF
+    ELSE, END, EOF
   }
 
   private record End(EndType type, int pos) {}
@@ -68,7 +73,7 @@ public record DirectiveTemplate(
       Text line = nextLine(input, pos);
       int nextLineStart = Math.min(pos + line.length() + 1, len);
 
-      if (!isDirectiveLine.test(line)) {
+      if (!directives.test(line)) {
         if (emit) {
           out.appendEncoded(line);
           out.appendAscii('\n');
@@ -77,39 +82,26 @@ public record DirectiveTemplate(
         continue;
       }
 
-      Directive directive = directive(line);
-
+      Directive directive = Directive.of(directiveName(line));
       switch (directive) {
         case IF -> {
-          String name = requireDirectiveName(directive, line);
-          boolean cond = isTrueCondition.test(name);
-          End inner = processBlock(input, nextLineStart, out, emit && cond);
-          if (inner.type() == EndType.ENDIF) {
-            pos = inner.pos();
-            continue outer;
-          }
-          if (inner.type() == EndType.ELSE) {
-            End after = processBlock(input, inner.pos(), out, emit && !cond);
-            if (after.type() == EndType.ENDIF) {
-              pos = after.pos();
-              continue outer;
-            }
-            throw new IllegalStateException("Duplicate or unclosed @else in: " + line);
-          }
-          throw new IllegalStateException("Unclosed @if in: " + line);
+          pos = processIf(input, out, emit, line, nextLineStart).pos();
+          continue outer;
         }
         case ELSE -> {
           requireBareDirective(directive, line);
           return new End(EndType.ELSE, nextLineStart);
         }
-        case ENDIF -> {
+        case END -> {
+          // "end --@<any>" resumes the enclosing frame at the embedded directive,
+          // which is how sibling chains (@end --@if :b) are expressed.
           int space = line.indexOf(' ', line.indexOf('@'));
-          return new End(EndType.ENDIF, space < 0 ? nextLineStart : pos + space);
+          return new End(EndType.END, space < 0 ? nextLineStart : pos + space);
         }
         case INSERT -> {
           String name = requireDirectiveName(directive, line);
           if (emit) {
-            Text inserted = insert.apply(name);
+            Text inserted = inserts.apply(name);
             if (inserted != null) {
               out.appendEncoded(inserted);
               out.appendAscii('\n');
@@ -117,33 +109,7 @@ public record DirectiveTemplate(
           }
         }
         case REPLACE -> {
-          int colonIdx = line.indexOf(':');
-          if (colonIdx < 0) return new End(EndType.REPLACE, nextLineStart);
-          String condition = requireDirectiveName(directive, line);
-
-          if (isTrueCondition.test(condition)) {
-            if (emit) {
-              // Replace body with the text after ":name". Guarded against ":name" with
-              // no replacement text (line.indexOf(' ', colonIdx) == -1); in that case
-              // the whole block is simply erased.
-              int spaceIdx = line.indexOf(' ', colonIdx);
-              if (spaceIdx >= 0) {
-                Text replacement = line.subSequence(spaceIdx, line.length()).trim();
-                if (!replacement.isEmpty()) {
-                  out.appendEncoded(replacement);
-                  out.appendAscii('\n');
-                }
-              }
-            }
-            pos = skipToClosingReplace(input, nextLineStart, line);
-            continue outer;
-          }
-          // Keep the block: process it normally. The recursion will hit the closing bare
-          // @replace and return End(REPLACE, …) at the right position.
-          End inner = processBlock(input, nextLineStart, out, emit);
-          if (inner.type() != EndType.REPLACE)
-            throw new IllegalStateException("Unclosed @replace in: " + line);
-          pos = inner.pos();
+          pos = processReplace(input, out, emit, line, nextLineStart).pos();
           continue outer;
         }
         default ->
@@ -154,18 +120,74 @@ public record DirectiveTemplate(
     return new End(EndType.EOF, len);
   }
 
-  private int skipToClosingReplace(Text input, int pos, Text opener) {
-    int len = input.length();
-    while (pos < len) {
-      Text line = nextLine(input, pos);
-      int nextLineStart = Math.min(pos + line.length() + 1, len);
-      if (isDirectiveLine.test(line) && directive(line) == Directive.REPLACE) {
-        requireBareDirective(Directive.REPLACE, line);
-        return nextLineStart;
-      }
-      pos = nextLineStart;
+  /**
+   * Processes a {@code @if :cond ... @end} block, including an optional {@code @else}
+   * branch. The returned {@link End} always has type {@link EndType#END}; if the inner
+   * block ends with anything else (an unmatched {@code @else}, the top of the input, or a
+   * stray {@code @end}), this method throws. Since {@code @end} closes the innermost open
+   * block regardless of whether it was opened by {@code @if} or {@code @replace}, an
+   * {@code @if} nesting once started can only be closed by its own matching {@code @end}.
+   */
+  private End processIf(
+      Text input, TextBuilder out, boolean emit, Text line, int nextLineStart) {
+    String name = requireDirectiveName(Directive.IF, line);
+    boolean cond = tests.test(name);
+    End inner = processBlock(input, nextLineStart, out, emit && cond);
+    if (inner.type() == EndType.END) {
+      return inner;
     }
-    throw new IllegalStateException("Unclosed @replace in: " + opener);
+    if (inner.type() == EndType.ELSE) {
+      End after = processBlock(input, inner.pos(), out, emit && !cond);
+      if (after.type() == EndType.END) {
+        return after;
+      }
+      throw new IllegalStateException(
+          "@else block did not close with @end but with " + after.type() + ": " + line);
+    }
+    throw new IllegalStateException(
+        "@if block did not close with @end but with " + inner.type() + ": " + line);
+  }
+
+  /**
+   * Processes a {@code @replace :cond [repl]} block. If the condition is true, the opening
+   * line is replaced (with the inline text after {@code :cond}, or with the registered
+   * {@code insert} by name when there is no inline text), and the body is discarded. If
+   * the condition is false, the body is emitted as-is. Either way the returned {@link End}
+   * has type {@link EndType#END}.
+   *
+   * <p>The discard path uses recursion with a throwaway sink rather than an open/close
+   * counter. This keeps the code identical for the two branches, naturally rejects
+   * misplaced {@code @else} inside a replacement body, and reports structural errors with
+   * the line that actually caused them.
+   */
+  private End processReplace(
+      Text input, TextBuilder out, boolean emit, Text line, int nextLineStart) {
+    String condition = requireDirectiveName(Directive.REPLACE, line);
+    boolean replace = tests.test(condition);
+
+    if (replace && emit) {
+      // Emit replacement: inline text after ":cond", or fall back to inserts.apply(cond).
+      int s = line.indexOf(':');
+      s = skipLetters(line, s + 1);
+      int e = skipIndent(line, s);
+      if (e == line.length()) {
+        Text fromInsert = inserts.apply(condition);
+        if (fromInsert != null) out.appendEncoded(fromInsert);
+      } else {
+        out.appendEncoded(line.subSequence(e, line.length()).trim());
+      }
+      out.appendAscii('\n');
+    }
+
+    // Process the body either way — in the replace case with a throwaway sink and
+    // emit=false, in the keep case with the real sink and the current emit flag.
+    TextBuilder sink = replace ? new TextBuilder() : out;
+    End inner = processBlock(input, nextLineStart, sink, replace ? false : emit);
+    if (inner.type() != EndType.END) {
+      throw new IllegalStateException(
+          "@replace block did not close with @end but with " + inner.type() + ": " + line);
+    }
+    return inner;
   }
 
   // ---- shared helpers ----
@@ -174,10 +196,6 @@ public record DirectiveTemplate(
     int nl = input.indexOf('\n', pos);
     int lineEnd = nl < 0 ? input.length() : nl;
     return input.subSequence(pos, lineEnd);
-  }
-
-  private static Directive directive(Text line) {
-    return Directive.of(directiveName(line));
   }
 
   @CheckForNull
