@@ -238,7 +238,7 @@ public class Period implements Serializable {
    */
   @Nonnull
   @Access(AccessType.PROPERTY)
-  @Column(name = "iso", nullable = false, insertable = false, updatable = false)
+  @Column(name = "iso", length = 255, nullable = false, insertable = false, updatable = false)
   @Generated(GenerationTime.ALWAYS)
   @OptimisticLock(excluded = true)
   public String getIsoDate() {
