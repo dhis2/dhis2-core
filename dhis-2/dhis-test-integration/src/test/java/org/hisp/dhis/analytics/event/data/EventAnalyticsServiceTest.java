@@ -57,6 +57,7 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeByName;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.AnalyticsType.EVENT;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
@@ -134,7 +135,6 @@ import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -174,8 +174,6 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private OptionService optionService;
 
   @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
-
-  @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -516,7 +514,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     // Tracked Entity Attribute Values
     TrackedEntityAttributeValue atv = createTrackedEntityAttributeValue('A', teiA, atU);
     atv.setValue(ouF.getUid());
-    attributeValueService.addTrackedEntityAttributeValue(atv);
+    saveTrackedEntityAttributeValue(entityManager, atv);
 
     // Enrollments (Enrollments)
     Enrollment enrollmentA = createEnrollment(programA, teiA, ouE);
@@ -1665,6 +1663,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA));
 
     return getBaseEventQueryParamsBuilder()
+        .withEndpointItem(RequestTypeAware.EndpointItem.ENROLLMENT)
         .withProgram(programA)
         .addItem(new QueryItem(atU, null, atU.getValueType(), atU.getAggregationType(), null))
         .addDimension(orgUnitDimension)

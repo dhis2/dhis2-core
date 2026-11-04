@@ -36,6 +36,8 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.storage.BlobKey;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.util.MimeTypeUtils;
 
 /**
@@ -258,5 +260,17 @@ public class FileResource extends BaseIdentifiableObject {
 
   public void setFileResourceOwner(String fileResourceOwner) {
     this.fileResourceOwner = fileResourceOwner;
+  }
+
+  /**
+   * Compares primary keys, so the check does not depend on loading any other state of the uploader.
+   *
+   * @param user a user
+   * @return true when the given user uploaded this file resource
+   */
+  public boolean isCreatedBy(@Nonnull UserDetails user) {
+    User uploader = getCreatedBy();
+    Long userId = user.getId();
+    return uploader != null && userId != null && uploader.getId() == userId;
   }
 }
