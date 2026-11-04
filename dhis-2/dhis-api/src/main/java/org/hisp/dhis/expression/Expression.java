@@ -97,7 +97,7 @@ public class Expression implements Serializable, EmbeddedObject {
   private String expression;
 
   /** A description of the Expression. */
-  @Column(name = "description")
+  @Column(name = "description", length = 255)
   private String description;
 
   /** This expression should be given sliding window based data */
