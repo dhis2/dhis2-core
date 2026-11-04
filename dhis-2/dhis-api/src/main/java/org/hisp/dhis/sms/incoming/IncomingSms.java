@@ -122,14 +122,14 @@ public class IncomingSms implements IdentifiableObject {
   private Date receivedDate;
 
   /** The originator of the received message. */
-  @Column(name = "originator", nullable = false)
+  @Column(name = "originator", length = 255, nullable = false)
   private String originator;
 
   /** The ID of the gateway from which the message was received. */
-  @Column(name = "gatewayid", nullable = false)
+  @Column(name = "gatewayid", length = 255, nullable = false)
   private String gatewayId;
 
-  @Column(name = "text")
+  @Column(name = "text", length = 255)
   private String text;
 
   /** The content of a binary message, not persisted. */
@@ -139,7 +139,7 @@ public class IncomingSms implements IdentifiableObject {
   @Enumerated(EnumType.ORDINAL)
   private SmsMessageStatus status = SmsMessageStatus.INCOMING;
 
-  @Column(name = "statusmessage")
+  @Column(name = "statusmessage", length = 255)
   private String statusMessage;
 
   @Column(name = "parsed")
