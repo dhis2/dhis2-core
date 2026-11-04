@@ -101,14 +101,14 @@ public class CompleteDataSetRegistration implements Serializable {
   @Temporal(TemporalType.TIMESTAMP)
   private Date date; // TO-DO rename to created
 
-  @Column(name = "storedby")
+  @Column(name = "storedby", length = 255)
   private String storedBy; // TO-DO rename to createdBy
 
   @Column(name = "lastupdated")
   @Temporal(TemporalType.TIMESTAMP)
   private Date lastUpdated;
 
-  @Column(name = "lastupdatedby")
+  @Column(name = "lastupdatedby", length = 255)
   private String lastUpdatedBy;
 
   @Column(name = "completed", nullable = false)
