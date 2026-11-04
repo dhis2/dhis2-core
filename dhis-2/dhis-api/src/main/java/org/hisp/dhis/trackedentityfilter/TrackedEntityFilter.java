@@ -119,7 +119,7 @@ public class TrackedEntityFilter extends BaseMetadataObject
   private Program program;
 
   /** Property indicating description of trackedEntityFilter */
-  @Column(name = "description")
+  @Column(name = "description", length = 255)
   private String description;
 
   /** Property indicating the filter's order in tracked entity search UI */
