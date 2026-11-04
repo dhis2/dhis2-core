@@ -137,7 +137,7 @@ public class ExpressionDimensionItem extends BaseMetadataObject
   @Setter
   private String shortName;
 
-  @Column(name = "formname")
+  @Column(name = "formname", length = 255)
   @Setter
   private String formName;
 
