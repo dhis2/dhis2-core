@@ -111,8 +111,6 @@ public class Main {
     Tomcat tomcat = new Tomcat();
     String baseDir = createTempDir();
     tomcat.setBaseDir(baseDir);
-    Runtime.getRuntime()
-        .addShutdownHook(new Thread(() -> shutdown(tomcat, baseDir), "tomcat-shutdown"));
     int port = getPort();
     tomcat.setPort(port);
 
@@ -153,6 +151,10 @@ public class Main {
     Thread.currentThread().setContextClassLoader(context.getParentClassLoader());
 
     host.addChild(context);
+
+    // Registered once the server exists, so the hook never creates it concurrently.
+    Runtime.getRuntime()
+        .addShutdownHook(new Thread(() -> shutdown(tomcat, baseDir), "tomcat-shutdown"));
 
     try {
       tomcat.start();
@@ -243,7 +245,18 @@ public class Main {
     context.addServletMappingDecoded("/", "default");
   }
 
-  private static void shutdown(Tomcat tomcat, String baseDir) {
+  /**
+   * Stops and destroys Tomcat, which closes the Spring context. Skips both while Tomcat is still
+   * starting: Spring starts inside the synchronized {@link LifecycleBase#start()}, so calling the
+   * synchronized {@code stop()} would block the shutdown hook until startup completes. The JVM then
+   * exits without waiting for startup. {@code getState()} does not take the lock.
+   */
+  static void stopTomcat(Tomcat tomcat) {
+    LifecycleState state = tomcat.getServer().getState();
+    if (state != LifecycleState.STARTED && state != LifecycleState.FAILED) {
+      log.info("Embedded Tomcat is in state {}, exiting without graceful shutdown", state);
+      return;
+    }
     try {
       tomcat.stop();
     } catch (Exception ex) {
@@ -254,6 +267,10 @@ public class Main {
     } catch (Exception ex) {
       log.error("Failed to destroy embedded Tomcat", ex);
     }
+  }
+
+  private static void shutdown(Tomcat tomcat, String baseDir) {
+    stopTomcat(tomcat);
     try {
       FileSystemUtils.deleteRecursively(Path.of(baseDir));
       log.info("Deleted embedded Tomcat base directory: {}", baseDir);
