@@ -89,7 +89,7 @@ public class AnalyticsSetupExtension implements BeforeAllCallback {
     logger.info("Clearing application caches.");
 
     new LoginActions().loginAsAdmin();
-    new MaintenanceActions().post("cacheClear", new JsonObject()).validateStatus(200);
+    new MaintenanceActions().post("cacheClear", new JsonObject()).validateStatus(204);
   }
 
   private void exportAnalyticsTables() {
