@@ -126,7 +126,7 @@ public class Document extends BaseMetadataObject implements IdentifiableObject, 
    * The content type of the file referred to by the document, or null if the document refers to a
    * URL.
    */
-  @Column(name = "contenttype")
+  @Column(name = "contenttype", length = 255)
   private String contentType;
 
   /**
