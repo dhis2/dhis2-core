@@ -111,7 +111,7 @@ public class OutboundSms implements IdentifiableObject {
   @Column(name = "uid", unique = true, nullable = false, length = 11)
   private String uid;
 
-  @Column(name = "sender")
+  @Column(name = "sender", length = 255)
   private String sender;
 
   @ElementCollection
