@@ -56,10 +56,10 @@ public class SequentialNumberCounter {
   @Column(name = "id")
   private int id;
 
-  @Column(name = "owneruid", nullable = false)
+  @Column(name = "owneruid", length = 255, nullable = false)
   private String ownerUid;
 
-  @Column(name = "key", nullable = false)
+  @Column(name = "key", length = 255, nullable = false)
   private String key;
 
   @Column(name = "counter")
