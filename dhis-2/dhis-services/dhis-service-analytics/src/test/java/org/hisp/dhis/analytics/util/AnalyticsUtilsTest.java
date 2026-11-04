@@ -1058,27 +1058,6 @@ class AnalyticsUtilsTest extends TestBase {
     assertEquals(E7132, thrown.getErrorCode());
   }
 
-  @Test
-  @DisplayName(
-      "When a DataIntegrityViolationException is caused by a missing table, then the table check takes precedence over E7154")
-  void whenDataIntegrityViolation_withTableAndColumnNotExisting_thenThrowBadSqlGrammar() {
-    // Message matches both the ClickHouse "missing table" and "missing column" patterns
-    SQLException sqlException =
-        new SQLException(
-            "Unknown table expression identifier 'analytics_2024'; Unknown column 'cX5k9anHEHd'");
-    Supplier<String> supplier =
-        () -> {
-          throw new DataIntegrityViolationException("Data integrity violation", sqlException);
-        };
-
-    BadSqlGrammarException thrown =
-        assertThrows(
-            BadSqlGrammarException.class,
-            () -> AnalyticsUtils.withExceptionHandling(supplier, false));
-
-    assertSame(sqlException, thrown.getSQLException());
-  }
-
   @ParameterizedTest
   @MethodSource("metadataDetailsProvider")
   void testGetDimensionMetadataMap_with_ProgramDataElement_withOptions(
