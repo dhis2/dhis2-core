@@ -607,9 +607,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             au.firstName as user_assigned_first_name, au.surName as user_assigned_surname,
             au.username as user_assigned_username, \s""");
     addOrderFieldsToSelect(sql, params.getOrder());
-    sql.append(
-        """
-            ev.attributeoptioncomboid as coc_id""");
+    sql.append(" ev.attributeoptioncomboid as coc_id");
     if (JdbcAttributeOptionCombos.isOrderedByUid(params.getOrder())) {
       sql.append(", ")
           .append(JdbcAttributeOptionCombos.uidSubquery("ev.attributeoptioncomboid"))
