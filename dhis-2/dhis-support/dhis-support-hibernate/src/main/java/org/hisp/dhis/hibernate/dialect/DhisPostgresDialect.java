@@ -31,9 +31,12 @@ package org.hisp.dhis.hibernate.dialect;
 
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import java.sql.Types;
+import java.util.List;
 import org.hibernate.dialect.function.StandardSQLFunction;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect;
 import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.Type;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 
 /**
@@ -81,6 +84,30 @@ public class DhisPostgresDialect extends PostgisPG95Dialect {
     registerFunction(
         JsonbFunctions.GET_TRANSLATED_VALUE,
         new StandardSQLFunction(JsonbFunctions.GET_TRANSLATED_VALUE, StandardBasicTypes.STRING));
+    // Unlike translated ordering, display-name filtering must skip empty values and match the
+    // getter's case-insensitive property key and conditional String.trim() fallback.
+    registerFunction(
+        JsonbFunctions.GET_DISPLAY_NAME,
+        new StandardSQLFunction(JsonbFunctions.GET_DISPLAY_NAME, StandardBasicTypes.STRING) {
+          @Override
+          public String render(
+              Type firstArgumentType, List arguments, SessionFactoryImplementor factory) {
+            // Keep this scalar: an array-expansion subquery per candidate inflates both execution
+            // cost and PostgreSQL's cost estimate, triggering expensive JIT for simple searches.
+            // SQLFunctionTemplate cannot represent the JSONPath '?' operator.
+            // Preserve argument order: Criteria binds the path before the locale.
+            return """
+                case when coalesce(jsonb_array_length(%1$s), 0) = 0 then %2$s
+                else coalesce(
+                  jsonb_path_query_first(
+                    %1$s, cast(%3$s as jsonpath),
+                    jsonb_build_object('locale', cast(%4$s as text))) ->> 'value',
+                  regexp_replace(%2$s, '^[\\x01-\\x20]+|[\\x01-\\x20]+$', '', 'g'))
+                end
+                """
+                .formatted(arguments.get(0), arguments.get(1), arguments.get(2), arguments.get(3));
+          }
+        });
     registerFunction("array_agg", new StandardSQLFunction("array_agg", StringArrayType.INSTANCE));
   }
 }

@@ -61,6 +61,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
+import org.hisp.dhis.query.operators.LikeOperator;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
@@ -361,6 +362,67 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     return Stream.of(path.getAlias());
   }
 
+  /** Only root displayName LIKE/ILIKE has a computed SQL filtering implementation. */
+  public static boolean supportsTranslatedNameFilter(Schema schema, Filter filter) {
+    if (!"displayName".equals(filter.getPath())
+        || !(filter.getOperator() instanceof LikeOperator)) {
+      return false;
+    }
+    Property displayName = schema.getProperty("displayName");
+    Property name = schema.getProperty("name");
+    return displayName != null
+        && displayName.isSimple()
+        && name != null
+        && name.isPersisted()
+        && name.canBeTranslated()
+        && "NAME".equals(name.getTranslationKey())
+        && schema.hasPersistedProperty("translations");
+  }
+
+  private <Y> Expression<String> getDisplayName(CriteriaBuilder builder, Root<Y> root) {
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
+    if (locale == null) return root.get("name");
+    return builder.function(
+        JsonbFunctions.GET_DISPLAY_NAME,
+        String.class,
+        root.get("translations"),
+        root.get("name"),
+        builder.literal(displayNameTranslationPath(locale)),
+        builder.literal(locale.toString()));
+  }
+
+  private static String displayNameTranslationPath(Locale locale) {
+    // Locale validates every component as ASCII letters/digits. Only these validated components,
+    // never the request string, enter the regex. Keep canonical language-only locales on equality.
+    String language =
+        switch (locale.language()) {
+          case "id" -> "(id|in)";
+          case "he" -> "(he|iw)";
+          case "yi" -> "(yi|ji)";
+          default -> locale.language();
+        };
+    String localeMatch = "@.locale == $locale";
+    if (locale.region() != null || !language.equals(locale.language())) {
+      String separator = "(-|_#?)";
+      String pattern = language;
+      if (locale.region() != null) {
+        String region = locale.region();
+        String script = locale.script();
+        pattern +=
+            separator
+                + (script == null
+                    ? region
+                    : "(" + region + separator + script + "|" + script + separator + region + ")");
+        // String.split in Locale.of discards trailing empty parts, including repeated separators.
+        pattern += separator + "*";
+      }
+      localeMatch += " || @.locale like_regex \"^" + pattern + "$\"";
+    }
+    return "$[*] ? (@.property like_regex \"^name$\" flag \"i\" && ("
+        + localeMatch
+        + ") && @.value != null && @.value != \"\")";
+  }
+
   private <Y> Predicate buildFilter(
       CriteriaBuilder builder,
       Root<Y> root,
@@ -369,14 +431,12 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       CriteriaQuery<?> criteriaQuery) {
     if (filter == null || filter.getOperator() == null) return null;
     if (!filter.isVirtual()) {
-      String filterPath = filter.getPath();
-      // Map display properties to their base properties
-      PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
-      if (path == null && filterPath.startsWith("display")) {
-        filterPath = Property.resolveTranslationBasePropertyName(filterPath);
-        filter = new Filter(filterPath, filter.getOperator());
-        path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
+      Schema schema = schemaService.getSchema(query.getObjectType());
+      if (supportsTranslatedNameFilter(schema, filter)) {
+        return ((LikeOperator<?>) filter.getOperator())
+            .getLiteralPredicate(builder, getDisplayName(builder, root));
       }
+      PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
       if (path == null) {
         return null;
       }

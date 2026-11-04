@@ -69,6 +69,9 @@ public class DhisH2Dialect extends H2Dialect {
     registerFunction(
         JsonbFunctions.CHECK_USER_ACCESS,
         new StandardSQLFunction(JsonbFunctions.CHECK_USER_ACCESS, StandardBasicTypes.BOOLEAN));
+    registerFunction(
+        JsonbFunctions.GET_DISPLAY_NAME,
+        new StandardSQLFunction(JsonbFunctions.GET_DISPLAY_NAME, StandardBasicTypes.STRING));
     registerFunction("array_agg", new StandardSQLFunction("array_agg", StringArrayType.INSTANCE));
   }
 
