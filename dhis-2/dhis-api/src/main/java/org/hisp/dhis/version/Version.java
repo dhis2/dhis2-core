@@ -53,7 +53,7 @@ public class Version {
   @Column(name = "versionkey", nullable = false, unique = true, length = 230)
   private String key;
 
-  @Column(name = "versionvalue")
+  @Column(name = "versionvalue", length = 255)
   private String value;
 
   // -------------------------------------------------------------------------
