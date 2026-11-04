@@ -53,8 +53,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -70,8 +70,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.query.JpaQueryUtils;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
@@ -79,6 +77,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.Geometries;
+import org.hisp.dhis.tracker.export.JdbcAttributeOptionCombos;
 import org.hisp.dhis.tracker.export.JdbcNotes;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
@@ -123,7 +122,7 @@ class JdbcSingleEventStore {
           entry("lastUpdated", "ev_lastupdated"),
           entry("lastUpdatedAtClient", "ev_lastupdatedatclient"),
           entry("completedBy", "ev_completedby"),
-          entry("attributeOptionCombo.uid", "coc_uid"),
+          entry(JdbcAttributeOptionCombos.ORDER_BY_UID, "coc_uid"),
           entry("completedDate", "ev_completeddate"),
           entry("deleted", "ev_deleted"),
           entry("assignedUser", "user_assigned_username"),
@@ -144,6 +143,8 @@ class JdbcSingleEventStore {
    */
   @Qualifier("namedParameterJdbcTemplate")
   private final NamedParameterJdbcTemplate writeJdbcTemplate;
+
+  private final CategoryOptionComboStore categoryOptionComboStore;
 
   public List<SingleEvent> getEvents(SingleEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
@@ -166,8 +167,11 @@ class JdbcSingleEventStore {
     List<SingleEvent> events = new ArrayList<>();
 
     final MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
-    String sql =
-        buildSql(queryParams, pageParams, sqlParameters, CurrentUserUtil.getCurrentUserDetails());
+    if (!addReadableAocs(sqlParameters, CurrentUserUtil.getCurrentUserDetails())) {
+      return List.of();
+    }
+    String sql = buildSql(queryParams, pageParams, sqlParameters);
+    Map<Long, CategoryOptionCombo> attributeOptionCombos = new HashMap<>();
 
     TrackerIdSchemeParam dataElementIdScheme =
         queryParams.getIdSchemeParams().getDataElementIdScheme();
@@ -246,29 +250,10 @@ class JdbcSingleEventStore {
 
               event.setDeleted(resultSet.getBoolean("ev_deleted"));
 
-              CategoryOptionCombo coc = new CategoryOptionCombo();
-              coc.setUid(resultSet.getString("coc_uid"));
-              coc.setCode(resultSet.getString("coc_code"));
-              coc.setName(resultSet.getString("coc_name"));
-              coc.setAttributeValues(
-                  AttributeValues.of(resultSet.getString("coc_attributevalues")));
-
-              String cosString = resultSet.getString("co_values");
-              JsonMixed cosJson = JsonMixed.of(cosString);
-              JsonObject object = cosJson.asObject();
-              Set<CategoryOption> options = new HashSet<>(object.names().size());
-              for (String uid : object.names()) {
-                JsonObject categoryOptionJson = object.getObject(uid);
-                CategoryOption option = new CategoryOption();
-                option.setUid(uid);
-                option.setCode(categoryOptionJson.getString("code").string(""));
-                option.setName(categoryOptionJson.getString("name").string(""));
-                option.setAttributeValues(
-                    AttributeValues.of(categoryOptionJson.getObject("attributeValues").toJson()));
-                options.add(option);
-              }
-              coc.setCategoryOptions(options);
-              event.setAttributeOptionCombo(coc);
+              // filled after the export query, once per distinct attribute option combo
+              event.setAttributeOptionCombo(
+                  attributeOptionCombos.computeIfAbsent(
+                      resultSet.getLong("coc_id"), id -> new CategoryOptionCombo()));
 
               event.setOccurredDate(resultSet.getTimestamp("ev_occurreddate"));
               event.setCreated(resultSet.getTimestamp("ev_created"));
@@ -332,8 +317,25 @@ class JdbcSingleEventStore {
             }
           }
 
+          JdbcAttributeOptionCombos.fetchAttributeOptionCombos(jdbcTemplate, attributeOptionCombos);
+
           return events;
         });
+  }
+
+  /**
+   * Adds the attribute option combos the user may read data of as a parameter, unless the user is
+   * not restricted.
+   *
+   * @return false when the user may read no attribute option combo, so no event at all
+   */
+  private boolean addReadableAocs(MapSqlParameterSource sqlParams, UserDetails user) {
+    long[] readable = categoryOptionComboStore.getDataReadableAttributeOptionComboIds(user, null);
+    if (readable == null) {
+      return true;
+    }
+    sqlParams.addValue(JdbcAttributeOptionCombos.READABLE_AOCS, readable);
+    return readable.length > 0;
   }
 
   public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
@@ -412,7 +414,10 @@ class JdbcSingleEventStore {
   public long getEventCount(SingleEventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
-    String sql = getCountQuery(params, sqlParams, currentUser);
+    if (!addReadableAocs(sqlParams, currentUser)) {
+      return 0L;
+    }
+    String sql = getCountQuery(params, sqlParams);
     Long count = jdbcTemplate.queryForObject(sql, sqlParams, Long.class);
     return count != null ? count : 0L;
   }
@@ -422,7 +427,6 @@ class JdbcSingleEventStore {
    *
    * <ul>
    *   <li>{@code organisationunit} - always needed (org unit mode and access level filtering)
-   *   <li>{@code categoryoptioncombo} - always needed (COC access control)
    *   <li>{@code programstage} + {@code program} - only when no specific program is given (needed
    *       for {@code p.accesslevel} in the access level clause). When a program is known, its
    *       conditions use {@code ev.programstageid} directly and both joins are skipped.
@@ -430,8 +434,7 @@ class JdbcSingleEventStore {
    *
    * <p>Always skips: {@code userinfo} (au) which is only used in SELECT.
    */
-  private String getCountQuery(
-      SingleEventQueryParams params, MapSqlParameterSource sqlParams, UserDetails user) {
+  private String getCountQuery(SingleEventQueryParams params, MapSqlParameterSource sqlParams) {
     boolean needsProgramJoin = params.getProgram() == null;
 
     StringBuilder sql = new StringBuilder();
@@ -441,7 +444,6 @@ class JdbcSingleEventStore {
       addJoinOnProgram(sql);
     }
     addJoinOnOrgUnit(sql);
-    addJoinOnCategoryOptionCombo(sql, user);
     addCountWhereConditions(sql, sqlParams, params, needsProgramJoin);
 
     return sql.toString();
@@ -453,7 +455,7 @@ class JdbcSingleEventStore {
       SingleEventQueryParams params,
       boolean hasProgramJoin) {
     SqlHelper hlp = new SqlHelper(true);
-    addDataElementConditions(sql, sqlParams, params);
+    addDataElementConditions(sql, sqlParams, params, hlp);
     if (hasProgramJoin) {
       addProgramConditions(sql, sqlParams, params, hlp);
     } else {
@@ -492,8 +494,7 @@ class JdbcSingleEventStore {
   private String buildSql(
       SingleEventQueryParams queryParams,
       PageParams pageParams,
-      MapSqlParameterSource mapSqlParameterSource,
-      UserDetails user) {
+      MapSqlParameterSource mapSqlParameterSource) {
     StringBuilder sqlBuilder = new StringBuilder("select event.*");
     if (queryParams.isIncludeNotes()) {
       sqlBuilder.append(", notes.jsonnotes as notes");
@@ -506,7 +507,7 @@ class JdbcSingleEventStore {
     }
     sqlBuilder.append(" from (");
 
-    sqlBuilder.append(getQuery(queryParams, mapSqlParameterSource, user));
+    sqlBuilder.append(getQuery(queryParams, mapSqlParameterSource));
 
     sqlBuilder.append(getOrderQuery(queryParams));
 
@@ -548,12 +549,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    *   inner join program p on ...          -- conditional
    *   inner join organisationunit ou on ...
    *   left join userinfo au on ...
-   *   inner join (...) coc_agg on ...
    * where ...
    * </pre>
    */
-  private String getQuery(
-      SingleEventQueryParams params, MapSqlParameterSource sqlParams, UserDetails user) {
+  private String getQuery(SingleEventQueryParams params, MapSqlParameterSource sqlParams) {
     StringBuilder sql = new StringBuilder();
     addSelect(sql, params, sqlParams);
     sql.append(" from singleevent ev ");
@@ -563,7 +562,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
     addJoinOnOrgUnit(sql);
     addLeftJoinOnAssignedUser(sql);
-    addJoinOnCategoryOptionCombo(sql, user);
     addWhereConditions(sql, sqlParams, params);
     return sql.toString();
   }
@@ -611,9 +609,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     addOrderFieldsToSelect(sql, params.getOrder());
     sql.append(
         """
-            coc_agg.uid as coc_uid, coc_agg.code as coc_code, coc_agg.name as coc_name,
-                        coc_agg.attributevalues as coc_attributevalues,
-                        coc_agg.co_values as co_values, coc_agg.co_count as option_size""");
+            ev.attributeoptioncomboid as coc_id""");
+    if (JdbcAttributeOptionCombos.isOrderedByUid(params.getOrder())) {
+      sql.append(", ")
+          .append(JdbcAttributeOptionCombos.uidSubquery("ev.attributeoptioncomboid"))
+          .append(" as coc_uid");
+    }
   }
 
   private void addOrderFieldsToSelect(StringBuilder sql, List<Order> orders) {
@@ -652,57 +653,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     sql.append(" left join userinfo au on au.userinfoid = ev.assigneduserid ");
   }
 
-  /**
-   * Returns the joins and sub-queries needed to fulfill all the needs regarding category option
-   * combo and category options. Category option combos (COC) are composed of category options (CO),
-   * one per category of the COCs category combination (CC).
-   *
-   * <p>Important constraints leading to this query:
-   *
-   * <ul>
-   *   <li>While COCs are pre-computed and can be seen as a de-normalization of the possible
-   *       permutations the COs in a COC are stored in a normalized way. The final event should have
-   *       its attributeCategoryOptions field populated with a semicolon separated string of its
-   *       COCs COs. We thus need to aggregate these COs for each event.
-   *   <li>COCs should be returned in the user specified idScheme. So in order to have access to
-   *       uid, code, name, attributes we need another join as all of these fields cannot be added
-   *       to the above aggregation.
-   *   <li>A user must have access to all COs of the events COC to have access to an event.
-   * </ul>
-   */
-  private void addJoinOnCategoryOptionCombo(StringBuilder sql, UserDetails user) {
-    sql.append(
-        """
- inner join (select coc.uid, coc.code, coc.name, coc.attributevalues, coc.categoryoptioncomboid as id,
-    jsonb_object_agg(
-        co.uid,
-        jsonb_build_object(
-            'name', co.name,
-            'code', co.code,
-            'attributeValues', co.attributevalues
-        )
-    ) as co_values,
- count(co.categoryoptionid) as co_count
- from categoryoptioncombo coc
- inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid
- inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid
- group by coc.categoryoptioncomboid\s""");
-
-    if (isNotSuperUser(user)) {
-      sql.append(" having bool_and(case when ")
-          .append(
-              JpaQueryUtils.generateSQlQueryForSharingCheck(
-                  "co.sharing", user, AclService.LIKE_READ_DATA))
-          .append(" then true else false end) = true ");
-    }
-
-    sql.append(") as coc_agg on coc_agg.id = ev.attributeoptioncomboid ");
-  }
-
   private void addWhereConditions(
       StringBuilder sql, MapSqlParameterSource sqlParams, SingleEventQueryParams params) {
     SqlHelper hlp = new SqlHelper(true);
-    addDataElementConditions(sql, sqlParams, params);
+    addDataElementConditions(sql, sqlParams, params, hlp);
     addProgramConditions(sql, sqlParams, params, hlp);
     addLastUpdatedConditions(sql, sqlParams, params, hlp);
     addCategoryOptionComboConditions(sql, sqlParams, params, hlp);
@@ -716,9 +670,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private void addDataElementConditions(
-      StringBuilder sql, MapSqlParameterSource sqlParams, SingleEventQueryParams params) {
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
     if (!params.getDataElements().isEmpty()) {
-      sql.append(" and ");
+      sql.append(hlp.whereAnd());
       addPredicates(sql, sqlParams, params.getDataElements());
       sql.append(" ");
     }
@@ -769,6 +726,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       sql.append(hlp.whereAnd())
           .append(" ev.attributeoptioncomboid = ")
           .append(":attributeoptioncomboid ");
+    }
+    if (sqlParams.hasValue(JdbcAttributeOptionCombos.READABLE_AOCS)) {
+      sql.append(hlp.whereAnd())
+          .append(JdbcAttributeOptionCombos.readableCondition("ev.attributeoptioncomboid"));
     }
   }
 
@@ -924,10 +885,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     return OrderJdbcClause.of(orderFields, DEFAULT_ORDER, PK_COLUMN);
-  }
-
-  private boolean isNotSuperUser(UserDetails user) {
-    return user != null && !user.isSuper();
   }
 
   private Set<EventDataValue> convertEventDataValueJsonIntoSet(String jsonString) {
