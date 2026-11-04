@@ -117,16 +117,16 @@ public class RelationshipType extends BaseMetadataObject
   @JoinColumn(name = "to_relationshipconstraintid", unique = true)
   private RelationshipConstraint toConstraint;
 
-  @Column(name = "description")
+  @Column(name = "description", length = 255)
   private String description;
 
   @Column(name = "bidirectional", nullable = false)
   private boolean bidirectional = false;
 
-  @Column(name = "fromToName", nullable = false)
+  @Column(name = "fromToName", length = 255, nullable = false)
   private String fromToName;
 
-  @Column(name = "toFromName")
+  @Column(name = "toFromName", length = 255)
   private String toFromName;
 
   @Column(name = "referral", nullable = false)
