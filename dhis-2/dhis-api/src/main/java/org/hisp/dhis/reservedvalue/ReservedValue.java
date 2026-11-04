@@ -96,16 +96,16 @@ public class ReservedValue implements Serializable {
   @Column(name = "reservedvalueid")
   private int id;
 
-  @Column(name = "ownerobject")
+  @Column(name = "ownerobject", length = 255)
   private String ownerObject;
 
-  @Column(name = "owneruid")
+  @Column(name = "owneruid", length = 255)
   private String ownerUid;
 
-  @Column(name = "key")
+  @Column(name = "key", length = 255)
   private String key;
 
-  @Column(name = "value")
+  @Column(name = "value", length = 255)
   private String value;
 
   @Temporal(TemporalType.TIMESTAMP)
