@@ -33,9 +33,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
@@ -81,4 +83,22 @@ public interface CategoryOptionComboStore extends IdentifiableObjectStore<Catego
    */
   @CheckForNull
   String findByCategoryComboAndCategoryOptions(UID cc, Set<UID> cos);
+
+  /**
+   * The attribute option combos the user may read data of: the default combo (no sharing guards on
+   * default), and the option combos of {@code ATTRIBUTE} category combos for which the user can
+   * read data of every category option.
+   *
+   * <p>Data queries resolve these up front, so the planner sees a known, small list instead of
+   * guessing the size of a sharing-filtered set of all category option combos.
+   *
+   * @param user the user to check access for
+   * @param attributeOptionCombos limits the lookup to these option combos; null or empty for no
+   *     limit
+   * @return internal ids of the readable attribute option combos, or null when the user is not
+   *     restricted (superuser)
+   */
+  @CheckForNull
+  long[] getDataReadableAttributeOptionComboIds(
+      @Nonnull UserDetails user, @CheckForNull Collection<UID> attributeOptionCombos);
 }
