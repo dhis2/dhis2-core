@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -314,7 +313,7 @@ class DirectiveQueryBuilderTest {
   // ============================== @count ==============================
 
   @Nested
-  class Count {
+  class Replace {
 
     private static final String TEMPLATE =
         """
@@ -640,7 +639,7 @@ class DirectiveQueryBuilderTest {
       IllegalStateException ex =
           assertThrows(
               IllegalStateException.class, () -> fetchSql("-- @if :a\nA\n-- @else :x\nB\n-- @endif"));
-      assertTrue(ex.getMessage().contains("@else takes no argument"));
+      assertEquals("@else takes no argument: -- @else :x", ex.getMessage());
     }
 
     @Test

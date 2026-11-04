@@ -321,7 +321,7 @@ public final class DirectiveQueryBuilder {
       int nextLineStart = nl < 0 ? len : nl + 1;
       Text line = input.subSequence(pos, lineEnd);
 
-      String name = DirectiveTemplate.directive(line);
+      Text name = DirectiveTemplate.directiveName(line);
       if (order != null && name != null && !name.contentEquals("order")) {
         throw new IllegalStateException(
             "Only @order directives may appear inside @order section: " + line);
@@ -331,7 +331,7 @@ public final class DirectiveQueryBuilder {
         int nameStart = line.indexOf('@');
         int argStart =
             Math.max(nameStart + 1 + name.length(),
-                DirectiveTemplate.indexOfWhitespace(line, nameStart) + 1);
+                indexOfWhitespace(line, nameStart) + 1);
         Text rest = line.subSequence(Math.min(argStart, line.length()), line.length()).trim();
 
         String arg;
@@ -371,6 +371,11 @@ public final class DirectiveQueryBuilder {
     }
     if (order != null) throw new IllegalStateException("Unclosed @order section");
     return out.textValue();
+  }
+
+  static int indexOfWhitespace(Text t, int from) {
+    for (int i = from; i < t.length(); i++) if (Character.isWhitespace(t.charAt(i))) return i;
+    return -1;
   }
 
   private void emitOrderSection(TextBuilder out, OrderSection section) {
