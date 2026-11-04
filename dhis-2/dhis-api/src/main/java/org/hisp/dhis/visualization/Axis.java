@@ -58,7 +58,7 @@ public class Axis implements EmbeddedObject {
   private long id;
 
   /** The uid of the dimensional item. */
-  @Column(name = "dimensionalitem", nullable = false)
+  @Column(name = "dimensionalitem", length = 255, nullable = false)
   private String dimensionalItem;
 
   @Column(name = "axis", nullable = false)
