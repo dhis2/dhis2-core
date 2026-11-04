@@ -94,6 +94,11 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @AfterEach
   void afterEach() {
     emailMessageSender.clearMessages();
+    settingsService.put("keyAccountRecovery", false);
+    settingsService.put("credentialsExpires", 0);
+    settingsService.put("keyEmailHostName", "");
+    settingsService.put("keyEmailUsername", "");
+    settingsService.clearCurrentSettings();
   }
 
   @Test
@@ -196,6 +201,9 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   void testUpdatePasswordExpiredOk() {
     String oldPassword = "Str0ng_old_1!";
     String newPassword = "Str0ng_new_1!";
+    // Recovery off (default) keeps the emailless path; pin explicitly against suite order.
+    settingsService.put("keyAccountRecovery", false);
+    settingsService.clearCurrentSettings();
     User user = createExpiredUser("expireda", oldPassword);
     clearSecurityContext();
 
@@ -214,6 +222,66 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(passwordEncoder.matches(newPassword, updated.getPassword()));
     // The account is no longer expired, so the frontend's follow-up auth/login will succeed.
     assertTrue(userService.userNonExpired(updated));
+  }
+
+  @Test
+  @DisplayName(
+      "Expired user with email recovery available cannot use auth/updatePassword (must use email)")
+  void testUpdatePasswordExpiredEmailRecoveryRequired() {
+    String oldPassword = "Str0ng_old_1!";
+    String newPassword = "Str0ng_new_1!";
+    User user = createExpiredUser("expiredemail", oldPassword);
+    // createUserWithAuth sets email username@dhis2.org; enable recovery + email settings so
+    // validateRestore succeeds (FakeMessageSender is always configured in tests).
+    settingsService.put("keyAccountRecovery", true);
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "noreply");
+    settingsService.clearCurrentSettings();
+    clearSecurityContext();
+
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Password must be reset using email recovery for this account",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                    .formatted(user.getUsername(), oldPassword, newPassword))
+            .content(HttpStatus.CONFLICT));
+
+    User updated = userService.getUserByUsername(user.getUsername());
+    assertTrue(passwordEncoder.matches(oldPassword, updated.getPassword()));
+    assertFalse(userService.userNonExpired(updated));
+  }
+
+  @Test
+  @DisplayName("Expired user without email can still change password when recovery is enabled")
+  void testUpdatePasswordExpiredNoEmailOk() {
+    String oldPassword = "Str0ng_old_1!";
+    String newPassword = "Str0ng_new_1!";
+    User user = createExpiredUser("expirednoem", oldPassword);
+    user.setEmail(null);
+    userService.updateUser(user);
+    settingsService.put("keyAccountRecovery", true);
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "noreply");
+    settingsService.clearCurrentSettings();
+    clearSecurityContext();
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Password updated",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                    .formatted(user.getUsername(), oldPassword, newPassword))
+            .content(HttpStatus.OK));
+
+    User updated = userService.getUserByUsername(user.getUsername());
+    assertTrue(passwordEncoder.matches(newPassword, updated.getPassword()));
   }
 
   @Test
