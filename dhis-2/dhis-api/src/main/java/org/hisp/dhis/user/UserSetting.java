@@ -66,7 +66,7 @@ public class UserSetting implements Serializable {
   private User user;
 
   @Id
-  @Column(name = "name")
+  @Column(name = "name", length = 255)
   @Nonnull
   private String name;
 
