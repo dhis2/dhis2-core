@@ -575,6 +575,8 @@ public enum ErrorCode {
   E7152("Periods as filter not supported with Indicator with period offset"),
   E7153(
       "Query would compute `{0}` indicator values, more than the max of `{1}`. Remove dimensions or dimension items, or move dimensions to filters"),
+  E7154(
+      "Analytics tables are out of date. Ask your administrator to run a full analytics tables update."),
   /* Analytics outliers */
 
   E7180(
@@ -662,6 +664,8 @@ public enum ErrorCode {
       "Value `{0}` must be a data element prefixed with a program stage that contains it, or an attribute of the program without a stage prefix"),
   E7267(
       "Aggregation type `{0}` is not supported by enrollment aggregate queries, specify `aggregationType` as one of COUNT, SUM, AVERAGE, MIN, MAX, STDDEV or VARIANCE"),
+  E7268("Category `{0}` is not part of the category combination of program `{1}`"),
+  E7269("Category option group set `{0}` is not supported in enrollment analytics"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

@@ -391,6 +391,14 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
+   * Time the analytics database copy of the tracked entity attribute value table was last synced,
+   * fully or incrementally, or epoch if never.
+   */
+  default Date getLastSuccessfulTrackedEntityAttributeValueReplicaSync() {
+    return asDate("keyLastSuccessfulTrackedEntityAttributeValueReplicaSync", new Date(0L));
+  }
+
+  /**
    * Per-{@link AnalyticsTableType} counterpart of {@link
    * #getLastSuccessfulAnalyticsTablesUpdate()}. Only registered for the table types that support a
    * latest partition (see {@link AnalyticsTableType#isLatestPartition()}) since those are the only

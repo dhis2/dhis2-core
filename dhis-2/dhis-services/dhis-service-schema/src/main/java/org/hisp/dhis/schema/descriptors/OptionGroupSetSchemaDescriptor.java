@@ -50,7 +50,7 @@ public class OptionGroupSetSchemaDescriptor implements SchemaDescriptor {
   public Schema getSchema() {
     Schema schema = new Schema(OptionGroupSet.class, SINGULAR, PLURAL);
     schema.setRelativeApiEndpoint(API_ENDPOINT);
-    schema.setOrder(1051);
+    schema.setOrder(1052);
 
     schema.add(
         new Authority(
