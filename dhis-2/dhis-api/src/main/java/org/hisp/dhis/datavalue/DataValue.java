@@ -137,7 +137,7 @@ public class DataValue implements Serializable {
   /** Mapped through {@link #getValue()}: loading goes through the auditing setter. */
   @Transient @AuditAttribute private String value;
 
-  @Column(name = "storedby")
+  @Column(name = "storedby", length = 255)
   @Setter
   @Getter
   private String storedBy;
