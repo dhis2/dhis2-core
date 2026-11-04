@@ -203,7 +203,7 @@ public class JobConfiguration implements IdentifiableObject, SecondaryMetadataOb
    * SchedulingType#CRON}.
    */
   @JsonProperty
-  @Column(name = "cronexpression")
+  @Column(name = "cronexpression", length = 255)
   private String cronExpression;
 
   /**
