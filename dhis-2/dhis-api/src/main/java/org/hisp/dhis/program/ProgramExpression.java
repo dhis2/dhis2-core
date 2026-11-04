@@ -74,7 +74,7 @@ public class ProgramExpression implements Serializable {
   @Type(type = "text")
   private String expression;
 
-  @Column(name = "description")
+  @Column(name = "description", length = 255)
   private String description;
 
   // -------------------------------------------------------------------------
