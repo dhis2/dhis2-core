@@ -179,10 +179,7 @@ public record DirectiveTemplate(
       out.appendAscii('\n');
     }
 
-    // Process the body either way — in the replace case with a throwaway sink and
-    // emit=false, in the keep case with the real sink and the current emit flag.
-    TextBuilder sink = replace ? new TextBuilder() : out;
-    End inner = processBlock(input, nextLineStart, sink, replace ? false : emit);
+    End inner = processBlock(input, nextLineStart, out, !replace && emit);
     if (inner.type() != EndType.END) {
       throw new IllegalStateException(
           "@replace block did not close with @end but with " + inner.type() + ": " + line);
