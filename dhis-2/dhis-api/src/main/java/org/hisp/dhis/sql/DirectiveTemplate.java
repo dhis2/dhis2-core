@@ -33,9 +33,12 @@ public record DirectiveTemplate(
   public Text render(Text template) {
     TextBuilder out = new TextBuilder((int) (template.length() * 1.5));
     End end = processBlock(template, 0, out, true);
-    if (end.type() != EndType.EOF) {
-      throw new IllegalStateException(
-          "Unbalanced directive at top level: " + end.type().name().toLowerCase());
+    if (end.type() != null) {
+        String msg =
+          end.type == Directive.END
+          ?  "@end without opening directive"
+          :  "Closing @end is missing for: " + end.type();
+        throw new IllegalStateException(msg);
     }
     return out.textValue();
   }
@@ -55,15 +58,11 @@ public record DirectiveTemplate(
 
     @Override
     public String toString() {
-      return name().toLowerCase(Locale.ROOT);
+      return "@"+name().toLowerCase(Locale.ROOT);
     }
   }
 
-  private enum EndType {
-    ELSE, END, EOF
-  }
-
-  private record End(EndType type, int pos) {}
+  private record End(Directive type, int pos) {}
 
   private End processBlock(Text input, int startPos, TextBuilder out, boolean emit) {
     int len = input.length();
@@ -90,24 +89,15 @@ public record DirectiveTemplate(
         }
         case ELSE -> {
           requireBareDirective(directive, line);
-          return new End(EndType.ELSE, nextLineStart);
+          return new End(Directive.ELSE, nextLineStart);
         }
         case END -> {
           // "end --@<any>" resumes the enclosing frame at the embedded directive,
           // which is how sibling chains (@end --@if :b) are expressed.
           int space = line.indexOf(' ', line.indexOf('@'));
-          return new End(EndType.END, space < 0 ? nextLineStart : pos + space);
+          return new End(Directive.END, space < 0 ? nextLineStart : pos + space);
         }
-        case INSERT -> {
-          String name = requireDirectiveName(directive, line);
-          if (emit) {
-            Text inserted = inserts.apply(name);
-            if (inserted != null) {
-              out.appendEncoded(inserted);
-              out.appendAscii('\n');
-            }
-          }
-        }
+        case INSERT -> processInsert(out, emit, line);
         case REPLACE -> {
           pos = processReplace(input, out, emit, line, nextLineStart).pos();
           continue outer;
@@ -117,12 +107,23 @@ public record DirectiveTemplate(
       }
       pos = nextLineStart;
     }
-    return new End(EndType.EOF, len);
+    return new End(null, len);
+  }
+
+  private void processInsert(TextBuilder out, boolean emit, Text line) {
+    String name = requireDirectiveName(Directive.INSERT, line);
+    if (emit) {
+      Text inserted = inserts.apply(name);
+      if (inserted != null) {
+        out.appendEncoded(inserted);
+        out.appendAscii('\n');
+      }
+    }
   }
 
   /**
    * Processes a {@code @if :cond ... @end} block, including an optional {@code @else}
-   * branch. The returned {@link End} always has type {@link EndType#END}; if the inner
+   * branch. The returned {@link End} always has type {@link EndDirective#END}; if the inner
    * block ends with anything else (an unmatched {@code @else}, the top of the input, or a
    * stray {@code @end}), this method throws. Since {@code @end} closes the innermost open
    * block regardless of whether it was opened by {@code @if} or {@code @replace}, an
@@ -133,12 +134,12 @@ public record DirectiveTemplate(
     String name = requireDirectiveName(Directive.IF, line);
     boolean cond = tests.test(name);
     End inner = processBlock(input, nextLineStart, out, emit && cond);
-    if (inner.type() == EndType.END) {
+    if (inner.type() == Directive.END) {
       return inner;
     }
-    if (inner.type() == EndType.ELSE) {
+    if (inner.type() == Directive.ELSE) {
       End after = processBlock(input, inner.pos(), out, emit && !cond);
-      if (after.type() == EndType.END) {
+      if (after.type() == Directive.END) {
         return after;
       }
       throw new IllegalStateException(
@@ -153,7 +154,7 @@ public record DirectiveTemplate(
    * line is replaced (with the inline text after {@code :cond}, or with the registered
    * {@code insert} by name when there is no inline text), and the body is discarded. If
    * the condition is false, the body is emitted as-is. Either way the returned {@link End}
-   * has type {@link EndType#END}.
+   * has type {@link EndDirective#END}.
    *
    * <p>The discard path uses recursion with a throwaway sink rather than an open/close
    * counter. This keeps the code identical for the two branches, naturally rejects
@@ -168,7 +169,7 @@ public record DirectiveTemplate(
     if (replace && emit) {
       // Emit replacement: inline text after ":cond", or fall back to inserts.apply(cond).
       int s = line.indexOf(':');
-      s = skipLetters(line, s + 1);
+      s = skipAlphanumeric(line, s + 1);
       int e = skipIndent(line, s);
       if (e == line.length()) {
         Text fromInsert = inserts.apply(condition);
@@ -180,7 +181,7 @@ public record DirectiveTemplate(
     }
 
     End inner = processBlock(input, nextLineStart, out, !replace && emit);
-    if (inner.type() != EndType.END) {
+    if (inner.type() != Directive.END) {
       throw new IllegalStateException(
           "@replace block did not close with @end but with " + inner.type() + ": " + line);
     }
@@ -207,8 +208,8 @@ public record DirectiveTemplate(
   private static String requireDirectiveName(Directive name, Text line) {
     int s = line.indexOf(':');
     if (s < 0)
-      throw new IllegalStateException("@" + name + " requires ':name' argument: " + line);
-    int e = skipLetters(line, s + 1);
+      throw new IllegalStateException(name + " requires ':name' argument: " + line);
+    int e = skipAlphanumeric(line, s + 1);
     if (e == s)
       throw new IllegalStateException("@name argument must have a letter: " + line);
     Text arg = line.subSequence(s + 1, e);
@@ -218,15 +219,15 @@ public record DirectiveTemplate(
   private static void requireBareDirective(Directive name, Text line) {
     int i = line.indexOf('@');
     if (i < 0) return;
-    i = skipLetters(line, i + 1);
+    i = skipAlphanumeric(line, i + 1);
     i = skipIndent(line, i);
     if (i < line.length())
-      throw new IllegalStateException("@" + name + " takes no argument: " + line);
+      throw new IllegalStateException(name + " takes no argument: " + line);
   }
 
-  private static int skipLetters(Text line, int i) {
+  private static int skipAlphanumeric(Text line, int i) {
     int len = line.length();
-    while (i < len && isLetter(line.charAt(i))) i++;
+    while (i < len && isAlphanumeric(line.charAt(i))) i++;
     return i;
   }
 
@@ -236,8 +237,8 @@ public record DirectiveTemplate(
     return i;
   }
 
-  private static boolean isLetter(char c) {
-    return 'a' <= c && c <= 'z';
+  private static boolean isAlphanumeric(char c) {
+    return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9';
   }
 
   private static boolean isIndent(char c) {

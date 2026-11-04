@@ -162,7 +162,7 @@ class DirectiveQueryBuilderTest {
           -- @end
           """;
       IllegalStateException ex = assertThrows(IllegalStateException.class, () -> fetchSql(template));
-      assertEquals("@else block did not close with @end but with ELSE: -- @if :a", ex.getMessage());
+      assertEquals("@else block did not close with @end but with @else: -- @if :a", ex.getMessage());
     }
   }
 
@@ -267,7 +267,7 @@ class DirectiveQueryBuilderTest {
           B
           -- @end
           """));
-      assertEquals("@if block did not close with @end but with EOF: -- @if :a", ex.getMessage());
+      assertEquals("@if block did not close with @end but with null: -- @if :a", ex.getMessage());
     }
   }
 
@@ -340,7 +340,7 @@ class DirectiveQueryBuilderTest {
           assertThrows(
               IllegalStateException.class,
               () -> countSql("SELECT\n-- @replace :count count(*)\n  a, b\nFROM x\n", b -> {}));
-      assertEquals("@replace block did not close with @end but with EOF: -- @replace :count count(*)", ex.getMessage());
+      assertEquals("@replace block did not close with @end but with null: -- @replace :count count(*)", ex.getMessage());
     }
 
     @Test
@@ -594,21 +594,21 @@ class DirectiveQueryBuilderTest {
     void unclosedIfFails() {
       IllegalStateException ex =
           assertThrows(IllegalStateException.class, () -> fetchSql("-- @if :x\nA"));
-      assertEquals("@if block did not close with @end but with EOF: -- @if :x", ex.getMessage());
+      assertEquals("@if block did not close with @end but with null: -- @if :x", ex.getMessage());
     }
 
     @Test
     void orphanElseFails() {
       IllegalStateException ex =
           assertThrows(IllegalStateException.class, () -> fetchSql("-- @else\nA"));
-      assertEquals("Unbalanced directive at top level: else", ex.getMessage());
+      assertEquals("Closing @end is missing for: @else", ex.getMessage());
     }
 
     @Test
     void orphanEndifFails() {
       IllegalStateException ex =
           assertThrows(IllegalStateException.class, () -> fetchSql("-- @end\nA"));
-      assertTrue(ex.getMessage().contains("Unbalanced directive at top level"));
+      assertEquals("@end without opening directive", ex.getMessage());
     }
 
     @Test
