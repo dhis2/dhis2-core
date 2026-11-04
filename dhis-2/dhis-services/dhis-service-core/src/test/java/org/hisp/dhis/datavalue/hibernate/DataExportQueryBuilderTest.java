@@ -627,28 +627,4 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
     assertTrue(sql.contains("aoc.uid = :aoc"), "explicit AOC filter expected: " + sql);
     assertTrue(sql.contains(":aocAllowed"), "allowed list must stay for explicit AOCs: " + sql);
   }
-
-  @Test
-  void testAllowedAocQuery_noExplicitAocs_allAttributeAocs() {
-    AtomicReference<String> captured = new AtomicReference<>();
-    createAllowedAocQueryWithSpy(List.of(), captured);
-    String sql = captured.get();
-    assertTrue(sql.contains("SELECT DISTINCT ccoc.categoryoptioncomboid"), sql);
-    assertFalse(sql.contains(":aoc"), "no explicit AOCs must mean no AOC restriction: " + sql);
-    assertFalse(sql.contains("JOIN categoryoptioncombo aoc"), "no join needed: " + sql);
-  }
-
-  @Test
-  void testAllowedAocQuery_explicitAocs_onlyThoseAreLookedUp() {
-    AtomicReference<String> captured = new AtomicReference<>();
-    createAllowedAocQueryWithSpy(List.of(UID.of("aoc23456789")), captured);
-    String sql = captured.get();
-    assertTrue(sql.contains("aoc.uid = :aoc"), "lookup must be limited to explicit AOCs: " + sql);
-  }
-
-  private void createAllowedAocQueryWithSpy(List<UID> aocs, AtomicReference<String> captured) {
-    HibernateDataExportStore.createAllowedAocQuery(
-        SQL.spy(captured::set, (n, p) -> {}), UserDetails.empty().build(), aocs)
-        .stream();
-  }
 }

@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.category.hibernate;
 
+import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
+import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
+
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
@@ -47,6 +50,10 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.sql.NativeSQL;
+import org.hisp.dhis.sql.QueryBuilder;
+import org.hisp.dhis.sql.SQL;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -189,5 +196,43 @@ public class HibernateCategoryOptionComboStore
             .getResultList();
 
     return resultList.isEmpty() ? null : (String) resultList.get(0);
+  }
+
+  @Override
+  @CheckForNull
+  public long[] getDataReadableAttributeOptionComboIds(
+      @Nonnull UserDetails user, @CheckForNull Collection<UID> attributeOptionCombos) {
+    if (user.isSuper()) return null;
+    // a single bigint column comes back as a plain number per row, not as an Object[] row
+    return createDataReadableAocQuery(NativeSQL.of(getSession()), user, attributeOptionCombos)
+        .stream(Number.class)
+        .mapToLong(Number::longValue)
+        .toArray();
+  }
+
+  static QueryBuilder createDataReadableAocQuery(
+      SQL.QueryAPI api, UserDetails user, @CheckForNull Collection<UID> attributeOptionCombos) {
+    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_READ_DATA);
+    String sql =
+        """
+      SELECT DISTINCT ccoc.categoryoptioncomboid
+      FROM categorycombos_optioncombos ccoc
+      JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
+      JOIN categoryoptioncombo aoc ON aoc.categoryoptioncomboid = ccoc.categoryoptioncomboid
+      WHERE (cc.name = 'default'
+          OR cc.datadimensiontype = 'ATTRIBUTE'
+          AND NOT EXISTS (
+            SELECT 1
+            FROM categoryoptioncombos_categoryoptions coc_co
+            JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
+            WHERE coc_co.categoryoptioncomboid = ccoc.categoryoptioncomboid
+              AND NOT (:access)))
+        AND aoc.uid = ANY(:aoc)""";
+    return SQL.of(sql, api)
+        .setParameter("aoc", attributeOptionCombos)
+        .setDynamicClause("access", accessSql)
+        .eraseNullParameterLines()
+        .eraseNullParameterJoinLine("aoc", "aoc")
+        .useEqualsOverInForParameters("aoc");
   }
 }
