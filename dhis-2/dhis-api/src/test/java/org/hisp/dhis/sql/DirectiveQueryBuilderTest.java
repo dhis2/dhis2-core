@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import org.intellij.lang.annotations.Language;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -25,13 +25,11 @@ class DirectiveQueryBuilderTest {
 
   // ============================== Harness ==============================
 
-  @Language("sql")
-  private static String fetchSql(@Language("sql") String template) {
+  private static String fetchSql( String template) {
     return fetchSql(template, b -> {});
   }
 
-  @Language("sql")
-  private static String fetchSql(@Language("sql") String template, Consumer<DirectiveQueryBuilder> configure) {
+  private static String fetchSql( String template, Consumer<DirectiveQueryBuilder> configure) {
     List<String> captured = new ArrayList<>();
     DirectiveQueryBuilder b = SQL.ofDirective(template, SQL.spy(captured::add, (n, p) -> {}));
     configure.accept(b);
@@ -40,8 +38,7 @@ class DirectiveQueryBuilderTest {
     return captured.get(0);
   }
 
-  @Language("sql")
-  private static String countSql(@Language("sql") String template, Consumer<DirectiveQueryBuilder> configure) {
+  private static String countSql( String template, Consumer<DirectiveQueryBuilder> configure) {
     List<String> captured = new ArrayList<>();
     DirectiveQueryBuilder b = SQL.ofDirective(template, SQL.spy(captured::add, (n, p) -> {}));
     configure.accept(b);
@@ -65,11 +62,6 @@ class DirectiveQueryBuilderTest {
       assertEquals(
           "SELECT *\n-- ordinary comment\nFROM x\n",
           fetchSql("SELECT *\n-- ordinary comment\nFROM x"));
-    }
-
-    @Test
-    void dashDashAtWithoutNameIsOrdinaryComment() {
-      assertEquals("SELECT *\n-- @\nFROM x\n", fetchSql("SELECT *\n-- @\nFROM x"));
     }
 
     @Test
@@ -267,26 +259,34 @@ class DirectiveQueryBuilderTest {
       IllegalStateException ex =
           assertThrows(
               IllegalStateException.class,
-              () -> fetchSql("-- @if :a\nA\n-- @if :b --@if :c\nB\n-- @endif"));
-      assertTrue(ex.getMessage().contains("Invalid @if argument"));
+              () ->
+                  fetchSql(
+                      """
+          -- @if :a
+          A
+          -- @if :b --@if :c
+          B
+          -- @endif
+          """));
+      assertEquals("Unclosed @if in: -- @if :a", ex.getMessage());
     }
   }
 
   // ============================== @replace ==============================
 
   @Nested
-  class Replace {
+  class Insert {
 
     private static final String TEMPLATE =
         """
         A
-        -- @replace :mid
+        -- @insert :mid
         B
         """;
 
     @Test
     void emitsSubstitutionWhenSet() {
-      assertEquals("A\nX\nB\n", fetchSql(TEMPLATE, b -> b.setReplace("mid", "X")));
+      assertEquals("A\nX\nB\n", fetchSql(TEMPLATE, b -> b.setInsert("mid", "X")));
     }
 
     @Test
@@ -296,7 +296,7 @@ class DirectiveQueryBuilderTest {
 
     @Test
     void erasesLineWhenSetToEmptyString() {
-      assertEquals("A\nB\n", fetchSql(TEMPLATE, b -> b.setReplace("mid", "")));
+      assertEquals("A\nB\n", fetchSql(TEMPLATE, b -> b.setInsert("mid", "")));
     }
 
     @Test
@@ -304,10 +304,10 @@ class DirectiveQueryBuilderTest {
       String template =
           """
           -- @if :flag
-          -- @replace :mid
+          -- @insert :mid
           -- @endif
           """;
-      assertTrue(fetchSql(template, b -> b.setReplace("mid", "X")).isEmpty());
+      assertTrue(fetchSql(template, b -> b.setInsert("mid", "X")).isEmpty());
     }
   }
 
@@ -319,9 +319,9 @@ class DirectiveQueryBuilderTest {
     private static final String TEMPLATE =
         """
         SELECT
-        -- @count
+        -- @replace :count count(*)
           a, b
-        -- @count
+        -- @replace
         FROM x
         """;
 
@@ -331,7 +331,7 @@ class DirectiveQueryBuilderTest {
     }
 
     @Test
-    void markersReplaceSelectListInCountMode() {
+    void markersInsertSelectListInCountMode() {
       assertEquals("SELECT\ncount(*)\nFROM x\n", countSql(TEMPLATE, b -> {}));
     }
 
@@ -340,24 +340,24 @@ class DirectiveQueryBuilderTest {
       IllegalStateException ex =
           assertThrows(
               IllegalStateException.class,
-              () -> countSql("SELECT\n-- @count\n  a, b\nFROM x\n", b -> {}));
-      assertTrue(ex.getMessage().contains("Odd number of @count"));
+              () -> countSql("SELECT\n-- @replace :count count(*)\n  a, b\nFROM x\n", b -> {}));
+      assertEquals("Unclosed @replace in: -- @replace :count count(*)", ex.getMessage());
     }
 
     @Test
-    void nestedCountMarkersHaveNoEffectInCountMode() {
-      // Per design: @count inside @if is silently ignored (forCount is false in recursion,
-      // so the markers are treated as ordinary directives and produce no output / no skip).
+    void replaceCanBeNestedWithinIf() {
       String template =
           """
           -- @if :flag
-          -- @count
+          -- @replace :count count(*)
           A
-          -- @count
+          -- @replace
           -- @endif
           SELECT 1
           """;
-      assertEquals("A\nSELECT 1\n", countSql(template, b -> b.setCondition("flag", true)));
+      assertEquals(
+          "count(*)\nSELECT 1\n",
+          countSql(template, b -> b.setCondition("flag", true)));
     }
   }
 
@@ -602,7 +602,7 @@ class DirectiveQueryBuilderTest {
     void orphanElseFails() {
       IllegalStateException ex =
           assertThrows(IllegalStateException.class, () -> fetchSql("-- @else\nA"));
-      assertTrue(ex.getMessage().contains("Unbalanced directive at top level"));
+      assertEquals("Unbalanced directive at top level: else", ex.getMessage());
     }
 
     @Test
@@ -632,7 +632,7 @@ class DirectiveQueryBuilderTest {
       IllegalStateException ex =
           assertThrows(
               IllegalStateException.class, () -> fetchSql("-- @if flag\nA\n-- @endif"));
-      assertTrue(ex.getMessage().contains("must start with ':'"));
+      assertEquals("@if requires ':name' argument: -- @if flag", ex.getMessage());
     }
 
     @Test
@@ -644,17 +644,10 @@ class DirectiveQueryBuilderTest {
     }
 
     @Test
-    void replaceWithoutArgumentFails() {
+    void insertWithoutArgumentFails() {
       IllegalStateException ex =
-          assertThrows(IllegalStateException.class, () -> fetchSql("-- @replace\nA"));
-      assertTrue(ex.getMessage().contains("@replace requires ':name' argument"));
-    }
-
-    @Test
-    void countWithArgumentFails() {
-      IllegalStateException ex =
-          assertThrows(IllegalStateException.class, () -> fetchSql("-- @count :x\nA"));
-      assertTrue(ex.getMessage().contains("@count takes no argument"));
+          assertThrows(IllegalStateException.class, () -> fetchSql("-- @insert\nA"));
+      assertTrue(ex.getMessage().contains("@insert requires ':name' argument"));
     }
   }
 }

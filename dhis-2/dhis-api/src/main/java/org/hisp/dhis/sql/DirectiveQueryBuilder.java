@@ -34,36 +34,27 @@ import org.hisp.dhis.jsontree.TextBuilder;
  * and count; optional filters, joins, order items, and dynamic clauses are erased or replaced
  * at assembly time based on which values were actually supplied.
  *
- * <p>Erasure is explicit: comment lines of the form {@code -- @directive} on their own line
- * mark the boundaries. Text between markers is emitted verbatim, so the raw SQL remains
- * executable in any SQL console.
+ * <p>Generic directives ({@code @if}/{@code @else}/{@code @endif}, {@code @insert},
+ * {@code @replace}) are processed by {@link DirectiveTemplate}. The only directive handled
+ * here is {@code @order}, which is extracted in a pre-pass because its block semantics don't
+ * fit the generic open/close model.
  *
  * <h2>Directives</h2>
  * <dl>
- *   <dt>{@code -- @if :name}</dt>
- *   <dd>Opens a block, emitted iff {@code name} is a non-null non-empty parameter or a
- *       truthy condition. Blocks nest; the matching {@code @else}/{@code @endif} refer
- *       to the innermost open block.</dd>
- *   <dt>{@code -- @else}</dt>
- *   <dd>Inverts emission of the innermost block. At most one per block.</dd>
- *   <dt>{@code -- @endif}</dt>
- *   <dd>Closes the innermost block.</dd>
- *   <dt>{@code -- @endif --@if :name}</dt>
- *   <dd>The only allowed two-directive line. Closes the current block and opens a
- *       sibling {@code @if} at the same nesting level. Note {@code --@if} (dash-dash
- *       directly before {@code @if}).</dd>
- *   <dt>{@code -- @replace :name}</dt>
- *   <dd>Substitutes raw SQL registered via {@link #setReplace}; erases the line when
- *       unset.</dd>
- *   <dt>{@code -- @count}</dt>
- *   <dd>Paired marker, honored only at the top level. In count mode the region between
- *       pairs becomes {@code count(*)}; in fetch mode both markers are dropped.
- *       {@code @count} in a nested frame is silently ignored.</dd>
+ *   <dt>{@code -- @if :name} / {@code -- @else} / {@code -- @endif}</dt>
+ *   <dd>Conditional block. See {@link DirectiveTemplate}.</dd>
+ *   <dt>{@code -- @endif --@name ...}</dt>
+ *   <dd>Resumes the enclosing frame at {@code --@name} on the same line.</dd>
+ *   <dt>{@code -- @insert :name}</dt>
+ *   <dd>Substitutes SQL registered via {@link #setInsert}; erases the line if unset.</dd>
+ *   <dt>{@code -- @replace :condition <replacement>} … {@code -- @replace}</dt>
+ *   <dd>Replaces the block body with {@code <replacement>} iff the condition holds;
+ *       otherwise keeps the body. The reserved condition {@code count} is true in
+ *       {@link #count()} mode and false in fetch mode.</dd>
  *   <dt>{@code -- @order} … {@code -- @order}</dt>
- *   <dd>Bare toggles open/close a dynamic ORDER BY section. Only {@code @order} items
- *       may appear inside.</dd>
+ *   <dd>Dynamic ORDER BY section. Only {@code @order} items may appear inside.</dd>
  *   <dt>{@code -- @order :name}</dt>
- *   <dd>Marks an order item inside an {@code @order} section.</dd>
+ *   <dd>Marks an order item; the SQL that follows (up to the next directive) is the item.</dd>
  * </dl>
  *
  * <h2>Bound vs. unbound values</h2>
@@ -85,7 +76,7 @@ public final class DirectiveQueryBuilder {
 
   private final Map<String, SQL.Param> params = new HashMap<>();
   private final Map<String, Boolean> conditions = new HashMap<>();
-  private final Map<String, Text> replacements = new HashMap<>();
+  private final Map<String, Text> inserts = new HashMap<>();
   private final Map<String, OrderSpec> orders = new LinkedHashMap<>();
 
   private Integer limit;
@@ -95,21 +86,12 @@ public final class DirectiveQueryBuilder {
 
   private record OrderItem(String name, Text sql, int templateIndex) {}
 
-  private enum EndType { ELSE, ENDIF, EOF }
-
-  private record End(EndType type, int pos) {}
-
   private static final class OrderSection {
-    final boolean collecting;
     final TextBuilder prefix = new TextBuilder();
     final List<OrderItem> items = new ArrayList<>();
     final Set<String> names = new HashSet<>();
     String currentName;
     TextBuilder currentSql;
-
-    OrderSection(boolean collecting) {
-      this.collecting = collecting;
-    }
 
     void startItem(String name) {
       flush();
@@ -121,8 +103,7 @@ public final class DirectiveQueryBuilder {
       if (currentName == null) {
         prefix.appendEncoded(line);
         prefix.appendAscii('\n');
-      }
-      else {
+      } else {
         currentSql.appendEncoded(line);
         currentSql.appendAscii('\n');
       }
@@ -130,8 +111,11 @@ public final class DirectiveQueryBuilder {
 
     void flush() {
       if (currentName != null) {
-        Text trimmed = Text.of(currentSql.textValue().toString().strip());
-        items.add(new OrderItem(currentName, trimmed, items.size()));
+        // Text.trim() does not strip line-break characters (\n, \r). Round-trip through
+        // String to get strip() semantics. flush() runs once per item; the allocation is
+        // negligible and the resulting Text stays usable for downstream appendEncoded.
+        Text stripped = Text.of(currentSql.textValue().toString().strip());
+        items.add(new OrderItem(currentName, stripped, items.size()));
         currentName = null;
         currentSql = null;
       }
@@ -217,11 +201,12 @@ public final class DirectiveQueryBuilder {
 
   // ============================== Replacements ==============================
 
-  /** SQL substituted for {@code -- @replace :name}; {@code null}/empty erases the line. */
-  public DirectiveQueryBuilder setReplace(@Nonnull CharSequence name, @CheckForNull CharSequence sql) {
+  /** SQL substituted for {@code -- @insert :name}; {@code null}/empty erases the line. */
+  public DirectiveQueryBuilder setInsert(
+      @Nonnull CharSequence name, @CheckForNull CharSequence sql) {
     String n = name.toString();
-    if (sql == null || sql.isEmpty()) replacements.remove(n);
-    else replacements.put(n, Text.of(sql));
+    if (sql == null || sql.isEmpty()) inserts.remove(n);
+    else inserts.put(n, Text.of(sql));
     return this;
   }
 
@@ -271,7 +256,8 @@ public final class DirectiveQueryBuilder {
 
   @Nonnull
   private SQL.Query fetchQuery() {
-    SQL.Query query = api.createQuery(toSQL(false));
+    conditions.put("count", false);
+    SQL.Query query = api.createQuery(toSQL());
     params.values().forEach(query::setParameter);
     if (offset != null) query.setOffset(offset);
     if (limit != null) query.setLimit(limit);
@@ -279,7 +265,8 @@ public final class DirectiveQueryBuilder {
   }
 
   public int count() {
-    SQL.Query query = api.createQuery(toSQL(true));
+    conditions.put("count", true);
+    SQL.Query query = api.createQuery(toSQL());
     params.values().forEach(query::setParameter);
     return query.count();
   }
@@ -290,188 +277,103 @@ public final class DirectiveQueryBuilder {
 
   // ============================== Assembly ==============================
 
-  private String toSQL(boolean forCount) {
-    StringBuilder out = new StringBuilder(template.length());
-    End end = processBlock(template, 0, template.length(), out, true, forCount);
-    if (end.type() != EndType.EOF) {
-      throw new IllegalStateException(
-          "Unbalanced directive at top level: " + end.type().name().toLowerCase());
-    }
-    return out.toString();
+  private String toSQL() {
+    Text ordered = extractOrderSections(template);
+    DirectiveTemplate t = new DirectiveTemplate(this::isDirectiveLine, this::isTrueCondition, inserts::get);
+    return t.render(ordered).toString();
   }
 
-  private End processBlock(
-      Text input, int startPos, int endPos, StringBuilder out, boolean emit, boolean forCount) {
+  private boolean isDirectiveLine(Text line) {
+    int len = line.length();
+    int i = 0;
+    // skip space
+    while (i < len && line.charAt(i) == ' ') i++;
+    if (i+2 >= len || line.charAt(i) != '-' || line.charAt(i+1) != '-') return false;
+    i+=2; // skip --
+    // skip space again
+    while (i < len && line.charAt(i) == ' ') i++;
+    return i < len && line.charAt(i) == '@';
+  }
 
+  private boolean isTrueCondition(String name) {
+    SQL.Param p = params.get(name);
+    if (p != null) return !isNullish(p.value());
+    Boolean c = conditions.get(name);
+    return c != null && c;
+  }
+
+  /**
+   * Pass 1: replaces every {@code @order} section with the SQL it would emit (possibly
+   * empty) and leaves every other line untouched, including other directives. Extraction
+   * is unconditional — sections inside a false {@code @if} are extracted here and then
+   * discarded by pass 2 — so no coordination with the {@code @if} state is needed.
+   */
+  private Text extractOrderSections(Text input) {
+    if (!input.contains("@order")) return input; // fast path
+
+    TextBuilder out = new TextBuilder();
     OrderSection order = null;
-    int pos = startPos;
-    int countMarkers = 0;
-    boolean inCountSkip = false;
-
-    outer:
-    while (pos < endPos) {
+    int pos = 0;
+    int len = input.length();
+    while (pos < len) {
       int nl = input.indexOf('\n', pos);
-      int lineEnd = (nl < 0 || nl >= endPos) ? endPos : nl;
-      int nextLineStart = (nl < 0 || nl >= endPos) ? endPos : nl + 1;
+      int lineEnd = nl < 0 ? len : nl;
+      int nextLineStart = nl < 0 ? len : nl + 1;
       Text line = input.subSequence(pos, lineEnd);
 
-      String name = parseDirectiveName(line);
-      if (name == null) {
-        if (order != null) {
-          if (order.collecting) order.appendLine(line);
-        } else if (emit && !inCountSkip) {
-          out.append(line).append('\n');
-        }
-        pos = nextLineStart;
-        continue;
-      }
-
-      if (order != null && !name.contentEquals("order")) {
+      String name = DirectiveTemplate.directive(line);
+      if (order != null && name != null && !name.contentEquals("order")) {
         throw new IllegalStateException(
             "Only @order directives may appear inside @order section: " + line);
       }
 
-      int nameStart = line.indexOf('@');
-      Text rest = line.subSequence(Math.max(nameStart + name.length(), line.indexOf(' ', nameStart))+1, line.length());
+      if (name != null && name.contentEquals("order")) {
+        int nameStart = line.indexOf('@');
+        int argStart =
+            Math.max(nameStart + 1 + name.length(),
+                DirectiveTemplate.indexOfWhitespace(line, nameStart) + 1);
+        Text rest = line.subSequence(Math.min(argStart, line.length()), line.length()).trim();
 
-      switch (name) {
-        case "if" -> {
-          String arg = requireArg(rest, name, line);
-          boolean cond = evalCondition(arg);
-          End inner = processBlock(input, nextLineStart, endPos, out, emit && cond, false);
-          if (inner.type() == EndType.ENDIF) {
-            pos = inner.pos();
-            continue outer;
-          }
-          if (inner.type() == EndType.ELSE) {
-            End after =
-                processBlock(input, inner.pos(), endPos, out, emit && !cond, false);
-            if (after.type() == EndType.ENDIF) {
-              pos = after.pos();
-              continue outer;
-            }
-            throw new IllegalStateException("Duplicate or unclosed @else in: " + line);
-          }
-          throw new IllegalStateException("Unclosed @if in: " + line);
+        String arg;
+        if (rest.isEmpty()) {
+          arg = "";
+        } else if (rest.startsWith(":")) {
+          arg = rest.subSequence(1, rest.length()).toString().strip();
+        } else {
+          throw new IllegalStateException("Invalid @order argument: " + line);
         }
-        case "else" -> {
-          requireNoArg(rest, name, line);
-          return new End(EndType.ELSE, nextLineStart);
-        }
-        case "endif" -> {
-          if (!rest.contains("--")) {
-            return new End(EndType.ENDIF, nextLineStart);
-          }
-          int ifPos = line.indexOf("--", nameStart);
-          return new End(EndType.ENDIF, pos + ifPos);
-        }
-        case "replace" -> {
-          String arg = requireArg(rest, name, line);
-          if (emit && !inCountSkip) {
-            Text replacement = replacements.get(arg);
-            if (replacement != null) out.append(replacement).append('\n');
-          }
-        }
-        case "count" -> {
-          requireNoArg(rest, name, line);
-          if (forCount) {
-            countMarkers++;
-            if (countMarkers % 2 == 1) {
-              inCountSkip = true;
-            } else {
-              out.append("count(*)\n");
-              inCountSkip = false;
-            }
-          }
-        }
-        case "order" -> {
-          String arg;
-          if (rest.isEmpty()) {
-            arg = "";
-          } else if (rest.contains(":")) {
-            int argStart = rest.indexOf(':');
-            arg = rest.subSequence(argStart+1, rest.length()).trim().toString();
-          } else {
-            throw new IllegalStateException("Invalid @order argument: " + line);
-          }
 
-          if (arg.isEmpty()) {
-            if (order == null) {
-              order = new OrderSection(emit);
-            } else {
-              order.flush();
-              if (order.collecting) emitOrderSection(out, order);
-              order = null;
-            }
+        if (arg.isEmpty()) {
+          if (order == null) {
+            order = new OrderSection();
           } else {
-            if (order == null) {
-              throw new IllegalStateException(
-                  "@order :" + arg + " outside @order section: " + line);
-            }
-            if (order.collecting) {
-              if (!order.names.add(arg)) {
-                throw new IllegalStateException("Duplicate @order :" + arg + ": " + line);
-              }
-              order.startItem(arg);
-            }
+            order.flush();
+            emitOrderSection(out, order);
+            order = null;
           }
+        } else {
+          if (order == null) {
+            throw new IllegalStateException(
+                "@order :" + arg + " outside @order section: " + line);
+          }
+          if (!order.names.add(arg)) {
+            throw new IllegalStateException("Duplicate @order :" + arg + ": " + line);
+          }
+          order.startItem(arg);
         }
-        default ->
-            throw new IllegalStateException("Unknown directive @" + name + ": " + line);
+      } else if (order != null) {
+        order.appendLine(line);
+      } else {
+        out.appendEncoded(line);
+        out.appendAscii('\n');
       }
       pos = nextLineStart;
     }
-
     if (order != null) throw new IllegalStateException("Unclosed @order section");
-    if (forCount && countMarkers % 2 != 0) {
-      throw new IllegalStateException("Odd number of @count markers: " + countMarkers);
-    }
-    return new End(EndType.EOF, endPos);
+    return out.textValue();
   }
 
-  /**
-   * Returns the name of the directive at the start of {@code line}, or {@code null} if the
-   * line is not a directive line. A directive line is one whose first non-whitespace
-   * characters are {@code --}, optionally followed by whitespace, then {@code @}, then a
-   * non-empty identifier. Lines that begin with {@code --@} but have no name (e.g. an
-   * ordinary SQL comment such as {@code -- @}) return {@code null}.
-   */
-  private static String parseDirectiveName(Text line) {
-    int i = 0;
-    int n = line.length();
-    while (i < n && Character.isWhitespace(line.charAt(i))) i++;
-    if (i + 1 >= n || line.charAt(i) != '-' || line.charAt(i + 1) != '-') return null;
-    i += 2;
-    while (i < n && Character.isWhitespace(line.charAt(i))) i++;
-    if (i >= n || line.charAt(i) != '@') return null;
-    i++;
-    int start = i;
-    while (i < n && (Character.isLetterOrDigit(line.charAt(i)) || line.charAt(i) == '_')) i++;
-    return i == start ? null : line.subSequence(start, i).toString();
-  }
-
-  private static String requireArg(Text rest, String name, Text line) {
-    if (rest.isEmpty()) {
-      throw new IllegalStateException("@" + name + " requires ':name' argument: " + line);
-    }
-    if (!rest.startsWith(":")) {
-      throw new IllegalStateException(
-          "@" + name + " argument must start with ':': " + line);
-    }
-    Text arg = rest.subSequence(1, rest.length());
-    if (arg.isEmpty() || arg.contains("--@")) {
-      throw new IllegalStateException("Invalid @" + name + " argument: " + line);
-    }
-    return arg.toString();
-  }
-
-  private static void requireNoArg(Text rest, String name, Text line) {
-    if (!rest.isEmpty()) {
-      throw new IllegalStateException("@" + name + " takes no argument: " + line);
-    }
-  }
-
-  private void emitOrderSection(StringBuilder out, OrderSection section) {
+  private void emitOrderSection(TextBuilder out, OrderSection section) {
     record Selected(OrderItem item, OrderSpec spec) {}
 
     List<Selected> selected = new ArrayList<>();
@@ -481,8 +383,10 @@ public final class DirectiveQueryBuilder {
     }
     if (selected.isEmpty()) return;
 
-    String prefix = section.prefix.toString().stripTrailing();
-    if (prefix.isEmpty()) {
+    // stripTrailing() via String because Text has no stripTrailing and Text.trim() keeps
+    // line-breaks. The prefix is one block per @order section, so the allocation is fine.
+    String prefixStr = section.prefix.textValue().toString().stripTrailing();
+    if (prefixStr.isEmpty()) {
       throw new IllegalStateException(
           "@order section has items but empty prefix (missing ORDER BY?)");
     }
@@ -490,23 +394,20 @@ public final class DirectiveQueryBuilder {
         Comparator.comparingInt((Selected s) -> s.spec.position())
             .thenComparingInt(s -> s.item.templateIndex()));
 
-    out.append(prefix).append('\n');
+    out.appendEncoded(Text.of(prefixStr));
+    out.appendAscii('\n');
     for (int i = 0; i < selected.size(); i++) {
-      if (i > 0) out.append(",\n");
+      if (i > 0) {
+        out.appendAscii(',');
+        out.appendAscii('\n');
+      }
       Text sql = selected.get(i).item.sql();
-      out.append(sql);
+      out.appendEncoded(sql);
       if (!hasTrailingDirection(sql) && !selected.get(i).spec.ascending()) {
-        out.append(" DESC");
+        out.appendEncoded(Text.of(" DESC"));
       }
     }
-    out.append('\n');
-  }
-
-  private boolean evalCondition(String name) {
-    SQL.Param p = params.get(name);
-    if (p != null) return !isNullish(p.value());
-    Boolean c = conditions.get(name);
-    return c != null && c;
+    out.appendAscii('\n');
   }
 
   private static boolean hasTrailingDirection(Text sql) {
