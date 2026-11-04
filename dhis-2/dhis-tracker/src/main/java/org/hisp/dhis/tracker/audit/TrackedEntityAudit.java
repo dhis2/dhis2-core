@@ -66,7 +66,7 @@ public class TrackedEntityAudit implements Serializable {
   @Column(name = "trackedentityauditid")
   private long id;
 
-  @Column(name = "trackedentity")
+  @Column(name = "trackedentity", length = 255)
   private String trackedEntity;
 
   @Column(name = "comment", length = 50000)
@@ -76,7 +76,7 @@ public class TrackedEntityAudit implements Serializable {
   @Column(name = "created")
   private Date created;
 
-  @Column(name = "accessedby")
+  @Column(name = "accessedby", length = 255)
   private String accessedBy;
 
   @Enumerated(EnumType.STRING)
