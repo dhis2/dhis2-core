@@ -166,7 +166,7 @@ public final class QueryBuilder {
     params.put(name, new SQL.Param(type, name, value));
     if (value == null
         || value instanceof Object[] arr && arr.length == 0
-        || value instanceof long[] arr && arr.length == 0) nullParams.add(name);
+        || value instanceof long[] larr && larr.length == 0) nullParams.add(name);
     return this;
   }
 

@@ -36,11 +36,13 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrgTree;
 import org.hisp.dhis.organisationunit.OrgTreeParams;
 import org.hisp.dhis.organisationunit.OrgTreePipeline;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -68,4 +70,9 @@ public class OrgTreeController {
           }
         });
   }
+
+  @OpenApi.Response(OrgTree.class)
+  @GetMapping("/tree/{uid}/children")
+  public void getOrgTreeChildren(
+      @PathVariable("uid") UID parent, OrgTreeParams.Input params, HttpServletResponse response) {}
 }

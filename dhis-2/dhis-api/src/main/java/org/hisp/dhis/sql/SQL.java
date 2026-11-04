@@ -136,6 +136,10 @@ public final class SQL {
     return new QueryBuilder(sql, api);
   }
 
+  public static DirectiveQueryBuilder ofDirective(@Language("sql") String sql, @Nonnull QueryAPI api) {
+    return new DirectiveQueryBuilder(sql, api);
+  }
+
   /** Facade for specific implementations of query APIs, such as hibernate or JDBC. */
   @FunctionalInterface
   public interface QueryAPI {

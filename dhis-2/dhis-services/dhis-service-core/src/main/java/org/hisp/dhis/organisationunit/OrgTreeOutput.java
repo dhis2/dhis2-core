@@ -67,24 +67,21 @@ final class OrgTreeOutput {
             }
             response.addArray(
                 "organisationUnits",
-                matches -> matches.addElements(tree.organisationUnits(), OrgTreeOutput::addEntry));
+                matches -> matches.addObjects(tree.organisationUnits(), OrgTreeOutput::addEntry));
             response.addArray(
                 "ancestors",
-                ancestors -> ancestors.addElements(tree.ancestors(), OrgTreeOutput::addEntry));
+                ancestors -> ancestors.addObjects(tree.ancestors(), OrgTreeOutput::addEntry));
           });
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
   }
 
-  private static void addEntry(JsonBuilder.JsonArrayBuilder arr, OrgTree.OrgTreeEntry entry) {
-    arr.addObject(
-        ou -> {
+  private static void addEntry(JsonBuilder.JsonObjectBuilder ou, OrgTree.OrgTreeEntry entry) {
           ou.addString("id", entry.id().getValue());
           ou.addString("displayName", entry.displayName());
           ou.addString("path", entry.path().toString());
           ou.addNumber("level", entry.level());
           ou.addBoolean("leaf", entry.leaf());
-        });
   }
 }
