@@ -63,10 +63,10 @@ public class DataStatisticsEvent {
   @Column(name = "timestamp")
   private Date timestamp;
 
-  @Column(name = "username")
+  @Column(name = "username", length = 255)
   private String username;
 
-  @Column(name = "favoriteuid")
+  @Column(name = "favoriteuid", length = 255)
   private String favoriteUid;
 
   public DataStatisticsEvent() {}
