@@ -125,7 +125,7 @@ public class MetadataProposal implements PrimaryKeyObject {
   @Column(name = "change", nullable = false)
   private JsonNode change;
 
-  @Column(name = "comment")
+  @Column(name = "comment", length = 255)
   private String comment;
 
   @Column(name = "reason", length = 1024)
