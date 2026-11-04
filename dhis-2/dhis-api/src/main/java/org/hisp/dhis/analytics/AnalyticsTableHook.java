@@ -125,7 +125,7 @@ public class AnalyticsTableHook implements IdentifiableObject, MetadataObject {
   @JoinColumn(name = "lastupdatedby")
   private User lastUpdatedBy;
 
-  @Column(name = "name", nullable = false, unique = true)
+  @Column(name = "name", length = 255, nullable = false, unique = true)
   private String name;
 
   @Enumerated(EnumType.STRING)
