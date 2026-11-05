@@ -50,7 +50,6 @@ import org.hisp.dhis.common.UID;
  *
  * @param page
  * @param pageSize
- * @param hierarchySize number of OUs in the user's search hierarchy (approximation)
  * @param roots
  * @param groups
  * @param level
@@ -61,7 +60,6 @@ import org.hisp.dhis.common.UID;
 public record OrgTreeParams(
     int page,
     int pageSize,
-    int hierarchySize,
     @Nonnull Locale locale,
     // TODO maybe use scope here instead of same fields?
     @Nonnull List<UID> roots,
@@ -108,6 +106,10 @@ public record OrgTreeParams(
 
   private static String likeEscape(String input) {
     return input.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+  }
+
+  public String translationPropertyKey() {
+    return shortName ? "SHORT_NAME" : "NAME";
   }
 
   /** The parameters as seen and provided from user input. */

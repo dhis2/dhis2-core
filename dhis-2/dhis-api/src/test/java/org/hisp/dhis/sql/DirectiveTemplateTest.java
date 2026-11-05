@@ -48,13 +48,6 @@ class DirectiveTemplateTest {
 
   // ============================== Harness ==============================
 
-  private static Predicate<Text> isDirective() {
-    return line -> {
-      String s = line.toString().stripLeading();
-      return s.startsWith("--") && s.indexOf('@') >= 0;
-    };
-  }
-
   private static String render(String template) {
     return render(template, Set.of(), Map.of(), Map.of());
   }
@@ -74,7 +67,7 @@ class DirectiveTemplateTest {
       Map<String, String> inserts,
       Map<String, Integer> orders) {
     return new DirectiveTemplate(
-            isDirective(),
+            DirectiveTemplate.isDirectiveLine("--"),
             trueConditions::contains,
             name -> inserts.containsKey(name) ? Text.of(inserts.get(name)) : null,
             name -> orders.getOrDefault(name, 0))

@@ -65,15 +65,11 @@ public class DefaultOrgTreeService implements OrgTreeService {
             ? UserSettings.getCurrentSettings().getUserDbLocale()
             : params.locale();
     List<UID> groups = params.groups() == null ? List.of() : params.groups();
-    int hierarchySize =
-        store.countOrgUnitsInScope(
-            new OrgTreeStore.OrgTreeScope(roots, groups, params.level(), params.depth()));
 
     // TODO validate and/or filter root/group IDs?
     return new OrgTreeParams(
         params.page() == null ? 1 : params.page(),
         params.pageSize() == null ? 50 : params.pageSize(),
-        hierarchySize,
         locale,
         roots,
         groups,
@@ -91,8 +87,9 @@ public class DefaultOrgTreeService implements OrgTreeService {
     List<OrgUnitPath> matches = store.queryPageMatches(params);
     Set<OrgUnitPath> ancestors = OrgUnitPath.ofMissingAncestors(matches);
     Locale locale = params.locale();
+    String property = params.translationPropertyKey();
     Stream<OrgTreeEntry> entries =
-        store.streamEntries(locale, matches.stream().map(OrgUnitPath::toUID));
+        store.streamEntries(locale, property, matches.stream().map(OrgUnitPath::toUID));
     if (OrgTree.isHierarchical(matches))
       entries = OrgTree.sortedHierarchical(entries.toList()).stream();
     int total = -1;
@@ -103,6 +100,6 @@ public class DefaultOrgTreeService implements OrgTreeService {
     if (total < 0) total = store.countTotalMatches(params);
     OrgTree.Pager pager = new OrgTree.Pager(page, pageSize, total);
     return new OrgTree(
-        pager, entries, store.streamEntries(locale, ancestors.stream().map(OrgUnitPath::toUID)));
+        pager, entries, store.streamEntries(locale, property, ancestors.stream().map(OrgUnitPath::toUID)));
   }
 }

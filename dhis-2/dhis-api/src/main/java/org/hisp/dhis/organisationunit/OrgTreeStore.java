@@ -51,12 +51,6 @@ public interface OrgTreeStore {
       @CheckForNull Integer depth) {}
 
   /**
-   * @param params criteria of OUs to include in the matches
-   * @return the number of org units that can be potential matches for a search
-   */
-  int countOrgUnitsInScope(OrgTreeScope params);
-
-  /**
    * Note that it is crucial that the results are order by path so that matches within the same
    * subtree do not unnecessarily occur on random pages but instead are either all on one page or on
    * successive pages.
@@ -77,5 +71,5 @@ public interface OrgTreeStore {
    * @param orgUnits of the OU to fetch
    * @return A stream of entries for the given IDs sorted by level first, display name second
    */
-  Stream<OrgTree.OrgTreeEntry> streamEntries(Locale locale, Stream<UID> orgUnits);
+  Stream<OrgTree.OrgTreeEntry> streamEntries(Locale locale, String property, Stream<UID> orgUnits);
 }

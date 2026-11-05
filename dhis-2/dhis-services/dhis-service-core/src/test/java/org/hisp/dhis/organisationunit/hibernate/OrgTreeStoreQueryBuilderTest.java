@@ -31,9 +31,14 @@ package org.hisp.dhis.organisationunit.hibernate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrgTreeParams;
@@ -57,7 +62,6 @@ class OrgTreeStoreQueryBuilderTest {
   private static final UID GROUP = UID.of("bbbbbbbbbbb");
 
   private static OrgTreeParams params(
-      int hierarchySize,
       List<UID> groups,
       Integer level,
       Boolean currentlyOpen,
@@ -66,7 +70,6 @@ class OrgTreeStoreQueryBuilderTest {
     return new OrgTreeParams(
         1,
         10,
-        hierarchySize,
         Locale.ENGLISH,
         List.of(ROOT),
         groups,
@@ -93,52 +96,47 @@ class OrgTreeStoreQueryBuilderTest {
     // Large hierarchy -> useExists=true, useJoin=false. No groups -> no CTEs -> no WITH.
     assertSQL(
         """
-        SELECT ou.path
+        SELECT
+        ou.path
         FROM organisationunit ou
-        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
         WHERE 1=1
-
-          AND (EXISTS (
-              SELECT 1
-              FROM organisationunit root
-              WHERE root.uid = ANY(:roots)
-                AND (ou.patharray && ARRAY[root.uid])
-          ))
+          AND ou.patharray && ARRAY(
+            SELECT DISTINCT root.uid
+            FROM organisationunit root
+            WHERE root.uid = ANY(:roots)
+          )
         ORDER BY ou.path
         """,
-        params(200, List.of(), null, null, null, null));
+        params(List.of(), null, null, null, null));
   }
 
   @Test
   void withLevel() {
     assertSQL(
         """
-        SELECT ou.path
+        SELECT
+        ou.path
         FROM organisationunit ou
-        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
         WHERE 1=1
           AND ou.hierarchylevel = :level
-
-          AND (EXISTS (
-              SELECT 1
-              FROM organisationunit root
-              WHERE root.uid = ANY(:roots)
-                AND (ou.patharray && ARRAY[root.uid])
-          ))
+          AND ou.patharray && ARRAY(
+            SELECT DISTINCT root.uid
+            FROM organisationunit root
+            WHERE root.uid = ANY(:roots)
+          )
         ORDER BY ou.path
         """,
-        params(200, List.of(), 2, null, null, null));
+        params(List.of(), 2, null, null, null));
   }
 
   @Test
   void withDepthAddsLineInsideExists() {
     assertSQL(
         """
-        SELECT ou.path
+        SELECT
+        ou.path
         FROM organisationunit ou
-        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
         WHERE 1=1
-
           AND (EXISTS (
               SELECT 1
               FROM organisationunit root
@@ -148,13 +146,11 @@ class OrgTreeStoreQueryBuilderTest {
           ))
         ORDER BY ou.path
         """,
-        params(200, List.of(), null, null, null, 2));
+        params(List.of(), null, null, null, 2));
   }
 
   @Test
-  void groupsWithoutUseJoin() {
-    // WITH is present because of the groups CTE, but roots CTE is not (useExists=true).
-    // The ',' between CTEs must not appear (useJoin=false).
+  void groupsAndRoots() {
     assertSQL(
         """
         WITH
@@ -164,89 +160,41 @@ class OrgTreeStoreQueryBuilderTest {
           JOIN orgunitgroupmembers ougm ON oug.orgunitgroupid = ougm.orgunitgroupid
           WHERE oug.uid = ANY(:groups)
         )
-        SELECT ou.path
+        SELECT
+        ou.path
         FROM organisationunit ou
         JOIN groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
-        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
         WHERE 1=1
-
-          AND (EXISTS (
-              SELECT 1
-              FROM organisationunit root
-              WHERE root.uid = ANY(:roots)
-                AND (ou.patharray && ARRAY[root.uid])
-          ))
-        ORDER BY ou.path
-        """,
-        params(200, List.of(GROUP), null, null, null, null));
-  }
-
-  @Test
-  void smallHierarchyUsesJoinInsteadOfExists() {
-    // hierarchySize <= 100 -> useExists=false, useJoin=true.
-    // Roots CTE is emitted; EXISTS block is not. The trailing blank line before
-    // ORDER BY comes from the template layout — harmless, kept for readability.
-    assertSQL(
-        """
-        WITH
-        roots_with_descendants_ids AS (
-          SELECT ou.organisationunitid
-          FROM organisationunit ou
-          WHERE ou.patharray && ARRAY(
+          AND ou.patharray && ARRAY(
             SELECT DISTINCT root.uid
             FROM organisationunit root
             WHERE root.uid = ANY(:roots)
           )
-        )
-        SELECT ou.path
-        FROM organisationunit ou
-        JOIN roots_with_descendants_ids scope ON ou.organisationunitid = scope.organisationunitid
-        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
-        WHERE 1=1
-
         ORDER BY ou.path
         """,
-        params(50, List.of(), null, null, null, null));
+        params(List.of(GROUP), null, null, null, null));
   }
 
   @Test
-  void smallHierarchyWithGroupsEmitsBothCtesWithComma() {
-    // useJoin=true AND groups set -> both CTEs, connected by a ',' on its own line.
+  void rootNoDepthAsFilter() {
     assertSQL(
         """
-        WITH
-        roots_with_descendants_ids AS (
-          SELECT ou.organisationunitid
-          FROM organisationunit ou
-          WHERE ou.patharray && ARRAY(
+        SELECT
+        ou.path
+        FROM organisationunit ou
+        WHERE 1=1
+          AND ou.patharray && ARRAY(
             SELECT DISTINCT root.uid
             FROM organisationunit root
             WHERE root.uid = ANY(:roots)
           )
-        )
-        ,
-        groups_member_ids AS (
-          SELECT DISTINCT ougm.organisationunitid
-          FROM orgunitgroup oug
-          JOIN orgunitgroupmembers ougm ON oug.orgunitgroupid = ougm.orgunitgroupid
-          WHERE oug.uid = ANY(:groups)
-        )
-        SELECT ou.path
-        FROM organisationunit ou
-        JOIN groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
-        JOIN roots_with_descendants_ids scope ON ou.organisationunitid = scope.organisationunitid
-        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
-        WHERE 1=1
-
         ORDER BY ou.path
         """,
-        params(50, List.of(GROUP), null, null, null, null));
+        params(List.of(), null, null, null, null));
   }
 
   @Test
-  void allFiltersCombined() {
-    // Large hierarchy + groups + level + currentlyOpen + search -> useExists=true, useJoin=false,
-    // roots CTE absent, groups CTE present, all three WHERE filters active.
+  void groupsAsJoinRootsAsFilter() {
     assertSQL(
         """
         WITH
@@ -256,36 +204,59 @@ class OrgTreeStoreQueryBuilderTest {
           JOIN orgunitgroupmembers ougm ON oug.orgunitgroupid = ougm.orgunitgroupid
           WHERE oug.uid = ANY(:groups)
         )
-        SELECT ou.path
+        SELECT
+        ou.path
+        FROM organisationunit ou
+        JOIN groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
+        WHERE 1=1
+          AND ou.patharray && ARRAY(
+            SELECT DISTINCT root.uid
+            FROM organisationunit root
+            WHERE root.uid = ANY(:roots)
+          )
+        ORDER BY ou.path
+        """,
+        params(List.of(GROUP), null, null, null, null));
+  }
+
+  @Test
+  void allFiltersButDepthCombined() {
+    assertSQL(
+        """
+        WITH
+        groups_member_ids AS (
+          SELECT DISTINCT ougm.organisationunitid
+          FROM orgunitgroup oug
+          JOIN orgunitgroupmembers ougm ON oug.orgunitgroupid = ougm.orgunitgroupid
+          WHERE oug.uid = ANY(:groups)
+        )
+        SELECT
+        ou.path
         FROM organisationunit ou
         JOIN groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
         LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
         WHERE 1=1
           AND ou.hierarchylevel = :level
           AND :currentlyOpen = ((ou.openingdate IS NULL || ou.openingdate <= now()) && (ou.closeddate IS NULL || ou.closeddate > now()))
+          AND ou.patharray && ARRAY(
+            SELECT DISTINCT root.uid
+            FROM organisationunit root
+            WHERE root.uid = ANY(:roots)
+          )
           AND (t.value_unaccent ILIKE immutable_unaccent(:search) OR immutable_unaccent(ou.name) ILIKE immutable_unaccent(:search))
-
-          AND (EXISTS (
-              SELECT 1
-              FROM organisationunit root
-              WHERE root.uid = ANY(:roots)
-                AND (ou.patharray && ARRAY[root.uid])
-          ))
         ORDER BY ou.path
         """,
-        params(200, List.of(GROUP), 2, true, "foo", null));
+        params(List.of(GROUP), 2, true, "foo", null));
   }
 
   @Test
-  void smallHierarchyWithDepthForcesExists() {
-    // hierarchySize=50 would normally pick the JOIN form; depth forces EXISTS.
+  void depthForcesExists() {
     assertSQL(
         """
-        SELECT ou.path
+        SELECT
+        ou.path
         FROM organisationunit ou
-        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
         WHERE 1=1
-  
           AND (EXISTS (
               SELECT 1
               FROM organisationunit root
@@ -295,33 +266,67 @@ class OrgTreeStoreQueryBuilderTest {
           ))
         ORDER BY ou.path
         """,
-        params(50, List.of(), null, null, null, 2));
+        params(List.of(), null, null, null, 2));
   }
 
   @Test
-  void smallHierarchyWithLevelAndJoinForm() {
+  void hierarchyLevelFilter() {
     assertSQL(
         """
-        WITH
-        roots_with_descendants_ids AS (
-          SELECT ou.organisationunitid
-          FROM organisationunit ou
-          WHERE ou.patharray && ARRAY(
+        SELECT
+        ou.path
+        FROM organisationunit ou
+        WHERE 1=1
+          AND ou.hierarchylevel = :level
+          AND ou.patharray && ARRAY(
             SELECT DISTINCT root.uid
             FROM organisationunit root
             WHERE root.uid = ANY(:roots)
           )
-          AND ou.hierarchylevel = :level
-        )
-        SELECT ou.path
-        FROM organisationunit ou
-        JOIN roots_with_descendants_ids scope ON ou.organisationunitid = scope.organisationunitid
-        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
-        WHERE 1=1
-          AND ou.hierarchylevel = :level
-  
         ORDER BY ou.path
         """,
-        params(50, List.of(), 2, null, null, null));
+        params(List.of(), 2, null, null, null));
+  }
+
+  @Test
+  void nullBoundParameterIsNotForwardedToTheBackend() {
+    List<String> sqls = new ArrayList<>();
+    Map<String, SQL.Param> sent = new LinkedHashMap<>();
+    SQL.QueryAPI api = SQL.spy(sqls::add, sent::put);
+
+    SQL.ofDirective("SELECT 1\n-- @if :x\nWHERE x = :x\n-- @end", api)
+        .setParameter("x", (String) null)
+        .stream()
+        .toList();
+
+    assertTrue(sent.isEmpty());
+  }
+
+  @Test
+  void emptyArrayBoundParameterIsNotForwardedToTheBackend() {
+    List<String> sqls = new ArrayList<>();
+    Map<String, SQL.Param> sent = new LinkedHashMap<>();
+    SQL.QueryAPI api = SQL.spy(sqls::add, sent::put);
+
+    SQL.ofDirective("SELECT 1\n-- @if :ids\nWHERE x = ANY(:ids)\n-- @end", api)
+        .setParameter("ids", new long[0])
+        .stream()
+        .toList();
+
+    assertTrue(sent.isEmpty());
+  }
+
+  @Test
+  void nonNullBoundParameterIsForwardedToTheBackend() {
+    List<String> sqls = new ArrayList<>();
+    Map<String, SQL.Param> sent = new LinkedHashMap<>();
+    SQL.QueryAPI api = SQL.spy(sqls::add, sent::put);
+
+    SQL.ofDirective("SELECT 1\n-- @if :x\nWHERE x = :x\n-- @end", api)
+        .setParameter("x", "hello")
+        .stream()
+        .toList();
+
+    assertEquals(Set.of("x"), sent.keySet());
   }
 }

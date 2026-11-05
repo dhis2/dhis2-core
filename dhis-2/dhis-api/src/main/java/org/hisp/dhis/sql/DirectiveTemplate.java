@@ -83,6 +83,21 @@ public record DirectiveTemplate(
     return out.textValue();
   }
 
+  public static Predicate<Text> isDirectiveLine(CharSequence prefix) {
+    return line -> {
+      int len = line.length();
+      int i = skipIndent(line, 0);
+      if (!line.startsWith(prefix, i)) return false;
+      i += prefix.length();
+      i = skipIndent(line, i);
+      if (i >= len || line.charAt(i) != '@') return false;
+      i++; // skip @
+      int s = i;
+      i = skipAlphanumeric(line, s);
+      return i > s && (i >= len || isIndent(line.charAt(i)));
+    };
+  }
+
   private enum Directive {
     IF,
     ELSE,

@@ -258,7 +258,9 @@ public final class DirectiveQueryBuilder {
   private SQL.Query fetchQuery() {
     conditions.put("count", false);
     SQL.Query query = api.createQuery(toSQL());
-    params.values().forEach(query::setParameter);
+    params.values().stream()
+        .filter(p -> !isNullish(p.value()))
+        .forEach(query::setParameter);
     if (offset != null) query.setOffset(offset);
     if (limit != null) query.setLimit(limit);
     return query;
@@ -267,7 +269,9 @@ public final class DirectiveQueryBuilder {
   public int count() {
     conditions.put("count", true);
     SQL.Query query = api.createQuery(toSQL());
-    params.values().forEach(query::setParameter);
+    params.values().stream()
+        .filter(p -> !isNullish(p.value()))
+        .forEach(query::setParameter);
     return query.count();
   }
 
@@ -275,7 +279,7 @@ public final class DirectiveQueryBuilder {
 
   private String toSQL() {
     return new DirectiveTemplate(
-            this::isDirectiveLine, this::isTrueCondition, inserts::get, this::getOrderByNo)
+        DirectiveTemplate.isDirectiveLine("--"), this::isTrueCondition, inserts::get, this::getOrderByNo)
         .render(template)
         .toString();
   }
@@ -283,16 +287,6 @@ public final class DirectiveQueryBuilder {
   private int getOrderByNo(String name) {
     Integer pos = orders.get(name);
     return pos != null ? pos : Integer.MAX_VALUE;
-  }
-
-  private boolean isDirectiveLine(Text line) {
-    int len = line.length();
-    int i = 0;
-    while (i < len && line.charAt(i) == ' ') i++;
-    if (i + 2 >= len || line.charAt(i) != '-' || line.charAt(i + 1) != '-') return false;
-    i += 2;
-    while (i < len && line.charAt(i) == ' ') i++;
-    return i < len && line.charAt(i) == '@';
   }
 
   private boolean isTrueCondition(String name) {

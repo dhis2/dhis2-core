@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -42,7 +42,6 @@ import org.hisp.dhis.organisationunit.OrgTreeStore;
 import org.hisp.dhis.organisationunit.OrgUnitPath;
 import org.hisp.dhis.sql.DirectiveQueryBuilder;
 import org.hisp.dhis.sql.NativeSQL;
-import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
 import org.intellij.lang.annotations.Language;
 import org.springframework.stereotype.Repository;
@@ -52,22 +51,6 @@ import org.springframework.stereotype.Repository;
 public class HibernateOrgTreeStore implements OrgTreeStore {
 
   private final EntityManager entityManager;
-
-  @Override
-  public int countOrgUnitsInScope(OrgTreeScope params) {
-    String sql =
-        """
-     SELECT count(*)
-      FROM organisationunit root
-      JOIN organisationunit ou ON (root.organisationunitid = ou.parentid OR ou.path LIKE root.path || '%')
-        AND ou.hierarchylevel = :level
-        AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
-      WHERE root.uid = ANY(:roots)""";
-    List<UID> groups = params.groups();
-    return !groups.isEmpty()
-        ? groups.size()
-        : SQL.of(sql, NativeSQL.of(getSession())).setParameter("depth", params.depth()).count();
-  }
 
   @Override
   public List<OrgUnitPath> queryPageMatches(OrgTreeParams params) {
@@ -84,27 +67,8 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
   static DirectiveQueryBuilder createTreeQuery(OrgTreeParams params, SQL.QueryAPI api) {
     String sql =
         """
-        --@if :useJoin || :groups
-        WITH
-        --@end
-        --@if :useJoin
-        roots_with_descendants_ids AS (
-          SELECT ou.organisationunitid
-          FROM organisationunit ou
-          WHERE ou.patharray && ARRAY(
-            SELECT DISTINCT root.uid
-            FROM organisationunit root
-            WHERE root.uid = ANY(:roots)
-          )
-          --@if :level
-          AND ou.hierarchylevel = :level
-          --@end
-        )
-        --@end
         --@if :groups
-          --@if :useJoin
-        ,
-          --@end
+        WITH
         groups_member_ids AS (
           SELECT DISTINCT ougm.organisationunitid
           FROM orgunitgroup oug
@@ -112,15 +76,17 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
           WHERE oug.uid = ANY(:groups)
         )
         --@end
-        SELECT ou.path
+        SELECT
+        --@replace :count count(*)
+        ou.path
+        --@end
         FROM organisationunit ou
         --@if :groups
         JOIN groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
         --@end
-        --@if :useJoin
-        JOIN roots_with_descendants_ids scope ON ou.organisationunitid = scope.organisationunitid
-        --@end
+        --@if :search
         LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
+        --@end
         WHERE 1=1
           --@if :level
           AND ou.hierarchylevel = :level
@@ -128,51 +94,54 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
           --@if :currentlyOpen
           AND :currentlyOpen = ((ou.openingdate IS NULL || ou.openingdate <= now()) && (ou.closeddate IS NULL || ou.closeddate > now()))
           --@end
-          --@if :search
-          AND (t.value_unaccent ILIKE immutable_unaccent(:search) OR immutable_unaccent(ou.name) ILIKE immutable_unaccent(:search))
-          --@end
-        
-          --@if :useExists
+          --@if :depth
           AND (EXISTS (
               SELECT 1
               FROM organisationunit root
               WHERE root.uid = ANY(:roots)
-                --@if :depth
                 AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
-                --@end
                 AND (ou.patharray && ARRAY[root.uid])
           ))
+          --@else
+          AND ou.patharray && ARRAY(
+            SELECT DISTINCT root.uid
+            FROM organisationunit root
+            WHERE root.uid = ANY(:roots)
+          )
           --@end
-        ORDER BY ou.path""";
+          --@if :search
+          AND (t.value_unaccent ILIKE immutable_unaccent(:search) OR immutable_unaccent(ou.name) ILIKE immutable_unaccent(:search))
+          --@end
+        --@if :count
+        --@else
+        ORDER BY ou.path
+        --@end
+        """;
     String search = params.searchLike();
-    String property = "NAME";
-    if (params.shortName()) property = "SHORT_NAME";
-    boolean useExists = params.hierarchySize() > 100 || params.depth() != null;
     DirectiveQueryBuilder builder =
         SQL.ofDirective(sql, api)
             .setParameter("level", params.level())
-            .setParameter("property", property)
-            .setParameter("search", params.shortName() ? null : search)
-            .setParameter("shortsearch", params.shortName() ? search : null)
+            .setParameter("search", search)
             .setParameter("roots", params.roots())
             .setParameter("groups", params.groups())
             .setParameter("currentlyOpen", params.currentlyOpen())
             .setParameter("depth", params.depth())
-            .setCondition("useExists", useExists)
-            .setCondition("useJoin", !useExists)
             .setOffset(params.offset())
             .setLimit(params.pageSize());
-    if (search != null) builder.setParameter("locale", params.locale().toString());
+    if (search != null) {
+      builder.setParameter("locale", params.locale().toString())
+          .setParameter("property", params.translationPropertyKey());
+    }
     return builder;
   }
 
   @Override
-  public Stream<OrgTreeEntry> streamEntries(Locale locale, Stream<UID> orgUnits) {
+  public Stream<OrgTreeEntry> streamEntries(Locale locale, String property, Stream<UID> orgUnits) {
     String sql =
         """
       SELECT
           ou.path,
-          coalesce(jsonb_get_translated_value(ou.translations, 'NAME', :locale), ou.name) as displayName,
+          coalesce(jsonb_get_translated_value(ou.translations, :property, :locale), ou.name) as displayName,
           NOT EXISTS (
               SELECT 1
               FROM organisationunit child
@@ -181,8 +150,12 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
       FROM organisationunit ou
       WHERE ou.uid = ANY(:ou)
       ORDER BY ou.hierarchylevel, displayName""";
-    QueryBuilder query =
-        createQuery(sql).setParameter("ou", orgUnits).setParameter("locale", locale.toString());
+
+    DirectiveQueryBuilder query =
+        createQuery(sql)
+            .setParameter("ou", orgUnits)
+            .setParameter("locale", locale.toString())
+            .setParameter("property", property);
     return query.isNullParameter("ou") ? Stream.of() : query.stream(HibernateOrgTreeStore::entry);
   }
 
@@ -190,8 +163,8 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
     return new OrgTreeEntry(OrgUnitPath.of(row.getString(0)), row.getString(1), row.getBoolean(2));
   }
 
-  private QueryBuilder createQuery(@Language("sql") String sql) {
-    return SQL.of(sql, NativeSQL.of(getSession()));
+  private DirectiveQueryBuilder createQuery(@Language("sql") String sql) {
+    return SQL.ofDirective(sql, NativeSQL.of(getSession()));
   }
 
   private Session getSession() {
