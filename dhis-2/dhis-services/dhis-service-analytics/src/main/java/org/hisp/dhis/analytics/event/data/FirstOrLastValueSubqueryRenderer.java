@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addDays;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
@@ -105,16 +106,21 @@ public class FirstOrLastValueSubqueryRenderer {
   }
 
   private String renderForValueDimension(EventQueryParams params) {
-    String valueItem = sqlBuilder.quoteAx(params.getValue().getDimensionItem());
-    String columns =
-        sqlBuilder.quote("event")
-            + ","
-            + valueItem
-            + ","
-            + getFirstOrLastValueSubqueryQuotedColumns(params);
-    String timeTest = buildTenYearWindowTimeTest(params);
-    String nullTest = " and " + valueItem + " is not null" + getStageTest(params);
-    return assembleSubquery(params, columns, timeTest, nullTest);
+    if (params.hasValueDimension()) {
+      String valueItem =
+          sqlBuilder.quoteAx(params.getValue().getDimensionalObject().getDimensionItem());
+      String columns =
+          sqlBuilder.quote("event")
+              + ","
+              + valueItem
+              + ","
+              + getFirstOrLastValueSubqueryQuotedColumns(params);
+      String timeTest = buildTenYearWindowTimeTest(params);
+      String nullTest = " and " + valueItem + " is not null" + getStageTest(params);
+      return assembleSubquery(params, columns, timeTest, nullTest);
+    }
+
+    return EMPTY;
   }
 
   private String buildTenYearWindowTimeTest(EventQueryParams params) {
@@ -246,7 +252,9 @@ public class FirstOrLastValueSubqueryRenderer {
     if (params.hasTimeField()) {
       columns.add(params.getTimeFieldAsFieldFallback());
     }
-    columns.remove(params.getValue().getDimensionItem());
+    if (params.hasValueDimension()) {
+      columns.remove(params.getValue().getDimensionalObject().getDimensionItem());
+    }
     columns.remove("event");
     return columns.stream().map(sqlBuilder::quote).collect(joining(","));
   }

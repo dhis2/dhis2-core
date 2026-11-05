@@ -123,6 +123,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
@@ -513,7 +514,9 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     booleanElement.setValueType(BOOLEAN);
 
     EventQueryParams params =
-        new EventQueryParams.Builder(createRequestParams()).withValue(booleanElement).build();
+        new EventQueryParams.Builder(createRequestParams())
+            .withValue(new Value(booleanElement))
+            .build();
 
     AbstractJdbcEventAnalyticsManager.AggregateClause clause =
         eventSubject.getAggregateClause(params);
@@ -531,7 +534,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams())
-            .withValue(de)
+            .withValue(new Value(de))
             .withAggregationType(AnalyticsAggregationType.SUM)
             .build();
 
@@ -550,7 +553,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams())
-            .withValue(de)
+            .withValue(new Value(de))
             .withAggregationType(fromAggregationType(AggregationType.CUSTOM))
             .build();
 
@@ -568,7 +571,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     de.setValueType(NUMBER);
 
     EventQueryParams.Builder paramsBuilder =
-        new EventQueryParams.Builder(createRequestParams()).withValue(de);
+        new EventQueryParams.Builder(createRequestParams()).withValue(new Value(de));
 
     // Apply override aggregation if specified
     if (overrideAggregationType != null) {
@@ -605,7 +608,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams())
-            .withValue(de)
+            .withValue(new Value(de))
             .withAggregationType(fromAggregationType(AggregationType.CUSTOM))
             .withOutputType(EventOutputType.EVENT)
             .build();
@@ -625,7 +628,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams())
-            .withValue(de)
+            .withValue(new Value(de))
             .withAggregationType(fromAggregationType(AggregationType.CUSTOM))
             .withOutputType(EventOutputType.ENROLLMENT)
             .build();
