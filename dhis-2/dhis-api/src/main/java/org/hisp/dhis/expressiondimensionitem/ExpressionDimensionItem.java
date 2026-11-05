@@ -137,7 +137,7 @@ public class ExpressionDimensionItem extends BaseMetadataObject
   @Setter
   private String shortName;
 
-  @Column(name = "formname", length = 255)
+  @Column(name = "formname", length = 230)
   @Setter
   private String formName;
 
@@ -164,7 +164,7 @@ public class ExpressionDimensionItem extends BaseMetadataObject
    * in the expression.
    */
   @Enumerated(EnumType.STRING)
-  @Column(name = "missingvaluestrategy", length = 100)
+  @Column(name = "missingvaluestrategy", length = 255)
   @Setter
   private MissingValueStrategy missingValueStrategy =
       MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;

@@ -284,8 +284,8 @@ class ExpressionDimensionItemControllerTest extends PostgresControllerIntegratio
         Integer.MAX_VALUE, property(properties, "description").getNumber("length").intValue());
     assertEquals(
         Integer.MAX_VALUE, property(properties, "expression").getNumber("length").intValue());
-    assertEquals(255, property(properties, "formName").getNumber("length").intValue());
-    assertEquals(100, property(properties, "missingValueStrategy").getNumber("length").intValue());
+    assertEquals(230, property(properties, "formName").getNumber("length").intValue());
+    assertEquals(255, property(properties, "missingValueStrategy").getNumber("length").intValue());
     assertFalse(property(properties, "missingValueStrategy").getBoolean("required").booleanValue());
     assertTrue(property(properties, "dimensionItemType").getBoolean("writable").booleanValue());
     assertTrue(property(properties, "legendSets").getBoolean("writable").booleanValue());
