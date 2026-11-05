@@ -54,7 +54,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
@@ -72,6 +71,7 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.acl.AccessControlStore;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
@@ -147,7 +147,7 @@ class JdbcTrackerEventStore {
   @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
-  private final CategoryOptionComboStore categoryOptionComboStore;
+  private final AccessControlStore accessControlStore;
 
   public List<TrackerEvent> getEvents(TrackerEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
@@ -344,7 +344,7 @@ class JdbcTrackerEventStore {
    * @return false when the user may read no attribute option combo, so no event at all
    */
   private boolean addReadableAocs(MapSqlParameterSource sqlParams, UserDetails user) {
-    long[] readable = categoryOptionComboStore.getDataReadableAttributeOptionComboIds(user, null);
+    long[] readable = accessControlStore.getDataReadableAttributeOptionComboIds(user, null);
     if (readable == null) {
       return true;
     }
