@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.ToIntFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -279,8 +280,12 @@ public final class DirectiveQueryBuilder {
 
   private String toSQL() {
     Text ordered = extractOrderSections(template);
-    DirectiveTemplate t = new DirectiveTemplate(this::isDirectiveLine, this::isTrueCondition, inserts::get);
+    DirectiveTemplate t = new DirectiveTemplate(this::isDirectiveLine, this::isTrueCondition, inserts::get, this::getOrders);
     return t.render(ordered).toString();
+  }
+
+  private int getOrders(String name) {
+    return orders.get(name).position;
   }
 
   private boolean isDirectiveLine(Text line) {

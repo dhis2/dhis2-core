@@ -1,68 +1,81 @@
 package org.hisp.dhis.sql;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 import javax.annotation.CheckForNull;
 import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.jsontree.TextBuilder;
 
 /**
  * A general-purpose processor for {@code -- @directive} lines. Handles conditional blocks,
- * replacement blocks and single-line insertions. Directives must be on their own line as
- * {@code -- @name}, except for {@code -- @end --@<any>} which resumes mid-line at the
- * embedded directive.
+ * replacement blocks, reorder blocks and single-line insertions. Directives must be on their
+ * own line as {@code -- @name}, except for {@code -- @end --@<any>} which resumes mid-line at
+ * the embedded directive.
  *
  * <h3>Built-in directives</h3>
  * <pre>
  *   -- @if :name ... [-- @else ...] -- @end
  *   -- @replace :name [replacement] ... -- @end
+ *   -- @reorder :name ... -- @end     (one or more consecutive siblings)
  *   -- @insert :name
  * </pre>
  *
  * <p>{@code @end} closes the innermost open block, whether the block was opened by
- * {@code @if} or {@code @replace}. {@code @endif} is accepted as an alias of {@code @end}.
- * A bare {@code @replace} (no {@code :condition}) is no longer valid; use {@code @end} to
- * close a replacement block.
+ * {@code @if}, {@code @replace} or {@code @reorder}. {@code @endif} is accepted as an alias
+ * of {@code @end}. A bare {@code @replace} (no {@code :condition}) is not valid; use
+ * {@code @end} to close a replacement block.
+ *
+ * <p>Consecutive {@code @reorder :name ... @end} blocks form a reorder sequence: they are
+ * emitted in the order given by {@link #reorders} (name → ordinal), not in template order.
+ * The blocks must be adjacent; any non-{@code @reorder} line ends the sequence.
  */
 public record DirectiveTemplate(
     Predicate<Text> directives,
     Predicate<String> tests,
-    Function<String, Text> inserts) {
+    Function<String, Text> inserts,
+    ToIntFunction<String> reorders) {
 
   public Text render(Text template) {
     TextBuilder out = new TextBuilder((int) (template.length() * 1.5));
     End end = processBlock(template, 0, out, true);
     if (end.type() != null) {
-        String msg =
+      String msg =
           end.type == Directive.END
-          ?  "@end without opening directive"
-          :  "Closing @end is missing for: " + end.type();
-        throw new IllegalStateException(msg);
+              ? "@end without opening directive"
+              : "Closing @end is missing for: " + end.type;
+      throw new IllegalStateException(msg);
     }
     return out.textValue();
   }
 
   private enum Directive {
-    IF, ELSE, END, INSERT, REPLACE;
+    IF, ELSE, END, INSERT, REPLACE, REORDER;
 
     static Directive of(Text name) {
-      if (name == null) throw new IllegalArgumentException("Directive must not be null");
+      if (name == null) return null;
       if (name.contentEquals("if")) return IF;
       if (name.contentEquals("else")) return ELSE;
       if (name.contentEquals("end") || name.contentEquals("endif")) return END;
       if (name.contentEquals("insert")) return INSERT;
       if (name.contentEquals("replace")) return REPLACE;
+      if (name.contentEquals("reorder")) return REORDER;
       throw new IllegalStateException("Unknown directive @" + name);
     }
 
     @Override
     public String toString() {
-      return "@"+name().toLowerCase(Locale.ROOT);
+      return "@" + name().toLowerCase(Locale.ROOT);
     }
   }
 
   private record End(Directive type, int pos) {}
+
+  private record ReorderBlock(String name, int startPos, int endPos) {}
 
   private End processBlock(Text input, int startPos, TextBuilder out, boolean emit) {
     int len = input.length();
@@ -72,7 +85,11 @@ public record DirectiveTemplate(
       Text line = nextLine(input, pos);
       int nextLineStart = Math.min(pos + line.length() + 1, len);
 
-      if (!directives.test(line)) {
+      Directive directive = null;
+      if (directives.test(line))
+        directive = Directive.of(directiveName(line));
+
+      if (directive == null) {
         if (emit) {
           out.appendEncoded(line);
           out.appendAscii('\n');
@@ -81,7 +98,6 @@ public record DirectiveTemplate(
         continue;
       }
 
-      Directive directive = Directive.of(directiveName(line));
       switch (directive) {
         case IF -> {
           pos = processIf(input, out, emit, line, nextLineStart).pos();
@@ -100,6 +116,10 @@ public record DirectiveTemplate(
         case INSERT -> processInsert(out, emit, line);
         case REPLACE -> {
           pos = processReplace(input, out, emit, line, nextLineStart).pos();
+          continue outer;
+        }
+        case REORDER -> {
+          pos = processReorder(input, out, emit, line, nextLineStart).pos();
           continue outer;
         }
         default ->
@@ -123,11 +143,12 @@ public record DirectiveTemplate(
 
   /**
    * Processes a {@code @if :cond ... @end} block, including an optional {@code @else}
-   * branch. The returned {@link End} always has type {@link EndDirective#END}; if the inner
+   * branch. The returned {@link End} always has type {@link Directive#END}; if the inner
    * block ends with anything else (an unmatched {@code @else}, the top of the input, or a
    * stray {@code @end}), this method throws. Since {@code @end} closes the innermost open
-   * block regardless of whether it was opened by {@code @if} or {@code @replace}, an
-   * {@code @if} nesting once started can only be closed by its own matching {@code @end}.
+   * block regardless of whether it was opened by {@code @if}, {@code @replace} or
+   * {@code @reorder}, an {@code @if} nesting once started can only be closed by its own
+   * matching {@code @end}.
    */
   private End processIf(
       Text input, TextBuilder out, boolean emit, Text line, int nextLineStart) {
@@ -154,12 +175,13 @@ public record DirectiveTemplate(
    * line is replaced (with the inline text after {@code :cond}, or with the registered
    * {@code insert} by name when there is no inline text), and the body is discarded. If
    * the condition is false, the body is emitted as-is. Either way the returned {@link End}
-   * has type {@link EndDirective#END}.
+   * has type {@link Directive#END}.
    *
-   * <p>The discard path uses recursion with a throwaway sink rather than an open/close
+   * <p>The discard path uses recursion with {@code emit=false} rather than an open/close
    * counter. This keeps the code identical for the two branches, naturally rejects
    * misplaced {@code @else} inside a replacement body, and reports structural errors with
-   * the line that actually caused them.
+   * the line that actually caused them. No writes happen because every write site in
+   * {@link #processBlock} is gated on {@code emit}.
    */
   private End processReplace(
       Text input, TextBuilder out, boolean emit, Text line, int nextLineStart) {
@@ -188,6 +210,65 @@ public record DirectiveTemplate(
     return inner;
   }
 
+  /**
+   * Processes one or more consecutive {@code @reorder :name ... @end} blocks. All adjacent
+   * siblings are collected, then (when {@code emit} is true) sorted by {@link #reorders} and
+   * emitted in that order; when {@code emit} is false, only the boundaries are located and
+   * the position past the last block is returned.
+   *
+   * <p>Discovery runs {@link #processBlock} with {@code emit=false}, so the block body is
+   * traversed exactly as for emission (nested directives behave identically) but writes
+   * are suppressed. Emission then re-traverses each block from its recorded start offset
+   * with {@code emit=true}. Double traversal is the price for not buffering each block in a
+   * separate {@link TextBuilder}; block bodies are small so this is cheaper than the
+   * allocation would be.
+   *
+   * <p>The returned {@link End} has type {@link Directive#END} and its position points
+   * past the last block's {@code @end}.
+   */
+  private End processReorder(
+      Text input, TextBuilder out, boolean emit, Text line, int nextLineStart) {
+    int len = input.length();
+    List<ReorderBlock> blocks = new ArrayList<>();
+
+    String firstName = requireDirectiveName(Directive.REORDER, line);
+    blocks.add(collectReorder(input, out, firstName, nextLineStart, line));
+
+    while (blocks.get(blocks.size() - 1).endPos() < len) {
+      int pos = blocks.get(blocks.size() - 1).endPos();
+      Text next = nextLine(input, pos);
+      if (!directives.test(next) || Directive.of(directiveName(next)) != Directive.REORDER) {
+        break;
+      }
+      String name = requireDirectiveName(Directive.REORDER, next);
+      int startPos = Math.min(pos + next.length() + 1, len);
+      blocks.add(collectReorder(input, out, name, startPos, next));
+    }
+
+    // get end of last before reordering
+    int end = blocks.get(blocks.size() - 1).endPos();
+
+    if (emit) {
+      blocks.sort(Comparator.comparingInt(b -> reorders.applyAsInt(b.name())));
+      for (ReorderBlock block : blocks) {
+        processBlock(input, block.startPos(), out, true);
+      }
+    }
+    return new End(Directive.END, end);
+  }
+
+  /** Consumes a single {@code @reorder} body (from {@code startPos} through its {@code @end}). */
+  private ReorderBlock collectReorder(
+      Text input, TextBuilder out, String name, int startPos, Text opener) {
+    End end = processBlock(input, startPos, out, false);
+    if (end.type() != Directive.END) {
+      throw new IllegalStateException(
+          "@reorder block '" + name + "' did not close with @end but with "
+              + end.type() + ": " + opener);
+    }
+    return new ReorderBlock(name, startPos, end.pos());
+  }
+
   // ---- shared helpers ----
 
   private static Text nextLine(Text input, int pos) {
@@ -202,6 +283,7 @@ public record DirectiveTemplate(
     if (start < 0) return null;
     int end = line.indexOf(' ', start);
     if (end < 0) end = line.length();
+    if (start+1 == end) return null;
     return line.subSequence(start + 1, end);
   }
 
