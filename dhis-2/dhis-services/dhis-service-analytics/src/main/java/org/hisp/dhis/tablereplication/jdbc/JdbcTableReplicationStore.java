@@ -65,6 +65,8 @@ public class JdbcTableReplicationStore implements TableReplicationStore {
     final Clock clock = new Clock().startClock();
     final String tableName = table.getName();
 
+    // Refresh before dropping, so a failed refresh leaves the existing replica in place
+    refreshTable(table);
     dropTable(table);
     createTable(table);
     replicateTable(table);
@@ -117,6 +119,23 @@ public class JdbcTableReplicationStore implements TableReplicationStore {
   private String inClause(String column, List<Long> ids) {
     String values = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
     return sqlBuilder.quote(column) + " in (" + values + ")";
+  }
+
+  /**
+   * Refreshes the cached metadata of the operational database table read by the replication, if the
+   * analytics database caches it. Resource tables are recreated with a column per data dimension,
+   * so a dimension added since the table was last read would otherwise be missing.
+   *
+   * @param table the {@link Table}.
+   */
+  private void refreshTable(Table table) {
+    if (!sqlBuilder.requiresTableMetadataRefresh()) {
+      return;
+    }
+
+    String sql = sqlBuilder.refreshTable(table.getName());
+    log.info("Refresh table SQL: '{}'", sql);
+    jdbcTemplate.execute(sql);
   }
 
   /**
