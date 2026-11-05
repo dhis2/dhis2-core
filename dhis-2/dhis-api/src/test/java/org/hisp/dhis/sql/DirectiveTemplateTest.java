@@ -131,7 +131,7 @@ class DirectiveTemplateTest {
 
     @Test
     void emptyStringInsertEmitsBlankLine() {
-      assertEquals("A\n\nB\n", render("A\n-- @insert :x\nB", Set.of(), Map.of("x", "")));
+      assertEquals("A\nB\n", render("A\n-- @insert :x\nB", Set.of(), Map.of("x", "")));
     }
 
     @Test
@@ -332,7 +332,7 @@ class DirectiveTemplateTest {
 
     @Test
     void trueWithNoInlineAndNoInsertEmitsBlankLine() {
-      assertEquals("\n", render("-- @replace :x\nOLD\n-- @end", Set.of("x")));
+      assertEquals("", render("-- @replace :x\nOLD\n-- @end", Set.of("x")));
     }
 
     @Test

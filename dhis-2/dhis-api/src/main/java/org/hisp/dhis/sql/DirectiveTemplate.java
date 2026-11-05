@@ -165,12 +165,14 @@ public record DirectiveTemplate(
 
   private void processInsert(TextBuilder out, boolean emit, Text line) {
     String name = requireDirectiveName(Directive.INSERT, line);
-    if (emit) {
-      Text inserted = inserts.apply(name);
-      if (inserted != null) {
-        out.appendEncoded(inserted);
-        out.appendAscii('\n');
-      }
+    if (emit)
+      appendNonEmpty(out, inserts.apply(name));
+  }
+
+  private static void appendNonEmpty(TextBuilder out, Text inserted) {
+    if (inserted != null && !inserted.isEmpty()) {
+      out.appendEncoded(inserted);
+      out.appendAscii('\n');
     }
   }
 
@@ -224,12 +226,10 @@ public record DirectiveTemplate(
       s = skipAlphanumeric(line, s + 1);
       int e = skipIndent(line, s);
       if (e == line.length()) {
-        Text fromInsert = inserts.apply(condition);
-        if (fromInsert != null) out.appendEncoded(fromInsert);
+        appendNonEmpty(out, inserts.apply(condition));
       } else {
-        out.appendEncoded(line.subSequence(e, line.length()).trim());
+        appendNonEmpty(out, line.subSequence(e, line.length()).trim());
       }
-      out.appendAscii('\n');
     }
 
     End inner = processBlock(input, nextLineStart, out, !replace && emit);
