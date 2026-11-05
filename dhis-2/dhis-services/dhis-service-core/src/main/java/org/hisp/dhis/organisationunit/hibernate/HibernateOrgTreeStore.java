@@ -67,13 +67,29 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
   static DirectiveQueryBuilder createTreeQuery(OrgTreeParams params, SQL.QueryAPI api) {
     String sql =
         """
-        --@if :groups
+        --@if :groups || :search
         WITH
-        groups_member_ids AS (
+        --@end
+        --@if :groups
+        ou_groups_member_ids AS (
           SELECT DISTINCT ougm.organisationunitid
           FROM orgunitgroup oug
           JOIN orgunitgroupmembers ougm ON oug.orgunitgroupid = ougm.orgunitgroupid
           WHERE oug.uid = ANY(:groups)
+        )
+        --@end
+        --@if :groups && :search
+        ,
+        --@end
+        --@if :search
+        ou_search_match_ids AS (
+            -- keep these two individual so index can be used
+            SELECT organisationunitid FROM organisationunit
+            WHERE immutable_unaccent(name) ILIKE immutable_unaccent(:search)
+            UNION
+            SELECT organisationunitid FROM organisationunit_translation
+            WHERE locale = :locale AND property = :property
+              AND value_unaccent ILIKE immutable_unaccent(:search)
         )
         --@end
         SELECT
@@ -82,17 +98,17 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
         --@end
         FROM organisationunit ou
         --@if :groups
-        JOIN groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
+        JOIN ou_groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
         --@end
         --@if :search
-        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
+        JOIN ou_search_match_ids USING (organisationunitid)
         --@end
         WHERE 1=1
           --@if :level
           AND ou.hierarchylevel = :level
           --@end
           --@if :currentlyOpen
-          AND :currentlyOpen = ((ou.openingdate IS NULL || ou.openingdate <= now()) && (ou.closeddate IS NULL || ou.closeddate > now()))
+          AND :currentlyOpen = ((ou.openingdate IS NULL OR ou.openingdate <= now()) AND (ou.closeddate IS NULL OR ou.closeddate > now()))
           --@end
           --@if :depth
           AND (EXISTS (
@@ -108,9 +124,6 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
             FROM organisationunit root
             WHERE root.uid = ANY(:roots)
           )
-          --@end
-          --@if :search
-          AND (t.value_unaccent ILIKE immutable_unaccent(:search) OR immutable_unaccent(ou.name) ILIKE immutable_unaccent(:search))
           --@end
         --@if :count
         --@else

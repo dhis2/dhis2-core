@@ -63,6 +63,8 @@ import org.hisp.dhis.jsontree.TextBuilder;
  * <p>Consecutive {@code @reorder :name ... @end} blocks form a reorder sequence: they are emitted
  * in the order given by {@link #reorders} (name → ordinal), not in template order. The blocks must
  * be adjacent; any non-{@code @reorder} line ends the sequence.
+ *
+ * @author Jan Bernitt
  */
 public record DirectiveTemplate(
     Predicate<Text> directives,
