@@ -302,7 +302,9 @@ class DirectiveQueryBuilderTest {
           B
           -- @end
           """));
-      assertEquals("@if block did not close with @end but with null: -- @if :a", ex.getMessage());
+      assertEquals(
+          "Missing operator between terms in @if (use && or ||): -- @if :b --@if :c",
+          ex.getMessage());
     }
   }
 

@@ -196,6 +196,104 @@ class DirectiveTemplateTest {
           assertThrows(IllegalStateException.class, () -> render("-- @if :x\nA"));
       assertEquals("@if block did not close with @end but with null: -- @if :x", ex.getMessage());
     }
+
+    @Test
+    void andBothTrue() {
+      assertEquals("A\n", render("-- @if :a && :b\nA\n-- @end", Set.of("a", "b")));
+    }
+
+    @Test
+    void andOneFalse() {
+      assertEquals("", render("-- @if :a && :b\nA\n-- @end", Set.of("a")));
+    }
+
+    @Test
+    void orEitherTrue() {
+      assertEquals("A\n", render("-- @if :a || :b\nA\n-- @end", Set.of("a")));
+      assertEquals("A\n", render("-- @if :a || :b\nA\n-- @end", Set.of("b")));
+    }
+
+    @Test
+    void orNeitherTrue() {
+      assertEquals("", render("-- @if :a || :b\nA\n-- @end", Set.of()));
+    }
+
+    @Test
+    void andPrecedence() {
+      // (:a && :b) || :c
+      String template = "-- @if :a && :b || :c\nA\n-- @end";
+      assertEquals("A\n", render(template, Set.of("c"))); // just :c
+      assertEquals("A\n", render(template, Set.of("a", "b"))); // just :a && :b
+      assertEquals("", render(template, Set.of("a"))); // :a alone insufficient
+      assertEquals("", render(template, Set.of("b"))); // :b alone insufficient
+    }
+
+    @Test
+    void tightSpacingWorks() {
+      assertEquals("A\n", render("-- @if :a&&:b\nA\n-- @end", Set.of("a", "b")));
+      assertEquals("A\n", render("-- @if :a||:b\nA\n-- @end", Set.of("a")));
+    }
+
+    @Test
+    void threeTermsOfSameOperator() {
+      assertEquals("A\n", render("-- @if :a && :b && :c\nA\n-- @end", Set.of("a", "b", "c")));
+      assertEquals("", render("-- @if :a && :b && :c\nA\n-- @end", Set.of("a", "b")));
+      assertEquals("A\n", render("-- @if :a || :b || :c\nA\n-- @end", Set.of("c")));
+    }
+
+    @Test
+    void expressionInSiblingChainWorks() {
+      // --@end --@if <expression>
+      assertEquals(
+          "B\n", render("-- @if :a\nA\n-- @end --@if :x && :y\nB\n-- @end", Set.of("x", "y")));
+    }
+
+    @Test
+    void singleAmpersandFails() {
+      IllegalStateException ex =
+          assertThrows(IllegalStateException.class, () -> render("-- @if :a & :b\nA\n-- @end"));
+      assertEquals("Single '&' in @if expression (use '&&'): -- @if :a & :b", ex.getMessage());
+    }
+
+    @Test
+    void singlePipeFails() {
+      IllegalStateException ex =
+          assertThrows(IllegalStateException.class, () -> render("-- @if :a | :b\nA\n-- @end"));
+      assertEquals("Single '|' in @if expression (use '||'): -- @if :a | :b", ex.getMessage());
+    }
+
+    @Test
+    void missingOperatorBetweenTermsFails() {
+      IllegalStateException ex =
+          assertThrows(IllegalStateException.class, () -> render("-- @if :a :b\nA\n-- @end"));
+      assertEquals(
+          "Missing operator between terms in @if (use && or ||): -- @if :a :b", ex.getMessage());
+    }
+
+    @Test
+    void trailingOperatorFails() {
+      IllegalStateException ex =
+          assertThrows(IllegalStateException.class, () -> render("-- @if :a &&\nA\n-- @end"));
+      assertEquals("Expression ends with operator: -- @if :a &&", ex.getMessage());
+    }
+
+    @Test
+    void leadingOperatorFails() {
+      IllegalStateException ex =
+          assertThrows(IllegalStateException.class, () -> render("-- @if && :a\nA\n-- @end"));
+      assertEquals("Unexpected '&&' at start of @if expression: -- @if && :a", ex.getMessage());
+    }
+
+    @Test
+    void danglingOrFailsEvenWhenFirstTermTrue() {
+      // Validation must catch this even though short-circuit OR would return true early.
+      IllegalStateException ex =
+          assertThrows(
+              IllegalStateException.class,
+              () -> render("-- @if :a || || :b\nA\n-- @end", Set.of("a")));
+      assertEquals(
+          "Unexpected '||' at start of @if expression: -- @if :a || || :b", ex.getMessage());
+    }
   }
 
   // ============================== @else ==============================

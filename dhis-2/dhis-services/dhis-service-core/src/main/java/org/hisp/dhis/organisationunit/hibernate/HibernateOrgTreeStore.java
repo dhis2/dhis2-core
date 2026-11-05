@@ -40,6 +40,7 @@ import org.hisp.dhis.organisationunit.OrgTree.OrgTreeEntry;
 import org.hisp.dhis.organisationunit.OrgTreeParams;
 import org.hisp.dhis.organisationunit.OrgTreeStore;
 import org.hisp.dhis.organisationunit.OrgUnitPath;
+import org.hisp.dhis.sql.DirectiveQueryBuilder;
 import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
@@ -80,50 +81,72 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
     return createTreeQuery(params, NativeSQL.of(getSession())).count();
   }
 
-  static QueryBuilder createTreeQuery(OrgTreeParams params, SQL.QueryAPI api) {
+  static DirectiveQueryBuilder createTreeQuery(OrgTreeParams params, SQL.QueryAPI api) {
     String sql =
         """
+      --@if :useJoin || :groups
       WITH
+      --@end
+      --@if :useJoin
       roots_with_descendants_ids AS (
         SELECT DISTINCT ou.organisationunitid
         FROM organisationunit root
         JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
+          --@if :level
           AND ou.hierarchylevel = :level
+          --@end --@if :depth
           AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
+          --@end
         WHERE root.uid = ANY(:roots)
-      ),
+      )
+      --@end
+      --@if :useJoin && :groups
+      ,
+      --@end
+      --@if :groups
       groups_member_ids AS (
         SELECT DISTINCT ougm.organisationunitid
         FROM orgunitgroup oug
         JOIN orgunitgroupmembers ougm ON oug.orgunitgroupid = ougm.orgunitgroupid
         WHERE oug.uid = ANY(:groups)
       )
+      --@end
       SELECT ou.path
       FROM organisationunit ou
+      --@if :groups
       JOIN groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
+      --@end
+      --@if :useJoin
       JOIN roots_with_descendants_ids scope ON ou.organisationunitid = scope.organisationunitid
+      --@end
       LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
       WHERE 1=1
+        --@if :level
         AND ou.hierarchylevel = :level
+        --@end --@if :currentlyOpen
         AND :currentlyOpen = ((ou.openingdate IS NULL || ou.openingdate <= now()) && (ou.closeddate IS NULL || ou.closeddate > now()))
+        --@end --@if :search
         AND (t.value_unaccent ILIKE immutable_unaccent(:search) OR immutable_unaccent(ou.name) ILIKE immutable_unaccent(:search))
+        --@end
 
-        -- check if in scope
-        AND (NOT :useExists OR EXISTS (
+        --@if :useExists
+        AND (EXISTS (
             SELECT 1
             FROM organisationunit root
-            WHERE 1=1
-              AND root.uid = ANY(:roots)
+            WHERE root.uid = ANY(:roots)
+              --@if :depth
               AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
+              --@end
               AND (ou.patharray && ARRAY[root.uid])
         ))
+        --@end
       ORDER BY ou.path""";
     String search = params.searchLike();
     String property = "NAME";
     if (params.shortName()) property = "SHORT_NAME";
     boolean useExists = params.hierarchySize() > 100;
-    QueryBuilder builder =
-        SQL.of(sql, api)
+    DirectiveQueryBuilder builder =
+        SQL.ofDirective(sql, api)
             .setParameter("level", params.level())
             .setParameter("property", property)
             .setParameter("search", params.shortName() ? null : search)
@@ -132,10 +155,8 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
             .setParameter("groups", params.groups())
             .setParameter("currentlyOpen", params.currentlyOpen())
             .setParameter("depth", params.depth())
-            .eraseNullParameterLines()
-            .setParameter("useExists", useExists)
-            .eraseJoinLine("roots_with_descendants_ids", useExists)
-            .eraseJoinLine("groups_member_ids", params.groups().isEmpty())
+            .setCondition("useExists", useExists)
+            .setCondition("useJoin", !useExists)
             .setOffset(params.offset())
             .setLimit(params.pageSize());
     if (search != null) builder.setParameter("locale", params.locale().toString());

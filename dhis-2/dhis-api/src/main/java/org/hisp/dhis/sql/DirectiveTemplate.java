@@ -165,8 +165,7 @@ public record DirectiveTemplate(
 
   private void processInsert(TextBuilder out, boolean emit, Text line) {
     String name = requireDirectiveName(Directive.INSERT, line);
-    if (emit)
-      appendNonEmpty(out, inserts.apply(name));
+    if (emit) appendNonEmpty(out, inserts.apply(name));
   }
 
   private static void appendNonEmpty(TextBuilder out, Text inserted) {
@@ -185,8 +184,7 @@ public record DirectiveTemplate(
    * started can only be closed by its own matching {@code @end}.
    */
   private End processIf(Text input, TextBuilder out, boolean emit, Text line, int nextLineStart) {
-    String name = requireDirectiveName(Directive.IF, line);
-    boolean cond = tests.test(name);
+    boolean cond = evalConditionExpression(line);
     End inner = processBlock(input, nextLineStart, out, emit && cond);
     if (inner.type() == Directive.END) {
       return inner;
@@ -201,6 +199,93 @@ public record DirectiveTemplate(
     }
     throw new IllegalStateException(
         "@if block did not close with @end but with " + inner.type() + ": " + line);
+  }
+
+  private boolean evalConditionExpression(Text line) {
+    Text name = directiveName(line);
+    if (name == null) {
+      throw new IllegalStateException(Directive.IF + " requires ':name' argument: " + line);
+    }
+    int afterName = line.indexOf('@') + 1 + name.length();
+    Text expr = line.subSequence(afterName, line.length()).trim();
+    if (expr.isEmpty()) {
+      throw new IllegalStateException(Directive.IF + " requires ':name' argument: " + line);
+    }
+    validateExpression(expr, line);
+    return evalOr(expr);
+  }
+
+  private void validateExpression(Text expr, Text line) {
+    int i = 0, len = expr.length();
+    boolean expectTerm = true;
+    boolean inTerm = false;
+    while (i < len) {
+      char c = expr.charAt(i);
+      if (c == '&' || c == '|') {
+        if (i + 1 >= len || expr.charAt(i + 1) != c) {
+          throw new IllegalStateException(
+              "Single '" + c + "' in @if expression (use '" + c + c + "'): " + line);
+        }
+        if (expectTerm) {
+          throw new IllegalStateException(
+              "Unexpected '" + c + c + "' at start of @if expression: " + line);
+        }
+        expectTerm = true;
+        inTerm = false;
+        i += 2;
+      } else if (c == ' ' || c == '\t') {
+        if (inTerm) inTerm = false;
+        i++;
+      } else {
+        if (!expectTerm && !inTerm) {
+          throw new IllegalStateException(
+              "Missing operator between terms in @if (use && or ||): " + line);
+        }
+        if (expectTerm && c != ':') {
+          throw new IllegalStateException(Directive.IF + " requires ':name' argument: " + line);
+        }
+        expectTerm = false;
+        inTerm = true;
+        i++;
+      }
+    }
+    if (expectTerm) {
+      throw new IllegalStateException("Expression ends with operator: " + line);
+    }
+  }
+
+  private boolean evalOr(Text expr) {
+    int i = 0, len = expr.length(), start = 0;
+    while (i < len - 1) {
+      if (expr.charAt(i) == '|' && expr.charAt(i + 1) == '|') {
+        if (evalAnd(expr.subSequence(start, i).trim())) return true;
+        i += 2;
+        start = i;
+      } else {
+        i++;
+      }
+    }
+    return evalAnd(expr.subSequence(start, len).trim());
+  }
+
+  private boolean evalAnd(Text expr) {
+    int i = 0, len = expr.length(), start = 0;
+    while (i < len - 1) {
+      if (expr.charAt(i) == '&' && expr.charAt(i + 1) == '&') {
+        if (!evalTerm(expr.subSequence(start, i).trim())) return false;
+        i += 2;
+        start = i;
+      } else {
+        i++;
+      }
+    }
+    return evalTerm(expr.subSequence(start, len).trim());
+  }
+
+  private boolean evalTerm(Text term) {
+    String name =
+        term.charAt(0) == ':' ? term.subSequence(1, term.length()).toString() : term.toString();
+    return tests.test(name);
   }
 
   /**
