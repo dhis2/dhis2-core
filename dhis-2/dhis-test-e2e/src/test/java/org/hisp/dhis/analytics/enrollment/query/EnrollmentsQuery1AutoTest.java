@@ -2920,7 +2920,8 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             .add("outputType=ENROLLMENT")
             .add("pageSize=50")
             .add("page=1")
-            .add("dimension=ou:lY93YpCxJqf");
+            .add("dimension=ou:lY93YpCxJqf")
+            .add("desc=enrollmentdate");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
@@ -2978,16 +2979,16 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values by name at specific indices (sorted results).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Fullah Town (M.Gbanti) MCHP");
-    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2022-12-23 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Mangay Loko MCHP");
+    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2022-12-28 12:05:00.0");
 
     // Validate selected values for row index 3
     validateRowValueByName(response, actualHeaders, 3, "ouname", "Mabayo MCHP");
     validateRowValueByName(response, actualHeaders, 3, "enrollmentdate", "2022-12-13 12:05:00.0");
 
     // Validate selected values for row index 6
-    validateRowValueByName(response, actualHeaders, 6, "ouname", "Kunsho CHP");
-    validateRowValueByName(response, actualHeaders, 6, "enrollmentdate", "2022-12-12 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 6, "ouname", "Yankasa MCHP");
+    validateRowValueByName(response, actualHeaders, 6, "enrollmentdate", "2022-12-05 12:05:00.0");
 
     // Validate selected values for row index 7
     validateRowValueByName(response, actualHeaders, 7, "ouname", "Tonkomba MCHP");
