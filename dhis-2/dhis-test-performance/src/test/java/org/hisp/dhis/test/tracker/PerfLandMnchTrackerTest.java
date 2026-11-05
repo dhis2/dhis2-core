@@ -84,15 +84,16 @@ import org.slf4j.LoggerFactory;
  * <p>Differences to {@link TrackerTest}, for the data this database holds:
  *
  * <ul>
- *   <li>The org unit is the Buvife facility with the most children, and the replicated user one of
- *       its data clerks. A clerk captures in her facility and searches in her district.
+ *   <li>The org unit is a facility of district QP1613, and the replicated user one of its data
+ *       clerks. A clerk captures in her facility and searches in her district.
  *   <li>EIR needs two attributes to search outside the capture scope, so every name search filters
  *       on the given and the family name, where {@link TrackerTest} filters on the first name.
- *   <li>The filter values are names of the database: {@code like:oga} on both names matches 9 of
- *       the 47,777 children, {@code eq} a given and family name pair of 12 children in the
- *       district, 2 of them in the clerk's facility. A search takes at least 3 characters
- *       (minCharactersToSearch), and no 3 match more children on both names.
- *   <li>EIR is PROTECTED. The requests stay within what a clerk owns, as in {@link TrackerTest}.
+ *   <li>The filter values are names of the database: {@code like:ite} on both names matches 10
+ *       children in the district, {@code eq} a given and family name pair of 15. A search takes at
+ *       least 3 characters (minCharactersToSearch).
+ *   <li>EIR is PROTECTED, so a search returns only the clerk's children. DHIS2 2.42 drops the
+ *       others after paging: a page has records only if the district's matches on it include one of
+ *       the facility. The facility and the filter values are picked for that.
  *   <li>A child is linked to its mother by a Mother and child relationship when she is enrolled in
  *       ANC, so the relationships of a tracked entity are not always empty. Events have none.
  * </ul>
@@ -101,10 +102,10 @@ import org.slf4j.LoggerFactory;
  * this database behaves differently.
  *
  * <p>Every UID and filter value is a system property, with the defaults of the {@code
- * perfland-mnch-QP14026} build (Buvife, seed 42): {@code -Dprogram}, {@code -DbirthStage}, {@code
- * -DorgUnit}, {@code -DgivenName}, {@code -DfamilyName}, {@code -DnameLike}, {@code -DgivenEq},
- * {@code -DfamilyEq}, {@code -DreplicaUser} and {@code -DreplicaPassword}. Profiles and their
- * parameters are those of {@link TrackerTest}.
+ * perfland-mnch} build of QP1613: {@code -Dprogram}, {@code -DbirthStage}, {@code -DorgUnit},
+ * {@code -DgivenName}, {@code -DfamilyName}, {@code -DnameLike}, {@code -DgivenEq}, {@code
+ * -DfamilyEq}, {@code -DreplicaUser} and {@code -DreplicaPassword}. Profiles and their parameters
+ * are those of {@link TrackerTest}.
  */
 public class PerfLandMnchTrackerTest extends Simulation {
   private static final Logger logger = LoggerFactory.getLogger(PerfLandMnchTrackerTest.class);
@@ -174,17 +175,16 @@ public class PerfLandMnchTrackerTest extends Simulation {
     this.instance = System.getProperty("instance", "http://localhost:8080");
     this.program = System.getProperty("program", "SSLpOM0r1U7"); // Electronic Immunization Registry
     this.birthStage = System.getProperty("birthStage", "RcbCl5ww8XY"); // Birth details
-    this.orgUnit = System.getProperty("orgUnit", "JaLj5Uhkc0e"); // Buvife, most EIR children
+    this.orgUnit = System.getProperty("orgUnit", "WDcivlpc7tU"); // Zotox District Hospital
     this.givenName = System.getProperty("givenName", "sB1IHYu2xQT"); // GEN - Given name
     this.familyName = System.getProperty("familyName", "ENRjVGxVL6l"); // GEN - Family name
-    this.nameLike = System.getProperty("nameLike", "oga");
-    this.givenEq = System.getProperty("givenEq", "Nufoga");
-    this.familyEq = System.getProperty("familyEq", "Lenabu");
+    this.nameLike = System.getProperty("nameLike", "ite");
+    this.givenEq = System.getProperty("givenEq", "Duhelos");
+    this.familyEq = System.getProperty("familyEq", "Lugat");
     this.adminUser = System.getProperty("adminUser", "admin");
     this.adminPassword = System.getProperty("adminPassword", "district");
-    this.replicaUser =
-        System.getProperty("replicaUser", "mnch.qp14026-07-005.1"); // clerk of orgUnit
-    this.replicaPassword = System.getProperty("replicaPassword", "Mnch-Perf-2026!");
+    this.replicaUser = System.getProperty("replicaUser", "mnch.qp1613-21-02.1"); // clerk of orgUnit
+    this.replicaPassword = System.getProperty("replicaPassword", "Perf-Test-2026!");
 
     record ProfileDefaults(
         int concurrentUsers,
