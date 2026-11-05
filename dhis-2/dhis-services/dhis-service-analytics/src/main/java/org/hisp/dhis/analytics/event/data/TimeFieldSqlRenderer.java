@@ -226,11 +226,24 @@ public abstract class TimeFieldSqlRenderer {
    * @return the SQL statement
    */
   private String getAggregatedConditionForPeriods(EventQueryParams params) {
-    return Stream.of(
-            params.getDimensionOptions(PERIOD_DIM_ID), params.getFilterOptions(PERIOD_DIM_ID))
+    return Stream.of(params.getDimensionOptions(PERIOD_DIM_ID), getAllFilterPeriods(params))
         .filter(periods -> !periods.isEmpty())
         .map(periods -> getAggregatedConditionForPeriods(params, periods))
         .collect(Collectors.joining(" and "));
+  }
+
+  /**
+   * Returns the items of every period filter. The query planner splits a period filter with mixed
+   * period types into one period filter per period type.
+   *
+   * @param params {@link EventQueryParams}
+   * @return the period filter items
+   */
+  private List<DimensionalItemObject> getAllFilterPeriods(EventQueryParams params) {
+    return params.getFilters().stream()
+        .filter(filter -> PERIOD_DIM_ID.equals(filter.getDimension()))
+        .flatMap(filter -> filter.getItems().stream())
+        .toList();
   }
 
   /**

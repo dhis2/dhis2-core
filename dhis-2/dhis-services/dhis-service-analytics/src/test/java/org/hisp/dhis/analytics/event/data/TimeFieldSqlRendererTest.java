@@ -289,6 +289,20 @@ class TimeFieldSqlRendererTest extends TestBase {
         eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
+  @Test
+  void testRenderEventTimeFieldSqlUsesEveryPeriodFilterAfterPeriodTypeSplit() {
+    // The query planner splits a period filter with mixed period types into one filter per type
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addFilter(periods(PeriodDimension.of("2021")))
+            .addFilter(periods(PeriodDimension.of("202212")))
+            .build();
+
+    assertEquals(
+        "( ((ax.\"monthly\" in ('202212')  or ax.\"yearly\" in ('2021') ))) ",
+        eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+  }
+
   private static EventQueryParams withStartEndDates(EventQueryParams.Builder builder) {
     return new EventQueryParams.Builder(builder.build()).withStartEndDatesForPeriods().build();
   }
