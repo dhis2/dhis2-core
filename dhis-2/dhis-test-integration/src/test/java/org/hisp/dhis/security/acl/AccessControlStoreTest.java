@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.security.acl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -36,10 +36,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
@@ -51,13 +55,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tests {@link CategoryOptionComboStore#getDataReadableAttributeOptionComboIds}: the attribute
- * option combos a user may read data of, resolved up front for data value and tracker exports.
+ * Tests {@link AccessControlStore#getDataReadableAttributeOptionComboIds}: the attribute option
+ * combos a user may read data of, resolved up front for data value and tracker exports.
  */
 @Transactional
-class CategoryOptionComboStoreReadableAocTest extends PostgresIntegrationTestBase {
+class AccessControlStoreTest extends PostgresIntegrationTestBase {
 
-  @Autowired private CategoryOptionComboStore store;
+  @Autowired private AccessControlStore store;
   @Autowired private CategoryService categoryService;
   @Autowired private IdentifiableObjectManager manager;
 
