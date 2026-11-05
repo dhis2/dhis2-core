@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -27,41 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit.hibernate;
+package org.hisp.dhis.organisationunit;
 
-import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrgTree.OrgTreeEntry;
-import org.hisp.dhis.organisationunit.OrgTreeParams;
-import org.hisp.dhis.organisationunit.OrgTreeStore;
-import org.hisp.dhis.organisationunit.OrgUnitPath;
 import org.hisp.dhis.sql.DirectiveQueryBuilder;
 import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.SQL;
 import org.intellij.lang.annotations.Language;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class HibernateOrgTreeStore implements OrgTreeStore {
+public class JdbcOrgTreeStore implements OrgTreeStore {
 
-  private final EntityManager entityManager;
+  private final JdbcTemplate jdbcTemplate;
 
   @Override
   public List<OrgUnitPath> queryPageMatches(OrgTreeParams params) {
-    return createTreeQuery(params, NativeSQL.of(getSession())).stream(String.class)
+    return createTreeQuery(params, createQueryBackendAdapter()).stream(String.class)
         .map(OrgUnitPath::of)
         .toList();
   }
 
   @Override
   public int countTotalMatches(OrgTreeParams params) {
-    return createTreeQuery(params, NativeSQL.of(getSession())).count();
+    return createTreeQuery(params, createQueryBackendAdapter()).count();
   }
 
   static DirectiveQueryBuilder createTreeQuery(OrgTreeParams params, SQL.QueryAPI api) {
@@ -83,13 +81,12 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
         --@end
         --@if :search
         ou_search_match_ids AS (
-            -- keep these two individual so index can be used
-            SELECT organisationunitid FROM organisationunit
-            WHERE immutable_unaccent(name) ILIKE immutable_unaccent(:search)
-            UNION
-            SELECT organisationunitid FROM organisationunit_translation
-            WHERE locale = :locale AND property = :property
-              AND value_unaccent ILIKE immutable_unaccent(:search)
+          SELECT organisationunitid FROM organisationunit
+          WHERE immutable_unaccent(name) ILIKE immutable_unaccent(:search)
+          UNION
+          SELECT organisationunitid FROM organisationunit_translation
+          WHERE locale = :locale AND property = :property
+            AND value_unaccent ILIKE immutable_unaccent(:search)
         )
         --@end
         SELECT
@@ -108,26 +105,28 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
           AND ou.hierarchylevel = :level
           --@end
           --@if :currentlyOpen
-          AND :currentlyOpen = ((ou.openingdate IS NULL OR ou.openingdate <= now()) AND (ou.closeddate IS NULL OR ou.closeddate > now()))
+          AND :currentlyOpen = ((ou.openingdate IS NULL OR ou.openingdate <= now())
+                                AND (ou.closeddate IS NULL OR ou.closeddate > now()))
           --@end
           --@if :depth
-          AND (EXISTS (
-              SELECT 1
-              FROM organisationunit root
-              WHERE root.uid = ANY(:roots)
-                AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
-                AND (ou.patharray && ARRAY[root.uid])
-          ))
+          AND (EXISTS (SELECT 1 FROM organisationunit root
+                       WHERE root.uid = ANY(:roots)
+                         AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
+                         AND ou.patharray && ARRAY[root.uid]))
           --@else
-          AND ou.patharray && ARRAY(
-            SELECT DISTINCT root.uid
-            FROM organisationunit root
-            WHERE root.uid = ANY(:roots)
-          )
+          AND ou.patharray && ARRAY(SELECT DISTINCT root.uid
+                                    FROM organisationunit root
+                                    WHERE root.uid = ANY(:roots))
+          --@end
+          --@if :lastPath
+          AND ou.path > :lastPath
           --@end
         --@if :count
         --@else
         ORDER BY ou.path
+        --@end
+        --@if :pageSize
+        LIMIT :pageSize
         --@end
         """;
     String search = params.searchLike();
@@ -139,10 +138,10 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
             .setParameter("groups", params.groups())
             .setParameter("currentlyOpen", params.currentlyOpen())
             .setParameter("depth", params.depth())
-            .setOffset(params.offset())
-            .setLimit(params.pageSize());
+            .setParameter("pageSize", params.pageSize());
     if (search != null) {
-      builder.setParameter("locale", params.locale().toString())
+      builder
+          .setParameter("locale", params.locale().toString())
           .setParameter("property", params.translationPropertyKey());
     }
     return builder;
@@ -169,7 +168,7 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
             .setParameter("ou", orgUnits)
             .setParameter("locale", locale.toString())
             .setParameter("property", property);
-    return query.isNullParameter("ou") ? Stream.of() : query.stream(HibernateOrgTreeStore::entry);
+    return query.isNullParameter("ou") ? Stream.of() : query.stream(JdbcOrgTreeStore::entry);
   }
 
   private static OrgTreeEntry entry(SQL.Row row) {
@@ -177,10 +176,11 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
   }
 
   private DirectiveQueryBuilder createQuery(@Language("sql") String sql) {
-    return SQL.ofDirective(sql, NativeSQL.of(getSession()));
+    return SQL.ofDirective(sql, createQueryBackendAdapter());
   }
 
-  private Session getSession() {
-    return entityManager.unwrap(Session.class);
+  @Nonnull
+  private SQL.QueryAPI createQueryBackendAdapter() {
+    return NativeSQL.of(new NamedParameterJdbcTemplate(jdbcTemplate));
   }
 }

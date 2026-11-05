@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit.hibernate;
+package org.hisp.dhis.organisationunit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -38,19 +38,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.organisationunit.OrgTreeParams;
 import org.hisp.dhis.sql.DirectiveQueryBuilder;
 import org.hisp.dhis.sql.SQL;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
 /**
- * Verifies the SQL text produced by {@link HibernateOrgTreeStore#createTreeQuery}. Only the
- * assembled SQL is asserted on — parameter binding is a separate concern and the spy query accepts
- * it silently.
+ * Verifies the SQL text produced by {@link JdbcOrgTreeStore#createTreeQuery}. Only the assembled
+ * SQL is asserted on — parameter binding is a separate concern and the spy query accepts it
+ * silently.
  *
  * <p>Note: these tests assume the {@code WITH} keyword in the template is gated on {@code --@if
  * :useJoin || :groups}. Without that, the {@link #minimalExistsScope()} and {@link
@@ -62,28 +60,15 @@ class OrgTreeStoreQueryBuilderTest {
   private static final UID GROUP = UID.of("bbbbbbbbbbb");
 
   private static OrgTreeParams params(
-      List<UID> groups,
-      Integer level,
-      Boolean currentlyOpen,
-      String search,
-      Integer depth) {
+      List<UID> groups, Integer level, Boolean currentlyOpen, String search, Integer depth) {
     return new OrgTreeParams(
-        1,
-        10,
-        Locale.ENGLISH,
-        List.of(ROOT),
-        groups,
-        level,
-        currentlyOpen,
-        search,
-        false,
-        depth);
+        1, 10, Locale.ENGLISH, List.of(ROOT), groups, level, currentlyOpen, search, false, depth);
   }
 
   private static void assertSQL(@Language("sql") String expected, OrgTreeParams params) {
     List<String> captured = new ArrayList<>();
     SQL.QueryAPI api = SQL.spy(captured::add, (n, p) -> {});
-    DirectiveQueryBuilder builder = HibernateOrgTreeStore.createTreeQuery(params, api);
+    DirectiveQueryBuilder builder = JdbcOrgTreeStore.createTreeQuery(params, api);
     assertNotNull(builder.stream().toList());
     assertEquals(1, captured.size(), "Expected exactly one SQL query");
     assertEquals(expected, captured.get(0));
@@ -294,7 +279,8 @@ class OrgTreeStoreQueryBuilderTest {
     Map<String, SQL.Param> sent = new LinkedHashMap<>();
     SQL.QueryAPI api = SQL.spy(sqls::add, sent::put);
 
-    SQL.ofDirective("SELECT 1\n-- @if :x\nWHERE x = :x\n-- @end", api)
+    SQL
+        .ofDirective("SELECT 1\n-- @if :x\nWHERE x = :x\n-- @end", api)
         .setParameter("x", (String) null)
         .stream()
         .toList();
@@ -308,7 +294,8 @@ class OrgTreeStoreQueryBuilderTest {
     Map<String, SQL.Param> sent = new LinkedHashMap<>();
     SQL.QueryAPI api = SQL.spy(sqls::add, sent::put);
 
-    SQL.ofDirective("SELECT 1\n-- @if :ids\nWHERE x = ANY(:ids)\n-- @end", api)
+    SQL
+        .ofDirective("SELECT 1\n-- @if :ids\nWHERE x = ANY(:ids)\n-- @end", api)
         .setParameter("ids", new long[0])
         .stream()
         .toList();
@@ -322,7 +309,8 @@ class OrgTreeStoreQueryBuilderTest {
     Map<String, SQL.Param> sent = new LinkedHashMap<>();
     SQL.QueryAPI api = SQL.spy(sqls::add, sent::put);
 
-    SQL.ofDirective("SELECT 1\n-- @if :x\nWHERE x = :x\n-- @end", api)
+    SQL
+        .ofDirective("SELECT 1\n-- @if :x\nWHERE x = :x\n-- @end", api)
         .setParameter("x", "hello")
         .stream()
         .toList();

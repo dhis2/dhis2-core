@@ -258,9 +258,7 @@ public final class DirectiveQueryBuilder {
   private SQL.Query fetchQuery() {
     conditions.put("count", false);
     SQL.Query query = api.createQuery(toSQL());
-    params.values().stream()
-        .filter(p -> !isNullish(p.value()))
-        .forEach(query::setParameter);
+    params.values().stream().filter(p -> !isNullish(p.value())).forEach(query::setParameter);
     if (offset != null) query.setOffset(offset);
     if (limit != null) query.setLimit(limit);
     return query;
@@ -269,9 +267,7 @@ public final class DirectiveQueryBuilder {
   public int count() {
     conditions.put("count", true);
     SQL.Query query = api.createQuery(toSQL());
-    params.values().stream()
-        .filter(p -> !isNullish(p.value()))
-        .forEach(query::setParameter);
+    params.values().stream().filter(p -> !isNullish(p.value())).forEach(query::setParameter);
     return query.count();
   }
 
@@ -279,7 +275,10 @@ public final class DirectiveQueryBuilder {
 
   private String toSQL() {
     return new DirectiveTemplate(
-        DirectiveTemplate.isDirectiveLine("--"), this::isTrueCondition, inserts::get, this::getOrderByNo)
+            DirectiveTemplate.isDirectiveLine("--"),
+            this::isTrueCondition,
+            inserts::get,
+            this::getOrderByNo)
         .render(template)
         .toString();
   }

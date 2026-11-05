@@ -89,12 +89,20 @@ class JdbcTemplateQueryAPI {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> Stream<T> stream(@Nonnull Class<T> of) {
-      @SuppressWarnings("unchecked")
-      RowMapper<T> mapper =
-          of == Object[].class
-              ? (RowMapper<T>) new ObjectArrayRowMapper()
-              : new BeanPropertyRowMapper<>(of);
+      RowMapper<T> mapper = null;
+      if (of == Object[].class) {
+        mapper = (RowMapper<T>) new ObjectArrayRowMapper();
+      } else if (of == String.class) {
+        mapper = (RowMapper<T>) new RowAdapterRowMapper<>(row -> row.getString(0));
+      } else if (of == Boolean.class) {
+        mapper = (RowMapper<T>) new RowAdapterRowMapper<>(row -> row.getBoolean(0));
+      } else if (of == Long.class) {
+        mapper = (RowMapper<T>) new RowAdapterRowMapper<>(row -> row.getLong(0));
+      } else if (of == Integer.class) {
+        mapper = (RowMapper<T>) new RowAdapterRowMapper<>(row -> row.getInteger(0));
+      } else mapper = new BeanPropertyRowMapper<>(of);
       return stream(mapper);
     }
 

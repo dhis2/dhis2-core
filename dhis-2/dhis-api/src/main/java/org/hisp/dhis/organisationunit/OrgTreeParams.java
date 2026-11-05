@@ -99,7 +99,7 @@ public record OrgTreeParams(
     if (StringUtils.isBlank(pattern)) return null;
     int len = pattern.length();
     if (len > 2 && pattern.charAt(0) == '"' && pattern.charAt(len - 1) == '"')
-      return likeEscape(pattern);
+      return likeEscape(pattern.substring(1, pattern.length() - 1));
     if (pattern.indexOf('*') < 0) return "%" + likeEscape(pattern) + "%";
     return pattern.replace("*", "%").replace("?", "_").replace("\\", "\\\\");
   }

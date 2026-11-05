@@ -7,9 +7,13 @@ CREATE OR REPLACE FUNCTION immutable_unaccent(text)
 SELECT unaccent($1);
 $$ LANGUAGE sql IMMUTABLE PARALLEL SAFE;
 
--- index the unaccented name of an OU
+-- index unaccented OU name for LIKE search
 CREATE INDEX IF NOT EXISTS idx_ou_name_trgm ON organisationunit
     USING gin (immutable_unaccent(name) gin_trgm_ops);
+
+-- index unaccented OU name for exact match search
+CREATE INDEX IF NOT EXISTS idx_ou_name_unaccent ON organisationunit
+    (immutable_unaccent(name));
 
 -- Create the translation table + backfill; heal partial state on re-run
 DO $$
@@ -117,6 +121,6 @@ CREATE TRIGGER trg_sync_translations
 CREATE INDEX IF NOT EXISTS idx_trans_value_trgm ON organisationunit_translation
     USING gin (value_unaccent gin_trgm_ops);
 
--- B-tree supporting the locale + property equality filter alongside the trigram
-CREATE INDEX IF NOT EXISTS idx_trans_locale_property ON organisationunit_translation
-    (locale, property);
+-- B-tree supporting the locale + property (+ value) equality filter alongside the trigram
+CREATE INDEX IF NOT EXISTS idx_trans_value_unaccent
+    ON organisationunit_translation (locale, property, value_unaccent);

@@ -66,6 +66,9 @@ public class DefaultOrgTreeService implements OrgTreeService {
             : params.locale();
     List<UID> groups = params.groups() == null ? List.of() : params.groups();
 
+    // TODO might make sense to compute a min-level from the parent set
+    // here and set it in the result for better pre-filtering
+
     // TODO validate and/or filter root/group IDs?
     return new OrgTreeParams(
         params.page() == null ? 1 : params.page(),
@@ -100,6 +103,8 @@ public class DefaultOrgTreeService implements OrgTreeService {
     if (total < 0) total = store.countTotalMatches(params);
     OrgTree.Pager pager = new OrgTree.Pager(page, pageSize, total);
     return new OrgTree(
-        pager, entries, store.streamEntries(locale, property, ancestors.stream().map(OrgUnitPath::toUID)));
+        pager,
+        entries,
+        store.streamEntries(locale, property, ancestors.stream().map(OrgUnitPath::toUID)));
   }
 }

@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 import org.hisp.dhis.jsontree.Text;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
