@@ -46,7 +46,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -56,6 +55,7 @@ import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.acl.AccessControlStore;
 import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
@@ -73,7 +73,7 @@ public class HibernateDataExportStore implements DataExportStore {
 
   private final EntityManager entityManager;
   private final JdbcTemplate jdbcTemplate;
-  private final CategoryOptionComboStore categoryOptionComboStore;
+  private final AccessControlStore accessControlStore;
 
   @Override
   @CheckForNull
@@ -138,7 +138,7 @@ public class HibernateDataExportStore implements DataExportStore {
     // superusers are not restricted (they must be able to find invalid data), for everyone else
     // this also applies to explicit AOCs, as a second line behind the service's E2011 check
     long[] aocAllowed =
-        categoryOptionComboStore.getDataReadableAttributeOptionComboIds(
+        accessControlStore.getDataReadableAttributeOptionComboIds(
             currentUser, params.getAttributeOptionCombos());
     if (aocAllowed != null && aocAllowed.length == 0) return Stream.empty();
     // the export itself goes through plain JDBC: no per-column Hibernate type handling per row,

@@ -27,40 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category.hibernate;
+package org.hisp.dhis.security.acl;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Collection;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.sql.SQL;
 import org.hisp.dhis.user.UserDetails;
-import org.junit.jupiter.api.Test;
 
-/** Tests the SQL of {@link HibernateCategoryOptionComboStore#createDataReadableAocQuery}. */
-class HibernateCategoryOptionComboStoreQueryTest {
+/**
+ * Database lookups of what a user may access, organised by access question rather than by table, so
+ * that every feature (data value export, tracker export, ...) asks the same question the same way.
+ *
+ * <p>Lookups run within the caller's transaction. They resolve access up front, so that data
+ * queries filter on a known, small list instead of joining a sharing-filtered set of metadata the
+ * planner cannot estimate.
+ */
+public interface AccessControlStore {
 
-  @Test
-  void testDataReadableAocQuery_noExplicitAocs_allAttributeAocs() {
-    String sql = createDataReadableAocQuery(List.of());
-    assertTrue(sql.contains("SELECT DISTINCT ccoc.categoryoptioncomboid"), sql);
-    assertFalse(sql.contains(":aoc"), "no explicit AOCs must mean no AOC restriction: " + sql);
-    assertFalse(sql.contains("JOIN categoryoptioncombo aoc"), "no join needed: " + sql);
-  }
-
-  @Test
-  void testDataReadableAocQuery_explicitAocs_onlyThoseAreLookedUp() {
-    String sql = createDataReadableAocQuery(List.of(UID.of("aoc23456789")));
-    assertTrue(sql.contains("aoc.uid = :aoc"), "lookup must be limited to explicit AOCs: " + sql);
-  }
-
-  private static String createDataReadableAocQuery(List<UID> aocs) {
-    AtomicReference<String> captured = new AtomicReference<>();
-    HibernateCategoryOptionComboStore.createDataReadableAocQuery(
-        SQL.spy(captured::set, (n, p) -> {}), UserDetails.empty().build(), aocs)
-        .stream();
-    return captured.get();
-  }
+  /**
+   * The attribute option combos (AOCs) the user may read data of: the default combo (no sharing
+   * guards on default), and the option combos of {@code ATTRIBUTE} category combos for which the
+   * user can read data of every category option.
+   *
+   * @param user the user to check access for
+   * @param limitTo checks only these option combos; null or empty checks all of them
+   * @return internal ids of the readable AOCs; null when the user is not restricted (superuser), so
+   *     no AOC filter applies; empty when the user may read no AOC at all, so no data is readable
+   */
+  @CheckForNull
+  long[] getDataReadableAttributeOptionComboIds(
+      @Nonnull UserDetails user, @CheckForNull Collection<UID> limitTo);
 }
