@@ -141,32 +141,51 @@ class JdbcTemplateQueryAPI {
    * @implNote The {@link ResultSet} API is tricky when it comes to SQL NULL and what it maps to for
    *     the different getters. The intent is to map SQL NULL to Java {@code null}.
    */
-  private record RowAdapterRowMapper<T>(Function<SQL.Row, T> map) implements RowMapper<T> {
+  private static final class RowAdapterRowMapper<T> implements RowMapper<T> {
+
+    private final Function<SQL.Row, T> map;
+    private ResultSet rs;
+
+    private final SQL.Row row =
+        new SQL.Row() {
+          @Override
+          public Object getObject(int index) {
+            try {
+              return rs.getObject(index + 1);
+            } catch (SQLException e) {
+              throw new UnsupportedOperationException(e);
+            }
+          }
+
+          @Override
+          public Object[] getArray(int index) {
+            try {
+              Array array = rs.getArray(index + 1);
+              if (array == null) return null;
+              try {
+                return (Object[]) array.getArray();
+              } finally {
+                try {
+                  array.free();
+                } catch (SQLException e) {
+                  // log or ignore — freeing is best-effort cleanup
+                }
+              }
+            } catch (SQLException e) {
+              throw new UnsupportedOperationException(e);
+            }
+          }
+        };
+
+    private RowAdapterRowMapper(Function<SQL.Row, T> map) {
+      this.map = map;
+    }
 
     @Nonnull
     @Override
     public T mapRow(@Nonnull ResultSet rs, int rowNum) {
-      return map.apply(
-          new SQL.Row() {
-            @Override
-            public Object getObject(int index) {
-              try {
-                return rs.getObject(index + 1);
-              } catch (SQLException e) {
-                throw new UnsupportedOperationException(e);
-              }
-            }
-
-            @Override
-            public Object[] getArray(int index) {
-              try {
-                Array array = rs.getArray(index + 1);
-                return array == null ? null : (Object[]) array.getArray();
-              } catch (SQLException e) {
-                throw new UnsupportedOperationException(e);
-              }
-            }
-          });
+      this.rs = rs;
+      return map.apply(row);
     }
   }
 }
