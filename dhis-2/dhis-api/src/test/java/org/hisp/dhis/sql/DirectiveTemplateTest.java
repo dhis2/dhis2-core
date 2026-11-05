@@ -1,7 +1,31 @@
 /*
  * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
- * ... (license header unchanged) ...
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.sql;
 
@@ -16,9 +40,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for {@link DirectiveTemplate}. Each test renders an inline template and asserts
- * the exact output (or the exact error message). Templates are intentionally short so the
- * input/output pair is fully visible in the test body.
+ * Unit tests for {@link DirectiveTemplate}. Each test renders an inline template and asserts the
+ * exact output (or the exact error message). Templates are intentionally short so the input/output
+ * pair is fully visible in the test body.
  */
 class DirectiveTemplateTest {
 
@@ -97,8 +121,7 @@ class DirectiveTemplateTest {
     @Test
     void insertsRegisteredText() {
       assertEquals(
-          "A\nINSERTED\nB\n",
-          render("A\n-- @insert :x\nB", Set.of(), Map.of("x", "INSERTED")));
+          "A\nINSERTED\nB\n", render("A\n-- @insert :x\nB", Set.of(), Map.of("x", "INSERTED")));
     }
 
     @Test
@@ -114,11 +137,7 @@ class DirectiveTemplateTest {
     @Test
     void insertInsideFalseIfIsSkipped() {
       assertEquals(
-          "",
-          render(
-              "-- @if :flag\n-- @insert :x\n-- @end",
-              Set.of(),
-              Map.of("x", "INSERTED")));
+          "", render("-- @if :flag\n-- @insert :x\n-- @end", Set.of(), Map.of("x", "INSERTED")));
     }
 
     @Test
@@ -152,26 +171,22 @@ class DirectiveTemplateTest {
     @Test
     void nestedIfBothTrue() {
       assertEquals(
-          "O\nI\n",
-          render("-- @if :o\nO\n-- @if :i\nI\n-- @end\n-- @end", Set.of("o", "i")));
+          "O\nI\n", render("-- @if :o\nO\n-- @if :i\nI\n-- @end\n-- @end", Set.of("o", "i")));
     }
 
     @Test
     void nestedIfOuterFalseSuppressesInner() {
-      assertEquals(
-          "", render("-- @if :o\nO\n-- @if :i\nI\n-- @end\n-- @end", Set.of("i")));
+      assertEquals("", render("-- @if :o\nO\n-- @if :i\nI\n-- @end\n-- @end", Set.of("i")));
     }
 
     @Test
     void nestedIfOuterTrueInnerFalse() {
-      assertEquals(
-          "O\n", render("-- @if :o\nO\n-- @if :i\nI\n-- @end\n-- @end", Set.of("o")));
+      assertEquals("O\n", render("-- @if :o\nO\n-- @if :i\nI\n-- @end\n-- @end", Set.of("o")));
     }
 
     @Test
     void ifWithoutArgumentFails() {
-      IllegalStateException ex =
-          assertThrows(IllegalStateException.class, () -> render("-- @if"));
+      IllegalStateException ex = assertThrows(IllegalStateException.class, () -> render("-- @if"));
       assertEquals("@if requires ':name' argument: -- @if", ex.getMessage());
     }
 
@@ -190,8 +205,7 @@ class DirectiveTemplateTest {
 
     @Test
     void trueEmitsFirstBranch() {
-      assertEquals(
-          "A\n", render("-- @if :x\nA\n-- @else\nB\n-- @end", Set.of("x")));
+      assertEquals("A\n", render("-- @if :x\nA\n-- @else\nB\n-- @end", Set.of("x")));
     }
 
     @Test
@@ -203,14 +217,10 @@ class DirectiveTemplateTest {
     void nestedElsePairsWithInnermostIf() {
       assertEquals(
           "O\nI\n",
-          render(
-              "-- @if :o\nO\n-- @if :i\nI\n-- @else\nJ\n-- @end\n-- @end",
-              Set.of("o", "i")));
+          render("-- @if :o\nO\n-- @if :i\nI\n-- @else\nJ\n-- @end\n-- @end", Set.of("o", "i")));
       assertEquals(
           "O\nJ\n",
-          render(
-              "-- @if :o\nO\n-- @if :i\nI\n-- @else\nJ\n-- @end\n-- @end",
-              Set.of("o")));
+          render("-- @if :o\nO\n-- @if :i\nI\n-- @else\nJ\n-- @end\n-- @end", Set.of("o")));
     }
 
     @Test
@@ -226,8 +236,7 @@ class DirectiveTemplateTest {
     @Test
     void elseWithArgumentFails() {
       IllegalStateException ex =
-          assertThrows(
-              IllegalStateException.class, () -> render("-- @else :x\nA"));
+          assertThrows(IllegalStateException.class, () -> render("-- @else :x\nA"));
       assertEquals("@else takes no argument: -- @else :x", ex.getMessage());
     }
   }
@@ -239,17 +248,12 @@ class DirectiveTemplateTest {
 
     @Test
     void endFollowedByIfOnSameLineChainsSiblings() {
-      assertEquals(
-          "B\n",
-          render(
-              "-- @if :a\nA\n-- @end --@if :b\nB\n-- @end",
-              Set.of("b")));
+      assertEquals("B\n", render("-- @if :a\nA\n-- @end --@if :b\nB\n-- @end", Set.of("b")));
     }
 
     @Test
     void chainOfThree() {
-      String template =
-          "-- @if :a\nA\n-- @end --@if :b\nB\n-- @end --@if :c\nC\n-- @end";
+      String template = "-- @if :a\nA\n-- @end --@if :b\nB\n-- @end --@if :c\nC\n-- @end";
       assertEquals("C\n", render(template, Set.of("c")));
       assertEquals("A\nB\nC\n", render(template, Set.of("a", "b", "c")));
       assertEquals("", render(template));
@@ -316,18 +320,14 @@ class DirectiveTemplateTest {
     @Test
     void trueWithInlineTextReplacesBody() {
       assertEquals(
-          "REPLACEMENT\n",
-          render("-- @replace :x REPLACEMENT\nOLD\n-- @end", Set.of("x")));
+          "REPLACEMENT\n", render("-- @replace :x REPLACEMENT\nOLD\n-- @end", Set.of("x")));
     }
 
     @Test
     void trueWithNoInlineUsesInsertByName() {
       assertEquals(
           "INSERTED\n",
-          render(
-              "-- @replace :x\nOLD\n-- @end",
-              Set.of("x"),
-              Map.of("x", "INSERTED")));
+          render("-- @replace :x\nOLD\n-- @end", Set.of("x"), Map.of("x", "INSERTED")));
     }
 
     @Test
@@ -343,28 +343,21 @@ class DirectiveTemplateTest {
     @Test
     void falseKeepsNestedDirectives() {
       assertEquals(
-          "A\n",
-          render(
-              "-- @replace :x REPLACEMENT\n-- @if :y\nA\n-- @end\n-- @end",
-              Set.of("y")));
+          "A\n", render("-- @replace :x REPLACEMENT\n-- @if :y\nA\n-- @end\n-- @end", Set.of("y")));
     }
 
     @Test
     void trueDiscardsNestedDirectives() {
       assertEquals(
           "REPLACEMENT\n",
-          render(
-              "-- @replace :x REPLACEMENT\n-- @if :y\nA\n-- @end\n-- @end",
-              Set.of("x", "y")));
+          render("-- @replace :x REPLACEMENT\n-- @if :y\nA\n-- @end\n-- @end", Set.of("x", "y")));
     }
 
     @Test
     void nestedReplaceInsideFalseOuterIsProcessed() {
       assertEquals(
           "B\n",
-          render(
-              "-- @replace :outer A\n-- @replace :inner B\n-- @end\n-- @end",
-              Set.of("inner")));
+          render("-- @replace :outer A\n-- @replace :inner B\n-- @end\n-- @end", Set.of("inner")));
     }
 
     @Test
@@ -412,10 +405,8 @@ class DirectiveTemplateTest {
     @Test
     void sortsBlocksByOrder() {
       String template = "-- @reorder :a\nA\n-- @end\n-- @reorder :b\nB\n-- @end";
-      assertEquals(
-          "B\nA\n", render(template, Set.of(), Map.of(), Map.of("a", 2, "b", 1)));
-      assertEquals(
-          "A\nB\n", render(template, Set.of(), Map.of(), Map.of("a", 1, "b", 2)));
+      assertEquals("B\nA\n", render(template, Set.of(), Map.of(), Map.of("a", 2, "b", 1)));
+      assertEquals("A\nB\n", render(template, Set.of(), Map.of(), Map.of("a", 1, "b", 2)));
     }
 
     @Test
@@ -429,25 +420,21 @@ class DirectiveTemplateTest {
     @Test
     void tiesKeepTemplateOrder() {
       String template = "-- @reorder :a\nA\n-- @end\n-- @reorder :b\nB\n-- @end";
-      assertEquals(
-          "A\nB\n", render(template, Set.of(), Map.of(), Map.of("a", 1, "b", 1)));
+      assertEquals("A\nB\n", render(template, Set.of(), Map.of(), Map.of("a", 1, "b", 1)));
     }
 
     @Test
     void textBeforeAndAfterIsPreserved() {
-      String template =
-          "pre\n-- @reorder :a\nA\n-- @end\n-- @reorder :b\nB\n-- @end\npost";
+      String template = "pre\n-- @reorder :a\nA\n-- @end\n-- @reorder :b\nB\n-- @end\npost";
       assertEquals(
           "pre\nB\nA\npost\n", render(template, Set.of(), Map.of(), Map.of("a", 2, "b", 1)));
     }
 
     @Test
     void nonReorderLineEndsTheSequence() {
-      String template =
-          "-- @reorder :a\nA\n-- @end\n-- ordinary\n-- @reorder :b\nB\n-- @end";
+      String template = "-- @reorder :a\nA\n-- @end\n-- ordinary\n-- @reorder :b\nB\n-- @end";
       assertEquals(
-          "A\n-- ordinary\nB\n",
-          render(template, Set.of(), Map.of(), Map.of("a", 2, "b", 1)));
+          "A\n-- ordinary\nB\n", render(template, Set.of(), Map.of(), Map.of("a", 2, "b", 1)));
     }
 
     @Test
@@ -461,20 +448,15 @@ class DirectiveTemplateTest {
     void reorderInsideTrueIfIsEmitted() {
       String template =
           "-- @if :flag\n-- @reorder :a\nA\n-- @end\n-- @reorder :b\nB\n-- @end\n-- @end";
-      assertEquals(
-          "B\nA\n",
-          render(template, Set.of("flag"), Map.of(), Map.of("a", 2, "b", 1)));
+      assertEquals("B\nA\n", render(template, Set.of("flag"), Map.of(), Map.of("a", 2, "b", 1)));
     }
 
     @Test
     void reorderBodyWithNestedIfIsProcessedPerBlock() {
       String template =
-          "-- @reorder :a\n-- @if :x\nX\n-- @end\n-- @end\n"
-              + "-- @reorder :b\nB\n-- @end";
-      assertEquals(
-          "B\nX\n", render(template, Set.of("x"), Map.of(), Map.of("a", 2, "b", 1)));
-      assertEquals(
-          "B\n", render(template, Set.of(), Map.of(), Map.of("a", 2, "b", 1)));
+          "-- @reorder :a\n-- @if :x\nX\n-- @end\n-- @end\n" + "-- @reorder :b\nB\n-- @end";
+      assertEquals("B\nX\n", render(template, Set.of("x"), Map.of(), Map.of("a", 2, "b", 1)));
+      assertEquals("B\n", render(template, Set.of(), Map.of(), Map.of("a", 2, "b", 1)));
     }
 
     @Test
@@ -487,8 +469,7 @@ class DirectiveTemplateTest {
     @Test
     void unclosedReorderFails() {
       IllegalStateException ex =
-          assertThrows(
-              IllegalStateException.class, () -> render("-- @reorder :a\nA"));
+          assertThrows(IllegalStateException.class, () -> render("-- @reorder :a\nA"));
       assertEquals(
           "@reorder block 'a' did not close with @end but with null: -- @reorder :a",
           ex.getMessage());

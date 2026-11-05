@@ -1,3 +1,32 @@
+/*
+ * Copyright (c) 2004-2026, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.sql;
 
 import java.util.ArrayList;
@@ -13,11 +42,12 @@ import org.hisp.dhis.jsontree.TextBuilder;
 
 /**
  * A general-purpose processor for {@code -- @directive} lines. Handles conditional blocks,
- * replacement blocks, reorder blocks and single-line insertions. Directives must be on their
- * own line as {@code -- @name}, except for {@code -- @end --@<any>} which resumes mid-line at
- * the embedded directive.
+ * replacement blocks, reorder blocks and single-line insertions. Directives must be on their own
+ * line as {@code -- @name}, except for {@code -- @end --@<any>} which resumes mid-line at the
+ * embedded directive.
  *
  * <h3>Built-in directives</h3>
+ *
  * <pre>
  *   -- @if :name ... [-- @else ...] -- @end
  *   -- @replace :name [replacement] ... -- @end
@@ -25,14 +55,14 @@ import org.hisp.dhis.jsontree.TextBuilder;
  *   -- @insert :name
  * </pre>
  *
- * <p>{@code @end} closes the innermost open block, whether the block was opened by
- * {@code @if}, {@code @replace} or {@code @reorder}. {@code @endif} is accepted as an alias
- * of {@code @end}. A bare {@code @replace} (no {@code :condition}) is not valid; use
- * {@code @end} to close a replacement block.
+ * <p>{@code @end} closes the innermost open block, whether the block was opened by {@code @if},
+ * {@code @replace} or {@code @reorder}. {@code @endif} is accepted as an alias of {@code @end}. A
+ * bare {@code @replace} (no {@code :condition}) is not valid; use {@code @end} to close a
+ * replacement block.
  *
- * <p>Consecutive {@code @reorder :name ... @end} blocks form a reorder sequence: they are
- * emitted in the order given by {@link #reorders} (name → ordinal), not in template order.
- * The blocks must be adjacent; any non-{@code @reorder} line ends the sequence.
+ * <p>Consecutive {@code @reorder :name ... @end} blocks form a reorder sequence: they are emitted
+ * in the order given by {@link #reorders} (name → ordinal), not in template order. The blocks must
+ * be adjacent; any non-{@code @reorder} line ends the sequence.
  */
 public record DirectiveTemplate(
     Predicate<Text> directives,
@@ -54,7 +84,12 @@ public record DirectiveTemplate(
   }
 
   private enum Directive {
-    IF, ELSE, END, INSERT, REPLACE, REORDER;
+    IF,
+    ELSE,
+    END,
+    INSERT,
+    REPLACE,
+    REORDER;
 
     static Directive of(Text name) {
       if (name == null) return null;
@@ -86,8 +121,7 @@ public record DirectiveTemplate(
       int nextLineStart = Math.min(pos + line.length() + 1, len);
 
       Directive directive = null;
-      if (directives.test(line))
-        directive = Directive.of(directiveName(line));
+      if (directives.test(line)) directive = Directive.of(directiveName(line));
 
       if (directive == null) {
         if (emit) {
@@ -122,8 +156,7 @@ public record DirectiveTemplate(
           pos = processReorder(input, out, emit, line, nextLineStart).pos();
           continue outer;
         }
-        default ->
-            throw new IllegalStateException("Unknown directive @" + directive + ": " + line);
+        default -> throw new IllegalStateException("Unknown directive @" + directive + ": " + line);
       }
       pos = nextLineStart;
     }
@@ -142,16 +175,14 @@ public record DirectiveTemplate(
   }
 
   /**
-   * Processes a {@code @if :cond ... @end} block, including an optional {@code @else}
-   * branch. The returned {@link End} always has type {@link Directive#END}; if the inner
-   * block ends with anything else (an unmatched {@code @else}, the top of the input, or a
-   * stray {@code @end}), this method throws. Since {@code @end} closes the innermost open
-   * block regardless of whether it was opened by {@code @if}, {@code @replace} or
-   * {@code @reorder}, an {@code @if} nesting once started can only be closed by its own
-   * matching {@code @end}.
+   * Processes a {@code @if :cond ... @end} block, including an optional {@code @else} branch. The
+   * returned {@link End} always has type {@link Directive#END}; if the inner block ends with
+   * anything else (an unmatched {@code @else}, the top of the input, or a stray {@code @end}), this
+   * method throws. Since {@code @end} closes the innermost open block regardless of whether it was
+   * opened by {@code @if}, {@code @replace} or {@code @reorder}, an {@code @if} nesting once
+   * started can only be closed by its own matching {@code @end}.
    */
-  private End processIf(
-      Text input, TextBuilder out, boolean emit, Text line, int nextLineStart) {
+  private End processIf(Text input, TextBuilder out, boolean emit, Text line, int nextLineStart) {
     String name = requireDirectiveName(Directive.IF, line);
     boolean cond = tests.test(name);
     End inner = processBlock(input, nextLineStart, out, emit && cond);
@@ -171,17 +202,16 @@ public record DirectiveTemplate(
   }
 
   /**
-   * Processes a {@code @replace :cond [repl]} block. If the condition is true, the opening
-   * line is replaced (with the inline text after {@code :cond}, or with the registered
-   * {@code insert} by name when there is no inline text), and the body is discarded. If
-   * the condition is false, the body is emitted as-is. Either way the returned {@link End}
-   * has type {@link Directive#END}.
+   * Processes a {@code @replace :cond [repl]} block. If the condition is true, the opening line is
+   * replaced (with the inline text after {@code :cond}, or with the registered {@code insert} by
+   * name when there is no inline text), and the body is discarded. If the condition is false, the
+   * body is emitted as-is. Either way the returned {@link End} has type {@link Directive#END}.
    *
-   * <p>The discard path uses recursion with {@code emit=false} rather than an open/close
-   * counter. This keeps the code identical for the two branches, naturally rejects
-   * misplaced {@code @else} inside a replacement body, and reports structural errors with
-   * the line that actually caused them. No writes happen because every write site in
-   * {@link #processBlock} is gated on {@code emit}.
+   * <p>The discard path uses recursion with {@code emit=false} rather than an open/close counter.
+   * This keeps the code identical for the two branches, naturally rejects misplaced {@code @else}
+   * inside a replacement body, and reports structural errors with the line that actually caused
+   * them. No writes happen because every write site in {@link #processBlock} is gated on {@code
+   * emit}.
    */
   private End processReplace(
       Text input, TextBuilder out, boolean emit, Text line, int nextLineStart) {
@@ -211,20 +241,19 @@ public record DirectiveTemplate(
   }
 
   /**
-   * Processes one or more consecutive {@code @reorder :name ... @end} blocks. All adjacent
-   * siblings are collected, then (when {@code emit} is true) sorted by {@link #reorders} and
-   * emitted in that order; when {@code emit} is false, only the boundaries are located and
-   * the position past the last block is returned.
+   * Processes one or more consecutive {@code @reorder :name ... @end} blocks. All adjacent siblings
+   * are collected, then (when {@code emit} is true) sorted by {@link #reorders} and emitted in that
+   * order; when {@code emit} is false, only the boundaries are located and the position past the
+   * last block is returned.
    *
-   * <p>Discovery runs {@link #processBlock} with {@code emit=false}, so the block body is
-   * traversed exactly as for emission (nested directives behave identically) but writes
-   * are suppressed. Emission then re-traverses each block from its recorded start offset
-   * with {@code emit=true}. Double traversal is the price for not buffering each block in a
-   * separate {@link TextBuilder}; block bodies are small so this is cheaper than the
-   * allocation would be.
+   * <p>Discovery runs {@link #processBlock} with {@code emit=false}, so the block body is traversed
+   * exactly as for emission (nested directives behave identically) but writes are suppressed.
+   * Emission then re-traverses each block from its recorded start offset with {@code emit=true}.
+   * Double traversal is the price for not buffering each block in a separate {@link TextBuilder};
+   * block bodies are small so this is cheaper than the allocation would be.
    *
-   * <p>The returned {@link End} has type {@link Directive#END} and its position points
-   * past the last block's {@code @end}.
+   * <p>The returned {@link End} has type {@link Directive#END} and its position points past the
+   * last block's {@code @end}.
    */
   private End processReorder(
       Text input, TextBuilder out, boolean emit, Text line, int nextLineStart) {
@@ -263,8 +292,12 @@ public record DirectiveTemplate(
     End end = processBlock(input, startPos, out, false);
     if (end.type() != Directive.END) {
       throw new IllegalStateException(
-          "@reorder block '" + name + "' did not close with @end but with "
-              + end.type() + ": " + opener);
+          "@reorder block '"
+              + name
+              + "' did not close with @end but with "
+              + end.type()
+              + ": "
+              + opener);
     }
     return new ReorderBlock(name, startPos, end.pos());
   }
@@ -283,17 +316,15 @@ public record DirectiveTemplate(
     if (start < 0) return null;
     int end = line.indexOf(' ', start);
     if (end < 0) end = line.length();
-    if (start+1 == end) return null;
+    if (start + 1 == end) return null;
     return line.subSequence(start + 1, end);
   }
 
   private static String requireDirectiveName(Directive name, Text line) {
     int s = line.indexOf(':');
-    if (s < 0)
-      throw new IllegalStateException(name + " requires ':name' argument: " + line);
+    if (s < 0) throw new IllegalStateException(name + " requires ':name' argument: " + line);
     int e = skipAlphanumeric(line, s + 1);
-    if (e == s)
-      throw new IllegalStateException("@name argument must have a letter: " + line);
+    if (e == s) throw new IllegalStateException("@name argument must have a letter: " + line);
     Text arg = line.subSequence(s + 1, e);
     return arg.toString();
   }
@@ -303,8 +334,7 @@ public record DirectiveTemplate(
     if (i < 0) return;
     i = skipAlphanumeric(line, i + 1);
     i = skipIndent(line, i);
-    if (i < line.length())
-      throw new IllegalStateException(name + " takes no argument: " + line);
+    if (i < line.length()) throw new IllegalStateException(name + " takes no argument: " + line);
   }
 
   private static int skipAlphanumeric(Text line, int i) {

@@ -251,8 +251,7 @@ class OrgUnitPathTest {
   void testOfMissingAncestors_someAncestorsPresent() {
     assertEquals(
         Set.of(path(UID_A, UID_B)),
-        OrgUnitPath.ofMissingAncestors(
-            List.of(path(UID_A), path(UID_A, UID_B, UID_C))));
+        OrgUnitPath.ofMissingAncestors(List.of(path(UID_A), path(UID_A, UID_B, UID_C))));
   }
 
   @Test
@@ -426,8 +425,7 @@ class OrgUnitPathTest {
 
   @Test
   void testToString_nested() {
-    assertEquals(
-        pathString(UID_A, UID_B, UID_C), path(UID_A, UID_B, UID_C).toString());
+    assertEquals(pathString(UID_A, UID_B, UID_C), path(UID_A, UID_B, UID_C).toString());
   }
 
   @Test

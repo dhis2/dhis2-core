@@ -137,7 +137,8 @@ public final class SQL {
     return new QueryBuilder(sql, api);
   }
 
-  public static DirectiveQueryBuilder ofDirective(@Language("sql") String sql, @Nonnull QueryAPI api) {
+  public static DirectiveQueryBuilder ofDirective(
+      @Language("sql") String sql, @Nonnull QueryAPI api) {
     return new DirectiveQueryBuilder(Text.of(sql), api);
   }
 

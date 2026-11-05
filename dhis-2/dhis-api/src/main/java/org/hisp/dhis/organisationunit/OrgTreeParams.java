@@ -63,7 +63,7 @@ public record OrgTreeParams(
     int pageSize,
     int hierarchySize,
     @Nonnull Locale locale,
-    //TODO maybe use scope here instead of same fields?
+    // TODO maybe use scope here instead of same fields?
     @Nonnull List<UID> roots,
     @Nonnull List<UID> groups,
     @CheckForNull Integer level,
@@ -80,7 +80,7 @@ public record OrgTreeParams(
     if (pageSize < 1) throw new IllegalArgumentException("Page size must be positive");
     if (level != null && level < 1) throw new IllegalArgumentException("Level must be positive");
     if (depth != null && depth < 1) throw new IllegalArgumentException("Depth must be positive");
-    //TODO maybe we should have the constructor throw BadRequestException
+    // TODO maybe we should have the constructor throw BadRequestException
     // for any combination that is not allowed
     // that is nicely unit-testable
   }
@@ -162,7 +162,7 @@ public record OrgTreeParams(
           Integer depth) {
 
     public Input {
-      //TODO maybe we move any such validation to OrgTreeParams
+      // TODO maybe we move any such validation to OrgTreeParams
       // so exceptions happen when we are not in spring calls
       if (depth != null && search != null)
         throw new IllegalArgumentException(
