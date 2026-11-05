@@ -101,7 +101,7 @@ public class DefaultOrgTreeService implements OrgTreeService {
         null,
         null,
         Boolean.TRUE.equals(params.shortName()),
-        null);
+        1);
   }
 
   @Nonnull

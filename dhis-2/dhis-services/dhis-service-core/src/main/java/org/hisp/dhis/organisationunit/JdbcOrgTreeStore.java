@@ -93,7 +93,7 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
         --@end
         FROM organisationunit ou
         --@if :groups
-        JOIN ou_groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
+        JOIN ou_groups_member_ids USING (organisationunitid)
         --@end
         --@if :search
         JOIN ou_search_match_ids USING (organisationunitid)
@@ -102,19 +102,26 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
           --@if :level
           AND ou.hierarchylevel = :level
           --@end
-          --@if :currentlyOpen
-          AND :currentlyOpen = ((ou.openingdate IS NULL OR ou.openingdate <= now())
-                                AND (ou.closeddate IS NULL OR ou.closeddate > now()))
-          --@end
-          --@if :depth
-          AND (EXISTS (SELECT 1 FROM organisationunit root
-                       WHERE root.uid = ANY(:roots)
-                         AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
-                         AND ou.patharray && ARRAY[root.uid]))
+          --@if :depth1
+          AND (
+            ou.uid = ANY(:roots)
+            OR ou.parentid IN (SELECT organisationunitid FROM organisationunit WHERE uid = ANY(:roots))
+          )
           --@else
-          AND ou.patharray && ARRAY(SELECT DISTINCT root.uid
-                                    FROM organisationunit root
-                                    WHERE root.uid = ANY(:roots))
+          AND ou.patharray && (:roots)::varchar[]
+            --@if :depth
+              --@if :depth1
+            AND (ou.uid = ANY(:roots)
+                 OR ou.parentid IN (SELECT organisationunitid FROM organisationunit
+                                    WHERE uid = ANY(:roots)))
+              --@else
+            AND EXISTS (
+              SELECT 1 FROM organisationunit root
+              WHERE root.uid = ANY(:roots)
+                AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
+            )
+              --@end
+            --@end
           --@end
           --@if :lastPath
           AND ou.path > :lastPath
@@ -128,6 +135,7 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
         --@end
         """;
     String search = params.searchLike();
+    Integer depth = params.depth();
     DirectiveQueryBuilder builder =
         SQL.ofDirective(sql, api)
             .setParameter("level", params.level())
@@ -135,7 +143,8 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
             .setParameter("roots", params.roots())
             .setParameter("groups", params.groups())
             .setParameter("currentlyOpen", params.currentlyOpen())
-            .setParameter("depth", params.depth())
+            .setParameter("depth", depth)
+            .setCondition("depth1", depth != null && depth == 1)
             .setParameter("pageSize", params.pageSize());
     if (search != null) {
       builder
