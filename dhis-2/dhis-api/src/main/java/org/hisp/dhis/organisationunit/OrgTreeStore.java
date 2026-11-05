@@ -31,7 +31,6 @@ package org.hisp.dhis.organisationunit;
 
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 
@@ -64,10 +63,10 @@ public interface OrgTreeStore {
    * @param orgUnits of the OU to fetch
    */
   record StreamEntriesParams(
-      Locale locale, String property, boolean assumeNoLeaf, Stream<UID> orgUnits
-  ) {}
+      Locale locale, String property, boolean assumeNoLeaf, Stream<UID> orgUnits) {}
 
   /**
-   * @return A stream of entries for the given IDs sorted by level first, display name second   */
+   * @return A stream of entries for the given IDs sorted by level first, display name second
+   */
   Stream<OrgTree.OrgTreeEntry> streamEntries(StreamEntriesParams params);
 }

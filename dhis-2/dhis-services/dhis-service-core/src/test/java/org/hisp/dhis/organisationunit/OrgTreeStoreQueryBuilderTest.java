@@ -62,7 +62,17 @@ class OrgTreeStoreQueryBuilderTest {
   private static OrgTreeParams params(
       List<UID> groups, Integer level, Boolean currentlyOpen, String search, Integer depth) {
     return new OrgTreeParams(
-        1, 10, Locale.ENGLISH, List.of(ROOT), groups, level, currentlyOpen, search, false, depth);
+        1,
+        10,
+        true,
+        Locale.ENGLISH,
+        List.of(ROOT),
+        groups,
+        level,
+        currentlyOpen,
+        search,
+        false,
+        depth);
   }
 
   private static void assertSQL(@Language("sql") String expected, OrgTreeParams params) {

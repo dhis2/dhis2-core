@@ -60,8 +60,8 @@ import org.hisp.dhis.common.UID;
 public record OrgTreeParams(
     int page,
     int pageSize,
+    boolean ancestors,
     @Nonnull Locale locale,
-    // TODO maybe use scope here instead of same fields?
     @Nonnull List<UID> roots,
     @Nonnull List<UID> groups,
     @CheckForNull Integer level,
@@ -113,7 +113,7 @@ public record OrgTreeParams(
   }
 
   /** The parameters as seen and provided from user input. */
-  public record Input(
+  public record RootInput(
 
       // pager
       @CheckForNull Integer page,
@@ -161,14 +161,14 @@ public record OrgTreeParams(
       Includes the given number of levels of children for each of the given `roots`.
       Cannot be combined with `search`.""")
           @CheckForNull
-          Integer depth) {
+          Integer depth) {}
 
-    public Input {
-      // TODO maybe we move any such validation to OrgTreeParams
-      // so exceptions happen when we are not in spring calls
-      if (depth != null && search != null)
-        throw new IllegalArgumentException(
-            "A query with `search` term cannot be limited by `depth` at the same time.");
-    }
-  }
+  public record ChildrenInput(
+      // pager
+      @CheckForNull Integer page,
+      @CheckForNull Integer pageSize,
+
+      // context
+      @CheckForNull Locale locale,
+      @CheckForNull Boolean shortName) {}
 }

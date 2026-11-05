@@ -33,7 +33,9 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -58,21 +60,27 @@ public class OrgTreeController {
 
   @OpenApi.Response(OrgTree.class)
   @GetMapping("/tree")
-  public void getOrgTree(OrgTreeParams.Input params, HttpServletResponse response) {
-    pipeline.exportAsJson(
-        params,
-        () -> {
-          response.setContentType(CONTENT_TYPE_JSON);
-          try {
-            return response.getOutputStream();
-          } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-          }
-        });
+  public void getOrgTree(OrgTreeParams.RootInput params, HttpServletResponse response) {
+    pipeline.exportAsJson(params, lazyJsonResponseStream(response));
   }
 
   @OpenApi.Response(OrgTree.class)
   @GetMapping("/tree/{uid}/children")
   public void getOrgTreeChildren(
-      @PathVariable("uid") UID parent, OrgTreeParams.Input params, HttpServletResponse response) {}
+      @PathVariable("uid") UID parent,
+      OrgTreeParams.ChildrenInput params,
+      HttpServletResponse response) {
+    pipeline.exportAsJson(parent, params, lazyJsonResponseStream(response));
+  }
+
+  private static Supplier<OutputStream> lazyJsonResponseStream(HttpServletResponse response) {
+    return () -> {
+      response.setContentType(CONTENT_TYPE_JSON);
+      try {
+        return response.getOutputStream();
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+    };
+  }
 }

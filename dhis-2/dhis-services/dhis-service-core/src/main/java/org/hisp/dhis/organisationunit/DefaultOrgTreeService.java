@@ -30,11 +30,11 @@
 package org.hisp.dhis.organisationunit;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrgTree.OrgTreeEntry;
 import org.hisp.dhis.organisationunit.OrgTreeStore.StreamEntriesParams;
@@ -53,18 +53,14 @@ public class DefaultOrgTreeService implements OrgTreeService {
 
   @Nonnull
   @Override
-  @Transactional(readOnly = true)
-  public OrgTreeParams decode(@Nonnull OrgTreeParams.Input params) {
+  @NonTransactional
+  public OrgTreeParams decode(@Nonnull OrgTreeParams.RootInput params) {
     List<UID> roots = params.roots();
     if (roots == null) roots = List.of();
     if (roots.isEmpty() && CurrentUserUtil.hasCurrentUser()) {
       UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
       roots = currentUser.getUserEffectiveSearchOrgUnitIds().stream().map(UID::of).toList();
     }
-    Locale locale =
-        params.locale() == null
-            ? UserSettings.getCurrentSettings().getUserDbLocale()
-            : params.locale();
     List<UID> groups = params.groups() == null ? List.of() : params.groups();
 
     // TODO might make sense to compute a min-level from the parent set
@@ -74,7 +70,8 @@ public class DefaultOrgTreeService implements OrgTreeService {
     return new OrgTreeParams(
         params.page() == null ? 1 : params.page(),
         params.pageSize() == null ? 50 : params.pageSize(),
-        locale,
+        true,
+        getLocale(params.locale()),
         roots,
         groups,
         params.level(),
@@ -84,29 +81,66 @@ public class DefaultOrgTreeService implements OrgTreeService {
         params.depth());
   }
 
+  private static Locale getLocale(Locale locale) {
+    if (locale == null) return UserSettings.getCurrentSettings().getUserDbLocale();
+    return locale;
+  }
+
+  @Nonnull
+  @Override
+  @NonTransactional
+  public OrgTreeParams decode(@Nonnull UID parent, @Nonnull OrgTreeParams.ChildrenInput params) {
+    return new OrgTreeParams(
+        params.page() == null ? 1 : params.page(),
+        params.pageSize() == null ? 51 : params.pageSize() + 1,
+        false,
+        getLocale(params.locale()),
+        List.of(parent),
+        List.of(),
+        null,
+        null,
+        null,
+        Boolean.TRUE.equals(params.shortName()),
+        null);
+  }
+
   @Nonnull
   @Override
   @Transactional(readOnly = true, propagation = Propagation.MANDATORY)
   public OrgTree query(@Nonnull OrgTreeParams params) {
     List<OrgUnitPath> matches = store.queryPageMatches(params);
-    Set<OrgUnitPath> ancestors = OrgUnitPath.ofMissingAncestors(matches);
     Locale locale = params.locale();
     String property = params.translationPropertyKey();
     StreamEntriesParams matchesParams =
         new StreamEntriesParams(locale, property, false, matches.stream().map(OrgUnitPath::toUID));
-    Stream<OrgTreeEntry> entries =
-        store.streamEntries(matchesParams);
+    Stream<OrgTreeEntry> entries = store.streamEntries(matchesParams);
     if (OrgTree.isHierarchical(matches))
       entries = OrgTree.sortedHierarchical(entries.toList()).stream();
+
+    // handle ancestors
+    Stream<OrgTree.OrgTreeEntry> ancestors = Stream.empty();
+    if (params.ancestors()) {
+      StreamEntriesParams ancestorsParams =
+          new StreamEntriesParams(
+              locale,
+              property,
+              true,
+              OrgUnitPath.ofMissingAncestors(matches).stream().map(OrgUnitPath::toUID));
+      ancestors = store.streamEntries(ancestorsParams);
+    } else {
+      entries = entries.skip(1); // skip the parent
+    }
+
+    // pager
     int total = -1;
     int pageSize = params.pageSize();
+    if (!params.ancestors()) pageSize--;
     int page = params.page();
     if (matches.size() < pageSize) total = matches.size() + ((page - 1) * pageSize);
     // only count if we don't already know from a partial page
     if (total < 0) total = store.countTotalMatches(params);
+    if (!params.ancestors()) total--; // sub the parent
     OrgTree.Pager pager = new OrgTree.Pager(page, pageSize, total);
-    StreamEntriesParams ancestorsParams =
-        new StreamEntriesParams(locale, property, true, ancestors.stream().map(OrgUnitPath::toUID));
-    return new OrgTree(pager, entries, store.streamEntries(ancestorsParams));
+    return new OrgTree(pager, entries, ancestors);
   }
 }
