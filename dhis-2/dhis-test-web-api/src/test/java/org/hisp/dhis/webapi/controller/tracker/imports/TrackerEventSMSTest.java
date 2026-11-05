@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import static java.lang.String.format;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertEqualUids;
@@ -109,7 +110,6 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.test.TrackerTestBase;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
@@ -155,8 +155,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private EnrollmentService enrollmentService;
 
@@ -824,7 +822,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     TrackedEntity trackedEntity = trackedEntity();
     TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue('A', trackedEntity, teaA);
     teavA.setValue(phoneNumber);
-    attributeValueService.addTrackedEntityAttributeValue(teavA);
+    saveTrackedEntityAttributeValue(entityManager, teavA);
     trackedEntity.getTrackedEntityAttributeValues().add(teavA);
     manager.save(trackedEntity, false);
     return trackedEntity;

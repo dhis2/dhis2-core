@@ -55,7 +55,6 @@ public enum PeriodTypeEnum {
   SIX_MONTHLY_APRIL("SixMonthlyApril"),
   SIX_MONTHLY_NOV("SixMonthlyNov"),
   SIX_MONTHLY("SixMonthly"),
-  TWO_YEARLY("TwoYearly"),
   WEEKLY("Weekly"),
   WEEKLY_SATURDAY("WeeklySaturday"),
   WEEKLY_SUNDAY("WeeklySunday"),
