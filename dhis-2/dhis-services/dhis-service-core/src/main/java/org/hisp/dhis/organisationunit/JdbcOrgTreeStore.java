@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.Locale;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrgTree.OrgTreeEntry;
 import org.hisp.dhis.sql.DirectiveQueryBuilder;
 import org.hisp.dhis.sql.NativeSQL;
@@ -148,26 +146,29 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
   }
 
   @Override
-  public Stream<OrgTreeEntry> streamEntries(Locale locale, String property, Stream<UID> orgUnits) {
+  public Stream<OrgTreeEntry> streamEntries(StreamEntriesParams params) {
     String sql =
         """
       SELECT
           ou.path,
           coalesce(jsonb_get_translated_value(ou.translations, :property, :locale), ou.name) as displayName,
+          --@replace :assumeNoLeaf false as leaf
           NOT EXISTS (
               SELECT 1
               FROM organisationunit child
               WHERE child.parentid = ou.organisationunitid
           ) AS leaf
+          --@end
       FROM organisationunit ou
       WHERE ou.uid = ANY(:ou)
       ORDER BY ou.hierarchylevel, displayName""";
 
     DirectiveQueryBuilder query =
         createQuery(sql)
-            .setParameter("ou", orgUnits)
-            .setParameter("locale", locale.toString())
-            .setParameter("property", property);
+            .setParameter("ou", params.orgUnits())
+            .setParameter("locale", params.locale().toString())
+            .setParameter("property", params.property())
+            .setCondition("assumeNoLeaf", params.assumeNoLeaf());
     return query.isNullParameter("ou") ? Stream.of() : query.stream(JdbcOrgTreeStore::entry);
   }
 

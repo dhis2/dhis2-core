@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrgTree.OrgTreeEntry;
+import org.hisp.dhis.organisationunit.OrgTreeStore.StreamEntriesParams;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -91,8 +92,10 @@ public class DefaultOrgTreeService implements OrgTreeService {
     Set<OrgUnitPath> ancestors = OrgUnitPath.ofMissingAncestors(matches);
     Locale locale = params.locale();
     String property = params.translationPropertyKey();
+    StreamEntriesParams matchesParams =
+        new StreamEntriesParams(locale, property, false, matches.stream().map(OrgUnitPath::toUID));
     Stream<OrgTreeEntry> entries =
-        store.streamEntries(locale, property, matches.stream().map(OrgUnitPath::toUID));
+        store.streamEntries(matchesParams);
     if (OrgTree.isHierarchical(matches))
       entries = OrgTree.sortedHierarchical(entries.toList()).stream();
     int total = -1;
@@ -102,9 +105,8 @@ public class DefaultOrgTreeService implements OrgTreeService {
     // only count if we don't already know from a partial page
     if (total < 0) total = store.countTotalMatches(params);
     OrgTree.Pager pager = new OrgTree.Pager(page, pageSize, total);
-    return new OrgTree(
-        pager,
-        entries,
-        store.streamEntries(locale, property, ancestors.stream().map(OrgUnitPath::toUID)));
+    StreamEntriesParams ancestorsParams =
+        new StreamEntriesParams(locale, property, true, ancestors.stream().map(OrgUnitPath::toUID));
+    return new OrgTree(pager, entries, store.streamEntries(ancestorsParams));
   }
 }

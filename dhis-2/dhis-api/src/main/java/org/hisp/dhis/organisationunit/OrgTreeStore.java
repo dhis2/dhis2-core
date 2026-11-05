@@ -31,8 +31,7 @@ package org.hisp.dhis.organisationunit;
 
 import java.util.List;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 
@@ -43,12 +42,6 @@ import org.hisp.dhis.common.UID;
  * @author Jan Bernitt
  */
 public interface OrgTreeStore {
-
-  record OrgTreeScope(
-      @Nonnull List<UID> roots,
-      @Nonnull List<UID> groups,
-      @CheckForNull Integer level,
-      @CheckForNull Integer depth) {}
 
   /**
    * Note that it is crucial that the results are order by path so that matches within the same
@@ -69,7 +62,12 @@ public interface OrgTreeStore {
   /**
    * @param locale to use when resolving the display name
    * @param orgUnits of the OU to fetch
-   * @return A stream of entries for the given IDs sorted by level first, display name second
    */
-  Stream<OrgTree.OrgTreeEntry> streamEntries(Locale locale, String property, Stream<UID> orgUnits);
+  record StreamEntriesParams(
+      Locale locale, String property, boolean assumeNoLeaf, Stream<UID> orgUnits
+  ) {}
+
+  /**
+   * @return A stream of entries for the given IDs sorted by level first, display name second   */
+  Stream<OrgTree.OrgTreeEntry> streamEntries(StreamEntriesParams params);
 }
