@@ -361,6 +361,8 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     String tablesExistSql = sqlBuilder.tablesExist(List.of(existingTable, createdTable));
     when(jdbcTemplate.queryForList(tablesExistSql, String.class))
         .thenReturn(List.of(existingTable));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns(existingTable), String.class))
+        .thenReturn(List.of());
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(existing, created));
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
@@ -377,6 +379,48 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     verify(jdbcTemplate).queryForList(tablesExistSql, String.class);
     verify(jdbcTemplate, never()).queryForList(sqlBuilder.tableExists(existingTable));
     verify(jdbcTemplate, never()).queryForList(sqlBuilder.tableExists(createdTable));
+  }
+
+  @Test
+  @DisplayName(
+      "A data element added to a program since its main table was created is left out of the"
+          + " continuous update, as the latest partition could not be merged into the main table")
+  void testLatestTableLeavesOutDataElementMissingFromMainTable() {
+    Program program = createProgram('A');
+    DataElement deA = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
+    DataElement deB = createDataElement('B', ValueType.TEXT, AggregationType.NONE);
+    program.setProgramStages(Set.of(createProgramStage('A', Set.of(deA, deB))));
+    String mainTableName = AnalyticsTable.getTableName(AnalyticsTableType.EVENT, program);
+
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.EVENT))
+        .thenReturn(lastFullTableUpdate);
+    // updated data found, and the main table exists
+    when(jdbcTemplate.queryForList(Mockito.anyString()))
+        .thenReturn(List.of(Map.of("table_name", mainTableName)));
+    when(jdbcTemplate.queryForList(sqlBuilder.tablesExist(List.of(mainTableName)), String.class))
+        .thenReturn(List.of(mainTableName));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns(mainTableName), String.class))
+        .thenReturn(List.of("event", deA.getUid()));
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertThat(tables, hasSize(1));
+    List<String> columns =
+        tables.get(0).getAnalyticsTableColumns().stream()
+            .map(AnalyticsTableColumn::getName)
+            .toList();
+    assertEquals(List.of("event", deA.getUid()), columns);
   }
 
   @Test
@@ -403,8 +447,9 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT))
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
-    when(jdbcTemplate.queryForList(Mockito.anyString(), Mockito.eq(String.class)))
-        .thenReturn(List.of(AnalyticsTable.getTableName(AnalyticsTableType.EVENT, program)));
+    String mainTableName = AnalyticsTable.getTableName(AnalyticsTableType.EVENT, program);
+    when(jdbcTemplate.queryForList(sqlBuilder.tablesExist(List.of(mainTableName)), String.class))
+        .thenReturn(List.of(mainTableName));
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
@@ -482,8 +527,9 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT))
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
-    when(jdbcTemplate.queryForList(Mockito.anyString(), Mockito.eq(String.class)))
-        .thenReturn(List.of(AnalyticsTable.getTableName(AnalyticsTableType.EVENT, program)));
+    String mainTableName = AnalyticsTable.getTableName(AnalyticsTableType.EVENT, program);
+    when(jdbcTemplate.queryForList(sqlBuilder.tablesExist(List.of(mainTableName)), String.class))
+        .thenReturn(List.of(mainTableName));
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
