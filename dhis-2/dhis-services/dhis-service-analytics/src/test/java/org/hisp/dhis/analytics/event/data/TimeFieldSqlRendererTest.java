@@ -51,6 +51,7 @@ import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -301,6 +302,31 @@ class TimeFieldSqlRendererTest extends TestBase {
     assertEquals(
         "( ((ax.\"monthly\" in ('202212')  or ax.\"yearly\" in ('2021') ))) ",
         eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+  }
+
+  @Test
+  void testRenderEnrollmentTimeFieldSqlKeepsWholeFreeRangePeriodDimension() {
+    PeriodDimension freeRange =
+        freeRange(new DateTime(2022, 1, 1, 0, 0), new DateTime(2022, 3, 31, 0, 0));
+
+    // Mirrors EnrollmentAggregateService: periods become dates, then the period items are re-added
+    EventQueryParams params =
+        new EventQueryParams.Builder(
+                withStartEndDates(new EventQueryParams.Builder().addDimension(periods(freeRange))))
+            .withPeriods(List.of(freeRange), EMPTY)
+            .build();
+
+    assertEquals(
+        "(((enrollmentdate >= '2022-01-01' and enrollmentdate < '2022-04-01'))) ",
+        enrollmentTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+  }
+
+  private static PeriodDimension freeRange(DateTime start, DateTime end) {
+    Period period = new Period();
+    period.setPeriodType(new DailyPeriodType());
+    period.setStartDate(start.toDate());
+    period.setEndDate(end.toDate());
+    return PeriodDimension.of(period);
   }
 
   private static EventQueryParams withStartEndDates(EventQueryParams.Builder builder) {
