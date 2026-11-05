@@ -266,9 +266,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       // since its staging table becomes the main table and later runs only merge into it. A window
       // starting at the last update would leave out its events last updated before then. Other
       // databases replace the latest partition with the same window on every run.
+      String mainTableName = AnalyticsTable.getTableName(getAnalyticsTableType(), program);
       boolean fullHistory =
-          sqlBuilder.requiresUniqueKeyAnalyticsTables()
-              && !tableExists(AnalyticsTable.getTableName(getAnalyticsTableType(), program));
+          sqlBuilder.requiresUniqueKeyAnalyticsTables() && !tableExists(mainTableName);
       Date programStartDate = fullHistory ? new Date(0L) : startDate;
       Date updatedSince = fullHistory ? new Date(0L) : lastAnyTableUpdate;
 
@@ -278,7 +278,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         AnalyticsTable table =
             new AnalyticsTable(
                 getAnalyticsTableType(),
-                getColumns(program),
+                getColumnsOfMainTable(mainTableName, getColumns(program)),
                 sqlBuilder.requiresUniqueKeyAnalyticsTables() ? PRIMARY_KEY : List.of(),
                 logged,
                 program);

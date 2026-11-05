@@ -493,6 +493,55 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return false;
   }
 
+  /**
+   * Returns the given columns of a latest partition table, leaving out the columns which the main
+   * table lacks, on databases where the latest partition is merged into the main table (Doris).
+   *
+   * <p>A dimension added since the main table was created, such as an organisation unit group set
+   * or a program data element, gives the latest partition a column which the main table lacks.
+   * Merging the latest partition would then fail after the updated rows have been removed from the
+   * main table. Instead, the new columns are left out of continuous updates, and are added to the
+   * main table by the next full update, which recreates it.
+   *
+   * @param mainTableName the main table name.
+   * @param columns the columns of the latest partition table.
+   * @return the columns which the main table has, or all columns if the main table does not exist
+   *     or is not merged into.
+   */
+  protected List<AnalyticsTableColumn> getColumnsOfMainTable(
+      String mainTableName, List<AnalyticsTableColumn> columns) {
+    if (!sqlBuilder.requiresUniqueKeyAnalyticsTables() || !tableExists(mainTableName)) {
+      return columns;
+    }
+
+    Set<String> mainColumns =
+        jdbcTemplate.queryForList(sqlBuilder.tableColumns(mainTableName), String.class).stream()
+            .map(String::toLowerCase)
+            .collect(Collectors.toSet());
+
+    if (mainColumns.isEmpty()) {
+      log.warn("No columns found for table '{}', all columns are retained", mainTableName);
+      return columns;
+    }
+
+    Map<Boolean, List<AnalyticsTableColumn>> partitioned =
+        columns.stream()
+            .collect(
+                Collectors.partitioningBy(c -> mainColumns.contains(c.getName().toLowerCase())));
+
+    List<AnalyticsTableColumn> newColumns = partitioned.get(false);
+
+    if (!newColumns.isEmpty()) {
+      log.warn(
+          "Columns {} are missing from table '{}' and are left out of the continuous update, "
+              + "run a full analytics table update to add them",
+          newColumns.stream().map(AnalyticsTableColumn::getName).toList(),
+          mainTableName);
+    }
+
+    return partitioned.get(true);
+  }
+
   private boolean hasUniqueKeyModel(String tableName) {
     List<Map<String, Object>> rows =
         jdbcTemplate.queryForList(sqlBuilder.showCreateTable(tableName));
@@ -607,8 +656,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date partitionStartDate =
         sqlBuilder.requiresUniqueKeyAnalyticsTables() ? lastAnyTableUpdate : lastFullTableUpdate;
 
+    List<AnalyticsTableColumn> tableColumns =
+        hasUpdatedData
+            ? getColumnsOfMainTable(getAnalyticsTableType().getTableName(), columns)
+            : columns;
+
     AnalyticsTable table =
-        new AnalyticsTable(getAnalyticsTableType(), columns, List.of(), primaryKey, logged);
+        new AnalyticsTable(getAnalyticsTableType(), tableColumns, List.of(), primaryKey, logged);
 
     if (hasUpdatedData) {
       table.addTablePartition(

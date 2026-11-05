@@ -30,6 +30,8 @@
 package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -144,6 +146,13 @@ class PostgreSqlBuilderTest {
   @Test
   void testSupportsVacuum() {
     assertTrue(sqlBuilder.supportsVacuum());
+  }
+
+  @Test
+  void testRequiresTableMetadataRefresh() {
+    assertFalse(sqlBuilder.requiresTableMetadataRefresh());
+    assertThrows(
+        UnsupportedOperationException.class, () -> sqlBuilder.refreshTable("immunization"));
   }
 
   // Utilities

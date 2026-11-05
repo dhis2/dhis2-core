@@ -237,6 +237,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return false;
   }
 
+  /**
+   * Doris caches the schema of tables in the JDBC catalog, which is created once at startup, so a
+   * table recreated with different columns is otherwise read with its old columns until the cache
+   * expires.
+   */
+  @Override
+  public boolean requiresTableMetadataRefresh() {
+    return true;
+  }
+
   // Utilities
 
   @Override
@@ -558,6 +568,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("show create table %s;", quote(name));
   }
 
+  @Override
+  public String tableColumns(String name) {
+    return String.format(
+        """
+        select c.column_name from information_schema.columns c \
+        where c.table_schema = database() \
+        and c.table_name = %s;""",
+        singleQuote(name));
+  }
+
   /**
    * Doris supports indexes but relies on concurrency and compression for query performance instead
    * of indexes on arbitrary columns. Read more at {@link https://t.ly/AHhJ1}.
@@ -627,6 +647,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
     // For other cases, apply both 'trim' and 'nullif'
     return "trim(nullif('', " + column + "))";
+  }
+
+  @Override
+  public String refreshTable(String name) {
+    return String.format("refresh table %s;", qualifyTable(name));
   }
 
   /**

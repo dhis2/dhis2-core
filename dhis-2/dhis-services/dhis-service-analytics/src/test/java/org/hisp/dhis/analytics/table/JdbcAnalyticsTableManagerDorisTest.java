@@ -446,14 +446,101 @@ class JdbcAnalyticsTableManagerDorisTest {
     assertFalse(subject.isReadyForContinuousUpdate(List.of(table)));
   }
 
+  @Test
+  void testGetColumnsOfMainTableLeavesOutColumnAddedSinceMainTableWasCreated() {
+    // e.g. an organisation unit group set added since the last full update: merging a latest
+    // partition with the new column into the main table would fail after the delete step.
+    List<AnalyticsTableColumn> columns = columns("dx", "LlpAwYmLgJj");
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists("analytics")))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of("dx", "value"));
+
+    assertEquals(List.of("dx"), names(subject.getColumnsOfMainTable("analytics", columns)));
+  }
+
+  @Test
+  void testGetColumnsOfMainTableIgnoresColumnNameCase() {
+    List<AnalyticsTableColumn> columns = columns("dx", "LlpAwYmLgJj");
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists("analytics")))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of("DX", "llpawymlgjj"));
+
+    assertEquals(columns, subject.getColumnsOfMainTable("analytics", columns));
+  }
+
+  @Test
+  void testGetColumnsOfMainTableRetainsAllColumnsWhenMainTableDoesNotExistYet() {
+    List<AnalyticsTableColumn> columns = columns("dx", "LlpAwYmLgJj");
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists("analytics"))).thenReturn(List.of());
+
+    assertEquals(columns, subject.getColumnsOfMainTable("analytics", columns));
+
+    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.never())
+        .queryForList(sqlBuilder.tableColumns("analytics"), String.class);
+  }
+
+  @Test
+  void testGetColumnsOfMainTableRetainsAllColumnsWhenNoColumnsFound() {
+    List<AnalyticsTableColumn> columns = columns("dx", "LlpAwYmLgJj");
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists("analytics")))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of());
+
+    assertEquals(columns, subject.getColumnsOfMainTable("analytics", columns));
+  }
+
+  @Test
+  void testGetLatestAnalyticsTableLeavesOutColumnsMissingFromMainTable() {
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.DATA_VALUE))
+        .thenReturn(lastFullTableUpdate);
+    when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.UNLOGGED);
+    // updated data found, and the main table exists
+    when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString()))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of("dx", "co", "value"));
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertEquals(1, tables.size());
+    assertEquals(List.of("dx", "co", "value"), names(tables.get(0).getAnalyticsTableColumns()));
+  }
+
+  private List<AnalyticsTableColumn> columns(String... columnNames) {
+    return java.util.Arrays.stream(columnNames)
+        .map(
+            name ->
+                AnalyticsTableColumn.builder()
+                    .name(name)
+                    .dataType(TEXT)
+                    .selectExpression(name)
+                    .build())
+        .toList();
+  }
+
+  private List<String> names(List<AnalyticsTableColumn> columns) {
+    return columns.stream().map(AnalyticsTableColumn::getName).toList();
+  }
+
   private AnalyticsTable dataValueTableFixture() {
-    List<AnalyticsTableColumn> columns =
-        List.of(
-            AnalyticsTableColumn.builder()
-                .name("dx")
-                .dataType(TEXT)
-                .selectExpression("dx")
-                .build());
-    return new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
+    return new AnalyticsTable(
+        AnalyticsTableType.DATA_VALUE, columns("dx"), List.of(), Logged.UNLOGGED);
   }
 }
