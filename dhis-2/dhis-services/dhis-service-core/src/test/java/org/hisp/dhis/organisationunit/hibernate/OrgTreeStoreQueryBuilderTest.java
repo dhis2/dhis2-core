@@ -190,10 +190,13 @@ class OrgTreeStoreQueryBuilderTest {
         """
         WITH
         roots_with_descendants_ids AS (
-          SELECT DISTINCT ou.organisationunitid
-          FROM organisationunit root
-          JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
-          WHERE root.uid = ANY(:roots)
+          SELECT ou.organisationunitid
+          FROM organisationunit ou
+          WHERE ou.patharray && ARRAY(
+            SELECT DISTINCT root.uid
+            FROM organisationunit root
+            WHERE root.uid = ANY(:roots)
+          )
         )
         SELECT ou.path
         FROM organisationunit ou
@@ -213,10 +216,13 @@ class OrgTreeStoreQueryBuilderTest {
         """
         WITH
         roots_with_descendants_ids AS (
-          SELECT DISTINCT ou.organisationunitid
-          FROM organisationunit root
-          JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
-          WHERE root.uid = ANY(:roots)
+          SELECT ou.organisationunitid
+          FROM organisationunit ou
+          WHERE ou.patharray && ARRAY(
+            SELECT DISTINCT root.uid
+            FROM organisationunit root
+            WHERE root.uid = ANY(:roots)
+          )
         )
         ,
         groups_member_ids AS (
@@ -268,5 +274,54 @@ class OrgTreeStoreQueryBuilderTest {
         ORDER BY ou.path
         """,
         params(200, List.of(GROUP), 2, true, "foo", null));
+  }
+
+  @Test
+  void smallHierarchyWithDepthForcesExists() {
+    // hierarchySize=50 would normally pick the JOIN form; depth forces EXISTS.
+    assertSQL(
+        """
+        SELECT ou.path
+        FROM organisationunit ou
+        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
+        WHERE 1=1
+  
+          AND (EXISTS (
+              SELECT 1
+              FROM organisationunit root
+              WHERE root.uid = ANY(:roots)
+                AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
+                AND (ou.patharray && ARRAY[root.uid])
+          ))
+        ORDER BY ou.path
+        """,
+        params(50, List.of(), null, null, null, 2));
+  }
+
+  @Test
+  void smallHierarchyWithLevelAndJoinForm() {
+    assertSQL(
+        """
+        WITH
+        roots_with_descendants_ids AS (
+          SELECT ou.organisationunitid
+          FROM organisationunit ou
+          WHERE ou.patharray && ARRAY(
+            SELECT DISTINCT root.uid
+            FROM organisationunit root
+            WHERE root.uid = ANY(:roots)
+          )
+          AND ou.hierarchylevel = :level
+        )
+        SELECT ou.path
+        FROM organisationunit ou
+        JOIN roots_with_descendants_ids scope ON ou.organisationunitid = scope.organisationunitid
+        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
+        WHERE 1=1
+          AND ou.hierarchylevel = :level
+  
+        ORDER BY ou.path
+        """,
+        params(50, List.of(), 2, null, null, null));
   }
 }

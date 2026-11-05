@@ -84,67 +84,70 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
   static DirectiveQueryBuilder createTreeQuery(OrgTreeParams params, SQL.QueryAPI api) {
     String sql =
         """
-      --@if :useJoin || :groups
-      WITH
-      --@end
-      --@if :useJoin
-      roots_with_descendants_ids AS (
-        SELECT DISTINCT ou.organisationunitid
-        FROM organisationunit root
-        JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
-          --@if :level
-          AND ou.hierarchylevel = :level
-          --@end --@if :depth
-          AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
-          --@end
-        WHERE root.uid = ANY(:roots)
-      )
-      --@end
-      --@if :useJoin && :groups
-      ,
-      --@end
-      --@if :groups
-      groups_member_ids AS (
-        SELECT DISTINCT ougm.organisationunitid
-        FROM orgunitgroup oug
-        JOIN orgunitgroupmembers ougm ON oug.orgunitgroupid = ougm.orgunitgroupid
-        WHERE oug.uid = ANY(:groups)
-      )
-      --@end
-      SELECT ou.path
-      FROM organisationunit ou
-      --@if :groups
-      JOIN groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
-      --@end
-      --@if :useJoin
-      JOIN roots_with_descendants_ids scope ON ou.organisationunitid = scope.organisationunitid
-      --@end
-      LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
-      WHERE 1=1
-        --@if :level
-        AND ou.hierarchylevel = :level
-        --@end --@if :currentlyOpen
-        AND :currentlyOpen = ((ou.openingdate IS NULL || ou.openingdate <= now()) && (ou.closeddate IS NULL || ou.closeddate > now()))
-        --@end --@if :search
-        AND (t.value_unaccent ILIKE immutable_unaccent(:search) OR immutable_unaccent(ou.name) ILIKE immutable_unaccent(:search))
+        --@if :useJoin || :groups
+        WITH
         --@end
-
-        --@if :useExists
-        AND (EXISTS (
-            SELECT 1
+        --@if :useJoin
+        roots_with_descendants_ids AS (
+          SELECT ou.organisationunitid
+          FROM organisationunit ou
+          WHERE ou.patharray && ARRAY(
+            SELECT DISTINCT root.uid
             FROM organisationunit root
             WHERE root.uid = ANY(:roots)
-              --@if :depth
-              AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
-              --@end
-              AND (ou.patharray && ARRAY[root.uid])
-        ))
+          )
+          --@if :level
+          AND ou.hierarchylevel = :level
+          --@end
+        )
         --@end
-      ORDER BY ou.path""";
+        --@if :groups
+          --@if :useJoin
+        ,
+          --@end
+        groups_member_ids AS (
+          SELECT DISTINCT ougm.organisationunitid
+          FROM orgunitgroup oug
+          JOIN orgunitgroupmembers ougm ON oug.orgunitgroupid = ougm.orgunitgroupid
+          WHERE oug.uid = ANY(:groups)
+        )
+        --@end
+        SELECT ou.path
+        FROM organisationunit ou
+        --@if :groups
+        JOIN groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
+        --@end
+        --@if :useJoin
+        JOIN roots_with_descendants_ids scope ON ou.organisationunitid = scope.organisationunitid
+        --@end
+        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
+        WHERE 1=1
+          --@if :level
+          AND ou.hierarchylevel = :level
+          --@end
+          --@if :currentlyOpen
+          AND :currentlyOpen = ((ou.openingdate IS NULL || ou.openingdate <= now()) && (ou.closeddate IS NULL || ou.closeddate > now()))
+          --@end
+          --@if :search
+          AND (t.value_unaccent ILIKE immutable_unaccent(:search) OR immutable_unaccent(ou.name) ILIKE immutable_unaccent(:search))
+          --@end
+        
+          --@if :useExists
+          AND (EXISTS (
+              SELECT 1
+              FROM organisationunit root
+              WHERE root.uid = ANY(:roots)
+                --@if :depth
+                AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
+                --@end
+                AND (ou.patharray && ARRAY[root.uid])
+          ))
+          --@end
+        ORDER BY ou.path""";
     String search = params.searchLike();
     String property = "NAME";
     if (params.shortName()) property = "SHORT_NAME";
-    boolean useExists = params.hierarchySize() > 100;
+    boolean useExists = params.hierarchySize() > 100 || params.depth() != null;
     DirectiveQueryBuilder builder =
         SQL.ofDirective(sql, api)
             .setParameter("level", params.level())
