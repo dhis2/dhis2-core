@@ -63,6 +63,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -514,7 +515,7 @@ class DefaultEventQueryPlannerTest extends TestBase {
     return new EventQueryParams.Builder()
         .withProgram(program)
         .withProgramStage(stage)
-        .withValue(dataElementA)
+        .withValue(new Value(dataElementA))
         .withEndpointItem(EndpointItem.EVENT)
         .addItem(stageDateItem)
         .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))

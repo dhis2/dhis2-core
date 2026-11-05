@@ -96,6 +96,7 @@ import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -1111,7 +1112,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       return;
     }
 
-    DimensionalItemObject value = params.getValue();
+    DimensionalItemObject value = params.getValue().getDimensionalObject();
     ProgramStage stage = params.getValueProgramStage();
 
     boolean stageDataElement =
@@ -1132,7 +1133,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
   }
 
-  private DimensionalItemObject getValueDimension(String value, Program program) {
+  private Value getValueDimension(String value, Program program) {
     if (value == null) {
       return null;
     }
@@ -1144,7 +1145,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     if (de != null
         && (de.isNumericType() || de.getValueType().isBoolean())
         && program.getDataElements().contains(de)) {
-      return de;
+      return new Value(de);
     }
 
     TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute(dimValue);
@@ -1152,7 +1153,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     if (at != null
         && (at.isNumericType() || at.getValueType().isBoolean())
         && program.getTrackedEntityAttributes().contains(at)) {
-      return at;
+      return new Value(at);
     }
 
     throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7223, value));

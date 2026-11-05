@@ -56,6 +56,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.junit.jupiter.api.BeforeEach;
@@ -165,7 +166,7 @@ class AggregatedRowBuilderTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
-            .withValue(numericElement)
+            .withValue(new Value(numericElement))
             .withAggregateData(true)
             .build();
 
@@ -247,7 +248,10 @@ class AggregatedRowBuilderTest {
     dateElement.setValueType(ValueType.DATE);
 
     EventQueryParams params =
-        new EventQueryParams.Builder().withProgram(programA).withValue(dateElement).build();
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withValue(new Value(dateElement))
+            .build();
 
     when(rowSet.getString("value")).thenReturn("2024-01-15");
 
@@ -293,7 +297,7 @@ class AggregatedRowBuilderTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
-            .withValue(numericElement)
+            .withValue(new Value(numericElement))
             .withSkipRounding(true)
             .build();
 
@@ -315,7 +319,7 @@ class AggregatedRowBuilderTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
-            .withValue(numericElement)
+            .withValue(new Value(numericElement))
             .withSkipRounding(false)
             .build();
 
@@ -336,7 +340,10 @@ class AggregatedRowBuilderTest {
     textElement.setValueType(ValueType.TEXT);
 
     EventQueryParams params =
-        new EventQueryParams.Builder().withProgram(programA).withValue(textElement).build();
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withValue(new Value(textElement))
+            .build();
 
     when(rowSet.getString("value")).thenReturn("textDimensionValue");
 
