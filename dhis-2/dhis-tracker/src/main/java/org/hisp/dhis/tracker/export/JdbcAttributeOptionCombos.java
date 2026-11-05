@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionComboStore;
+import org.hisp.dhis.security.acl.AccessControlStore;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -48,11 +48,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  * combos (AOCs).
  *
  * <p>The AOCs a user may read data of are resolved up front with {@link
- * CategoryOptionComboStore#getDataReadableAttributeOptionComboIds}, the same lookup the data value
- * export uses, and bound as one array parameter named {@link #READABLE_AOCS}. The export query
- * filters on them with {@link #readableCondition(String)}, a hash semi join PostgreSQL estimates
- * like no filter at all. Joining a subquery that groups all category option combos instead gives
- * the planner a result size it cannot estimate, which inflates the row estimate of the whole export
+ * AccessControlStore#getDataReadableAttributeOptionComboIds}, the same lookup the data value export
+ * uses, and bound as one array parameter named {@link #READABLE_AOCS}. The export query filters on
+ * them with {@link #readableCondition(String)}, a hash semi join PostgreSQL estimates like no
+ * filter at all. Joining a subquery that groups all category option combos instead gives the
+ * planner a result size it cannot estimate, which inflates the row estimate of the whole export
  * query and can flip it to a plan that reads millions of rows (DHIS2-22400).
  *
  * <p>The export query does not join {@code categoryoptioncombo} either. PostgreSQL would merge that

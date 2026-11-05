@@ -54,7 +54,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -65,6 +64,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.acl.AccessControlStore;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
@@ -106,7 +106,7 @@ class JdbcEnrollmentStore {
   @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
-  private final CategoryOptionComboStore categoryOptionComboStore;
+  private final AccessControlStore accessControlStore;
 
   public List<Enrollment> getEnrollments(EnrollmentQueryParams enrollmentParams) {
     // A te which is not enrolled can only be accessed by a user that is able to enroll it into a
@@ -279,8 +279,7 @@ class JdbcEnrollmentStore {
    */
   private boolean addReadableAocs(MapSqlParameterSource sqlParams) {
     long[] readable =
-        categoryOptionComboStore.getDataReadableAttributeOptionComboIds(
-            getCurrentUserDetails(), null);
+        accessControlStore.getDataReadableAttributeOptionComboIds(getCurrentUserDetails(), null);
     if (readable == null) {
       return true;
     }
