@@ -130,7 +130,8 @@ public class OutboundSms implements IdentifiableObject {
   /** Passed to the gateway when sending, not persisted. */
   @Transient private String subject;
 
-  @Column(name = "message", length = 500)
+  @Column(name = "message", columnDefinition = "text")
+  @Type(type = "text")
   private String message;
 
   @Column(name = "status", nullable = false)
