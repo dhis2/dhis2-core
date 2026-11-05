@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static org.hisp.dhis.analytics.TimeField.CREATED;
+import static org.hisp.dhis.analytics.TimeField.ENROLLMENT_DATE;
+import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
@@ -46,6 +49,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.OrgUnitField;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -214,6 +218,47 @@ class EventQueryParamsTest extends TestBase {
 
     assertTrue(params.hasRegistrationOuDimension());
     assertFalse(params.hasRegistrationOuRestriction());
+  }
+
+  @Test
+  void testHasFirstOrLastStagePeriod() {
+    EventQueryParams withoutStagePeriod = new EventQueryParams.Builder().build();
+    EventQueryParams withStagePeriod =
+        new EventQueryParams.Builder()
+            .withFirstOrLastStagePeriod(
+                new QueryItem(createDataElement('A')), PeriodDimension.of("202602"))
+            .build();
+
+    assertFalse(withoutStagePeriod.hasFirstOrLastStagePeriod());
+    assertTrue(withStagePeriod.hasFirstOrLastStagePeriod());
+  }
+
+  @Test
+  void testFirstOrLastStagePeriodExposesDateColumnStageAndPeriod() {
+    QueryItem dateItem = new QueryItem(new BaseDimensionalItemObject("occurreddate"));
+    dateItem.setProgramStage(psA);
+    PeriodDimension period = PeriodDimension.of("202602");
+
+    EventQueryParams.FirstOrLastStagePeriod stagePeriod =
+        new EventQueryParams.FirstOrLastStagePeriod(dateItem, period);
+
+    assertEquals("occurreddate", stagePeriod.dateColumn());
+    assertEquals(psA, stagePeriod.programStage());
+    assertEquals(period.getEndDate(), stagePeriod.endDate());
+    assertEquals("202602", stagePeriod.isoPeriod());
+  }
+
+  @Test
+  void testGetLatestEndDateIncludingStageDatesReadsStageDateItemFilters() {
+    QueryItem dateItem = new QueryItem(new BaseDimensionalItemObject("occurreddate"));
+    dateItem.setProgramStage(psA);
+    dateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-02-01"));
+    dateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-02-28"));
+    EventQueryParams params = new EventQueryParams.Builder().addItem(dateItem).build();
+
+    assertEquals(getDate(2026, 2, 28), params.getLatestEndDateIncludingStageDates());
+    assertNull(params.getStartDate());
+    assertNull(params.getEndDate());
   }
 
   @Test
@@ -533,6 +578,180 @@ class EventQueryParamsTest extends TestBase {
     assertEquals(0, params.getTimeDateRanges().size());
     assertFalse(params.getTimeDateRanges().containsKey(SCHEDULED_DATE));
     assertNull(params.getTimeDateRanges().get(SCHEDULED_DATE));
+  }
+
+  @Test
+  void testReplacePeriodsWithDatesKeepsDateFieldFilterSeparateFromDimension() {
+    // Given
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods(yearWithDateField("2017", CREATED)))
+            .addFilter(periods(yearWithDateField("2023", ENROLLMENT_DATE)))
+            .build();
+
+    // When
+    params.replacePeriodsWithDates();
+
+    // Then
+    assertEquals(Set.of(CREATED), params.getTimeDateRanges().keySet());
+    assertEquals(Set.of(ENROLLMENT_DATE), params.getFilterTimeDateRanges().keySet());
+    assertEquals(
+        2023,
+        toLocalDate(params.getFilterTimeDateRanges().get(ENROLLMENT_DATE).get(0).getStartDate())
+            .getYear());
+    assertTrue(params.getFilterDateRanges().isEmpty());
+    assertTrue(params.hasFilterDateRanges());
+    assertNull(params.getDimension("pe"));
+    assertNull(params.getFilter("pe"));
+  }
+
+  @Test
+  void testReplacePeriodsWithDatesKeepsBareFilterSeparateFromDimension() {
+    // Given
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(
+                periods(
+                    yearWithDateField("2022", ENROLLMENT_DATE),
+                    yearWithDateField("2023", ENROLLMENT_DATE)))
+            .addFilter(periods(PeriodDimension.of("2016")))
+            .build();
+
+    // When
+    params.replacePeriodsWithDates();
+
+    // Then
+    assertNull(params.getStartDate());
+    assertNull(params.getEndDate());
+    assertEquals(2, params.getTimeDateRanges().get(ENROLLMENT_DATE).size());
+    assertTrue(params.getFilterTimeDateRanges().isEmpty());
+    assertEquals(1, params.getFilterDateRanges().size());
+    assertEquals(2016, toLocalDate(params.getFilterDateRanges().get(0).getStartDate()).getYear());
+  }
+
+  @Test
+  void testReplacePeriodsWithDatesUsesFilterAsTimeDateRangesWithoutDimension() {
+    // Given
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addFilter(periods(yearWithDateField("2023", ENROLLMENT_DATE)))
+            .build();
+
+    // When
+    params.replacePeriodsWithDates();
+
+    // Then
+    assertEquals(Set.of(ENROLLMENT_DATE), params.getTimeDateRanges().keySet());
+    assertFalse(params.hasFilterDateRanges());
+  }
+
+  @Test
+  void testFilterDateRangesAreCopiedByBuilder() {
+    // Given
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods(yearWithDateField("2017", CREATED)))
+            .addFilter(periods(yearWithDateField("2023", ENROLLMENT_DATE)))
+            .addFilter(periods(PeriodDimension.of("2016")))
+            .build();
+    params.replacePeriodsWithDates();
+
+    // When
+    EventQueryParams copy = new EventQueryParams.Builder(params).build();
+
+    // Then
+    assertEquals(params.getFilterTimeDateRanges(), copy.getFilterTimeDateRanges());
+    assertEquals(params.getFilterDateRanges(), copy.getFilterDateRanges());
+  }
+
+  @Test
+  void testWithoutTimeDateRangesRemovesFilterTimeDateRanges() {
+    // Given
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods(yearWithDateField("2017", CREATED)))
+            .addFilter(periods(yearWithDateField("2023", EVENT_DATE)))
+            .build();
+    params.replacePeriodsWithDates();
+
+    // When
+    EventQueryParams stripped =
+        new EventQueryParams.Builder(params).withoutTimeDateRanges(Set.of(EVENT_DATE)).build();
+
+    // Then
+    assertTrue(stripped.getFilterTimeDateRanges().isEmpty());
+    assertEquals(Set.of(EVENT_DATE), params.getFilterTimeDateRanges().keySet());
+  }
+
+  @Test
+  void testWithoutTimeDateRangesLeavesSourceTimeDateRangesUntouched() {
+    // Given
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods(yearWithDateField("2023", EVENT_DATE)))
+            .build();
+    params.replacePeriodsWithDates();
+
+    // When
+    EventQueryParams stripped =
+        new EventQueryParams.Builder(params).withoutTimeDateRanges(Set.of(EVENT_DATE)).build();
+
+    // Then
+    assertTrue(stripped.getTimeDateRanges().isEmpty());
+    assertEquals(Set.of(EVENT_DATE), params.getTimeDateRanges().keySet());
+  }
+
+  @Test
+  void testReplacePeriodsWithDatesOnCopyLeavesSourceDateRangesUntouched() {
+    // Given
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods(yearWithDateField("2017", CREATED)))
+            .addFilter(periods(yearWithDateField("2023", ENROLLMENT_DATE)))
+            .build();
+    params.replacePeriodsWithDates();
+
+    // When
+    new EventQueryParams.Builder(params)
+        .addDimension(periods(yearWithDateField("2018", CREATED)))
+        .addFilter(periods(yearWithDateField("2024", ENROLLMENT_DATE)))
+        .withStartEndDatesForPeriods()
+        .build();
+
+    // Then
+    assertEquals(1, params.getTimeDateRanges().get(CREATED).size());
+    assertEquals(1, params.getFilterTimeDateRanges().get(ENROLLMENT_DATE).size());
+  }
+
+  @Test
+  void testKeyDiffersWhenOnlyFilterDateRangeDiffers() {
+    // Given
+    EventQueryParams filter2023 =
+        new EventQueryParams.Builder()
+            .addDimension(periods(yearWithDateField("2017", CREATED)))
+            .addFilter(periods(yearWithDateField("2023", ENROLLMENT_DATE)))
+            .build();
+    filter2023.replacePeriodsWithDates();
+
+    EventQueryParams filter2024 =
+        new EventQueryParams.Builder()
+            .addDimension(periods(yearWithDateField("2017", CREATED)))
+            .addFilter(periods(yearWithDateField("2024", ENROLLMENT_DATE)))
+            .build();
+    filter2024.replacePeriodsWithDates();
+
+    // When / Then
+    assertNotEquals(filter2023.getKey(), filter2024.getKey());
+  }
+
+  private static BaseDimensionalObject periods(PeriodDimension... periods) {
+    return new BaseDimensionalObject("pe", PERIOD, List.of(periods));
+  }
+
+  private static PeriodDimension yearWithDateField(String year, TimeField timeField) {
+    PeriodDimension period = PeriodDimension.of(year);
+    period.setDateField(timeField.name());
+    return period;
   }
 
   @Test

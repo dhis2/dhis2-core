@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.jsontree.Appender;
 import org.hisp.dhis.jsontree.Text;
 
 /**
@@ -44,9 +45,6 @@ import org.hisp.dhis.jsontree.Text;
  * three main reasons: 1. They tend to do more than needed and wanted 2. They often are not
  * optimized for speed 3. The OpenAPI rendering implementation should be extractable to a library
  * with no 3rd party dependencies
- *
- * <p>When generating big HTML documents from big JSON OpenAPI specifications the stripping and
- * escaping of text occurs quite frequent and has to be
  *
  * @author Jan Bernitt
  * @since 2.42
@@ -78,61 +76,64 @@ final class OpenApiHtmlUtils {
   }
 
   /**
-   * HTML-escapes the provided text preserving any HTML entities that are contained. That means they
-   * are not escaped again, so they keep working as HTML entities.
+   * HTML-escapes the provided text preserving any HTML entities that are contained, appending the
+   * result to the given {@link Appender}.
+   *
+   * <p>Unescaped content is written in contiguous runs via {@link
+   * Appender#appendEncoded(CharSequence, int, int)}. Writing runs rather than individual characters
+   * is required for correctness on byte-oriented sinks: a surrogate pair split across two
+   * single-char {@code appendEncoded(char)} calls is encoded as two {@code U+FFFD} because neither
+   * half is a complete codepoint on its own.
    *
    * @param text "unsafe" text that should be inserted into HTML as "plain" text
    * @param to the target to append the escaped text to
    */
-  public static void appendEscaped(@CheckForNull Text text, StringBuilder to) {
+  public static void appendEscaped(@CheckForNull Text text, Appender to) {
     if (text == null || text.isEmpty()) return;
-    if (text.indexOf('&') < 0) {
-      appendEscapedFast(text, to);
-      return;
-    }
     int len = text.length();
+    int runStart = 0;
     for (int i = 0; i < len; i++) {
       char c = text.charAt(i);
       switch (c) {
-        case '<' -> to.append("&lt;");
-        case '>' -> to.append("&gt;");
-        case '"' -> to.append("&quot;");
-        case '\'' -> to.append("&#039;");
+        case '<' -> {
+          if (i > runStart) to.appendEncoded(text, runStart, i);
+          to.appendAscii("&lt;", 0, 4);
+          runStart = i + 1;
+        }
+        case '>' -> {
+          if (i > runStart) to.appendEncoded(text, runStart, i);
+          to.appendAscii("&gt;", 0, 4);
+          runStart = i + 1;
+        }
+        case '"' -> {
+          if (i > runStart) to.appendEncoded(text, runStart, i);
+          to.appendAscii("&quot;", 0, 6);
+          runStart = i + 1;
+        }
+        case '\'' -> {
+          if (i > runStart) to.appendEncoded(text, runStart, i);
+          to.appendAscii("&#039;", 0, 6);
+          runStart = i + 1;
+        }
         case '&' -> {
+          if (i > runStart) to.appendEncoded(text, runStart, i);
           int j = findEndOfHtmlEntity(text, i);
           if (j < 0) {
-            to.append("&amp;");
+            to.appendAscii("&amp;", 0, 5);
+            runStart = i + 1;
           } else {
-            // this is a HTML entity, keep it
-            to.append(text, i, j);
-            i = j - 1; // as i is increased at the end of the loop
+            // preserve the entity as-is
+            to.appendAscii(text, i, j);
+            i = j - 1; // compensate for the loop increment
+            runStart = j;
           }
         }
-        default -> to.append(c);
+        default -> {
+          /* part of the pending run */
+        }
       }
     }
-  }
-
-  /**
-   * Escapes by replacing characters in a stream writing to a new buffer. This does not preserve use
-   * HTML entities so should only be used when no "&" is in the input should those be preserved.
-   *
-   * @param text unescaped text
-   * @param to the target to append to
-   */
-  private static void appendEscapedFast(Text text, StringBuilder to) {
-    int len = text.length();
-    for (int i = 0; i < len; i++) {
-      char c = text.charAt(i);
-      switch (c) {
-        case '<' -> to.append("&lt;");
-        case '>' -> to.append("&gt;");
-        case '"' -> to.append("&quot;");
-        case '\'' -> to.append("&#039;");
-        case '&' -> to.append("&amp;");
-        default -> to.append(c);
-      }
-    }
+    if (runStart < len) to.appendEncoded(text, runStart, len);
   }
 
   private static int findEndOfHtmlEntity(Text text, int i) {

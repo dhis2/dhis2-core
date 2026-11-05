@@ -38,10 +38,16 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.ColumnAndAlias;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class StageQuerySqlFacadeTest {
   private final TestClassifier classifier = new TestClassifier();
@@ -81,6 +87,40 @@ class StageQuerySqlFacadeTest {
     assertTrue(aggregated.isPresent());
     assertEquals("bucket_expr_monthly", aggregated.get().getColumn());
     assertEquals(item.getItemName(), aggregated.get().getAlias());
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+        "postgresql|'202602'::text",
+        "doris|CAST('202602' AS CHAR)",
+        "clickhouse|toString('202602')"
+      },
+      delimiter = '|',
+      quoteCharacter = '"')
+  void shouldUseRequestedStagePeriodForFirstOrLastAggregation(String database, String expected) {
+    QueryItem item = createItem("occurreddate", true);
+    classifier.isStageDate = true;
+    AnalyticsSqlBuilder builder =
+        switch (database) {
+          case "doris" -> new DorisAnalyticsSqlBuilder("analytics", "cluster");
+          case "clickhouse" -> new ClickHouseAnalyticsSqlBuilder("analytics");
+          default -> new PostgreSqlAnalyticsSqlBuilder();
+        };
+    DefaultStageQuerySqlFacade facade =
+        new DefaultStageQuerySqlFacade(classifier, dateRenderer, orgUnitService, builder);
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withFirstOrLastStagePeriod(item, PeriodDimension.of("202602"))
+            .build();
+
+    ColumnAndAlias select =
+        facade.resolveSelectColumn(item, params, false, true, null).orElseThrow();
+    ColumnAndAlias group = facade.resolveSelectColumn(item, params, true, true, null).orElseThrow();
+
+    assertEquals(expected, select.getColumn());
+    assertEquals(item.getItemName(), select.getAlias());
+    assertEquals(expected, group.getColumn());
   }
 
   @Test
