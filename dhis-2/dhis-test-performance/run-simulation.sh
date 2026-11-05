@@ -21,7 +21,7 @@ show_usage() {
   echo "                        Valid values: dev"
   echo "                        Pattern: s3://databases.dhis2.org/<dir>/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DB_TYPE               Database type (default: sierra-leone)"
-  echo "                        Valid values without DB_DIR: sierra-leone, hmis"
+  echo "                        Valid values without DB_DIR: sierra-leone, hmis, perfland-mnch"
   echo "                        Valid values with DB_DIR: platform-perf"
   echo "  DB_VERSION            Database version (default: dev)"
   echo "                        Must be alphanumeric, dots, hyphens, underscores only"
@@ -159,11 +159,11 @@ fi
 if [ -z "$DB_DIR" ]; then
   # No DB_DIR: only standard public databases are allowed
   case "$DB_TYPE" in
-    sierra-leone|hmis)
+    sierra-leone|hmis|perfland-mnch)
       # Valid
       ;;
     *)
-      echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis' when DB_DIR is not set, got: $DB_TYPE" >&2
+      echo "Error: DB_TYPE must be 'sierra-leone', 'hmis' or 'perfland-mnch' when DB_DIR is not set, got: $DB_TYPE" >&2
       echo "Set DB_DIR to use a custom database type" >&2
       echo "Run '$0' without arguments to see usage" >&2
       exit 1
