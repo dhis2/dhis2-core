@@ -31,9 +31,12 @@ package org.hisp.dhis.tablereplication.jdbc;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.system.util.Clock;
@@ -67,9 +70,10 @@ public class JdbcTableReplicationStore implements TableReplicationStore {
     final String tableName = table.getName();
 
     refreshTable(table);
-    dropTable(table);
-    createTable(table);
-    replicateTable(table);
+    Table replica = withSourceColumns(table);
+    dropTable(replica);
+    createTable(replica);
+    replicateTable(replica);
 
     log.info("Analytics database table replicated: '{}' '{}'", tableName, clock.time());
   }
@@ -145,6 +149,78 @@ public class JdbcTableReplicationStore implements TableReplicationStore {
           table.getName(),
           ex.getMessage());
     }
+  }
+
+  /**
+   * Returns the given table without the columns which the operational database table lacks, or the
+   * table itself if the operational database table has all of them. Resource tables are defined
+   * from current metadata, so a data dimension added since the operational database table was last
+   * generated has a column which the operational database table lacks until the next resource table
+   * update, and copying it would fail.
+   *
+   * @param table the {@link Table}.
+   * @return a {@link Table}.
+   */
+  private Table withSourceColumns(Table table) {
+    Set<String> sourceColumns = getSourceColumns(table.getName());
+
+    if (sourceColumns.isEmpty()) {
+      return table;
+    }
+
+    Map<Boolean, List<Column>> columns =
+        table.getColumns().stream()
+            .collect(
+                Collectors.partitioningBy(c -> sourceColumns.contains(c.getName().toLowerCase())));
+
+    List<String> missing = columns.get(false).stream().map(Column::getName).toList();
+
+    if (missing.isEmpty()) {
+      return table;
+    }
+
+    if (missing.stream().anyMatch(c -> isKeyColumn(table, c))) {
+      log.warn(
+          "Key columns {} are missing from table '{}' in the operational database",
+          missing,
+          table.getName());
+      return table;
+    }
+
+    log.warn(
+        "Columns {} are missing from table '{}' in the operational database and are left out of "
+            + "the replica, run a resource table or full analytics table update to add them",
+        missing,
+        table.getName());
+
+    return new Table(
+        table.getName(),
+        columns.get(true),
+        table.getPrimaryKey(),
+        table.getSortKey(),
+        table.getChecks(),
+        table.getLogged());
+  }
+
+  /**
+   * Returns the lowercase column names of the given operational database table, or an empty set if
+   * the table does not exist.
+   *
+   * @param tableName the table name.
+   * @return a set of column names.
+   */
+  private Set<String> getSourceColumns(String tableName) {
+    String sql =
+        "select column_name from information_schema.columns "
+            + "where table_schema = 'public' and table_name = ?";
+    return postgresJdbcTemplate.queryForList(sql, String.class, tableName).stream()
+        .map(String::toLowerCase)
+        .collect(Collectors.toSet());
+  }
+
+  private boolean isKeyColumn(Table table, String column) {
+    return (table.getPrimaryKey() != null && table.getPrimaryKey().contains(column))
+        || (table.getSortKey() != null && table.getSortKey().contains(column));
   }
 
   /**
