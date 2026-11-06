@@ -104,13 +104,35 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     preheatParams.setUserDetails(params.getUserDetails());
     preheatParams.setObjects(params.getObjects());
 
-    Preheat preheat = preheatService.preheat(preheatParams);
+    Preheat preheat = preheatWithoutAutoFlush(preheatParams);
 
     ObjectBundle bundle = new ObjectBundle(params, preheat, params.getObjects());
     bundle.setObjectBundleStatus(ObjectBundleStatus.CREATED);
     bundle.setObjectReferences(preheatService.collectObjectReferences(params.getObjects()));
 
     return bundle;
+  }
+
+  /**
+   * Preheat only reads, but it runs inside the import's write transaction. In Hibernate's {@code
+   * FlushMode.AUTO} every query first dirty-checks all managed entities, and preheat loads every
+   * referenced object into the session. With a large reference collection (an org unit group with
+   * 100k members) each preheat query then walks 100k entities, which makes the preheat quadratic.
+   * Pending changes are flushed once so preheat queries still see them; flushing is then deferred
+   * to commit until preheat is done.
+   */
+  private Preheat preheatWithoutAutoFlush(PreheatParams preheatParams) {
+    Session session = entityManager.unwrap(Session.class);
+    org.hibernate.FlushMode flushMode = session.getHibernateFlushMode();
+    if (flushMode == org.hibernate.FlushMode.AUTO || flushMode == org.hibernate.FlushMode.ALWAYS) {
+      session.flush();
+      session.setHibernateFlushMode(org.hibernate.FlushMode.COMMIT);
+    }
+    try {
+      return preheatService.preheat(preheatParams);
+    } finally {
+      session.setHibernateFlushMode(flushMode);
+    }
   }
 
   @Override
@@ -144,7 +166,18 @@ public class DefaultObjectBundleService implements ObjectBundleService {
       commitHooks.forEach(hook -> hook.postCommit(bundle));
     }
 
-    dbmsManager.clearSession();
+    // With FlushMode.AUTO every commitObjectType call ends with a flush. Only postCommit hooks run
+    // after the last one, so without them another flush would only dirty-check every managed
+    // entity again, which takes seconds when the bundle references 100k org units.
+    boolean flushedAfterLastChange =
+        FlushMode.AUTO == bundle.getFlushMode()
+            && !klasses.isEmpty()
+            && (commitHooks.isEmpty() || bundle.getImportMode().isDelete());
+    if (flushedAfterLastChange) {
+      entityManager.clear();
+    } else {
+      dbmsManager.clearSession();
+    }
     cacheManager.clearCache();
 
     bundle.setObjectBundleStatus(ObjectBundleStatus.COMMITTED);
