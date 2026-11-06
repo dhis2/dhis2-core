@@ -35,11 +35,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.db.model.Column;
@@ -55,6 +57,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -150,6 +153,21 @@ class JdbcTableReplicationStoreTest {
         .verify(analyticsJdbcTemplate)
         .execute(contains("from pg_dhis.public.`trackedentityattributevalue`"));
     verifyNoInteractions(postgresJdbcTemplate);
+  }
+
+  @Test
+  void replicateTableContinuesWhenRefreshFails() {
+    doThrow(new BadSqlGrammarException("refresh", "refresh table", new SQLException("denied")))
+        .when(analyticsJdbcTemplate)
+        .execute(startsWith("refresh"));
+
+    store.replicateAnalyticsDatabaseTable(TABLE);
+
+    verify(analyticsJdbcTemplate)
+        .execute(startsWith("drop table if exists `trackedentityattributevalue`"));
+    verify(analyticsJdbcTemplate).execute(startsWith("create table"));
+    verify(analyticsJdbcTemplate)
+        .execute(contains("from pg_dhis.public.`trackedentityattributevalue`"));
   }
 
   @Test

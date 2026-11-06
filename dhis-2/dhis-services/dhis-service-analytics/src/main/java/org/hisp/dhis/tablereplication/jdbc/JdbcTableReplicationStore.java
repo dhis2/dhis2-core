@@ -39,6 +39,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.tablereplication.TableReplicationStore;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -65,7 +66,6 @@ public class JdbcTableReplicationStore implements TableReplicationStore {
     final Clock clock = new Clock().startClock();
     final String tableName = table.getName();
 
-    // Refresh before dropping, so a failed refresh leaves the existing replica in place
     refreshTable(table);
     dropTable(table);
     createTable(table);
@@ -135,7 +135,16 @@ public class JdbcTableReplicationStore implements TableReplicationStore {
 
     String sql = sqlBuilder.refreshTable(table.getName());
     log.info("Refresh table SQL: '{}'", sql);
-    jdbcTemplate.execute(sql);
+
+    try {
+      jdbcTemplate.execute(sql);
+    } catch (DataAccessException ex) {
+      log.warn(
+          "Failed to refresh table '{}', replicating with the cached table schema, "
+              + "check that the analytics database user may refresh the catalog: {}",
+          table.getName(),
+          ex.getMessage());
+    }
   }
 
   /**
