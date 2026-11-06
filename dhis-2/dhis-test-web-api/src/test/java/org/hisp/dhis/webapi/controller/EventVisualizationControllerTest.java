@@ -164,6 +164,34 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testPostWithValueProgramStage() {
+    // Given
+    String body =
+        """
+        {
+          "name": "Name Test",
+          "type": "LINE_LIST",
+          "program": {"id": "%s"},
+          "value": {
+            "id": "deabcdefghC",
+            "programStage": {"id": "%s"}
+          }
+        }
+        """
+            .formatted(mockProgram.getUid(), mockProgramStage.getUid());
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    JsonObject response =
+        GET("/eventVisualizations/" + uid + "?fields=value[id,programStage[id]]").content();
+
+    assertEquals("deabcdefghC", response.getString("value.id").string());
+    assertEquals(mockProgramStage.getUid(), response.getString("value.programStage.id").string());
+  }
+
+  @Test
   void testPostForOuDimensionAsFilter() throws JsonProcessingException {
     // Given
     DataElement ouDe = createDataElement('D', ValueType.TEXT, AggregationType.SUM, TRACKER);
