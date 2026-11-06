@@ -682,7 +682,7 @@ public class EventVisualization extends BaseAnalyticalObject
         attributeValueDimension = trackedEntityAttribute;
       }
 
-      if (value.getProgramStage() != null) {
+      if (value.getProgramStage() != null && programStageValueDimension == null) {
         programStageValueDimension = value.getProgramStage();
       }
     }
