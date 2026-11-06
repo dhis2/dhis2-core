@@ -78,7 +78,7 @@ public class ServiceConfig {
 
   /**
    * Single-threaded, bounded executor for asynchronous user session invalidation, see {@code
-   * UserRoleSessionInvalidationListener}. A single thread serializes the work and keeps it from
+   * UserSessionInvalidationListener}. A single thread serializes the work and keeps it from
    * competing with more important work.
    */
   @Bean("userSessionInvalidationTaskExecutor")

@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.user;
 
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
@@ -37,7 +38,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import org.hisp.dhis.common.UID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,18 +51,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit test of {@link UserRoleSessionInvalidationListener}.
+ * Unit test of {@link UserSessionInvalidationListener}.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @ExtendWith(MockitoExtension.class)
-class UserRoleSessionInvalidationListenerTest {
+class UserSessionInvalidationListenerTest {
 
   private static final UID ROLE_UID = UID.of("Rab1234abcd");
 
   @Mock private UserService userService;
 
-  @InjectMocks private UserRoleSessionInvalidationListener listener;
+  @InjectMocks private UserSessionInvalidationListener listener;
 
   @Test
   void invalidatesSessionsOfAllRoleMembersInOrder() {
@@ -74,7 +78,7 @@ class UserRoleSessionInvalidationListenerTest {
   @Test
   void invalidatesSessionsOfAllRoleMembersAcrossBatches() {
     List<String> usernames =
-        IntStream.range(0, UserRoleSessionInvalidationListener.BATCH_SIZE + 1)
+        IntStream.range(0, UserSessionInvalidationListener.BATCH_SIZE + 1)
             .mapToObj(i -> "user" + i)
             .toList();
     when(userService.getUsernamesByUserRole(ROLE_UID)).thenReturn(usernames);
@@ -91,5 +95,29 @@ class UserRoleSessionInvalidationListenerTest {
     listener.onUserRoleAuthoritiesChanged(new UserRoleAuthoritiesChangedEvent(ROLE_UID));
 
     verify(userService, never()).invalidateUserSessions(anyString());
+  }
+
+  @Test
+  void invalidatesSessionsOfUsersWhoseGroupMembershipChanged() {
+    when(userService.getUsernamesByIds(anyList())).thenReturn(List.of("alice", "bob"));
+
+    listener.onUserGroupMembershipChanged(new UserGroupMembershipChangedEvent(Set.of(1L, 2L)));
+
+    verify(userService).invalidateUserSessions("alice");
+    verify(userService).invalidateUserSessions("bob");
+  }
+
+  @Test
+  void resolvesUsernamesOfGroupMembershipChangePerBatch() {
+    Set<Long> userIds =
+        LongStream.range(0, UserSessionInvalidationListener.BATCH_SIZE + 1)
+            .boxed()
+            .collect(Collectors.toSet());
+    when(userService.getUsernamesByIds(anyList())).thenReturn(List.of("user"));
+
+    listener.onUserGroupMembershipChanged(new UserGroupMembershipChangedEvent(userIds));
+
+    verify(userService, times(2)).getUsernamesByIds(anyList());
+    verify(userService, times(2)).invalidateUserSessions("user");
   }
 }
