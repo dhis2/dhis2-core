@@ -64,7 +64,9 @@ class LoginConfigCorsFilterTest {
   void setUp() {
     ConfigurationService configurationService = mock(ConfigurationService.class);
     when(configurationService.isCorsWhitelisted(WHITELISTED_ORIGIN)).thenReturn(true);
-    filter = new LoginConfigCorsFilter(new DhisCorsProcessor(configurationService));
+    filter =
+        new LoginConfigCorsFilter(
+            new DhisCorsProcessor(new AllowedOriginMatcher(configurationService)));
   }
 
   @ParameterizedTest
@@ -102,7 +104,7 @@ class LoginConfigCorsFilterTest {
   }
 
   @Test
-  void nonWhitelistedOriginGetsNoCorsHeadersAndStopsChain() throws ServletException, IOException {
+  void nonWhitelistedOriginGetsNoCorsHeaders() throws ServletException, IOException {
     MockHttpServletRequest request = request("GET", "/api/loginConfig");
     request.addHeader("Origin", "http://evil.example");
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -111,7 +113,7 @@ class LoginConfigCorsFilterTest {
     filter.doFilter(request, response, chain);
 
     assertNull(response.getHeader("Access-Control-Allow-Origin"));
-    assertNull(chain.getRequest(), "rejected CORS request must not reach the endpoint");
+    assertNull(response.getHeader("Access-Control-Allow-Credentials"));
   }
 
   @Test
