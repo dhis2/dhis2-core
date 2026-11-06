@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
@@ -274,6 +275,16 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     assertThat(sql.getValue(), containsString("order by \"created\" desc nulls last"));
+  }
+
+  @Test
+  void verifyEnrollmentCountCountsRowsOfEnrollmentTable() {
+    subject.getEnrollmentCount(createRequestParams());
+
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    assertThat(sql.getValue(), startsWith("select count(1) "));
+    assertThat(sql.getValue(), containsString("from analytics_enrollment_"));
   }
 
   @Test

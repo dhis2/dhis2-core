@@ -298,10 +298,13 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           WHERE organisationunitid IS NOT NULL
         ),
         ou_with_descendants_ids AS (
-          SELECT DISTINCT ou.organisationunitid
-          FROM ou_ids
-          JOIN organisationunit root USING (organisationunitid)
-          JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
+           SELECT ou.organisationunitid
+           FROM organisationunit ou
+           WHERE ou.patharray && ARRAY(
+             SELECT DISTINCT root.uid
+             FROM ou_ids
+             JOIN organisationunit root USING (organisationunitid)
+           )
         )
         SELECT
           de.uid AS deid,
@@ -389,10 +392,13 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           WHERE organisationunitid IS NOT NULL
         ),
         ou_with_descendants_ids AS (
-          SELECT DISTINCT ou.organisationunitid
-          FROM ou_ids
-          JOIN organisationunit root USING (organisationunitid)
-          JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
+           SELECT ou.organisationunitid
+           FROM organisationunit ou
+           WHERE ou.patharray && ARRAY(
+             SELECT DISTINCT root.uid
+             FROM ou_ids
+             JOIN organisationunit root USING (organisationunitid)
+           )
         )
         SELECT
           de.uid AS deid,
