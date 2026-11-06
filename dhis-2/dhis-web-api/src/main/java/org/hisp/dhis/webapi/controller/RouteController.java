@@ -49,6 +49,7 @@ import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.webapi.security.RejectCrossOriginGet;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
@@ -81,6 +82,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
+  @RejectCrossOriginGet
   public ResponseEntity<ResponseBodyEmitter> run(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
@@ -98,6 +100,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
+  @RejectCrossOriginGet
   public ResponseEntity<ResponseBodyEmitter> runWithSubpath(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,

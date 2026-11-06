@@ -62,21 +62,37 @@ public class SessionTimeoutHeaderFilter extends OncePerRequestFilter {
         && CurrentUserUtil.hasCurrentUser()) {
       int maxInactiveInterval = session.getMaxInactiveInterval();
       long expiresEpochSecond = Instant.now().plusSeconds(maxInactiveInterval).getEpochSecond();
-      SessionCookieConfig sessionCookieConfig =
-          request.getServletContext().getSessionCookieConfig();
       String cookieValue =
           String.format(
               "server_time=%s&expiry_time=%s", Instant.now().getEpochSecond(), expiresEpochSecond);
       ResponseCookie cookie =
-          ResponseCookie.from(COOKIE_NAME, cookieValue)
-              .maxAge(maxInactiveInterval)
-              .path("/")
-              .httpOnly(false)
-              .secure(sessionCookieConfig.isSecure())
-              .sameSite(sessionCookieConfig.getAttribute("SameSite"))
-              .build();
+          createCookie(
+              request.getServletContext().getSessionCookieConfig(),
+              cookieValue,
+              maxInactiveInterval);
       response.addHeader("Set-Cookie", cookie.toString());
     }
     filterChain.doFilter(request, response);
+  }
+
+  /**
+   * Creates the {@link #COOKIE_NAME} cookie. Setting and clearing the cookie both use this method,
+   * so that the clearing cookie carries the same attributes as the cookie it replaces.
+   *
+   * @param sessionCookieConfig the session cookie configuration to copy {@code Secure} and {@code
+   *     SameSite} from
+   * @param value the cookie value
+   * @param maxAgeSeconds the cookie lifetime, 0 to clear the cookie
+   * @return the cookie
+   */
+  public static ResponseCookie createCookie(
+      SessionCookieConfig sessionCookieConfig, String value, long maxAgeSeconds) {
+    return ResponseCookie.from(COOKIE_NAME, value)
+        .maxAge(maxAgeSeconds)
+        .path("/")
+        .httpOnly(false)
+        .secure(sessionCookieConfig.isSecure())
+        .sameSite(sessionCookieConfig.getAttribute("SameSite"))
+        .build();
   }
 }

@@ -75,6 +75,31 @@
         aMenuLinkClasses: "menu-link drop-down-menu-link"
     };
 
+    /**
+     * Logout must use POST, so logout links are submitted as a POST form instead of being followed.
+     */
+    function isLogoutUrl(url) {
+        return typeof url === 'string' && /\/dhis-web-commons-security\/logout\.action(\?|#|$)/.test(url);
+    }
+
+    function submitLogout(url) {
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        form.style.display = 'none';
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    document.addEventListener('click', function (event) {
+        var link = event.target && event.target.closest ? event.target.closest('a') : null;
+
+        if (link && isLogoutUrl(link.getAttribute('href'))) {
+            event.preventDefault();
+            submitLogout(link.href);
+        }
+    });
+
     templates.itemItemplate = '' +
         '<li data-id="{{id}}" data-app-name="{{name}}" data-app-action="{{baseUrl}}{{defaultAction}}">' +
             '<a href="{{baseUrl}}{{defaultAction}}" class="app-menu-item">' +
@@ -470,7 +495,9 @@
             url = jqLite(link).attr('href');
 
             //TODO: Check if it is an actual url?
-            if (url) {
+            if (url && isLogoutUrl(url)) {
+                submitLogout(link.href);
+            } else if (url) {
                 window.location = url;
             }
         };

@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.UrlParamsMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
+import org.hisp.dhis.webapi.mvc.interceptor.CrossOriginGetInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.HandlerMethodInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.TrackerExportDeadlineInterceptor;
@@ -256,6 +257,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     registry.addInterceptor(new HandlerMethodInterceptor());
     registry.addInterceptor(new UserContextInterceptor());
     registry.addInterceptor(authorityInterceptor);
+    registry.addInterceptor(new CrossOriginGetInterceptor());
     registry.addInterceptor(settingsInterceptor);
     registry.addInterceptor(new TrailingSlashInterceptor()).excludePathPatterns("/api/**");
     registry

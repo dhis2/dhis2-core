@@ -54,6 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.security.RejectCrossOriginGet;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
@@ -82,6 +83,7 @@ public class TrackedEntityAttributeController
   @GetMapping(
       value = "/{id}/generateAndReserve",
       produces = {ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT})
+  @RejectCrossOriginGet
   public @ResponseBody List<ReservedValue> generateAndReserveValues(
       @RequestParam(required = false, defaultValue = "1") Integer numberToReserve,
       @RequestParam(required = false, defaultValue = "60") Integer expiration,
@@ -101,6 +103,7 @@ public class TrackedEntityAttributeController
    * @throws WebMessageException
    */
   @GetMapping("/{id}/generate")
+  @RejectCrossOriginGet
   public @ResponseBody ReservedValue legacyQueryTrackedEntityInstancesJson(
       @PathVariable String id,
       @RequestParam(required = false, defaultValue = "3") Integer expiration)
