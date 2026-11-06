@@ -85,7 +85,7 @@ jobs:
           DORIS_VERSION=3.0.7 \
           docker compose -f docker-compose.yml -f docker-compose.doris.yml -f docker-compose.e2e.yml \
             -f docker-compose.e2e-analytics.yml -f docker-compose.doris-analytics.yml \
-            up --remove-orphans --exit-code-from test
+            up --attach test --remove-orphans --exit-code-from test
 
       - name: Upload logs
         if: failure()
