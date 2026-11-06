@@ -59,6 +59,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.AnalyticsValueType;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
@@ -480,28 +481,79 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       return true;
     }
 
-    if (hasUniqueKeyModel(tableName)) {
+    if (!hasUniqueKeyModel(tableName)) {
+      log.error(
+          "Table '{}' does not use the unique key model required for continuous analytics "
+              + "updates on this database; run a full analytics table rebuild to recreate it with "
+              + "the required key model before running a continuous (lastYears=0) update",
+          tableName);
+      return false;
+    }
+
+    return hasAllColumns(table, tableName);
+  }
+
+  /**
+   * Indicates whether the main table has every column of the given latest partition table. The
+   * latest partition is merged into the main table by column name, so a missing column would make
+   * the merge fail after the updated rows have been removed from the main table. Dimension columns
+   * missing from the main table are already left out of the latest partition table, see {@link
+   * #getColumnsOfMainTable(String, List)}, so a column missing here is a fact column, which the
+   * populate statements always write.
+   *
+   * @param table the latest partition {@link AnalyticsTable}.
+   * @param mainTableName the main table name.
+   * @return true if the main table has every column, or if its columns cannot be read.
+   */
+  private boolean hasAllColumns(AnalyticsTable table, String mainTableName) {
+    Set<String> mainColumns = getColumnNames(mainTableName);
+
+    if (mainColumns.isEmpty()) {
+      return true;
+    }
+
+    List<String> missingColumns =
+        table.getAnalyticsTableColumns().stream()
+            .map(AnalyticsTableColumn::getName)
+            .filter(name -> !mainColumns.contains(name.toLowerCase()))
+            .toList();
+
+    if (missingColumns.isEmpty()) {
       return true;
     }
 
     log.error(
-        "Table '{}' does not use the unique key model required for continuous analytics "
-            + "updates on this database; run a full analytics table rebuild to recreate it with "
-            + "the required key model before running a continuous (lastYears=0) update",
-        tableName);
+        "Table '{}' lacks columns {} required for continuous analytics updates; run a full "
+            + "analytics table rebuild before running a continuous (lastYears=0) update",
+        mainTableName,
+        missingColumns);
 
     return false;
   }
 
   /**
-   * Returns the given columns of a latest partition table, leaving out the columns which the main
-   * table lacks, on databases where the latest partition is merged into the main table (Doris).
+   * Returns the lower case column names of the given table.
+   *
+   * @param tableName the table name.
+   * @return a set of column names, empty if none could be found.
+   */
+  private Set<String> getColumnNames(String tableName) {
+    return jdbcTemplate.queryForList(sqlBuilder.tableColumns(tableName), String.class).stream()
+        .map(String::toLowerCase)
+        .collect(Collectors.toSet());
+  }
+
+  /**
+   * Returns the given columns of a latest partition table, leaving out the dimension columns which
+   * the main table lacks, on databases where the latest partition is merged into the main table
+   * (Doris).
    *
    * <p>A dimension added since the main table was created, such as an organisation unit group set
    * or a program data element, gives the latest partition a column which the main table lacks.
    * Merging the latest partition would then fail after the updated rows have been removed from the
    * main table. Instead, the new columns are left out of continuous updates, and are added to the
-   * main table by the next full update, which recreates it.
+   * main table by the next full update, which recreates it. Fact columns are always retained; a
+   * main table lacking one fails {@link #isReadyForContinuousUpdate(List)} instead.
    *
    * @param mainTableName the main table name.
    * @param columns the columns of the latest partition table.
@@ -534,20 +586,21 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       return columns;
     }
 
-    Set<String> mainColumns =
-        jdbcTemplate.queryForList(sqlBuilder.tableColumns(mainTableName), String.class).stream()
-            .map(String::toLowerCase)
-            .collect(Collectors.toSet());
+    Set<String> mainColumns = getColumnNames(mainTableName);
 
     if (mainColumns.isEmpty()) {
       log.warn("No columns found for table '{}', all columns are retained", mainTableName);
       return columns;
     }
 
+    // Fact columns are retained, as the populate statements always write them
     Map<Boolean, List<AnalyticsTableColumn>> partitioned =
         columns.stream()
             .collect(
-                Collectors.partitioningBy(c -> mainColumns.contains(c.getName().toLowerCase())));
+                Collectors.partitioningBy(
+                    c ->
+                        AnalyticsValueType.FACT == c.getValueType()
+                            || mainColumns.contains(c.getName().toLowerCase())));
 
     List<AnalyticsTableColumn> newColumns = partitioned.get(false);
 

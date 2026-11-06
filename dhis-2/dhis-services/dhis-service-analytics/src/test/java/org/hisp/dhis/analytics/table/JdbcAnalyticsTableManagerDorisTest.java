@@ -56,6 +56,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.AnalyticsValueType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -464,6 +465,52 @@ class JdbcAnalyticsTableManagerDorisTest {
   }
 
   @Test
+  void testGetColumnsOfMainTableRetainsFactColumnMissingFromMainTable() {
+    // The populate statement always writes the fact columns, so leaving one out would make the
+    // insert column list and the select list disagree.
+    List<AnalyticsTableColumn> columns = List.of(column("dx"), factColumn("value"));
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists("analytics")))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of("dx"));
+
+    assertEquals(columns, subject.getColumnsOfMainTable("analytics", columns));
+  }
+
+  @Test
+  void testIsReadyForContinuousUpdateWhenMainTableLacksFactColumn() {
+    AnalyticsTable table =
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE,
+            List.of(column("dx"), factColumn("value")),
+            List.of(),
+            Logged.UNLOGGED);
+
+    mockUniqueKeyMainTable();
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of("dx"));
+
+    assertFalse(subject.isReadyForContinuousUpdate(List.of(table)));
+  }
+
+  @Test
+  void testIsReadyForContinuousUpdateWhenMainTableHasAllColumns() {
+    AnalyticsTable table =
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE,
+            List.of(column("dx"), factColumn("value")),
+            List.of(),
+            Logged.UNLOGGED);
+
+    mockUniqueKeyMainTable();
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of("DX", "value", "year"));
+
+    assertTrue(subject.isReadyForContinuousUpdate(List.of(table)));
+  }
+
+  @Test
   void testGetColumnsOfMainTableIgnoresColumnNameCase() {
     List<AnalyticsTableColumn> columns = columns("dx", "LlpAwYmLgJj");
 
@@ -522,7 +569,10 @@ class JdbcAnalyticsTableManagerDorisTest {
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
     assertEquals(1, tables.size());
-    assertEquals(List.of("dx", "co", "value"), names(tables.get(0).getAnalyticsTableColumns()));
+    // dimensions missing from the main table are left out, fact columns are always retained
+    assertEquals(
+        List.of("dx", "co", "approvallevel", "daysxvalue", "daysno", "value", "textvalue"),
+        names(tables.get(0).getAnalyticsTableColumns()));
   }
 
   private List<AnalyticsTableColumn> columns(String... columnNames) {
@@ -535,6 +585,31 @@ class JdbcAnalyticsTableManagerDorisTest {
                     .selectExpression(name)
                     .build())
         .toList();
+  }
+
+  private AnalyticsTableColumn column(String name) {
+    return columns(name).get(0);
+  }
+
+  private AnalyticsTableColumn factColumn(String name) {
+    return AnalyticsTableColumn.builder()
+        .name(name)
+        .dataType(TEXT)
+        .valueType(AnalyticsValueType.FACT)
+        .selectExpression(name)
+        .build();
+  }
+
+  private void mockUniqueKeyMainTable() {
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists("analytics")))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.showCreateTable("analytics")))
+        .thenReturn(
+            List.of(
+                Map.of(
+                    "Table", "analytics",
+                    "Create Table",
+                        "CREATE TABLE `analytics` (...) UNIQUE KEY (`id`,`year`) ...")));
   }
 
   private List<String> names(List<AnalyticsTableColumn> columns) {
