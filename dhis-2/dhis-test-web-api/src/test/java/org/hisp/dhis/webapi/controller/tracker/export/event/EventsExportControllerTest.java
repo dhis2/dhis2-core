@@ -648,7 +648,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals("no-cache, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
-    assertContains("script-src 'none';", response.header("Content-Security-Policy"));
+    assertContains("default-src 'none';", response.header("Content-Security-Policy"));
+    assertEquals("nosniff", response.header("X-Content-Type-Options"));
     assertEquals("file content", response.content("text/plain"));
   }
 
@@ -696,7 +697,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(HttpStatus.NOT_MODIFIED, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
     assertEquals("no-cache, private", response.header("Cache-Control"));
-    assertContains("script-src 'none';", response.header("Content-Security-Policy"));
+    assertContains("default-src 'none';", response.header("Content-Security-Policy"));
+    assertEquals("nosniff", response.header("X-Content-Type-Options"));
     assertFalse(response.hasBody());
   }
 

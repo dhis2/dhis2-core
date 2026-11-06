@@ -57,7 +57,6 @@ import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
-import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
 import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
 import org.hisp.dhis.webapi.security.AntPathRequestMatcher;
@@ -65,6 +64,8 @@ import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
+import org.hisp.dhis.webapi.security.csp.CspBaselineFilter;
+import org.hisp.dhis.webapi.security.csp.CspPolicyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -142,6 +143,8 @@ public class DhisWebApiWebSecurityConfig {
   private HttpBasicWebAuthenticationDetailsSource httpBasicWebAuthenticationDetailsSource;
 
   @Autowired private ConfigurationService configurationService;
+
+  @Autowired private CspPolicyService cspPolicyService;
 
   @Autowired private ApiTokenAuthManager apiTokenAuthManager;
 
@@ -262,7 +265,7 @@ public class DhisWebApiWebSecurityConfig {
       }
 
       configureMatchers(http);
-      configureCspFilter(http, dhisConfig, configurationService);
+      configureCspBaselineFilter(http);
       configureApiTokenAuthorizationFilter(http);
       configureOAuthTokenFilters(http);
 
@@ -335,6 +338,10 @@ public class DhisWebApiWebSecurityConfig {
               .permitAll()
               // Login fallback and legacy login endpoint
               .requestMatchers(new AntPathRequestMatcher("/login.html"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/login.js"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/login.css"))
               .permitAll()
               .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/security/login.action"))
               .permitAll()
@@ -479,11 +486,8 @@ public class DhisWebApiWebSecurityConfig {
     return corsFilter;
   }
 
-  private void configureCspFilter(
-      HttpSecurity http,
-      DhisConfigurationProvider dhisConfig,
-      ConfigurationService configurationService) {
-    http.addFilterBefore(new CspFilter(dhisConfig, configurationService), HeaderWriterFilter.class);
+  private void configureCspBaselineFilter(HttpSecurity http) {
+    http.addFilterBefore(new CspBaselineFilter(cspPolicyService), HeaderWriterFilter.class);
   }
 
   private void configureApiTokenAuthorizationFilter(HttpSecurity http) {

@@ -54,7 +54,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -83,6 +82,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.webapi.security.csp.CspUserUploadedContent;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
@@ -119,7 +119,6 @@ public class MessageConversationController
   private final ConfigurationService configurationService;
   private final FileResourceUtils fileResourceUtils;
   private final FileResourceService fileResourceService;
-  private final DhisConfigurationProvider dhisConfig;
 
   @Data
   @EqualsAndHashCode(callSuper = true)
@@ -917,6 +916,7 @@ public class MessageConversationController
     return responseNode;
   }
 
+  @CspUserUploadedContent
   @GetMapping("/{mcUid}/{msgUid}/attachments/{fileUid}")
   public void getAttachment(
       @PathVariable(value = "mcUid") String mcUid,
@@ -942,7 +942,7 @@ public class MessageConversationController
       throw new WebMessageException(conflict("Invalid messageattachment."));
     }
 
-    fileResourceUtils.configureFileResourceResponse(response, fr, dhisConfig);
+    fileResourceUtils.configureFileResourceResponse(response, fr);
   }
 
   // --------------------------------------------------------------------------
