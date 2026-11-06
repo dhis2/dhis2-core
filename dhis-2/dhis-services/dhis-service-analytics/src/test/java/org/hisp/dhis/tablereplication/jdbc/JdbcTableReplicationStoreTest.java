@@ -35,11 +35,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
 import java.util.Date;
@@ -152,7 +154,44 @@ class JdbcTableReplicationStoreTest {
     inOrder
         .verify(analyticsJdbcTemplate)
         .execute(contains("from pg_dhis.public.`trackedentityattributevalue`"));
-    verifyNoInteractions(postgresJdbcTemplate);
+  }
+
+  @Test
+  void replicateTableLeavesOutColumnsMissingFromSourceTable() {
+    when(postgresJdbcTemplate.queryForList(
+            contains("information_schema.columns"),
+            eq(String.class),
+            eq("trackedentityattributevalue")))
+        .thenReturn(List.of("trackedentityid", "trackedentityattributeid"));
+
+    store.replicateAnalyticsDatabaseTable(TABLE);
+
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(analyticsJdbcTemplate, atLeastOnce()).execute(sql.capture());
+    String create =
+        sql.getAllValues().stream().filter(s -> s.startsWith("create table")).findFirst().get();
+    String insert =
+        sql.getAllValues().stream().filter(s -> s.startsWith("insert into")).findFirst().get();
+    assertTrue(create.contains("`trackedentityattributeid`"));
+    assertFalse(create.contains("`value`"));
+    assertTrue(
+        insert.contains(
+            "(`trackedentityid`,`trackedentityattributeid`) "
+                + "select `trackedentityid`,`trackedentityattributeid` from"));
+  }
+
+  @Test
+  void replicateTableKeepsAllColumnsWhenSourceTableHasThem() {
+    when(postgresJdbcTemplate.queryForList(
+            contains("information_schema.columns"),
+            eq(String.class),
+            eq("trackedentityattributevalue")))
+        .thenReturn(List.of("TrackedEntityId", "trackedentityattributeid", "value", "extra"));
+
+    store.replicateAnalyticsDatabaseTable(TABLE);
+
+    verify(analyticsJdbcTemplate)
+        .execute(contains("(`trackedentityid`,`trackedentityattributeid`,`value`) select"));
   }
 
   @Test
