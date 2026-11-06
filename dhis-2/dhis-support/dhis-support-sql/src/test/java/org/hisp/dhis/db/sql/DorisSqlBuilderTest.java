@@ -188,6 +188,11 @@ class DorisSqlBuilderTest {
     assertTrue(sqlBuilder.requiresUniqueKeyAnalyticsTables());
   }
 
+  @Test
+  void testRequiresTableMetadataRefresh() {
+    assertTrue(sqlBuilder.requiresTableMetadataRefresh());
+  }
+
   // Utilities
 
   @Test
@@ -382,6 +387,17 @@ class DorisSqlBuilderTest {
   }
 
   @Test
+  void testTableColumns() {
+    String expected =
+        """
+        select c.column_name from information_schema.columns c \
+        where c.table_schema = database() \
+        and c.table_name = 'immunization';""";
+
+    assertEquals(expected, sqlBuilder.tableColumns("immunization"));
+  }
+
+  @Test
   void testCountRows() {
     String expected =
         """
@@ -431,5 +447,12 @@ class DorisSqlBuilderTest {
         "driver_class" = "org.postgresql.Driver");""";
 
     assertEquals(expected, sqlBuilder.createCatalog("127.0.0.1", "dhis", "district"));
+  }
+
+  @Test
+  void testRefreshTable() {
+    assertEquals(
+        "refresh table pg_dhis.public.`analytics_rs_organisationunitgroupsetstructure`;",
+        sqlBuilder.refreshTable("analytics_rs_organisationunitgroupsetstructure"));
   }
 }

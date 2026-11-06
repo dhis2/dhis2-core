@@ -153,6 +153,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   }
 
   @Override
+  public String tableColumns(String name) {
+    return notSupported();
+  }
+
+  @Override
   public String countRows(Table table) {
     return String.format("select count(*) as row_count from %s;", quote(table.getName()));
   }
@@ -166,6 +171,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 
   @Override
   public String analyzeTable(String name) {
+    return notSupported();
+  }
+
+  @Override
+  public String refreshTable(String name) {
     return notSupported();
   }
 

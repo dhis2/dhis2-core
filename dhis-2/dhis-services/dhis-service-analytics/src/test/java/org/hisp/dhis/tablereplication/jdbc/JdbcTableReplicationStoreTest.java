@@ -32,10 +32,18 @@ package org.hisp.dhis.tablereplication.jdbc;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.db.model.Column;
@@ -43,12 +51,15 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.sql.DorisSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -126,6 +137,87 @@ class JdbcTableReplicationStoreTest {
     store.replicateRows(TABLE, "trackedentityid", List.of());
 
     verifyNoInteractions(analyticsJdbcTemplate);
+  }
+
+  @Test
+  void replicateTableRefreshesCatalogTableBeforeReplicating() {
+    store.replicateAnalyticsDatabaseTable(TABLE);
+
+    InOrder inOrder = inOrder(analyticsJdbcTemplate);
+    inOrder
+        .verify(analyticsJdbcTemplate)
+        .execute("refresh table pg_dhis.public.`trackedentityattributevalue`;");
+    inOrder
+        .verify(analyticsJdbcTemplate)
+        .execute(startsWith("drop table if exists `trackedentityattributevalue`"));
+    inOrder.verify(analyticsJdbcTemplate).execute(startsWith("create table"));
+    inOrder
+        .verify(analyticsJdbcTemplate)
+        .execute(contains("from pg_dhis.public.`trackedentityattributevalue`"));
+  }
+
+  @Test
+  void replicateTableLeavesOutColumnsMissingFromSourceTable() {
+    when(postgresJdbcTemplate.queryForList(
+            contains("information_schema.columns"),
+            eq(String.class),
+            eq("trackedentityattributevalue")))
+        .thenReturn(List.of("trackedentityid", "trackedentityattributeid"));
+
+    store.replicateAnalyticsDatabaseTable(TABLE);
+
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(analyticsJdbcTemplate, atLeastOnce()).execute(sql.capture());
+    String create =
+        sql.getAllValues().stream().filter(s -> s.startsWith("create table")).findFirst().get();
+    String insert =
+        sql.getAllValues().stream().filter(s -> s.startsWith("insert into")).findFirst().get();
+    assertTrue(create.contains("`trackedentityattributeid`"));
+    assertFalse(create.contains("`value`"));
+    assertTrue(
+        insert.contains(
+            "(`trackedentityid`,`trackedentityattributeid`) "
+                + "select `trackedentityid`,`trackedentityattributeid` from"));
+  }
+
+  @Test
+  void replicateTableKeepsAllColumnsWhenSourceTableHasThem() {
+    when(postgresJdbcTemplate.queryForList(
+            contains("information_schema.columns"),
+            eq(String.class),
+            eq("trackedentityattributevalue")))
+        .thenReturn(List.of("TrackedEntityId", "trackedentityattributeid", "value", "extra"));
+
+    store.replicateAnalyticsDatabaseTable(TABLE);
+
+    verify(analyticsJdbcTemplate)
+        .execute(contains("(`trackedentityid`,`trackedentityattributeid`,`value`) select"));
+  }
+
+  @Test
+  void replicateTableContinuesWhenRefreshFails() {
+    doThrow(new BadSqlGrammarException("refresh", "refresh table", new SQLException("denied")))
+        .when(analyticsJdbcTemplate)
+        .execute(startsWith("refresh"));
+
+    store.replicateAnalyticsDatabaseTable(TABLE);
+
+    verify(analyticsJdbcTemplate)
+        .execute(startsWith("drop table if exists `trackedentityattributevalue`"));
+    verify(analyticsJdbcTemplate).execute(startsWith("create table"));
+    verify(analyticsJdbcTemplate)
+        .execute(contains("from pg_dhis.public.`trackedentityattributevalue`"));
+  }
+
+  @Test
+  void replicateTableDoesNotRefreshWhenNotRequired() {
+    JdbcTableReplicationStore postgresStore =
+        new JdbcTableReplicationStore(
+            analyticsJdbcTemplate, postgresJdbcTemplate, new PostgreSqlBuilder());
+
+    postgresStore.replicateAnalyticsDatabaseTable(TABLE);
+
+    verify(analyticsJdbcTemplate, never()).execute(startsWith("refresh"));
   }
 
   @Test
