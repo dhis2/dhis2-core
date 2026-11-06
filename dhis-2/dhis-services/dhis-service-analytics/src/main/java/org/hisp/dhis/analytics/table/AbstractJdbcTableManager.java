@@ -510,7 +510,27 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected List<AnalyticsTableColumn> getColumnsOfMainTable(
       String mainTableName, List<AnalyticsTableColumn> columns) {
-    if (!sqlBuilder.requiresUniqueKeyAnalyticsTables() || !tableExists(mainTableName)) {
+    if (!sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
+      return columns;
+    }
+
+    return getColumnsOfMainTable(mainTableName, tableExists(mainTableName), columns);
+  }
+
+  /**
+   * Returns the given columns of a latest partition table, leaving out the columns which the main
+   * table lacks, for callers which already know whether the main table exists. See {@link
+   * #getColumnsOfMainTable(String, List)}.
+   *
+   * @param mainTableName the main table name.
+   * @param mainTableExists whether the main table exists.
+   * @param columns the columns of the latest partition table.
+   * @return the columns which the main table has, or all columns if the main table does not exist
+   *     or is not merged into.
+   */
+  protected List<AnalyticsTableColumn> getColumnsOfMainTable(
+      String mainTableName, boolean mainTableExists, List<AnalyticsTableColumn> columns) {
+    if (!sqlBuilder.requiresUniqueKeyAnalyticsTables() || !mainTableExists) {
       return columns;
     }
 
@@ -657,9 +677,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         sqlBuilder.requiresUniqueKeyAnalyticsTables() ? lastAnyTableUpdate : lastFullTableUpdate;
 
     List<AnalyticsTableColumn> tableColumns =
-        hasUpdatedData
-            ? getColumnsOfMainTable(getAnalyticsTableType().getTableName(), columns)
-            : columns;
+        hasUpdatedData ? getColumnsOfMainTable(getTableName(), columns) : columns;
 
     AnalyticsTable table =
         new AnalyticsTable(getAnalyticsTableType(), tableColumns, List.of(), primaryKey, logged);

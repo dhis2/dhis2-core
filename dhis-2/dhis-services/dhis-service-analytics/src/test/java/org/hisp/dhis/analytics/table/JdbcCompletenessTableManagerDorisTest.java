@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,11 +44,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -154,6 +157,32 @@ class JdbcCompletenessTableManagerDorisTest {
         () ->
             "id column must not use the unbounded string type as a key column, got: "
                 + createTableSql);
+  }
+
+  @Test
+  void testGetLatestAnalyticsTableLeavesOutColumnsMissingFromMainTable() {
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.COMPLETENESS))
+        .thenReturn(lastFullTableUpdate);
+    // updated data found, and the main table exists
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(Map.of("datasetid", 1)));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics_completeness"), String.class))
+        .thenReturn(List.of("dx", "year", "id", "value"));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertEquals(1, tables.size());
+    assertEquals(
+        Set.of("dx", "year", "id", "value"),
+        tables.get(0).getAnalyticsTableColumns().stream()
+            .map(AnalyticsTableColumn::getName)
+            .collect(toSet()));
   }
 
   @Test

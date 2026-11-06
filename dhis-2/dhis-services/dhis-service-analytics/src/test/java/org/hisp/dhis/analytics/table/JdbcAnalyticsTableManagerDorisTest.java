@@ -35,10 +35,17 @@ import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -125,9 +132,7 @@ class JdbcAnalyticsTableManagerDorisTest {
             .startTime(new DateTime(2020, 1, 1, 0, 0).toDate())
             .build();
 
-    when(jdbcTemplate.queryForList(
-            org.mockito.Mockito.anyString(), org.mockito.Mockito.eq(Integer.class)))
-        .thenReturn(List.of(2020));
+    when(jdbcTemplate.queryForList(anyString(), eq(Integer.class))).thenReturn(List.of(2020));
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
@@ -176,7 +181,7 @@ class JdbcAnalyticsTableManagerDorisTest {
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.DATA_VALUE))
         .thenReturn(lastLatestPartitionUpdate);
     when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.UNLOGGED);
-    when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString())).thenReturn(queryResp);
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(queryResp);
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
@@ -217,7 +222,7 @@ class JdbcAnalyticsTableManagerDorisTest {
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.DATA_VALUE))
         .thenReturn(lastDataValueUpdate);
     when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.UNLOGGED);
-    when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString())).thenReturn(queryResp);
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(queryResp);
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
@@ -245,7 +250,7 @@ class JdbcAnalyticsTableManagerDorisTest {
         .thenReturn(lastFullTableUpdate);
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.DATA_VALUE))
         .thenReturn(lastLatestPartitionUpdate);
-    when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString())).thenReturn(queryResp);
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(queryResp);
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
@@ -256,7 +261,7 @@ class JdbcAnalyticsTableManagerDorisTest {
     subject.removeUpdatedData(tables);
 
     org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
-    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.times(5)).execute(sql.capture());
+    verify(jdbcTemplate, times(5)).execute(sql.capture());
     List<String> statements = sql.getAllValues();
 
     String drop1 = statements.get(0);
@@ -333,7 +338,7 @@ class JdbcAnalyticsTableManagerDorisTest {
     subject.swapTable(params, table);
 
     org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
-    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.times(2)).execute(sql.capture());
+    verify(jdbcTemplate, times(2)).execute(sql.capture());
 
     List<String> statements = sql.getAllValues();
     assertTrue(
@@ -384,8 +389,7 @@ class JdbcAnalyticsTableManagerDorisTest {
     subject.swapTable(params, table);
 
     org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
-    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.atLeastOnce())
-        .execute(sql.capture());
+    verify(jdbcTemplate, atLeastOnce()).execute(sql.capture());
 
     List<String> statements = sql.getAllValues();
     assertTrue(
@@ -406,8 +410,7 @@ class JdbcAnalyticsTableManagerDorisTest {
 
     assertTrue(subject.isReadyForContinuousUpdate(List.of(table)));
 
-    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.never())
-        .queryForList(sqlBuilder.showCreateTable(table.getMainName()));
+    verify(jdbcTemplate, never()).queryForList(sqlBuilder.showCreateTable(table.getMainName()));
   }
 
   @Test
@@ -480,8 +483,7 @@ class JdbcAnalyticsTableManagerDorisTest {
 
     assertEquals(columns, subject.getColumnsOfMainTable("analytics", columns));
 
-    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.never())
-        .queryForList(sqlBuilder.tableColumns("analytics"), String.class);
+    verify(jdbcTemplate, never()).queryForList(sqlBuilder.tableColumns("analytics"), String.class);
   }
 
   @Test
@@ -509,7 +511,7 @@ class JdbcAnalyticsTableManagerDorisTest {
         .thenReturn(lastFullTableUpdate);
     when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.UNLOGGED);
     // updated data found, and the main table exists
-    when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString()))
+    when(jdbcTemplate.queryForList(anyString()))
         .thenReturn(List.of(Map.of("table_name", "analytics")));
     when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
         .thenReturn(List.of("dx", "co", "value"));
@@ -524,7 +526,7 @@ class JdbcAnalyticsTableManagerDorisTest {
   }
 
   private List<AnalyticsTableColumn> columns(String... columnNames) {
-    return java.util.Arrays.stream(columnNames)
+    return Arrays.stream(columnNames)
         .map(
             name ->
                 AnalyticsTableColumn.builder()
