@@ -324,7 +324,7 @@ public class DefaultDimensionService implements DimensionService {
         String programStageUid = object.getValue().getProgramStageUid();
 
         if (programStageUid != null) {
-          ProgramStage programStage = idObjectManager.get(ProgramStage.class, uid);
+          ProgramStage programStage = idObjectManager.get(ProgramStage.class, programStageUid);
 
           if (programStage != null) {
             object.setProgramStageValueDimension(programStage);
