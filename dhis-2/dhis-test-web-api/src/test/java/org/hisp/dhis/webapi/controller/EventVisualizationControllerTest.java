@@ -192,6 +192,123 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testPutWithValueProgramStage() {
+    // Given
+    String body = valueProgramStageBody("deabcdefghC", mockProgramStage.getUid());
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // When
+    assertStatus(OK, PUT("/eventVisualizations/" + uid, body));
+
+    // Then
+    assertValueProgramStage(uid, "deabcdefghC", mockProgramStage.getUid());
+  }
+
+  @Test
+  void testPutWithValueProgramStageFromGetResponse() {
+    // Given
+    String uid =
+        assertStatus(
+            CREATED,
+            POST(
+                "/eventVisualizations/",
+                valueProgramStageBody("deabcdefghC", mockProgramStage.getUid())));
+
+    // Round trip, the way the apps do it: GET the object and PUT it back.
+    String body =
+        GET("/eventVisualizations/"
+                + uid
+                + "?fields=name,type,program[id],value[id,programStage[id]],"
+                + "programStageValueDimension[id]")
+            .content()
+            .toJson();
+
+    // When
+    assertStatus(OK, PUT("/eventVisualizations/" + uid, body));
+
+    // Then
+    assertValueProgramStage(uid, "deabcdefghC", mockProgramStage.getUid());
+  }
+
+  @Test
+  void testPutWithValueProgramStageChanged() throws JsonProcessingException {
+    // Given
+    ProgramStage otherProgramStage = createProgramStage('B', mockProgram);
+    otherProgramStage.setUid("deabcdefghT");
+    POST("/programStages", jsonMapper.writeValueAsString(otherProgramStage)).content(CREATED);
+
+    String uid =
+        assertStatus(
+            CREATED,
+            POST(
+                "/eventVisualizations/",
+                valueProgramStageBody("deabcdefghC", mockProgramStage.getUid())));
+
+    // When
+    assertStatus(
+        OK,
+        PUT(
+            "/eventVisualizations/" + uid,
+            valueProgramStageBody("deabcdefghC", otherProgramStage.getUid())));
+
+    // Then
+    assertValueProgramStage(uid, "deabcdefghC", otherProgramStage.getUid());
+  }
+
+  @Test
+  void testPutAddingValueProgramStage() {
+    // Given
+    String bodyWithoutStage =
+        """
+        {
+          "name": "Name Test",
+          "type": "LINE_LIST",
+          "program": {"id": "%s"},
+          "value": {"id": "deabcdefghC"}
+        }
+        """
+            .formatted(mockProgram.getUid());
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", bodyWithoutStage));
+
+    // When
+    assertStatus(
+        OK,
+        PUT(
+            "/eventVisualizations/" + uid,
+            valueProgramStageBody("deabcdefghC", mockProgramStage.getUid())));
+
+    // Then
+    assertValueProgramStage(uid, "deabcdefghC", mockProgramStage.getUid());
+  }
+
+  private String valueProgramStageBody(String valueUid, String programStageUid) {
+    return """
+        {
+          "name": "Name Test",
+          "type": "LINE_LIST",
+          "program": {"id": "%s"},
+          "value": {
+            "id": "%s",
+            "programStage": {"id": "%s"}
+          }
+        }
+        """
+        .formatted(mockProgram.getUid(), valueUid, programStageUid);
+  }
+
+  private void assertValueProgramStage(String uid, String valueUid, String programStageUid) {
+    JsonObject response =
+        GET("/eventVisualizations/"
+                + uid
+                + "?fields=value[id,programStage[id]],programStageValueDimension[id]")
+            .content();
+
+    assertEquals(valueUid, response.getString("value.id").string());
+    assertEquals(programStageUid, response.getString("value.programStage.id").string());
+    assertEquals(programStageUid, response.getString("programStageValueDimension.id").string());
+  }
+
+  @Test
   void testPostForOuDimensionAsFilter() throws JsonProcessingException {
     // Given
     DataElement ouDe = createDataElement('D', ValueType.TEXT, AggregationType.SUM, TRACKER);
