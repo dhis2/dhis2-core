@@ -281,6 +281,55 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertValueProgramStage(uid, "deabcdefghC", mockProgramStage.getUid());
   }
 
+  @Test
+  void testPostWithInvalidValueProgramStage() {
+    // Given
+    String body = valueProgramStageBody("deabcdefghC", "invalidUid1");
+
+    // Then
+    String uid = assertStatus(CONFLICT, POST("/eventVisualizations/", body));
+  }
+
+  @Test
+  void testPutWithInvalidValueProgramStage() {
+    // Given
+    String uid =
+        assertStatus(
+            CREATED,
+            POST(
+                "/eventVisualizations/",
+                valueProgramStageBody("deabcdefghC", mockProgramStage.getUid())));
+
+    // Then
+    assertStatus(
+        CONFLICT,
+        PUT("/eventVisualizations/" + uid, valueProgramStageBody("deabcdefghC", "invalidUid1")));
+  }
+
+  @Test
+  void testPutWithInvalidValueProgramStageWhenNoneBefore() {
+    // Given
+    String bodyWithoutStage =
+        """
+        {
+          "name": "Name Test",
+          "type": "LINE_LIST",
+          "program": {"id": "%s"},
+          "value": {"id": "deabcdefghC"}
+        }
+        """
+            .formatted(mockProgram.getUid());
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", bodyWithoutStage));
+
+    // When
+    assertStatus(
+        CONFLICT,
+        PUT("/eventVisualizations/" + uid, valueProgramStageBody("deabcdefghC", "invalidUid1")));
+
+    // Then
+    assertValueWithoutProgramStage(uid, "deabcdefghC");
+  }
+
   private String valueProgramStageBody(String valueUid, String programStageUid) {
     return """
         {
@@ -306,6 +355,18 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(valueUid, response.getString("value.id").string());
     assertEquals(programStageUid, response.getString("value.programStage.id").string());
     assertEquals(programStageUid, response.getString("programStageValueDimension.id").string());
+  }
+
+  private void assertValueWithoutProgramStage(String uid, String valueUid) {
+    JsonObject response =
+        GET("/eventVisualizations/"
+                + uid
+                + "?fields=value[id,programStage[id]],programStageValueDimension[id]")
+            .content();
+
+    assertEquals(valueUid, response.getString("value.id").string());
+    assertFalse(response.get("value.programStage").exists());
+    assertFalse(response.get("programStageValueDimension").exists());
   }
 
   @Test

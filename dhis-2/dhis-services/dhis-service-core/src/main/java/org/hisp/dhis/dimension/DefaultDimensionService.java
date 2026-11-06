@@ -306,7 +306,6 @@ public class DefaultDimensionService implements DimensionService {
         String uid = object.getValue().getUid();
 
         DataElement dataElement = idObjectManager.get(DataElement.class, uid);
-
         if (dataElement != null) {
           object.setDataElementValueDimension(dataElement);
           object.setProgramStageValueDimension(
@@ -314,7 +313,6 @@ public class DefaultDimensionService implements DimensionService {
         }
 
         TrackedEntityAttribute attribute = idObjectManager.get(TrackedEntityAttribute.class, uid);
-
         if (attribute != null) {
           object.setAttributeValueDimension(attribute);
           object.setProgramStageValueDimension(
@@ -322,13 +320,9 @@ public class DefaultDimensionService implements DimensionService {
         }
 
         String programStageUid = object.getValue().getProgramStageUid();
-
         if (programStageUid != null) {
-          ProgramStage programStage = idObjectManager.get(ProgramStage.class, programStageUid);
-
-          if (programStage != null) {
-            object.setProgramStageValueDimension(programStage);
-          }
+          ProgramStage programStage = idObjectManager.load(ProgramStage.class, programStageUid);
+          object.setProgramStageValueDimension(programStage);
         }
       }
 
