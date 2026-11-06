@@ -64,13 +64,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.query.JpaQueryUtils;
-import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.security.acl.AccessControlStore;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Geometries;
+import org.hisp.dhis.tracker.export.JdbcAttributeOptionCombos;
 import org.hisp.dhis.tracker.export.JdbcNotes;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
@@ -79,7 +79,6 @@ import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -107,6 +106,8 @@ class JdbcEnrollmentStore {
   @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
+  private final AccessControlStore accessControlStore;
+
   public List<Enrollment> getEnrollments(EnrollmentQueryParams enrollmentParams) {
     // A te which is not enrolled can only be accessed by a user that is able to enroll it into a
     // tracker program. Return an empty result if there are no tracker programs or the user does
@@ -117,6 +118,9 @@ class JdbcEnrollmentStore {
     }
 
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
+    if (!addReadableAocs(sqlParams)) {
+      return List.of();
+    }
     String sql = getQuery(enrollmentParams, sqlParams);
     return jdbcTemplate.query(
         sql,
@@ -158,7 +162,6 @@ class JdbcEnrollmentStore {
     addJoinOnProgramOwner(sql);
     addJoinOnOwnerOrgUnit(sql);
     addJoinOnEnrollmentOrgUnit(sql);
-    addJoinOnCategoryOptionCombo(sql);
     addLeftJoinOnNotes(sql, enrollmentParams);
     addLeftJoinOnAttributes(sql, enrollmentParams);
     addWhereConditions(sql, sqlParams, enrollmentParams);
@@ -183,7 +186,6 @@ class JdbcEnrollmentStore {
           """
             te.uid as tracked_entity_uid, te.code as tracked_entity_code,
             en_ou.uid as en_org_unit_uid,
-            coc.uid as coc_uid
           """);
     } else {
       sql.append(
@@ -194,9 +196,11 @@ class JdbcEnrollmentStore {
             te.uid as tracked_entity_uid, te.code as tracked_entity_code,
             en_ou.uid as en_org_unit_uid,
             tet.uid as tet_uid, tet.allowauditlog as tet_allowauditlog, tet.enablechangelog as tet_enablechangelog, tet.sharing as tet_sharing,
-            coc.uid as coc_uid
           """);
     }
+
+    sql.append(JdbcAttributeOptionCombos.uidSubquery("e.attributeoptioncomboid"))
+        .append(" as coc_uid ");
 
     if (params.isIncludeNotes()) {
       sql.append(
@@ -267,34 +271,20 @@ class JdbcEnrollmentStore {
       """);
   }
 
-  private void addJoinOnCategoryOptionCombo(StringBuilder sql) {
-    sql.append(
-        """
-        inner join (
-          select coc.categoryoptioncomboid as id, coc.uid
-          from categoryoptioncombo coc
-        """);
-
-    if (isNotSuperUser(getCurrentUserDetails())) {
-      sql.append(
-          """
-            inner join categoryoptioncombos_categoryoptions cocco \
-          on coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
-          inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
-          group by coc.categoryoptioncomboid \
-          having bool_and(case when \
-          """);
-      sql.append(
-          JpaQueryUtils.generateSQlQueryForSharingCheck(
-              "co.sharing", getCurrentUserDetails(), AclService.LIKE_READ_DATA));
-      sql.append(" then true else false end) = true ");
+  /**
+   * Adds the attribute option combos the user may read data of as a parameter, unless the user is
+   * not restricted.
+   *
+   * @return false when the user may read no attribute option combo, so no enrollment at all
+   */
+  private boolean addReadableAocs(MapSqlParameterSource sqlParams) {
+    long[] readable =
+        accessControlStore.getDataReadableAttributeOptionComboIds(getCurrentUserDetails(), null);
+    if (readable == null) {
+      return true;
     }
-
-    sql.append(") as coc on coc.id = e.attributeoptioncomboid ");
-  }
-
-  private static boolean isNotSuperUser(UserDetails user) {
-    return !user.isSuper();
+    sqlParams.addValue(JdbcAttributeOptionCombos.READABLE_AOCS, readable);
+    return readable.length > 0;
   }
 
   private void addLeftJoinOnNotes(StringBuilder sql, EnrollmentQueryParams params) {
@@ -456,6 +446,10 @@ class JdbcEnrollmentStore {
           .append(":attributeoptioncomboid")
           .append(" ");
     }
+    if (sqlParams.hasValue(JdbcAttributeOptionCombos.READABLE_AOCS)) {
+      sql.append(hlp.whereAnd())
+          .append(JdbcAttributeOptionCombos.readableCondition("e.attributeoptioncomboid"));
+    }
   }
 
   private void addOrderBy(StringBuilder sql, EnrollmentQueryParams params) {
@@ -473,6 +467,9 @@ class JdbcEnrollmentStore {
     }
 
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
+    if (!addReadableAocs(sqlParams)) {
+      return Page.empty();
+    }
     String sql = getQuery(enrollmentParams, sqlParams);
     sql +=
         String.format(" LIMIT %d OFFSET %d", pageParams.getPageSize() + 1, pageParams.getOffset());
@@ -490,6 +487,9 @@ class JdbcEnrollmentStore {
 
   private long countEnrollments(EnrollmentQueryParams params) {
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
+    if (!addReadableAocs(sqlParams)) {
+      return 0L;
+    }
     String sql = getCountQuery(params, sqlParams);
     Long count = jdbcTemplate.queryForObject(sql, sqlParams, Long.class);
     return count != null ? count : 0L;
@@ -508,7 +508,6 @@ class JdbcEnrollmentStore {
    *       use a subquery instead of a join when the table is absent.
    *   <li>{@code trackedentityprogramowner} + {@code organisationunit} - ownership and org unit
    *       filtering
-   *   <li>{@code categoryoptioncombo} - attribute option combo access control
    * </ul>
    *
    * <p>Skips joins only needed for SELECT columns: {@code trackedentitytype}, enrollment {@code
@@ -531,7 +530,6 @@ class JdbcEnrollmentStore {
     }
     addJoinOnProgramOwner(sql);
     addJoinOnOwnerOrgUnit(sql);
-    addJoinOnCategoryOptionCombo(sql);
     addCountWhereConditions(sql, sqlParams, enrollmentParams, needsTrackedEntityJoin);
 
     return sql.toString();
