@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.period;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import java.util.Calendar;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -36,6 +38,8 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
+@Entity
+@DiscriminatorValue("FinancialNov")
 public class FinancialNovemberPeriodType extends FinancialPeriodType {
 
   private static final long serialVersionUID = -8443905531396977357L;

@@ -30,6 +30,8 @@
 package org.hisp.dhis.period;
 
 import com.google.common.collect.Lists;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -41,6 +43,8 @@ import org.hisp.dhis.calendar.DateTimeUnit;
  *
  * @author Torgeir Lorange Ostby
  */
+@Entity
+@DiscriminatorValue("Daily")
 public class DailyPeriodType extends CalendarPeriodType {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 5371766471215556241L;
