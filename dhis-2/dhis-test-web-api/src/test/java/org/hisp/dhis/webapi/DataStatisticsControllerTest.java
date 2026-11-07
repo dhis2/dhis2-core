@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.http.HttpStatus;
@@ -46,9 +47,12 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 class DataStatisticsControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private DashboardService dashboardService;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private static final ZoneId ZONE = ZoneId.systemDefault();
 
@@ -149,5 +153,41 @@ class DataStatisticsControllerTest extends PostgresControllerIntegrationTestBase
     } catch (NumberFormatException nfe) {
       fail("Active users is not a number: " + finalActiveUsers.toString());
     }
+  }
+
+  /**
+   * One {@code EVENT_CHART_VIEW} POST also writes an {@code EVENT_VISUALIZATION_VIEW} event, see
+   * {@code DataStatisticsController.addStatisticsForEventChartOrReport}. Each {@code addEvent} call
+   * commits in its own transaction and both reads below are native SQL, so no session flush is
+   * needed before reading back.
+   */
+  @Test
+  void postEventChartViewStoresChartAndVisualizationEventsTest() {
+    String favorite = "chartFav001";
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/dataStatistics?eventType=EVENT_CHART_VIEW&favorite=" + favorite));
+
+    assertEquals(
+        List.of("EVENT_CHART_VIEW", "EVENT_VISUALIZATION_VIEW"),
+        jdbcTemplate.queryForList(
+            "select eventtype from datastatisticsevent where favoriteuid = ? order by eventtype",
+            String.class,
+            favorite));
+    assertEquals(
+        List.of(getAdminUser().getUsername()),
+        jdbcTemplate.queryForList(
+            "select distinct username from datastatisticsevent where favoriteuid = ?",
+            String.class,
+            favorite));
+    assertEquals(
+        0,
+        jdbcTemplate.queryForObject(
+            "select count(*) from datastatisticsevent where favoriteuid = ? and timestamp is null",
+            Integer.class,
+            favorite));
+    assertEquals(
+        2, GET("/dataStatistics/favorites/" + favorite).content().getNumber("views").intValue());
   }
 }
