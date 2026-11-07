@@ -2564,7 +2564,7 @@ public abstract class TestBase {
     injectSecurityContextNoSettings(currentUserDetails);
     if (userSettingsService != null) {
       String username = currentUserDetails.getUsername();
-      SessionUserSettings.put(username, userSettingsService.getUserSettings(username, true));
+      SessionUserSettings.put(username, userSettingsService.getUserSettings(username, false));
     }
   }
 

@@ -31,13 +31,13 @@ package org.hisp.dhis.user;
 
 import static java.util.Objects.requireNonNull;
 
+import jakarta.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -66,12 +66,18 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultUserSettingsService implements UserSettingsService, UserSessionAware {
+public class DefaultUserSettingsService
+    implements UserSettingsService, UserSessionAware, SessionUserSettings.Source {
 
   private final UserStore userStore;
   private final UserSettingStore userSettingStore;
   private final SystemSettingsProvider systemSettingsProvider;
   private final TransactionTemplate transactionTemplate;
+
+  @PostConstruct
+  void init() {
+    SessionUserSettings.setSource(this);
+  }
 
   @Override
   @EventListener
@@ -79,7 +85,7 @@ public class DefaultUserSettingsService implements UserSettingsService, UserSess
     Object principal = event.getAuthentication().getPrincipal();
     if (principal instanceof UserDetails user) {
       String username = user.getUsername();
-      SessionUserSettings.put(username, getUserSettings(username, true));
+      SessionUserSettings.put(username, getStoredSettings(username));
     }
   }
 
@@ -97,21 +103,23 @@ public class DefaultUserSettingsService implements UserSettingsService, UserSess
   @Nonnull
   @Override
   public UserSettings getUserSettings(@Nonnull String username, boolean includeSystemFallbacks) {
-    if (includeSystemFallbacks) {
-      Optional<UserSettings> settings = SessionUserSettings.get(username);
-      if (settings.isPresent()) return settings.get();
-    }
-    return requireNonNull(
-        transactionTemplate.execute(
-            status -> getUserSettingsInternal(username, includeSystemFallbacks)));
+    if (!includeSystemFallbacks) return getStoredSettings(username);
+    UserSettings stored =
+        SessionUserSettings.getStored(username).orElseGet(() -> getStoredSettings(username));
+    return stored.withFallback(getFallbacks());
   }
 
   @Nonnull
-  private UserSettings getUserSettingsInternal(@Nonnull String username, boolean includeFallbacks) {
-    UserSettings settings = UserSettings.of(userSettingStore.getAll(username));
-    return includeFallbacks
-        ? settings.withFallback(systemSettingsProvider.getCurrentSettings().toMap())
-        : settings;
+  @Override
+  public UserSettings getStoredSettings(@Nonnull String username) {
+    return requireNonNull(
+        transactionTemplate.execute(status -> UserSettings.of(userSettingStore.getAll(username))));
+  }
+
+  @Nonnull
+  @Override
+  public Map<String, String> getFallbacks() {
+    return systemSettingsProvider.getCurrentSettings().toMap();
   }
 
   @Override
@@ -186,9 +194,8 @@ public class DefaultUserSettingsService implements UserSettingsService, UserSess
   }
 
   private void updateSession(String username) {
-    Optional<UserSettings> settings = SessionUserSettings.get(username);
-    if (settings.isPresent()) {
-      SessionUserSettings.put(username, getUserSettingsInternal(username, true));
+    if (SessionUserSettings.getStored(username).isPresent()) {
+      SessionUserSettings.put(username, getStoredSettings(username));
     }
   }
 }

@@ -40,18 +40,16 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 /**
  * {@linkplain UserSettings} are bound to the user session.
  *
- * <p>Once initialized on login they do remain unchanged for the duration of the session. This
- * includes potential fallbacks from {@link SystemSettings}. Like {@link SystemSettings} that only
- * hold data of settings defined in the DB a {@linkplain UserSettings} instance only holds
- * key-value-pairs for settings either defined as user setting in the DB or as system setting
- * fallback. Keys that are not defined in DB use the default provided through their access method.
+ * <p>The settings stored for a user are held for the duration of the session and updated when the
+ * user's settings change. The fallbacks from {@link SystemSettings} are applied on top for each
+ * request, so a change to a system setting reaches every user that has no value of their own for
+ * that setting without a re-login. Like {@link SystemSettings} that only hold data of settings
+ * defined in the DB a {@linkplain UserSettings} instance only holds key-value-pairs for settings
+ * either defined as user setting in the DB or as system setting fallback. Keys that are not defined
+ * in DB use the default provided through their access method.
  *
  * <p>The only exception are individual request that make an override using {@link
  * ThreadUserSettings#put(Map)}.
- *
- * <p>For that reason user has to log out and re-login to make changes to system or user settings
- * visible in the session. This choice is made to balance complexity, predictability and resource
- * costs while providing a clear flow for users.
  *
  * @author Jan Bernitt
  * @since 2.42

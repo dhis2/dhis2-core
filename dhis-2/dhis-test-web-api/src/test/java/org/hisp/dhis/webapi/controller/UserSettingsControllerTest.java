@@ -29,14 +29,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -45,6 +48,12 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class UserSettingsControllerTest extends H2ControllerIntegrationTestBase {
+
+  @AfterEach
+  void resetSettings() {
+    DELETE("/userSettings/keyUiLocale");
+    DELETE("/systemSettings/keyUiLocale");
+  }
 
   @Test
   void testGetAllUserSettings() {
@@ -70,5 +79,59 @@ class UserSettingsControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetUserSettingByKey() {
     assertEquals("en", GET("/userSettings/keyUiLocale").content("text/plain"));
+  }
+
+  @Test
+  void testGetAllUserSettings_NoFallbackReturnsNullForUnset() {
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=fr"));
+
+    JsonObject settings = GET("/userSettings?useFallback=false").content();
+    UserSettings.keysWithDefaults()
+        .forEach(key -> assertTrue(settings.get(key).exists(), "expected " + key));
+    assertTrue(settings.get("keyUiLocale").isNull(), "unset setting must not report a default");
+
+    // an explicit value equal to the default is still reported as set
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?value=en"));
+    assertEquals(
+        "en",
+        GET("/userSettings?useFallback=false&key=keyUiLocale")
+            .content()
+            .getString("keyUiLocale")
+            .string());
+  }
+
+  @Test
+  void testSystemSettingChangeAppliesToSessionWithoutReLogin() {
+    assertEquals("en", getEffectiveUiLocale());
+
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=fr"));
+    assertEquals("fr", getEffectiveUiLocale());
+
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=nb"));
+    assertEquals("nb", getEffectiveUiLocale());
+  }
+
+  @Test
+  void testSystemSettingChangeDoesNotOverrideUserValue() {
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?value=de"));
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=fr"));
+    assertEquals("de", getEffectiveUiLocale());
+
+    // "Use system default"
+    DELETE("/userSettings/keyUiLocale");
+    assertEquals("fr", getEffectiveUiLocale());
+  }
+
+  /** Asserts both sources apps read agree, then returns the UI locale they report. */
+  private String getEffectiveUiLocale() {
+    String fromUserSettings = GET("/userSettings/keyUiLocale").content("text/plain");
+    String fromMe =
+        GET("/me?fields=settings[keyUiLocale]")
+            .content()
+            .getObject("settings")
+            .getString("keyUiLocale")
+            .string();
+    assertEquals(fromUserSettings, fromMe, "/userSettings and /me disagree");
+    return fromMe;
   }
 }

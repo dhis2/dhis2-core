@@ -38,10 +38,16 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
- * Manages the {@link UserSettings} per session.
+ * Manages the {@link UserSettings} of users with an active session.
  *
- * <p>This state is managed from the outside by a service as this is based on spring events that
- * cannot be obtained statically.
+ * <p>Only the settings stored for a user are held in memory. The {@link SystemSettings} fallbacks
+ * are applied each time the effective settings are requested, so a change to a system setting is
+ * visible right away to every user that has no value of their own for that setting.
+ *
+ * <p>This state is managed from the outside by a service as this is based on spring events and
+ * stores that cannot be obtained statically. The service provides the {@link Source} to load the
+ * stored settings of a user that is not held in memory, for example because another session of the
+ * same user ended or because the session was started on another server.
  *
  * @author Jan Bernitt
  * @since 2.42
@@ -49,24 +55,72 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SessionUserSettings {
 
-  /** {@link UserSettings} for users with an active session */
-  private static final Map<String, UserSettings> SESSION_USER_SETTINGS_BY_USERNAME =
-      new ConcurrentHashMap<>();
+  /** Provides the settings data that is not held in memory. */
+  public interface Source {
 
-  public static void clear(@Nonnull String username) {
-    SESSION_USER_SETTINGS_BY_USERNAME.remove(username);
+    /**
+     * @param username of the user
+     * @return the settings stored for the user, without any fallbacks
+     */
+    @Nonnull
+    UserSettings getStoredSettings(@Nonnull String username);
+
+    /**
+     * @return the current system settings that apply for any setting the user has not stored
+     */
+    @Nonnull
+    Map<String, String> getFallbacks();
   }
 
+  /** Stored {@link UserSettings} (without fallbacks) for users with an active session */
+  private static final Map<String, UserSettings> STORED_USER_SETTINGS_BY_USERNAME =
+      new ConcurrentHashMap<>();
+
+  private static volatile Source source;
+
+  public static void setSource(@CheckForNull Source source) {
+    SessionUserSettings.source = source;
+  }
+
+  public static void clear(@Nonnull String username) {
+    STORED_USER_SETTINGS_BY_USERNAME.remove(username);
+  }
+
+  /**
+   * @param username of the user
+   * @param settings the settings stored for the user, without fallbacks, or null to clear
+   */
   public static void put(@Nonnull String username, @CheckForNull UserSettings settings) {
     if (settings == null) {
       clear(username);
     } else {
-      SESSION_USER_SETTINGS_BY_USERNAME.put(username, settings);
+      STORED_USER_SETTINGS_BY_USERNAME.put(username, settings);
     }
   }
 
+  /**
+   * @param username of the user
+   * @return the settings stored for the user (without fallbacks) if they are held in memory
+   */
+  public static Optional<UserSettings> getStored(@Nonnull String username) {
+    return Optional.ofNullable(STORED_USER_SETTINGS_BY_USERNAME.get(username));
+  }
+
+  /**
+   * @param username of the user
+   * @return the effective settings of the user: the stored settings with the current system
+   *     settings as fallback. Stored settings not held in memory are loaded from the {@link
+   *     Source}. Empty only when no {@link Source} is set and no settings are held for the user.
+   */
   public static Optional<UserSettings> get(@Nonnull String username) {
-    UserSettings settings = SESSION_USER_SETTINGS_BY_USERNAME.get(username);
-    return settings == null ? Optional.empty() : Optional.of(settings);
+    Source src = source;
+    UserSettings stored = STORED_USER_SETTINGS_BY_USERNAME.get(username);
+    if (src == null) return Optional.ofNullable(stored);
+    if (stored == null) {
+      UserSettings loaded = src.getStoredSettings(username);
+      UserSettings concurrent = STORED_USER_SETTINGS_BY_USERNAME.putIfAbsent(username, loaded);
+      stored = concurrent == null ? loaded : concurrent;
+    }
+    return Optional.of(stored.withFallback(src.getFallbacks()));
   }
 }
