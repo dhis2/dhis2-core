@@ -257,7 +257,7 @@ public class MetadataVersion implements IdentifiableObject {
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
-    return name;
+    return getName();
   }
 
   @Override
