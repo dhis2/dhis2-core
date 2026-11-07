@@ -61,7 +61,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -228,7 +227,7 @@ public class OptionGroup extends BaseMetadataObject
   }
 
   @JsonProperty("options")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "options", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "option", namespace = DxfNamespaces.DXF_2_0)
   public Set<Option> getMembers() {

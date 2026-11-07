@@ -49,7 +49,6 @@ import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -206,7 +205,7 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DXF_2_0)
   @Property(value = REFERENCE, required = FALSE)
   public Option getOption() {
