@@ -40,9 +40,11 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
+import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleExpressionSyntax;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,5 +71,11 @@ public class ProgramRuleController
     RuleValidationResult result = programRuleEngine.getDescription(condition, programId);
 
     return ProgramRuleExpressionWebMessage.of(result, i18nManager.getI18n(), HttpStatus.OK);
+  }
+
+  @GetMapping(value = "/expressionSyntax", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public ProgramRuleExpressionSyntax getExpressionSyntax() {
+    return programRuleEngine.getExpressionSyntax();
   }
 }

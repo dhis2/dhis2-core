@@ -84,4 +84,14 @@ public interface ProgramRuleEngine {
    */
   RuleValidationResult getDataExpressionDescription(
       @Nonnull String dataExpression, @Nonnull UID programUid) throws BadRequestException;
+
+  /**
+   * Describes the syntax of program rule expressions. Conditions and data field expressions share
+   * the same syntax, and it does not depend on any program.
+   *
+   * @return the functions, operators and environment variables that can be used in program rule
+   *     expressions
+   */
+  @Nonnull
+  ProgramRuleExpressionSyntax getExpressionSyntax();
 }
