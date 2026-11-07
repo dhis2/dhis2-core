@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,7 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.quick.JdbcConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -211,6 +212,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
             .jdbcConfiguration(jdbcConfiguration)
             .tableName(tableName)
             .columns(columnNames)
+            .columnQuoter(SqlUtils::quote)
             .build()) {
       batchHandler.init();
 
