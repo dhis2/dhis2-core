@@ -31,11 +31,20 @@ package org.hisp.dhis.expressiondimensionitem;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Unit tests for {@link ExpressionDimensionItem}. */
 class ExpressionDimensionItemTest {
@@ -65,5 +74,136 @@ class ExpressionDimensionItemTest {
     assertNull(indicator.getDecimals());
     assertFalse(indicator.isAnnualized());
     assertTrue(indicator.getIndicatorType().isNumber());
+  }
+
+  @Test
+  void testEqualItemsHaveEqualHashCodes() {
+    ExpressionDimensionItem a = item("Short", "Description");
+    ExpressionDimensionItem b = item("Short", "Description");
+
+    assertEquals(a, b);
+    assertEquals(a.hashCode(), b.hashCode());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"uid", "code", "name"})
+  void testItemsWithADifferentIdentifierAreNotEqual(String property) {
+    ExpressionDimensionItem a = item("Short", "Description");
+    ExpressionDimensionItem b = item("Short", "Description");
+    switch (property) {
+      case "uid" -> b.setUid("otherUid");
+      case "code" -> b.setCode("otherCode");
+      default -> b.setName("otherName");
+    }
+
+    assertNotEquals(a, b);
+    assertNotEquals(a.hashCode(), b.hashCode());
+  }
+
+  @Test
+  void testItemIsNotEqualToAnInstanceOfASubclass() {
+    ExpressionDimensionItem a = item("Short", "Description");
+    ExpressionDimensionItem subclass = new ExpressionDimensionItem() {};
+    subclass.setUid("anyUid");
+    subclass.setCode("anyCode");
+    subclass.setName("anyName");
+    subclass.setShortName("Short");
+    subclass.setDescription("Description");
+
+    assertNotEquals(a, subclass);
+  }
+
+  @Test
+  void testItemsWithDifferentShortNamesAreNotEqual() {
+    assertNotEquals(item("Short", "Description"), item("Other", "Description"));
+  }
+
+  @Test
+  void testItemsWithDifferentDescriptionsAreNotEqual() {
+    assertNotEquals(item("Short", "Description"), item("Short", "Other"));
+  }
+
+  @Test
+  void testItemsWithDifferentQueryModsAreNotEqual() {
+    ExpressionDimensionItem a = item("Short", "Description");
+    ExpressionDimensionItem b = item("Short", "Description");
+    b.setQueryMods(QueryModifiers.builder().periodOffset(1).build());
+
+    assertNotEquals(a, b);
+  }
+
+  @Test
+  void testDisplayFormNameFallsBackToNameWhenFormNameIsEmpty() {
+    ExpressionDimensionItem item = item("Short", "Description");
+    assertEquals("anyName", item.getDisplayFormName());
+
+    item.setFormName("Form name");
+    assertEquals("Form name", item.getDisplayFormName());
+  }
+
+  @Test
+  void testSetTranslationsToNullKeepsAnEmptySet() {
+    ExpressionDimensionItem item = item("Short", "Description");
+    item.setTranslations(null);
+
+    assertTrue(item.getTranslations().isEmpty());
+  }
+
+  @Test
+  void testAggregationTypeComesFromQueryModsOnly() {
+    ExpressionDimensionItem item = item("Short", "Description");
+    item.setAggregationType(AggregationType.SUM);
+    assertNull(item.getAggregationType());
+    assertFalse(item.hasAggregationType());
+
+    item.setQueryMods(QueryModifiers.builder().aggregationType(AggregationType.AVERAGE).build());
+    assertEquals(AggregationType.AVERAGE, item.getAggregationType());
+    assertTrue(item.hasAggregationType());
+  }
+
+  @Test
+  void testLegendSetsAreNotHeldAndReturnAFreshMutableList() {
+    ExpressionDimensionItem item = item("Short", "Description");
+    item.setLegendSets(List.of(new LegendSet()));
+
+    List<LegendSet> legendSets = item.getLegendSets();
+    assertTrue(legendSets.isEmpty());
+    legendSets.add(new LegendSet());
+    assertNotSame(legendSets, item.getLegendSets());
+    assertTrue(item.getLegendSets().isEmpty());
+    assertNull(item.getLegendSet());
+    assertFalse(item.hasLegendSet());
+  }
+
+  @Test
+  void testAggregateExportCombosAreNotHeld() {
+    ExpressionDimensionItem item = item("Short", "Description");
+    item.setAggregateExportCategoryOptionCombo("CocUid00001");
+    item.setAggregateExportAttributeOptionCombo("AocUid00001");
+
+    assertNull(item.getAggregateExportCategoryOptionCombo());
+    assertNull(item.getAggregateExportAttributeOptionCombo());
+    assertFalse(item.hasAggregateExportCategoryOptionCombo());
+    assertFalse(item.hasAggregateExportAttributeOptionCombo());
+  }
+
+  @Test
+  void testSetUserSetsCreatorAndSharingOwner() {
+    User user = new User();
+    user.setUid("UserUid0001");
+    ExpressionDimensionItem item = item("Short", "Description");
+    item.setUser(user);
+
+    assertEquals(user, item.getCreatedBy());
+    assertEquals("UserUid0001", item.getSharing().getOwner());
+  }
+
+  private static ExpressionDimensionItem item(String shortName, String description) {
+    ExpressionDimensionItem item = new ExpressionDimensionItem("#{fbfJHSPpUQD}", description);
+    item.setUid("anyUid");
+    item.setCode("anyCode");
+    item.setName("anyName");
+    item.setShortName(shortName);
+    return item;
   }
 }
