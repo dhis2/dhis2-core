@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
@@ -58,6 +59,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 /**
@@ -188,7 +191,14 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
           oAuth2ClientCredentialsAuthScheme.getRegistrationId(),
           OAuth2ClientCredentialsAuthScheme.ANONYMOUS_AUTHENTICATION,
           contextService.getRequest(),
-          null);
+          currentResponse());
     }
+  }
+
+  /** The response of the request in progress; this hook only runs while handling a request. */
+  private static HttpServletResponse currentResponse() {
+    ServletRequestAttributes attributes =
+        (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+    return Objects.requireNonNull(attributes.getResponse(), "No response bound to the request");
   }
 }
