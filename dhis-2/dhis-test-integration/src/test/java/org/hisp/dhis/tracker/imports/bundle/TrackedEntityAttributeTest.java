@@ -40,6 +40,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.getTrackedEntityAttributeValues;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -74,7 +75,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -95,8 +95,6 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
-
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -134,7 +132,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     assertEquals(1, trackedEntities.size());
     TrackedEntity trackedEntity = trackedEntities.get(0);
     List<TrackedEntityAttributeValue> attributeValues =
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+        getTrackedEntityAttributeValues(entityManager, trackedEntity);
     assertEquals(3, attributeValues.size());
   }
 
@@ -144,7 +142,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
     TrackedEntity trackedEntity = manager.getAll(TrackedEntity.class).get(0);
     List<TrackedEntityAttributeValue> attributeValues =
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+        getTrackedEntityAttributeValues(entityManager, trackedEntity);
 
     attributeValues.forEach(av -> assertEquals(importUser.getUsername(), av.getUpdatedBy()));
   }
@@ -184,7 +182,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
     TrackedEntity trackedEntity = manager.getAll(TrackedEntity.class).get(0);
     List<TrackedEntityAttributeValue> attributeValues =
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+        getTrackedEntityAttributeValues(entityManager, trackedEntity);
     assertEquals(3, attributeValues.size());
     TrackedEntityAttributeValue updatedValue =
         attributeValues.stream()
@@ -224,7 +222,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, te.getValue());
     List<TrackedEntityAttributeValue> attributeValues =
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+        getTrackedEntityAttributeValues(entityManager, trackedEntity);
     assertContainsOnly(
         List.of("sYn3tkL3XKa"),
         attributeValues.stream().map(av -> av.getAttribute().getUid()).toList());
@@ -259,7 +257,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "CLR1fvPj4ic");
     List<TrackedEntityAttributeValue> attributeValues =
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+        getTrackedEntityAttributeValues(entityManager, trackedEntity);
     assertContainsOnly(
         List.of("sYn3tkL3XKa", "sTGqP5JNy6E"),
         attributeValues.stream().map(av -> av.getAttribute().getUid()).toList());

@@ -32,12 +32,14 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -116,6 +118,47 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
         "Expression is not valid",
         POST("/programRuleActions/data/expression/description?programId=" + pId, "1 +")
             .content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void shouldNotReturnIssuesWhenDataExpressionIsValid() {
+    JsonObject response =
+        POST(
+                "/programRuleActions/data/expression/description?programId="
+                    + trackerProgramA.getUid(),
+                "70")
+            .content(HttpStatus.OK);
+
+    assertTrue(response.get("errors").isUndefined());
+    assertTrue(response.get("warnings").isUndefined());
+  }
+
+  @Test
+  void shouldReturnErrorsWhenDataExpressionIsInvalid() {
+    JsonObject response =
+        POST(
+                "/programRuleActions/data/expression/description?programId="
+                    + trackerProgramA.getUid(),
+                "1 +")
+            .content(HttpStatus.CONFLICT);
+
+    assertEquals("ERROR", response.getString("status").string());
+    assertEquals(1, response.getArray("errors").size());
+    assertEquals(
+        response.getString("description").string(),
+        response.getArray("errors").getObject(0).getString("message").string());
+  }
+
+  @Test
+  void shouldReturnErrorsWhenDataExpressionReferencesUnknownVariable() {
+    JsonObject response =
+        POST(
+                "/programRuleActions/data/expression/description?programId="
+                    + trackerProgramA.getUid(),
+                "#{doesNotExist} + 1")
+            .content(HttpStatus.CONFLICT);
+
+    assertFalse(response.getArray("errors").isEmpty());
   }
 
   @Test

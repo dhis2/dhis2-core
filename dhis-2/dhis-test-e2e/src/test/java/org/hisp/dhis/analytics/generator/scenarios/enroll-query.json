@@ -307,6 +307,20 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "enrollmentDateDimensionCreatedFilter",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=ENROLLMENT_DATE:2022&filter=CREATED:2016&headers=pi,enrollmentdate,created&totalPages=false&pageSize=100&page=1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentsWithTotalPages",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&enrollmentDate=202212&outputType=ENROLLMENT&headers=ouname,enrollmentdate&desc=enrollmentdate&totalPages=true&pageSize=50&page=1",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

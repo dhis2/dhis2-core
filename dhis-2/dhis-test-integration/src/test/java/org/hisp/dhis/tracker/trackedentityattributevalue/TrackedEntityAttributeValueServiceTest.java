@@ -31,13 +31,12 @@ package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.getTrackedEntityAttributeValues;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
-import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
@@ -106,82 +105,47 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  void testSaveTrackedEntityAttributeValue() {
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
+  void shouldDeleteAllAttributeValuesOfTrackedEntity() {
+    saveTrackedEntityAttributeValue(entityManager, attributeValueA);
+    saveTrackedEntityAttributeValue(entityManager, attributeValueB);
+    saveTrackedEntityAttributeValue(entityManager, attributeValueC);
+
+    attributeValueService.deleteTrackedEntityAttributeValues(trackedEntityA);
+
+    assertIsEmpty(getTrackedEntityAttributeValues(entityManager, trackedEntityA));
     assertContainsOnly(
-        Set.of(attributeValueA, attributeValueB),
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
+        List.of("C"),
+        getTrackedEntityAttributeValues(entityManager, trackedEntityB).stream()
+            .map(TrackedEntityAttributeValue::getValue)
+            .toList());
   }
 
   @Test
-  void testDeleteTrackedEntityAttributeValue() {
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
-    assertContainsOnly(
-        Set.of(attributeValueA, attributeValueB),
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
-    attributeValueService.deleteTrackedEntityAttributeValue(attributeValueA);
-    assertContainsOnly(
-        Set.of(attributeValueB),
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
-    attributeValueService.deleteTrackedEntityAttributeValue(attributeValueB);
-    assertIsEmpty(attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
-  }
-
-  @Test
-  void testGetTrackedEntityAttributeValue() {
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueC);
-    assertContainsOnly(
-        Set.of(attributeValueA),
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
-    assertContainsOnly(
-        Set.of(attributeValueC),
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntityB));
-  }
-
-  @Test
-  void testGetTrackedEntityAttributeValuesByEntityInstance() {
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueC);
-    List<TrackedEntityAttributeValue> attributeValues =
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA);
-    assertEquals(2, attributeValues.size());
-    assertTrue(equals(attributeValues, attributeValueA, attributeValueB));
-    attributeValues = attributeValueService.getTrackedEntityAttributeValues(trackedEntityB);
-    assertEquals(1, attributeValues.size());
-    assertTrue(equals(attributeValues, attributeValueC));
-  }
-
-  @Test
-  void testFileAttributeValues() {
-    FileResource fileResourceA;
-    FileResource fileResourceB;
-    byte[] content;
+  void shouldKeepFileResourcesAssignedWhenDeletingAttributeValues() {
     attributeA.setValueType(ValueType.IMAGE);
     attributeB.setValueType(ValueType.FILE_RESOURCE);
     attributeService.updateTrackedEntityAttribute(attributeA);
     attributeService.updateTrackedEntityAttribute(attributeB);
-    content = "filecontentA".getBytes();
-    fileResourceA = createFileResource('A', content);
-    fileResourceA.setContentType("image/jpg");
-    fileResourceService.asyncSaveFileResource(fileResourceA, content);
-    content = "filecontentB".getBytes();
-    fileResourceB = createFileResource('B', content);
-    fileResourceService.asyncSaveFileResource(fileResourceB, content);
-    attributeValueA = createTrackedEntityAttributeValue('A', trackedEntityA, attributeA);
-    attributeValueB = createTrackedEntityAttributeValue('B', trackedEntityB, attributeB);
+    FileResource fileResourceA = assignedFileResource('A', "image/jpg");
+    FileResource fileResourceB = assignedFileResource('B', "application/pdf");
     attributeValueA.setValue(fileResourceA.getUid());
     attributeValueB.setValue(fileResourceB.getUid());
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
-    assertTrue(fileResourceA.isAssigned());
-    assertTrue(fileResourceB.isAssigned());
-    attributeValueService.deleteTrackedEntityAttributeValue(attributeValueA);
-    attributeValueService.deleteTrackedEntityAttributeValue(attributeValueB);
-    assertTrue(fileResourceA.isAssigned());
-    assertTrue(fileResourceB.isAssigned());
+    saveTrackedEntityAttributeValue(entityManager, attributeValueA);
+    saveTrackedEntityAttributeValue(entityManager, attributeValueB);
+
+    attributeValueService.deleteTrackedEntityAttributeValues(trackedEntityA);
+
+    assertIsEmpty(getTrackedEntityAttributeValues(entityManager, trackedEntityA));
+    assertTrue(fileResourceService.getFileResource(fileResourceA.getUid()).isAssigned());
+    assertTrue(fileResourceService.getFileResource(fileResourceB.getUid()).isAssigned());
+  }
+
+  private FileResource assignedFileResource(char uniqueChar, String contentType) {
+    byte[] content = ("filecontent" + uniqueChar).getBytes();
+    FileResource fileResource = createFileResource(uniqueChar, content);
+    fileResource.setContentType(contentType);
+    fileResource.setAssigned(true);
+    fileResourceService.asyncSaveFileResource(fileResource, content);
+    return fileResource;
   }
 }

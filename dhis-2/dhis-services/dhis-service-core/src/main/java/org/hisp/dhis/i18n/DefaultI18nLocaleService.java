@@ -124,7 +124,7 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
     if (script != null && script.isBlank()) {
       script = null;
     }
-    Locale locale = new Locale(language, country, script);
+    Locale locale = Locale.of(language, country, script);
 
     if (!languages.containsKey(locale.language())
         || (locale.region() != null && !countries.containsKey(locale.region()))) {

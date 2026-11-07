@@ -49,6 +49,7 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
@@ -174,6 +175,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     dataElementService.addDataElement(deC);
     dataElementService.addDataElement(deD);
     ccA = createCategoryCombo('A');
+    // ccA is used as the attribute category combo of dsA/dsB
+    ccA.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     categoryService.addCategoryCombo(ccA);
     cocA = createCategoryOptionCombo('A');
     cocB = createCategoryOptionCombo('B');
