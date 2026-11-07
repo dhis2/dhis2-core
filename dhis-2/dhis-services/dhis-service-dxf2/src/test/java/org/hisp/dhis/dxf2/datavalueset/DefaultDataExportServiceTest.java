@@ -50,6 +50,7 @@ import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.SystemUser;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -199,5 +200,35 @@ class DefaultDataExportServiceTest {
     verify(store).exportValues(captor.capture());
     assertEquals(List.of(explicitAoc), captor.getValue().getAttributeOptionCombos());
     verify(store, never()).getDefaultAttributeOptionComboForDataSets(any());
+  }
+
+  @Test
+  void testExportGroup_Sync_ExplicitAocWithoutAccess_ThrowsE2011() {
+    // explicit AOCs are access checked on every path, the sync export included
+    injectSecurityContextNoSettings(UserDetails.empty().username("nonsuper").build());
+    UID aoc = UID.generate();
+    when(store.getAocNoDataReadAccess(any())).thenReturn(List.of(aoc.getValue()));
+
+    DataExportParams.Input params =
+        DataExportParams.Input.builder().attributeOptionCombo(Set.of(aoc.getValue())).build();
+    ConflictException ex =
+        assertThrows(ConflictException.class, () -> service().exportGroup(params, true));
+    assertEquals(ErrorCode.E2011, ex.getCode());
+    verify(store, never()).exportValues(any());
+  }
+
+  @Test
+  void testExport_ExplicitAocNotOfAttributeCombo_ThrowsE2049() {
+    injectSecurityContextNoSettings(UserDetails.empty().username("nonsuper").build());
+    UID aoc = UID.generate();
+    when(store.getAocNotOfAttributeCombo(any())).thenReturn(List.of(aoc.getValue()));
+
+    DataExportParams.Input params =
+        DataExportParams.Input.builder().attributeOptionCombo(Set.of(aoc.getValue())).build();
+    ConflictException ex =
+        assertThrows(ConflictException.class, () -> service().exportGroup(params, true));
+    assertEquals(ErrorCode.E2049, ex.getCode());
+    verify(store, never()).getAocNoDataReadAccess(any());
+    verify(store, never()).exportValues(any());
   }
 }

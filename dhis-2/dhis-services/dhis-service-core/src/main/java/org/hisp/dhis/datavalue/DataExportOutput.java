@@ -29,20 +29,19 @@
  */
 package org.hisp.dhis.datavalue;
 
-import com.csvreader.CsvWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.UncheckedIOException;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.csv.CsvBuilder;
 import org.hisp.dhis.dxf2.adx.AdxPeriod;
+import org.hisp.dhis.jsontree.Appender;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.writer.XMLWriter;
 
@@ -117,12 +116,10 @@ final class DataExportOutput {
             // values...
             dvs.addArray(
                 "dataValues",
-                values -> {
-                  Iterator<DataExportValue.Output> iter = group.values().iterator();
-                  while (iter.hasNext()) {
-                    DataExportValue.Output dv = iter.next();
-                    values.addObject(
-                        val -> {
+                values ->
+                    values.addObjects(
+                        group.values(),
+                        (val, dv) -> {
                           val.addString("dataElement", dv.dataElement());
                           val.addString("period", dv.period());
                           val.addString("orgUnit", dv.orgUnit());
@@ -141,9 +138,7 @@ final class DataExportOutput {
                           val.addString("comment", dv.comment());
                           val.addBoolean("followup", dv.followUp());
                           if (dv.deleted()) val.addBoolean("deleted", true);
-                        });
-                  }
-                });
+                        }));
           });
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
@@ -165,33 +160,31 @@ final class DataExportOutput {
   };
 
   static void toCsv(DataExportGroup.Output group, OutputStream csv) {
-    try {
-      CsvWriter writer = CsvUtils.getWriter(new PrintWriter(csv));
-      writer.writeRecord(CSV_HEADER_ROW);
-      Iterator<DataExportValue.Output> iter = group.values().iterator();
+    try (Appender out = Appender.ofUTF8(csv)) {
       String groupOrgUnit = group.orgUnit();
       String groupPeriod = group.period();
       String groupAoc = group.attributeOptionCombo();
-      while (iter.hasNext()) {
-        DataExportValue.Output dv = iter.next();
-        writer.writeRecord(
-            new String[] {
-              dv.dataElement(),
-              dv.period() == null ? groupPeriod : dv.period(),
-              dv.orgUnit() == null ? groupOrgUnit : dv.orgUnit(),
-              dv.categoryOptionCombo(),
-              dv.attributeOptionCombo() == null ? groupAoc : dv.attributeOptionCombo(),
-              dv.value(),
-              dv.storedBy(),
-              dv.lastUpdated(),
-              dv.comment(),
-              dv.followUp() == null ? null : String.valueOf(dv.followUp()),
-              String.valueOf(dv.deleted())
-            });
-      }
-      writer.close();
-    } catch (IOException ex) {
-      throw new UncheckedIOException("Failed to write CSV data", ex);
+      Object[] row = new Object[CSV_HEADER_ROW.length];
+      Stream<Object[]> rows =
+          group
+              .values()
+              .map(
+                  dv -> {
+                    row[0] = dv.dataElement();
+                    row[1] = dv.period() == null ? groupPeriod : dv.period();
+                    row[2] = dv.orgUnit() == null ? groupOrgUnit : dv.orgUnit();
+                    row[3] = dv.categoryOptionCombo();
+                    row[4] =
+                        dv.attributeOptionCombo() == null ? groupAoc : dv.attributeOptionCombo();
+                    row[5] = dv.value();
+                    row[6] = dv.storedBy();
+                    row[7] = dv.lastUpdated();
+                    row[8] = dv.comment();
+                    row[9] = dv.followUp() == null ? null : dv.followUp();
+                    row[10] = dv.deleted();
+                    return row; // row is consume once so we can reuse it
+                  });
+      new CsvBuilder(out).toRows(Arrays.asList(CSV_HEADER_ROW), rows);
     }
   }
 
@@ -238,8 +231,9 @@ final class DataExportOutput {
                 out.writeAttribute("attributeOptionCombo", dv.attributeOptionCombo());
               if (dv.value() != null) out.writeAttribute("value", dv.value());
               if (dv.storedBy() != null) out.writeAttribute("storedBy", dv.storedBy());
-              if (dv.created() != null) out.writeAttribute("created", dv.created());
-              if (dv.lastUpdated() != null) out.writeAttribute("lastUpdated", dv.lastUpdated());
+              if (dv.created() != null) out.writeAttribute("created", dv.created().toString());
+              if (dv.lastUpdated() != null)
+                out.writeAttribute("lastUpdated", dv.lastUpdated().toString());
               if (dv.comment() != null) out.writeAttribute("comment", dv.comment());
               if (Boolean.TRUE.equals(dv.followUp())) out.writeAttribute("followUp", "true");
               if (dv.deleted()) out.writeAttribute("deleted", "true");
