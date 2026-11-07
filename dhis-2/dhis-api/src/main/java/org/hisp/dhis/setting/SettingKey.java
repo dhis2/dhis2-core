@@ -118,8 +118,8 @@ public enum SettingKey {
    */
   ANALYTICS_MAX_LIMIT("keyAnalyticsMaxLimit", 100000, Integer.class),
   /**
-   * Max number of indicator values (indicators times dimension item permutations) an analytics query
-   * may compute, 0 means unlimited.
+   * Max number of indicator values (indicators times dimension item permutations) an analytics
+   * query may compute, 0 means unlimited.
    */
   ANALYTICS_MAX_INDICATOR_PERMUTATIONS(
       "keyAnalyticsMaxIndicatorPermutations", 1000000, Integer.class),
