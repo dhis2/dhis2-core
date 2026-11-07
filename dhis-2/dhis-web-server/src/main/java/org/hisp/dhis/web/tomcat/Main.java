@@ -38,6 +38,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +61,7 @@ import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.startup.Tomcat.FixContextListener;
 import org.apache.catalina.util.LifecycleBase;
+import org.apache.catalina.valves.RemoteIpValve;
 import org.apache.catalina.webresources.AbstractResourceSet;
 import org.apache.catalina.webresources.EmptyResource;
 import org.apache.catalina.webresources.StandardRoot;
@@ -97,11 +99,67 @@ public class Main {
         "");
   }
 
-  public static void main(String[] args) throws Exception {
+  static boolean useForwardHeaders(String property, String environment) {
+    String strategy = ObjectUtils.firstNonNull(property, environment, "none");
+    return switch (strategy.toLowerCase(Locale.ROOT)) {
+      case "none" -> false;
+      case "native" -> true;
+      default ->
+          throw new IllegalArgumentException(
+              "Unsupported server.forward-headers-strategy '"
+                  + strategy
+                  + "'. Supported values: none, native");
+    };
+  }
+
+  static void configureForwardHeaders(Tomcat tomcat, boolean enabled, String internalProxies) {
+    if (!enabled) {
+      log.info("Forwarded headers are not honoured (server.forward-headers-strategy=none)");
+      return;
+    }
+    RemoteIpValve valve = new RemoteIpValve();
+    valve.setRemoteIpHeader("X-Forwarded-For");
+    valve.setProtocolHeader("X-Forwarded-Proto");
+    valve.setProtocolHeaderHttpsValue("https");
+    valve.setPortHeader("X-Forwarded-Port");
+    valve.setHostHeader("X-Forwarded-Host");
+    if (internalProxies != null) {
+      valve.setInternalProxies(internalProxies);
+    }
+    var pipeline = tomcat.getEngine().getPipeline();
+    pipeline.addValve(valve);
+    // The application must read the client address the valve resolved, never the client-supplied
+    // entries the valve leaves in the header.
+    pipeline.addValve(new RemoteIpHeaderRemovalValve(valve.getRemoteIpHeader()));
+    String trusted = valve.getInternalProxies();
+    log.info(
+        "Forwarded headers are honoured; trusted internal proxies: {}",
+        trusted == null ? "none" : trusted);
+  }
+
+  static Tomcat createTomcat(
+      String baseDir, int port, boolean forwardHeaders, String internalProxies) {
     Tomcat tomcat = new Tomcat();
-    tomcat.setBaseDir(createTempDir());
-    int port = getPort();
+    // Tomcat fixes its base directory the first time the server is created, so the base dir and
+    // port must be set before anything (such as the forwarded headers valve) calls getServer().
+    tomcat.setBaseDir(baseDir);
     tomcat.setPort(port);
+    configureForwardHeaders(tomcat, forwardHeaders, internalProxies);
+    return tomcat;
+  }
+
+  public static void main(String[] args) throws Exception {
+    int port = getPort();
+    Tomcat tomcat =
+        createTomcat(
+            createTempDir(),
+            port,
+            useForwardHeaders(
+                System.getProperty("server.forward-headers-strategy"),
+                System.getenv("SERVER_FORWARD_HEADERS_STRATEGY")),
+            ObjectUtils.firstNonNull(
+                System.getProperty("server.tomcat.remoteip.internal-proxies"),
+                System.getenv("SERVER_TOMCAT_REMOTEIP_INTERNAL_PROXIES")));
 
     Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
     connector.setThrowOnFailure(true);
