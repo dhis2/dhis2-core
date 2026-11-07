@@ -31,8 +31,12 @@ package org.hisp.dhis.route;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,5 +80,57 @@ class RouteTest {
     assertEquals("https://thisisatest.com/some/path/123/", routeWithDirectorySubPath.getBaseUrl());
     assertEquals("https://thisisatest.com/", routeWithPathWildcard.getBaseUrl());
     assertEquals("https://thisisatest.com/sub/path/", routeWithSubPathAndPathWildcard.getBaseUrl());
+  }
+
+  @Test
+  void testEqualsAndHashCodeGivenSameIdentityAndRouteProperties() {
+    Route route = createRoute();
+    Route other = createRoute();
+
+    assertEquals(route, other);
+    assertEquals(route.hashCode(), other.hashCode());
+  }
+
+  @Test
+  void testEqualsGivenSameIdentityButDifferentRouteProperty() {
+    Route route = createRoute();
+
+    assertNotEquals(route, createRoute().setDescription("Other description"));
+    assertNotEquals(route, createRoute().setDisabled(false));
+    assertNotEquals(route, createRoute().setUrl("https://other.com"));
+    assertNotEquals(route, createRoute().setHeaders(Map.of("X-Other", "1")));
+    assertNotEquals(route, createRoute().setAuth(new ApiTokenAuthScheme().setToken("other")));
+    assertNotEquals(route, createRoute().setAuthorities(List.of("F_OTHER")));
+    assertNotEquals(route, createRoute().setResponseTimeoutSeconds(30));
+  }
+
+  @Test
+  void testEqualsGivenDifferentIdentity() {
+    Route route = createRoute();
+    Route otherUid = createRoute();
+    otherUid.setUid("RouteUid002");
+    Route otherCode = createRoute();
+    otherCode.setCode("ROUTE_B");
+    Route otherName = createRoute();
+    otherName.setName("Route B");
+
+    assertNotEquals(route, otherUid);
+    assertNotEquals(route, otherCode);
+    assertNotEquals(route, otherName);
+  }
+
+  private static Route createRoute() {
+    Route route =
+        new Route()
+            .setDescription("Description")
+            .setDisabled(true)
+            .setUrl("https://thisisatest.com/**")
+            .setHeaders(Map.of("X-Header", "value"))
+            .setAuthorities(List.of("F_ROUTE"))
+            .setResponseTimeoutSeconds(10);
+    route.setUid("RouteUid001");
+    route.setCode("ROUTE_A");
+    route.setName("Route A");
+    return route;
   }
 }
