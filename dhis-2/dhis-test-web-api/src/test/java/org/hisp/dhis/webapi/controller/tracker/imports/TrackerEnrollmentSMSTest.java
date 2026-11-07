@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static java.lang.String.format;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
@@ -96,7 +97,6 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
@@ -132,8 +132,6 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired
   @Qualifier("smsMessageSender")
   private DefaultFakeMessageSender messageSender;
-
-  @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private CategoryService categoryService;
 
@@ -317,11 +315,11 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     TrackedEntity trackedEntity = trackedEntity();
     // add two tracked entity type value to the TE (one will be updated, the other deleted)
     TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue('A', trackedEntity, teaA);
-    attributeValueService.addTrackedEntityAttributeValue(teavA);
+    saveTrackedEntityAttributeValue(entityManager, teavA);
     trackedEntity.getTrackedEntityAttributeValues().add(teavA);
 
     TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue('B', trackedEntity, teaB);
-    attributeValueService.addTrackedEntityAttributeValue(teavB);
+    saveTrackedEntityAttributeValue(entityManager, teavB);
     trackedEntity.getTrackedEntityAttributeValues().add(teavB);
 
     manager.save(trackedEntity, false);
