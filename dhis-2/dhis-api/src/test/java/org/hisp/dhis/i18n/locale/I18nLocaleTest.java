@@ -30,7 +30,6 @@
 package org.hisp.dhis.i18n.locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -79,7 +78,7 @@ class I18nLocaleTest {
 
   @Test
   void testNotEqualToNull() {
-    assertFalse(locale("uidLocale01", "code", "French", "fr").equals(null));
+    assertNotEquals(locale("uidLocale01", "code", "French", "fr"), null);
   }
 
   @Test
