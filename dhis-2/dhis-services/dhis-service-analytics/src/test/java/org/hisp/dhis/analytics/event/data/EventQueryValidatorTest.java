@@ -58,6 +58,7 @@ import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.legend.LegendSet;
@@ -153,7 +154,7 @@ class EventQueryValidatorTest extends TestBase {
             .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
             .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
             .withOrganisationUnits(List.of(ouA))
-            .withValue(deA)
+            .withValue(new Value(deA))
             .addItemFilter(filter)
             .build();
 
@@ -170,7 +171,7 @@ class EventQueryValidatorTest extends TestBase {
             .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
             .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
             .withOrganisationUnits(List.of(ouA))
-            .withValue(deA)
+            .withValue(new Value(deA))
             .addItem(item)
             .build();
 
@@ -189,7 +190,7 @@ class EventQueryValidatorTest extends TestBase {
             .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
             .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
             .withOrganisationUnits(List.of(ouA))
-            .withValue(deA)
+            .withValue(new Value(deA))
             .addItem(item)
             .build();
 
@@ -206,7 +207,7 @@ class EventQueryValidatorTest extends TestBase {
             .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
             .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
             .withOrganisationUnits(List.of(ouA))
-            .withValue(deA)
+            .withValue(new Value(deA))
             .addItem(item)
             .build();
 
