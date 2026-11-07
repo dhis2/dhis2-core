@@ -32,11 +32,16 @@ package org.hisp.dhis.webapi.controller;
 import static java.lang.String.format;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import jakarta.persistence.EntityManagerFactory;
+import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -46,6 +51,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class LockExceptionControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @Autowired private EntityManagerFactory entityManagerFactory;
 
   private String ouId;
 
@@ -76,6 +83,26 @@ class LockExceptionControllerTest extends PostgresControllerIntegrationTestBase 
         "LockException created successfully.",
         POST("/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId)
             .content(HttpStatus.CREATED));
+  }
+
+  @Test
+  void testGetLockExceptionPeriod() {
+    assertStatus(
+        HttpStatus.CREATED, POST("/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId));
+    startNewRequestSession();
+    entityManagerFactory.getCache().evictAll();
+
+    JsonObject period =
+        GET("/lockExceptions?fields=period")
+            .content(HttpStatus.OK)
+            .getArray("lockExceptions")
+            .getObject(0)
+            .getObject("period");
+
+    assertEquals(Set.of("periodType", "startDate", "endDate"), Set.copyOf(period.names()));
+    assertEquals("Monthly", period.getString("periodType").string());
+    assertEquals("2021-01-01T00:00:00.000", period.getString("startDate").string());
+    assertEquals("2021-01-31T00:00:00.000", period.getString("endDate").string());
   }
 
   @Test
