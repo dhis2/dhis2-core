@@ -96,7 +96,7 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   private List<String> getIfAvailable(ReservedValue reservedValue, List<String> values) {
     List<?> usedValues =
         getSession()
-            .createNamedQuery("getRandomGeneratedValuesNotAvailableNamedQuery")
+            .createNamedQuery(ReservedValue.NOT_AVAILABLE_VALUES_QUERY)
             .setParameter("teaId", reservedValue.getTrackedEntityAttributeId())
             .setParameter("ownerObject", reservedValue.getOwnerObject())
             .setParameter("ownerUid", reservedValue.getOwnerUid())
