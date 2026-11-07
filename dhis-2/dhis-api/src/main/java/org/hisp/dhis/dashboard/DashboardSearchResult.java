@@ -31,6 +31,7 @@ package org.hisp.dhis.dashboard;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -40,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.SimpleEventVisualizationView;
@@ -223,8 +225,28 @@ public class DashboardSearchResult {
     this.eventReports = eventReports;
   }
 
+  /**
+   * Serialized with the identifiable object property set only. {@code contentAs =
+   * IdentifiableObject.class} would drop displayName, which the interface does not annotate.
+   */
   @JsonProperty(value = "reports")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonIncludeProperties({
+    "id",
+    "code",
+    "name",
+    "displayName",
+    "created",
+    "lastUpdated",
+    "lastUpdatedBy",
+    "createdBy",
+    "user",
+    "attributeValues",
+    "translations",
+    "sharing",
+    "access",
+    "href"
+  })
+  @OpenApi.Property(BaseIdentifiableObject[].class)
   @JacksonXmlElementWrapper(localName = "reports", namespace = DXF_2_0)
   @JacksonXmlProperty(localName = "report", namespace = DXF_2_0)
   public List<Report> getReports() {

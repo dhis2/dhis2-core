@@ -423,7 +423,8 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   }
 
   @JsonProperty("reports")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
+  @OpenApi.Property(BaseIdentifiableObject[].class)
   @JacksonXmlElementWrapper(localName = "reports", namespace = DXF_2_0)
   @JacksonXmlProperty(localName = "report", namespace = DXF_2_0)
   public List<Report> getReports() {
