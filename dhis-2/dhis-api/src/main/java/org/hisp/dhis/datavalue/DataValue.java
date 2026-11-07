@@ -32,6 +32,20 @@ package org.hisp.dhis.datavalue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.persistence.Access;
+import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,6 +73,13 @@ import org.hisp.dhis.period.Period;
  * @author Kristian Nordal
  */
 @Auditable(scope = AuditScope.AGGREGATE)
+@Entity
+@Table(
+    name = "datavalue",
+    indexes = {
+      @Index(name = "in_datavalue_lastupdated", columnList = "lastupdated"),
+      @Index(name = "in_datavalue_deleted", columnList = "deleted")
+    })
 public class DataValue implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 6269303850789110610L;
@@ -73,29 +94,78 @@ public class DataValue implements Serializable {
   // Persistent properties
   // -------------------------------------------------------------------------
 
-  @Setter @AuditAttribute private DataElement dataElement;
+  @Id
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "dataelementid", foreignKey = @ForeignKey(name = "fk_datavalue_dataelementid"))
+  @Setter
+  @AuditAttribute
+  private DataElement dataElement;
 
-  @Setter @AuditAttribute private Period period;
+  @Id
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "periodid", foreignKey = @ForeignKey(name = "fk_datavalue_periodid"))
+  @Setter
+  @AuditAttribute
+  private Period period;
 
-  @Setter @AuditAttribute private OrganisationUnit source;
+  @Id
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "sourceid", foreignKey = @ForeignKey(name = "fk_datavalue_organisationunitid"))
+  @Setter
+  @AuditAttribute
+  private OrganisationUnit source;
 
-  @Setter @AuditAttribute private CategoryOptionCombo categoryOptionCombo;
+  @Id
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "categoryoptioncomboid",
+      foreignKey = @ForeignKey(name = "fk_datavalue_categoryoptioncomboid"))
+  @Setter
+  @AuditAttribute
+  private CategoryOptionCombo categoryOptionCombo;
 
-  @Setter @Getter @AuditAttribute private CategoryOptionCombo attributeOptionCombo;
+  @Id
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "attributeoptioncomboid",
+      foreignKey = @ForeignKey(name = "fk_datavalue_attributeoptioncomboid"))
+  @Setter
+  @Getter
+  @AuditAttribute
+  private CategoryOptionCombo attributeOptionCombo;
 
-  @AuditAttribute private String value;
+  /** Mapped through {@link #getValue()}: loading goes through the auditing setter. */
+  @Transient @AuditAttribute private String value;
 
-  @Setter @Getter private String storedBy;
+  @Column(name = "storedby", length = 255)
+  @Setter
+  @Getter
+  private String storedBy;
 
-  @Setter @Getter private Date created;
+  @Column(name = "created", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  @Setter
+  @Getter
+  private Date created;
 
-  @Setter @Getter private Date lastUpdated;
+  @Column(name = "lastupdated", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  @Setter
+  @Getter
+  private Date lastUpdated;
 
-  @Setter @Getter private String comment;
+  @Column(name = "comment", length = 50000)
+  @Setter
+  @Getter
+  private String comment;
 
-  @Setter private Boolean followup;
+  /** Mapped through {@link #isFollowup()}: an unset flag is stored as false. */
+  @Transient @Setter private Boolean followup;
 
-  @Setter @Getter private boolean deleted;
+  @Column(name = "deleted", nullable = false)
+  @Setter
+  @Getter
+  private boolean deleted;
 
   // -------------------------------------------------------------------------
   // Transient properties
@@ -253,6 +323,8 @@ public class DataValue implements Serializable {
         && ZERO_PATTERN.matcher(value).find();
   }
 
+  @Access(AccessType.PROPERTY)
+  @Column(name = "followup")
   public boolean isFollowup() {
     return followup != null && followup;
   }
@@ -337,6 +409,8 @@ public class DataValue implements Serializable {
   }
 
   @JsonProperty
+  @Access(AccessType.PROPERTY)
+  @Column(name = "value", length = 50000)
   public String getValue() {
     return value;
   }
