@@ -44,6 +44,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -208,6 +209,33 @@ class QueryItemTest {
 
     QueryItem qiB = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
     qiB.setDimensionValues(List.of("value2"));
+
+    assertNotEquals(qiA.getKey(), qiB.getKey());
+  }
+
+  @Test
+  void testGetKeyNotTheSameWithDifferentProgramStages() {
+    ProgramStage psA = new ProgramStage("StageA", prA);
+    psA.setUid("PSUIDA");
+    ProgramStage psB = new ProgramStage("StageB", prA);
+    psB.setUid("PSUIDB");
+
+    QueryItem qiA = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiA.setProgramStage(psA);
+
+    QueryItem qiB = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiB.setProgramStage(psB);
+
+    assertNotEquals(qiA.getKey(), qiB.getKey());
+  }
+
+  @Test
+  void testGetKeyNotTheSameWithDifferentRepeatableStageParams() {
+    QueryItem qiA = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiA.setRepeatableStageParams(rspA);
+
+    QueryItem qiB = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiB.setRepeatableStageParams(rspB);
 
     assertNotEquals(qiA.getKey(), qiB.getKey());
   }

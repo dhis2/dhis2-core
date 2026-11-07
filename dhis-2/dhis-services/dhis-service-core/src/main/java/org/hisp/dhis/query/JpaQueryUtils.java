@@ -283,7 +283,7 @@ public class JpaQueryUtils {
    */
   public static String generateSQlQueryForSharingCheck(
       String sharingColumn, UserDetails user, String access) {
-    if (user.isSuper() || user.isAuthorized("Test_skipSharingCheck")) return "1=1";
+    if (user.isSuper()) return "1=1";
     return generateSQlQueryForSharingCheck(
         sharingColumn, access, user.getUid(), getGroupsIds(user));
   }
@@ -321,7 +321,7 @@ public class JpaQueryUtils {
 
   public static String generateHqlQueryForSharingCheck(
       String tableAlias, UserDetails user, String access) {
-    if (user.isSuper() || user.isAuthorized("Test_skipSharingCheck")) {
+    if (user.isSuper()) {
       return "1=1";
     }
 

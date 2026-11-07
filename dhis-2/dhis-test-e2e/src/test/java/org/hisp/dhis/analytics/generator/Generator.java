@@ -108,4 +108,12 @@ public interface Generator {
 
   /** If "true", this will assert rows in the exact order based on the index. */
   boolean assertRowIndex();
+
+  /**
+   * If "true", the endpoint returns PostGIS headers (geometry, longitude, etc.) only on Postgres,
+   * so the same request returns fewer headers on Doris and ClickHouse.
+   */
+  default boolean geospatialHeadersDependOnDatabase() {
+    return false;
+  }
 }

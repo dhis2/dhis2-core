@@ -49,6 +49,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -556,5 +557,72 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
                 "/messageConversations/read?user=%s".formatted(ringo.getUid()),
                 "['%s']".formatted(uid))
             .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  @DisplayName("A new message cannot attach a file uploaded by another user")
+  void testPostJsonObject_AttachmentOfAnotherUser() {
+    String fileUid = uploadAttachment();
+
+    switchToNewUser("attachmentSender");
+
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Attachment '" + fileUid + "' is already used or not a valid attachment.",
+        POST("/messageConversations/", messageWithAttachment(fileUid))
+            .content(HttpStatus.CONFLICT));
+    assertEquals(HttpStatus.FORBIDDEN, GET("/fileResources/{uid}/data", fileUid).status());
+  }
+
+  @Test
+  @DisplayName("A reply cannot attach a file uploaded by another user")
+  void testPostMessageConversationReply_AttachmentOfAnotherUser() {
+    String fileUid = uploadAttachment();
+
+    switchToNewUser("replySender");
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Attachment '" + fileUid + "' is already used or not a valid attachment.",
+        POST("/messageConversations/" + uid + "?attachments=" + fileUid, "The message")
+            .content(HttpStatus.CONFLICT));
+    assertEquals(HttpStatus.FORBIDDEN, GET("/fileResources/{uid}/data", fileUid).status());
+  }
+
+  @Test
+  @DisplayName("A user can attach a file they uploaded")
+  void testPostJsonObject_OwnAttachment() {
+    switchToNewUser("attachmentOwner");
+    String fileUid = uploadAttachment();
+
+    assertStatus(
+        HttpStatus.CREATED, POST("/messageConversations/", messageWithAttachment(fileUid)));
+    assertEquals(HttpStatus.OK, GET("/fileResources/{uid}/data", fileUid).status());
+  }
+
+  private String messageWithAttachment(String fileUid) {
+    return "{'subject':'Subject','text':'Text','users':[{'id':'%s'}],'attachments':[{'id':'%s'}]}"
+        .formatted(getAdminUid(), fileUid);
+  }
+
+  private String uploadAttachment() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "attachment.txt", "text/plain", "attached".getBytes());
+    return POST_MULTIPART("/fileResources?domain=MESSAGE_ATTACHMENT", file)
+        .content(HttpStatus.ACCEPTED)
+        .getObject("response")
+        .getObject("fileResource")
+        .getString("id")
+        .string();
   }
 }
