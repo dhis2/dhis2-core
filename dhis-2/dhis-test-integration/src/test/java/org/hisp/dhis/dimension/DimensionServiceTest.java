@@ -88,6 +88,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -357,7 +358,7 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
   void testMergeEventAnalyticalObject() {
     // Given
     EventVisualization eventVisualization = new EventVisualization("any");
-    eventVisualization.setValue(deC);
+    eventVisualization.setValue(new Value(deC));
     // When
     dimensionService.mergeEventAnalyticalObject(eventVisualization);
     // Then

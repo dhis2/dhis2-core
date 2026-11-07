@@ -59,6 +59,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.parser.expression.statement.DefaultStatementBuilder;
 import org.hisp.dhis.parser.expression.statement.StatementBuilder;
+import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
@@ -207,15 +208,32 @@ public abstract class TimeFieldSqlRenderer {
         .collect(Collectors.joining(" and "));
   }
 
-  /** Keeps gaps between default periods retained for aggregate grouping after date conversion. */
+  /**
+   * Keeps gaps between default periods retained for aggregate grouping after date conversion. Free
+   * range periods are left to the date range condition, as their ISO identifier is their start date
+   * only.
+   */
   private String getDefaultPeriodDimensionCondition(EventQueryParams params) {
     List<DimensionalItemObject> periods =
         params.getDimensionOptions(PERIOD_DIM_ID).stream()
             .filter(this::isPeriod)
             .filter(period -> StringUtils.isBlank(((PeriodDimension) period).getDateField()))
+            .filter(period -> !isFreeRange((PeriodDimension) period))
             .toList();
 
     return periods.isEmpty() ? EMPTY : getAggregatedConditionForPeriods(params, periods);
+  }
+
+  /**
+   * Checks if the given period is a free range period, such as <code>2022-01-01_2022-03-31</code>,
+   * which is a daily period spanning more than one day.
+   *
+   * @param period the {@link PeriodDimension}
+   * @return true if the period is a free range period, false otherwise
+   */
+  private static boolean isFreeRange(PeriodDimension period) {
+    return period.getPeriodType() instanceof DailyPeriodType
+        && period.getEndDate().after(period.getStartDate());
   }
 
   /**
@@ -226,11 +244,24 @@ public abstract class TimeFieldSqlRenderer {
    * @return the SQL statement
    */
   private String getAggregatedConditionForPeriods(EventQueryParams params) {
-    return Stream.of(
-            params.getDimensionOptions(PERIOD_DIM_ID), params.getFilterOptions(PERIOD_DIM_ID))
+    return Stream.of(params.getDimensionOptions(PERIOD_DIM_ID), getAllFilterPeriods(params))
         .filter(periods -> !periods.isEmpty())
         .map(periods -> getAggregatedConditionForPeriods(params, periods))
         .collect(Collectors.joining(" and "));
+  }
+
+  /**
+   * Returns the items of every period filter. The query planner splits a period filter with mixed
+   * period types into one period filter per period type.
+   *
+   * @param params {@link EventQueryParams}
+   * @return the period filter items
+   */
+  private List<DimensionalItemObject> getAllFilterPeriods(EventQueryParams params) {
+    return params.getFilters().stream()
+        .filter(filter -> PERIOD_DIM_ID.equals(filter.getDimension()))
+        .flatMap(filter -> filter.getItems().stream())
+        .toList();
   }
 
   /**

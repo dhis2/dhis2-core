@@ -46,6 +46,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -227,7 +228,7 @@ class FirstOrLastStagePeriodPlannerTest extends TestBase {
     return new EventQueryParams.Builder()
         .withProgram(program)
         .withProgramStage(stage)
-        .withValue(dataElement)
+        .withValue(new Value(dataElement))
         .withEndpointItem(EndpointItem.EVENT)
         .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
         .withOrganisationUnits(List.of(orgUnit));

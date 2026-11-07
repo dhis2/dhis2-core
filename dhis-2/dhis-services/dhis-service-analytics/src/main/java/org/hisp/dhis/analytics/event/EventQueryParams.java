@@ -103,6 +103,7 @@ import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -184,7 +185,7 @@ public class EventQueryParams extends DataQueryParams {
   protected Set<String> headers = new LinkedHashSet<>();
 
   /** The dimensional object for which to produce aggregated data. */
-  private DimensionalItemObject value;
+  private Value value;
 
   /** The incoming "value" param from the request. */
   private String requestValue;
@@ -1137,8 +1138,9 @@ public class EventQueryParams extends DataQueryParams {
   public AnalyticsAggregationType getAggregationTypeFallback() {
     if (hasAggregationType()) {
       return aggregationType;
-    } else if (hasValueDimension() && value.getAggregationType() != null) {
-      return AnalyticsAggregationType.fromAggregationType(value.getAggregationType());
+    } else if (hasValueDimension() && value.getDimensionalObject().getAggregationType() != null) {
+      return AnalyticsAggregationType.fromAggregationType(
+          value.getDimensionalObject().getAggregationType());
     }
 
     return AnalyticsAggregationType.AVERAGE;
@@ -1179,7 +1181,7 @@ public class EventQueryParams extends DataQueryParams {
   }
 
   public boolean hasValue() {
-    return value != null;
+    return value != null && value.getDimensionalObject() != null;
   }
 
   public boolean hasPiDisagInfo() {
@@ -1336,7 +1338,7 @@ public class EventQueryParams extends DataQueryParams {
    * @return true if a value dimension exists, false if not.
    */
   public boolean hasValueDimension() {
-    return value != null;
+    return value != null && value.getDimensionalObject() != null;
   }
 
   /**
@@ -1346,8 +1348,10 @@ public class EventQueryParams extends DataQueryParams {
    */
   public boolean hasNumericValueDimension() {
     return hasValueDimension()
-        && value instanceof ValueTypedDimensionalItemObject
-        && ((ValueTypedDimensionalItemObject) value).getValueType().isNumeric();
+        && value.getDimensionalObject() instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value.getDimensionalObject())
+            .getValueType()
+            .isNumeric();
   }
 
   /**
@@ -1357,8 +1361,10 @@ public class EventQueryParams extends DataQueryParams {
    */
   public boolean hasBooleanValueDimension() {
     return hasValueDimension()
-        && value instanceof ValueTypedDimensionalItemObject
-        && ((ValueTypedDimensionalItemObject) value).getValueType().isBoolean();
+        && value.getDimensionalObject() instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value.getDimensionalObject())
+            .getValueType()
+            .isBoolean();
   }
 
   /**
@@ -1368,8 +1374,8 @@ public class EventQueryParams extends DataQueryParams {
    */
   public boolean hasTextValueDimension() {
     return hasValueDimension()
-        && value instanceof ValueTypedDimensionalItemObject
-        && ((ValueTypedDimensionalItemObject) value).getValueType().isText();
+        && value.getDimensionalObject() instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value.getDimensionalObject()).getValueType().isText();
   }
 
   /**
@@ -1379,8 +1385,8 @@ public class EventQueryParams extends DataQueryParams {
    */
   public boolean hasDateValueDimension() {
     return hasValueDimension()
-        && value instanceof ValueTypedDimensionalItemObject
-        && ((ValueTypedDimensionalItemObject) value).getValueType().isDate();
+        && value.getDimensionalObject() instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value.getDimensionalObject()).getValueType().isDate();
   }
 
   @Override
@@ -1593,7 +1599,7 @@ public class EventQueryParams extends DataQueryParams {
     return headers;
   }
 
-  public DimensionalItemObject getValue() {
+  public Value getValue() {
     return value;
   }
 
@@ -1868,7 +1874,7 @@ public class EventQueryParams extends DataQueryParams {
       return this;
     }
 
-    public Builder withValue(DimensionalItemObject value) {
+    public Builder withValue(Value value) {
       this.params.value = value;
       return this;
     }
