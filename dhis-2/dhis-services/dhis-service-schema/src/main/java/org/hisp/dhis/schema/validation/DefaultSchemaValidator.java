@@ -49,6 +49,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.PasswordValidationResult;
@@ -60,6 +61,9 @@ import org.springframework.stereotype.Service;
  */
 @Service("org.hisp.dhis.schema.validation.SchemaValidator")
 public class DefaultSchemaValidator implements SchemaValidator {
+  /** The whitespace the {@code trg_trim_name} trigger trims from the name column. */
+  private static final String NAME_TRIM_CHARS = " \t\n\r\f\u000B";
+
   private static final Pattern BCRYPT_PATTERN =
       Pattern.compile("\\A\\$2a?\\$\\d\\d\\$[./0-9A-Za-z]{53}");
 
@@ -122,9 +126,10 @@ public class DefaultSchemaValidator implements SchemaValidator {
 
   private void validateProperty(
       Property property, Object object, Class<?> mainErrorClass, List<ErrorReport> errors) {
-    Object value = safeInvoke(object, property.getGetterMethod());
+    Object value = trimName(property, object, safeInvoke(object, property.getGetterMethod()));
 
-    if (value == null) {
+    // a blank required string is missing, as the trg_trim_name trigger would store it as ""
+    if (value == null || (property.isRequired() && isBlankString(value))) {
       if (property.isRequired() && !Preheat.isDefaultClass(property.getKlass())) {
         errors.add(createReport(ErrorCode.E4000, mainErrorClass, property, property.getName()));
       }
@@ -135,6 +140,31 @@ public class DefaultSchemaValidator implements SchemaValidator {
       errors.addAll(validateFloat(mainErrorClass, value, property));
       errors.addAll(validateDouble(mainErrorClass, value, property));
     }
+  }
+
+  /**
+   * Trims the name the same way as the {@code trg_trim_name} trigger, so that the object validated
+   * and persisted by Hibernate has the same name as the database row after the flush.
+   */
+  private static Object trimName(Property property, Object object, Object value) {
+    if (!"name".equals(property.getName())
+        || !property.isPersisted()
+        || property.getSetterMethod() == null
+        || !(value instanceof String name)) {
+      return value;
+    }
+
+    String trimmed = StringUtils.strip(name, NAME_TRIM_CHARS);
+
+    if (!trimmed.equals(name)) {
+      ReflectionUtils.invokeMethod(object, property.getSetterMethod(), trimmed);
+    }
+
+    return trimmed;
+  }
+
+  private static boolean isBlankString(Object value) {
+    return value instanceof String text && StringUtils.isBlank(text);
   }
 
   private List<? extends ErrorReport> validateString(

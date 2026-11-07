@@ -58,6 +58,8 @@ import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * This is a unit test for the {@link DefaultSchemaValidator}.
@@ -69,6 +71,8 @@ class DefaultSchemaValidatorTest {
   @Setter
   @Builder
   public static class SimpleFields {
+
+    String name;
 
     String optional;
 
@@ -89,6 +93,11 @@ class DefaultSchemaValidatorTest {
     Double aDouble;
 
     List<Integer> list;
+
+    @JsonProperty
+    public String getName() {
+      return name;
+    }
 
     @JsonProperty
     public String getOptional() {
@@ -175,6 +184,55 @@ class DefaultSchemaValidatorTest {
   void testRequiredPropertyIsNull() {
     assertError(
         ErrorCode.E4000, SimpleFields.builder().build(), "Missing required property `string`");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"", " ", "      ", "\t", " \n\r\f\u000B "})
+  void testRequiredPropertyIsBlank(String blank) {
+    assertError(
+        ErrorCode.E4000,
+        SimpleFields.builder().string(blank).build(),
+        "Missing required property `string`");
+  }
+
+  @Test
+  void testOptionalPropertyIsBlank() {
+    assertNoError(SimpleFields.builder().string("valid").optional("   ").build());
+  }
+
+  @Test
+  void testOptionalEmailPropertyIsBlank() {
+    assertError(
+        ErrorCode.E4003,
+        SimpleFields.builder().string("valid").email("   ").build(),
+        "Property `email` requires a valid email address, was given `   `");
+  }
+
+  @Test
+  void testPersistedNameIsTrimmed() {
+    schema.getPropertyMap().get("name").setPersisted(true);
+    SimpleFields object =
+        SimpleFields.builder().string("valid").name(" \t\n\r\f\u000BANC \t\n\r\f\u000B").build();
+
+    assertNoError(object);
+    assertEquals("ANC", object.getName());
+  }
+
+  @Test
+  void testNotPersistedNameIsNotTrimmed() {
+    SimpleFields object = SimpleFields.builder().string("valid").name(" ANC ").build();
+
+    assertNoError(object);
+    assertEquals(" ANC ", object.getName());
+  }
+
+  @Test
+  void testOtherPropertyIsNotTrimmed() {
+    SimpleFields object = SimpleFields.builder().string(" valid ").optional(" ANC ").build();
+
+    assertNoError(object);
+    assertEquals(" valid ", object.getString());
+    assertEquals(" ANC ", object.getOptional());
   }
 
   @Test
