@@ -244,6 +244,23 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testDeleteDbLocale() {
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=de"));
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales?language=de"));
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=de&country=DE"));
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales?language=de&country=DE"));
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=de&country=DE&script=Latn"));
+    assertStatus(
+        HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales?language=de&country=DE&script=Latn"));
+  }
+
+  @Test
+  void testDeleteDbLocale_BlankUrlParameters() {
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=de&country=&script="));
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/locales/dbLocales?language=de&country=&script="));
+  }
+
+  @Test
   @DisplayName("a db locale is exposed with the same properties as before the JPA mapping")
   void testGetDbLocaleProperties() {
     String uid =
@@ -291,7 +308,7 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   @DisplayName("a deleted db locale is no longer found")
-  void testDeleteDbLocale() {
+  void testDeleteDbLocaleByUid() {
     String uid =
         assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=en&country=IE"));
 

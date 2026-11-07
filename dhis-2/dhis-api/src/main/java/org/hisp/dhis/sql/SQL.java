@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,7 +74,7 @@ public final class SQL {
       LONG(Long.class),
       STRING(String.class),
       DATE(Date.class),
-      LONG_ARRAY(Long[].class),
+      LONG_ARRAY(long[].class),
       STRING_ARRAY(String[].class);
 
       /**
