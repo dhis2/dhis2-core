@@ -45,6 +45,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -58,6 +59,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -230,6 +232,18 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     Property property = schema.getProperty("dimensionItemType");
     assertNotNull(property, "dimensionItemType is not a property of " + klass.getSimpleName());
     assertTrue(property.isReadable());
+  }
+
+  /** Data entry forms must be imported before the data sets and program stages using them. */
+  @ParameterizedTest
+  @ValueSource(classes = {DataSet.class, ProgramStage.class, Program.class})
+  void testDataEntryFormIsImportedBeforeOwner(Class<?> owner) {
+    Schema form = schemaService.getSchema(DataEntryForm.class);
+    Schema ownerSchema = schemaService.getSchema(owner);
+    List<Schema> schemas = schemaService.getMetadataSchemas();
+
+    assertTrue(form.getOrder() < ownerSchema.getOrder());
+    assertTrue(schemas.indexOf(form) < schemas.indexOf(ownerSchema));
   }
 
   /** Members must be imported before the set that references them. */
