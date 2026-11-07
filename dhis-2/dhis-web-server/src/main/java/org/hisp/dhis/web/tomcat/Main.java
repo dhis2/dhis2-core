@@ -35,12 +35,12 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.Container;
 import org.apache.catalina.Context;
 import org.apache.catalina.Executor;
@@ -63,9 +63,13 @@ import org.apache.catalina.util.LifecycleBase;
 import org.apache.catalina.webresources.AbstractResourceSet;
 import org.apache.catalina.webresources.EmptyResource;
 import org.apache.catalina.webresources.StandardRoot;
+import org.apache.logging.log4j.LogManager;
 import org.apache.tomcat.util.scan.StandardJarScanFilter;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.util.ObjectUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -77,8 +81,14 @@ import org.springframework.util.StringUtils;
  * @author Andy Wilkinson
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 public class Main {
+
+  static {
+    // Keep logging alive until Tomcat has closed the Spring context.
+    System.setProperty("log4j.shutdownHookEnabled", "false");
+  }
+
+  private static final Logger log = LoggerFactory.getLogger(Main.class);
 
   private static final Integer DEFAULT_HTTP_PORT = 8080;
 
@@ -99,7 +109,8 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     Tomcat tomcat = new Tomcat();
-    tomcat.setBaseDir(createTempDir());
+    String baseDir = createTempDir();
+    tomcat.setBaseDir(baseDir);
     int port = getPort();
     tomcat.setPort(port);
 
@@ -140,6 +151,10 @@ public class Main {
     Thread.currentThread().setContextClassLoader(context.getParentClassLoader());
 
     host.addChild(context);
+
+    // Registered once the server exists, so the hook never creates it concurrently.
+    Runtime.getRuntime()
+        .addShutdownHook(new Thread(() -> shutdown(tomcat, baseDir), "tomcat-shutdown"));
 
     try {
       tomcat.start();
@@ -230,12 +245,50 @@ public class Main {
     context.addServletMappingDecoded("/", "default");
   }
 
+  /**
+   * Stops and destroys Tomcat, which closes the Spring context. Skips both while Tomcat is still
+   * starting: Spring starts inside the synchronized {@link LifecycleBase#start()}, so calling the
+   * synchronized {@code stop()} would block the shutdown hook until startup completes. The JVM then
+   * exits without waiting for startup. {@code getState()} does not take the lock.
+   */
+  static void stopTomcat(Tomcat tomcat) {
+    LifecycleState state = tomcat.getServer().getState();
+    if (state != LifecycleState.STARTED && state != LifecycleState.FAILED) {
+      log.info("Embedded Tomcat is in state {}, exiting without graceful shutdown", state);
+      return;
+    }
+    try {
+      tomcat.stop();
+    } catch (Exception ex) {
+      log.error("Failed to stop embedded Tomcat", ex);
+    }
+    try {
+      tomcat.destroy();
+    } catch (Exception ex) {
+      log.error("Failed to destroy embedded Tomcat", ex);
+    }
+  }
+
+  private static void shutdown(Tomcat tomcat, String baseDir) {
+    stopTomcat(tomcat);
+    try {
+      FileSystemUtils.deleteRecursively(Path.of(baseDir));
+      log.info("Deleted embedded Tomcat base directory: {}", baseDir);
+    } catch (Exception ex) {
+      log.error("Failed to delete embedded Tomcat base directory: {}", baseDir, ex);
+    }
+    try {
+      LogManager.shutdown();
+    } catch (Exception ex) {
+      log.error("Failed to shut down logging", ex);
+    }
+  }
+
   private static String createTempDir() {
     try {
       File tempDir = File.createTempFile("tomcat.", "." + CodeGenerator.generateCode(8));
       tempDir.delete();
       tempDir.mkdir();
-      tempDir.deleteOnExit();
       return tempDir.getAbsolutePath();
     } catch (IOException ex) {
       throw new RuntimeException(
