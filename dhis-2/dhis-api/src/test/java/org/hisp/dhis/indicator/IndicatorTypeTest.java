@@ -30,7 +30,6 @@
 package org.hisp.dhis.indicator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -84,7 +83,7 @@ class IndicatorTypeTest {
 
   @Test
   void testNotEqualToNull() {
-    assertFalse(indicatorType("IndTypeUid1", "code", "Percent").equals(null));
+    assertNotEquals(indicatorType("IndTypeUid1", "code", "Percent"), null);
   }
 
   @Test
