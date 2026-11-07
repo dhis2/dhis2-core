@@ -72,6 +72,7 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.MediaType;
 import org.mockserver.model.NottableString;
+import org.mockserver.version.Version;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -191,8 +192,12 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   @BeforeAll
   static void beforeAll() {
     tokenMockServerContainer =
-        new GenericContainer<>("mockserver/mockserver:5.15.0")
-            .waitingFor(new HttpWaitStrategy().forStatusCode(404))
+        new GenericContainer<>("mockserver/mockserver:" + Version.getVersion())
+            .waitingFor(
+                new HttpWaitStrategy()
+                    .withMethod("PUT")
+                    .forPath("/mockserver/status")
+                    .forStatusCode(200))
             .withExposedPorts(1080);
     tokenMockServerContainer.start();
     tokenMockServerClient =
@@ -220,8 +225,12 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @BeforeAll
     static void beforeAll() {
       upstreamMockServerContainer =
-          new GenericContainer<>("mockserver/mockserver:5.15.0")
-              .waitingFor(new HttpWaitStrategy().forStatusCode(404))
+          new GenericContainer<>("mockserver/mockserver:" + Version.getVersion())
+              .waitingFor(
+                  new HttpWaitStrategy()
+                      .withMethod("PUT")
+                      .forPath("/mockserver/status")
+                      .forStatusCode(200))
               .withExposedPorts(1080);
       upstreamMockServerContainer.start();
     }
