@@ -172,11 +172,12 @@ class OutboundSmsStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("message is bound as a string, date as a timestamp and recipient elements as text")
+  @DisplayName(
+      "message and recipient elements are bound as text, sender as a string, date as a timestamp")
   void testPropertyTypes() {
     EntityPersister persister = persister();
 
-    assertInstanceOf(StringType.class, persister.getPropertyType("message"));
+    assertInstanceOf(TextType.class, persister.getPropertyType("message"));
     assertInstanceOf(StringType.class, persister.getPropertyType("sender"));
     assertInstanceOf(TimestampType.class, persister.getPropertyType("date"));
     assertInstanceOf(TextType.class, recipientsPersister().getElementType());
