@@ -34,13 +34,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.rules.models.RuleValidationResult;
@@ -69,25 +64,10 @@ public class ProgramRuleController
 
   @PostMapping(value = "/condition/description", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public WebMessage validateCondition(@RequestBody String condition, @RequestParam UID programId)
-      throws BadRequestException {
-    I18n i18n = i18nManager.getI18n();
-
+  public ProgramRuleExpressionWebMessage validateCondition(
+      @RequestBody String condition, @RequestParam UID programId) throws BadRequestException {
     RuleValidationResult result = programRuleEngine.getDescription(condition, programId);
 
-    if (result.getValid()) {
-      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
-          .setDescription(result.getDescription())
-          .setMessage(i18n.getString(ProgramIndicator.VALID));
-    }
-    String description = null;
-    if (result.getErrorMessage() != null) {
-      description = result.getErrorMessage();
-    } else if (result.getException() != null) {
-      description = result.getException().getMessage();
-    }
-    return new DescriptiveWebMessage(Status.ERROR, HttpStatus.OK)
-        .setDescription(description)
-        .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
+    return ProgramRuleExpressionWebMessage.of(result, i18nManager.getI18n(), HttpStatus.OK);
   }
 }

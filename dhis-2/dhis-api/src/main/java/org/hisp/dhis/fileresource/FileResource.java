@@ -83,6 +83,7 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.storage.BlobKey;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.util.MimeTypeUtils;
 
@@ -691,5 +692,17 @@ public class FileResource implements IdentifiableObject {
   @Deprecated(since = "2.44")
   public void removeAttributeValue(String attributeId) {
     // Not supported
+  }
+
+  /**
+   * Compares primary keys, so the check does not depend on loading any other state of the uploader.
+   *
+   * @param user a user
+   * @return true when the given user uploaded this file resource
+   */
+  public boolean isCreatedBy(@Nonnull UserDetails user) {
+    User uploader = getCreatedBy();
+    Long userId = user.getId();
+    return uploader != null && userId != null && uploader.getId() == userId;
   }
 }

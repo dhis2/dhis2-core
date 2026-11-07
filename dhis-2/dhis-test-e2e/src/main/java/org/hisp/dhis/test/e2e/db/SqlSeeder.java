@@ -52,6 +52,8 @@ public class SqlSeeder {
   /** Directory holding the scripts, relative to the module root. */
   public static final String SEED_DIR = "src/test/resources/db/seed";
 
+  public static final String SEED_DIR_AFTER = "src/test/resources/db/seed/after";
+
   /** Applies when {@code db.seed.timeout.seconds} is not set. */
   private static final int DEFAULT_TIMEOUT_SECONDS = 1800;
 
@@ -60,24 +62,26 @@ public class SqlSeeder {
   private SqlSeeder() {}
 
   /**
-   * Applies every {@code .sql} file in {@link #SEED_DIR}, ordered by file name. Each file is sent
-   * as a single multi-statement query, which PostgreSQL applies atomically.
+   * Applies every {@code .sql} file in {@code path}, ordered by file name. Each file is sent as a
+   * single multi-statement query, which PostgreSQL applies atomically.
    *
+   * @param path the directory holding the scripts, relative to the module root, such as {@link
+   *     #SEED_DIR} or {@link #SEED_DIR_AFTER}
    * @return the number of scripts applied
    * @throws IllegalStateException if the scripts cannot be listed, read or applied
    */
-  public static int applySeedScripts() {
+  public static int applySeedScripts(String path) {
     // Checked before the directory is looked at, so that disabling seeding cannot fail on a
     // missing directory.
     if (!Optional.ofNullable(TestConfiguration.get().shouldApplySeedScripts()).orElse(true)) {
-      logger.info("SQL seeding is disabled by db.seed.enabled=false; skipping {}", SEED_DIR);
+      logger.info("SQL seeding is disabled by db.seed.enabled=false; skipping {}", path);
       return 0;
     }
 
-    List<Path> scripts = seedScripts(Path.of(SEED_DIR));
+    List<Path> scripts = seedScripts(Path.of(path));
 
     if (scripts.isEmpty()) {
-      logger.info("No SQL seed scripts in {}", SEED_DIR);
+      logger.info("No SQL seed scripts in {}", path);
       return 0;
     }
 
@@ -97,7 +101,7 @@ public class SqlSeeder {
           "Could not connect to "
               + url
               + " to apply the SQL seed scripts in "
-              + SEED_DIR
+              + path
               + ". Pass -Ddb.url, -Ddb.username and -Ddb.password when the database of the instance"
               + " under test is not the one at that url.",
           e);

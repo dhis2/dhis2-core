@@ -46,6 +46,7 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.ManyToOneType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.document.Document;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationStore;
@@ -68,6 +69,7 @@ class FileResourceStoreTest extends PostgresIntegrationTestBase {
   @Autowired IdentifiableObjectManager manager;
   @Autowired JdbcTemplate jdbcTemplate;
   @Autowired EntityManagerFactory entityManagerFactory;
+  @Autowired MessageService messageService;
 
   @Test
   @DisplayName(
@@ -120,6 +122,47 @@ class FileResourceStoreTest extends PostgresIntegrationTestBase {
     // then 1 unassigned file resources (JOB_DATA), with no job config is returned
     assertEquals(1, allUnassignedByDomain.size());
     assertTrue(allUnassignedByDomain.contains(fr2));
+  }
+
+  @Test
+  @DisplayName("Only the participants of the conversation holding an attachment are returned")
+  void findMessageAttachmentParticipantsTest() {
+    // given an attachment sent from one user to another, and an unrelated user
+    User sender = createAndAddUser("attachmentSender");
+    User recipient = createAndAddUser("attachmentRecipient");
+    User outsider = createAndAddUser("attachmentOutsider");
+
+    FileResource attachment =
+        new FileResource(
+            "attachment.txt", "text/plain", 10L, "20", FileResourceDomain.MESSAGE_ATTACHMENT);
+    attachment.setAssigned(true);
+    fileResourceStore.save(attachment);
+
+    injectSecurityContextUser(sender);
+    messageService.sendPrivateMessage(
+        Set.of(recipient), "Subject", "Body", null, Set.of(attachment));
+
+    entityManager.flush();
+
+    // when looking up who may read the attachment
+    List<String> participants =
+        fileResourceStore.findMessageAttachmentParticipants(attachment.getUid());
+
+    // then only the conversation participants are returned
+    assertTrue(participants.contains(recipient.getUid()), "recipient must be a participant");
+    assertFalse(participants.contains(outsider.getUid()), "outsider must not be a participant");
+  }
+
+  @Test
+  @DisplayName("An attachment that belongs to no conversation has no participants")
+  void findMessageAttachmentParticipantsUnassignedTest() {
+    FileResource attachment =
+        new FileResource(
+            "orphan.txt", "text/plain", 10L, "20", FileResourceDomain.MESSAGE_ATTACHMENT);
+    fileResourceStore.save(attachment);
+    entityManager.flush();
+
+    assertTrue(fileResourceStore.findMessageAttachmentParticipants(attachment.getUid()).isEmpty());
   }
 
   @Test

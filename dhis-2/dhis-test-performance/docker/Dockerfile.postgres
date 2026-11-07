@@ -1,23 +1,30 @@
 # syntax=docker/dockerfile:1
 # Dockerfile to build and restore the DB dump at build time (not runtime)
 # This significantly speeds up container startup for performance tests.
+#
+# DB_ETAG is the ETag of the dump in S3 that run-simulation.sh found before the build. It makes the
+# build download exactly that object (If-Match), invalidates the build cache when the dump changes,
+# and labels the image, so run-simulation.sh rebuilds it only when the dump in S3 changed.
 ARG DB_DIR
 ARG DB_TYPE
 ARG DB_VERSION
+# db_url() in run-simulation.sh builds this URL too, to read the dump's ETag: change both together
+ARG DB_URL="https://s3.eu-west-1.amazonaws.com/databases.dhis2.org/${DB_DIR:+${DB_DIR}/}${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"
+ARG DB_ETAG
+ARG DB_S3_VERSION_ID
 
-FROM amazon/aws-cli:latest AS downloader
-ARG DB_DIR
-ARG DB_TYPE
-ARG DB_VERSION
+FROM curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13 AS downloader
+ARG DB_URL
+ARG DB_ETAG
 WORKDIR /tmp
 
-RUN if [ -n "$DB_DIR" ]; then \
-      S3_PATH="s3://databases.dhis2.org/${DB_DIR}/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"; \
+RUN echo "Downloading ${DB_URL} (ETag ${DB_ETAG:-not given})" && \
+    if [ -n "$DB_ETAG" ]; then \
+      curl --fail --silent --show-error --retry 3 --header "If-Match: \"${DB_ETAG}\"" \
+        --output dump.sql.gz "$DB_URL"; \
     else \
-      S3_PATH="s3://databases.dhis2.org/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"; \
-    fi && \
-    echo "Downloading from: $S3_PATH" && \
-    aws s3 cp --no-sign-request "$S3_PATH" dump.sql.gz
+      curl --fail --silent --show-error --retry 3 --output dump.sql.gz "$DB_URL"; \
+    fi
 
 FROM ghcr.io/baosystems/postgis:16-3.5 AS builder
 
@@ -44,6 +51,24 @@ RUN chmod +x /usr/local/bin/docker-entrypoint-build.sh && \
 # Final stage with pre-populated database
 FROM ghcr.io/baosystems/postgis:16-3.5
 
+ARG DB_URL
+ARG DB_ETAG
+ARG DB_S3_VERSION_ID
+# Replace the labels inherited from the PostGIS base image, which describe that image, not this one
+LABEL maintainer="" \
+      org.opencontainers.image.title="dhis2-postgres" \
+      org.opencontainers.image.description="PostGIS with a DHIS2 database restored, for the performance tests" \
+      org.opencontainers.image.source="https://github.com/dhis2/dhis2-core/tree/master/dhis-2/dhis-test-performance" \
+      org.opencontainers.image.url="https://github.com/dhis2/dhis2-core/tree/master/dhis-2/dhis-test-performance" \
+      org.opencontainers.image.base.name="ghcr.io/baosystems/postgis:16-3.5" \
+      org.opencontainers.image.version="" \
+      org.opencontainers.image.revision="" \
+      org.opencontainers.image.created="" \
+      org.opencontainers.image.licenses=""
+LABEL org.dhis2.db.url="${DB_URL}" \
+      org.dhis2.db.etag="${DB_ETAG}" \
+      org.dhis2.db.s3-version-id="${DB_S3_VERSION_ID}"
+
 ENV POSTGRES_USER=dhis \
     POSTGRES_DB=dhis \
     POSTGRES_PASSWORD=dhis \
@@ -52,4 +77,3 @@ ENV POSTGRES_USER=dhis \
     PGPASSWORD=dhis
 
 COPY --from=builder --chown=postgres:postgres /var/lib/postgresql/data /var/lib/postgresql/data
-
