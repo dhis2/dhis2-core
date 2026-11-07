@@ -173,7 +173,7 @@ public class ExternalMapLayer extends BaseIdentifiableObject implements Metadata
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(max = 1024)
   public String getDescription() {
-    return this.description;
+    return description;
   }
 
   public void setDescription(String description) {

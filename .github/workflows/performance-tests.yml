@@ -191,6 +191,7 @@ jobs:
         DB_DIR=$(grep "^DB_DIR=" "$RUN_ENV" | cut -d= -f2-)
         DB_TYPE=$(grep "^DB_TYPE=" "$RUN_ENV" | cut -d= -f2-)
         DB_VERSION=$(grep "^DB_VERSION=" "$RUN_ENV" | cut -d= -f2-)
+        DB_ETAG=$(grep "^DB_ETAG=" "$RUN_ENV" | cut -d= -f2-)
 
         echo "# 🚀 Performance Test Results: ${{ inputs.test_name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -204,9 +205,9 @@ jobs:
         echo "* **Performance tests git ref**: \`$PERF_GIT_BRANCH\` (\`$PERF_GIT_COMMIT\`)" >> $GITHUB_STEP_SUMMARY
         echo "* **Warmup iterations**: $WARMUP_COUNT" >> $GITHUB_STEP_SUMMARY
         if [ -n "$DB_DIR" ]; then
-          echo "* **Database**: \`$DB_DIR\` / \`$DB_TYPE\` / \`$DB_VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "* **Database**: \`$DB_DIR\` / \`$DB_TYPE\` / \`$DB_VERSION\`${DB_ETAG:+ (ETag \`$DB_ETAG\`)}" >> $GITHUB_STEP_SUMMARY
         else
-          echo "* **Database**: \`$DB_TYPE\` / \`$DB_VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "* **Database**: \`$DB_TYPE\` / \`$DB_VERSION\`${DB_ETAG:+ (ETag \`$DB_ETAG\`)}" >> $GITHUB_STEP_SUMMARY
         fi
         if [ -n "$MVN_ARGS_VALUE" ]; then
           echo "* **Maven arguments**: \`$MVN_ARGS_VALUE\`" >> $GITHUB_STEP_SUMMARY
