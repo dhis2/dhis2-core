@@ -30,7 +30,6 @@
 package org.hisp.dhis.version;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import org.junit.jupiter.api.Test;
@@ -55,11 +54,11 @@ class VersionTest {
 
   @Test
   void testNotEqualToNull() {
-    assertFalse(new Version("key", "value").equals(null));
+    assertNotEquals(new Version("key", "value"), null);
   }
 
   @Test
   void testNotEqualToOtherType() {
-    assertFalse(new Version("key", "value").equals("key"));
+    assertNotEquals(new Version("key", "value"), "key");
   }
 }
