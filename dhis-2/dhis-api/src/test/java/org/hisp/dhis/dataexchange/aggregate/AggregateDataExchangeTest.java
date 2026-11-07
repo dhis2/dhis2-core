@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -83,5 +85,42 @@ class AggregateDataExchangeTest {
 
     assertFalse(tA.getSkipAudit());
     assertFalse(tA.isSkipAuditOrDefault());
+  }
+
+  @Test
+  void testExchangesWithSameUidCodeAndNameAreEqual() {
+    AggregateDataExchange a = exchange("AdeUid00001", "CODE", "Exchange");
+    AggregateDataExchange b = exchange("AdeUid00001", "CODE", "Exchange");
+    b.setId(42);
+    b.setTarget(new Target().setType(TargetType.INTERNAL));
+
+    assertEquals(a, b);
+    assertEquals(a.hashCode(), b.hashCode());
+  }
+
+  @Test
+  void testExchangesDifferingInUidCodeOrNameAreNotEqual() {
+    AggregateDataExchange a = exchange("AdeUid00001", "CODE", "Exchange");
+
+    assertNotEquals(a, exchange("AdeUid00002", "CODE", "Exchange"));
+    assertNotEquals(a, exchange("AdeUid00001", "OTHER", "Exchange"));
+    assertNotEquals(a, exchange("AdeUid00001", "CODE", "Other"));
+  }
+
+  @Test
+  void testSetNullTranslationsStoresEmptySet() {
+    AggregateDataExchange exchange = exchange("AdeUid00001", "CODE", "Exchange");
+    exchange.setTranslations(null);
+
+    assertTrue(exchange.getTranslations().isEmpty());
+    assertEquals("Exchange", exchange.getDisplayName());
+  }
+
+  private static AggregateDataExchange exchange(String uid, String code, String name) {
+    AggregateDataExchange exchange = new AggregateDataExchange();
+    exchange.setUid(uid);
+    exchange.setCode(code);
+    exchange.setName(name);
+    return exchange;
   }
 }
