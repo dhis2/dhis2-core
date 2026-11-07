@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,7 @@ import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,6 +75,8 @@ class TrackerImporterServiceTest {
 
   @Mock private NotificationDispatcher notificationDispatcher;
 
+  @Mock private UserService userService;
+
   private DefaultTrackerImportService subject;
 
   private TrackerImportParams params = null;
@@ -86,7 +89,7 @@ class TrackerImporterServiceTest {
   public void setUp() {
     subject =
         new DefaultTrackerImportService(
-            trackerBundleService, validationService, notificationDispatcher);
+            trackerBundleService, validationService, notificationDispatcher, userService);
 
     injectSecurityContextNoSettings(user);
 
