@@ -133,4 +133,35 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
 
     assertTrue(detailsRefs.contains("Fish District"));
   }
+
+  @Test
+  void testDataCaptureUnitsAllWithinHierarchy() {
+
+    orgunitAUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
+
+    userRoleUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/userRoles", "{ 'name': 'Test role', 'authorities': ['F_DATAVALUE_ADD'] }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/users",
+            "{ 'username': 'bobbytables' , 'password': 'District123+', 'firstName': 'Bobby', 'surname': 'Tables', 'organisationUnits' : [{'id' : '"
+                + orgunitAUid
+                + "'}], 'teiSearchOrganisationUnits' : [{'id' : '"
+                + orgunitAUid
+                + "'}], 'userRoles' : [{'id' : '"
+                + userRoleUid
+                + "'}]}"));
+
+    // No user has a capture org unit outside the hierarchy: the summary must still report zero
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, true);
+  }
 }
