@@ -190,6 +190,32 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
     }
   }
 
+  @Test
+  void testDataCaptureUnitsAllWithinHierarchyReportsZero() {
+    String districtUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
+    String clinicUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish Clinic', 'shortName': 'Fish Clinic', 'openingDate' : '2022-01-01', "
+                    + "'parent': {'id' : '"
+                    + districtUid
+                    + "'}}"));
+
+    // capture at and below the hierarchy unit: nobody is flagged
+    postUser("bobbytables", clinicUid, districtUid);
+    postUser("janedoe", districtUid, districtUid);
+
+    // The summary must still return a row with zero, not fail the check (count -1)
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, true);
+  }
+
   private String postUser(String username, String captureUids, String hierarchyUid) {
     String roleUid =
         assertStatus(
