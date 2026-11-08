@@ -216,9 +216,9 @@ class DataIntegrityYamlReader {
                 .severity(yamlFile.severity)
                 .isSlow(yamlFile.isSlow)
                 .runSummaryCheck(
-                    dataIntegrityRecord.sqlToSummary().apply(sanitiseSQL(yamlFile.summarySql)))
+                    dataIntegrityRecord.sqlToSummary().apply(trim(yamlFile.summarySql)))
                 .runDetailsCheck(
-                    dataIntegrityRecord.sqlToDetails().apply(sanitiseSQL(yamlFile.detailsSql)))
+                    dataIntegrityRecord.sqlToDetails().apply(trim(yamlFile.detailsSql)))
                 .build());
   }
 
@@ -242,19 +242,6 @@ class DataIntegrityYamlReader {
 
   private static String trim(String str) {
     return str == null ? null : str.trim();
-  }
-
-  /**
-   * The purpose of this method is to strip some details from the SQL queries that are present for
-   * their 2nd use case scenario but are not needed here and might confuse the database (even if
-   * this is just in unit tests).
-   */
-  private static String sanitiseSQL(String sql) {
-    return trim(
-        sql.replaceAll("select '[^']+' as [^,]+,", "select ")
-            .replaceAll("'[^']+' as description", "")
-            .replace("::varchar", "")
-            .replace("|| '%'", ""));
   }
 
   enum ResourceLocation {
