@@ -60,7 +60,7 @@ summary_sql: >-
   WHERE NOT EXISTS (
   SELECT 1
   FROM unnest(COALESCE(v.view_orgunit_paths, '{}')) AS view_path
-  WHERE path LIKE view_path || '%'
+  WHERE path LIKE concat(view_path, '%')
   )
   ) invalid_paths ON true
   GROUP BY u.userinfoid
@@ -101,7 +101,7 @@ details_sql: >-
       WHERE NOT EXISTS (
           SELECT 1
           FROM unnest(COALESCE(v.view_orgunit_paths, '{}')) AS view_path
-          WHERE path LIKE view_path || '%'
+          WHERE path LIKE concat(view_path, '%')
       )
   ) invalid_paths ON true
   GROUP BY u.userinfoid
