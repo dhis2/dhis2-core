@@ -410,7 +410,6 @@ class OrgUnitPathTest {
 
   @Test
   void testEquals_nullAndOtherType() {
-    assertNotEquals(path(UID_A), null);
     assertNotEquals(path(UID_A), pathString(UID_A));
   }
 

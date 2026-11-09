@@ -303,8 +303,7 @@ class DirectiveQueryBuilderTest {
           -- @end
           """));
       assertEquals(
-          "Missing operator between terms in @if (use && or ||): -- @if :b --@if :c",
-          ex.getMessage());
+          "Missing operator between terms in @if (use && or ||): :b --@if :c", ex.getMessage());
     }
   }
 
@@ -355,7 +354,7 @@ class DirectiveQueryBuilderTest {
     private static final String TEMPLATE =
         """
         SELECT
-        -- @replace :count count(*)
+        -- @replace :count = count(*)
           a, b
         -- @end
         FROM x
@@ -376,9 +375,9 @@ class DirectiveQueryBuilderTest {
       IllegalStateException ex =
           assertThrows(
               IllegalStateException.class,
-              () -> countSql("SELECT\n-- @replace :count count(*)\n  a, b\nFROM x\n", b -> {}));
+              () -> countSql("SELECT\n-- @replace :count = count(*)\n  a, b\nFROM x\n", b -> {}));
       assertEquals(
-          "@replace block did not close with @end but with null: -- @replace :count count(*)",
+          "@replace block did not close with @end but with null: -- @replace :count = count(*)",
           ex.getMessage());
     }
 
@@ -387,7 +386,7 @@ class DirectiveQueryBuilderTest {
       String template =
           """
           -- @if :flag
-          -- @replace :count count(*)
+          -- @replace :count = count(*)
           A
           -- @end
           -- @end
@@ -826,14 +825,14 @@ class DirectiveQueryBuilderTest {
     void ifWithoutArgumentFails() {
       IllegalStateException ex =
           assertThrows(IllegalStateException.class, () -> fetchSql("-- @if\nA\n-- @end"));
-      assertTrue(ex.getMessage().contains("requires ':name' argument"));
+      assertEquals("@if expression ends unexpectedly: ", ex.getMessage());
     }
 
     @Test
     void ifWithNonColonArgumentFails() {
       IllegalStateException ex =
           assertThrows(IllegalStateException.class, () -> fetchSql("-- @if flag\nA\n-- @end"));
-      assertEquals("@if requires ':name' argument: -- @if flag", ex.getMessage());
+      assertEquals("@if requires ':name' argument: flag", ex.getMessage());
     }
 
     @Test
@@ -841,7 +840,7 @@ class DirectiveQueryBuilderTest {
       IllegalStateException ex =
           assertThrows(
               IllegalStateException.class, () -> fetchSql("-- @if :a\nA\n-- @else :x\nB\n-- @end"));
-      assertEquals("@else takes no argument: -- @else :x", ex.getMessage());
+      assertEquals("@else unexpected content after directive: -- @else :x", ex.getMessage());
     }
 
     @Test
