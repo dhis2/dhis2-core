@@ -78,7 +78,8 @@ class I18nLocaleTest {
 
   @Test
   void testNotEqualToNull() {
-    assertNotEquals(locale("uidLocale01", "code", "French", "fr"), null);
+    Object nothing = null;
+    assertNotEquals(locale("uidLocale01", "code", "French", "fr"), nothing);
   }
 
   @Test
