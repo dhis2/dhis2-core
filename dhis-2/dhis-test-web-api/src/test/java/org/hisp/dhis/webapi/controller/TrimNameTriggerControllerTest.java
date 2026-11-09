@@ -183,6 +183,140 @@ class TrimNameTriggerControllerTest extends PostgresControllerIntegrationTestBas
     assertEquals("Padded update changed", selectName(uid));
   }
 
+  @Test
+  void patchOfObjectWithPaddedNameReturnsTrimmedName() {
+    String uid = postDataElement("Padded patch", "Padded patch short");
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/dataElements/" + uid,
+            """
+            [{"op": "replace", "path": "/name", "value": " \\t Padded patch changed \\n "}]"""));
+
+    assertEquals(
+        "Padded patch changed", GET("/dataElements/" + uid).content().getString("name").string());
+    assertEquals("Padded patch changed", selectName(uid));
+  }
+
+  @Test
+  void metadataImportCreateOfObjectsWithPaddedNamesReturnsTrimmedNames() {
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/metadata",
+            """
+            {
+              "dataElements": [{
+                "id": "DeImportCr1",
+                "name": " \\t Imported data element \\n ",
+                "shortName": "Imported data element short",
+                "domainType": "AGGREGATE",
+                "aggregationType": "SUM",
+                "valueType": "NUMBER"
+              }],
+              "organisationUnits": [{
+                "id": "OuImportCr1",
+                "name": "  Imported org unit  ",
+                "shortName": "Imported org unit short",
+                "openingDate": "2020-01-01"
+              }]
+            }"""));
+
+    assertEquals(
+        "Imported data element",
+        GET("/dataElements/DeImportCr1").content().getString("name").string());
+    assertEquals("Imported data element", selectName("DeImportCr1"));
+    assertEquals(
+        "Imported org unit",
+        GET("/organisationUnits/OuImportCr1").content().getString("name").string());
+    assertEquals(
+        "Imported org unit",
+        jdbcTemplate.queryForObject(
+            "select name from organisationunit where uid = 'OuImportCr1'", String.class));
+  }
+
+  @Test
+  void metadataImportUpdateOfObjectWithPaddedNameReturnsTrimmedName() {
+    String uid = postDataElement("Import update", "Import update short");
+
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/metadata?importStrategy=UPDATE",
+            """
+            {
+              "dataElements": [{
+                "id": "%s",
+                "name": "  Import update changed  ",
+                "shortName": "Import update short",
+                "domainType": "AGGREGATE",
+                "aggregationType": "SUM",
+                "valueType": "NUMBER"
+              }]
+            }"""
+                .formatted(uid)));
+
+    assertEquals(
+        "Import update changed", GET("/dataElements/" + uid).content().getString("name").string());
+    assertEquals("Import update changed", selectName(uid));
+  }
+
+  @Test
+  void metadataImportWithSkipValidationOfObjectWithPaddedNameReturnsTrimmedName() {
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/metadata?skipValidation=true",
+            """
+            {
+              "dataElements": [{
+                "id": "DeImportSk1",
+                "name": " \\t Skip validation \\n ",
+                "shortName": "Skip validation short",
+                "domainType": "AGGREGATE",
+                "aggregationType": "SUM",
+                "valueType": "NUMBER"
+              }]
+            }"""));
+
+    assertEquals(
+        "Skip validation", GET("/dataElements/DeImportSk1").content().getString("name").string());
+    assertEquals("Skip validation", selectName("DeImportSk1"));
+  }
+
+  @Test
+  void metadataImportOfObjectsWhoseTrimmedNamesAreDuplicatesReturnsConflict() {
+    HttpResponse response =
+        POST(
+            "/metadata",
+            """
+            {
+              "dataElements": [{
+                "id": "DeImportDu1",
+                "name": "Import duplicate",
+                "shortName": "Import duplicate short 1",
+                "domainType": "AGGREGATE",
+                "aggregationType": "SUM",
+                "valueType": "NUMBER"
+              }, {
+                "id": "DeImportDu2",
+                "name": " Import duplicate ",
+                "shortName": "Import duplicate short 2",
+                "domainType": "AGGREGATE",
+                "aggregationType": "SUM",
+                "valueType": "NUMBER"
+              }]
+            }""");
+
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertEquals(
+        0,
+        jdbcTemplate.queryForObject(
+            "select count(*) from dataelement where uid in ('DeImportDu1', 'DeImportDu2')",
+            Integer.class));
+  }
+
   private String postDataElement(String name, String shortName) {
     return assertStatus(
         HttpStatus.CREATED,
