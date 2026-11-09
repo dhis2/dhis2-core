@@ -794,7 +794,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * a value.
    */
   private void addAttributeJoins(
-      StringBuilder sql, String joinType, Set<TrackedEntityAttribute> attributes) {
+      StringBuilder sql, String joinType, List<TrackedEntityAttribute> attributes) {
     for (TrackedEntityAttribute attribute : attributes) {
       addAttributeJoin(sql, joinType, attribute);
     }

@@ -31,9 +31,11 @@ package org.hisp.dhis.tracker.export.trackerevent;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -148,7 +150,8 @@ class TrackerEventQueryParams {
 
   /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
   @Getter
-  private final Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> attributes = new HashMap<>();
+  private final Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> attributes =
+      new LinkedHashMap<>();
 
   /** Attributes that have a {@link QueryOperator#NULL} filter and therefore require a LEFT JOIN. */
   private final Set<TrackedEntityAttribute> nullFilteredAttributes = new HashSet<>();
@@ -369,22 +372,28 @@ class TrackerEventQueryParams {
    * Returns filter attributes that can use an INNER JOIN. These are attributes with filters that
    * don't use the {@link QueryOperator#NULL} operator, so NULLs are eliminated by the WHERE clause
    * anyway.
+   *
+   * <p>Unique attributes, which are usually the most selective, come first; the rest keep the order
+   * of the filters. The order is the order of the joins in the SQL, and PostgreSQL only reorders
+   * the first {@code join_collapse_limit} joins, so a join written later cannot be used to start
+   * the query from.
    */
-  public Set<TrackedEntityAttribute> getInnerJoinAttributes() {
-    Set<TrackedEntityAttribute> result = new HashSet<>(attributes.keySet());
-    result.removeAll(nullFilteredAttributes);
-    return result;
+  public List<TrackedEntityAttribute> getInnerJoinAttributes() {
+    return attributes.keySet().stream()
+        .filter(tea -> !nullFilteredAttributes.contains(tea))
+        .sorted(Comparator.comparing((TrackedEntityAttribute tea) -> !tea.isUnique()))
+        .toList();
   }
 
   /**
    * Returns attributes that need a LEFT JOIN: order-only attributes and attributes with a {@link
    * QueryOperator#NULL} filter (which needs NULLs preserved to match).
    */
-  public Set<TrackedEntityAttribute> getLeftJoinAttributes() {
+  public List<TrackedEntityAttribute> getLeftJoinAttributes() {
     Set<TrackedEntityAttribute> leftJoined = new HashSet<>(getOrderAttributes());
     leftJoined.addAll(nullFilteredAttributes);
     leftJoined.removeAll(getInnerJoinAttributes());
-    return leftJoined;
+    return List.copyOf(leftJoined);
   }
 
   public TrackerEventQueryParams filterBy(
