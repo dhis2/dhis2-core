@@ -83,7 +83,8 @@ class IndicatorTypeTest {
 
   @Test
   void testNotEqualToNull() {
-    assertNotEquals(indicatorType("IndTypeUid1", "code", "Percent"), null);
+    Object nothing = null;
+    assertNotEquals(indicatorType("IndTypeUid1", "code", "Percent"), nothing);
   }
 
   @Test
