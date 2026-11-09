@@ -88,7 +88,9 @@ class OrganisationUnitLevelTest {
 
     OrganisationUnitLevel level = level("OuLevelUid1", "code", "District");
 
-    assertNotEquals(level, null);
+    Object nothing = null;
+
+    assertNotEquals(level, nothing);
     assertNotEquals(level, user);
   }
 
