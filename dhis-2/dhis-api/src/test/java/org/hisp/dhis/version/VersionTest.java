@@ -54,11 +54,13 @@ class VersionTest {
 
   @Test
   void testNotEqualToNull() {
-    assertNotEquals(new Version("key", "value"), null);
+    Object nothing = null;
+    assertNotEquals(new Version("key", "value"), nothing);
   }
 
   @Test
   void testNotEqualToOtherType() {
-    assertNotEquals(new Version("key", "value"), "key");
+    Object otherType = "key";
+    assertNotEquals(new Version("key", "value"), otherType);
   }
 }
