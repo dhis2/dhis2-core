@@ -135,4 +135,113 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
 
     assertTrue(detailsRefs.contains("Fish District"));
   }
+
+  @Test
+  void testDataCaptureUnitsAllWithinHierarchy() {
+
+    orgunitAUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
+
+    userRoleUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/userRoles", "{ 'name': 'Test role', 'authorities': ['F_DATAVALUE_ADD'] }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/users",
+            "{ 'username': 'bobbytables' , 'password': 'District123+', 'firstName': 'Bobby', 'surname': 'Tables', 'organisationUnits' : [{'id' : '"
+                + orgunitAUid
+                + "'}], 'teiSearchOrganisationUnits' : [{'id' : '"
+                + orgunitAUid
+                + "'}], 'userRoles' : [{'id' : '"
+                + userRoleUid
+                + "'}]}"));
+
+    // No user has a capture org unit outside the hierarchy: the summary must still report zero
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, true);
+  }
+
+  @Test
+  void testOnlyCaptureUnitsOutsideHierarchyAreFlagged() {
+    String provinceUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish Province', 'shortName': 'Fish Province', 'openingDate' : '2022-01-01'}"));
+    String districtUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01', "
+                    + "'parent': {'id' : '"
+                    + provinceUid
+                    + "'}}"));
+    String clinicUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish Clinic', 'shortName': 'Fish Clinic', 'openingDate' : '2022-01-01', "
+                    + "'parent': {'id' : '"
+                    + districtUid
+                    + "'}}"));
+    String otherDistrictUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}"));
+
+    String roleUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/userRoles", "{ 'name': 'Test role', 'authorities': ['F_DATAVALUE_ADD'] }"));
+
+    // capture two levels below the hierarchy unit: should not be flagged
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/users",
+            "{ 'username': 'bobbytables', 'password': 'District123+', 'firstName': 'First', 'surname': 'Last', "
+                + "'organisationUnits' : [{'id' : '"
+                + clinicUid
+                + "'}], 'teiSearchOrganisationUnits' : [{'id' : '"
+                + provinceUid
+                + "'}], 'userRoles' : [{'id' : '"
+                + roleUid
+                + "'}]}"));
+
+    // capture completely outside the hierarchy unit: should be flagged
+    String userOutsideUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/users",
+                "{ 'username': 'janedoe', 'password': 'District123+', 'firstName': 'First', 'surname': 'Last', "
+                    + "'organisationUnits' : [{'id' : '"
+                    + otherDistrictUid
+                    + "'}], 'teiSearchOrganisationUnits' : [{'id' : '"
+                    + provinceUid
+                    + "'}], 'userRoles' : [{'id' : '"
+                    + roleUid
+                    + "'}]}"));
+
+    postDetails(CHECK_NAME);
+    Set<String> flagged =
+        getDetails(CHECK_NAME).getIssues().stream()
+            .map(issue -> issue.getId())
+            .collect(toUnmodifiableSet());
+    assertEquals(Set.of(userOutsideUid), flagged);
+
+    postSummary(CHECK_NAME);
+    assertEquals(1, getSummary(CHECK_NAME).getCount());
+  }
 }
