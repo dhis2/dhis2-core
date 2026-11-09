@@ -149,6 +149,16 @@ class JdbcTemplateQueryAPI {
     private final SQL.Row row =
         new SQL.Row() {
           @Override
+          public int getInt(int i) {
+            try {
+              // override to avoid boxing
+              return rs.getInt(i + 1);
+            } catch (SQLException e) {
+              throw new UnsupportedOperationException(e);
+            }
+          }
+
+          @Override
           public Object getObject(int index) {
             try {
               return rs.getObject(index + 1);

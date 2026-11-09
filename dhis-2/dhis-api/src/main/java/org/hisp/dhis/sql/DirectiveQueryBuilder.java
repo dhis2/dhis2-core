@@ -46,20 +46,21 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.Text;
+import org.hisp.dhis.jsontree.TextTemplate;
 
 /**
  * A directive-driven builder for native SELECT queries. A single SQL text serves both fetch and
  * count; optional filters, joins and order items are erased, replaced or reordered at assembly time
  * based on which values were actually supplied.
  *
- * <p>All directive processing is delegated to {@link DirectiveTemplate}. This class supplies the
+ * <p>All directive processing is delegated to {@link TextTemplate}. This class supplies the
  * four callbacks that bind the template to the query's parameter and condition state, plus a small
  * amount of vocabulary on top (the reserved {@code count} condition, the {@code setOrder}/{@code
  * setInsert} inputs).
  *
  * <h2>Supported directives</h2>
  *
- * See {@link DirectiveTemplate} for the general set ({@code @if}, {@code @else}, {@code @end},
+ * See {@link TextTemplate} for the general set ({@code @if}, {@code @else}, {@code @end},
  * {@code @insert}, {@code @replace}, {@code @reorder}). In this class they map to:
  *
  * <dl>
@@ -274,8 +275,8 @@ public final class DirectiveQueryBuilder {
   // ============================== Assembly ==============================
 
   private String toSQL() {
-    return new DirectiveTemplate(
-            DirectiveTemplate.isDirectiveLine("--"),
+    return new TextTemplate(
+            "--",
             this::isTrueCondition,
             inserts::get,
             this::getOrderByNo)

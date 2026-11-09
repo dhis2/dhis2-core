@@ -156,6 +156,7 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
 
   @Override
   public Stream<OrgTreeEntry> streamEntries(StreamEntriesParams params) {
+    //TODO add leaf or children column that is computed by triggers
     String sql =
         """
       SELECT
