@@ -107,9 +107,14 @@ public record OrgTreeParams(
   private static String likePattern(String pattern) {
     if (StringUtils.isBlank(pattern)) return null;
     int len = pattern.length();
+    // when length 2 always match literally
+    if (len == 2) return likeEscape(pattern);
+    // when quoted match literally
     if (len > 2 && pattern.charAt(0) == '"' && pattern.charAt(len - 1) == '"')
       return likeEscape(pattern.substring(1, pattern.length() - 1));
+    // automatic "contains" when there are no wildcards
     if (pattern.indexOf('*') < 0) return "%" + likeEscape(pattern) + "%";
+    // replace wildcards with DB ones and match pattern
     return pattern.replace("*", "%").replace("?", "_").replace("\\", "\\\\");
   }
 

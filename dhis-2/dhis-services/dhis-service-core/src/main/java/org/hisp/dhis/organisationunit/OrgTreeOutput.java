@@ -58,18 +58,20 @@ final class OrgTreeOutput {
               OrgTree.Pager p = tree.pager();
               response.addObject(
                   "pager",
-                  pager ->
-                      pager
-                          .addNumber("page", p.page())
-                          .addNumber("pageSize", p.pageSize())
-                          .addNumber("total", p.total())
-                          .addNumber("pageCount", p.pageCount())
-                          .addArray(
-                              "pageCursor",
-                              arr ->
-                                  arr.addElements(
-                                      p.pageCursor().stream().map(OrgUnitPath::toString),
-                                      JsonBuilder.JsonArrayBuilder::addString)));
+                  pager -> {
+                    pager
+                        .addNumber("page", p.page())
+                        .addNumber("pageSize", p.pageSize())
+                        .addNumber("total", p.total())
+                        .addNumber("pageCount", p.pageCount());
+                    if (!p.pageCursor().isEmpty())
+                      pager.addArray(
+                          "pageCursor",
+                          arr ->
+                              arr.addElements(
+                                  p.pageCursor().stream().map(OrgUnitPath::toString),
+                                  JsonBuilder.JsonArrayBuilder::addString));
+                  });
             }
             response.addArray(
                 "organisationUnits",
