@@ -111,7 +111,7 @@ class OrgUnitPathTest {
   }
 
   @Test
-  void testIsParent() {
+  void testisAncestor_Path() {
     assertTrue(
         OrgUnitPath.of("/ou111111111/ou222222222").isAncestor(OrgUnitPath.of("/ou111111111")));
     assertTrue(
@@ -132,7 +132,7 @@ class OrgUnitPathTest {
   }
 
   @Test
-  void testIsAncestor() {
+  void testIsAncestor_UID() {
     assertTrue(OrgUnitPath.of("/ou111111111/ou222222222").isAncestor("ou111111111"));
     assertTrue(OrgUnitPath.of("/ou111111111/ou222222222/ou333333333").isAncestor("ou111111111"));
     assertTrue(OrgUnitPath.of("/ou111111111/ou222222222/ou333333333").isAncestor("ou222222222"));

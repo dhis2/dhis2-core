@@ -1,5 +1,6 @@
 -- function to remove accents from text
 CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- required to allow usage in index expressions
 CREATE OR REPLACE FUNCTION immutable_unaccent(text)

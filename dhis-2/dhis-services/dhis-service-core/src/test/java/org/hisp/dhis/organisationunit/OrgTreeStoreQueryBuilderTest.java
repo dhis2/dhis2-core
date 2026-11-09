@@ -96,12 +96,9 @@ class OrgTreeStoreQueryBuilderTest {
         ou.path
         FROM organisationunit ou
         WHERE 1=1
-          AND ou.patharray && ARRAY(
-            SELECT DISTINCT root.uid
-            FROM organisationunit root
-            WHERE root.uid = ANY(:roots)
-          )
+          AND ou.patharray && (:roots)::varchar[]
         ORDER BY ou.path
+        LIMIT :pageSize
         """,
         params(List.of(), null, null, null, null));
   }
@@ -115,12 +112,9 @@ class OrgTreeStoreQueryBuilderTest {
         FROM organisationunit ou
         WHERE 1=1
           AND ou.hierarchylevel = :level
-          AND ou.patharray && ARRAY(
-            SELECT DISTINCT root.uid
-            FROM organisationunit root
-            WHERE root.uid = ANY(:roots)
-          )
+          AND ou.patharray && (:roots)::varchar[]
         ORDER BY ou.path
+        LIMIT :pageSize
         """,
         params(List.of(), 2, null, null, null));
   }
@@ -133,14 +127,14 @@ class OrgTreeStoreQueryBuilderTest {
         ou.path
         FROM organisationunit ou
         WHERE 1=1
-          AND (EXISTS (
-              SELECT 1
-              FROM organisationunit root
-              WHERE root.uid = ANY(:roots)
-                AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
-                AND (ou.patharray && ARRAY[root.uid])
-          ))
+          AND ou.patharray && (:roots)::varchar[]
+          AND EXISTS (
+            SELECT 1 FROM organisationunit root
+            WHERE root.uid = ANY(:roots)
+              AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
+          )
         ORDER BY ou.path
+        LIMIT :pageSize
         """,
         params(List.of(), null, null, null, 2));
   }
@@ -150,7 +144,7 @@ class OrgTreeStoreQueryBuilderTest {
     assertSQL(
         """
         WITH
-        groups_member_ids AS (
+        ou_groups_member_ids AS (
           SELECT DISTINCT ougm.organisationunitid
           FROM orgunitgroup oug
           JOIN orgunitgroupmembers ougm ON oug.orgunitgroupid = ougm.orgunitgroupid
@@ -159,14 +153,11 @@ class OrgTreeStoreQueryBuilderTest {
         SELECT
         ou.path
         FROM organisationunit ou
-        JOIN groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
+        JOIN ou_groups_member_ids USING (organisationunitid)
         WHERE 1=1
-          AND ou.patharray && ARRAY(
-            SELECT DISTINCT root.uid
-            FROM organisationunit root
-            WHERE root.uid = ANY(:roots)
-          )
+          AND ou.patharray && (:roots)::varchar[]
         ORDER BY ou.path
+        LIMIT :pageSize
         """,
         params(List.of(GROUP), null, null, null, null));
   }
@@ -179,12 +170,9 @@ class OrgTreeStoreQueryBuilderTest {
         ou.path
         FROM organisationunit ou
         WHERE 1=1
-          AND ou.patharray && ARRAY(
-            SELECT DISTINCT root.uid
-            FROM organisationunit root
-            WHERE root.uid = ANY(:roots)
-          )
+          AND ou.patharray && (:roots)::varchar[]
         ORDER BY ou.path
+        LIMIT :pageSize
         """,
         params(List.of(), null, null, null, null));
   }
@@ -194,7 +182,7 @@ class OrgTreeStoreQueryBuilderTest {
     assertSQL(
         """
         WITH
-        groups_member_ids AS (
+        ou_groups_member_ids AS (
           SELECT DISTINCT ougm.organisationunitid
           FROM orgunitgroup oug
           JOIN orgunitgroupmembers ougm ON oug.orgunitgroupid = ougm.orgunitgroupid
@@ -203,14 +191,11 @@ class OrgTreeStoreQueryBuilderTest {
         SELECT
         ou.path
         FROM organisationunit ou
-        JOIN groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
+        JOIN ou_groups_member_ids USING (organisationunitid)
         WHERE 1=1
-          AND ou.patharray && ARRAY(
-            SELECT DISTINCT root.uid
-            FROM organisationunit root
-            WHERE root.uid = ANY(:roots)
-          )
+          AND ou.patharray && (:roots)::varchar[]
         ORDER BY ou.path
+        LIMIT :pageSize
         """,
         params(List.of(GROUP), null, null, null, null));
   }
@@ -220,27 +205,31 @@ class OrgTreeStoreQueryBuilderTest {
     assertSQL(
         """
         WITH
-        groups_member_ids AS (
+        ou_groups_member_ids AS (
           SELECT DISTINCT ougm.organisationunitid
           FROM orgunitgroup oug
           JOIN orgunitgroupmembers ougm ON oug.orgunitgroupid = ougm.orgunitgroupid
           WHERE oug.uid = ANY(:groups)
         )
+        ,
+        ou_search_match_ids AS (
+          SELECT organisationunitid FROM organisationunit
+          WHERE immutable_unaccent(name) ILIKE immutable_unaccent(:search)
+          UNION
+          SELECT organisationunitid FROM organisationunit_translation
+          WHERE locale = :locale AND property = :property
+            AND value_unaccent ILIKE immutable_unaccent(:search)
+        )
         SELECT
         ou.path
         FROM organisationunit ou
-        JOIN groups_member_ids oug ON ou.organisationunitid = oug.organisationunitid
-        LEFT JOIN organisationunit_translation t ON t.organisationunitid = ou.organisationunitid AND t.locale = :locale AND t.property = :property
+        JOIN ou_groups_member_ids USING (organisationunitid)
+        JOIN ou_search_match_ids USING (organisationunitid)
         WHERE 1=1
           AND ou.hierarchylevel = :level
-          AND :currentlyOpen = ((ou.openingdate IS NULL || ou.openingdate <= now()) && (ou.closeddate IS NULL || ou.closeddate > now()))
-          AND ou.patharray && ARRAY(
-            SELECT DISTINCT root.uid
-            FROM organisationunit root
-            WHERE root.uid = ANY(:roots)
-          )
-          AND (t.value_unaccent ILIKE immutable_unaccent(:search) OR immutable_unaccent(ou.name) ILIKE immutable_unaccent(:search))
+          AND ou.patharray && (:roots)::varchar[]
         ORDER BY ou.path
+        LIMIT :pageSize
         """,
         params(List.of(GROUP), 2, true, "foo", null));
   }
@@ -253,14 +242,14 @@ class OrgTreeStoreQueryBuilderTest {
         ou.path
         FROM organisationunit ou
         WHERE 1=1
-          AND (EXISTS (
-              SELECT 1
-              FROM organisationunit root
-              WHERE root.uid = ANY(:roots)
-                AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
-                AND (ou.patharray && ARRAY[root.uid])
-          ))
+          AND ou.patharray && (:roots)::varchar[]
+          AND EXISTS (
+            SELECT 1 FROM organisationunit root
+            WHERE root.uid = ANY(:roots)
+              AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
+          )
         ORDER BY ou.path
+        LIMIT :pageSize
         """,
         params(List.of(), null, null, null, 2));
   }
@@ -274,12 +263,9 @@ class OrgTreeStoreQueryBuilderTest {
         FROM organisationunit ou
         WHERE 1=1
           AND ou.hierarchylevel = :level
-          AND ou.patharray && ARRAY(
-            SELECT DISTINCT root.uid
-            FROM organisationunit root
-            WHERE root.uid = ANY(:roots)
-          )
+          AND ou.patharray && (:roots)::varchar[]
         ORDER BY ou.path
+        LIMIT :pageSize
         """,
         params(List.of(), 2, null, null, null));
   }
