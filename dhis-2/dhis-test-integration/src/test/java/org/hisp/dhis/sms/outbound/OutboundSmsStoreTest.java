@@ -206,6 +206,8 @@ class OutboundSmsStoreTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("get by status returns the matching messages, newest first")
   void testGetByStatusOrdersByDateDescending() {
+    // other test classes in the same run may leave committed messages behind
+    outboundSmsStore.get(OutboundSmsStatus.FAILED).forEach(outboundSmsStore::delete);
     outboundSmsStore.saveOutboundSms(
         sms("outSmsOld01", OutboundSmsStatus.FAILED, new Date(1_500_000_000_000L), "+471"));
     outboundSmsStore.saveOutboundSms(
