@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.jsontree.Appender;
+import org.hisp.dhis.jsontree.IoAppender;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -477,7 +478,7 @@ class CsvBuilderTest {
 
   private static String csv(Consumer<CsvBuilder> body) {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    try (Appender appender = Appender.ofUTF8(out)) {
+    try (IoAppender appender = Appender.ofUTF8(out)) {
       CsvBuilder builder = new CsvBuilder(appender);
       body.accept(builder);
     }

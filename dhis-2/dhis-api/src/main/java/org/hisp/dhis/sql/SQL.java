@@ -332,7 +332,7 @@ public final class SQL {
 
     //TODO add to avoid boxing (default 0)
     default int getInt(int i)             { return ((Number) getObject(i)).intValue(); }
-    default long getLong(int i)           { return ((Number) getObject(i)).longValue(); }
+    default long getPLong(int i)           { return ((Number) getObject(i)).longValue(); }
     default double getDouble(int i)       { return ((Number) getObject(i)).doubleValue(); }
   }
 
