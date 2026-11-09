@@ -65,13 +65,12 @@ public record OrgTree(
       return path.toUID();
     }
 
-    public boolean isDirectParent(OrgTreeEntry other) {
-      OrgUnitPath parent = path.parent();
-      return parent != null && parent.equals(other.path);
+    public boolean isParent(OrgTreeEntry other) {
+      return path.isParent(other.path);
     }
   }
 
-  public record Pager(int page, int pageSize, int total) {
+  public record Pager(int page, int pageSize, int total, @Nonnull List<OrgUnitPath> pageCursor) {
     public int pageCount() {
       return 1 + (total / pageSize);
     }
@@ -108,12 +107,12 @@ public record OrgTree(
       // find to (insert position)
       int to = from - 1;
       OrgTreeEntry e = sorted[from];
-      while (to >= 0 && !e.isDirectParent(sorted[to])) to--;
+      while (to >= 0 && !e.isParent(sorted[to])) to--;
       if (to >= 0) { // parent found...
         OrgTreeEntry parent = sorted[to];
         to++; // move past parent
         // move past previously moved entries
-        while (to < from && sorted[to].level == e.level && sorted[to].isDirectParent(parent)) to++;
+        while (to < from && sorted[to].level == e.level && sorted[to].isParent(parent)) to++;
         System.arraycopy(sorted, to, sorted, to + 1, from - to);
         sorted[to] = e;
       }

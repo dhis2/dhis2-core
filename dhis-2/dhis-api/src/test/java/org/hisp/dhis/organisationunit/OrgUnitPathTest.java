@@ -112,22 +112,23 @@ class OrgUnitPathTest {
 
   @Test
   void testIsParent() {
-    assertTrue(OrgUnitPath.of("/ou111111111/ou222222222").isParent(OrgUnitPath.of("/ou111111111")));
+    assertTrue(
+        OrgUnitPath.of("/ou111111111/ou222222222").isAncestor(OrgUnitPath.of("/ou111111111")));
     assertTrue(
         OrgUnitPath.of("/ou111111111/ou222222222/ou333333333")
-            .isParent(OrgUnitPath.of("/ou111111111")));
+            .isAncestor(OrgUnitPath.of("/ou111111111")));
     assertTrue(
         OrgUnitPath.of("/ou111111111/ou222222222/ou333333333")
-            .isParent(OrgUnitPath.of("/ou111111111/ou222222222")));
+            .isAncestor(OrgUnitPath.of("/ou111111111/ou222222222")));
 
     assertFalse(
         OrgUnitPath.of("/ou111111111/ou222222222/ou333333333")
-            .isParent(OrgUnitPath.of("/ou222222222")));
-    assertFalse(OrgUnitPath.of("/ou111111111").isParent(OrgUnitPath.of("/ou111111111")));
+            .isAncestor(OrgUnitPath.of("/ou222222222")));
+    assertFalse(OrgUnitPath.of("/ou111111111").isAncestor(OrgUnitPath.of("/ou111111111")));
     assertFalse(
-        OrgUnitPath.of("/ou111111111").isParent(OrgUnitPath.of("/ou111111111/ou222222222")));
+        OrgUnitPath.of("/ou111111111").isAncestor(OrgUnitPath.of("/ou111111111/ou222222222")));
     assertFalse(
-        OrgUnitPath.of("/ou111111111/ou222222222").isParent(OrgUnitPath.of("/ouXXXXXXXXX")));
+        OrgUnitPath.of("/ou111111111/ou222222222").isAncestor(OrgUnitPath.of("/ouXXXXXXXXX")));
   }
 
   @Test
@@ -321,27 +322,27 @@ class OrgUnitPathTest {
 
   @Test
   void testIsParent_directParent() {
-    assertTrue(path(UID_A, UID_B).isParent(path(UID_A)));
+    assertTrue(path(UID_A, UID_B).isAncestor(path(UID_A)));
   }
 
   @Test
   void testIsParent_distantParent() {
-    assertTrue(path(UID_A, UID_B, UID_C).isParent(path(UID_A)));
+    assertTrue(path(UID_A, UID_B, UID_C).isAncestor(path(UID_A)));
   }
 
   @Test
   void testIsParent_self() {
-    assertFalse(path(UID_A, UID_B).isParent(path(UID_A, UID_B)));
+    assertFalse(path(UID_A, UID_B).isAncestor(path(UID_A, UID_B)));
   }
 
   @Test
   void testIsParent_child() {
-    assertFalse(path(UID_A).isParent(path(UID_A, UID_B)));
+    assertFalse(path(UID_A).isAncestor(path(UID_A, UID_B)));
   }
 
   @Test
   void testIsParent_root() {
-    assertFalse(path(UID_A).isParent(path(UID_A, UID_B, UID_C)));
+    assertFalse(path(UID_A).isAncestor(path(UID_A, UID_B, UID_C)));
   }
 
   @Test

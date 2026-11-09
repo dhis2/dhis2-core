@@ -110,21 +110,15 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
           --@else
           AND ou.patharray && (:roots)::varchar[]
             --@if :depth
-              --@if :depth1
-            AND (ou.uid = ANY(:roots)
-                 OR ou.parentid IN (SELECT organisationunitid FROM organisationunit
-                                    WHERE uid = ANY(:roots)))
-              --@else
-            AND EXISTS (
-              SELECT 1 FROM organisationunit root
-              WHERE root.uid = ANY(:roots)
-                AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
-            )
-              --@end
+          AND EXISTS (
+            SELECT 1 FROM organisationunit root
+            WHERE root.uid = ANY(:roots)
+              AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
+          )
             --@end
           --@end
-          --@if :lastPath
-          AND ou.path > :lastPath
+          --@if :pageCursor
+          AND ou.path > :pageCursor
           --@end
         --@if :count
         --@else
@@ -145,7 +139,8 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
             .setParameter("currentlyOpen", params.currentlyOpen())
             .setParameter("depth", depth)
             .setCondition("depth1", depth != null && depth == 1)
-            .setParameter("pageSize", params.pageSize());
+            .setParameter("pageSize", params.pageSize())
+            .setParameter("pageCursor", params.pageCursor());
     if (search != null) {
       builder
           .setParameter("locale", params.locale().toString())
@@ -156,7 +151,6 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
 
   @Override
   public Stream<OrgTreeEntry> streamEntries(StreamEntriesParams params) {
-    // TODO add leaf or children column that is computed by triggers
     String sql =
         """
       SELECT

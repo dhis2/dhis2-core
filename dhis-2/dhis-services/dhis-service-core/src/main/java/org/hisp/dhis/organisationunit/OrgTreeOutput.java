@@ -63,7 +63,13 @@ final class OrgTreeOutput {
                           .addNumber("page", p.page())
                           .addNumber("pageSize", p.pageSize())
                           .addNumber("total", p.total())
-                          .addNumber("pageCount", p.pageCount()));
+                          .addNumber("pageCount", p.pageCount())
+                          .addArray(
+                              "pageCursor",
+                              arr ->
+                                  arr.addElements(
+                                      p.pageCursor().stream().map(OrgUnitPath::toString),
+                                      JsonBuilder.JsonArrayBuilder::addString)));
             }
             response.addArray(
                 "organisationUnits",

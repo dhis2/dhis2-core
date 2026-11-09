@@ -60,6 +60,7 @@ import org.hisp.dhis.common.UID;
 public record OrgTreeParams(
     int page,
     int pageSize,
+    @Nonnull List<OrgUnitPath> pageCursors,
     boolean ancestors,
     @Nonnull Locale locale,
     @Nonnull List<UID> roots,
@@ -74,6 +75,7 @@ public record OrgTreeParams(
     requireNonNull(locale);
     requireNonNull(roots);
     requireNonNull(groups);
+    requireNonNull(pageCursors);
     if (page < 1) throw new IllegalArgumentException("Page must be positive");
     if (pageSize < 1) throw new IllegalArgumentException("Page size must be positive");
     if (level != null && level < 1) throw new IllegalArgumentException("Level must be positive");
@@ -81,6 +83,13 @@ public record OrgTreeParams(
     // TODO maybe we should have the constructor throw BadRequestException
     // for any combination that is not allowed
     // that is nicely unit-testable
+    if (page - 1 > pageCursors.size())
+      throw new IllegalArgumentException("Page must provide a cursor: " + page);
+  }
+
+  @CheckForNull
+  public String pageCursor() {
+    return page == 1 ? null : pageCursors.get(page - 2).toString();
   }
 
   public int offset() {
@@ -118,6 +127,7 @@ public record OrgTreeParams(
       // pager
       @CheckForNull Integer page,
       @CheckForNull Integer pageSize,
+      @CheckForNull String pageCursor,
 
       // context
       @CheckForNull Locale locale,
@@ -167,6 +177,7 @@ public record OrgTreeParams(
       // pager
       @CheckForNull Integer page,
       @CheckForNull Integer pageSize,
+      @CheckForNull String pageCursor,
 
       // context
       @CheckForNull Locale locale,

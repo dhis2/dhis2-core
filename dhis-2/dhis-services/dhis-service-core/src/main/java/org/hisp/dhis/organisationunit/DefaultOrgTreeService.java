@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.organisationunit;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -67,9 +68,11 @@ public class DefaultOrgTreeService implements OrgTreeService {
     // here and set it in the result for better pre-filtering
 
     // TODO validate and/or filter root/group IDs?
+    String cursor = params.pageCursor();
     return new OrgTreeParams(
         params.page() == null ? 1 : params.page(),
         params.pageSize() == null ? 50 : params.pageSize(),
+        cursor == null ? List.of() : Stream.of(cursor.split(",")).map(OrgUnitPath::of).toList(),
         true,
         getLocale(params.locale()),
         roots,
@@ -90,9 +93,11 @@ public class DefaultOrgTreeService implements OrgTreeService {
   @Override
   @NonTransactional
   public OrgTreeParams decode(@Nonnull UID parent, @Nonnull OrgTreeParams.ChildrenInput params) {
+    String cursor = params.pageCursor();
     return new OrgTreeParams(
         params.page() == null ? 1 : params.page(),
         params.pageSize() == null ? 51 : params.pageSize() + 1,
+        cursor == null ? List.of() : Stream.of(cursor.split(",")).map(OrgUnitPath::of).toList(),
         false,
         getLocale(params.locale()),
         List.of(parent),
@@ -140,7 +145,10 @@ public class DefaultOrgTreeService implements OrgTreeService {
     // only count if we don't already know from a partial page
     if (total < 0) total = store.countTotalMatches(params);
     if (!params.ancestors()) total--; // sub the parent
-    OrgTree.Pager pager = new OrgTree.Pager(page, pageSize, total);
+    List<OrgUnitPath> cursors = new ArrayList<>(params.pageCursors());
+    int pageCount = 1 + (total / pageSize);
+    if (page < pageCount) cursors.add(matches.get(matches.size() - 1));
+    OrgTree.Pager pager = new OrgTree.Pager(page, pageSize, total, cursors);
     return new OrgTree(pager, entries, ancestors);
   }
 }

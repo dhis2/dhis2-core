@@ -86,6 +86,11 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull Text uid) {
 
   @JsonCreator
   @CheckForNull
+  public static OrgUnitPath ofNullable(@CheckForNull String path) {
+    return ofNullable((CharSequence) path);
+  }
+
+  @CheckForNull
   public static OrgUnitPath ofNullable(@CheckForNull CharSequence path) {
     return path == null ? null : of(path);
   }
@@ -123,14 +128,18 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull Text uid) {
     return parent == null ? 1 : parent.length() + 1;
   }
 
+  public boolean isParent(OrgUnitPath other) {
+    return parent != null && parent.equals(other);
+  }
+
   /**
    * @param other a potential parent path to compare with
    * @return true, when the given path is a direct or distant parent path of this path
    */
-  public boolean isParent(@Nonnull OrgUnitPath other) {
+  public boolean isAncestor(@Nonnull OrgUnitPath other) {
     if (parent == null) return false;
     if (other.length() >= length()) return false;
-    return parent.equals(other) || parent.isParent(other);
+    return isParent(other) || parent.isAncestor(other);
   }
 
   /**
@@ -172,5 +181,9 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull Text uid) {
   @Nonnull
   public UID toUID() {
     return UID.of(uid);
+  }
+
+  public boolean isValid() {
+    return UID.isValid(uid) && (parent == null || parent.isValid());
   }
 }

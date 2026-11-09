@@ -64,6 +64,7 @@ class OrgTreeStoreQueryBuilderTest {
     return new OrgTreeParams(
         1,
         10,
+        List.of(),
         true,
         Locale.ENGLISH,
         List.of(ROOT),
