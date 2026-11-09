@@ -59,7 +59,7 @@ public class TrimNameEventListener implements PreInsertEventListener, PreUpdateE
 
   private static final List<String> REQUIRED_PROPERTIES = List.of("uid", "code", NAME);
 
-  @PersistenceUnit private EntityManagerFactory emf;
+  @PersistenceUnit private transient EntityManagerFactory emf;
 
   @PostConstruct
   protected void init() {
