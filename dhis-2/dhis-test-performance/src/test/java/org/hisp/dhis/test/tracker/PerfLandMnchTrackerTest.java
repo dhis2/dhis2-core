@@ -88,8 +88,8 @@ import org.slf4j.LoggerFactory;
  *       clerks. A clerk captures in her facility and searches in her district.
  *   <li>EIR needs two attributes to search outside the capture scope, so every name search filters
  *       on the given and the family name, where {@link TrackerTest} filters on the first name.
- *   <li>The filter values are names of the database: {@code like:ite} on both names matches 10
- *       children in the district, {@code eq} a given and family name pair of 15. A search takes at
+ *   <li>The filter values are names of the database: {@code like:sek} on both names matches 11
+ *       children in the district, {@code eq} a given and family name pair of 8. A search takes at
  *       least 3 characters (minCharactersToSearch).
  *   <li>EIR is PROTECTED, so a search returns only the clerk's children. DHIS2 2.42 drops the
  *       others after paging: a page has records only if the district's matches on it include one of
@@ -178,9 +178,9 @@ public class PerfLandMnchTrackerTest extends Simulation {
     this.orgUnit = System.getProperty("orgUnit", "WDcivlpc7tU"); // Zotox District Hospital
     this.givenName = System.getProperty("givenName", "sB1IHYu2xQT"); // GEN - Given name
     this.familyName = System.getProperty("familyName", "ENRjVGxVL6l"); // GEN - Family name
-    this.nameLike = System.getProperty("nameLike", "ite");
+    this.nameLike = System.getProperty("nameLike", "sek");
     this.givenEq = System.getProperty("givenEq", "Duhelos");
-    this.familyEq = System.getProperty("familyEq", "Lugat");
+    this.familyEq = System.getProperty("familyEq", "Nazotix");
     this.adminUser = System.getProperty("adminUser", "admin");
     this.adminPassword = System.getProperty("adminPassword", "district");
     this.replicaUser = System.getProperty("replicaUser", "mnch.qp1613-21-02.1"); // clerk of orgUnit
