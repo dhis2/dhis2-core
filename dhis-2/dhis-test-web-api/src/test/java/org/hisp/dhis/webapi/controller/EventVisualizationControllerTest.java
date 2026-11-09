@@ -287,7 +287,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     String body = valueProgramStageBody("deabcdefghC", "invalidUid1");
 
     // Then
-    String uid = assertStatus(CONFLICT, POST("/eventVisualizations/", body));
+    assertStatus(CONFLICT, POST("/eventVisualizations/", body));
   }
 
   @Test
