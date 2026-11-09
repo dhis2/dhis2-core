@@ -99,6 +99,7 @@ import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -1197,7 +1198,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
                     "Facility type",
                     List.of(createOrganisationUnitGroup('A'))))
             .withOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)
-            .withValue(deX)
+            .withValue(new Value(deX))
             .withProgram(programA)
             .withTableName(getTable(programA.getUid()))
             .withAggregationType(
@@ -2044,7 +2045,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParamsWithFilter(ValueType.TEXT))
-            .withValue(deU)
+            .withValue(new Value(deU))
             .withAggregationType(analyticsAggregationType)
             .withAggregateData(true)
             .build();
@@ -2231,7 +2232,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         .withProgram(programA)
         .withPeriods(createPeriodDimensions("2000Q1"), "quarterly")
         .withOrganisationUnits(List.of(createOrganisationUnit('A')))
-        .withValue(createDataElement('U'))
+        .withValue(new Value(createDataElement('U')))
         .withAggregationType(AnalyticsAggregationType.LAST)
         .withEndpointItem(EndpointItem.EVENT)
         .withEndpointAction(AGGREGATE)
@@ -2268,7 +2269,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             .withProgram(programA)
             .withProgramStage(programStage)
             .withOrganisationUnits(List.of(createOrganisationUnit('A')))
-            .withValue(createDataElement('U'))
+            .withValue(new Value(createDataElement('U')))
             .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
             .withEndpointItem(EndpointItem.EVENT)
             .withEndpointAction(AGGREGATE)

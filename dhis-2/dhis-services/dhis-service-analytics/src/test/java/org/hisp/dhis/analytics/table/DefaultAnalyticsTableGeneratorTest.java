@@ -32,6 +32,9 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.analytics.AnalyticsTableType.DATA_VALUE;
 import static org.hisp.dhis.analytics.AnalyticsTableType.ENROLLMENT;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -44,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableService;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.OutliersCache;
@@ -219,5 +223,72 @@ class DefaultAnalyticsTableGeneratorTest {
 
     verify(settingsService).put("keyLastSuccessfulAnalyticsTablesUpdate", startTime);
     verify(settingsService).put(eq("keyLastSuccessfulAnalyticsTablesRuntime"), any());
+  }
+
+  private static AnalyticsTableUpdateParams continuousParams(Set<AnalyticsTableType> skipTypes) {
+    return AnalyticsTableUpdateParams.newBuilder()
+        .skipResourceTables(true)
+        .skipTableTypes(skipTypes)
+        .build()
+        .withLatestPartition();
+  }
+
+  @Test
+  void continuousRunWithEventsSyncsCopy() {
+    setUp();
+    when(analyticsTableSettings.isAnalyticsDatabase()).thenReturn(true);
+
+    generator.generateAnalyticsTables(continuousParams(Set.of()), JobProgress.noop());
+
+    verify(tableReplicationService).syncTrackedEntityAttributeValue(any());
+  }
+
+  @Test
+  void continuousRunSkippingEventsDoesNotSync() {
+    setUp();
+    lenient().when(analyticsTableSettings.isAnalyticsDatabase()).thenReturn(true);
+
+    generator.generateAnalyticsTables(continuousParams(Set.of(EVENT)), JobProgress.noop());
+
+    verify(tableReplicationService, never()).syncTrackedEntityAttributeValue(any());
+  }
+
+  @Test
+  void continuousRunWithoutAnalyticsDatabaseDoesNotSync() {
+    setUp();
+    when(analyticsTableSettings.isAnalyticsDatabase()).thenReturn(false);
+
+    generator.generateAnalyticsTables(continuousParams(Set.of()), JobProgress.noop());
+
+    verify(tableReplicationService, never()).syncTrackedEntityAttributeValue(any());
+  }
+
+  @Test
+  void fullRunDoesNotCallIncrementalSync() {
+    setUp();
+    when(analyticsTableSettings.isAnalyticsDatabase()).thenReturn(true);
+
+    generator.generateAnalyticsTables(
+        AnalyticsTableUpdateParams.newBuilder().skipResourceTables(true).build(),
+        JobProgress.noop());
+
+    verify(tableReplicationService, never()).syncTrackedEntityAttributeValue(any());
+    verify(tableReplicationService).replicateTrackedEntityAttributeValue();
+  }
+
+  @Test
+  void continuousRunSkippingTrackedEntitiesStillSyncs() {
+    setUp();
+    when(analyticsTableSettings.isAnalyticsDatabase()).thenReturn(true);
+
+    generator.generateAnalyticsTables(
+        continuousParams(
+            Set.of(
+                TRACKED_ENTITY_INSTANCE,
+                TRACKED_ENTITY_INSTANCE_EVENTS,
+                TRACKED_ENTITY_INSTANCE_ENROLLMENTS)),
+        JobProgress.noop());
+
+    verify(tableReplicationService).syncTrackedEntityAttributeValue(any());
   }
 }

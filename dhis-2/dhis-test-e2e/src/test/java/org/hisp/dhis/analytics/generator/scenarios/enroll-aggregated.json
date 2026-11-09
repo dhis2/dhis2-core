@@ -335,6 +335,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "freeRangePeriodDimension",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2022-01-01_2022-01-10&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
