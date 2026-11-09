@@ -88,7 +88,7 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
         )
         --@end
         SELECT
-        --@replace :count count(*)
+        --@replace :count = count(*)
         ou.path
         --@end
         FROM organisationunit ou
@@ -156,13 +156,13 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
 
   @Override
   public Stream<OrgTreeEntry> streamEntries(StreamEntriesParams params) {
-    //TODO add leaf or children column that is computed by triggers
+    // TODO add leaf or children column that is computed by triggers
     String sql =
         """
       SELECT
           ou.path,
           coalesce(jsonb_get_translated_value(ou.translations, :property, :locale), ou.name) as displayName,
-          --@replace :assumeNoLeaf false as leaf
+          --@replace :assumeNoLeaf = false as leaf
           NOT EXISTS (
               SELECT 1
               FROM organisationunit child

@@ -53,8 +53,8 @@ import org.hisp.dhis.jsontree.TextTemplate;
  * count; optional filters, joins and order items are erased, replaced or reordered at assembly time
  * based on which values were actually supplied.
  *
- * <p>All directive processing is delegated to {@link TextTemplate}. This class supplies the
- * four callbacks that bind the template to the query's parameter and condition state, plus a small
+ * <p>All directive processing is delegated to {@link TextTemplate}. This class supplies the four
+ * callbacks that bind the template to the query's parameter and condition state, plus a small
  * amount of vocabulary on top (the reserved {@code count} condition, the {@code setOrder}/{@code
  * setInsert} inputs).
  *
@@ -275,11 +275,7 @@ public final class DirectiveQueryBuilder {
   // ============================== Assembly ==============================
 
   private String toSQL() {
-    return new TextTemplate(
-            "--",
-            this::isTrueCondition,
-            inserts::get,
-            this::getOrderByNo)
+    return new TextTemplate("--", this::isTrueCondition, inserts::get, this::getOrderByNo)
         .render(template)
         .toString();
   }

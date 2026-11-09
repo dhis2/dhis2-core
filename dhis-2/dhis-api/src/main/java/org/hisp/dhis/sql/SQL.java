@@ -330,10 +330,18 @@ public final class SQL {
       return (Long[]) getArray(index);
     }
 
-    //TODO add to avoid boxing (default 0)
-    default int getInt(int i)             { return ((Number) getObject(i)).intValue(); }
-    default long getPLong(int i)           { return ((Number) getObject(i)).longValue(); }
-    default double getDouble(int i)       { return ((Number) getObject(i)).doubleValue(); }
+    // TODO add to avoid boxing (default 0)
+    default int getInt(int i) {
+      return ((Number) getObject(i)).intValue();
+    }
+
+    default long getPLong(int i) {
+      return ((Number) getObject(i)).longValue();
+    }
+
+    default double getDouble(int i) {
+      return ((Number) getObject(i)).doubleValue();
+    }
   }
 
   /** A {@link Query} to simply record set params to verify them in tests. */
