@@ -302,7 +302,7 @@ class JdbcEnrollmentStore {
       return;
     }
 
-    sql.append(JdbcNotes.leftJoinLateral("enrollment_notes", "enrollmentid", "e.enrollmentid"));
+    sql.append(JdbcNotes.leftJoinLateral("enrollmentid", "e.enrollmentid"));
   }
 
   private void addLeftJoinOnAttributes(StringBuilder sql, EnrollmentQueryParams params) {

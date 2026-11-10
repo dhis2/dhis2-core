@@ -48,7 +48,9 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -59,11 +61,14 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValueInOrgUnit;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValueSystemWide;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -593,6 +598,89 @@ class AttributeValidatorTest {
     assertHasError(reporter, enrollment, ValidationCode.E1006);
   }
 
+  @Test
+  void shouldFailValidationWhenOrgUnitScopedValueIsStoredInOrgUnitOfTrackedEntityOnlyInDb() {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid("orgUnitUid1");
+
+    enrollOnlyInDbTrackedEntityWithScopedValue(
+        "abc",
+        orgUnit,
+        new UniqueAttributeValueInOrgUnit(
+            UID.generate(),
+            MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE),
+            "ABC",
+            MetadataIdentifier.ofUid(orgUnit)));
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertHasError(reporter, enrollment, ValidationCode.E1064);
+  }
+
+  @Test
+  void shouldPassValidationWhenOrgUnitScopedValueIsStoredInAnotherOrgUnitThanTrackedEntityInDb() {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid("orgUnitUid1");
+
+    enrollOnlyInDbTrackedEntityWithScopedValue(
+        "abc",
+        orgUnit,
+        new UniqueAttributeValueInOrgUnit(
+            UID.generate(),
+            MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE),
+            "abc",
+            MetadataIdentifier.ofUid("otherOrgUni")));
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  /**
+   * An enrollment sending a value of an org unit scoped unique attribute, for a tracked entity in
+   * {@code orgUnit} that is only in the DB. Its org unit is not preheated, as the payload does not
+   * reference it.
+   */
+  private void enrollOnlyInDbTrackedEntityWithScopedValue(
+      String value, OrganisationUnit orgUnit, UniqueAttributeValueInOrgUnit storedValue) {
+    trackedEntityAttribute.setUnique(true);
+    trackedEntityAttribute.setOrgunitScope(true);
+    when(program.getProgramAttributes())
+        .thenReturn(
+            List.of(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, false)));
+    when(enrollment.getAttributes())
+        .thenReturn(
+            List.of(
+                Attribute.builder()
+                    .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
+                    .value(value)
+                    .build()));
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(trackedEntity.getOrganisationUnit()).thenReturn(orgUnit);
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    withStoredValues(List.of(), List.of(storedValue));
+  }
+
+  /** Answers the lookups of unique values with the ones of a preheat holding the given values. */
+  private void withStoredValues(
+      List<UniqueAttributeValueSystemWide> systemWide,
+      List<UniqueAttributeValueInOrgUnit> inOrgUnit) {
+    TrackerPreheat stored = new TrackerPreheat();
+    stored.setSystemWideUniqueAttributeValues(systemWide);
+    stored.setUniqueAttributeValuesInOrgUnit(inOrgUnit);
+    when(preheat.hasSystemWideDuplicate(any(), any(), any()))
+        .thenAnswer(
+            i ->
+                stored.hasSystemWideDuplicate(
+                    i.getArgument(0), i.getArgument(1), i.getArgument(2)));
+    when(preheat.hasDuplicateInOrgUnit(any(), any(), any(), any()))
+        .thenAnswer(
+            i ->
+                stored.hasDuplicateInOrgUnit(
+                    i.getArgument(0), i.getArgument(1), i.getArgument(2), i.getArgument(3)));
+  }
+
   @ParameterizedTest(name = "Should pass when format={0}")
   @MethodSource("validImageFormats")
   void shouldPassValidationWhenImageFileResourceHasValidFormat(String format) {
@@ -622,6 +710,9 @@ class AttributeValidatorTest {
     when(fileResource.getUid()).thenReturn(fileResUid);
     when(fileResource.getFormat()).thenReturn(format);
     when(fileResource.getContentMd5()).thenReturn("file");
+    when(fileResource.getDomain()).thenReturn(FileResourceDomain.DATA_VALUE);
+    when(fileResource.isCreatedBy(any())).thenReturn(true);
+    bundle.setUser(mock(UserDetails.class));
     when(preheat.get(FileResource.class, fileResUid)).thenReturn(fileResource);
 
     when(program.getProgramAttributes())

@@ -43,15 +43,22 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.legend.LegendSet;
@@ -134,6 +141,79 @@ class EventQueryValidatorTest extends TestBase {
             .build();
 
     eventQueryValidator.validate(params);
+  }
+
+  @Test
+  void validateValueDimensionAsItemFilterSuccess() {
+    QueryItem filter = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
+    filter.addFilter(new QueryFilter(QueryOperator.LT, "2"));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(List.of(ouA))
+            .withValue(new Value(deA))
+            .addItemFilter(filter)
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateFailsWithValueDimensionAsItem() {
+    QueryItem item = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(List.of(ouA))
+            .withValue(new Value(deA))
+            .addItem(item)
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7203, error.getErrorCode());
+  }
+
+  @Test
+  void validateValueDimensionAsLegendSetItemSuccess() {
+    QueryItem item = new QueryItem(deA, lsA, deA.getValueType(), deA.getAggregationType(), null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(List.of(ouA))
+            .withValue(new Value(deA))
+            .addItem(item)
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateFailsWithValueDimensionAsOptionSetItem() {
+    QueryItem item = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), osA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(List.of(ouA))
+            .withValue(new Value(deA))
+            .addItem(item)
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7203, error.getErrorCode());
   }
 
   @Test
@@ -991,6 +1071,189 @@ class EventQueryValidatorTest extends TestBase {
             .build();
 
     eventQueryValidator.validate(params);
+  }
+
+  @Test
+  void validateFailsEventCategoryNotInProgramCategoryCombo() {
+    Category category = createCategory('A');
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.EVENT).addDimension(categoryDimension(category)).build();
+
+    assertValidationError(ErrorCode.E7268, params);
+  }
+
+  @Test
+  void validateFailsEnrollmentCategoryFilterNotInProgramCategoryCombo() {
+    Category category = createCategory('A');
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.ENROLLMENT).addFilter(categoryDimension(category)).build();
+
+    assertValidationError(ErrorCode.E7268, params);
+  }
+
+  @Test
+  void validateFailsStageCategoryNotInProgramCategoryCombo() {
+    Category category = createCategory('A');
+    ProgramStage psA = createProgramStage('A', prA);
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.ENROLLMENT)
+            .addDimension(stageDimension(psA, category.getUid(), DimensionType.CATEGORY))
+            .build();
+
+    assertValidationError(ErrorCode.E7268, params);
+  }
+
+  @Test
+  void validateSuccessCategoryInProgramCategoryCombo() {
+    Category category = createCategory('A');
+    prA.setCategoryCombo(createCategoryCombo('A', category));
+
+    for (EndpointItem endpoint : List.of(EndpointItem.EVENT, EndpointItem.ENROLLMENT)) {
+      EventQueryParams params =
+          categoryQuery(endpoint).addDimension(categoryDimension(category)).build();
+
+      assertNull(eventQueryValidator.validateForErrorMessage(params));
+    }
+  }
+
+  @Test
+  void validateSuccessEnrollmentAttributeCategoryFilterNotInProgramCategoryCombo() {
+    Category category = createAttributeCategory();
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.ENROLLMENT)
+            .addFilter(
+                new BaseDimensionalObject(
+                    category.getUid(),
+                    DimensionType.CATEGORY,
+                    List.copyOf(category.getCategoryOptions())))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateFailsEnrollmentAttributeCategoryDimensionNotInProgramCategoryCombo() {
+    Category category = createAttributeCategory();
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.ENROLLMENT)
+            .addDimension(
+                new BaseDimensionalObject(
+                    category.getUid(),
+                    DimensionType.CATEGORY,
+                    List.copyOf(category.getCategoryOptions())))
+            .build();
+
+    assertValidationError(ErrorCode.E7268, params);
+  }
+
+  @Test
+  void validateFailsEventAttributeCategoryFilterNotInProgramCategoryCombo() {
+    Category category = createAttributeCategory();
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.EVENT)
+            .addFilter(
+                new BaseDimensionalObject(
+                    category.getUid(),
+                    DimensionType.CATEGORY,
+                    List.copyOf(category.getCategoryOptions())))
+            .build();
+
+    assertValidationError(ErrorCode.E7268, params);
+  }
+
+  @Test
+  void validateSuccessCategoryWithoutProgram() {
+    Category category = createCategory('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(List.of(ouA))
+            .addDimension(categoryDimension(category))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateFailsEnrollmentCategoryOptionGroupSet() {
+    CategoryOptionGroupSet cogs = createCategoryOptionGroupSet('A');
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.ENROLLMENT)
+            .addDimension(
+                new BaseDimensionalObject(
+                    cogs.getUid(), DimensionType.CATEGORY_OPTION_GROUP_SET, List.of()))
+            .build();
+
+    assertValidationError(ErrorCode.E7269, params);
+  }
+
+  @Test
+  void validateFailsEnrollmentStageCategoryOptionGroupSet() {
+    CategoryOptionGroupSet cogs = createCategoryOptionGroupSet('A');
+    ProgramStage psA = createProgramStage('A', prA);
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.ENROLLMENT)
+            .addDimension(
+                stageDimension(psA, cogs.getUid(), DimensionType.CATEGORY_OPTION_GROUP_SET))
+            .build();
+
+    assertValidationError(ErrorCode.E7269, params);
+  }
+
+  @Test
+  void validateSuccessEventCategoryOptionGroupSet() {
+    CategoryOptionGroupSet cogs = createCategoryOptionGroupSet('A');
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.EVENT)
+            .addDimension(
+                new BaseDimensionalObject(
+                    cogs.getUid(), DimensionType.CATEGORY_OPTION_GROUP_SET, List.of()))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  private EventQueryParams.Builder categoryQuery(EndpointItem endpoint) {
+    return new EventQueryParams.Builder()
+        .withEndpointItem(endpoint)
+        .withProgram(prA)
+        .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+        .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+        .withOrganisationUnits(List.of(ouA));
+  }
+
+  private BaseDimensionalObject categoryDimension(Category category) {
+    return new BaseDimensionalObject(category.getUid(), DimensionType.CATEGORY, List.of());
+  }
+
+  /** Creates an attribute category, the kind used for user category dimension constraints. */
+  private Category createAttributeCategory() {
+    Category category = createCategory('A', createCategoryOption('A'));
+    category.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    return category;
+  }
+
+  /** Builds a stage-prefixed dimension the way {@code DefaultDataQueryService} does. */
+  private BaseDimensionalObject stageDimension(
+      ProgramStage stage, String dimensionUid, DimensionType type) {
+    BaseDimensionalObject dimension = new BaseDimensionalObject();
+    dimension.setUid(stage.getUid() + "." + dimensionUid);
+    dimension.setDimensionType(type);
+    dimension.setDimensionName(dimensionUid);
+    dimension.setItems(List.of());
+    dimension.setProgramStage(stage);
+    return dimension;
   }
 
   private void assertValidationError(ErrorCode errorCode, EventQueryParams params) {

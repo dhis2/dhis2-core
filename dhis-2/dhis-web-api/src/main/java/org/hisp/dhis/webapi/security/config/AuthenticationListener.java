@@ -30,15 +30,12 @@
 package org.hisp.dhis.webapi.security.config;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetails;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
-import org.hisp.dhis.user.SystemUser;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -205,16 +202,11 @@ public class AuthenticationListener {
   }
 
   private void registerSuccessfulLogin(String username) {
-    User user = userService.getUserByUsername(username);
-
-    boolean readOnly = config.isReadOnlyMode();
-
-    if (Objects.nonNull(user) && !readOnly) {
-      user.updateLastLogin();
+    if (!config.isReadOnlyMode()) {
       try {
-        userService.updateUser(user, new SystemUser());
+        userService.setLastLogin(username);
       } catch (Exception e) {
-        log.warn("Failed to update the user!", e);
+        log.warn("Failed to update the last login date of the user!", e);
       }
     }
 

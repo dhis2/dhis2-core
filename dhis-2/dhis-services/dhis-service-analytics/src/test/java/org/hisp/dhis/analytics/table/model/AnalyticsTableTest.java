@@ -215,4 +215,38 @@ class AnalyticsTableTest {
     uniqueList.add(tableB);
     assertEquals(1, uniqueList.size());
   }
+
+  @Test
+  void testConstructorWithSortKeyAndPrimaryKey() {
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder().name("id").dataType(TEXT).build(),
+            AnalyticsTableColumn.builder().name("dx").dataType(CHARACTER_11).build());
+
+    AnalyticsTable table =
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE, columns, List.of("dx"), List.of("id"), Logged.UNLOGGED);
+
+    assertTrue(table.hasPrimaryKey());
+    assertEquals(List.of("id"), table.getPrimaryKey());
+    assertTrue(table.hasSortKey());
+    assertEquals(List.of("dx"), table.getSortKey());
+  }
+
+  @Test
+  void testConstructorWithPrimaryKeyAndProgram() {
+    Program program = new Program("ProgramA", "DescriptionA");
+    program.setUid("rft56ybgfek");
+
+    List<AnalyticsTableColumn> columns =
+        List.of(AnalyticsTableColumn.builder().name("event").dataType(CHARACTER_11).build());
+
+    AnalyticsTable table =
+        new AnalyticsTable(
+            AnalyticsTableType.EVENT, columns, List.of("event"), Logged.UNLOGGED, program);
+
+    assertTrue(table.hasPrimaryKey());
+    assertEquals(List.of("event"), table.getPrimaryKey());
+    assertEquals(program, table.getProgram());
+  }
 }

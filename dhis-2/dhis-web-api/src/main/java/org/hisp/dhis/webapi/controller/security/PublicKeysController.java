@@ -43,6 +43,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.user.User;
@@ -70,9 +71,12 @@ public class PublicKeysController {
 
   @GetMapping(value = "/{clientId}/jwks.json", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody Map<String, Object> getKeys(@PathVariable("clientId") String clientId)
-      throws WebMessageException {
+      throws WebMessageException, NotFoundException {
     DhisOidcClientRegistration dhisOidcClientRegistration =
         clientRegistrationRepository.getDhisOidcClientRegistration(clientId);
+    if (dhisOidcClientRegistration == null) {
+      throw new NotFoundException("OIDC provider with id " + clientId + " could not be found.");
+    }
 
     JwsAlgorithm jwsAlgorithm = resolveAlgorithm(dhisOidcClientRegistration.getJwk());
     if (jwsAlgorithm == null) {
@@ -83,12 +87,18 @@ public class PublicKeysController {
         new RSAKey.Builder(dhisOidcClientRegistration.getRsaPublicKey())
             .keyUse(KeyUse.SIGNATURE)
             .algorithm(JWSAlgorithm.parse(jwsAlgorithm.toString()))
+            .x509CertSHA256Thumbprint(
+                dhisOidcClientRegistration.getJwk().getX509CertSHA256Thumbprint())
             .keyID(dhisOidcClientRegistration.getKeyId());
 
     return new JWKSet(builder.build()).toJSONObject();
   }
 
   private static JwsAlgorithm resolveAlgorithm(JWK jwk) {
+    if (jwk == null) {
+      return null;
+    }
+
     JwsAlgorithm jwsAlgorithm = null;
 
     if (jwk.getAlgorithm() != null) {

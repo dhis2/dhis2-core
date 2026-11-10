@@ -37,6 +37,10 @@ show_usage() {
   echo "  COMPOSE_EXTRA_FILE    Additional docker compose override file appended to every compose"
   echo "                        invocation (e.g. to pin a network subnet on hosts with exhausted"
   echo "                        docker address pools)"
+  echo "  POPULATE_SCRIPT       Script run once after the containers start, before any simulation run,"
+  echo "                        to populate the database (default: not set)"
+  echo "                        e.g. scripts/populate-unique-attribute.sh, configured by POPULATE_* variables"
+  echo "                        (see the script header). POPULATE_* variables are saved in run-simulation.env"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo "  CAPTURE_DHIS2_LOGS    Capture DHIS2 application logs from the web container"
@@ -63,6 +67,14 @@ show_usage() {
   echo "  REPORT_SUFFIX=\"baseline\" \\"
   echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
+  echo ""
+  echo "  # Tracker import against the worst case for the unique attribute check"
+  echo "  POPULATE_SCRIPT=scripts/populate-unique-attribute.sh \\"
+  echo "  POPULATE_PROFILE=worst-case \\"
+  echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
+  echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest \\"
+  echo "  MVN_ARGS=\"-Dprofile=smoke -DtestMode=import -DuniqueAttribute=PerfUniqOu1\" \\"
+  echo "  $0"
   echo ""
   echo "  # With analytics table generation (required for analytics endpoints)"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest \\"
@@ -107,6 +119,7 @@ ANALYTICS_GENERATE=${ANALYTICS_GENERATE:-"false"}
 ANALYTICS_TIMEOUT=${ANALYTICS_TIMEOUT:-900} # default of 15min
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 WARMUP=${WARMUP:-1}
+POPULATE_SCRIPT=${POPULATE_SCRIPT:-""}
 REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 CAPTURE_DHIS2_LOGS=${CAPTURE_DHIS2_LOGS:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
@@ -116,6 +129,16 @@ DHIS_CONF_FILE=${DHIS_CONF_FILE:-"dhis.conf"}
 COMPOSE_EXTRA_FILE=${COMPOSE_EXTRA_FILE:-""}
 # docker compose interpolates ${DHIS_CONF_FILE} in the volume mount
 export DHIS_CONF_FILE
+# Set by ensure_db_image from the dump in S3 and the database image the run uses
+DB_ETAG=""
+DB_S3_VERSION_ID=""
+DB_IMAGE=""
+DB_IMAGE_ID=""
+
+if [ -n "$POPULATE_SCRIPT" ] && [ ! -x "$POPULATE_SCRIPT" ]; then
+  echo "Error: POPULATE_SCRIPT=$POPULATE_SCRIPT is not an executable file"
+  exit 1
+fi
 
 if [ ! -f "docker/$DHIS_CONF_FILE" ]; then
   echo "Error: DHIS_CONF_FILE=$DHIS_CONF_FILE does not exist in ./docker/"
@@ -259,6 +282,105 @@ pull_mutable_image() {
     echo "========================================"
     echo "Pulling mutable image tag: $DHIS2_IMAGE"
     docker pull "$DHIS2_IMAGE"
+  fi
+}
+
+db_url() {
+  # Keep in sync with DB_URL in docker/Dockerfile.postgres. Path-style, as the bucket's name has
+  # dots, which its virtual-hosted URL's TLS certificate doesn't cover.
+  local key="${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"
+  if [ -n "$DB_DIR" ]; then
+    key="${DB_DIR}/${key}"
+  fi
+  echo "https://s3.eu-west-1.amazonaws.com/databases.dhis2.org/${key}"
+}
+
+image_label() {
+  # Print the value of a label of a local image, or nothing if it has no such label
+  local image="$1"
+  local label="$2"
+  local value
+  value=$(docker image inspect --format "{{ index .Config.Labels \"$label\" }}" "$image" 2>/dev/null || true)
+  if [ "$value" = "<no value>" ]; then
+    value=""
+  fi
+  echo "$value"
+}
+
+ensure_db_image() {
+  # The database image is built once and cached under a tag of the type and version. The dumps in
+  # S3 are overwritten in place, so a cached image can hold an older dump than S3. The image is
+  # labelled with the ETag of the dump it was built from: rebuild it when the dump's ETag in S3
+  # differs, and remove the image it replaces.
+  echo ""
+  echo "========================================"
+  echo "PHASE: Database Image"
+  echo "========================================"
+
+  local compose_args
+  compose_args=$(get_compose_args)
+  # shellcheck disable=SC2086
+  DB_IMAGE=$(docker compose $compose_args config --images db)
+
+  local url
+  url=$(db_url)
+  local cached_id=""
+  local cached_etag=""
+  if docker image inspect "$DB_IMAGE" >/dev/null 2>&1; then
+    cached_id=$(docker image inspect --format '{{.Id}}' "$DB_IMAGE")
+    cached_etag=$(image_label "$DB_IMAGE" org.dhis2.db.etag)
+  fi
+
+  local headers
+  headers=$(curl --head --silent --fail --max-time 30 "$url" | tr -d '\r' || true)
+  DB_ETAG=$(echo "$headers" | awk 'tolower($1) == "etag:" { gsub(/"/, "", $2); print $2 }')
+  DB_S3_VERSION_ID=$(echo "$headers" | awk 'tolower($1) == "x-amz-version-id:" { print $2 }')
+
+  if [ -z "$DB_ETAG" ]; then
+    if [ -z "$cached_id" ]; then
+      echo "Error: Cannot get the ETag of $url, and $DB_IMAGE is not cached" >&2
+      exit 1
+    fi
+    echo "Warning: Cannot get the ETag of $url; using the cached $DB_IMAGE"
+    echo "  built from ETag ${cached_etag:-unknown}, which may be older than the dump in S3"
+    DB_ETAG="$cached_etag"
+    DB_S3_VERSION_ID=$(image_label "$DB_IMAGE" org.dhis2.db.s3-version-id)
+    DB_IMAGE_ID="$cached_id"
+    return 0
+  fi
+
+  if [ "$DB_ETAG" = "$cached_etag" ]; then
+    echo "$DB_IMAGE is up to date with $url (ETag $DB_ETAG)"
+    DB_IMAGE_ID="$cached_id"
+    return 0
+  fi
+
+  local cached="not cached"
+  if [ -n "$cached_id" ]; then
+    cached="${cached_etag:-none}"
+  fi
+  echo "Building $DB_IMAGE from $url"
+  echo "  ETag in S3: $DB_ETAG, of the cached image: $cached"
+  export DB_ETAG DB_S3_VERSION_ID
+  local start_time
+  start_time=$(date +%s)
+  # shellcheck disable=SC2086
+  docker compose $compose_args build db
+  DB_IMAGE_ID=$(docker image inspect --format '{{.Id}}' "$DB_IMAGE")
+  echo "Built $DB_IMAGE (took $(($(date +%s) - start_time))s)"
+
+  # The replaced image is left untagged. The containerd image store removes it itself.
+  if [ -n "$cached_id" ] && [ "$cached_id" != "$DB_IMAGE_ID" ] \
+    && docker image inspect "$cached_id" >/dev/null 2>&1; then
+    echo "Removing the image it replaces, $cached_id"
+    docker image rm "$cached_id" || echo "Warning: Failed to remove $cached_id"
+  fi
+
+  # On CI, nothing but database images is built, and their build cache holds a dump and its
+  # restored data directory per build, which a rebuild never reuses. Locally, leave the cache alone.
+  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    echo "Pruning the build cache"
+    docker builder prune --all --force
   fi
 }
 
@@ -660,7 +782,8 @@ generate_metadata() {
     jq --raw-output 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "\(.key)=\(.value)"' 2>/dev/null || echo "")
 
   # Build reproducible command using RepoDigest
-  # DB image is reproducible via DB_TYPE and DB_VERSION args
+  # The DB image is identified by DB_DIR, DB_TYPE and DB_VERSION, and its content by DB_ETAG: the
+  # dumps in S3 are overwritten in place, and S3 keeps the overwritten versions (DB_S3_VERSION_ID)
   local dhis2_image_immutable="$DHIS2_IMAGE"
   if [ "$dhis2_image_digest" != "unknown" ] && [ -n "$dhis2_image_digest" ]; then
     dhis2_image_immutable="$dhis2_image_digest"
@@ -693,6 +816,8 @@ generate_metadata() {
     echo "ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
+    echo "POPULATE_SCRIPT=$POPULATE_SCRIPT"
+    env | grep '^POPULATE_' | grep -v '^POPULATE_SCRIPT=' | sort || true
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
     echo "CAPTURE_DHIS2_LOGS=$CAPTURE_DHIS2_LOGS"
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
@@ -704,6 +829,11 @@ generate_metadata() {
     echo "GIT_COMMIT_PERFORMANCE_TESTS=$git_commit"
     echo "GIT_DIRTY_PERFORMANCE_TESTS=$([ -n "$(git status --porcelain 2>/dev/null)" ] && echo 'true' || echo 'false')"
     echo "DHIS2_IMAGE_DIGEST=$dhis2_image_digest"
+    echo "DB_URL=$(db_url)"
+    echo "DB_ETAG=$DB_ETAG"
+    echo "DB_S3_VERSION_ID=$DB_S3_VERSION_ID"
+    echo "DB_IMAGE=$DB_IMAGE"
+    echo "DB_IMAGE_ID=$DB_IMAGE_ID"
     if [ -n "$dhis2_labels" ]; then
       echo "$dhis2_labels"
     fi
@@ -844,12 +974,22 @@ run_simulation() {
 # MAIN EXECUTION
 ################################################################################
 pull_mutable_image
+ensure_db_image
 
 echo ""
 echo "========================================"
 echo "PHASE: Container Startup"
 echo "========================================"
 start_containers
+
+if [ -n "$POPULATE_SCRIPT" ]; then
+  echo ""
+  echo "========================================"
+  echo "PHASE: Database Population"
+  echo "========================================"
+  DHIS2_USERNAME="$DHIS2_USERNAME" DHIS2_PASSWORD="$DHIS2_PASSWORD" "$POPULATE_SCRIPT"
+fi
+
 prepare_database
 
 if [ "$WARMUP" -gt 0 ]; then

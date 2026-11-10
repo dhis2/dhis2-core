@@ -41,6 +41,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
@@ -79,6 +80,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TestNotes;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
@@ -89,7 +91,6 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.test.RelationshipUtils;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,6 +99,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
@@ -105,11 +107,13 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private EnrollmentService enrollmentService;
 
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
   @Autowired protected UserService _userService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TestNotes testNotes;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
@@ -220,7 +224,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeValueA.setAttribute(trackedEntityAttributeA);
     trackedEntityAttributeValueA.setTrackedEntity(trackedEntityA);
     trackedEntityAttributeValueA.setValue("12");
-    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValueA);
+    saveTrackedEntityAttributeValue(entityManager, trackedEntityAttributeValueA);
     trackedEntityA.setTrackedEntityAttributeValues(Set.of(trackedEntityAttributeValueA));
     manager.update(trackedEntityA);
 
@@ -387,12 +391,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWithNotesWhenNotesAreRequested() throws NotFoundException {
-    Note note = new Note();
-    note.setNoteText("text");
-    manager.save(note);
-    enrollmentA.getNotes().add(note);
-    manager.save(enrollmentA);
-    manager.flush();
+    Note note = testNotes.save(enrollmentA, "text");
     manager.clear();
 
     EnrollmentFields fields = EnrollmentFields.builder().includeNotes().build();
@@ -406,12 +405,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWithoutNotesWhenNotesAreNotRequested() throws NotFoundException {
-    Note note = new Note();
-    note.setNoteText("text");
-    manager.save(note);
-    enrollmentA.getNotes().add(note);
-    manager.save(enrollmentA);
-    manager.flush();
+    testNotes.save(enrollmentA, "text");
     manager.clear();
 
     Enrollment enrollment =
@@ -836,17 +830,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetNoteWhenNoteHasNoLastUpdatedBy() throws NotFoundException {
-    // note.lastupdatedby is nullable. Saving via the manager always sets it, so null it directly.
-    Note note = new Note();
-    note.setNoteText("text");
-    manager.save(note);
-    enrollmentA.getNotes().add(note);
-    manager.save(enrollmentA);
-    manager.flush();
-    entityManager
-        .createNativeQuery("update note set lastupdatedby = null where uid = :uid")
-        .setParameter("uid", note.getUid())
-        .executeUpdate();
+    Note note = testNotes.save(enrollmentA, "text");
+    assertNull(note.getLastUpdatedBy(), "test expects a note without lastUpdatedBy");
     manager.clear();
 
     Enrollment enrollment =
@@ -859,13 +844,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldNotDeleteNoteWhenDeletingEnrollment() {
-    Note note = new Note();
-    note.setNoteText("text");
-    manager.save(note);
-    enrollmentA.getNotes().add(note);
-
-    manager.save(enrollmentA);
+  void shouldNotDeleteNotesWhenSoftDeletingEnrollment() {
+    Note note = testNotes.save(enrollmentA, "text");
 
     assertTrue(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
 
@@ -874,7 +854,10 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.clear();
 
     assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
-    assertTrue(manager.exists(Note.class, note.getUid()));
+    assertEquals(
+        1,
+        jdbcTemplate.queryForObject(
+            "select count(*) from note where uid = ?", Integer.class, note.getUid()));
   }
 
   @Test

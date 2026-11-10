@@ -128,16 +128,15 @@ final class JdbcBatchSupport {
     return conn.createArrayOf("boolean", values);
   }
 
-  /**
-   * Fetches {@code count} ids from {@code sequenceName} in a single round-trip. The sequence name
-   * is interpolated into the SQL (not a bind parameter) because PostgreSQL's {@code nextval} takes
-   * a {@code regclass}; the value is always a static literal controlled by us.
-   */
+  private static final String ALLOCATE_IDS_SQL =
+      "select nextval(?::regclass) from generate_series(1, ?)";
+
+  /** Fetches {@code count} ids from {@code sequenceName} in a single round-trip. */
   static long[] allocateIds(Connection conn, String sequenceName, int count) throws SQLException {
     long[] ids = new long[count];
-    String sql = "select nextval('" + sequenceName + "') from generate_series(1, ?)";
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-      ps.setInt(1, count);
+    try (PreparedStatement ps = conn.prepareStatement(ALLOCATE_IDS_SQL)) {
+      ps.setString(1, sequenceName);
+      ps.setInt(2, count);
       try (ResultSet rs = ps.executeQuery()) {
         int i = 0;
         while (rs.next()) {

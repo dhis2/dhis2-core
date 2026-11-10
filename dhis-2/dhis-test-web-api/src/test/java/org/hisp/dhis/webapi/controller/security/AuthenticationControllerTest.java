@@ -32,6 +32,8 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -41,6 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.http.HttpStatus;
@@ -65,6 +68,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.session.HttpSessionCreatedEvent;
 
@@ -77,6 +81,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
   @Autowired private SystemSettingsService settingsService;
   @Autowired private SessionRegistry sessionRegistry;
   @Autowired private ConfigurableApplicationContext applicationContext;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @AfterEach
   void tearDown() {
@@ -96,6 +101,63 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
     assertEquals("SUCCESS", response.getLoginStatus());
     assertEquals("/", response.getRedirectUrl());
+  }
+
+  @Test
+  void testLoginRecordsLastLoginWithoutChangingLastUpdated() {
+    Map<String, Object> before = lastUpdatedAndLastLogin("admin");
+
+    POST("/auth/login", "{'username':'admin','password':'district'}").content(HttpStatus.OK);
+
+    // a login that went through the entity lifecycle would only reach the table on flush
+    entityManager.flush();
+    Map<String, Object> after = lastUpdatedAndLastLogin("admin");
+    assertEquals(before.get("lastupdated"), after.get("lastupdated"));
+    assertNotNull(after.get("lastlogin"));
+    assertNotEquals(before.get("lastlogin"), after.get("lastlogin"));
+  }
+
+  /** H2 tests run without the second-level cache, so there is no query cache to keep up to date. */
+  @Test
+  void testSetLastLoginWithoutQueryCache() {
+    userService.setLastLogin("admin");
+
+    assertNotNull(lastUpdatedAndLastLogin("admin").get("lastlogin"));
+  }
+
+  private Map<String, Object> lastUpdatedAndLastLogin(String username) {
+    return jdbcTemplate.queryForMap(
+        "select lastupdated, lastlogin from userinfo where username = ?", username);
+  }
+
+  @Test
+  void testSuccessfulLoginClearsInvitation() {
+    User invitedUser = createUserWithAuth("invited", "ALL");
+    userService.encodeAndSetPassword(invitedUser, "district");
+    invitedUser.setInvitation(true);
+    invitedUser.setRestoreToken("restore-token");
+    Calendar expiry = Calendar.getInstance();
+    expiry.add(Calendar.DAY_OF_YEAR, 1);
+    invitedUser.setRestoreExpiry(expiry.getTime());
+    invitedUser.setIdToken("id-token");
+    userService.updateUser(invitedUser);
+    manager.flush();
+    manager.clear();
+    clearSecurityContext();
+
+    JsonLoginResponse response =
+        POST("/auth/login", "{'username':'invited','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    manager.flush();
+    manager.clear();
+    User persistedUser = userService.getUserByUsername("invited");
+    assertFalse(persistedUser.isInvitation());
+    assertNull(persistedUser.getRestoreToken());
+    assertNull(persistedUser.getRestoreExpiry());
+    assertNull(persistedUser.getIdToken());
   }
 
   @Test
