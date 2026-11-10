@@ -35,12 +35,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.http.HttpClientAdapter.HttpResponse;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Tests the {@link UserSettingsController} using (mocked) REST requests.
@@ -98,6 +101,35 @@ class UserSettingsControllerTest extends H2ControllerIntegrationTestBase {
             .content()
             .getString("keyUiLocale")
             .string());
+  }
+
+  /** The short form of a key (without the {@code key} prefix) refers to the same setting. */
+  @ParameterizedTest
+  @ValueSource(strings = {"keyUiLocale", "uiLocale"})
+  void testGetAllUserSettings_NoFallbackByKey(String key) {
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=fr"));
+
+    JsonObject settings = GET("/userSettings?useFallback=false&key=" + key).content();
+    assertEquals(List.of(key), settings.names());
+    assertTrue(settings.get(key).isNull(), "unset setting must not report a default");
+
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?value=de"));
+    settings = GET("/userSettings?useFallback=false&key=" + key).content();
+    assertEquals("de", settings.getString(key).string());
+  }
+
+  @Test
+  void testGetUserSettingByKey_NoFallbackHasNoValueForUnset() {
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=fr"));
+    assertEquals("fr", GET("/userSettings/keyUiLocale").content("text/plain"));
+
+    HttpResponse unset = GET("/userSettings/keyUiLocale?useFallback=false");
+    assertEquals(HttpStatus.OK, unset.status());
+    assertEquals("", unset.content("text/plain"), "unset setting must not report a default");
+
+    // an explicit value equal to the default is still reported as set
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?value=en"));
+    assertEquals("en", GET("/userSettings/keyUiLocale?useFallback=false").content("text/plain"));
   }
 
   @Test

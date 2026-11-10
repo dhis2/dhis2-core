@@ -111,6 +111,18 @@ public sealed interface Settings permits UserSettings, SystemSettings {
    */
   JsonMap<JsonMixed> toJson(boolean includeConfidential, @Nonnull Set<String> keys);
 
+  /**
+   * @param includeConfidential true to include, false to exclude confidential settings
+   * @param keys the keys to extract, empty set includes all. A key can be given in its short form
+   *     without the {@code key} prefix
+   * @param includeDefaults true to use the default of a setting that has no explicitly defined
+   *     value, false to use JSON {@code null} for such a setting
+   * @return a JSON of the settings for the requested keys; if a confidential key is included by
+   *     #includeConfidential is {@code false} the key is not included in the result
+   */
+  JsonMap<JsonMixed> toJson(
+      boolean includeConfidential, @Nonnull Set<String> keys, boolean includeDefaults);
+
   @Nonnull
   <E extends Enum<?>> E asEnum(@Nonnull String key, @Nonnull E defaultValue);
 

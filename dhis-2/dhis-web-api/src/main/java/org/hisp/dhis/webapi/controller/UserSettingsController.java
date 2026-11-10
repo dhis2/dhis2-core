@@ -46,10 +46,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -97,27 +95,10 @@ public class UserSettingsController {
       throws ForbiddenException, NotFoundException {
 
     UserSettings settings = getUserSettings(userId, username, useFallback);
-    JsonMap<JsonMixed> res =
-        key == null || key.isEmpty() ? settings.toJson(false) : settings.toJson(false, key);
-    if (!useFallback) res = withNullForUnset(res, settings.keys());
+    // without fallbacks a setting the user has not stored is null instead of the default value, so
+    // clients can tell "not set" (use the system default) from a value that equals the default
+    JsonMap<JsonMixed> res = settings.toJson(false, key == null ? Set.of() : key, useFallback);
     return ResponseEntity.ok().cacheControl(CacheControl.noCache().cachePrivate()).body(res);
-  }
-
-  /**
-   * Without fallbacks only the values stored for the user are returned. Settings the user has not
-   * stored are {@code null} instead of the default value, so clients can tell "not set" (use the
-   * system default) from an explicit value that happens to equal the default.
-   */
-  private static JsonMap<JsonMixed> withNullForUnset(JsonMap<JsonMixed> json, Set<String> stored) {
-    return Json.object(
-            obj ->
-                json.names()
-                    .forEach(
-                        name ->
-                            obj.addMember(
-                                name,
-                                stored.contains(name) ? json.get(name).node() : JsonNode.NULL)))
-        .asMap(JsonMixed.class);
   }
 
   @GetMapping(value = "/{key}")
@@ -136,7 +117,9 @@ public class UserSettingsController {
     response.setHeader(HttpHeaders.CONTENT_TYPE, ContextUtils.CONTENT_TYPE_TEXT);
 
     UserSettings settings = getUserSettings(userId, username, useFallback);
-    return toJavaString(settings.toJson(false, Set.of(key)).get(key));
+    // without fallbacks a setting the user has not stored has no value: the body is empty
+    String value = toJavaString(settings.toJson(false, Set.of(key), useFallback).get(key));
+    return value == null ? "" : value;
   }
 
   @PostMapping(value = "/{key}")
