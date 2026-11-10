@@ -39,7 +39,9 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.test.TrackerTestBase;
@@ -157,6 +159,24 @@ class JdbcTrackerEventStoreTest extends TrackerTestBase {
             tablePosition(sql, uniqueWithLike),
             tablePosition(sql, nonUnique)),
         "joins must be ordered unique with eq, unique with like, then non unique in: " + sql);
+  }
+
+  @Test
+  void shouldFilterByDataElementInWhereClauseWhenOrderingByAttribute() throws BadRequestException {
+    TrackerEventQueryParams params = new TrackerEventQueryParams();
+    DataElement dataElement = createDataElement('X');
+    dataElement.setValueType(ValueType.TEXT);
+    params.filterBy(dataElement, new QueryFilter(QueryOperator.EQ, "value"));
+    params.orderBy(attribute('a', false), SortDirection.ASC);
+
+    String sql = getEventsSql(params);
+
+    int where = sql.indexOf(" where ");
+    int dataElementPredicate = sql.indexOf("ev.eventdatavalues #>> '{" + dataElement.getUid());
+    assertTrue(
+        where >= 0 && dataElementPredicate > where,
+        "data element filter must be in the WHERE clause, not in the condition of a LEFT JOIN, in: "
+            + sql);
   }
 
   private TrackedEntityAttribute attribute(char uniqueChar, boolean unique) {
