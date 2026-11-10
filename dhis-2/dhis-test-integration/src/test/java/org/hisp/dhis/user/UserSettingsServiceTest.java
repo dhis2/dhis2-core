@@ -32,6 +32,7 @@ package org.hisp.dhis.user;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.ThreadUserSettings;
@@ -43,16 +44,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionDestroyedEvent;
 
 /**
- * Tests how the {@link UserSettingsService} combines the settings stored for a user with the
- * current system settings.
+ * Tests how the {@link UserSettingsService} holds the settings of a user for the user's sessions:
+ * the settings stored for the user with the system settings of the last login as fallback.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class UserSettingsServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserSettingsService userSettingsService;
+  @Autowired private UserSessionAware userSessions;
   @Autowired private SystemSettingsService systemSettingsService;
 
   private String username;
@@ -64,30 +70,45 @@ class UserSettingsServiceTest extends PostgresIntegrationTestBase {
 
   @AfterEach
   void tearDown() {
-    // the test is not transactional and system settings are cached outside the DB
+    // the test is not transactional and settings are held outside the DB
     systemSettingsService.deleteAll(Set.of("keyUiLocale"));
     startNewRequest();
+    userSettingsService.deleteAll(username);
+    login();
   }
 
   @Test
-  void testGetUserSettings_SystemSettingChangeAppliesWithoutReLogin() {
+  void testOnSessionInit_SystemSettingChangeAppliesAtNextLogin() {
     putSystemUiLocale("fr");
+    login();
     assertEquals("fr", getEffectiveUiLocale());
 
     putSystemUiLocale("nb");
+    assertEquals("fr", getEffectiveUiLocale(), "settings are stable until the next login");
+
+    // settings of the first login are still held, as they are when the user has another session
+    login();
     assertEquals("nb", getEffectiveUiLocale());
   }
 
   @Test
-  void testGetUserSettings_StoredValueWinsOverSystemSetting() throws Exception {
+  void testOnSessionInit_StoredValueWinsOverSystemSetting() throws Exception {
     userSettingsService.put("keyUiLocale", "de");
     putSystemUiLocale("fr");
-    assertEquals("de", getEffectiveUiLocale());
+    login();
 
-    // "Use system default"
-    userSettingsService.put("keyUiLocale", null);
-    startNewRequest();
-    assertEquals("fr", getEffectiveUiLocale());
+    assertEquals("de", getEffectiveUiLocale());
+  }
+
+  @Test
+  void testOnSessionRequest_RestoresSettingsWhenSessionOfUserEnded() throws Exception {
+    userSettingsService.put("keyUiLocale", "de");
+    login();
+
+    userSessions.onSessionExpired(sessionDestroyed());
+    userSessions.onSessionRequest(username);
+
+    assertEquals("de", getEffectiveUiLocale());
   }
 
   /** The short form of a key (without the {@code key} prefix) refers to the same setting. */
@@ -95,6 +116,7 @@ class UserSettingsServiceTest extends PostgresIntegrationTestBase {
   @ValueSource(strings = {"keyUiLocale", "uiLocale"})
   void testGetUserSettings_NoFallbackHasOnlyStoredValues(String key) throws Exception {
     putSystemUiLocale("fr");
+    login();
 
     UserSettings settings = userSettingsService.getUserSettings(username, false);
     assertEquals(Set.of(), settings.keys());
@@ -117,8 +139,30 @@ class UserSettingsServiceTest extends PostgresIntegrationTestBase {
     ThreadUserSettings.clear();
   }
 
+  private void login() {
+    userSessions.onSessionInit(
+        new AuthenticationSuccessEvent(SecurityContextHolder.getContext().getAuthentication()));
+  }
+
+  /** The end of a session of the current user, for example by a logout. */
+  private static SessionDestroyedEvent sessionDestroyed() {
+    SecurityContext context = SecurityContextHolder.getContext();
+    return new SessionDestroyedEvent(context) {
+      @Override
+      public List<SecurityContext> getSecurityContexts() {
+        return List.of(context);
+      }
+
+      @Override
+      public String getId() {
+        return "session-of-user";
+      }
+    };
+  }
+
   /** Asserts the service and the current user's settings agree, then returns the UI locale. */
   private String getEffectiveUiLocale() {
+    startNewRequest();
     String fromService =
         userSettingsService.getUserSettings(username, true).getUserUiLocale().toString();
     String fromCurrent = UserSettings.getCurrentSettings().getUserUiLocale().toString();

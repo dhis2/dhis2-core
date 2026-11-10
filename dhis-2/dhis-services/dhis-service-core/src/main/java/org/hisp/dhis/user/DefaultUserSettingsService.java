@@ -31,17 +31,18 @@ package org.hisp.dhis.user;
 
 import static java.util.Objects.requireNonNull;
 
-import jakarta.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -66,18 +67,12 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultUserSettingsService
-    implements UserSettingsService, UserSessionAware, SessionUserSettings.Source {
+public class DefaultUserSettingsService implements UserSettingsService, UserSessionAware {
 
   private final UserStore userStore;
   private final UserSettingStore userSettingStore;
   private final SystemSettingsProvider systemSettingsProvider;
   private final TransactionTemplate transactionTemplate;
-
-  @PostConstruct
-  void init() {
-    SessionUserSettings.setSource(this);
-  }
 
   @Override
   @EventListener
@@ -85,7 +80,16 @@ public class DefaultUserSettingsService
     Object principal = event.getAuthentication().getPrincipal();
     if (principal instanceof UserDetails user) {
       String username = user.getUsername();
-      SessionUserSettings.put(username, getStoredSettings(username));
+      // always load: settings already held are from an earlier login of the user
+      SessionUserSettings.put(username, loadUserSettings(username, true));
+    }
+  }
+
+  @Override
+  @IndirectTransactional
+  public void onSessionRequest(@Nonnull String username) {
+    if (SessionUserSettings.get(username).isEmpty()) {
+      SessionUserSettings.put(username, loadUserSettings(username, true));
     }
   }
 
@@ -103,23 +107,25 @@ public class DefaultUserSettingsService
   @Nonnull
   @Override
   public UserSettings getUserSettings(@Nonnull String username, boolean includeSystemFallbacks) {
-    if (!includeSystemFallbacks) return getStoredSettings(username);
-    UserSettings stored =
-        SessionUserSettings.getStored(username).orElseGet(() -> getStoredSettings(username));
-    return stored.withFallback(getFallbacks());
+    if (includeSystemFallbacks) {
+      Optional<UserSettings> settings = SessionUserSettings.get(username);
+      if (settings.isPresent()) return settings.get();
+    }
+    return loadUserSettings(username, includeSystemFallbacks);
   }
 
   @Nonnull
-  @Override
-  public UserSettings getStoredSettings(@Nonnull String username) {
+  private UserSettings loadUserSettings(@Nonnull String username, boolean includeFallbacks) {
     return requireNonNull(
-        transactionTemplate.execute(status -> UserSettings.of(userSettingStore.getAll(username))));
+        transactionTemplate.execute(status -> getUserSettingsInternal(username, includeFallbacks)));
   }
 
   @Nonnull
-  @Override
-  public Map<String, String> getFallbacks() {
-    return systemSettingsProvider.getCurrentSettings().toMap();
+  private UserSettings getUserSettingsInternal(@Nonnull String username, boolean includeFallbacks) {
+    UserSettings settings = UserSettings.of(userSettingStore.getAll(username));
+    return includeFallbacks
+        ? settings.withFallback(systemSettingsProvider.getCurrentSettings().toMap())
+        : settings;
   }
 
   @Override
@@ -194,8 +200,9 @@ public class DefaultUserSettingsService
   }
 
   private void updateSession(String username) {
-    if (SessionUserSettings.getStored(username).isPresent()) {
-      SessionUserSettings.put(username, getStoredSettings(username));
+    Optional<UserSettings> settings = SessionUserSettings.get(username);
+    if (settings.isPresent()) {
+      SessionUserSettings.put(username, getUserSettingsInternal(username, true));
     }
   }
 }

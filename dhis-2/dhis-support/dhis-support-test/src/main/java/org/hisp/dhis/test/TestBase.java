@@ -276,9 +276,6 @@ public abstract class TestBase {
 
   @Autowired private UserSettingsService userSettingsService;
 
-  @Autowired(required = false)
-  private SessionUserSettings.Source userSettingsSource;
-
   protected RenderService renderService;
 
   @Autowired(required = false)
@@ -2566,10 +2563,8 @@ public abstract class TestBase {
   public void injectSecurityContext(UserDetails currentUserDetails) {
     injectSecurityContextNoSettings(currentUserDetails);
     if (userSettingsService != null) {
-      // the session state is static but each application context has its own services
-      SessionUserSettings.setSource(userSettingsSource);
       String username = currentUserDetails.getUsername();
-      SessionUserSettings.put(username, userSettingsService.getUserSettings(username, false));
+      SessionUserSettings.put(username, userSettingsService.getUserSettings(username, true));
     }
   }
 
