@@ -29,24 +29,37 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.sql.DataSource;
 import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
+import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
+import org.hisp.dhis.feedback.FeedbackException;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -68,6 +81,7 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
   @Autowired private CollectionService collectionService;
   @Autowired private PlatformTransactionManager transactionManager;
   @Autowired private SessionFactory sessionFactory;
+  @Autowired private DataSource dataSource;
 
   @Test
   void mergeUnloadedGroupMembersPreservesCountsAndBothCachedSides() {
@@ -188,6 +202,89 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
     assertGroupMembers(group, ou);
   }
 
+  /**
+   * A concurrent transaction adds the same member first. Its uncommitted row is invisible to the
+   * merge, so the merge's own insert waits for that commit and then violates the primary key. The
+   * failure must fail the merge as a whole: PostgreSQL has aborted the transaction, so the deletion
+   * that preceded the insert is rolled back and must not be reported as done.
+   */
+  @Test
+  void concurrentAdditionFailsTheMergeAndRollsBackItsEarlierDeletion() throws Exception {
+    String removed = organisationUnit("Delta removed");
+    String contested = organisationUnit("Delta contested");
+    String group =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/organisationUnitGroups/", "{'name':'Delta conflict','shortName':'DeltaCF'}"));
+    long groupId =
+        transaction(
+            () -> {
+              OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
+              owner.getMembers().add(manager.get(OrganisationUnit.class, removed));
+              manager.update(owner);
+              return owner.getId();
+            });
+    long contestedId = transaction(() -> manager.get(OrganisationUnit.class, contested).getId());
+
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    try (Connection concurrent = dataSource.getConnection()) {
+      concurrent.setAutoCommit(false);
+      try (PreparedStatement insert =
+          concurrent.prepareStatement(
+              "insert into orgunitgroupmembers (orgunitgroupid, organisationunitid) values (?, ?)")) {
+        insert.setLong(1, groupId);
+        insert.setLong(2, contestedId);
+        insert.executeUpdate();
+      }
+      Future<?> commit =
+          executor.submit(
+              () -> {
+                try {
+                  awaitBlockedMemberInsert(concurrent);
+                } finally {
+                  concurrent.commit();
+                }
+                return null;
+              });
+
+      assertThrows(
+          ConstraintViolationException.class,
+          () ->
+              transaction(
+                  () ->
+                      merge(
+                          manager.get(OrganisationUnitGroup.class, group),
+                          "organisationUnits",
+                          List.of(contested),
+                          List.of(removed))));
+      commit.get();
+    } finally {
+      executor.shutdownNow();
+    }
+    assertGroupMembers(group, removed, contested);
+    assertGroupMembers(group, removed, contested);
+  }
+
+  /** Returns once another connection waits for the transaction of the given connection to end. */
+  private static void awaitBlockedMemberInsert(Connection connection) throws SQLException {
+    String sql =
+        "select count(*) from pg_locks where not granted and locktype = 'transactionid'"
+            + " and transactionid ="
+            + " (select backend_xid from pg_stat_activity where pid = pg_backend_pid())";
+    try (PreparedStatement blocked = connection.prepareStatement(sql)) {
+      await()
+          .pollInSameThread()
+          .pollInterval(Duration.ofMillis(50))
+          .atMost(Duration.ofSeconds(30))
+          .until(
+              () -> {
+                try (ResultSet result = blocked.executeQuery()) {
+                  return result.next() && result.getLong(1) > 0;
+                }
+              });
+    }
+  }
+
   private String organisationUnit(String name) {
     return assertStatus(
         HttpStatus.CREATED,
@@ -236,7 +333,7 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
         deletions.stream().map(uid -> new BaseIdentifiableObject(uid, "", "")).toList());
     try {
       return collectionService.mergeCollectionItems(owner, property, items);
-    } catch (Exception ex) {
+    } catch (FeedbackException ex) {
       throw new AssertionError(ex);
     }
   }

@@ -127,22 +127,23 @@ public class DefaultCollectionService implements CollectionService {
     Collection<IdentifiableObject> collection = getCollection(object, property);
     CollectionPersister persister = collectionItemStore.prepare(collection);
 
-    updateCollectionItems(
-        property,
-        itemCodes,
-        report,
-        ErrorCode.E1108,
-        item -> {
-          boolean changed =
-              persister != null
-                  ? collectionItemStore.update(persister, object, item, true)
-                  : !collection.contains(item) && collection.add(item);
-          if (changed) {
-            report.updatedInc(1);
-          } else {
-            report.ignoredInc(1);
-          }
-        });
+    if (persister != null) {
+      report.updatedInc(
+          updateUnloadedCollection(persister, object, getItems(property, itemCodes), true, report));
+    } else {
+      updateCollectionItems(
+          property,
+          itemCodes,
+          report,
+          ErrorCode.E1108,
+          item -> {
+            if (!collection.contains(item) && collection.add(item)) {
+              report.updatedInc(1);
+            } else {
+              report.ignoredInc(1);
+            }
+          });
+    }
     validateOwnedCollection(object, property, persister);
   }
 
@@ -219,23 +220,49 @@ public class DefaultCollectionService implements CollectionService {
     Collection<IdentifiableObject> collection = getCollection(object, property);
     CollectionPersister persister = collectionItemStore.prepare(collection);
 
-    updateCollectionItems(
-        property,
-        itemCodes,
-        report,
-        ErrorCode.E1109,
-        item -> {
-          boolean changed =
-              persister != null
-                  ? collectionItemStore.update(persister, object, item, false)
-                  : collection.remove(item);
-          if (changed) {
-            report.deletedInc(1);
-          } else {
-            report.ignoredInc(1);
-          }
-        });
+    if (persister != null) {
+      report.deletedInc(
+          updateUnloadedCollection(
+              persister, object, getItems(property, itemCodes), false, report));
+    } else {
+      updateCollectionItems(
+          property,
+          itemCodes,
+          report,
+          ErrorCode.E1109,
+          item -> {
+            if (collection.remove(item)) {
+              report.deletedInc(1);
+            } else {
+              report.ignoredInc(1);
+            }
+          });
+    }
     validateOwnedCollection(object, property, persister);
+  }
+
+  /**
+   * The rows of an unloaded collection are written straight to the database, where a failed
+   * statement aborts the transaction. Such a failure is left to fail the request: as an item error
+   * it would be reported next to counted changes that the database has rolled back.
+   *
+   * @return the number of items added or removed; the other items are counted as ignored
+   */
+  private int updateUnloadedCollection(
+      CollectionPersister persister,
+      IdentifiableObject object,
+      List<? extends IdentifiableObject> items,
+      boolean addition,
+      TypeReport report) {
+    int changed = 0;
+    for (IdentifiableObject item : items) {
+      if (collectionItemStore.update(persister, object, item, addition)) {
+        changed++;
+      } else {
+        report.ignoredInc(1);
+      }
+    }
+    return changed;
   }
 
   private void validateOwnedCollection(
