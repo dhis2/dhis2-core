@@ -44,6 +44,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -57,6 +58,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.event.CollectionMembershipChangedEvent;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
 import org.hisp.dhis.feedback.FeedbackException;
@@ -67,7 +69,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.PayloadApplicationEvent;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.event.TransactionalApplicationListenerAdapter;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -77,6 +85,9 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationTestBase {
+  private static final String MEMBERS_ROLE = OrganisationUnitGroup.class.getName() + ".members";
+  private static final String GROUPS_ROLE = OrganisationUnit.class.getName() + ".groups";
+
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private CollectionService collectionService;
   @Autowired private PlatformTransactionManager transactionManager;
@@ -187,19 +198,54 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
           assertEquals(Set.of(ou), uids(owner.getMembers()));
           return null;
         });
-    new TransactionTemplate(transactionManager)
-        .executeWithoutResult(
-            status -> {
-              entityManager.clear();
-              OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
-              assertFalse(Hibernate.isInitialized(owner.getMembers()));
-              assertEquals(
-                  1,
-                  merge(owner, "organisationUnits", List.of(), List.of(ou)).getStats().deleted());
-              assertFalse(Hibernate.isInitialized(owner.getMembers()));
-              status.setRollbackOnly();
+    // The Redis publisher forwards membership changes once their transaction has committed.
+    List<CollectionMembershipChangedEvent> committed = new CopyOnWriteArrayList<>();
+    ApplicationListener<ApplicationEvent> afterCommit =
+        new TransactionalApplicationListenerAdapter<>(
+            event -> {
+              if (event instanceof PayloadApplicationEvent<?> published
+                  && published.getPayload() instanceof CollectionMembershipChangedEvent change) {
+                committed.add(change);
+              }
             });
-    assertGroupMembers(group, ou);
+    ApplicationEventMulticaster multicaster =
+        webApplicationContext.getBean(
+            AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
+            ApplicationEventMulticaster.class);
+    multicaster.addApplicationListener(afterCommit);
+    try {
+      new TransactionTemplate(transactionManager)
+          .executeWithoutResult(
+              status -> {
+                entityManager.clear();
+                OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
+                assertFalse(Hibernate.isInitialized(owner.getMembers()));
+                assertEquals(
+                    1,
+                    merge(owner, "organisationUnits", List.of(), List.of(ou)).getStats().deleted());
+                assertFalse(Hibernate.isInitialized(owner.getMembers()));
+                status.setRollbackOnly();
+              });
+      assertEquals(List.of(), committed);
+      assertGroupMembers(group, ou);
+
+      // the same deletion, committed, does publish the owner's set and the item's inverse set
+      transaction(
+          () ->
+              merge(
+                  manager.get(OrganisationUnitGroup.class, group),
+                  "organisationUnits",
+                  List.of(),
+                  List.of(ou)));
+      assertEquals(
+          Set.of(MEMBERS_ROLE, GROUPS_ROLE),
+          committed.stream()
+              .map(CollectionMembershipChangedEvent::role)
+              .collect(Collectors.toSet()));
+    } finally {
+      multicaster.removeApplicationListener(afterCommit);
+    }
+    assertGroupMembers(group);
   }
 
   /**
