@@ -595,7 +595,7 @@ public class EventsQuery9AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         27,
-        24,
+        25,
         20); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -630,6 +630,8 @@ public class EventsQuery9AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
