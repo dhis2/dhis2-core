@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -241,6 +242,7 @@ public class DefaultSchemaValidator implements SchemaValidator {
   }
 
   @Override
+  @NonTransactional
   public List<ErrorReport> validateCollectionSize(Property property, Class<?> klass, int size) {
     if ((property.getMin() != null && size < property.getMin())
         || (property.getMax() != null && size > property.getMax())) {
