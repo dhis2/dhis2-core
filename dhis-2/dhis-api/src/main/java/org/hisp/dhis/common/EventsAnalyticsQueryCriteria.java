@@ -122,8 +122,15 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
   /** Specify ths status of events to include. */
   private Set<EventStatus> eventStatus = new HashSet<>();
 
+  /**
+   * Specify the enrollment status of events to include.
+   *
+   * @deprecated use {@link #enrollmentStatus} instead
+   */
+  @Deprecated private Set<EnrollmentStatus> programStatus = new HashSet<>();
+
   /** Specify the enrollment status of events to include. */
-  private Set<EnrollmentStatus> programStatus = new HashSet<>();
+  private Set<EnrollmentStatus> enrollmentStatus = new HashSet<>();
 
   /** Overrides the start date of the relative period. */
   private Date relativePeriodDate;

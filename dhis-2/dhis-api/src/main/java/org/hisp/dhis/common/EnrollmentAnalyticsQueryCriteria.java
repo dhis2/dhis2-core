@@ -114,7 +114,15 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
    */
   private IdScheme outputIdScheme;
 
-  private Set<EnrollmentStatus> programStatus = new HashSet<>();
+  /**
+   * The enrollment statuses to filter on.
+   *
+   * @deprecated use {@link #enrollmentStatus} instead
+   */
+  @Deprecated private Set<EnrollmentStatus> programStatus = new HashSet<>();
+
+  /** The enrollment statuses to filter on. */
+  private Set<EnrollmentStatus> enrollmentStatus = new HashSet<>();
 
   private DisplayProperty displayProperty;
 
