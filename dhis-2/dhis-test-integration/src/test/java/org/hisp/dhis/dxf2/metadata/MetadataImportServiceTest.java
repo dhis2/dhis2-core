@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -69,6 +70,8 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.mapping.ThematicMapType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -1154,6 +1157,34 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     EventVisualization visualization = manager.get(EventVisualization.class, "gyYXi0rXAIc");
     assertNotNull(visualization.getLegendDefinitions().getLegendSet());
     assertEquals("CGWUjDCWaMA", visualization.getLegendDefinitions().getLegendSet().getUid());
+  }
+
+  @Test
+  void testImportReferencesObjectsNotYetFlushedInSameTransaction() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    manager.save(ouA);
+    manager.save(ouB);
+
+    OrganisationUnitGroup group = createOrganisationUnitGroup('A');
+    group.getMembers().add(reference(ouA));
+    group.getMembers().add(reference(ouB));
+    ImportReport report =
+        importService.importMetadata(
+            createParams(ImportStrategy.CREATE), new MetadataObjects().addObject(group));
+
+    assertEquals(Status.OK, report.getStatus());
+    OrganisationUnitGroup imported = manager.get(OrganisationUnitGroup.class, group.getUid());
+    assertEquals(
+        Set.of(ouA.getUid(), ouB.getUid()),
+        imported.getMembers().stream().map(OrganisationUnit::getUid).collect(toSet()));
+  }
+
+  /** An org unit as it arrives in a request body: only the UID is set. */
+  private static OrganisationUnit reference(OrganisationUnit organisationUnit) {
+    OrganisationUnit reference = new OrganisationUnit();
+    reference.setUid(organisationUnit.getUid());
+    return reference;
   }
 
   private MetadataImportParams createParams(ImportStrategy importStrategy) {
