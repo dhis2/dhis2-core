@@ -69,4 +69,10 @@ public class RedisUserDetailsChangeTracker implements UserDetailsChangeTracker {
   public String getChangeToken(@Nonnull String username) {
     return redisTemplate.opsForValue().get(KEY_PREFIX + username);
   }
+
+  @Override
+  @Nonnull
+  public Duration getChangeTokenTimeToLive() {
+    return timeToLive;
+  }
 }

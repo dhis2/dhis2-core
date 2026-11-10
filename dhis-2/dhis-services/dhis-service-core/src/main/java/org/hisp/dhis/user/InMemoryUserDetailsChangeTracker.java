@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.user;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
@@ -75,6 +76,12 @@ public class InMemoryUserDetailsChangeTracker implements UserDetailsChangeTracke
       return null;
     }
     return change.token();
+  }
+
+  @Override
+  @Nonnull
+  public Duration getChangeTokenTimeToLive() {
+    return Duration.ofMillis(timeToLiveMillis);
   }
 
   private record Change(String token, long expiresAtMillis) {

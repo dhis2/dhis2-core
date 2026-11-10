@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.user;
 
+import java.time.Duration;
 import java.util.Collection;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -68,4 +69,16 @@ public interface UserDetailsChangeTracker {
    */
   @CheckForNull
   String getChangeToken(@Nonnull String username);
+
+  /**
+   * Returns how long a change is known after it was recorded: {@link #getChangeToken(String)}
+   * returns its token for this time, the session timeout. Caches of {@link UserDetails} use it to
+   * bound the age of their entries, so that a change they did not see is not forgotten before they
+   * reload.
+   *
+   * @return the time to live of a change token, zero or negative when the session timeout is not
+   *     configured as a positive duration
+   */
+  @Nonnull
+  Duration getChangeTokenTimeToLive();
 }
