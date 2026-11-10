@@ -33,9 +33,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -154,7 +156,14 @@ class TrackerEventQueryParams {
       new LinkedHashMap<>();
 
   /** Attributes that have a {@link QueryOperator#NULL} filter and therefore require a LEFT JOIN. */
-  private final Set<TrackedEntityAttribute> nullFilteredAttributes = new HashSet<>();
+  private final Set<TrackedEntityAttribute> nullFilteredAttributes = new LinkedHashSet<>();
+
+  /** Operators matching exact values, so they are selective on a unique attribute. */
+  private static final Set<QueryOperator> SELECTIVE_OPERATORS =
+      EnumSet.of(QueryOperator.EQ, QueryOperator.IN);
+
+  /** Attributes that have a filter using one of the {@link #SELECTIVE_OPERATORS}. */
+  private final Set<TrackedEntityAttribute> selectivelyFilteredAttributes = new HashSet<>();
 
   /**
    * Each data element will affect the final SQL query. Some data elements are filtered on, while
@@ -332,7 +341,7 @@ class TrackerEventQueryParams {
     return order.stream()
         .filter(o -> o.getField() instanceof TrackedEntityAttribute)
         .map(o -> (TrackedEntityAttribute) o.getField())
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
@@ -373,24 +382,31 @@ class TrackerEventQueryParams {
    * don't use the {@link QueryOperator#NULL} operator, so NULLs are eliminated by the WHERE clause
    * anyway.
    *
-   * <p>Unique attributes, which are usually the most selective, come first; the rest keep the order
-   * of the filters. The order is the order of the joins in the SQL, and PostgreSQL only reorders
-   * the first {@code join_collapse_limit} joins, so a join written later cannot be used to start
-   * the query from.
+   * <p>Ordered unique with a {@link #SELECTIVE_OPERATORS} filter, other unique, then the rest, each
+   * group in filter order. PostgreSQL only reorders the first {@code join_collapse_limit} joins, so
+   * the most selective joins must come first.
    */
   public List<TrackedEntityAttribute> getInnerJoinAttributes() {
     return attributes.keySet().stream()
         .filter(tea -> !nullFilteredAttributes.contains(tea))
-        .sorted(Comparator.comparing((TrackedEntityAttribute tea) -> !tea.isUnique()))
+        .sorted(Comparator.comparingInt(this::selectivityRank))
         .toList();
+  }
+
+  /** Lower ranks are joined first, see {@link #getInnerJoinAttributes()}. */
+  private int selectivityRank(TrackedEntityAttribute tea) {
+    if (!tea.isUnique()) {
+      return 2;
+    }
+    return selectivelyFilteredAttributes.contains(tea) ? 0 : 1;
   }
 
   /**
    * Returns attributes that need a LEFT JOIN: order-only attributes and attributes with a {@link
-   * QueryOperator#NULL} filter (which needs NULLs preserved to match).
+   * QueryOperator#NULL} filter (which needs NULLs preserved to match), in a stable order.
    */
   public List<TrackedEntityAttribute> getLeftJoinAttributes() {
-    Set<TrackedEntityAttribute> leftJoined = new HashSet<>(getOrderAttributes());
+    Set<TrackedEntityAttribute> leftJoined = new LinkedHashSet<>(getOrderAttributes());
     leftJoined.addAll(nullFilteredAttributes);
     leftJoined.removeAll(getInnerJoinAttributes());
     return List.copyOf(leftJoined);
@@ -402,6 +418,9 @@ class TrackerEventQueryParams {
     this.attributes.get(tea).add(FilterJdbcPredicate.of(tea, filter));
     if (filter.getOperator() == QueryOperator.NULL) {
       nullFilteredAttributes.add(tea);
+    }
+    if (SELECTIVE_OPERATORS.contains(filter.getOperator())) {
+      selectivelyFilteredAttributes.add(tea);
     }
     return this;
   }
