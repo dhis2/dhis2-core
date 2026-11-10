@@ -31,16 +31,17 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.Getter;
-import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -151,7 +152,7 @@ class EventQueryParams {
 
   /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
   @Getter
-  private final Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = new HashMap<>();
+  private final Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = new LinkedHashMap<>();
 
   /**
    * Each data element will affect the final SQL query. Some data elements are filtered on, while
@@ -378,9 +379,28 @@ class EventQueryParams {
     return this;
   }
 
-  /** Returns attributes that are only ordered by and not present in any filter. */
-  public Set<TrackedEntityAttribute> leftJoinAttributes() {
-    return SetUtils.union(getOrderAttributes().keySet(), this.attributes.keySet());
+  /**
+   * Returns attributes with filters, which can narrow down the events.
+   *
+   * <p>Unique attributes, which are usually the most selective, come first; the rest keep the order
+   * of the filters. The order is the order of the joins in the SQL, and PostgreSQL only reorders
+   * the first {@code join_collapse_limit} joins, so a join written later cannot be used to start
+   * the query from.
+   */
+  public List<TrackedEntityAttribute> getFilterAttributes() {
+    return attributes.entrySet().stream()
+        .filter(e -> !e.getValue().isEmpty())
+        .map(Map.Entry::getKey)
+        .sorted(Comparator.comparing((TrackedEntityAttribute tea) -> !tea.isUnique()))
+        .toList();
+  }
+
+  /** Returns attributes that are joined only to add their value to the response or to order by. */
+  public List<TrackedEntityAttribute> getOtherAttributes() {
+    Set<TrackedEntityAttribute> others = new HashSet<>(getOrderAttributes().keySet());
+    others.addAll(attributes.keySet());
+    getFilterAttributes().forEach(others::remove);
+    return List.copyOf(others);
   }
 
   public EventQueryParams filterBy(
