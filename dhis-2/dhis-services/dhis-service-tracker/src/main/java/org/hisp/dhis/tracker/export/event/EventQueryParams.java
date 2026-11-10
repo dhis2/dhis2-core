@@ -33,9 +33,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -153,6 +155,13 @@ class EventQueryParams {
   /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
   @Getter
   private final Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = new LinkedHashMap<>();
+
+  /** Operators matching exact values, so they are selective on a unique attribute. */
+  private static final Set<QueryOperator> SELECTIVE_OPERATORS =
+      EnumSet.of(QueryOperator.EQ, QueryOperator.IN);
+
+  /** Attributes that have a filter using one of the {@link #SELECTIVE_OPERATORS}. */
+  private final Set<TrackedEntityAttribute> selectivelyFilteredAttributes = new HashSet<>();
 
   /**
    * Each data element will affect the final SQL query. Some data elements are filtered on, while
@@ -344,11 +353,11 @@ class EventQueryParams {
     return Collections.unmodifiableList(this.order);
   }
 
-  private Map<TrackedEntityAttribute, List<JdbcPredicate>> getOrderAttributes() {
+  private Set<TrackedEntityAttribute> getOrderAttributes() {
     return order.stream()
         .filter(o -> o.getField() instanceof TrackedEntityAttribute)
         .map(o -> (TrackedEntityAttribute) o.getField())
-        .collect(Collectors.toMap(tea -> tea, tea -> List.of()));
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
@@ -382,22 +391,32 @@ class EventQueryParams {
   /**
    * Returns attributes with filters, which can narrow down the events.
    *
-   * <p>Unique attributes, which are usually the most selective, come first; the rest keep the order
-   * of the filters. The order is the order of the joins in the SQL, and PostgreSQL only reorders
-   * the first {@code join_collapse_limit} joins, so a join written later cannot be used to start
-   * the query from.
+   * <p>Ordered unique with a {@link #SELECTIVE_OPERATORS} filter, other unique, then the rest, each
+   * group in filter order. PostgreSQL only reorders the first {@code join_collapse_limit} joins, so
+   * the most selective joins must come first.
    */
   public List<TrackedEntityAttribute> getFilterAttributes() {
     return attributes.entrySet().stream()
         .filter(e -> !e.getValue().isEmpty())
         .map(Map.Entry::getKey)
-        .sorted(Comparator.comparing((TrackedEntityAttribute tea) -> !tea.isUnique()))
+        .sorted(Comparator.comparingInt(this::selectivityRank))
         .toList();
   }
 
-  /** Returns attributes that are joined only to add their value to the response or to order by. */
+  /** Lower ranks are joined first, see {@link #getFilterAttributes()}. */
+  private int selectivityRank(TrackedEntityAttribute tea) {
+    if (!tea.isUnique()) {
+      return 2;
+    }
+    return selectivelyFilteredAttributes.contains(tea) ? 0 : 1;
+  }
+
+  /**
+   * Returns attributes that are joined only to add their value to the response or to order by, in a
+   * stable order.
+   */
   public List<TrackedEntityAttribute> getOtherAttributes() {
-    Set<TrackedEntityAttribute> others = new HashSet<>(getOrderAttributes().keySet());
+    Set<TrackedEntityAttribute> others = new LinkedHashSet<>(getOrderAttributes());
     others.addAll(attributes.keySet());
     getFilterAttributes().forEach(others::remove);
     return List.copyOf(others);
@@ -407,6 +426,9 @@ class EventQueryParams {
       @Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) {
     this.attributes.putIfAbsent(tea, new ArrayList<>());
     this.attributes.get(tea).add(JdbcPredicate.of(tea, filter));
+    if (SELECTIVE_OPERATORS.contains(filter.getOperator())) {
+      selectivelyFilteredAttributes.add(tea);
+    }
     return this;
   }
 

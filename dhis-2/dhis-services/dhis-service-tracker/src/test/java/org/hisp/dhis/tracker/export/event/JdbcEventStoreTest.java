@@ -143,6 +143,30 @@ class JdbcEventStoreTest extends TestBase {
         "join on the unique attribute must be the first attribute join in: " + sql);
   }
 
+  @Test
+  void shouldJoinUniqueAttributeWithSelectiveFilterFirstWhenFilteringByUniqueAttributes() {
+    EventQueryParams params = trackerProgramParams();
+    TrackedEntityAttribute nonUnique = attribute('a', false);
+    TrackedEntityAttribute uniqueWithLike = attribute('b', true);
+    TrackedEntityAttribute uniqueWithEq = attribute('c', true);
+    params.filterBy(nonUnique, new QueryFilter(QueryOperator.EQ, "value"));
+    params.filterBy(uniqueWithLike, new QueryFilter(QueryOperator.LIKE, "value"));
+    params.filterBy(uniqueWithEq, new QueryFilter(QueryOperator.EQ, "value"));
+
+    String sql = getEventsSql(params);
+
+    assertEquals(
+        List.of(
+            FIRST_ATTRIBUTE_JOIN_POSITION,
+            FIRST_ATTRIBUTE_JOIN_POSITION + 1,
+            FIRST_ATTRIBUTE_JOIN_POSITION + 2),
+        List.of(
+            tablePosition(sql, uniqueWithEq),
+            tablePosition(sql, uniqueWithLike),
+            tablePosition(sql, nonUnique)),
+        "joins must be ordered unique with eq, unique with like, then non unique in: " + sql);
+  }
+
   private static EventQueryParams trackerProgramParams() {
     Program program = createProgram('A');
     program.setProgramType(ProgramType.WITH_REGISTRATION);
