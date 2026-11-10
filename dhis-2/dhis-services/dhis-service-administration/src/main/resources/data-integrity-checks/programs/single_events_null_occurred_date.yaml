@@ -63,7 +63,7 @@ recommendation: >-
   One way it so try to assign to occurreddate column a value getting it from scheduleddate or completeddate
   or a manually inserted value:
   
-  UPDATE singleevent
+  UPDATE event
   SET occurreddate = COALESCE(event.scheduleddate, event.completeddate, '2025-09-01 11:26:00')
   WHERE uid = '<event_uid>';
      

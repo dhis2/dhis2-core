@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityProgramInconsistentlyLinkedTrackedEntityType
+class DataIntegrityProgramInconsistentlyLinkedTrackedEntityTypeTest
     extends AbstractDataIntegrityIntegrationTest {
 
   @Autowired private ProgramService programService;
@@ -54,24 +53,18 @@ class DataIntegrityProgramInconsistentlyLinkedTrackedEntityType
   void testSingleEventProgramWithTrackedEntityType() {
     // Single event with no tracked entity type should not be flagged
     // Use the service layer, since hopefully the API layer will block this in future
-    Program programA = new Program();
-    programA.setAutoFields();
+    Program programA = createProgramWithoutRegistration('A');
     programA.setName("Program A");
     programA.setShortName("Program A");
-    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    programA.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
     programService.addProgram(programA);
 
     TrackedEntityType tet = createTrackedEntityType('A');
     manager.save(tet);
 
     // Single event with tracked entity type should be flagged
-    Program programB = new Program();
-    programB.setAutoFields();
+    Program programB = createProgramWithoutRegistration('B');
     programB.setName("Program B");
     programB.setShortName("Program B");
-    programB.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    programB.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
     programB.setTrackedEntityType(tet);
     programService.addProgram(programB);
 
@@ -90,24 +83,18 @@ class DataIntegrityProgramInconsistentlyLinkedTrackedEntityType
   @Test
   void testTrackerProgramWithoutTrackedEntityType() {
     // Tracker program without tracked entity type should be flagged
-    Program programA = new Program();
-    programA.setAutoFields();
+    Program programA = createProgram('A');
     programA.setName("Program A");
     programA.setShortName("Program A");
-    programA.setProgramType(ProgramType.WITH_REGISTRATION);
-    programA.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
     programService.addProgram(programA);
 
     TrackedEntityType tet = createTrackedEntityType('A');
     manager.save(tet);
 
     // Tracker program with tracked entity type should not be flagged
-    Program programB = new Program();
-    programB.setAutoFields();
+    Program programB = createProgram('B');
     programB.setName("Program B");
     programB.setShortName("Program B");
-    programB.setProgramType(ProgramType.WITH_REGISTRATION);
-    programB.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
     programB.setTrackedEntityType(tet);
     programService.addProgram(programB);
 
