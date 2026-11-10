@@ -62,7 +62,7 @@ public record OrgTree(
     }
 
     public UID id() {
-      return path.toUID();
+      return path.uid();
     }
 
     public boolean isParent(OrgTreeEntry other) {

@@ -104,14 +104,6 @@ class OrgUnitPathTest {
   }
 
   @Test
-  void testToUID() {
-    assertEquals(UID.of("ou123456789"), OrgUnitPath.of("/ou123456789").toUID());
-    assertEquals(UID.of("ou222222222"), OrgUnitPath.of("/ou111111111/ou222222222").toUID());
-    assertEquals(
-        UID.of("ou333333333"), OrgUnitPath.of("/ou111111111/ou222222222/ou333333333").toUID());
-  }
-
-  @Test
   void testisAncestor_Path() {
     assertTrue(
         OrgUnitPath.of("/ou111111111/ou222222222").isAncestor(OrgUnitPath.of("/ou111111111")));
@@ -427,10 +419,5 @@ class OrgUnitPathTest {
   @Test
   void testToString_nested() {
     assertEquals(pathString(UID_A, UID_B, UID_C), path(UID_A, UID_B, UID_C).toString());
-  }
-
-  @Test
-  void testToUID_returnsTailUid() {
-    assertEquals(UID.of(UID_C), path(UID_A, UID_B, UID_C).toUID());
   }
 }

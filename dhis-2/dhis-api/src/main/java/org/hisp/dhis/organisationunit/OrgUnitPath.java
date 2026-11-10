@@ -174,9 +174,4 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull UID uid) {
   public String toString() {
     return parent == null ? "/" + uid : parent + "/" + uid;
   }
-
-  @Nonnull
-  public UID toUID() {
-    return uid;
-  }
 }

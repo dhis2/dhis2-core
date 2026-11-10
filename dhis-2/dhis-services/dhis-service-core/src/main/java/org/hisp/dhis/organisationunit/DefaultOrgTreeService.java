@@ -127,7 +127,7 @@ public class DefaultOrgTreeService implements OrgTreeService {
     Locale locale = params.locale();
     String property = params.translationPropertyKey();
     StreamEntriesParams matchesParams =
-        new StreamEntriesParams(locale, property, false, matches.stream().map(OrgUnitPath::toUID));
+        new StreamEntriesParams(locale, property, false, matches.stream().map(OrgUnitPath::uid));
     Stream<OrgTreeEntry> entries = store.streamEntries(matchesParams);
     if (OrgTree.isHierarchical(matches))
       entries = OrgTree.sortedHierarchical(entries.toList()).stream();
@@ -140,7 +140,7 @@ public class DefaultOrgTreeService implements OrgTreeService {
               locale,
               property,
               true,
-              OrgUnitPath.ofMissingAncestors(matches).stream().map(OrgUnitPath::toUID));
+              OrgUnitPath.ofMissingAncestors(matches).stream().map(OrgUnitPath::uid));
       ancestors = store.streamEntries(ancestorsParams);
     } else {
       entries = entries.skip(1); // skip the parent
