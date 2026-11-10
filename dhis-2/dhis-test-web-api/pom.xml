@@ -517,6 +517,34 @@
           </ignoredNonTestScopedDependencies>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <!-- OpenApiControllerTest generates a client for the whole API (~800 MB heap), run it in a fresh JVM -->
+          <execution>
+            <id>default-test</id>
+            <configuration>
+              <excludes>
+                <exclude>**/OpenApiControllerTest.java</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>openapi-test</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <test>OpenApiControllerTest</test>
+              <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
+              <includes>
+                <include>**/OpenApiControllerTest.java</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
