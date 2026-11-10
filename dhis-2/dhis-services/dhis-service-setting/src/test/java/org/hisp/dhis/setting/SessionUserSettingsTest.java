@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
  * Tests how {@link SessionUserSettings} combines the settings stored for a user with the current
  * {@link SystemSettings}.
  *
- * @author Morten Svanæs
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class SessionUserSettingsTest {
 

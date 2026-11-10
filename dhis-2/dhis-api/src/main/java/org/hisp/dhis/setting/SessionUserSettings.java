@@ -32,6 +32,7 @@ package org.hisp.dhis.setting;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
@@ -76,10 +77,14 @@ public final class SessionUserSettings {
   private static final Map<String, UserSettings> STORED_USER_SETTINGS_BY_USERNAME =
       new ConcurrentHashMap<>();
 
-  private static volatile Source source;
+  /**
+   * The source of the running application context, set by its service on startup. Tests that run
+   * several application contexts in one JVM set the source of their own context for each test.
+   */
+  private static final AtomicReference<Source> SOURCE = new AtomicReference<>();
 
   public static void setSource(@CheckForNull Source source) {
-    SessionUserSettings.source = source;
+    SOURCE.set(source);
   }
 
   public static void clear(@Nonnull String username) {
@@ -113,7 +118,7 @@ public final class SessionUserSettings {
    *     Source}. Empty only when no {@link Source} is set and no settings are held for the user.
    */
   public static Optional<UserSettings> get(@Nonnull String username) {
-    Source src = source;
+    Source src = SOURCE.get();
     UserSettings stored = STORED_USER_SETTINGS_BY_USERNAME.get(username);
     if (src == null) return Optional.ofNullable(stored);
     if (stored == null) {
