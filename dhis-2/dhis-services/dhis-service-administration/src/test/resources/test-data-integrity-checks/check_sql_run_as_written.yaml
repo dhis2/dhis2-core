@@ -1,0 +1,17 @@
+---
+name: test_sql_run_as_written
+description: test_sql_run_as_written
+section: test
+section_order: 1
+summary_sql: >-
+  select 'test' as label, COUNT(*)::varchar as value, 'note' as description
+  from organisationunit where path LIKE '/' || '%'
+details_sql: >-
+  select 'test' as label, uid, name, 'note' as description, path::varchar as comment
+  from organisationunit ou where path LIKE ou.uid || '%'
+details_id_type: test
+severity: CRITICAL
+introduction: >
+  Intro here
+recommendation: >
+  Recommendation here
