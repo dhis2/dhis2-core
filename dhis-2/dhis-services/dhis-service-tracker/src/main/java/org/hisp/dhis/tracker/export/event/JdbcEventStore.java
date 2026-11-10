@@ -634,21 +634,20 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   /**
-   * Generates the LEFT JOIN based on the attributes we are ordering and filtering by, if any. We
-   * use LEFT JOIN to avoid removing any rows if there is no value for a given attribute and te. The
-   * result of this LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and
-   * main query.
+   * Generates the LEFT JOIN for the given attributes. We use LEFT JOIN to avoid removing any rows
+   * if there is no value for a given attribute and te. The result of this LEFT JOIN is used in the
+   * sub-query projection, and ordering in the sub-query and main query.
    *
    * <p>Attribute filtering is handled in {@link
    * #getWhereClauseFromAttributeFilterConditions(EventQueryParams, MapSqlParameterSource,
    * SqlHelper)}.
    *
-   * @return a SQL LEFT JOIN for the relevant attributes, or an empty string if none are provided.
+   * @return a SQL LEFT JOIN for the given attributes, or an empty string if none are provided.
    */
-  private String getLeftJoinFromAttributes(EventQueryParams params) {
+  private String getLeftJoinFromAttributes(List<TrackedEntityAttribute> teas) {
     StringBuilder attributes = new StringBuilder();
 
-    for (TrackedEntityAttribute attribute : params.leftJoinAttributes()) {
+    for (TrackedEntityAttribute attribute : teas) {
       attributes
           .append(" left join trackedentityattributevalue as ")
           .append(quote(attribute.getUid()))
@@ -792,6 +791,30 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return selectBuilder.toString();
   }
 
+  /**
+   * Generates the FROM and WHERE clauses. For a tracker program the joins are ordered as follows:
+   *
+   * <pre>
+   * from event ev
+   *   inner join enrollment en on ...
+   *   left join trackedentity te on ...
+   *   inner join trackedentityprogramowner po on ...
+   *   inner join organisationunit ou on ...
+   *   left join on filtered attributes ...  -- conditional
+   *   inner join program p on ...
+   *   inner join programstage ps on ...
+   *   inner join organisationunit evou on ...
+   *   left join userinfo au on ...
+   *   left join on other attributes ...     -- conditional
+   *   inner join (...) coc_agg on ...
+   * where ...
+   * </pre>
+   *
+   * <p>The join order matters: PostgreSQL only reorders the first {@code join_collapse_limit}
+   * (default 8) tables of explicit joins; later tables are joined to that result. Joins that narrow
+   * down the events (owner org unit scope, attribute filters) must therefore come first so the
+   * planner can start from them. Joins that only add columns to the response come last.
+   */
   private StringBuilder getFromWhereClause(
       EventQueryParams params,
       MapSqlParameterSource sqlParameters,
@@ -810,12 +833,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
           .append("inner join program p on p.programid=ps.programid ")
           .append("left join enrollment en on en.enrollmentid=ev.enrollmentid ")
-          .append("inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
+          .append("inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ")
+          .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ");
+      fromBuilder.append(getLeftJoinFromAttributes(params.getFilterAttributes()));
     } else {
       fromBuilder
           .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
-          .append("inner join program p on p.programid=en.programid ")
-          .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
+          .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ");
       if (params.hasEnrolledInProgram()) {
         // TPO record is always created at enrollment time. INNER JOIN is correct and sargable.
         // ou represents the ownership org unit (from TPO) — correct for access control.
@@ -834,17 +858,20 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(
                 "inner join organisationunit ou on (COALESCE(po.organisationunitid,ev.organisationunitid)=ou.organisationunitid) ");
       }
+      fromBuilder
+          .append(getLeftJoinFromAttributes(params.getFilterAttributes()))
+          .append("inner join program p on p.programid=en.programid ")
+          .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
     }
     fromBuilder.append(
         "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
 
-    fromBuilder
-        .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
-        .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
+    fromBuilder.append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
-    // LEFT JOIN attributes we need to sort on and/or filter by.
-    fromBuilder.append(getLeftJoinFromAttributes(params));
+    // LEFT JOIN attributes we only need to sort on or to check for NULL.
+    fromBuilder.append(getLeftJoinFromAttributes(params.getOtherAttributes()));
 
+    // must stay the last join: the data element predicates below are added to its join condition
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
     String predicates = mapPredicatesToSql(params.getDataElements(), sqlParameters);
