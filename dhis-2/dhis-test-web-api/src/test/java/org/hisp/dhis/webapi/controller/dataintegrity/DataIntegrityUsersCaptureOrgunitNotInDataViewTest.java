@@ -49,7 +49,8 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityUsersCaptureOrgunitNotInDataView extends AbstractDataIntegrityIntegrationTest {
+class DataIntegrityUsersCaptureOrgunitNotInDataViewTest
+    extends AbstractDataIntegrityIntegrationTest {
 
   private static final String CHECK_NAME = "users_capture_ou_not_in_data_view_ou";
 
