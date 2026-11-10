@@ -29,11 +29,16 @@
  */
 package org.hisp.dhis.dxf2.metadata.collection;
 
+import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -52,9 +57,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
 /**
- * Applies small deltas to unloaded owning many-to-many sets. Hibernate's collection persister
- * supplies both the membership queries and row mutation SQL, including mapping-specific types and
- * column names. A temporary set contains only the delta, never the existing membership.
+ * Applies deltas to unloaded owning many-to-many sets. One query per partition of items reads which
+ * of them are members. Hibernate's collection persister supplies the row mutation SQL, including
+ * mapping-specific types and column names. A temporary set contains only the delta, never the
+ * existing membership.
  *
  * <p>Extra-lazy sets still initialize on owning-side writes: Hibernate only queues inverse-side
  * operations. Do not mark the real wrapper dirty or replace its snapshot with the partial set.
@@ -64,6 +70,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 class HibernateCollectionItemStore {
+  /** Items per membership query, as when the items themselves are loaded by UID. */
+  private static final int MEMBERSHIP_QUERY_SIZE = 20_000;
+
+  /** Rows per JDBC batch. Without a batch size Hibernate spends a round trip on every row. */
+  private static final int ROW_BATCH_SIZE = 100;
+
   private final EntityManager entityManager;
   private final ApplicationEventPublisher eventPublisher;
 
@@ -91,48 +103,112 @@ class HibernateCollectionItemStore {
     return set.wasInitialized() ? null : persister;
   }
 
-  boolean update(
+  /**
+   * Adds the items to, or removes them from, the unloaded set of the owner. Neither the statements
+   * nor the invalidations of the owner's set grow with each item.
+   *
+   * @return the number of items whose membership changed
+   */
+  int update(
       CollectionPersister persister,
       IdentifiableObject owner,
-      IdentifiableObject item,
+      Collection<? extends IdentifiableObject> items,
       boolean addition) {
     SessionImplementor session = session();
     Serializable key = session.getIdentifier(owner);
-    boolean present = persister.elementExists(key, item, session);
-    if (present == addition) {
-      return false;
+    List<IdentifiableObject> changes = changes(persister, key, items, addition, session);
+    if (changes.isEmpty()) {
+      return 0;
     }
 
     invalidate(persister, key, session);
     for (CollectionPersister candidate :
         session.getFactory().getMetamodel().collectionPersisters().values()) {
       if (isInverseOf(candidate, persister)) {
-        Serializable inverseKey = session.getIdentifier(item);
-        invalidate(candidate, inverseKey, session);
-        updateLoadedInverse(candidate, inverseKey, owner, addition, session);
+        for (IdentifiableObject item : changes) {
+          Serializable inverseKey = session.getIdentifier(item);
+          invalidate(candidate, inverseKey, session);
+          updateLoadedInverse(candidate, inverseKey, owner, addition, session);
+        }
       }
     }
+    writeRows(persister, key, changes, addition, session);
+    invalidateQuerySpaces(persister, session);
+    return changes.size();
+  }
 
-    PersistentSet delta = new PersistentSet(session, addition ? Set.of(item) : Set.of());
-    delta.setSnapshot(
-        key, persister.getRole(), new HashMap<>(addition ? Map.of() : Map.of(item, item)));
+  /** The items to add that are not members yet, or the items to remove that are members. */
+  private static List<IdentifiableObject> changes(
+      CollectionPersister persister,
+      Serializable key,
+      Collection<? extends IdentifiableObject> items,
+      boolean addition,
+      SessionImplementor session) {
+    Map<Serializable, IdentifiableObject> itemsById = new LinkedHashMap<>();
+    items.forEach(item -> itemsById.put(session.getIdentifier(item), item));
+    Set<Serializable> members = members(persister, key, List.copyOf(itemsById.keySet()), session);
+    return itemsById.entrySet().stream()
+        .filter(entry -> members.contains(entry.getKey()) != addition)
+        .map(Map.Entry::getValue)
+        .toList();
+  }
+
+  /** Reads which of the items are members with one query per partition, not one per item. */
+  private static Set<Serializable> members(
+      CollectionPersister persister,
+      Serializable key,
+      List<Serializable> itemIds,
+      SessionImplementor session) {
+    String ownerName = persister.getOwnerEntityPersister().getEntityName();
+    String hql =
+        "select item.id from "
+            + ownerName
+            + " owner join owner."
+            + persister.getRole().substring(ownerName.length() + 1)
+            + " item where owner.id = :ownerId and item.id in (:itemIds)";
+    Set<Serializable> members = new HashSet<>();
+    for (List<Serializable> partition : Lists.partition(itemIds, MEMBERSHIP_QUERY_SIZE)) {
+      members.addAll(
+          session
+              .createQuery(hql, Serializable.class)
+              .setParameter("ownerId", key)
+              .setParameterList("itemIds", partition)
+              .list());
+    }
+    return members;
+  }
+
+  private static void writeRows(
+      CollectionPersister persister,
+      Serializable key,
+      List<IdentifiableObject> changes,
+      boolean addition,
+      SessionImplementor session) {
+    PersistentSet delta =
+        new PersistentSet(session, addition ? new LinkedHashSet<>(changes) : Set.of());
+    HashMap<IdentifiableObject, IdentifiableObject> snapshot = new HashMap<>();
+    if (!addition) {
+      changes.forEach(item -> snapshot.put(item, item));
+    }
+    delta.setSnapshot(key, persister.getRole(), snapshot);
     // PersistentSet resolves its snapshot through the persistence context. Register only this
     // temporary entry, not a CollectionKey: the real unloaded wrapper must remain associated.
     var entries = session.getPersistenceContextInternal().getCollectionEntries();
     entries.put(delta, new CollectionEntry(delta, session.getFactory()));
+    Integer batchSize = session.getJdbcBatchSize();
+    session.setJdbcBatchSize(ROW_BATCH_SIZE);
     try {
       if (addition) {
         persister.insertRows(delta, key, session);
       } else {
         persister.deleteRows(delta, key, session);
       }
-      // Execute queued JDBC batches before another membership query (or a size validation).
+      // Execute the rows still queued before another membership query (or a size validation).
       session.getJdbcCoordinator().executeBatch();
     } finally {
+      session.setJdbcBatchSize(batchSize);
       entries.remove(delta);
     }
-    invalidateQuerySpaces(persister, session);
-    return true;
   }
 
   int size(CollectionPersister persister, IdentifiableObject owner) {

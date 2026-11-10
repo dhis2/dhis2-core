@@ -254,14 +254,8 @@ public class DefaultCollectionService implements CollectionService {
       List<? extends IdentifiableObject> items,
       boolean addition,
       TypeReport report) {
-    int changed = 0;
-    for (IdentifiableObject item : items) {
-      if (collectionItemStore.update(persister, object, item, addition)) {
-        changed++;
-      } else {
-        report.ignoredInc(1);
-      }
-    }
+    int changed = collectionItemStore.update(persister, object, items, addition);
+    report.ignoredInc(items.size() - changed);
     return changed;
   }
 
