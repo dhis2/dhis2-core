@@ -29,30 +29,23 @@
  */
 package org.hisp.dhis.organisationunit;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadParameterException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for the validation performed in {@link OrgTreeParams}'s compact constructor.
+ * Tests the {@link OrgTreeParams} validation
  *
- * <p>Three kinds of validation are covered:
- *
- * <ul>
- *   <li>Programming errors ({@link NullPointerException} via {@code requireNonNull})
- *   <li>Numeric range violations ({@code E8301})
- *   <li>Mutually exclusive / required-collection violations ({@code E8304} / {@code E8305})
- * </ul>
- *
- * @author AI
+ * @author AI (based on code and requirements docs)
  */
 class OrgTreeParamsTest {
 
@@ -63,6 +56,13 @@ class OrgTreeParamsTest {
   private static final UID DATASET = UID.of("ddddddddddd");
 
   // ---------- helpers ----------
+
+  /** Main-params-only variant: optional filters are null/false. */
+  private static OrgTreeParams params(
+      int page, int pageSize, List<OrgUnitPath> cursors, List<UID> roots, List<UID> groups) {
+    return params(
+        page, pageSize, cursors, roots, groups, null, null, null, null, null, false, null);
+  }
 
   private static OrgTreeParams params(
       int page,
@@ -94,32 +94,16 @@ class OrgTreeParamsTest {
         depth);
   }
 
-  private static OrgTreeParams valid() {
-    return params(
-        1, 10, List.of(), List.of(ROOT), List.of(), null, null, null, null, null, false, null);
-  }
-
-  /** A list of N nulls – sufficient because the ctor only uses {@code .size()}. */
+  /** A list of N nulls – fine for the ctor since only {@code .size()} is used. */
   private static List<OrgUnitPath> dummyCursors(int n) {
-    OrgUnitPath[] arr = new OrgUnitPath[n];
-    return Arrays.asList(arr);
-  }
-
-  /** Assert that an exception message contains all given fragments. */
-  private static void assertMessageContains(BadParameterException ex, String... fragments) {
-    String msg = ex.getMessage();
-    assertNotNull(msg, "exception message should not be null");
-    for (String fragment : fragments) {
-      assertTrue(
-          msg.contains(fragment), "expected message to contain '" + fragment + "' but was: " + msg);
-    }
+    return Arrays.asList(new OrgUnitPath[n]);
   }
 
   // ---------- happy path ----------
 
   @Test
   void validMinimalParamsDoNotThrow() {
-    assertDoesNotThrow(OrgTreeParamsTest::valid);
+    assertDoesNotThrow(() -> params(1, 10, List.of(), List.of(ROOT), List.of()));
   }
 
   @Test
@@ -219,99 +203,47 @@ class OrgTreeParamsTest {
                 null));
   }
 
-  // ---------- page ----------
+  // ---------- page (E8301) ----------
 
   @Test
   void pageZeroIsRejected() {
     BadParameterException ex =
         assertThrows(
-            BadParameterException.class,
-            () ->
-                params(
-                    0,
-                    10,
-                    List.of(),
-                    List.of(ROOT),
-                    List.of(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    false,
-                    null));
-    assertMessageContains(ex, "page");
+            BadParameterException.class, () -> params(0, 10, List.of(), List.of(ROOT), List.of()));
+    assertEquals(ErrorCode.E8301, ex.getCode());
+    assertArrayEquals(new Object[] {"page", 0}, ex.getArgs());
   }
 
   @Test
   void negativePageIsRejected() {
     BadParameterException ex =
         assertThrows(
-            BadParameterException.class,
-            () ->
-                params(
-                    -1,
-                    10,
-                    List.of(),
-                    List.of(ROOT),
-                    List.of(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    false,
-                    null));
-    assertMessageContains(ex, "page");
+            BadParameterException.class, () -> params(-1, 10, List.of(), List.of(ROOT), List.of()));
+    assertEquals(ErrorCode.E8301, ex.getCode());
+    assertArrayEquals(new Object[] {"page", -1}, ex.getArgs());
   }
 
-  // ---------- pageSize ----------
+  // ---------- pageSize (E8301) ----------
 
   @Test
   void pageSizeZeroIsRejected() {
     BadParameterException ex =
         assertThrows(
-            BadParameterException.class,
-            () ->
-                params(
-                    1,
-                    0,
-                    List.of(),
-                    List.of(ROOT),
-                    List.of(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    false,
-                    null));
-    assertMessageContains(ex, "pageSize");
+            BadParameterException.class, () -> params(1, 0, List.of(), List.of(ROOT), List.of()));
+    assertEquals(ErrorCode.E8301, ex.getCode());
+    assertArrayEquals(new Object[] {"pageSize", 0}, ex.getArgs());
   }
 
   @Test
   void negativePageSizeIsRejected() {
     BadParameterException ex =
         assertThrows(
-            BadParameterException.class,
-            () ->
-                params(
-                    1,
-                    -5,
-                    List.of(),
-                    List.of(ROOT),
-                    List.of(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    false,
-                    null));
-    assertMessageContains(ex, "pageSize");
+            BadParameterException.class, () -> params(1, -5, List.of(), List.of(ROOT), List.of()));
+    assertEquals(ErrorCode.E8301, ex.getCode());
+    assertArrayEquals(new Object[] {"pageSize", -5}, ex.getArgs());
   }
 
-  // ---------- level ----------
+  // ---------- level (E8301) ----------
 
   @Test
   void levelZeroIsRejected() {
@@ -332,26 +264,13 @@ class OrgTreeParamsTest {
                     null,
                     false,
                     null));
-    assertMessageContains(ex, "level");
+    assertEquals(ErrorCode.E8301, ex.getCode());
+    assertArrayEquals(new Object[] {"level", 0}, ex.getArgs());
   }
 
   @Test
   void levelNullIsAllowed() {
-    assertDoesNotThrow(
-        () ->
-            params(
-                1,
-                10,
-                List.of(),
-                List.of(ROOT),
-                List.of(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                false,
-                null));
+    assertDoesNotThrow(() -> params(1, 10, List.of(), List.of(ROOT), List.of()));
   }
 
   @Test
@@ -373,7 +292,7 @@ class OrgTreeParamsTest {
                 null));
   }
 
-  // ---------- depth ----------
+  // ---------- depth (E8301) ----------
 
   @Test
   void depthZeroIsRejected() {
@@ -394,26 +313,13 @@ class OrgTreeParamsTest {
                     null,
                     false,
                     0));
-    assertMessageContains(ex, "depth");
+    assertEquals(ErrorCode.E8301, ex.getCode());
+    assertArrayEquals(new Object[] {"depth", 0}, ex.getArgs());
   }
 
   @Test
   void depthNullIsAllowed() {
-    assertDoesNotThrow(
-        () ->
-            params(
-                1,
-                10,
-                List.of(),
-                List.of(ROOT),
-                List.of(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                false,
-                null));
+    assertDoesNotThrow(() -> params(1, 10, List.of(), List.of(ROOT), List.of()));
   }
 
   @Test
@@ -435,7 +341,7 @@ class OrgTreeParamsTest {
                 1));
   }
 
-  // ---------- program vs dataset (mutually exclusive) ----------
+  // ---------- program vs dataset (E8304) ----------
 
   @Test
   void programAndDatasetTogetherAreRejected() {
@@ -456,7 +362,8 @@ class OrgTreeParamsTest {
                     null,
                     false,
                     null));
-    assertMessageContains(ex, "program", "dataset");
+    assertEquals(ErrorCode.E8304, ex.getCode());
+    assertArrayEquals(new Object[] {"program", "dataset"}, ex.getArgs());
   }
 
   @Test
@@ -497,7 +404,7 @@ class OrgTreeParamsTest {
                 null));
   }
 
-  // ---------- depth vs search (mutually exclusive) ----------
+  // ---------- depth vs search (E8304) ----------
 
   @Test
   void depthAndSearchTogetherAreRejected() {
@@ -518,7 +425,8 @@ class OrgTreeParamsTest {
                     "findme",
                     false,
                     2));
-    assertMessageContains(ex, "depth", "search");
+    assertEquals(ErrorCode.E8304, ex.getCode());
+    assertArrayEquals(new Object[] {"depth", "search"}, ex.getArgs());
   }
 
   @Test
@@ -559,120 +467,53 @@ class OrgTreeParamsTest {
                 2));
   }
 
-  // ---------- roots ----------
+  // ---------- empty roots (E8305) ----------
 
   @Test
   void emptyRootsAreRejected() {
+    List<UID> emptyRoots = List.of();
     BadParameterException ex =
         assertThrows(
-            BadParameterException.class,
-            () ->
-                params(
-                    1, 10, List.of(), List.of(), List.of(), null, null, null, null, null, false,
-                    null));
-    assertMessageContains(ex, "roots");
+            BadParameterException.class, () -> params(1, 10, List.of(), emptyRoots, List.of()));
+    assertEquals(ErrorCode.E8305, ex.getCode());
+    assertArrayEquals(new Object[] {"roots", 1, emptyRoots}, ex.getArgs());
   }
 
-  // ---------- page <-> pageCursors ----------
+  // ---------- page <-> pageCursors (E8305) ----------
 
   @Test
   void pageOneDoesNotRequireCursors() {
-    assertDoesNotThrow(
-        () ->
-            params(
-                1,
-                10,
-                List.of(),
-                List.of(ROOT),
-                List.of(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                false,
-                null));
+    assertDoesNotThrow(() -> params(1, 10, List.of(), List.of(ROOT), List.of()));
   }
 
   @Test
   void pageTwoWithoutCursorIsRejected() {
+    List<OrgUnitPath> emptyCursors = List.of();
     BadParameterException ex =
         assertThrows(
             BadParameterException.class,
-            () ->
-                params(
-                    2,
-                    10,
-                    List.of(),
-                    List.of(ROOT),
-                    List.of(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    false,
-                    null));
-    assertMessageContains(ex, "pageCursor");
+            () -> params(2, 10, emptyCursors, List.of(ROOT), List.of()));
+    assertEquals(ErrorCode.E8305, ex.getCode());
+    assertArrayEquals(new Object[] {"pageCursor", 1, emptyCursors}, ex.getArgs());
   }
 
   @Test
   void pageTwoWithOneCursorIsAllowed() {
-    assertDoesNotThrow(
-        () ->
-            params(
-                2,
-                10,
-                dummyCursors(1),
-                List.of(ROOT),
-                List.of(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                false,
-                null));
+    assertDoesNotThrow(() -> params(2, 10, dummyCursors(1), List.of(ROOT), List.of()));
   }
 
   @Test
   void pageThreeWithOneCursorIsRejected() {
+    List<OrgUnitPath> oneCursor = dummyCursors(1);
     BadParameterException ex =
         assertThrows(
-            BadParameterException.class,
-            () ->
-                params(
-                    3,
-                    10,
-                    dummyCursors(1),
-                    List.of(ROOT),
-                    List.of(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    false,
-                    null));
-    assertMessageContains(ex, "pageCursor");
+            BadParameterException.class, () -> params(3, 10, oneCursor, List.of(ROOT), List.of()));
+    assertEquals(ErrorCode.E8305, ex.getCode());
+    assertArrayEquals(new Object[] {"pageCursor", 2, oneCursor}, ex.getArgs());
   }
 
   @Test
   void pageThreeWithTwoCursorsIsAllowed() {
-    assertDoesNotThrow(
-        () ->
-            params(
-                3,
-                10,
-                dummyCursors(2),
-                List.of(ROOT),
-                List.of(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                false,
-                null));
+    assertDoesNotThrow(() -> params(3, 10, dummyCursors(2), List.of(ROOT), List.of()));
   }
 }

@@ -794,7 +794,7 @@ public enum ErrorCode {
   E8302("Parameter `${name:{0}}` must not be negative, but was: ${value:{1}}"),
   E8303("Parameter `${name:{0}}` requires parameter `${name2:{1}}` which was not specified"),
   E8304("Parameter `${name:{0}}` is mutually exclusive with parameter `${name2:{1}}`"),
-  E8305("Parameter `${name:{0}}` requires (at least) `${n:{2}}` values, but got: ${value:{3}}");
+  E8305("Parameter `${name:{0}}` requires (at least) `${n:{1}}` values, but got: ${value:{2}}");
 
   private final String message;
 
