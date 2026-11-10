@@ -167,11 +167,11 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.2</jsmpp.version>
     <json-path.version>2.10.0</json-path.version>
-    <jsoup.version>1.23.2</jsoup.version>
+    <jsoup.version>1.24.1</jsoup.version>
     <jetty.version>10.0.24</jetty.version>
 
     <!-- Div. utils -->
-    <guava.version>33.7.2-jre</guava.version>
+    <guava.version>33.8.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.9.2</google-api-client.version>
@@ -231,7 +231,7 @@
     <maven-enforcer-plugin.version>3.7.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>3.0.2</restrict-imports-enforcer.version>
-    <versions-maven-plugin.version>2.23.0</versions-maven-plugin.version>
+    <versions-maven-plugin.version>2.24.0</versions-maven-plugin.version>
     <dependency-check-maven.version>12.2.2</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.10.5.0</spotbugs-maven-plugin.version>
     <spotless.version>3.11.0</spotless.version>

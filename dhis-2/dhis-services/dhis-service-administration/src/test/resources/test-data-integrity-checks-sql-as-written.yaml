@@ -1,0 +1,2 @@
+checks:
+  - check_sql_run_as_written.yaml
