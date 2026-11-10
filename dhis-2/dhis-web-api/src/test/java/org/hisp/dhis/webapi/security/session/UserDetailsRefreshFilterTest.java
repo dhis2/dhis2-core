@@ -243,18 +243,6 @@ class UserDetailsRefreshFilterTest {
   }
 
   @Test
-  void refreshIntervalDoesNotEndImpersonation() throws Exception {
-    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
-    session.setAttribute(
-        REFRESHED_AT_ATTRIBUTE, System.currentTimeMillis() - Duration.ofMinutes(16).toMillis());
-
-    doFilter(impersonation(user("F_OLD")));
-
-    assertFalse(session.isInvalid());
-    verify(userService, never()).createUserDetailsSafe(anyString());
-  }
-
-  @Test
   void refreshIntervalEndsSessionOfDisabledUser() throws Exception {
     filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
     when(userService.createUserDetailsSafe(USER_UID))

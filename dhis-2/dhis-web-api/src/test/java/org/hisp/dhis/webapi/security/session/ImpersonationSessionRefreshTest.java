@@ -31,11 +31,16 @@ package org.hisp.dhis.webapi.security.session;
 
 import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.CHANGE_TOKEN_ATTRIBUTE;
 import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.REFRESHED_AT_ATTRIBUTE;
+import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.SOURCE_REFRESH_STATE_ATTRIBUTE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
@@ -43,24 +48,30 @@ import java.io.Serializable;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.DhisAuthenticationToken;
 import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsChangeTracker;
+import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.ImpersonateUserController;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -183,6 +194,86 @@ class ImpersonationSessionRefreshTest {
     assertFalse(refreshed.isAuthorized("F_OLD"));
   }
 
+  @Test
+  void sourceChangeAfterEntryEndsTheSession() throws Exception {
+    controller.impersonateUser(request(), new MockHttpServletResponse(), "target");
+    when(tracker.getChangeToken("source")).thenReturn("source-after");
+
+    nextRequest();
+
+    assertTrue(session.isInvalid());
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  /** No live token, or the token the source session had already applied before the entry. */
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = "source-before")
+  void sourceChangesAppliedBeforeEntryDoNotEndTheSession(String sourceToken) throws Exception {
+    when(tracker.getChangeToken("source")).thenReturn(sourceToken);
+    controller.impersonateUser(request(), new MockHttpServletResponse(), "target");
+
+    nextRequest();
+
+    assertFalse(session.isInvalid());
+    assertEquals("target", SecurityContextHolder.getContext().getAuthentication().getName());
+  }
+
+  @Test
+  void impersonationWithoutSourceBaselineEndsOnAnyLiveSourceToken() throws Exception {
+    when(tracker.getChangeToken("source")).thenReturn("source-before");
+    controller.impersonateUser(request(), new MockHttpServletResponse(), "target");
+    session.removeAttribute(SOURCE_REFRESH_STATE_ATTRIBUTE);
+
+    nextRequest();
+
+    assertTrue(session.isInvalid());
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  static Stream<Arguments> sourcesThatMayNoLongerImpersonate() {
+    return Stream.of(
+        Arguments.of("deleted", null),
+        Arguments.of("disabled", builder("source", "F_IMPERSONATE_USER").enabled(false).build()),
+        Arguments.of(
+            "expired", builder("source", "F_IMPERSONATE_USER").accountNonExpired(false).build()),
+        Arguments.of("without F_IMPERSONATE_USER", user("source", "F_VIEW")));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("sourcesThatMayNoLongerImpersonate")
+  void refreshIntervalEndsTheSessionWhenTheSourceMayNoLongerImpersonate(
+      String scenario, UserDetails refreshedSource) throws Exception {
+    controller.impersonateUser(request(), new MockHttpServletResponse(), "target");
+    session.setAttribute(REFRESHED_AT_ATTRIBUTE, 0L);
+    when(userService.createUserDetailsSafe(source.getUid())).thenReturn(refreshedSource);
+
+    nextRequest();
+
+    assertTrue(session.isInvalid());
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"F_IMPERSONATE_USER", "ALL"})
+  void refreshIntervalKeepsTheSessionWhileTheSourceMayImpersonate(String authority)
+      throws Exception {
+    controller.impersonateUser(request(), new MockHttpServletResponse(), "target");
+    Authentication impersonation =
+        ((SecurityContext) session.getAttribute(SPRING_SECURITY_CONTEXT_KEY)).getAuthentication();
+    session.setAttribute(REFRESHED_AT_ATTRIBUTE, 0L);
+    when(userService.createUserDetailsSafe(source.getUid())).thenReturn(user("source", authority));
+    long beforeCheck = System.currentTimeMillis();
+
+    nextRequest();
+    nextRequest();
+
+    assertFalse(session.isInvalid());
+    assertSame(impersonation, SecurityContextHolder.getContext().getAuthentication());
+    verify(userService, times(1)).createUserDetailsSafe(anyString());
+    assertTrue((Long) session.getAttribute(REFRESHED_AT_ATTRIBUTE) >= beforeCheck);
+  }
+
   private void nextRequest() throws Exception {
     SecurityContextHolder.setContext(
         (SecurityContext) session.getAttribute(SPRING_SECURITY_CONTEXT_KEY));
@@ -197,6 +288,10 @@ class ImpersonationSessionRefreshTest {
   }
 
   private static UserDetails user(String username, String authority) {
+    return builder(username, authority).build();
+  }
+
+  private static UserDetailsImplBuilder builder(String username, String authority) {
     return UserDetails.empty()
         .uid(username + "Uid01")
         .username(username)
@@ -205,7 +300,6 @@ class ImpersonationSessionRefreshTest {
         .accountNonLocked(true)
         .credentialsNonExpired(true)
         .authorities(List.of(new SimpleGrantedAuthority(authority)))
-        .allAuthorities(Set.of(authority))
-        .build();
+        .allAuthorities(Set.of(authority));
   }
 }

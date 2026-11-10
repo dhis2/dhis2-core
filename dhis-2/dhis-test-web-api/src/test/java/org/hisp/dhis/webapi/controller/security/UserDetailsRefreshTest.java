@@ -44,7 +44,9 @@ import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsChangeTracker;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.webapi.security.session.PrincipalRefreshState;
 import org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -81,6 +83,8 @@ class UserDetailsRefreshTest extends AuthenticationApiTestBase {
   private static final String AUTHORITY = "F_REFRESH_CHECK";
 
   @Autowired private SessionRegistry sessionRegistry;
+
+  @Autowired private UserDetailsChangeTracker userDetailsChangeTracker;
 
   @Autowired
   @Qualifier("userDetailsChangeTaskExecutor")
@@ -123,12 +127,28 @@ class UserDetailsRefreshTest extends AuthenticationApiTestBase {
   @Test
   void changingImpersonatedUserEndsTheSession() throws Exception {
     User user = createUserWithAuth("impersonateduser");
+    User impersonator = createUserWithAuth("impersonatinguser", "F_IMPERSONATE_USER");
     UserRole role = createRole('I');
-    MockHttpSession userSession = impersonatingSession(user);
+    MockHttpSession userSession = impersonatingSession(user, impersonator);
     commit();
     assertEquals("false", hasAuthority(userSession).getContentAsString());
 
     addRole(user, role);
+
+    assertNotEquals(200, hasAuthority(userSession).getStatus());
+    assertTrue(userSession.isInvalid());
+  }
+
+  @Test
+  void changingImpersonatorEndsTheSession() {
+    User target = createUserWithAuth("impersonationtarget");
+    User impersonator = createUserWithAuth("impersonator", "F_IMPERSONATE_USER");
+    UserRole role = createRole('S');
+    MockHttpSession userSession = impersonatingSession(target, impersonator);
+    commit();
+    assertEquals(200, hasAuthority(userSession).getStatus());
+
+    addRole(impersonator, role);
 
     assertNotEquals(200, hasAuthority(userSession).getStatus());
     assertTrue(userSession.isInvalid());
@@ -181,13 +201,26 @@ class UserDetailsRefreshTest extends AuthenticationApiTestBase {
             principal, null, principal.getAuthorities(), LoginMethod.LOCAL));
   }
 
-  private MockHttpSession impersonatingSession(User user) {
+  /** An impersonation session as the impersonation endpoint leaves it, with both baselines. */
+  private MockHttpSession impersonatingSession(User user, User impersonator) {
+    UserDetails source = userService.createUserDetails(impersonator);
+    Authentication impersonatorLogin =
+        new DhisAuthenticationToken(source, null, source.getAuthorities(), LoginMethod.LOCAL);
     UserDetails principal = userService.createUserDetails(user);
-    Authentication impersonator = SecurityContextHolder.getContext().getAuthentication();
     List<GrantedAuthority> authorities = new ArrayList<>(principal.getAuthorities());
-    authorities.add(new SwitchUserGrantedAuthority("ROLE_PREVIOUS_ADMINISTRATOR", impersonator));
-    return sessionWith(
-        UsernamePasswordAuthenticationToken.authenticated(principal, null, authorities));
+    authorities.add(
+        new SwitchUserGrantedAuthority("ROLE_PREVIOUS_ADMINISTRATOR", impersonatorLogin));
+    MockHttpSession session =
+        sessionWith(
+            UsernamePasswordAuthenticationToken.authenticated(principal, null, authorities));
+    long now = System.currentTimeMillis();
+    session.setAttribute(
+        UserDetailsRefreshFilter.SOURCE_REFRESH_STATE_ATTRIBUTE,
+        new PrincipalRefreshState(
+            userDetailsChangeTracker.getChangeToken(source.getUsername()), now));
+    new PrincipalRefreshState(userDetailsChangeTracker.getChangeToken(principal.getUsername()), now)
+        .apply(session);
+    return session;
   }
 
   private static MockHttpSession sessionWith(Authentication authentication) {

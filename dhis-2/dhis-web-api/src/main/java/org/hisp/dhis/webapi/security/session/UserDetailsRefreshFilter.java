@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.security.session;
 
+import static org.hisp.dhis.security.Authorities.F_IMPERSONATE_USER;
 import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME;
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
@@ -86,9 +87,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * <ul>
  *   <li>the session impersonates another user and that user changed, since a refresh could give the
  *       impersonating user authorities it was not allowed to impersonate
+ *   <li>the session impersonates another user and the impersonating user changed after the
+ *       impersonation started, or the refresh interval is due and the impersonating user no longer
+ *       exists, is disabled or expired, or may no longer impersonate
  *   <li>the user no longer exists, is disabled or expired, or a local-password login must set up
  *       two-factor authentication before logging in
  * </ul>
+ *
+ * <p>The authentication of an impersonation session is never rebuilt. The change token the
+ * impersonating user had applied when the impersonation started is kept in the {@link
+ * #SOURCE_REFRESH_STATE_ATTRIBUTE} attribute.
  *
  * <p>Refresh resolves the original account by UID and writes only to the original session. A
  * concurrent logout must never create an authenticated replacement session.
@@ -104,6 +112,12 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
 
   /** Session attribute with the time in milliseconds the session principal was last rebuilt. */
   public static final String REFRESHED_AT_ATTRIBUTE = "DHIS2_USER_DETAILS_REFRESHED_AT";
+
+  /**
+   * Session attribute with the {@link PrincipalRefreshState} of the impersonating user while the
+   * session impersonates another user.
+   */
+  public static final String SOURCE_REFRESH_STATE_ATTRIBUTE = "DHIS2_IMPERSONATOR_REFRESH_STATE";
 
   private final UserDetailsChangeTracker userDetailsChangeTracker;
 
@@ -135,23 +149,21 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
     // change has committed, so the rebuilt principal includes every change up to this token. A
     // change committed while rebuilding writes a new token, which the next request picks up.
     String token = userDetailsChangeTracker.getChangeToken(principal.getUsername());
-    boolean changed;
+
+    SwitchUserGrantedAuthority impersonation = getImpersonation(authentication);
+    if (impersonation != null) {
+      checkImpersonation(session, principal, token, impersonation.getSource());
+      return;
+    }
+
     try {
-      changed = token != null && !token.equals(session.getAttribute(CHANGE_TOKEN_ATTRIBUTE));
-      if (!changed && !isRefreshDue(session)) {
+      if (!isChanged(token, session.getAttribute(CHANGE_TOKEN_ATTRIBUTE))
+          && !isRefreshDue(session)) {
         return;
       }
     } catch (IllegalStateException ex) {
       // The session was invalidated by a concurrent logout.
       SecurityContextHolder.clearContext();
-      return;
-    }
-
-    if (isImpersonation(authentication)) {
-      // only an actual change of the impersonated user ends the session, not the timer
-      if (changed) {
-        endSession(session, principal);
-      }
       return;
     }
 
@@ -174,6 +186,63 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
     }
     SecurityContextHolder.setContext(context);
     log.debug("Refreshed session principal of user '{}'", user.getUsername());
+  }
+
+  /**
+   * Ends an impersonation session when the impersonated user changed, when the impersonating user
+   * changed after the impersonation started, or when the refresh interval is due and the
+   * impersonating user may no longer impersonate. The interval alone never ends the session, and
+   * its authentication is never rebuilt.
+   */
+  private void checkImpersonation(
+      HttpSession session,
+      UserDetails target,
+      @CheckForNull String targetToken,
+      @CheckForNull Authentication source) {
+    if (source == null || !(source.getPrincipal() instanceof UserDetails impersonator)) {
+      endSession(session, target);
+      return;
+    }
+    String sourceToken = userDetailsChangeTracker.getChangeToken(impersonator.getUsername());
+    try {
+      if (isChanged(targetToken, session.getAttribute(CHANGE_TOKEN_ATTRIBUTE))) {
+        endSession(session, target);
+        return;
+      }
+      // Without a saved baseline the session has applied no change of the impersonating user.
+      Object sourceState = session.getAttribute(SOURCE_REFRESH_STATE_ATTRIBUTE);
+      String appliedSourceToken =
+          sourceState instanceof PrincipalRefreshState state ? state.changeToken() : null;
+      if (isChanged(sourceToken, appliedSourceToken)) {
+        endSession(session, impersonator);
+        return;
+      }
+      if (!isRefreshDue(session)) {
+        return;
+      }
+    } catch (IllegalStateException ex) {
+      // The session was invalidated by a concurrent logout.
+      SecurityContextHolder.clearContext();
+      return;
+    }
+
+    UserDetails current = userService.createUserDetailsSafe(impersonator.getUid());
+    if (current == null
+        || !current.isEnabled()
+        || !current.isAccountNonExpired()
+        || !current.isAuthorized(F_IMPERSONATE_USER)) {
+      endSession(session, impersonator);
+      return;
+    }
+    try {
+      session.setAttribute(REFRESHED_AT_ATTRIBUTE, System.currentTimeMillis());
+    } catch (IllegalStateException ex) {
+      SecurityContextHolder.clearContext();
+    }
+  }
+
+  private static boolean isChanged(@CheckForNull String token, @CheckForNull Object appliedToken) {
+    return token != null && !token.equals(appliedToken);
   }
 
   private boolean isRefreshDue(HttpSession session) {
@@ -208,9 +277,14 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
     return null;
   }
 
-  private static boolean isImpersonation(Authentication authentication) {
-    return authentication.getAuthorities().stream()
-        .anyMatch(SwitchUserGrantedAuthority.class::isInstance);
+  @CheckForNull
+  private static SwitchUserGrantedAuthority getImpersonation(Authentication authentication) {
+    for (GrantedAuthority authority : authentication.getAuthorities()) {
+      if (authority instanceof SwitchUserGrantedAuthority impersonation) {
+        return impersonation;
+      }
+    }
+    return null;
   }
 
   private static boolean canStayLoggedIn(Authentication authentication, UserDetails user) {

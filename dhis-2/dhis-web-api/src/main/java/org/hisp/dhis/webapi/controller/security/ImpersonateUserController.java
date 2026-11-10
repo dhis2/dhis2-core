@@ -33,11 +33,11 @@ import static org.hisp.dhis.security.Authorities.F_IMPERSONATE_USER;
 import static org.hisp.dhis.security.Authorities.F_PREVIOUS_IMPERSONATOR_AUTHORITY;
 import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.CHANGE_TOKEN_ATTRIBUTE;
 import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.REFRESHED_AT_ATTRIBUTE;
+import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.SOURCE_REFRESH_STATE_ATTRIBUTE;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +54,7 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetailsChangeTracker;
+import org.hisp.dhis.webapi.security.session.PrincipalRefreshState;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -95,8 +96,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Conditional(value = UserImpersonationEnabledCondition.class)
 public class ImpersonateUserController {
-
-  private static final String SOURCE_REFRESH_STATE_ATTRIBUTE = "DHIS2_IMPERSONATOR_REFRESH_STATE";
 
   private final DhisConfigurationProvider config;
   private final UserDetailsService userDetailsService;
@@ -221,15 +220,6 @@ public class ImpersonateUserController {
     return new PrincipalRefreshState(
         (String) session.getAttribute(CHANGE_TOKEN_ATTRIBUTE),
         (Long) session.getAttribute(REFRESHED_AT_ATTRIBUTE));
-  }
-
-  /** The refresh baseline belongs to the saved source authentication, not the active target. */
-  private record PrincipalRefreshState(String changeToken, Long refreshedAt)
-      implements Serializable {
-    void apply(HttpSession session) {
-      session.setAttribute(CHANGE_TOKEN_ATTRIBUTE, changeToken);
-      session.setAttribute(REFRESHED_AT_ATTRIBUTE, refreshedAt);
-    }
   }
 
   private Authentication attemptSwitchUser(HttpServletRequest request, String username)
