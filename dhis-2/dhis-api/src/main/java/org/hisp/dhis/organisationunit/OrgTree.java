@@ -72,7 +72,11 @@ public record OrgTree(
 
   public record Pager(int page, int pageSize, int total, @Nonnull List<OrgUnitPath> pageCursor) {
     public int pageCount() {
-      return 1 + (total / pageSize);
+      return pageCount(total, pageSize);
+    }
+
+    static int pageCount(int total, int pageSize) {
+      return Math.max(1, (total + pageSize - 1) / pageSize);
     }
   }
 

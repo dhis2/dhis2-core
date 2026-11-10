@@ -156,7 +156,7 @@ public class DefaultOrgTreeService implements OrgTreeService {
     if (total < 0) total = store.countTotalMatches(params);
     if (!params.ancestors()) total--; // sub the parent
     List<OrgUnitPath> cursors = new ArrayList<>(params.pageCursors());
-    int pageCount = 1 + (total / pageSize);
+    int pageCount = OrgTree.Pager.pageCount(total, pageSize);
     if (page < pageCount) cursors.add(matches.get(matches.size() - 1));
     OrgTree.Pager pager = new OrgTree.Pager(page, pageSize, total, cursors);
     return new OrgTree(pager, entries, ancestors);
