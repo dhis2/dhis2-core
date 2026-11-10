@@ -34,11 +34,21 @@ import javax.annotation.Nonnull;
 
 /**
  * Event published after a transaction that changed data held by the session principal ({@link
- * UserDetails}) of users has committed, such as their user roles or user group memberships. The
- * principal is a snapshot taken at authentication, so the sessions of these users are marked for a
- * refresh, asynchronously and off the request thread.
+ * UserDetails}) of users has committed, such as their user roles, organisation units or user group
+ * memberships. The principal is a snapshot taken at authentication, so the sessions of these users
+ * are marked for a refresh, asynchronously and off the request thread.
+ *
+ * <p>The users are identified in three ways, since not every writer knows the primary keys of the
+ * affected users while it flushes.
  *
  * @param userIds the primary keys of the users whose {@link UserDetails} changed
+ * @param memberOfUserGroupIds the primary keys of user groups whose members' {@link UserDetails}
+ *     changed, such as a group whose managed groups changed; the members are resolved after commit
+ * @param usernames the usernames of users whose {@link UserDetails} changed, used where the user no
+ *     longer exists after commit (a deleted user) or where the writer bypasses Hibernate
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public record UserDetailsChangedEvent(@Nonnull Set<Long> userIds) {}
+public record UserDetailsChangedEvent(
+    @Nonnull Set<Long> userIds,
+    @Nonnull Set<Long> memberOfUserGroupIds,
+    @Nonnull Set<String> usernames) {}

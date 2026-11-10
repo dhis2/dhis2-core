@@ -81,9 +81,20 @@ public class UserDetailsChangeListener {
   @Async("userDetailsChangeTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
   public void onUserDetailsChanged(UserDetailsChangedEvent event) {
-    log.info("Marking {} users as changed", event.userIds().size());
+    log.info(
+        "Marking users as changed: {} by id, members of {} user groups, {} by username",
+        event.userIds().size(),
+        event.memberOfUserGroupIds().size(),
+        event.usernames().size());
     for (List<Long> batch : Lists.partition(List.copyOf(event.userIds()), BATCH_SIZE)) {
       userDetailsChangeTracker.markChanged(userService.getUsernamesByIds(batch));
     }
+    for (List<Long> batch :
+        Lists.partition(List.copyOf(event.memberOfUserGroupIds()), BATCH_SIZE)) {
+      Lists.partition(userService.getUsernamesByUserGroupIds(batch), BATCH_SIZE)
+          .forEach(userDetailsChangeTracker::markChanged);
+    }
+    Lists.partition(List.copyOf(event.usernames()), BATCH_SIZE)
+        .forEach(userDetailsChangeTracker::markChanged);
   }
 }

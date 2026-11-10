@@ -94,7 +94,7 @@ class UserDetailsChangeListenerTest {
   void marksOnlyUsersWhoseUserDetailsChanged() {
     when(userService.getUsernamesByIds(anyList())).thenReturn(List.of("alice", "bob"));
 
-    listener.onUserDetailsChanged(new UserDetailsChangedEvent(Set.of(1L, 2L)));
+    listener.onUserDetailsChanged(new UserDetailsChangedEvent(Set.of(1L, 2L), Set.of(), Set.of()));
 
     assertNotNull(tracker.getChangeToken("alice"));
     assertNotNull(tracker.getChangeToken("bob"));
@@ -117,9 +117,29 @@ class UserDetailsChangeListenerTest {
               return batch.stream().map(id -> "user" + id).toList();
             });
 
-    listener.onUserDetailsChanged(new UserDetailsChangedEvent(userIds));
+    listener.onUserDetailsChanged(new UserDetailsChangedEvent(userIds, Set.of(), Set.of()));
 
     assertTrue(batchSizes.stream().allMatch(size -> size <= UserDetailsChangeListener.BATCH_SIZE));
     assertAll(userIds.stream().map(id -> () -> assertNotNull(tracker.getChangeToken("user" + id))));
+  }
+
+  @Test
+  void marksMembersOfChangedUserGroups() {
+    when(userService.getUsernamesByUserGroupIds(List.of(7L))).thenReturn(List.of("alice", "bob"));
+
+    listener.onUserDetailsChanged(new UserDetailsChangedEvent(Set.of(), Set.of(7L), Set.of()));
+
+    assertNotNull(tracker.getChangeToken("alice"));
+    assertNotNull(tracker.getChangeToken("bob"));
+    assertNull(tracker.getChangeToken("carol"));
+  }
+
+  /** A deleted user cannot be resolved after commit, so it is marked by username. */
+  @Test
+  void marksUsersByUsernameWithoutResolvingThem() {
+    listener.onUserDetailsChanged(
+        new UserDetailsChangedEvent(Set.of(), Set.of(), Set.of("deleted")));
+
+    assertNotNull(tracker.getChangeToken("deleted"));
   }
 }

@@ -32,6 +32,7 @@ package org.hisp.dhis.user;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -44,11 +45,19 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * UserDetailsChangedEvent} for all of them when the transaction has committed. Nothing is published
  * when the transaction rolls back.
  *
- * <p>Changes are reported from several places: user group memberships written through Hibernate
- * (the {@code UserGroup.members} collection) and directly via SQL ({@link
- * UserGroupStore#addMember}, {@link UserGroupStore#removeMember}), and user role changes made by
- * the metadata import. Collecting per transaction keeps an import that changes many users down to
- * one event, instead of one per change.
+ * <p>Changes are reported at the persistence layer, so that every write path is covered:
+ *
+ * <ul>
+ *   <li>Hibernate listeners in {@code org.hisp.dhis.user.hibernate} report changes of user group
+ *       members, user roles, organisation units, managed groups and properties of a user, and the
+ *       deletion of a user
+ *   <li>writers that bypass Hibernate report their own changes, such as {@link
+ *       UserGroupStore#addMember}, {@link UserGroupStore#removeMember} and {@link
+ *       UserStore#disableUsersInactiveSince}
+ * </ul>
+ *
+ * <p>Collecting per transaction keeps an import that changes many users down to one event, instead
+ * of one per change.
  *
  * <p>Hibernate may flush while the transaction commits, after the {@code beforeCommit} callbacks
  * have run, so the event is published from {@code afterCompletion}. Transaction synchronization is
@@ -69,14 +78,44 @@ public class UserDetailsChangeCollector {
    * @param userIds the primary keys of the users
    */
   public void usersChanged(@Nonnull Collection<Long> userIds) {
-    if (userIds.isEmpty()) {
-      return;
+    if (!userIds.isEmpty()) {
+      addChanges(changes -> changes.userIds.addAll(userIds));
     }
+  }
+
+  /**
+   * Records that the {@link UserDetails} of all members of the given user groups changed in the
+   * current transaction. The members are resolved after commit.
+   *
+   * @param userGroupIds the primary keys of the user groups
+   */
+  public void membersOfUserGroupsChanged(@Nonnull Collection<Long> userGroupIds) {
+    if (!userGroupIds.isEmpty()) {
+      addChanges(changes -> changes.memberOfUserGroupIds.addAll(userGroupIds));
+    }
+  }
+
+  /**
+   * Records that the {@link UserDetails} of the users with the given usernames changed in the
+   * current transaction. Use this when the users cannot be resolved by primary key after commit,
+   * such as a deleted user.
+   *
+   * @param usernames the usernames of the users
+   */
+  public void usernamesChanged(@Nonnull Collection<String> usernames) {
+    if (!usernames.isEmpty()) {
+      addChanges(changes -> changes.usernames.addAll(usernames));
+    }
+  }
+
+  private void addChanges(Consumer<TransactionChanges> change) {
     if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-      eventPublisher.publishEvent(new UserDetailsChangedEvent(Set.copyOf(userIds)));
+      TransactionChanges changes = new TransactionChanges(eventPublisher);
+      change.accept(changes);
+      changes.publish();
       return;
     }
-    getOrRegisterTransactionChanges().userIds.addAll(userIds);
+    change.accept(getOrRegisterTransactionChanges());
   }
 
   private TransactionChanges getOrRegisterTransactionChanges() {
@@ -98,6 +137,10 @@ public class UserDetailsChangeCollector {
 
     private final Set<Long> userIds = new HashSet<>();
 
+    private final Set<Long> memberOfUserGroupIds = new HashSet<>();
+
+    private final Set<String> usernames = new HashSet<>();
+
     private TransactionChanges(ApplicationEventPublisher eventPublisher) {
       this.eventPublisher = eventPublisher;
     }
@@ -105,8 +148,14 @@ public class UserDetailsChangeCollector {
     @Override
     public void afterCompletion(int status) {
       if (status == STATUS_COMMITTED) {
-        eventPublisher.publishEvent(new UserDetailsChangedEvent(Set.copyOf(userIds)));
+        publish();
       }
+    }
+
+    private void publish() {
+      eventPublisher.publishEvent(
+          new UserDetailsChangedEvent(
+              Set.copyOf(userIds), Set.copyOf(memberOfUserGroupIds), Set.copyOf(usernames)));
     }
   }
 }

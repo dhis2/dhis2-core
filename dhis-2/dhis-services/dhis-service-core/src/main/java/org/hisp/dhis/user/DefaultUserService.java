@@ -1106,6 +1106,12 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<String> getUsernamesByUserGroupIds(@Nonnull Collection<Long> userGroupIds) {
+    return userStore.getUsernamesByUserGroupIds(userGroupIds);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public ErrorCode validateInvite(User user) {
     if (user == null) {
       return ErrorCode.E6201;

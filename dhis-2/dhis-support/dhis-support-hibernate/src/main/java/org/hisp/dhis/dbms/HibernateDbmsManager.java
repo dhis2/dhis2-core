@@ -317,6 +317,7 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("message");
 
     emptyTable("usergroupmembers");
+    emptyTable("usergroupmanaged");
     emptyTable("usergroup");
 
     emptyTable("previouspasswords");

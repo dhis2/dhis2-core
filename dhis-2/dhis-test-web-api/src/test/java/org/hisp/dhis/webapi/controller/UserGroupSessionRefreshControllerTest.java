@@ -53,9 +53,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.session.SessionRegistry;
 
 /**
- * Verifies that users who join or leave a user group, or whose group is deleted, are marked as
- * changed after commit, whichever API changed the membership, so their sessions refresh their
- * principal instead of being logged out. Members whose membership did not change are left alone.
+ * Verifies that users who join or leave a user group, whose group is deleted, or whose group starts
+ * or stops managing another group, are marked as changed after commit, whichever API made the
+ * change, so their sessions refresh their principal instead of being logged out. Members whose
+ * groups did not change are left alone.
  *
  * <p>The class is not {@code @Transactional}, so every request commits on its own. The marking runs
  * on a single-threaded executor after the commit; draining that executor before asserting makes the
@@ -81,11 +82,15 @@ class UserGroupSessionRefreshControllerTest extends H2ControllerIntegrationTestB
 
   private String groupId;
 
+  /** A group that {@link #groupId} can manage; the member is not a member of it. */
+  private String managedGroupId;
+
   @BeforeEach
   void setUp() {
     member = createUserWithAuth("member");
     memberPrincipal = userService.createUserDetails(member);
     groupId = assertStatus(CREATED, POST("/userGroups", "{'name':'Group'}"));
+    managedGroupId = assertStatus(CREATED, POST("/userGroups", "{'name':'Managed'}"));
     sessionRegistry.registerNewSession(SESSION_ID, memberPrincipal);
   }
 
@@ -171,6 +176,77 @@ class UserGroupSessionRefreshControllerTest extends H2ControllerIntegrationTestB
     assertMarkedAsChangedWithSessionKept(tokenBefore);
   }
 
+  @ParameterizedTest
+  @CsvSource(
+      delimiter = '|',
+      value = {
+        "POST | /userGroups/{group}/managedGroups/{managed} | ",
+        "PATCH | /userGroups/{group} | [{'op':'add','path':'/managedGroups','value':[{'id':'{managed}'}]}]",
+        "PUT | /userGroups/{group} | {'name':'Group','users':[{'id':'{user}'}],'managedGroups':[{'id':'{managed}'}]}"
+      })
+  void managingAnotherGroupMarksMembersAsChanged(String method, String path, String body) {
+    joinGroup();
+    String tokenBefore = changeToken();
+
+    request(method, path, body).content(OK);
+    awaitUserDetailsChanges();
+
+    assertMarkedAsChangedWithSessionKept(tokenBefore);
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+      delimiter = '|',
+      value = {
+        "DELETE | /userGroups/{group}/managedGroups/{managed} | ",
+        "PATCH | /userGroups/{group} | [{'op':'replace','path':'/managedGroups','value':[]}]"
+      })
+  void noLongerManagingGroupMarksMembersAsChanged(String method, String path, String body) {
+    joinGroup();
+    manageGroup();
+    String tokenBefore = changeToken();
+
+    request(method, path, body).content(OK);
+    awaitUserDetailsChanges();
+
+    assertMarkedAsChangedWithSessionKept(tokenBefore);
+  }
+
+  /** Deletes through metadata import, see {@link #deletingUserGroupMarksMembersAsChanged()}. */
+  @Test
+  void deletingManagedGroupMarksMembersOfManagingGroupAsChanged() {
+    joinGroup();
+    manageGroup();
+    String tokenBefore = changeToken();
+
+    POST("/metadata?importStrategy=DELETE", "{'userGroups':[{'id':'" + managedGroupId + "'}]}")
+        .content(OK);
+    awaitUserDetailsChanges();
+
+    assertMarkedAsChangedWithSessionKept(tokenBefore);
+  }
+
+  @Test
+  void savingUnchangedManagedGroupsDoesNotMarkMembers() {
+    joinGroup();
+    manageGroup();
+    String tokenBefore = changeToken();
+
+    PATCH(
+            "/userGroups/" + groupId,
+            "[{'op':'replace','path':'/managedGroups','value':[{'id':'%s'}]}]"
+                .formatted(managedGroupId))
+        .content(OK);
+    awaitUserDetailsChanges();
+
+    assertEquals(tokenBefore, changeToken());
+  }
+
+  private void manageGroup() {
+    POST("/userGroups/" + groupId + "/managedGroups/" + managedGroupId).content(OK);
+    awaitUserDetailsChanges();
+  }
+
   private void joinGroup() {
     POST("/userGroups/" + groupId + "/users/" + member.getUid()).content(OK);
     awaitUserDetailsChanges();
@@ -197,9 +273,8 @@ class UserGroupSessionRefreshControllerTest extends H2ControllerIntegrationTestB
   }
 
   private HttpResponse request(String method, String path, String body) {
-    String url = path.replace("{user}", member.getUid()).replace("{group}", groupId);
-    String json =
-        body == null ? null : body.replace("{user}", member.getUid()).replace("{group}", groupId);
+    String url = replaceIds(path);
+    String json = body == null ? null : replaceIds(body);
     return switch (method) {
       case "POST" -> json == null ? POST(url) : POST(url, json);
       case "PUT" -> PUT(url, json);
@@ -207,5 +282,12 @@ class UserGroupSessionRefreshControllerTest extends H2ControllerIntegrationTestB
       case "DELETE" -> DELETE(url);
       default -> throw new IllegalArgumentException(method);
     };
+  }
+
+  private String replaceIds(String template) {
+    return template
+        .replace("{user}", member.getUid())
+        .replace("{group}", groupId)
+        .replace("{managed}", managedGroupId);
   }
 }
