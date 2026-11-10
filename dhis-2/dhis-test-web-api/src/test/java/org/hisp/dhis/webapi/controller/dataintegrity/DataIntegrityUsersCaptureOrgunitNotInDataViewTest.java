@@ -46,10 +46,10 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
+class DataIntegrityUsersCaptureOrgunitNotInDataViewTest
     extends AbstractDataIntegrityIntegrationTest {
 
-  private static final String CHECK_NAME = "users_capture_ou_not_in_tei_search_ou";
+  private static final String CHECK_NAME = "users_capture_ou_not_in_data_view_ou";
 
   private static final String DETAILS_ID_TYPE = "users";
 
@@ -88,7 +88,7 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
             "/users",
             "{ 'username': 'bobbytables' , 'password': 'District123+', 'firstName': 'Bobby', 'surname': 'Tables', 'organisationUnits' : [{'id' : '"
                 + orgunitAUid
-                + "'}], 'teiSearchOrganisationUnits' : [{'id' : '"
+                + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
                 + orgunitAUid
                 + "'}], 'userRoles' : [{'id' : '"
                 + userRoleUid
@@ -101,7 +101,7 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
                 "/users",
                 "{ 'username': 'janedoe' , 'password': 'District123+', 'firstName': 'Jane', 'surname': 'Doe', 'organisationUnits' : [{'id' : '"
                     + orgunitAUid
-                    + "'}], 'teiSearchOrganisationUnits' : [{'id' : '"
+                    + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
                     + orgunitBUid
                     + "'}], 'userRoles' : [{'id' : '"
                     + userRoleUid
@@ -155,7 +155,7 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
             "/users",
             "{ 'username': 'bobbytables' , 'password': 'District123+', 'firstName': 'Bobby', 'surname': 'Tables', 'organisationUnits' : [{'id' : '"
                 + orgunitAUid
-                + "'}], 'teiSearchOrganisationUnits' : [{'id' : '"
+                + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
                 + orgunitAUid
                 + "'}], 'userRoles' : [{'id' : '"
                 + userRoleUid
@@ -211,7 +211,7 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
             "{ 'username': 'bobbytables', 'password': 'District123+', 'firstName': 'First', 'surname': 'Last', "
                 + "'organisationUnits' : [{'id' : '"
                 + clinicUid
-                + "'}], 'teiSearchOrganisationUnits' : [{'id' : '"
+                + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
                 + provinceUid
                 + "'}], 'userRoles' : [{'id' : '"
                 + roleUid
@@ -226,7 +226,7 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
                 "{ 'username': 'janedoe', 'password': 'District123+', 'firstName': 'First', 'surname': 'Last', "
                     + "'organisationUnits' : [{'id' : '"
                     + otherDistrictUid
-                    + "'}], 'teiSearchOrganisationUnits' : [{'id' : '"
+                    + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
                     + provinceUid
                     + "'}], 'userRoles' : [{'id' : '"
                     + roleUid
