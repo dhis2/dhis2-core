@@ -61,11 +61,15 @@ import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.event.CollectionMembershipChangedEvent;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.FeedbackException;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,6 +97,7 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
   @Autowired private PlatformTransactionManager transactionManager;
   @Autowired private SessionFactory sessionFactory;
   @Autowired private DataSource dataSource;
+  @Autowired private SchemaService schemaService;
 
   @Test
   void mergeUnloadedGroupMembersPreservesCountsAndBothCachedSides() {
@@ -249,6 +254,52 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
   }
 
   /**
+   * No collection is bounded by a {@code PropertyRange} today, so this test bounds the schema
+   * property itself. The size is then validated with a count, and a rejected change must not leave
+   * behind the rows it has already written.
+   */
+  @Test
+  void boundedUnloadedCollectionIsValidatedByCountAndRejectionRollsBack() {
+    String member = organisationUnit("Delta bounded A");
+    String rejected = organisationUnit("Delta bounded B");
+    String group =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/organisationUnitGroups/", "{'name':'Delta bounded','shortName':'DeltaBD'}"));
+    transaction(
+        () -> {
+          OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
+          owner.getMembers().add(manager.get(OrganisationUnit.class, member));
+          manager.update(owner);
+          return null;
+        });
+    Property members =
+        schemaService.getSchema(OrganisationUnitGroup.class).getProperty("organisationUnits");
+    Double max = members.getMax();
+    members.setMax(1d);
+    try {
+      new TransactionTemplate(transactionManager)
+          .executeWithoutResult(
+              status -> {
+                entityManager.clear();
+                OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
+                BadRequestException error =
+                    assertThrows(
+                        BadRequestException.class,
+                        () ->
+                            collectionService.mergeCollectionItems(
+                                owner, "organisationUnits", items(List.of(rejected), List.of())));
+                assertEquals(ErrorCode.E4007, error.getErrorReports().get(0).getErrorCode());
+                assertFalse(Hibernate.isInitialized(owner.getMembers()));
+                status.setRollbackOnly();
+              });
+    } finally {
+      members.setMax(max);
+    }
+    assertGroupMembers(group, member);
+  }
+
+  /**
    * A concurrent transaction adds the same member first. Its uncommitted row is invisible to the
    * merge, so the merge's own insert waits for that commit and then violates the primary key. The
    * failure must fail the merge as a whole: PostgreSQL has aborted the transaction, so the deletion
@@ -372,16 +423,20 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
 
   private TypeReport merge(
       IdentifiableObject owner, String property, List<String> additions, List<String> deletions) {
+    try {
+      return collectionService.mergeCollectionItems(owner, property, items(additions, deletions));
+    } catch (FeedbackException ex) {
+      throw new AssertionError(ex);
+    }
+  }
+
+  private static IdentifiableObjects items(List<String> additions, List<String> deletions) {
     IdentifiableObjects items = new IdentifiableObjects();
     items.setAdditions(
         additions.stream().map(uid -> new BaseIdentifiableObject(uid, "", "")).toList());
     items.setDeletions(
         deletions.stream().map(uid -> new BaseIdentifiableObject(uid, "", "")).toList());
-    try {
-      return collectionService.mergeCollectionItems(owner, property, items);
-    } catch (FeedbackException ex) {
-      throw new AssertionError(ex);
-    }
+    return items;
   }
 
   private <T> T transaction(Supplier<T> action) {
