@@ -191,6 +191,12 @@ public class CrudControllerAdvice {
         .orElse(defaultExceptionHandler(ex));
   }
 
+  @ExceptionHandler(org.hisp.dhis.feedback.BadParameterException.class)
+  @ResponseBody
+  public WebMessage badRequestException(org.hisp.dhis.feedback.BadParameterException ex) {
+    return badRequest(ex.getMessage(), ex.getCode());
+  }
+
   @ExceptionHandler(org.hisp.dhis.feedback.BadRequestException.class)
   @ResponseBody
   public WebMessage badRequestException(org.hisp.dhis.feedback.BadRequestException ex) {

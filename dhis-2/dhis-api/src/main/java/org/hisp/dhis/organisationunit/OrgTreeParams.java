@@ -39,6 +39,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadParameterException;
+import org.hisp.dhis.feedback.ErrorCode;
 
 /**
  * A query either uses {@link #search} to find OUs containing the search term in their display name
@@ -65,6 +67,8 @@ public record OrgTreeParams(
     @Nonnull Locale locale,
     @Nonnull List<UID> roots,
     @Nonnull List<UID> groups,
+    @CheckForNull UID program,
+    @CheckForNull UID dataset,
     @CheckForNull Integer level,
     @CheckForNull Boolean currentlyOpen,
     @CheckForNull String search,
@@ -72,19 +76,26 @@ public record OrgTreeParams(
     @CheckForNull Integer depth) {
 
   public OrgTreeParams {
+    // these should have been initialized
+    // so null is a programming errors not user input error
     requireNonNull(locale);
     requireNonNull(roots);
     requireNonNull(groups);
     requireNonNull(pageCursors);
-    if (page < 1) throw new IllegalArgumentException("Page must be positive");
-    if (pageSize < 1) throw new IllegalArgumentException("Page size must be positive");
-    if (level != null && level < 1) throw new IllegalArgumentException("Level must be positive");
-    if (depth != null && depth < 1) throw new IllegalArgumentException("Depth must be positive");
-    // TODO maybe we should have the constructor throw BadRequestException
-    // for any combination that is not allowed
-    // that is nicely unit-testable
-    if (page - 1 > pageCursors.size())
-      throw new IllegalArgumentException("Page must provide a cursor: " + page);
+    // these are user input errors...
+    if (page < 1) throw new BadParameterException(ErrorCode.E8301, "page", page);
+    if (pageSize < 1) throw new BadParameterException(ErrorCode.E8301, "pageSize", pageSize);
+    if (level != null && level < 1)
+      throw new BadParameterException(ErrorCode.E8301, "level", level);
+    if (depth != null && depth < 1)
+      throw new BadParameterException(ErrorCode.E8301, "depth", depth);
+    if (program != null && dataset != null)
+      throw new BadParameterException(ErrorCode.E8304, "program", "dataset");
+    if (depth != null && search != null)
+      throw new BadParameterException(ErrorCode.E8304, "depth", "search");
+    if (roots.isEmpty()) throw new BadParameterException(ErrorCode.E8305, "roots", 1, roots);
+    if (page - 2 >= pageCursors.size())
+      throw new BadParameterException(ErrorCode.E8305, "pageCursor", page - 1, pageCursors);
   }
 
   @CheckForNull
@@ -150,10 +161,8 @@ public record OrgTreeParams(
               "Includes only matches that are member in any of the given group (if not empty).")
           @CheckForNull
           List<UID> groups,
-      @OpenApi.Description(
-              "Includes only matches that are member of any groups contained in any of the given group sets (if not empty).")
-          @CheckForNull
-          List<UID> groupSets,
+      @CheckForNull UID program,
+      @CheckForNull UID dataset,
       @OpenApi.Description("Includes only matches with the given level.") @CheckForNull
           Integer level,
       @OpenApi.Description(

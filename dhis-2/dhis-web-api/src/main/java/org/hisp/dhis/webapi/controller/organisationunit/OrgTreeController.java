@@ -39,6 +39,7 @@ import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrgTree;
 import org.hisp.dhis.organisationunit.OrgTreeParams;
 import org.hisp.dhis.organisationunit.OrgTreePipeline;
@@ -60,7 +61,8 @@ public class OrgTreeController {
 
   @OpenApi.Response(OrgTree.class)
   @GetMapping("/tree")
-  public void getOrgTree(OrgTreeParams.RootInput params, HttpServletResponse response) {
+  public void getOrgTree(OrgTreeParams.RootInput params, HttpServletResponse response)
+      throws BadRequestException {
     pipeline.exportAsJson(params, lazyJsonResponseStream(response));
   }
 
@@ -69,7 +71,8 @@ public class OrgTreeController {
   public void getOrgTreeChildren(
       @PathVariable("uid") UID parent,
       OrgTreeParams.ChildrenInput params,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws BadRequestException {
     pipeline.exportAsJson(parent, params, lazyJsonResponseStream(response));
   }
 

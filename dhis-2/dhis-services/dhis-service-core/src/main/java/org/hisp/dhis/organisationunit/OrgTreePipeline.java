@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,14 +44,16 @@ public class OrgTreePipeline {
   private final OrgTreeService service;
 
   @Transactional(readOnly = true)
-  public void exportAsJson(OrgTreeParams.RootInput params, Supplier<OutputStream> out) {
+  public void exportAsJson(OrgTreeParams.RootInput params, Supplier<OutputStream> out)
+      throws BadRequestException {
     OrgTree tree = service.query(service.decode(params));
     OrgTreeOutput.toJson(tree, out.get());
   }
 
   @Transactional(readOnly = true)
   public void exportAsJson(
-      UID parent, OrgTreeParams.ChildrenInput params, Supplier<OutputStream> out) {
+      UID parent, OrgTreeParams.ChildrenInput params, Supplier<OutputStream> out)
+      throws BadRequestException {
     OrgTree tree = service.query(service.decode(parent, params));
     OrgTreeOutput.toJson(tree, out.get());
   }

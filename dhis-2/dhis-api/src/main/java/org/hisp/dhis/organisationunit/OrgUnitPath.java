@@ -30,7 +30,6 @@
 package org.hisp.dhis.organisationunit;
 
 import static java.util.Objects.requireNonNull;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.Collection;
@@ -63,7 +62,7 @@ import org.hisp.dhis.jsontree.Text;
  * @param parent parent path
  * @param uid the tail ID of this path (which is the ID of the OU the path belongs to)
  */
-public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull Text uid) {
+public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull UID uid) {
 
   @Nonnull
   public static OrgUnitPath of(@Nonnull CharSequence path) {
@@ -75,10 +74,10 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull Text uid) {
           "Path must consist of UIDs segments each with a leading slash");
     Text p = Text.of(path);
     int s = 0;
-    OrgUnitPath res = new OrgUnitPath(null, p.subSequence(s + 1, 12));
+    OrgUnitPath res = new OrgUnitPath(null, UID.of(p.subSequence(s + 1, 12)));
     s += 12;
     while (s < len) {
-      res = new OrgUnitPath(res, p.subSequence(s + 1, s + 12));
+      res = new OrgUnitPath(res, UID.of(p.subSequence(s + 1, s + 12)));
       s += 12;
     }
     return res;
@@ -117,8 +116,6 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull Text uid) {
 
   public OrgUnitPath {
     requireNonNull(uid);
-    if (!isValidUid(uid))
-      throw new IllegalArgumentException("Path id must be a valid UID but was: " + uid);
   }
 
   /**
@@ -148,7 +145,8 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull Text uid) {
    *     this path contains the given ID in any parent segment of the path
    */
   public boolean isAncestor(@Nonnull UID uid) {
-    return isAncestor(uid.getValue());
+    if (parent == null) return false;
+    return parent.uid.equals(uid) || parent.isAncestor(uid);
   }
 
   /**
@@ -157,8 +155,7 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull Text uid) {
    *     this path contains the given ID in any parent segment of the path
    */
   public boolean isAncestor(@Nonnull CharSequence uid) {
-    if (parent == null) return false;
-    return parent.uid.contentEquals(uid) || parent.isAncestor(uid);
+    return isAncestor(UID.of(uid));
   }
 
   @Override
@@ -180,10 +177,6 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull Text uid) {
 
   @Nonnull
   public UID toUID() {
-    return UID.of(uid);
-  }
-
-  public boolean isValid() {
-    return UID.isValid(uid) && (parent == null || parent.isValid());
+    return uid;
   }
 }

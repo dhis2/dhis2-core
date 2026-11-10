@@ -31,6 +31,7 @@ package org.hisp.dhis.organisationunit;
 
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 
 /**
  * Service API to search {@link OrganisationUnit} and fetch the matches as a connected (sub)tree.
@@ -41,10 +42,11 @@ import org.hisp.dhis.common.UID;
 public interface OrgTreeService {
 
   @Nonnull
-  OrgTreeParams decode(@Nonnull OrgTreeParams.RootInput params);
+  OrgTreeParams decode(@Nonnull OrgTreeParams.RootInput params) throws BadRequestException;
 
   @Nonnull
-  OrgTreeParams decode(@Nonnull UID parent, @Nonnull OrgTreeParams.ChildrenInput params);
+  OrgTreeParams decode(@Nonnull UID parent, @Nonnull OrgTreeParams.ChildrenInput params)
+      throws BadRequestException;
 
   @Nonnull
   OrgTree query(@Nonnull OrgTreeParams params);

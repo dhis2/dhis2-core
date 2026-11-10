@@ -117,6 +117,20 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
           )
             --@end
           --@end
+          --@if :dataset
+          AND EXISTS (
+            SELECT 1 FROM datasetsource ds_ou
+            WHERE ou.organisationunitid = ds_ou.sourceid
+              AND ds_ou.datasetid = (SELECT ds.datasetid FROM dataset ds WHERE ds.uid = :dataset)
+          )
+          --@end
+          --@if :program
+          AND EXISTS (
+            SELECT 1 FROM program_organisationunits p_ou
+            WHERE ou.organisationunitid = p_ou.organisationunitid
+              AND p_ou.programid = (SELECT p.programid FROM program p WHERE p.uid = :program)
+          )
+          --@end
           --@if :pageCursor
           AND ou.path > :pageCursor
           --@end
@@ -136,6 +150,8 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
             .setParameter("search", search)
             .setParameter("roots", params.roots())
             .setParameter("groups", params.groups())
+            .setParameter("program", params.program())
+            .setParameter("dataset", params.dataset())
             .setParameter("currentlyOpen", params.currentlyOpen())
             .setParameter("depth", depth)
             .setCondition("depth1", depth != null && depth == 1)

@@ -37,6 +37,8 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadParameterException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrgTree.OrgTreeEntry;
 import org.hisp.dhis.organisationunit.OrgTreeStore.StreamEntriesParams;
 import org.hisp.dhis.setting.UserSettings;
@@ -55,7 +57,7 @@ public class DefaultOrgTreeService implements OrgTreeService {
   @Nonnull
   @Override
   @NonTransactional
-  public OrgTreeParams decode(@Nonnull OrgTreeParams.RootInput params) {
+  public OrgTreeParams decode(@Nonnull OrgTreeParams.RootInput params) throws BadRequestException {
     List<UID> roots = params.roots();
     if (roots == null) roots = List.of();
     if (roots.isEmpty() && CurrentUserUtil.hasCurrentUser()) {
@@ -63,50 +65,58 @@ public class DefaultOrgTreeService implements OrgTreeService {
       roots = currentUser.getUserEffectiveSearchOrgUnitIds().stream().map(UID::of).toList();
     }
     List<UID> groups = params.groups() == null ? List.of() : params.groups();
-
-    // TODO might make sense to compute a min-level from the parent set
-    // here and set it in the result for better pre-filtering
-
-    // TODO validate and/or filter root/group IDs?
     String cursor = params.pageCursor();
-    return new OrgTreeParams(
-        params.page() == null ? 1 : params.page(),
-        params.pageSize() == null ? 50 : params.pageSize(),
-        cursor == null ? List.of() : Stream.of(cursor.split(",")).map(OrgUnitPath::of).toList(),
-        true,
-        getLocale(params.locale()),
-        roots,
-        groups,
-        params.level(),
-        params.currentlyOpen(),
-        params.search(),
-        Boolean.TRUE.equals(params.shortName()),
-        params.depth());
-  }
-
-  private static Locale getLocale(Locale locale) {
-    if (locale == null) return UserSettings.getCurrentSettings().getUserDbLocale();
-    return locale;
+    try {
+      return new OrgTreeParams(
+          params.page() == null ? 1 : params.page(),
+          params.pageSize() == null ? 50 : params.pageSize(),
+          cursor == null ? List.of() : Stream.of(cursor.split(",")).map(OrgUnitPath::of).toList(),
+          true,
+          decodeLocale(params.locale()),
+          roots,
+          groups,
+          params.program(),
+          params.dataset(),
+          params.level(),
+          params.currentlyOpen(),
+          params.search(),
+          Boolean.TRUE.equals(params.shortName()),
+          params.depth());
+    } catch (BadParameterException ex) {
+      throw ex.toChecked();
+    }
   }
 
   @Nonnull
   @Override
   @NonTransactional
-  public OrgTreeParams decode(@Nonnull UID parent, @Nonnull OrgTreeParams.ChildrenInput params) {
+  public OrgTreeParams decode(@Nonnull UID parent, @Nonnull OrgTreeParams.ChildrenInput params)
+      throws BadRequestException {
     String cursor = params.pageCursor();
-    return new OrgTreeParams(
-        params.page() == null ? 1 : params.page(),
-        params.pageSize() == null ? 51 : params.pageSize() + 1,
-        cursor == null ? List.of() : Stream.of(cursor.split(",")).map(OrgUnitPath::of).toList(),
-        false,
-        getLocale(params.locale()),
-        List.of(parent),
-        List.of(),
-        null,
-        null,
-        null,
-        Boolean.TRUE.equals(params.shortName()),
-        1);
+    try {
+      return new OrgTreeParams(
+          params.page() == null ? 1 : params.page(),
+          params.pageSize() == null ? 51 : params.pageSize() + 1,
+          cursor == null ? List.of() : Stream.of(cursor.split(",")).map(OrgUnitPath::of).toList(),
+          false,
+          decodeLocale(params.locale()),
+          List.of(parent),
+          List.of(),
+          null,
+          null,
+          null,
+          null,
+          null,
+          Boolean.TRUE.equals(params.shortName()),
+          1);
+    } catch (BadParameterException ex) {
+      throw ex.toChecked();
+    }
+  }
+
+  private static Locale decodeLocale(Locale locale) {
+    if (locale == null) return UserSettings.getCurrentSettings().getUserDbLocale();
+    return locale;
   }
 
   @Nonnull

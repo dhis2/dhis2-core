@@ -785,7 +785,16 @@ public enum ErrorCode {
       "Export as ${schema:{0}} not possible as the property is undefined for category option combo(s): `${ids:{1}}`"),
   E8204(
       "Export as category ${schema:{0}} and category options ${schema:{1}} not possible as the property is undefined for at least one of them linked to category option combo(s): `${ids:{1}}`"),
-  ;
+
+  /*
+  URL parameter validation (e.g. query APIs)
+   */
+  E8300("Parameter `${name:{0}}` is required but not specified"),
+  E8301("Parameter `${name:{0}}` must be positive, but was: ${value:{1}}"),
+  E8302("Parameter `${name:{0}}` must not be negative, but was: ${value:{1}}"),
+  E8303("Parameter `${name:{0}}` requires parameter `${name2:{1}}` which was not specified"),
+  E8304("Parameter `${name:{0}}` is mutually exclusive with parameter `${name2:{1}}`"),
+  E8305("Parameter `${name:{0}}` requires (at least) `${n:{2}}` values, but got: ${value:{3}}");
 
   private final String message;
 

@@ -47,12 +47,9 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Verifies the SQL text produced by {@link JdbcOrgTreeStore#createTreeQuery}. Only the assembled
- * SQL is asserted on — parameter binding is a separate concern and the spy query accepts it
- * silently.
+ * SQL is asserted on.
  *
- * <p>Note: these tests assume the {@code WITH} keyword in the template is gated on {@code --@if
- * :useJoin || :groups}. Without that, the {@link #minimalExistsScope()} and {@link
- * #groupsWithoutUseJoin()} cases emit a dangling {@code WITH} followed by {@code SELECT}.
+ * @author AI
  */
 class OrgTreeStoreQueryBuilderTest {
 
@@ -69,6 +66,8 @@ class OrgTreeStoreQueryBuilderTest {
         Locale.ENGLISH,
         List.of(ROOT),
         groups,
+        null,
+        null,
         level,
         currentlyOpen,
         search,

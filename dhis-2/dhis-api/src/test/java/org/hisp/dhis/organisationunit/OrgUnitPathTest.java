@@ -40,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.jsontree.Text;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -92,7 +91,9 @@ class OrgUnitPathTest {
   void testOf_InvalidUID() {
     IllegalArgumentException ex =
         assertThrowsExactly(IllegalArgumentException.class, () -> OrgUnitPath.of("/ou$22222222"));
-    assertEquals("Path id must be a valid UID but was: ou$22222222", ex.getMessage());
+    assertEquals(
+        "UID must be an alphanumeric string of 11 characters starting with a letter, but was: ou$22222222",
+        ex.getMessage());
   }
 
   @Test
@@ -183,7 +184,7 @@ class OrgUnitPathTest {
     OrgUnitPath path = OrgUnitPath.of("/" + UID_A);
 
     assertNull(path.parent());
-    assertEquals(Text.of(UID_A), path.uid());
+    assertEquals(UID.of(UID_A), path.uid());
     assertEquals(1, path.length());
   }
 
@@ -192,7 +193,7 @@ class OrgUnitPathTest {
     OrgUnitPath path = OrgUnitPath.of(pathString(UID_A, UID_B, UID_C));
 
     assertEquals(path(UID_A, UID_B), path.parent());
-    assertEquals(Text.of(UID_C), path.uid());
+    assertEquals(UID.of(UID_C), path.uid());
     assertEquals(3, path.length());
   }
 
@@ -265,20 +266,20 @@ class OrgUnitPathTest {
 
   @Test
   void testConstructor_root() {
-    OrgUnitPath path = new OrgUnitPath(null, Text.of(UID_A));
+    OrgUnitPath path = new OrgUnitPath(null, UID.of(UID_A));
 
     assertNull(path.parent());
-    assertEquals(Text.of(UID_A), path.uid());
+    assertEquals(UID.of(UID_A), path.uid());
     assertEquals(1, path.length());
   }
 
   @Test
   void testConstructor_nested() {
     OrgUnitPath parent = path(UID_A);
-    OrgUnitPath path = new OrgUnitPath(parent, Text.of(UID_B));
+    OrgUnitPath path = new OrgUnitPath(parent, UID.of(UID_B));
 
     assertEquals(parent, path.parent());
-    assertEquals(Text.of(UID_B), path.uid());
+    assertEquals(UID.of(UID_B), path.uid());
     assertEquals(2, path.length());
   }
 
@@ -290,7 +291,7 @@ class OrgUnitPathTest {
   @Test
   void testConstructor_invalidUidThrows() {
     assertThrows(
-        IllegalArgumentException.class, () -> new OrgUnitPath(null, Text.of("12345678901")));
+        IllegalArgumentException.class, () -> new OrgUnitPath(null, UID.of("12345678901")));
   }
 
   @Test
@@ -306,7 +307,7 @@ class OrgUnitPathTest {
 
   @Test
   void testUid_returnsTailUid() {
-    assertEquals(Text.of(UID_C), path(UID_A, UID_B, UID_C).uid());
+    assertEquals(UID.of(UID_C), path(UID_A, UID_B, UID_C).uid());
   }
 
   @Test
