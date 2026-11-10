@@ -664,6 +664,8 @@ public enum ErrorCode {
       "Value `{0}` must be a data element prefixed with a program stage that contains it, or an attribute of the program without a stage prefix"),
   E7267(
       "Aggregation type `{0}` is not supported by enrollment aggregate queries, specify `aggregationType` as one of COUNT, SUM, AVERAGE, MIN, MAX, STDDEV or VARIANCE"),
+  E7268("Category `{0}` is not part of the category combination of program `{1}`"),
+  E7269("Category option group set `{0}` is not supported in enrollment analytics"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
