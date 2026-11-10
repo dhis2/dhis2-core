@@ -30,31 +30,33 @@ description: Organisation units with point coordinates should be contained by th
 section: Organisation units
 section_order: 5
 summary_sql: >-
-  WITH parent_contains_point AS (
-  SELECT a.uid,a.name from organisationunit a
+  WITH parent_has_polygon AS (
+  SELECT a.uid, a.geometry AS point, b.geometry AS parent from organisationunit a
   INNER JOIN organisationunit b on a.parentid = b.organisationunitid
   WHERE ST_GeometryType(a.geometry) = 'ST_Point'
   AND ST_GeometryType(b.geometry) IN ('ST_Polygon','ST_MultiPolygon')
-  AND ST_Contains(b.geometry,a.geometry) = FALSE
-  ORDER BY a.name
   )
-  SELECT 
-  COUNT(*) as value,
-  100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) 
-  FROM organisationunit WHERE ST_GeometryType(geometry) = 'ST_Point'), 0) as percent
-  FROM parent_contains_point;
+  SELECT
+  COUNT(*) FILTER (WHERE NOT ST_Covers(parent, point)) as value,
+  100.0 * COUNT(*) FILTER (WHERE NOT ST_Covers(parent, point)) / NULLIF(COUNT(*), 0) as percent
+  FROM parent_has_polygon;
 details_sql: >-
-  SELECT a.uid,a.name from organisationunit a
+  SELECT a.uid, a.name,
+  concat(round(ST_Distance(CAST(b.geometry AS geography), CAST(a.geometry AS geography))),
+  ' m outside parent boundary') as comment
+  from organisationunit a
   INNER JOIN organisationunit b on a.parentid = b.organisationunitid
   WHERE ST_GeometryType(a.geometry) = 'ST_Point'
   AND ST_GeometryType(b.geometry) IN ('ST_Polygon','ST_MultiPolygon')
-  AND ST_Contains(b.geometry,a.geometry) = FALSE
-  ORDER BY a.name;
+  AND NOT ST_Covers(b.geometry, a.geometry)
+  ORDER BY ST_Distance(CAST(b.geometry AS geography), CAST(a.geometry AS geography)) DESC, a.name;
 details_id_type: organisationUnits
 severity: WARNING
 introduction: >
   Facilities are often represented as points in the DHIS2 hierarchy. Their parent organisation units
-  geometry should contain all facilities which have been associated with them.
+  geometry should contain all facilities which have been associated with them. The details list
+  how far (in metres) each facility lies outside its parent's boundary, furthest first. Only
+  facilities whose parent has a polygon geometry are counted.
 
 recommendation: |
   Often boundary files are simplified when they are uploaded into DHIS2. This process may result in
@@ -64,7 +66,9 @@ recommendation: |
   boundaries and point coordinates.
   
   In cases where the facility falls outside of its parent's boundary
-  you should confirm that the coordinates are correct. If the location is close to the boundary, you
+  you should confirm that the coordinates are correct. Facilities a few hundred metres outside the
+  boundary are usually the result of boundary simplification, while facilities several kilometres
+  outside are more likely to have incorrect coordinates or the wrong parent. If the location is close to the boundary, you
   may want to reconsider how the boundary files have been simplified. Otherwise, if the location of
   the facility is completely incorrect, it should be rectified.
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,37 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest
                     + "'}, "
                     + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [5, 5]} }"));
 
-    assertHasDataIntegrityIssues(detailsIdType, check, 50, clinicB, "Clinic B", null, true);
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 50, clinicB, "Clinic B", " m outside parent boundary", true);
+  }
+
+  @Test
+  void testPointsUnderParentWithoutPolygonAreNotCounted() {
+
+    districtA =
+        createDistrict(
+            "District A",
+            "{'type' : 'Polygon', 'coordinates' : " + "[[[0,0],[3,0],[3,3],[0,3],[0,0]]]}");
+    createClinic("Clinic A", districtA, 1, 1);
+    clinicB = createClinic("Clinic B", districtA, 5, 5);
+
+    String districtB = createDistrict("District B", null);
+    createClinic("Clinic C", districtB, 10, 10);
+
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 50, clinicB, "Clinic B", " m outside parent boundary", true);
+  }
+
+  @Test
+  void testPointOnParentBoundaryIsContained() {
+
+    districtA =
+        createDistrict(
+            "District A",
+            "{'type' : 'Polygon', 'coordinates' : " + "[[[0,0],[3,0],[3,3],[0,3],[0,0]]]}");
+    createClinic("Clinic A", districtA, 3, 1);
+
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
   }
 
   @Test
@@ -125,5 +155,25 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest
   @Test
   void testOrgunitsContainedByParentDivideRuns() {
     assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
+
+  private String createDistrict(String name, String geometry) {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            "{ 'name': '%s', 'shortName': '%s', 'openingDate' : '2022-01-01'%s }"
+                .formatted(name, name, geometry == null ? "" : ", 'geometry' : " + geometry)));
+  }
+
+  private String createClinic(String name, String parent, int x, int y) {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            ("{ 'name': '%s', 'shortName': '%s', 'parent': {'id' : '%s'}, "
+                    + "'openingDate' : '2022-01-01', "
+                    + "'geometry' : {'type' : 'Point', 'coordinates' : [%d, %d]} }")
+                .formatted(name, name, parent, x, y)));
   }
 }
