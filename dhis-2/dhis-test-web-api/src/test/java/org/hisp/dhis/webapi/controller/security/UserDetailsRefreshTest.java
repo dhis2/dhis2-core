@@ -46,8 +46,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsChangeTracker;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.webapi.security.session.PrincipalRefreshState;
-import org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter;
+import org.hisp.dhis.webapi.security.session.UserDetailsRefreshState;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -173,7 +172,7 @@ class UserDetailsRefreshTest extends AuthenticationApiTestBase {
     userService.updateUser(replacement);
     assertNotEquals(user.getUid(), replacement.getUid());
     commit();
-    userSession.setAttribute(UserDetailsRefreshFilter.REFRESHED_AT_ATTRIBUTE, 0L);
+    new UserDetailsRefreshState(null, 0L).saveTo(userSession);
 
     assertNotEquals(200, hasAuthority(userSession).getStatus());
     assertTrue(userSession.isInvalid());
@@ -214,12 +213,9 @@ class UserDetailsRefreshTest extends AuthenticationApiTestBase {
         sessionWith(
             UsernamePasswordAuthenticationToken.authenticated(principal, null, authorities));
     long now = System.currentTimeMillis();
-    session.setAttribute(
-        UserDetailsRefreshFilter.SOURCE_REFRESH_STATE_ATTRIBUTE,
-        new PrincipalRefreshState(
-            userDetailsChangeTracker.getChangeToken(source.getUsername()), now));
-    new PrincipalRefreshState(userDetailsChangeTracker.getChangeToken(principal.getUsername()), now)
-        .apply(session);
+    new UserDetailsRefreshState(userDetailsChangeTracker.getChangeToken(source.getUsername()), now)
+        .impersonating(userDetailsChangeTracker.getChangeToken(principal.getUsername()), now)
+        .saveTo(session);
     return session;
   }
 

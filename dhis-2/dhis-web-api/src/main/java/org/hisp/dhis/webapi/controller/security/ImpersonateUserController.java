@@ -31,13 +31,9 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.security.Authorities.F_IMPERSONATE_USER;
 import static org.hisp.dhis.security.Authorities.F_PREVIOUS_IMPERSONATOR_AUTHORITY;
-import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.CHANGE_TOKEN_ATTRIBUTE;
-import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.REFRESHED_AT_ATTRIBUTE;
-import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.SOURCE_REFRESH_STATE_ATTRIBUTE;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -53,8 +49,7 @@ import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsChangeTracker;
-import org.hisp.dhis.webapi.security.session.PrincipalRefreshState;
+import org.hisp.dhis.webapi.security.session.UserDetailsSessionRefresher;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -100,7 +95,7 @@ public class ImpersonateUserController {
   private final DhisConfigurationProvider config;
   private final UserDetailsService userDetailsService;
   private final ApplicationEventPublisher eventPublisher;
-  private final UserDetailsChangeTracker userDetailsChangeTracker;
+  private final UserDetailsSessionRefresher sessionRefresher;
 
   private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource =
       new WebAuthenticationDetailsSource();
@@ -121,19 +116,12 @@ public class ImpersonateUserController {
     validateReq(request);
 
     try {
-      // Capture before loading the target, so a concurrent change is not acknowledged unseen.
-      String changeToken = userDetailsChangeTracker.getChangeToken(username);
-      HttpSession session = request.getSession(false);
-      PrincipalRefreshState sourceState = sourceRefreshState(session);
-      Authentication targetUser = attemptSwitchUser(request, username);
-
-      SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
-      context.setAuthentication(targetUser);
-      this.securityContextHolderStrategy.setContext(context);
-      this.securityContextRepository.saveContext(context, request, response);
-      session = request.getSession(false);
-      session.setAttribute(SOURCE_REFRESH_STATE_ATTRIBUTE, sourceState);
-      new PrincipalRefreshState(changeToken, System.currentTimeMillis()).apply(session);
+      // The target's change token is read before the target is loaded, so that a change while
+      // loading is not acknowledged unseen.
+      sessionRefresher.startImpersonation(
+          request,
+          username,
+          () -> switchTo(attemptSwitchUser(request, username), request, response));
 
       return ImpersonateUserResponse.builder()
           .status(ImpersonateUserResponse.STATUS.IMPERSONATION_SUCCESS)
@@ -179,7 +167,7 @@ public class ImpersonateUserController {
 
     validateReq(request);
 
-    Authentication originalUser = null;
+    Authentication originalUser;
     try {
       originalUser = attemptExitUser();
     } catch (AuthenticationCredentialsNotFoundException e) {
@@ -187,20 +175,7 @@ public class ImpersonateUserController {
           "User not impersonating anyone, user: %s".formatted(userDetails.getUsername()));
     }
 
-    // update the current context back to the original user
-    SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
-    context.setAuthentication(originalUser);
-    this.securityContextHolderStrategy.setContext(context);
-    this.securityContextRepository.saveContext(context, request, response);
-    HttpSession session = request.getSession(false);
-    if (session.getAttribute(SOURCE_REFRESH_STATE_ATTRIBUTE)
-        instanceof PrincipalRefreshState state) {
-      state.apply(session);
-    } else {
-      // Without the source's baseline, do not mark any of its changes as applied.
-      new PrincipalRefreshState(null, 0L).apply(session);
-    }
-    session.removeAttribute(SOURCE_REFRESH_STATE_ATTRIBUTE);
+    sessionRefresher.endImpersonation(request, () -> switchTo(originalUser, request, response));
 
     return ImpersonateUserResponse.builder()
         .status(ImpersonateUserResponse.STATUS.IMPERSONATION_EXIT_SUCCESS)
@@ -208,18 +183,13 @@ public class ImpersonateUserController {
         .build();
   }
 
-  private static PrincipalRefreshState sourceRefreshState(HttpSession session) {
-    if (session == null) {
-      return new PrincipalRefreshState(null, null);
-    }
-    if (session.getAttribute(SOURCE_REFRESH_STATE_ATTRIBUTE)
-        instanceof PrincipalRefreshState state) {
-      // Switching directly between targets still returns to the original source.
-      return state;
-    }
-    return new PrincipalRefreshState(
-        (String) session.getAttribute(CHANGE_TOKEN_ATTRIBUTE),
-        (Long) session.getAttribute(REFRESHED_AT_ATTRIBUTE));
+  /** Makes the authentication the one of the current request and of its session. */
+  private void switchTo(
+      Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+    SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
+    context.setAuthentication(authentication);
+    this.securityContextHolderStrategy.setContext(context);
+    this.securityContextRepository.saveContext(context, request, response);
   }
 
   private Authentication attemptSwitchUser(HttpServletRequest request, String username)

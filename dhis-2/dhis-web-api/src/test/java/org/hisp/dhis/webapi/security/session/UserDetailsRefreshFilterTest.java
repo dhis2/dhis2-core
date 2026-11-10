@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.webapi.security.session;
 
-import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.CHANGE_TOKEN_ATTRIBUTE;
-import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.REFRESHED_AT_ATTRIBUTE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -112,7 +110,7 @@ class UserDetailsRefreshFilterTest {
   void setUp() {
     tracker = mock(UserDetailsChangeTracker.class);
     userService = mock(UserService.class);
-    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ZERO);
+    filter = filter(Duration.ZERO);
     session = new MockHttpSession();
   }
 
@@ -134,7 +132,7 @@ class UserDetailsRefreshFilterTest {
   @Test
   void keepsPrincipalWhenChangeWasAlreadyApplied() throws Exception {
     when(tracker.getChangeToken(USERNAME)).thenReturn("token1");
-    session.setAttribute(CHANGE_TOKEN_ATTRIBUTE, "token1");
+    new UserDetailsRefreshState("token1", System.currentTimeMillis()).saveTo(session);
 
     doFilter(passwordLogin(user("F_OLD")));
 
@@ -158,7 +156,7 @@ class UserDetailsRefreshFilterTest {
         Set.of("F_NEW", PASSWORD_FACTOR.getAuthority()), authorityNames(current.getAuthorities()));
     assertEquals("loginDetails", current.getDetails());
     assertSame(current, savedAuthentication());
-    assertEquals("token1", session.getAttribute(CHANGE_TOKEN_ATTRIBUTE));
+    assertEquals("token1", UserDetailsRefreshState.of(session).changeToken());
     assertFalse(session.isInvalid());
   }
 
@@ -200,11 +198,11 @@ class UserDetailsRefreshFilterTest {
             });
 
     doFilter(passwordLogin(user("F_OLD")));
-    assertEquals("token1", session.getAttribute(CHANGE_TOKEN_ATTRIBUTE));
+    assertEquals("token1", UserDetailsRefreshState.of(session).changeToken());
 
     doFilter(SecurityContextHolder.getContext().getAuthentication());
     verify(userService, times(2)).createUserDetailsSafe(USER_UID);
-    assertEquals("token2", session.getAttribute(CHANGE_TOKEN_ATTRIBUTE));
+    assertEquals("token2", UserDetailsRefreshState.of(session).changeToken());
   }
 
   @Test
@@ -218,24 +216,25 @@ class UserDetailsRefreshFilterTest {
 
   @Test
   void refreshesPrincipalOlderThanTheRefreshIntervalWithoutChange() throws Exception {
-    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
+    filter = filter(Duration.ofMinutes(15));
     UserDetails refreshed = user("F_NEW");
     when(userService.createUserDetailsSafe(USER_UID)).thenReturn(refreshed);
     long refreshedAt = System.currentTimeMillis() - Duration.ofMinutes(16).toMillis();
-    session.setAttribute(REFRESHED_AT_ATTRIBUTE, refreshedAt);
+    new UserDetailsRefreshState(null, refreshedAt).saveTo(session);
 
     doFilter(passwordLogin(user("F_OLD")));
 
     assertSame(refreshed, SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-    assertTrue((Long) session.getAttribute(REFRESHED_AT_ATTRIBUTE) > refreshedAt);
-    assertNull(session.getAttribute(CHANGE_TOKEN_ATTRIBUTE));
+    assertTrue(UserDetailsRefreshState.of(session).refreshedAt() > refreshedAt);
+    assertNull(UserDetailsRefreshState.of(session).changeToken());
   }
 
   @Test
   void keepsPrincipalYoungerThanTheRefreshInterval() throws Exception {
-    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
-    session.setAttribute(
-        REFRESHED_AT_ATTRIBUTE, System.currentTimeMillis() - Duration.ofMinutes(14).toMillis());
+    filter = filter(Duration.ofMinutes(15));
+    new UserDetailsRefreshState(
+            null, System.currentTimeMillis() - Duration.ofMinutes(14).toMillis())
+        .saveTo(session);
 
     doFilter(passwordLogin(user("F_OLD")));
 
@@ -244,11 +243,12 @@ class UserDetailsRefreshFilterTest {
 
   @Test
   void refreshIntervalEndsSessionOfDisabledUser() throws Exception {
-    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
+    filter = filter(Duration.ofMinutes(15));
     when(userService.createUserDetailsSafe(USER_UID))
         .thenReturn(userBuilder("F_OLD").enabled(false).build());
-    session.setAttribute(
-        REFRESHED_AT_ATTRIBUTE, System.currentTimeMillis() - Duration.ofMinutes(16).toMillis());
+    new UserDetailsRefreshState(
+            null, System.currentTimeMillis() - Duration.ofMinutes(16).toMillis())
+        .saveTo(session);
 
     doFilter(passwordLogin(user("F_OLD")));
 
@@ -287,8 +287,8 @@ class UserDetailsRefreshFilterTest {
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
   void deletedAccountCannotBecomeAnotherAccountWithTheSameUsername(boolean timer) throws Exception {
-    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
-    session.setAttribute(REFRESHED_AT_ATTRIBUTE, 0L);
+    filter = filter(Duration.ofMinutes(15));
+    new UserDetailsRefreshState(null, 0L).saveTo(session);
     if (!timer) {
       when(tracker.getChangeToken(USERNAME)).thenReturn("replacement");
     }
@@ -320,8 +320,8 @@ class UserDetailsRefreshFilterTest {
   @CsvSource({"OIDC,false", "OIDC,true", "LDAP,false", "LDAP,true", "LOCAL,false", "LOCAL,true"})
   void refreshKeepsTheLoginProvidersEnrolmentPolicy(String provider, boolean timer)
       throws Exception {
-    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
-    session.setAttribute(REFRESHED_AT_ATTRIBUTE, 0L);
+    filter = filter(Duration.ofMinutes(15));
+    new UserDetailsRefreshState(null, 0L).saveTo(session);
     if (!timer) {
       when(tracker.getChangeToken(USERNAME)).thenReturn("token1");
     }
@@ -354,9 +354,13 @@ class UserDetailsRefreshFilterTest {
     }
     assertFalse(session.isInvalid());
     assertEquals(Set.of("F_NEW"), authorityNames(savedAuthentication().getAuthorities()));
+    // a Redis session hands every request its own deserialized copy of the context
     Authentication restored =
         (Authentication)
             SerializationUtils.deserialize(SerializationUtils.serialize(savedAuthentication()));
+    session.setAttribute(
+        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+        new SecurityContextImpl(restored));
     when(tracker.getChangeToken(USERNAME)).thenReturn("token2");
     doFilter(restored);
     assertFalse(session.isInvalid());
@@ -406,19 +410,19 @@ class UserDetailsRefreshFilterTest {
     }
   }
 
+  /** The session is invalidated while the refresh writes its state or its security context. */
   @ParameterizedTest
-  @ValueSource(
-      strings = {
-        CHANGE_TOKEN_ATTRIBUTE,
-        REFRESHED_AT_ATTRIBUTE,
-        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY
-      })
-  void concurrentLogoutDuringSessionWriteClearsAuthentication(String attribute) throws Exception {
+  @ValueSource(booleans = {false, true})
+  void concurrentLogoutDuringSessionWriteClearsAuthentication(boolean whileWritingState)
+      throws Exception {
     session =
         new MockHttpSession() {
           @Override
           public void setAttribute(String name, Object value) {
-            if (name.equals(attribute)) {
+            boolean writesState = value instanceof UserDetailsRefreshState;
+            boolean writesContext =
+                name.equals(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+            if (whileWritingState ? writesState : writesContext) {
               invalidate();
             }
             super.setAttribute(name, value);
@@ -435,6 +439,11 @@ class UserDetailsRefreshFilterTest {
     assertTrue(session.isInvalid());
     assertNull(request.getSession(false));
     assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  private UserDetailsRefreshFilter filter(Duration refreshInterval) {
+    return new UserDetailsRefreshFilter(
+        new UserDetailsSessionRefresher(tracker, userService, refreshInterval));
   }
 
   private void doFilter(Authentication authentication) throws Exception {

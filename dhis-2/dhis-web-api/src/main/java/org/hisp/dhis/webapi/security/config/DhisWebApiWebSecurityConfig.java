@@ -34,7 +34,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -58,8 +57,6 @@ import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
-import org.hisp.dhis.user.UserDetailsChangeTracker;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
 import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
@@ -73,6 +70,7 @@ import org.hisp.dhis.webapi.security.session.InteractiveSessionRegistry;
 import org.hisp.dhis.webapi.security.session.ReauthenticatingExpiredSessionStrategy;
 import org.hisp.dhis.webapi.security.session.SessionRegisteringSecurityContextRepository;
 import org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter;
+import org.hisp.dhis.webapi.security.session.UserDetailsSessionRefresher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -162,9 +160,7 @@ public class DhisWebApiWebSecurityConfig {
 
   @Autowired private RequestCache requestCache;
 
-  @Autowired private UserDetailsChangeTracker userDetailsChangeTracker;
-
-  @Autowired private UserService userService;
+  @Autowired private UserDetailsSessionRefresher userDetailsSessionRefresher;
 
   @Autowired private SessionRegistry sessionRegistry;
 
@@ -285,14 +281,8 @@ public class DhisWebApiWebSecurityConfig {
 
       http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
       // after hard session expiry is enforced, before the request is authorized
-      Duration userDetailsRefreshInterval =
-          Duration.ofSeconds(
-              dhisConfig.getIntProperty(
-                  ConfigurationKey.SYSTEM_SESSION_USER_DETAILS_REFRESH_INTERVAL));
       http.addFilterAfter(
-          new UserDetailsRefreshFilter(
-              userDetailsChangeTracker, userService, userDetailsRefreshInterval),
-          ConcurrentSessionFilter.class);
+          new UserDetailsRefreshFilter(userDetailsSessionRefresher), ConcurrentSessionFilter.class);
 
       setHttpHeaders(http);
 

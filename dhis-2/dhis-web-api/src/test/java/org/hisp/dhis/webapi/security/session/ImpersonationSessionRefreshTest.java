@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.webapi.security.session;
 
-import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.CHANGE_TOKEN_ATTRIBUTE;
-import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.REFRESHED_AT_ATTRIBUTE;
-import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.SOURCE_REFRESH_STATE_ATTRIBUTE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -103,17 +100,18 @@ class ImpersonationSessionRefreshTest {
     when(config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED)).thenReturn(true);
     when(config.getProperty(ConfigurationKey.SWITCH_USER_ALLOW_LISTED_IPS)).thenReturn("127.0.0.1");
     when(detailsService.loadUserByUsername("target")).thenReturn(target);
+    UserDetailsSessionRefresher sessionRefresher =
+        new UserDetailsSessionRefresher(tracker, userService, Duration.ofMinutes(15));
     controller =
         new ImpersonateUserController(
-            config, detailsService, mock(ApplicationEventPublisher.class), tracker);
-    filter = new UserDetailsRefreshFilter(tracker, userService, Duration.ofMinutes(15));
+            config, detailsService, mock(ApplicationEventPublisher.class), sessionRefresher);
+    filter = new UserDetailsRefreshFilter(sessionRefresher);
     session = new MockHttpSession();
     SecurityContext context =
         new SecurityContextImpl(
             new DhisAuthenticationToken(source, null, source.getAuthorities(), LoginMethod.LOCAL));
     session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, context);
-    session.setAttribute(CHANGE_TOKEN_ATTRIBUTE, "source-before");
-    session.setAttribute(REFRESHED_AT_ATTRIBUTE, System.currentTimeMillis());
+    new UserDetailsRefreshState("source-before", System.currentTimeMillis()).saveTo(session);
     SecurityContextHolder.setContext(context);
   }
 
@@ -223,7 +221,8 @@ class ImpersonationSessionRefreshTest {
   void impersonationWithoutSourceBaselineEndsOnAnyLiveSourceToken() throws Exception {
     when(tracker.getChangeToken("source")).thenReturn("source-before");
     controller.impersonateUser(request(), new MockHttpServletResponse(), "target");
-    session.removeAttribute(SOURCE_REFRESH_STATE_ATTRIBUTE);
+    UserDetailsRefreshState state = UserDetailsRefreshState.of(session);
+    new UserDetailsRefreshState(state.changeToken(), state.refreshedAt()).saveTo(session);
 
     nextRequest();
 
@@ -245,7 +244,7 @@ class ImpersonationSessionRefreshTest {
   void refreshIntervalEndsTheSessionWhenTheSourceMayNoLongerImpersonate(
       String scenario, UserDetails refreshedSource) throws Exception {
     controller.impersonateUser(request(), new MockHttpServletResponse(), "target");
-    session.setAttribute(REFRESHED_AT_ATTRIBUTE, 0L);
+    makeRefreshDue();
     when(userService.createUserDetailsSafe(source.getUid())).thenReturn(refreshedSource);
 
     nextRequest();
@@ -261,7 +260,7 @@ class ImpersonationSessionRefreshTest {
     controller.impersonateUser(request(), new MockHttpServletResponse(), "target");
     Authentication impersonation =
         ((SecurityContext) session.getAttribute(SPRING_SECURITY_CONTEXT_KEY)).getAuthentication();
-    session.setAttribute(REFRESHED_AT_ATTRIBUTE, 0L);
+    makeRefreshDue();
     when(userService.createUserDetailsSafe(source.getUid())).thenReturn(user("source", authority));
     long beforeCheck = System.currentTimeMillis();
 
@@ -271,7 +270,12 @@ class ImpersonationSessionRefreshTest {
     assertFalse(session.isInvalid());
     assertSame(impersonation, SecurityContextHolder.getContext().getAuthentication());
     verify(userService, times(1)).createUserDetailsSafe(anyString());
-    assertTrue((Long) session.getAttribute(REFRESHED_AT_ATTRIBUTE) >= beforeCheck);
+    assertTrue(UserDetailsRefreshState.of(session).refreshedAt() >= beforeCheck);
+  }
+
+  private void makeRefreshDue() {
+    UserDetailsRefreshState state = UserDetailsRefreshState.of(session);
+    new UserDetailsRefreshState(state.changeToken(), 0L, state.impersonatorState()).saveTo(session);
   }
 
   private void nextRequest() throws Exception {

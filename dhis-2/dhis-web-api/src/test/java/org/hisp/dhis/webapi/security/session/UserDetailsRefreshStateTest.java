@@ -29,26 +29,29 @@
  */
 package org.hisp.dhis.webapi.security.session;
 
-import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.CHANGE_TOKEN_ATTRIBUTE;
-import static org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter.REFRESHED_AT_ATTRIBUTE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import jakarta.servlet.http.HttpSession;
-import java.io.Serializable;
-import javax.annotation.CheckForNull;
+import org.junit.jupiter.api.Test;
+import org.springframework.util.SerializationUtils;
 
 /**
- * The refresh baseline of a principal: the change token it was last refreshed for and the time it
- * was last rebuilt. While a session impersonates, the baseline of the impersonating user is kept in
- * the {@link UserDetailsRefreshFilter#SOURCE_REFRESH_STATE_ATTRIBUTE} attribute.
+ * Unit test of {@link UserDetailsRefreshState}.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public record PrincipalRefreshState(
-    @CheckForNull String changeToken, @CheckForNull Long refreshedAt) implements Serializable {
+class UserDetailsRefreshStateTest {
 
-  /** Makes this the baseline of the session principal. */
-  public void apply(HttpSession session) {
-    session.setAttribute(CHANGE_TOKEN_ATTRIBUTE, changeToken);
-    session.setAttribute(REFRESHED_AT_ATTRIBUTE, refreshedAt);
+  /** Redis sessions store the state with JDK serialization. */
+  @Test
+  void survivesJdkSerializationWithTheImpersonatorState() {
+    UserDetailsRefreshState impersonator = new UserDetailsRefreshState("source", 1L);
+    UserDetailsRefreshState state = impersonator.impersonating("target", 2L);
+
+    UserDetailsRefreshState restored =
+        (UserDetailsRefreshState)
+            SerializationUtils.deserialize(SerializationUtils.serialize(state));
+
+    assertEquals(state, restored);
+    assertEquals(impersonator, restored.afterImpersonation());
   }
 }
