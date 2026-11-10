@@ -568,7 +568,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       TrackerEventQueryParams params,
       boolean hasTrackedEntityJoin) {
     SqlHelper hlp = new SqlHelper(true);
-    addDataElementConditions(sql, sqlParams, params);
+    addDataElementConditions(sql, sqlParams, params, hlp);
     if (hasTrackedEntityJoin) {
       addTrackedEntityConditions(sql, sqlParams, params, hlp);
     } else {
@@ -866,7 +866,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private void addWhereConditions(
       StringBuilder sql, MapSqlParameterSource sqlParams, TrackerEventQueryParams params) {
     SqlHelper hlp = new SqlHelper(true);
-    addDataElementConditions(sql, sqlParams, params);
+    addDataElementConditions(sql, sqlParams, params, hlp);
     addAttributeFilterConditions(sql, sqlParams, params, hlp);
     addTrackedEntityConditions(sql, sqlParams, params, hlp);
     addProgramConditions(sql, sqlParams, params, hlp);
@@ -884,9 +884,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private void addDataElementConditions(
-      StringBuilder sql, MapSqlParameterSource sqlParams, TrackerEventQueryParams params) {
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      TrackerEventQueryParams params,
+      SqlHelper hlp) {
     if (!params.getDataElements().isEmpty()) {
-      sql.append(" and ");
+      sql.append(hlp.whereAnd());
       addPredicates(sql, sqlParams, params.getDataElements());
       sql.append(" ");
     }
