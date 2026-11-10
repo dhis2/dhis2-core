@@ -124,7 +124,8 @@ public class DefaultSchemaValidator implements SchemaValidator {
       Property property, Object object, Class<?> mainErrorClass, List<ErrorReport> errors) {
     Object value = safeInvoke(object, property.getGetterMethod());
 
-    if (value == null) {
+    // a blank required string is missing, as the trg_trim_name trigger would store it as ""
+    if (value == null || (property.isRequired() && isBlankString(value))) {
       if (property.isRequired() && !Preheat.isDefaultClass(property.getKlass())) {
         errors.add(createReport(ErrorCode.E4000, mainErrorClass, property, property.getName()));
       }
@@ -135,6 +136,10 @@ public class DefaultSchemaValidator implements SchemaValidator {
       errors.addAll(validateFloat(mainErrorClass, value, property));
       errors.addAll(validateDouble(mainErrorClass, value, property));
     }
+  }
+
+  private static boolean isBlankString(Object value) {
+    return value instanceof String text && StringUtils.isBlank(text);
   }
 
   private List<? extends ErrorReport> validateString(

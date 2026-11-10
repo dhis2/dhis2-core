@@ -79,9 +79,6 @@ class AuthenticationListenerTest {
     ReflectionTestUtils.setField(listener, "config", config);
     ReflectionTestUtils.setField(listener, "meterRegistry", meterRegistry);
 
-    lenient()
-        .when(userService.getUserByUsername(org.mockito.ArgumentMatchers.anyString()))
-        .thenReturn(null);
     lenient().when(config.isReadOnlyMode()).thenReturn(false);
   }
 
