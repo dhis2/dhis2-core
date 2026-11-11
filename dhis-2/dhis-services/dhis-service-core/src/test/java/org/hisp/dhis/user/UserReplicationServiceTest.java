@@ -83,7 +83,6 @@ class UserReplicationServiceTest {
   @Mock private OrganisationUnitService organisationUnitService;
   @Mock private SessionRegistry sessionRegistry;
   @Mock private AttributeService attributeService;
-  @Mock private UserDetailsChangeTracker userDetailsChangeTracker;
   @Mock private Cache<String> userDisplayNameCache;
   @Mock private Cache<Integer> userFailedLoginAttemptCache;
   @Mock private Cache<Integer> userAccountRecoverAttemptCache;
@@ -115,8 +114,7 @@ class UserReplicationServiceTest {
             aclService,
             organisationUnitService,
             sessionRegistry,
-            attributeService,
-            userDetailsChangeTracker);
+            attributeService);
   }
 
   @AfterEach

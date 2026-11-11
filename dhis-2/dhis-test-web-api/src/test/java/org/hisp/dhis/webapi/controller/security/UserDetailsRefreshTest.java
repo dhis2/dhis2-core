@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.http.HttpStatus.OK;
+import static org.hisp.dhis.user.UserConstants.LOGIN_MAX_FAILED_ATTEMPTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.security.DhisAuthenticationToken;
 import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -49,6 +51,8 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.security.session.UserDetailsRefreshState;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -88,6 +92,8 @@ class UserDetailsRefreshTest extends AuthenticationApiTestBase {
   @Autowired
   @Qualifier("userDetailsChangeTaskExecutor")
   private ThreadPoolTaskExecutor userDetailsChangeExecutor;
+
+  @Autowired private SystemSettingsService settingsService;
 
   @Test
   void newUserRoleIsVisibleOnTheNextRequestOfTheSameSession() throws Exception {
@@ -151,6 +157,38 @@ class UserDetailsRefreshTest extends AuthenticationApiTestBase {
 
     assertNotEquals(200, hasAuthority(userSession).getStatus());
     assertTrue(userSession.isInvalid());
+  }
+
+  /**
+   * Failed logins for the username of the impersonated or of the impersonating user lock that
+   * account for new logins, and leave the existing impersonation session alone.
+   */
+  @ParameterizedTest(name = "impersonating user locked: {0}")
+  @ValueSource(booleans = {false, true})
+  void reachingTheFailedLoginLimitKeepsImpersonationSessions(boolean impersonatorLocked) {
+    String suffix = impersonatorLocked ? "a" : "b";
+    User target = createUserWithAuth("failedlogintarget" + suffix);
+    User impersonator =
+        createUserWithAuth("failedloginimpersonator" + suffix, "F_IMPERSONATE_USER");
+    MockHttpSession userSession = impersonatingSession(target, impersonator);
+    commit();
+    assertEquals(200, hasAuthority(userSession).getStatus());
+    String lockedUsername = impersonatorLocked ? impersonator.getUsername() : target.getUsername();
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
+    try {
+      for (int attempt = 0; attempt < LOGIN_MAX_FAILED_ATTEMPTS; attempt++) {
+        userService.registerFailedLogin(lockedUsername);
+      }
+      assertTrue(userService.isLocked(lockedUsername));
+
+      assertEquals(200, hasAuthority(userSession).getStatus());
+      assertFalse(userSession.isInvalid());
+    } finally {
+      userService.registerSuccessfulLogin(lockedUsername);
+      settingsService.put("keyLockMultipleFailedLogins", false);
+      settingsService.clearCurrentSettings();
+    }
   }
 
   @Test

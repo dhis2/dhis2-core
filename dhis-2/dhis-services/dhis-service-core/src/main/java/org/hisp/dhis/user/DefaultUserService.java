@@ -140,7 +140,6 @@ public class DefaultUserService implements UserService {
   private final I18nManager i18nManager;
   private final ObjectMapper jsonMapper;
   private final AttributeService attributeService;
-  private final UserDetailsChangeTracker userDetailsChangeTracker;
 
   private final Cache<String> userDisplayNameCache;
   private final Cache<Integer> userFailedLoginAttemptCache;
@@ -162,8 +161,7 @@ public class DefaultUserService implements UserService {
       AclService aclService,
       OrganisationUnitService organisationUnitService,
       SessionRegistry sessionRegistry,
-      AttributeService attributeService,
-      UserDetailsChangeTracker userDetailsChangeTracker) {
+      AttributeService attributeService) {
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
@@ -179,7 +177,6 @@ public class DefaultUserService implements UserService {
     checkNotNull(i18nManager);
     checkNotNull(jsonMapper);
     checkNotNull(attributeService);
-    checkNotNull(userDetailsChangeTracker);
 
     this.userStore = userStore;
     this.userGroupService = userGroupService;
@@ -196,7 +193,6 @@ public class DefaultUserService implements UserService {
     this.i18nManager = i18nManager;
     this.jsonMapper = jsonMapper;
     this.attributeService = attributeService;
-    this.userDetailsChangeTracker = userDetailsChangeTracker;
     this.userFailedLoginAttemptCache = cacheProvider.createUserFailedLoginAttemptCache(0);
     this.userAccountRecoverAttemptCache = cacheProvider.createUserAccountRecoverAttemptCache(0);
     this.twoFaDisableFailedAttemptCache = cacheProvider.createDisable2FAFailedAttemptCache(0);
@@ -1278,12 +1274,6 @@ public class DefaultUserService implements UserService {
     attempts++;
 
     userFailedLoginAttemptCache.put(username, attempts);
-
-    if (attempts == LOGIN_MAX_FAILED_ATTEMPTS) {
-      // The account is locked now. Cached user details of the user, such as those of a cached API
-      // token, must be created again, so that the lock refuses them.
-      userDetailsChangeTracker.markChanged(List.of(username));
-    }
   }
 
   @Override

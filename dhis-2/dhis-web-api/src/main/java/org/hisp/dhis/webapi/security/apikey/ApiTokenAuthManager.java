@@ -64,9 +64,15 @@ import org.springframework.stereotype.Service;
  * so a cached token is served only while it is younger than that time: any change after it was
  * cached is then still known. A cached token that is not served is evicted before the reload, so a
  * refused reload leaves nothing behind.
+ *
+ * <p>A lock after failed logins is not a change of the user details: a cached token is refused
+ * while its owner is locked, and served again from the cache when the lock expires.
  */
 @Service
 public class ApiTokenAuthManager implements AuthenticationManager {
+  private static final String OWNER_CANNOT_LOG_IN =
+      "The API token is disabled, locked or 2FA is enabled.";
+
   private final ApiTokenService apiTokenService;
   private final UserService userService;
   private final UserDetailsChangeTracker userDetailsChangeTracker;
@@ -121,6 +127,10 @@ public class ApiTokenAuthManager implements AuthenticationManager {
       if (isCurrent(cachedToken.get())) {
         ApiTokenAuthenticationToken cachedAuthentication = cachedToken.get().authentication();
         validateTokenExpiry(cachedAuthentication.getToken().getExpire());
+        if (userService.isLocked(cachedAuthentication.getPrincipal().getUsername())) {
+          throw new ApiTokenAuthenticationException(
+              ApiTokenErrors.invalidToken(OWNER_CANNOT_LOG_IN));
+        }
         return cachedAuthentication;
       }
       apiTokenCache.invalidate(tokenKey);
@@ -188,8 +198,7 @@ public class ApiTokenAuthManager implements AuthenticationManager {
     if (ObjectUtils.anyIsFalse(
         enabled, isTwoFactorDisabled, credentialsNonExpired, accountNonLocked, accountNonExpired)) {
 
-      throw new ApiTokenAuthenticationException(
-          ApiTokenErrors.invalidToken("The API token is disabled, locked or 2FA is enabled."));
+      throw new ApiTokenAuthenticationException(ApiTokenErrors.invalidToken(OWNER_CANNOT_LOG_IN));
     }
 
     return userDetails;
