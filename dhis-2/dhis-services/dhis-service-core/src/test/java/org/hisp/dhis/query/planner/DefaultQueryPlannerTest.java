@@ -73,7 +73,7 @@ class DefaultQueryPlannerTest {
 
   @BeforeEach
   void setUp() {
-    queryPlanner = new DefaultQueryPlanner(schemaService);
+    queryPlanner = new DefaultQueryPlanner(schemaService, new CollectionPaths(schemaService));
   }
 
   @Test
@@ -488,6 +488,39 @@ class DefaultQueryPlannerTest {
     assertEquals(0, plan.dbQuery().getFilters().size(), "Collection terminal should not be in DB");
     assertEquals(
         1, plan.memoryQuery().getFilters().size(), "Collection terminal should be in memory");
+  }
+
+  /**
+   * Tests that a collection EXISTS filter does not count as a root alias: it is a self-contained
+   * subquery, so it must not push another aliased filter (here {@code parent.id}) to memory.
+   */
+  @Test
+  void testCollectionFilterDoesNotPushOtherAliasedFilterToMemory() {
+    Query<DataElement> query = Query.of(DataElement.class);
+    query.add(Filters.like("dataElementGroups.name", "abc", MatchMode.ANYWHERE));
+    query.add(Filters.eq("parent.id", "abc123"));
+
+    Schema dataElementSchema = mockSchema();
+    when(dataElementSchema.hasPersistedProperty("name")).thenReturn(true);
+    when(dataElementSchema.hasPersistedProperty("id")).thenReturn(true);
+    when(dataElementSchema.getProperty("dataElementGroups"))
+        .thenReturn(mockCollectionProperty("dataElementGroups"));
+    when(dataElementSchema.getProperty("parent"))
+        .thenReturn(mockManyToOneRelationshipProperty("parent", DataElement.class));
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
+
+    Property nameProperty = mockSimplePersistedProperty("name");
+    nameProperty.setKlass(String.class);
+    when(schemaService.getPropertyPath(DataElement.class, "dataElementGroups.name"))
+        .thenReturn(new PropertyPath(nameProperty, true, new String[] {"dataElementGroups"}));
+    when(schemaService.getPropertyPath(DataElement.class, "parent.id"))
+        .thenReturn(
+            new PropertyPath(mockSimplePersistedProperty("id"), true, new String[] {"parent"}));
+
+    QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
+
+    assertEquals(2, plan.dbQuery().getFilters().size(), "Both filters should be in DB");
+    assertTrue(plan.memoryQuery().isEmpty(), "Memory query should be empty");
   }
 
   private QueryPlan<DataElement> planCollectionFilter(Filter filter, Class<?> terminalType) {

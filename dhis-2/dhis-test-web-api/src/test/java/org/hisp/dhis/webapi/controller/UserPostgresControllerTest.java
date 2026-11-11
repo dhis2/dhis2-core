@@ -189,6 +189,43 @@ class UserPostgresControllerTest extends PostgresControllerIntegrationTestBase {
         userIds("/users?fields=id&filter=userRoles.authorities:in:[F_COLLECTION_TERMINAL_A]"));
   }
 
+  @Test
+  @DisplayName(
+      "GET /users with collection filters on two different collections applies both in SQL")
+  void testGetUsersFilterByTwoCollections() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B');
+    organisationUnitService.addOrganisationUnit(orgB);
+
+    User alice = createUserWithAuth("alice");
+    alice.getOrganisationUnits().add(orgA);
+    alice.getDataViewOrganisationUnits().add(orgB);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.getOrganisationUnits().add(orgA);
+    bob.getDataViewOrganisationUnits().add(orgA);
+    userService.updateUser(bob);
+
+    User carol = createUserWithAuth("carol");
+    carol.getOrganisationUnits().add(orgB);
+    carol.getDataViewOrganisationUnits().add(orgB);
+    userService.updateUser(carol);
+
+    JsonObject response =
+        GET("/users?fields=id&pageSize=1&total=true&filter=organisationUnits.id:in:["
+                + orgA.getUid()
+                + "]&filter=dataViewOrganisationUnits.path:like:"
+                + orgB.getUid())
+            .content(HttpStatus.OK);
+
+    assertEquals(
+        List.of(alice.getUid()),
+        response.getList("users", JsonUser.class).stream().map(JsonUser::getId).toList());
+    assertEquals(1, response.getObject("pager").getNumber("total").intValue());
+  }
+
   private List<String> userIds(String url) {
     return GET(url).content(HttpStatus.OK).getList("users", JsonUser.class).stream()
         .map(JsonUser::getId)
