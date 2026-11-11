@@ -119,4 +119,8 @@ public interface CacheProvider {
   <V> Cache<V> createSystemStatisticsDataCountsCache();
 
   <V> Cache<V> createDataSummarySessionGaugesCache();
+
+  <V> Cache<V> createCspAppOverrideCache();
+
+  <V> Cache<V> createCspViolationCache();
 }

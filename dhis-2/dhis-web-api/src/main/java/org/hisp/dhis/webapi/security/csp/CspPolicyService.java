@@ -30,28 +30,19 @@
 package org.hisp.dhis.webapi.security.csp;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_MAP_SOURCES;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_UPGRADE_INSECURE_ENABLED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.SERVER_HTTPS;
 import static org.hisp.dhis.security.utils.CspConstants.APP_HOST_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.CONTENT_SECURITY_POLICY_HEADER_NAME;
+import static org.hisp.dhis.security.utils.CspConstants.CONTENT_SECURITY_POLICY_REPORT_ONLY_HEADER_NAME;
 import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.FRAME_ANCESTORS_DEFAULT_CSP;
-import static org.hisp.dhis.security.utils.CspConstants.MAPS_BASEMAP_HTTP_ORIGINS;
-import static org.hisp.dhis.security.utils.CspConstants.MAPS_BASEMAP_ORIGINS;
 import static org.hisp.dhis.security.utils.CspConstants.OPENAPI_DOCS_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.USER_UPLOADED_CONTENT_CSP_POLICY;
 
-import com.google.common.base.Suppliers;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -62,7 +53,10 @@ import org.springframework.stereotype.Component;
 /**
  * Service that encapsulates CSP decision logic. All {@code Content-Security-Policy} strings are
  * referenced from {@link org.hisp.dhis.security.utils.CspConstants}; this service composes them
- * with the dynamic {@code frame-ancestors} directive derived from the configured CORS whitelist.
+ * with the mandatory footer: {@code upgrade-insecure-requests} (HTTPS only), the dynamic {@code
+ * frame-ancestors} directive derived from the configured CORS whitelist and, for app entrypoints,
+ * the {@code report-uri}. Per-app policies are composed by {@link CspAppPolicyService} on top of
+ * this footer.
  *
  * @see CspBaselineFilter
  * @see CspInterceptor
@@ -73,33 +67,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CspPolicyService {
-  /**
-   * A bare origin: {@code scheme://host[:port]}. Anything else, in particular userinfo, a path,
-   * query, fragment, trailing slash, wildcard host or a source-list keyword, is rejected so a
-   * configured value can neither break out of its directive nor widen it beyond one origin.
-   */
-  private static final Pattern MAP_SOURCE_ORIGIN =
-      Pattern.compile(
-          "(?i)^(?<scheme>https?)://[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"
-              + "(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*(?::(?<port>\\d{1,5}))?$");
-
-  private static final int MAX_PORT = 65535;
-
   private final DhisConfigurationProvider dhisConfig;
   private final ConfigurationService configurationService;
 
-  /**
-   * The app-host policy without {@code frame-ancestors}. Both inputs it depends on, {@code
-   * server.https} and {@code csp.map.sources}, are read from {@code dhis.conf} and fixed for the
-   * lifetime of the configuration provider, so the policy is composed and the configured origins
-   * validated once instead of on every response. Rejected entries are therefore also logged once,
-   * and editing {@code csp.map.sources} requires a server restart to take effect.
-   */
-  private final Supplier<String> appHostBasePolicy =
-      Suppliers.memoize(this::buildAppHostBasePolicy);
-
   public String constructDefaultCspPolicy() {
-    return appendFrameAncestors(DEFAULT_CSP_POLICY);
+    return appendFooter(DEFAULT_CSP_POLICY, null);
   }
 
   /**
@@ -108,94 +80,49 @@ public class CspPolicyService {
    */
   public HttpHeaders getUserUploadedContentSecurityHeaders() {
     return buildSecurityHeaders(
-        appendFrameAncestors(USER_UPLOADED_CONTENT_CSP_POLICY, dhisConfig.isEnabled(CSP_ENABLED)),
+        appendFooter(USER_UPLOADED_CONTENT_CSP_POLICY, null, dhisConfig.isEnabled(CSP_ENABLED)),
+        null,
         true);
   }
 
+  /**
+   * The app-host baseline with footer, used for app resources that are neither an HTML entrypoint
+   * nor a worker script (scripts, styles, images), which need no per-app lookup.
+   */
   public String constructAppHostCspPolicy() {
-    return appendFrameAncestors(appHostBasePolicy.get());
-  }
-
-  /**
-   * Extends the built-in Maps basemap origins of {@link
-   * org.hisp.dhis.security.utils.CspConstants#APP_HOST_CSP_POLICY} with the plain-HTTP variants on
-   * non-TLS deployments and with the administrator-configured map sources. Both lists are appended
-   * to {@code img-src} and {@code connect-src} only; no directive is added or removed.
-   */
-  private String buildAppHostBasePolicy() {
-    boolean https = dhisConfig.isEnabled(SERVER_HTTPS);
-    Set<String> extraOrigins = new LinkedHashSet<>();
-    // Dev allowance: when the server isn't configured for HTTPS (i.e. server.https=off, the
-    // default in dhis.conf), the bundled Maps app's tile fetches go out as http:// because the
-    // browser inherits the http://localhost page scheme. The CSP source-list check runs against
-    // the pre-upgrade URL on Chrome, so the strict https-only allow-list rejects them and
-    // basemaps don't render. Extend the allow-list with the http variants in that case.
-    // Production (server.https=on) keeps the strict https-only policy.
-    if (!https) {
-      extraOrigins.addAll(Arrays.asList(MAPS_BASEMAP_HTTP_ORIGINS.split(" ")));
-    }
-    extraOrigins.addAll(getConfiguredMapSources(https));
-    extraOrigins.removeAll(Arrays.asList(MAPS_BASEMAP_ORIGINS.split(" ")));
-    if (extraOrigins.isEmpty()) {
-      return APP_HOST_CSP_POLICY;
-    }
-    return APP_HOST_CSP_POLICY.replace(
-        MAPS_BASEMAP_ORIGINS, MAPS_BASEMAP_ORIGINS + " " + String.join(" ", extraOrigins));
-  }
-
-  /**
-   * Parses {@link org.hisp.dhis.external.conf.ConfigurationKey#CSP_MAP_SOURCES}. Entries are
-   * validated individually and fail closed: a malformed entry, or a plain-HTTP entry on an HTTPS
-   * deployment, which this policy allows only while {@code server.https} is off, is dropped with a
-   * warning while the remaining entries are kept.
-   */
-  private List<String> getConfiguredMapSources(boolean https) {
-    String configured = dhisConfig.getProperty(CSP_MAP_SOURCES);
-    if (configured == null || configured.isBlank()) {
-      return List.of();
-    }
-    String[] entries = configured.split(",");
-    List<String> origins = new ArrayList<>(entries.length);
-    for (int i = 0; i < entries.length; i++) {
-      String origin = entries[i].trim();
-      if (!origin.isEmpty() && isValidMapSource(origin, i + 1, https)) {
-        origins.add(origin);
-      }
-    }
-    return origins;
-  }
-
-  private boolean isValidMapSource(String origin, int position, boolean https) {
-    Matcher matcher = MAP_SOURCE_ORIGIN.matcher(origin);
-    if (!matcher.matches()) {
-      reject(position, "expected a bare origin on the form scheme://host[:port]");
-      return false;
-    }
-    String port = matcher.group("port");
-    if (port != null) {
-      int portNumber = Integer.parseInt(port);
-      if (portNumber < 1 || portNumber > MAX_PORT) {
-        reject(position, "port is outside the range 1-" + MAX_PORT);
-        return false;
-      }
-    }
-    if (https && "http".equalsIgnoreCase(matcher.group("scheme"))) {
-      reject(position, "plain HTTP map sources are only allowed when server.https is off");
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Identifies a rejected entry by its position in the configured list. The entry itself is never
-   * logged: it is unvalidated text that can carry credentials, query tokens or line breaks.
-   */
-  private void reject(int position, String reason) {
-    log.warn("Ignoring {} entry number {}: {}", CSP_MAP_SOURCES.getKey(), position, reason);
+    return appendFooter(APP_HOST_CSP_POLICY, null);
   }
 
   public String constructOpenApiDocsCspPolicy() {
-    return appendFrameAncestors(OPENAPI_DOCS_CSP_POLICY);
+    return appendFooter(OPENAPI_DOCS_CSP_POLICY, null);
+  }
+
+  /**
+   * The enforced policy of a {@code REPORT_ONLY_EXEMPT} entrypoint: only the framing restriction
+   * survives, everything else is reported but not blocked.
+   */
+  public String constructFrameAncestorsOnlyPolicy() {
+    return getFrameAncestorsCspDirective();
+  }
+
+  public boolean isHttpsEnabled() {
+    return dhisConfig.isEnabled(SERVER_HTTPS);
+  }
+
+  public boolean isCspEnabled() {
+    return dhisConfig.isEnabled(CSP_ENABLED);
+  }
+
+  /**
+   * Appends the mandatory footer to a policy body: {@code upgrade-insecure-requests} (HTTPS
+   * deployments only), {@code frame-ancestors} and, when given, {@code report-uri}. No override can
+   * change any of these.
+   *
+   * @param basePolicy the policy body without footer
+   * @param reportUri the report endpoint, or {@code null} for none
+   */
+  public String appendFooter(String basePolicy, @CheckForNull String reportUri) {
+    return appendFooter(basePolicy, reportUri, true);
   }
 
   /**
@@ -205,7 +132,7 @@ public class CspPolicyService {
    * @return headers to apply via {@code response.setHeader}
    */
   public HttpHeaders getDefaultSecurityHeaders() {
-    return buildSecurityHeaders(constructDefaultCspPolicy(), false);
+    return buildSecurityHeaders(constructDefaultCspPolicy(), null, false);
   }
 
   /**
@@ -221,22 +148,34 @@ public class CspPolicyService {
    * @throws IllegalArgumentException if {@code cspPolicy} is {@code null} or blank
    */
   public HttpHeaders getSecurityHeaders(String cspPolicy) {
+    return getSecurityHeaders(cspPolicy, null);
+  }
+
+  /**
+   * Like {@link #getSecurityHeaders(String)} and additionally emits {@code
+   * Content-Security-Policy-Report-Only} when {@code reportOnlyPolicy} is given and CSP is enabled.
+   */
+  public HttpHeaders getSecurityHeaders(String cspPolicy, @CheckForNull String reportOnlyPolicy) {
     if (cspPolicy == null || cspPolicy.trim().isEmpty()) {
       throw new IllegalArgumentException(
           "cspPolicy must not be null or blank; call getDefaultSecurityHeaders() for the baseline");
     }
-    return buildSecurityHeaders(cspPolicy, false);
+    return buildSecurityHeaders(cspPolicy, reportOnlyPolicy, false);
   }
 
-  private HttpHeaders buildSecurityHeaders(String cspPolicy, boolean mandatory) {
+  private HttpHeaders buildSecurityHeaders(
+      String cspPolicy, @CheckForNull String reportOnlyPolicy, boolean mandatory) {
     HttpHeaders headers = new HttpHeaders();
 
     boolean enabled = dhisConfig.isEnabled(CSP_ENABLED);
     if (enabled || mandatory) {
-      String effectivePolicy = cspPolicy.endsWith(";") ? cspPolicy : cspPolicy + ";";
+      String effectivePolicy = terminate(cspPolicy);
       headers.set(CONTENT_SECURITY_POLICY_HEADER_NAME, effectivePolicy);
       log.debug(
           "Applied CSP policy {} and standard security headers for response", effectivePolicy);
+    }
+    if (enabled && reportOnlyPolicy != null && !reportOnlyPolicy.isBlank()) {
+      headers.set(CONTENT_SECURITY_POLICY_REPORT_ONLY_HEADER_NAME, terminate(reportOnlyPolicy));
     }
     if (!enabled) {
       // Mandatory upload CSP uses the same ancestor restriction as this legacy fallback.
@@ -249,11 +188,12 @@ public class CspPolicyService {
     return headers;
   }
 
-  private String appendFrameAncestors(String basePolicy) {
-    return appendFrameAncestors(basePolicy, true);
+  private static String terminate(String policy) {
+    return policy.endsWith(";") ? policy : policy + ";";
   }
 
-  private String appendFrameAncestors(String basePolicy, boolean allowConfiguredAncestors) {
+  private String appendFooter(
+      String basePolicy, @CheckForNull String reportUri, boolean allowConfiguredAncestors) {
     StringBuilder builder = new StringBuilder();
     if (basePolicy != null && !basePolicy.trim().isEmpty()) {
       String trimmed = basePolicy.trim();
@@ -268,6 +208,9 @@ public class CspPolicyService {
         allowConfiguredAncestors
             ? getFrameAncestorsCspDirective()
             : FRAME_ANCESTORS_DEFAULT_CSP + ";");
+    if (reportUri != null) {
+      builder.append(" report-uri ").append(reportUri).append(';');
+    }
     return builder.toString();
   }
 

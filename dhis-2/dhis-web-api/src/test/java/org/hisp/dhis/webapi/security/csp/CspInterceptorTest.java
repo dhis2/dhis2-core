@@ -130,7 +130,11 @@ class CspInterceptorTest {
     CspPolicyService policies = new CspPolicyService(config, configuration);
     return MockMvcBuilders.standaloneSetup(new Plain(), new App(), new Upload())
         .addFilters(new CspBaselineFilter(policies))
-        .addInterceptors(new CspInterceptor(policies))
+        .addInterceptors(
+            new CspInterceptor(
+                policies,
+                mock(org.hisp.dhis.webapi.security.csp.app.CspAppPolicyService.class),
+                mock(org.hisp.dhis.appmanager.AppManager.class)))
         .build();
   }
 
