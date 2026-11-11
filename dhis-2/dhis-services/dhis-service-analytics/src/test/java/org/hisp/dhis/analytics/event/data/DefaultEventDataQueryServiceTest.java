@@ -72,6 +72,7 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -306,6 +307,88 @@ class DefaultEventDataQueryServiceTest {
     assertEquals(1, filter.getFilters().size());
     assertEquals(QueryOperator.GT, filter.getFilters().get(0).getOperator());
     assertEquals("2023-01-01", filter.getFilters().get(0).getFilter());
+  }
+
+  /**
+   * Enrollment requests built from {@link EnrollmentAnalyticsQueryCriteria} carry the {@link
+   * EventOutputType#ENROLLMENT} output type, so query items resolve against the enrollment
+   * analytics table. Otherwise {@code INCIDENT_DATE} resolves to the event table column {@code
+   * enrollmentoccurreddate}, which does not exist in the enrollment analytics table.
+   */
+  @Test
+  void getFromRequestResolvesIncidentDateDimensionAsEnrollmentForEnrollmentQuery() {
+    assertIncidentDateResolvedAsEnrollment(
+        enrollmentRequestFromCriteria(QUERY)
+            .dimension(Set.of(Set.of("INCIDENT_DATE:GT:2023-01-01")))
+            .build(),
+        false);
+  }
+
+  @Test
+  void getFromRequestResolvesIncidentDateFilterAsEnrollmentForEnrollmentQuery() {
+    assertIncidentDateResolvedAsEnrollment(
+        enrollmentRequestFromCriteria(QUERY)
+            .filter(Set.of(Set.of("INCIDENT_DATE:GT:2023-01-01")))
+            .build(),
+        true);
+  }
+
+  @Test
+  void getFromRequestResolvesIncidentDateDimensionAsEnrollmentForEnrollmentAggregate() {
+    assertIncidentDateResolvedAsEnrollment(
+        enrollmentRequestFromCriteria(AGGREGATE)
+            .dimension(Set.of(Set.of("INCIDENT_DATE:GT:2023-01-01")))
+            .build(),
+        false);
+  }
+
+  private void assertIncidentDateResolvedAsEnrollment(
+      EventDataQueryRequest request, boolean isFilter) {
+    lenient()
+        .when(
+            dataQueryService.getDimension(
+                eq("INCIDENT_DATE"),
+                anyList(),
+                any(EventDataQueryRequest.class),
+                anyList(),
+                anyBoolean(),
+                any()))
+        .thenReturn(null);
+    lenient()
+        .when(
+            dataQueryService.getDimension(
+                eq("INCIDENT_DATE"),
+                anyList(),
+                any(),
+                anyList(),
+                anyBoolean(),
+                any(),
+                any(IdScheme.class)))
+        .thenReturn(null);
+    when(queryItemLocator.getQueryItemFromDimension(
+            "INCIDENT_DATE", program, EventOutputType.ENROLLMENT))
+        .thenReturn(createDateQueryItem("occurreddate"));
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    List<QueryItem> items = isFilter ? params.getItemFilters() : params.getItems();
+    assertEquals(1, items.size());
+    assertEquals("occurreddate", items.get(0).getItemId());
+    assertEquals(QueryOperator.GT, items.get(0).getFilters().get(0).getOperator());
+    assertEquals("2023-01-01", items.get(0).getFilters().get(0).getFilter());
+  }
+
+  /** Builds the request the same way the enrollment controllers do. */
+  private EventDataQueryRequest.EventDataQueryRequestBuilder enrollmentRequestFromCriteria(
+      org.hisp.dhis.common.RequestTypeAware.EndpointAction action) {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    return EventDataQueryRequest.builder()
+        .fromCriteria(
+            (EnrollmentAnalyticsQueryCriteria)
+                criteria.withEndpointAction(action).withEndpointItem(ENROLLMENT))
+        .program(program.getUid())
+        .dimension(Collections.emptySet())
+        .filter(Collections.emptySet());
   }
 
   @Test

@@ -35,8 +35,8 @@ import java.util.Map;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.FoundDimensionItemValue;
+import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.period.Period;
 
 /**
@@ -68,21 +68,24 @@ public class PredictionContextGenerator {
       PredictionDisaggregator preDis) {
     List<PredictionContext> contexts = new ArrayList<>();
 
-    MapMapMap<CategoryOptionCombo, Period, DimensionalItemObject, Object> aocMap =
+    ListMap<CategoryOptionCombo, FoundDimensionItemValue> aocMap =
         getAocMap(values, defaultCategoryOptionCombo);
 
-    for (Map.Entry<CategoryOptionCombo, MapMap<Period, DimensionalItemObject, Object>> e :
-        aocMap.entrySet()) {
+    for (Map.Entry<CategoryOptionCombo, List<FoundDimensionItemValue>> e : aocMap.entrySet()) {
       CategoryOptionCombo aoc = e.getKey();
-      MapMap<Period, DimensionalItemObject, Object> periodValueMap = e.getValue();
+      Map<CategoryOptionCombo, MapMap<Period, DimensionalItemObject, Object>> cocMap =
+          preDis.getPeriodValueMaps(e.getValue());
 
+      // Periods are in the outer loop, so earlier predictions can be used by later predictions
       for (Period outputPeriod : outputPeriods) {
-        contexts.add(
-            new PredictionContext(preDis.getOutputCombo(), aoc, outputPeriod, periodValueMap));
+        for (Map.Entry<CategoryOptionCombo, MapMap<Period, DimensionalItemObject, Object>> e2 :
+            cocMap.entrySet()) {
+          contexts.add(new PredictionContext(e2.getKey(), aoc, outputPeriod, e2.getValue()));
+        }
       }
     }
 
-    return preDis.getDisaggregateContexts(contexts);
+    return contexts;
   }
 
   // -------------------------------------------------------------------------
@@ -90,19 +93,18 @@ public class PredictionContextGenerator {
   // -------------------------------------------------------------------------
 
   /**
-   * Generates a map of data by attribute option combo and period.
+   * Generates a map of values by attribute option combo.
    *
    * <p>If there is no data, then generate predictions for the default attribute option combo. (If a
    * predictor has missing value strategy NEVER_SKIP, it could generate a value even if there is no
    * input data.)
    */
-  private static MapMapMap<CategoryOptionCombo, Period, DimensionalItemObject, Object> getAocMap(
+  private static ListMap<CategoryOptionCombo, FoundDimensionItemValue> getAocMap(
       List<FoundDimensionItemValue> values, CategoryOptionCombo defaultCategoryOptionCombo) {
-    MapMapMap<CategoryOptionCombo, Period, DimensionalItemObject, Object> map =
-        getAocDataMap(values);
+    ListMap<CategoryOptionCombo, FoundDimensionItemValue> map = getAocDataMap(values);
 
     if (map.isEmpty()) {
-      map.put(defaultCategoryOptionCombo, new MapMap<>());
+      map.put(defaultCategoryOptionCombo, new ArrayList<>());
     }
 
     addNonAocData(map, values);
@@ -110,18 +112,20 @@ public class PredictionContextGenerator {
     return map;
   }
 
-  /** Generates a map from all the data that is stored by attribute option combination. */
-  private static MapMapMap<CategoryOptionCombo, Period, DimensionalItemObject, Object>
-      getAocDataMap(List<FoundDimensionItemValue> values) {
-    MapMapMap<CategoryOptionCombo, Period, DimensionalItemObject, Object> map = new MapMapMap<>();
+  /**
+   * Generates a map from all the data that is stored by attribute option combination.
+   *
+   * <p>The values are kept (rather than just a map of items to values) because there may be
+   * multiple values for the same period and item with different category option combos. These are
+   * filtered and/or summed when generating the prediction contexts.
+   */
+  private static ListMap<CategoryOptionCombo, FoundDimensionItemValue> getAocDataMap(
+      List<FoundDimensionItemValue> values) {
+    ListMap<CategoryOptionCombo, FoundDimensionItemValue> map = new ListMap<>();
 
     for (FoundDimensionItemValue value : values) {
       if (value.getAttributeOptionCombo() != null) {
-        map.putEntry(
-            value.getAttributeOptionCombo(),
-            value.getPeriod(),
-            value.getDimensionalItemObject(),
-            value.getValue());
+        map.putValue(value.getAttributeOptionCombo(), value);
       }
     }
 
@@ -135,12 +139,12 @@ public class PredictionContextGenerator {
    * for each attribute option combo.
    */
   private static void addNonAocData(
-      MapMapMap<CategoryOptionCombo, Period, DimensionalItemObject, Object> map,
+      ListMap<CategoryOptionCombo, FoundDimensionItemValue> map,
       List<FoundDimensionItemValue> values) {
     for (FoundDimensionItemValue value : values) {
       if (value.getAttributeOptionCombo() == null) {
         for (CategoryOptionCombo aoc : map.keySet()) {
-          map.putEntry(aoc, value.getPeriod(), value.getDimensionalItemObject(), value.getValue());
+          map.putValue(aoc, value);
         }
       }
     }

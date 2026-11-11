@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
@@ -575,6 +576,104 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
     // Validate selected values for row index 3
     validateRowValueByName(response, actualHeaders, 3, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 3, "lastupdated", "2018-08-07 14:56:08.107");
+  }
+
+  @Test
+  public void barePeDimensionLastUpdatedFilter() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=LAST_UPDATED:2017")
+            .add("headers=psi,eventdate,lastupdated")
+            .add("totalPages=false")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ou:ImspTQPwCqd,pe:2021");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        22,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"lastupdated\":{\"name\":\"Last updated\"},\"2021\":{\"name\":\"2021\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "psi", "Event", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "eventdate",
+        "Event date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (no sort requested, so row order is not guaranteed).
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "vdbUbSCFVYS", "lastupdated", "2017-11-15 19:56:27.255"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "DhwJD1gzgOZ", "lastupdated", "2017-11-15 19:55:41.383"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "aO0gvKzIj1k", "lastupdated", "2017-11-15 18:01:08.787"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "XGLkLlOXgmE", "lastupdated", "2017-11-16 11:38:59.953"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "vF0YkkC3JD3", "lastupdated", "2017-11-16 12:26:34.984"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "q0Hcikut16c", "lastupdated", "2017-11-15 19:12:47.031"));
   }
 
   @Test

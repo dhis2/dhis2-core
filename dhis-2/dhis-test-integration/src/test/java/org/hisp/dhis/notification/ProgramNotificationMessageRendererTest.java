@@ -30,6 +30,7 @@
 package org.hisp.dhis.notification;
 
 import static org.hisp.dhis.notification.BaseNotificationMessageRenderer.formatDate;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
@@ -76,7 +77,6 @@ import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.program.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.tracker.program.notification.ProgramStageNotificationMessageRenderer;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -161,8 +161,6 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
   @Autowired private ProgramStageService programStageService;
 
   @Autowired private ProgramStageDataElementService programStageDataElementService;
-
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private ProgramNotificationTemplateStore programNotificationTemplateStore;
 
@@ -255,7 +253,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     manager.save(trackedEntityA);
     trackedEntityAttributeValueA =
         new TrackedEntityAttributeValue(trackedEntityAttributeA, trackedEntityA, "attribute-test");
-    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValueA);
+    saveTrackedEntityAttributeValue(entityManager, trackedEntityAttributeValueA);
     trackedEntityA.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValueA));
     manager.update(trackedEntityA);
 

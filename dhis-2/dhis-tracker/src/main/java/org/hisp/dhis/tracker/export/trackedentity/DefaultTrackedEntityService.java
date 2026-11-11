@@ -50,6 +50,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
@@ -66,7 +67,6 @@ import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -150,7 +150,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
               + " could not be found.");
     }
 
-    return fileResourceService.getExistingFileResource(fileResourceUid);
+    // Like the aggregate data value API, only data value files are served as data values.
+    String uid = fileResourceUid;
+    return fileResourceService
+        .getFileResource(uid, FileResourceDomain.DATA_VALUE)
+        .orElseThrow(() -> new NotFoundException(FileResource.class, uid));
   }
 
   @Nonnull
@@ -217,17 +221,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return trackedEntities.getItems().get(0);
   }
 
-  private static Set<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(
-      TrackedEntity trackedEntity, Program program) {
-    if (program == null) {
-      return trackedEntity.getProgramOwners();
-    }
-
-    return trackedEntity.getProgramOwners().stream()
-        .filter(te -> te.getProgram().getUid().equals(program.getUid()))
-        .collect(Collectors.toSet());
-  }
-
   @Nonnull
   @Override
   @IndirectTransactional
@@ -273,11 +266,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
                 trackedEntity.getUID(),
                 operationParams.getFields().getRelationshipFields(),
                 queryParams.isIncludeDeleted()));
-      }
-      if (operationParams.getFields().isIncludesProgramOwners()) {
-        trackedEntity.setProgramOwners(
-            getTrackedEntityProgramOwners(
-                trackedEntity, queryParams.getEnrolledInTrackerProgram()));
       }
     }
     if (operationParams.getFields().isIncludesAttributes()) {
