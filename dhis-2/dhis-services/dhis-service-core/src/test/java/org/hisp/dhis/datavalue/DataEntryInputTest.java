@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -310,6 +311,192 @@ class DataEntryInputTest {
   }
 
   /*
+   * JSON: scalar values that are not JSON strings.
+   * Up to 2.42 the input was mapped with Jackson which coerced any JSON scalar into a String
+   * property. Integrations rely on this, e.g. sending "value": 5 instead of "value": "5".
+   */
+
+  @ParameterizedTest
+  @ValueSource(strings = {"5", "0", "-12", "3.14", "-0.5", "1e3", "1.5E-2", "12345678901234567890"})
+  void testFromJson_ValueAsNumber(String number) {
+    assertEquals(number, valueOf("\"value\": " + number).value());
+  }
+
+  @Test
+  void testFromJson_ValueAsBoolean() {
+    assertEquals("true", valueOf("\"value\": true").value());
+    assertEquals("false", valueOf("\"value\": false").value());
+  }
+
+  @Test
+  void testFromJson_ValueAsString() {
+    assertEquals("5", valueOf("\"value\": \"5\"").value());
+    assertEquals("", valueOf("\"value\": \"\"").value());
+    assertEquals(" 5 ", valueOf("\"value\": \" 5 \"").value());
+  }
+
+  @Test
+  void testFromJson_ValueNullOrAbsent() {
+    assertNull(valueOf("\"value\": null").value());
+    assertNull(fromJson("{\"dataValues\": [{\"comment\": \"x\"}]}").values().get(0).value());
+  }
+
+  @Test
+  void testFromJson_CommentAsNumber() {
+    assertEquals("42", valueOf("\"comment\": 42").comment());
+  }
+
+  @Test
+  void testFromJson_PeriodAsNumber() {
+    assertEquals("202501", valueOf("\"period\": 202501").period());
+    assertEquals("2025", fromJson("{\"period\": 2025, \"dataValues\": []}").period());
+  }
+
+  @Test
+  void testFromJson_IdsAsNumbers() {
+    // numeric codes are common when using idScheme=CODE
+    DataEntryValue.Input dv =
+        valueOf(
+            """
+        "dataElement": 101, "orgUnit": 202, "categoryOptionCombo": 303,
+        "attributeOptionCombo": 404""");
+    assertEquals("101", dv.dataElement());
+    assertEquals("202", dv.orgUnit());
+    assertEquals("303", dv.categoryOptionCombo());
+    assertNull(dv.categoryOptions());
+    assertEquals("404", dv.attributeOptionCombo());
+  }
+
+  @Test
+  void testFromJson_GroupIdsAsNumbers() {
+    DataEntryGroup.Input input =
+        fromJson(
+            """
+        {
+          "dataSet": 1,
+          "orgUnit": 2,
+          "period": 202501,
+          "attributeOptionCombo": 3,
+          "dataValues": []
+        }""");
+    assertEquals("1", input.dataSet());
+    assertEquals("2", input.orgUnit());
+    assertEquals("202501", input.period());
+    assertEquals("3", input.attributeOptionCombo());
+    assertNull(input.attributeOptions());
+  }
+
+  @Test
+  void testFromJson_CategoryOptionsAsNumbers() {
+    DataEntryValue.Input dv = valueOf("\"categoryOptionCombo\": {\"c1234567890\": 7}");
+    assertNull(dv.categoryOptionCombo());
+    assertEquals(Map.of("c1234567890", "7"), dv.categoryOptions());
+  }
+
+  @Test
+  void testFromJson_DeletionScopeAsNumbers() {
+    DataEntryGroup.Input input =
+        fromJson(
+            """
+        {
+          "deletion": {
+            "orgUnits": [1, "ou123456789"],
+            "periods": [2024, "2025"],
+            "elements": [{"dataElement": 5, "categoryOptionCombo": 6}]
+          },
+          "dataValues": []
+        }""");
+    DataEntryGroup.Input.Scope scope = input.deletion();
+    assertNotNull(scope);
+    assertEquals(List.of("1", "ou123456789"), scope.orgUnits());
+    assertEquals(List.of("2024", "2025"), scope.periods());
+    assertEquals(List.of(new DataEntryGroup.Input.Scope.Element("5", "6", null)), scope.elements());
+  }
+
+  @Test
+  void testFromJson_DeletionScopeEmpty() {
+    DataEntryGroup.Input.Scope scope =
+        fromJson("{\"deletion\": {}, \"dataValues\": []}").deletion();
+    assertNotNull(scope);
+    assertEquals(List.of(), scope.orgUnits());
+    assertEquals(List.of(), scope.periods());
+    assertEquals(List.of(), scope.elements());
+  }
+
+  @Test
+  void testFromJson_DeletionScopeElementWithoutDataElement() {
+    assertJsonError("{\"deletion\": {\"elements\": [{\"categoryOptionCombo\": \"x\"}]}}");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"true", "\"true\"", "\"TRUE\"", "1"})
+  void testFromJson_BooleansTrue(String bool) {
+    DataEntryValue.Input dv = valueOf("\"followUp\": " + bool + ", \"deleted\": " + bool);
+    assertEquals(true, dv.followUp());
+    assertEquals(true, dv.deleted());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"false", "\"false\"", "\"FALSE\"", "0"})
+  void testFromJson_BooleansFalse(String bool) {
+    DataEntryValue.Input dv = valueOf("\"followUp\": " + bool + ", \"deleted\": " + bool);
+    assertEquals(false, dv.followUp());
+    assertEquals(false, dv.deleted());
+  }
+
+  @Test
+  void testFromJson_BooleansNullOrAbsent() {
+    DataEntryValue.Input dv = valueOf("\"followUp\": null");
+    assertNull(dv.followUp());
+    assertNull(dv.deleted());
+    // like 2.42 (Jackson): an empty string is no value
+    dv = valueOf("\"followUp\": \"\", \"deleted\": \"\"");
+    assertNull(dv.followUp());
+    assertNull(dv.deleted());
+  }
+
+  @Test
+  void testFromJson_DryRunAsString() {
+    ImportOptions options = new ImportOptions();
+    fromJson("{\"dryRun\": \"true\", \"dataValues\": []}", options);
+    assertTrue(options.isDryRun());
+  }
+
+  @Test
+  void testFromJson_IdSchemeAsLowerCase() {
+    DataEntryGroup.Input input = fromJson("{\"idScheme\": \"code\", \"dataValues\": []}");
+    assertEquals(IdProperty.CODE, input.ids().dataElements());
+  }
+
+  @Test
+  void testFromJson_DataValuesEmptyOrAbsent() {
+    assertEquals(List.of(), fromJson("{\"dataValues\": []}").values());
+    assertEquals(List.of(), fromJson("{}").values());
+  }
+
+  @Test
+  void testFromJson_UnknownPropertiesIgnored() {
+    DataEntryValue.Input dv =
+        valueOf("\"storedBy\": \"admin\", \"created\": \"2025-01-01\", \"foo\": {\"bar\": [1]}");
+    assertEquals("5", dv.value());
+  }
+
+  @Test
+  void testFromJson_FollowupLowerCase() {
+    // 2.42 and the 2.43 JSON export use "followup"
+    assertEquals(true, valueOf("\"followup\": true").followUp());
+    assertEquals(false, valueOf("\"followup\": \"false\"").followUp());
+    // the documented name wins when both are present
+    assertEquals(true, valueOf("\"followUp\": true, \"followup\": false").followUp());
+  }
+
+  @Test
+  void testFromJson_DeletionScopeNullEntry() {
+    assertJsonError("{\"deletion\": {\"orgUnits\": [null]}}");
+    assertJsonError("{\"deletion\": {\"periods\": [\"2024\", null]}}");
+  }
+
+  /*
    * JSON: structurally wrong input must be a client error (400), never a 500.
    */
 
@@ -323,12 +510,19 @@ class DataEntryInputTest {
   @Test
   void testFromJson_FollowUpNotABoolean() {
     assertJsonError("{\"dataValues\": [{\"followUp\": \"maybe\"}]}");
+    assertJsonError("{\"dataValues\": [{\"followUp\": 2}]}");
+    assertJsonError("{\"dataValues\": [{\"followUp\": \"1\"}]}");
   }
 
   @Test
   void testFromJson_DataValuesNotAnArray() {
     assertJsonError("{\"dataValues\": {}}");
     assertJsonError("{\"dataValues\": \"x\"}");
+  }
+
+  @Test
+  void testFromJson_DataValueNotAnObject() {
+    assertJsonError("{\"dataValues\": [\"x\"]}");
   }
 
   @Test
@@ -455,6 +649,17 @@ class DataEntryInputTest {
             BadRequestException.class,
             () -> DataEntryInput.fromXml(toStream(xml), new ImportOptions()));
     assertEquals(ErrorCode.E8007, ex.getCode());
+  }
+
+  private static DataEntryValue.Input valueOf(String properties) {
+    // value is 5 unless overridden by the given properties
+    String json =
+        properties.contains("\"value\"")
+            ? "{\"dataValues\": [{%s}]}".formatted(properties)
+            : "{\"dataValues\": [{\"value\": \"5\", %s}]}".formatted(properties);
+    List<DataEntryValue.Input> values = fromJson(json).values();
+    assertEquals(1, values.size());
+    return values.get(0);
   }
 
   private static void assertJsonError(String json) {

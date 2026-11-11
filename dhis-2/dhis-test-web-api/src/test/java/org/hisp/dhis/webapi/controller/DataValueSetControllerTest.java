@@ -152,8 +152,9 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
   void testPostJsonDataValueSet_AsyncValueAsObject() {
     String summary =
         runAsyncImport("{\"dataValues\":[{\"value\":{}}]}", MediaType.APPLICATION_JSON_VALUE);
-    assertStartsWith("JSON input error: ", summary);
-    assertTrue(summary.contains(".dataValues.0.value"), summary);
+    assertStartsWith(
+        "JSON input error: Property `.dataValues.0.value` must be a string, number or boolean",
+        summary);
   }
 
   @Test
