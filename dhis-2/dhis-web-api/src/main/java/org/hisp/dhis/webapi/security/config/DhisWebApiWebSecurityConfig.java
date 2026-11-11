@@ -250,7 +250,9 @@ public class DhisWebApiWebSecurityConfig {
         http.csrf(
                 c ->
                     c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
+                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
+                        // browsers send CSP violation reports without any token
+                        .ignoringRequestMatchers(cspReportMatcher()))
             .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
       } else {
         http.csrf(AbstractHttpConfigurer::disable);
@@ -277,6 +279,10 @@ public class DhisWebApiWebSecurityConfig {
     } catch (Exception ex) {
       throw new IllegalStateException("Failed to configure web security filter chain", ex);
     }
+  }
+
+  private AntPathRequestMatcher cspReportMatcher() {
+    return new AntPathRequestMatcher(apiContextPath + "/security/csp/report");
   }
 
   public static void setHttpHeaders(HttpSecurity http) {
@@ -335,6 +341,9 @@ public class DhisWebApiWebSecurityConfig {
               .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/login"))
               .permitAll()
               .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/publicKeys/**"))
+              .permitAll()
+              // Browser CSP violation reports (report-uri), rate limited and size capped
+              .requestMatchers(cspReportMatcher())
               .permitAll()
               // Login fallback and legacy login endpoint
               .requestMatchers(new AntPathRequestMatcher("/login.html"))
