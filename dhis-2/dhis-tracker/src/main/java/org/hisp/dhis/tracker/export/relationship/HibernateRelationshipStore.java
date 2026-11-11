@@ -224,6 +224,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   }
 
   public List<RelationshipItem> getRelationshipItemsByEvent(UID event, boolean includeDeleted) {
+    // The event is in either table: compare each foreign key to the id of its table's event, so
+    // that Postgres combines the indexes on both. An "or" over the uids of left joined tables
+    // instead reads every relationship item.
     @Language("hql")
     String hql =
         """
@@ -231,10 +234,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
             from RelationshipItem ri \
             join ri.relationship r \
             join r.relationshipType rt \
-            left join ri.trackerEvent tev \
-            left join ri.singleEvent sev \
             where (r.from = ri or rt.bidirectional = true) \
-            and (sev.uid = :event or tev.uid = :event) \
+            and (ri.trackerEvent.id = (select tev.id from TrackerEvent tev where tev.uid = :event) \
+              or ri.singleEvent.id = (select sev.id from SingleEvent sev where sev.uid = :event)) \
             """;
     if (!includeDeleted) {
       hql += "and r.deleted = false";
