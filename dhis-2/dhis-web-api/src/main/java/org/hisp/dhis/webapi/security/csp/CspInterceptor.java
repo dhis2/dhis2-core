@@ -70,8 +70,6 @@ public class CspInterceptor implements HandlerInterceptor {
   /** Path variable of {@code AppController.renderApp} holding the app name or key. */
   static final String APP_PATH_VARIABLE = "app";
 
-  private static final String APPS_PATH = "/" + AppManager.INSTALLED_APP_PREFIX;
-
   private final CspPolicyService cspPolicyService;
   private final CspAppPolicyService cspAppPolicyService;
   private final AppManager appManager;
@@ -154,8 +152,12 @@ public class CspInterceptor implements HandlerInterceptor {
     if (contextPath != null && !contextPath.isEmpty() && uri.startsWith(contextPath)) {
       uri = uri.substring(contextPath.length());
     }
-    String prefix = APPS_PATH + appName;
-    return uri.startsWith(prefix) ? uri.substring(prefix.length()) : null;
+    // the URI starts with '/', followed by AppManager.INSTALLED_APP_PREFIX ("api/apps/")
+    String prefix = AppManager.INSTALLED_APP_PREFIX + appName;
+    if (uri.isEmpty() || uri.charAt(0) != '/' || !uri.startsWith(prefix, 1)) {
+      return null;
+    }
+    return uri.substring(1 + prefix.length());
   }
 
   private static boolean hasMarker(
