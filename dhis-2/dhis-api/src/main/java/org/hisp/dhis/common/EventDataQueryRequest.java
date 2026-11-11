@@ -346,7 +346,9 @@ public class EventDataQueryRequest {
 
     public EventDataQueryRequestBuilder fromCriteria(EnrollmentAnalyticsQueryCriteria criteria) {
       EventDataQueryRequestBuilder builder =
-          startDate(criteria.getStartDate())
+          // Enrollment requests always resolve items against the enrollment analytics table.
+          outputType(EventOutputType.ENROLLMENT)
+              .startDate(criteria.getStartDate())
               .timeField(criteria.getTimeField())
               .endDate(criteria.getEndDate())
               .filter(getGrouped(criteria.getFilter()))
