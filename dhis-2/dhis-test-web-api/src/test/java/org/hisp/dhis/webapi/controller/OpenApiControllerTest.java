@@ -123,6 +123,14 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testGetPathOpenApiDocument_ControllerMappedAtApiRoot() {
+    JsonObject doc = GET("/dataApprovals/openapi.json").content();
+    assertTrue(
+        doc.getObject("paths")
+            .has("/api/dataApprovals", "/api/dataApprovals/status", "/api/dataAcceptances"));
+  }
+
+  @Test
   void testGetOpenApiDocument_ScopeFilter() {
     JsonObject doc = GET("/openapi/openapi.json?scope=entity:User").content();
     assertTrue(doc.isObject());

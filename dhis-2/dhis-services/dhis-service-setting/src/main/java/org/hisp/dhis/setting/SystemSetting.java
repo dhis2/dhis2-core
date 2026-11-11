@@ -29,11 +29,18 @@
  */
 package org.hisp.dhis.setting;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Type;
 
 /** A system setting, for use in store layer only. */
 @Setter
@@ -41,11 +48,21 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
+@Entity
+@Table(name = "systemsetting")
 public class SystemSetting {
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "systemsettingid")
   private long id;
 
-  @EqualsAndHashCode.Include private String name;
+  @EqualsAndHashCode.Include
+  @Column(name = "name", nullable = false, unique = true)
+  private String name;
+
+  @Column(name = "value", columnDefinition = "text")
+  @Type(type = "text")
   private String value;
 
   public SystemSetting(String name, String value) {
