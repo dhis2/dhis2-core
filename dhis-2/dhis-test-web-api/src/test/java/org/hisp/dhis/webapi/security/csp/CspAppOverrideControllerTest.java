@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.security.csp;
 
-import static java.nio.file.Files.createTempDirectory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -38,14 +37,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -53,15 +51,11 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.webapi.security.csp.CspAppOverrideControllerTest.DhisConfig;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -70,28 +64,9 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Morten Svanæs
  */
-@ContextConfiguration(classes = {DhisConfig.class})
 @Transactional
 class CspAppOverrideControllerTest extends H2ControllerIntegrationTestBase {
-  static class DhisConfig {
-    @Bean
-    public DhisConfigurationProvider dhisConfigurationProvider() {
-      return new TestDhisConfigurationProvider("appControllerBaseTestDhis.conf");
-    }
-  }
-
-  static {
-    try {
-      ClassPathResource conf = new ClassPathResource("appControllerBaseTestDhis.conf");
-      Path tempDir = createTempDirectory("cspAppFiles").toAbsolutePath();
-      try (InputStream in = conf.getInputStream()) {
-        Files.copy(in, tempDir.resolve("dhis.conf"));
-      }
-      System.setProperty("dhis2.home", tempDir.toString());
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
+  private static final List<String> APP_KEYS = List.of("maps", "other-app");
 
   private static final String CSP = "Content-Security-Policy";
   private static final String CSP_RO = "Content-Security-Policy-Report-Only";
@@ -109,6 +84,17 @@ class CspAppOverrideControllerTest extends H2ControllerIntegrationTestBase {
     }
     DELETE("/security/csp/apps/maps");
     DELETE("/security/csp/apps/other-app");
+  }
+
+  /** The Spring context is shared with other test classes: leave no installed apps behind. */
+  @AfterEach
+  void uninstallApps() {
+    for (String key : APP_KEYS) {
+      App app = appManager.getApp(key);
+      if (app != null) {
+        appManager.deleteApp(app, true);
+      }
+    }
   }
 
   private static File app(String key, boolean plugin) throws IOException {

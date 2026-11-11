@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.security.csp;
 
-import static java.nio.file.Files.createTempDirectory;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,29 +38,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.webapi.security.csp.CspReportIntakeControllerTest.DhisConfig;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -69,29 +62,8 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Morten Svanæs
  */
-@ContextConfiguration(classes = {DhisConfig.class})
 @Transactional
 class CspReportIntakeControllerTest extends H2ControllerIntegrationTestBase {
-  static class DhisConfig {
-    @Bean
-    public DhisConfigurationProvider dhisConfigurationProvider() {
-      return new TestDhisConfigurationProvider("appControllerBaseTestDhis.conf");
-    }
-  }
-
-  static {
-    try {
-      ClassPathResource conf = new ClassPathResource("appControllerBaseTestDhis.conf");
-      Path tempDir = createTempDirectory("cspReportFiles").toAbsolutePath();
-      try (InputStream in = conf.getInputStream()) {
-        Files.copy(in, tempDir.resolve("dhis.conf"));
-      }
-      System.setProperty("dhis2.home", tempDir.toString());
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
   @Autowired private AppManager appManager;
 
   private static final String WMS_REPORT =
@@ -126,6 +98,15 @@ class CspReportIntakeControllerTest extends H2ControllerIntegrationTestBase {
     }
     DELETE("/security/csp/apps/maps/reports");
     DELETE("/security/csp/apps/maps");
+  }
+
+  /** The Spring context is shared with other test classes: leave no installed app behind. */
+  @AfterEach
+  void uninstallApp() {
+    App app = appManager.getApp("maps");
+    if (app != null) {
+      appManager.deleteApp(app, true);
+    }
   }
 
   private HttpResponse report(String query, String contentType, String body) {
