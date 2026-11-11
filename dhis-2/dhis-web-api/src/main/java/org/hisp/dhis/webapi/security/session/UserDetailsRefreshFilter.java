@@ -33,7 +33,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -61,10 +60,7 @@ public class UserDetailsRefreshFilter extends OncePerRequestFilter {
       @Nonnull HttpServletResponse response,
       @Nonnull FilterChain filterChain)
       throws ServletException, IOException {
-    HttpSession session = request.getSession(false);
-    if (session != null) {
-      sessionRefresher.refresh(session);
-    }
+    sessionRefresher.refresh(request);
     filterChain.doFilter(request, response);
   }
 }

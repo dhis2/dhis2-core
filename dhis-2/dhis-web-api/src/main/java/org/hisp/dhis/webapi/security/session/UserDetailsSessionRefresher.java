@@ -114,6 +114,13 @@ public class UserDetailsSessionRefresher {
   /** Number of locks the session ids are spread over. */
   private static final int LOCK_STRIPES = 1024;
 
+  /**
+   * Request attribute holding the session authentication that {@link #refresh(HttpServletRequest)}
+   * checked against the refresh state of the session.
+   */
+  private static final String CHECKED_AUTHENTICATION_ATTRIBUTE =
+      UserDetailsSessionRefresher.class.getName() + ".CHECKED_AUTHENTICATION";
+
   private final UserDetailsChangeTracker userDetailsChangeTracker;
 
   private final UserService userService;
@@ -145,11 +152,24 @@ public class UserDetailsSessionRefresher {
 
   /**
    * Refreshes or ends the authentication of the current request when the principal of its session
-   * is stale. Updates the {@link SecurityContextHolder} accordingly.
+   * is stale. Updates the {@link SecurityContextHolder} accordingly, and records the authentication
+   * it checked in the request.
    *
-   * @param session the session of the current request, from {@code request.getSession(false)}
+   * @param request the current request, its session from {@code request.getSession(false)} is used
    */
-  public void refresh(@Nonnull HttpSession session) {
+  public void refresh(@Nonnull HttpServletRequest request) {
+    HttpSession session = request.getSession(false);
+    if (session == null) {
+      return;
+    }
+    refresh(session);
+    Authentication checked = SecurityContextHolder.getContext().getAuthentication();
+    if (getSessionPrincipal(checked) != null) {
+      request.setAttribute(CHECKED_AUTHENTICATION_ATTRIBUTE, checked);
+    }
+  }
+
+  private void refresh(@Nonnull HttpSession session) {
     try {
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       UserDetails principal = getSessionPrincipal(authentication);
@@ -181,10 +201,11 @@ public class UserDetailsSessionRefresher {
    * <p>The refresh state of the impersonating user comes from the session when the request was
    * authenticated by it: the refresh filter has checked that authentication against the state. When
    * the request authenticated itself, with HTTP basic or a personal access token, the session holds
-   * no state for it, and its principal was built from the current user details while authenticating
-   * this request. Its change token is then read here, before the target is loaded. A change
-   * committed between building that principal and reading the token is acknowledged unseen; the
-   * refresh interval revalidates the impersonating user in any case.
+   * no state for it, even when the request saved its authentication in an existing session. Its
+   * principal was built from the current user details while authenticating this request, and its
+   * change token is then read here, before the target is loaded. A change committed between
+   * building that principal and reading the token is acknowledged unseen; the refresh interval
+   * revalidates the impersonating user in any case.
    *
    * @param request the impersonation request
    * @param targetUsername the username of the user to impersonate
@@ -203,7 +224,7 @@ public class UserDetailsSessionRefresher {
           String targetToken = userDetailsChangeTracker.getChangeToken(targetUsername);
           long now = System.currentTimeMillis();
           UserDetailsRefreshState current =
-              isCheckedSessionAuthentication(session, impersonator)
+              isCheckedSessionAuthentication(request, session, impersonator)
                   ? UserDetailsRefreshState.of(session)
                   : new UserDetailsRefreshState(
                       userDetailsChangeTracker.getChangeToken(getUsername(impersonator)), now);
@@ -331,16 +352,18 @@ public class UserDetailsSessionRefresher {
   }
 
   /**
-   * Returns true when the authentication of the request is the one its session held when the
-   * request started, so that the refresh filter has checked it against the refresh state of the
-   * session. A session created by this request was not checked, nor is an authentication that this
-   * request replaced, for example with HTTP basic or a personal access token.
+   * Returns true when the authentication of the request is the session authentication that the
+   * refresh filter checked against the refresh state of the session, and the session still holds
+   * it. An authentication that this request created, for example with HTTP basic or a personal
+   * access token, was not checked, also when the request saved it in an existing session.
    */
   private static boolean isCheckedSessionAuthentication(
-      @CheckForNull HttpSession session, @CheckForNull Authentication authentication) {
+      @Nonnull HttpServletRequest request,
+      @CheckForNull HttpSession session,
+      @CheckForNull Authentication authentication) {
     return session != null
-        && !session.isNew()
         && getSessionPrincipal(authentication) != null
+        && request.getAttribute(CHECKED_AUTHENTICATION_ATTRIBUTE) == authentication
         && session.getAttribute(SPRING_SECURITY_CONTEXT_KEY) instanceof SecurityContext stored
         && stored.getAuthentication() == authentication;
   }

@@ -41,6 +41,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.List;
@@ -48,6 +51,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.security.DhisAuthenticationToken;
 import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
 import org.hisp.dhis.security.apikey.ApiToken;
@@ -76,6 +81,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.util.SerializationUtils;
 
 /**
@@ -293,6 +299,76 @@ class ImpersonationSessionRefreshTest {
 
     assertFalse(session.isInvalid());
     assertEquals("target", SecurityContextHolder.getContext().getAuthentication().getName());
+  }
+
+  static Stream<Arguments> existingSessionsWithoutStateForTheNewLogin() {
+    return Stream.of(
+        Arguments.of("session of another user", true),
+        Arguments.of("session without a login", false));
+  }
+
+  /**
+   * The refresh state of an existing session belongs to its earlier login, or to none, not to the
+   * HTTP basic login that the impersonation request saved in it.
+   */
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("existingSessionsWithoutStateForTheNewLogin")
+  void impersonationWithHttpBasicSavedInAnExistingSessionSurvivesTheNextRequest(
+      String scenario, boolean sessionHasLogin) throws Exception {
+    startImpersonationWithHttpBasicSavedInTheSession(sessionHasLogin);
+
+    nextRequest();
+
+    assertFalse(session.isInvalid());
+    assertEquals("target", SecurityContextHolder.getContext().getAuthentication().getName());
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("existingSessionsWithoutStateForTheNewLogin")
+  void sourceChangeAfterAnImpersonationWithHttpBasicSavedInAnExistingSessionEndsTheSession(
+      String scenario, boolean sessionHasLogin) throws Exception {
+    startImpersonationWithHttpBasicSavedInTheSession(sessionHasLogin);
+    when(tracker.getChangeToken("other")).thenReturn("other-after");
+
+    nextRequest();
+
+    assertTrue(session.isInvalid());
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  /**
+   * Sends an impersonation request with HTTP basic for another user and the cookie of an existing
+   * session. Like the HTTP basic filter, the request saves its authentication in the session after
+   * the refresh filter ran.
+   */
+  private void startImpersonationWithHttpBasicSavedInTheSession(boolean sessionHasLogin)
+      throws Exception {
+    if (!sessionHasLogin) {
+      session = new MockHttpSession();
+      session.setNew(false);
+      SecurityContextHolder.clearContext();
+    }
+    UserDetails other = user("other", "F_IMPERSONATE_USER");
+    when(tracker.getChangeToken("other")).thenReturn("other-before");
+
+    filter.doFilter(
+        request(),
+        new MockHttpServletResponse(),
+        (request, response) -> {
+          SecurityContext context =
+              new SecurityContextImpl(
+                  new DhisAuthenticationToken(
+                      other, null, other.getAuthorities(), LoginMethod.LOCAL));
+          SecurityContextHolder.setContext(context);
+          new HttpSessionSecurityContextRepository()
+              .saveContext(context, (HttpServletRequest) request, (HttpServletResponse) response);
+          try {
+            controller.impersonateUser(
+                (HttpServletRequest) request, (HttpServletResponse) response, "target");
+          } catch (ForbiddenException | NotFoundException ex) {
+            throw new ServletException(ex);
+          }
+        });
   }
 
   /**
