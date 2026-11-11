@@ -178,6 +178,57 @@ class CspAppOverrideControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void mapsWasmUnsafeEval_isShippedForAppAndPluginOnly_andShownAsBaseUnsafeToken() {
+    assertEquals(
+        List.of("'self'", "'wasm-unsafe-eval'"),
+        sources(header("/apps/maps/index.html", CSP), "script-src"));
+    assertEquals(
+        List.of("'self'", "'wasm-unsafe-eval'"),
+        sources(header("/apps/maps/plugin.html", CSP), "script-src"));
+    assertTrue(sources(header("/apps/maps/service-worker.js", CSP), "script-src").isEmpty());
+    assertFalse(header("/apps/other-app/index.html", CSP).contains("wasm-unsafe-eval"));
+    assertFalse(header("/apps/other-app/plugin.html", CSP).contains("wasm-unsafe-eval"));
+
+    JsonObject detail = GET("/security/csp/apps/maps").content(HttpStatus.OK);
+    assertEquals(
+        List.of("app script-src 'wasm-unsafe-eval'", "plugin script-src 'wasm-unsafe-eval'"),
+        detail.getArray("baseUnsafeTokens").stringValues());
+    assertEquals(
+        List.of("'wasm-unsafe-eval'"),
+        detail
+            .getObject("baseOverrides")
+            .getObject("plugin")
+            .getArray("script-src")
+            .stringValues());
+    assertTrue(
+        GET("/security/csp/apps/other-app")
+            .content(HttpStatus.OK)
+            .getArray("baseUnsafeTokens")
+            .isEmpty());
+    JsonObject summary =
+        GET("/security/csp/apps").content(HttpStatus.OK).getList("apps", JsonObject.class).stream()
+            .filter(a -> a.getString("appKey").string().equals("maps"))
+            .findFirst()
+            .orElseThrow();
+    assertEquals(2, summary.getArray("baseUnsafeTokens").size());
+    // shipped, not an admin override: the app has no admin unsafe flag
+    assertFalse(summary.getBoolean("hasUnsafeDirectives").booleanValue());
+  }
+
+  @Test
+  void mapsWasmUnsafeEval_canBeDisabledPerEntrypoint() {
+    PUT(
+            "/security/csp/apps/maps",
+            "{\"entrypoints\":{\"plugin\":{\"enforced\":{\"disabledBaseSources\":[\"script-src \\u0027wasm-unsafe-eval\\u0027\"]}}}}")
+        .content(HttpStatus.OK);
+
+    assertTrue(sources(header("/apps/maps/plugin.html", CSP), "script-src").isEmpty());
+    assertEquals(
+        List.of("'self'", "'wasm-unsafe-eval'"),
+        sources(header("/apps/maps/index.html", CSP), "script-src"));
+  }
+
+  @Test
   void cspMapSourcesConfigurationKey_isGone() {
     assertTrue(ConfigurationKey.getByKey("csp.map.sources").isEmpty());
   }
@@ -246,11 +297,12 @@ class CspAppOverrideControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("admin", saved.getString("updatedBy").string());
 
     String app = header("/apps/maps/index.html", CSP);
-    assertEquals(List.of("'self'", "'unsafe-eval'"), sources(app, "script-src"), app);
+    assertEquals(
+        List.of("'self'", "'wasm-unsafe-eval'", "'unsafe-eval'"), sources(app, "script-src"), app);
     assertTrue(sources(app, "img-src").contains("https://wms.example.org"), app);
     String plugin = header("/apps/maps/plugin.html", CSP);
     assertTrue(sources(plugin, "img-src").contains("https://wms.example.org"), plugin);
-    assertTrue(sources(plugin, "script-src").isEmpty(), plugin);
+    assertEquals(List.of("'self'", "'wasm-unsafe-eval'"), sources(plugin, "script-src"), plugin);
     assertFalse(header("/apps/other-app/index.html", CSP).contains("wms.example.org"));
 
     JsonObject summary =

@@ -55,6 +55,9 @@ import java.util.Set;
  *   <li>{@code tiles.maps.eox.at} for the "Sentinel-2 EOX" WMS basemap.
  * </ul>
  *
+ * <p>Maps also gets {@code script-src 'wasm-unsafe-eval'} on the app and plugin entrypoints for its
+ * WebAssembly RTL text plugin.
+ *
  * <p>Exact origins only, no wildcard host. While {@code server.https} is off the plain HTTP
  * variants are added too: the browser inherits the {@code http://} page scheme for tile fetches in
  * dev setups, and Chrome checks the source list before any upgrade.
@@ -88,6 +91,18 @@ public final class CspBaseOverrides {
   private static final List<String> MAPS_DIRECTIVES = List.of("img-src", "connect-src");
 
   /**
+   * Maps (maplibre) compiles the WebAssembly RTL text shaping plugin ({@code mapbox-gl-rtl-text})
+   * in a blob worker that inherits the policy of the document that starts it, so the app and plugin
+   * documents need {@code 'wasm-unsafe-eval'}. It is an unsafe token: it is reported as a base
+   * unsafe token ({@link #unsafeTokens}) so it stays visible, and an administrator can disable it
+   * per entrypoint with {@code disabledBaseSources: ["script-src 'wasm-unsafe-eval'"]}.
+   */
+  private static final List<String> MAPS_WASM_ENTRYPOINTS =
+      List.of(CspEntrypoints.APP, CspEntrypoints.PLUGIN);
+
+  private static final String WASM_UNSAFE_EVAL = "'wasm-unsafe-eval'";
+
+  /**
    * The base override of an app per entrypoint ({@code "*"} and specific entrypoints).
    *
    * @return entrypoint to directive to sources, empty when the app has no base override
@@ -101,10 +116,15 @@ public final class CspBaseOverrides {
     if (!https) {
       MAPS_BASEMAP_HOSTS.forEach(h -> origins.add("http://" + h));
     }
-    Map<String, List<String>> directives = new LinkedHashMap<>();
-    MAPS_DIRECTIVES.forEach(d -> directives.put(d, List.copyOf(origins)));
     Map<String, Map<String, List<String>>> result = new LinkedHashMap<>();
-    MAPS_ENTRYPOINTS.forEach(ep -> result.put(ep, directives));
+    for (String ep : MAPS_ENTRYPOINTS) {
+      Map<String, List<String>> directives = new LinkedHashMap<>();
+      MAPS_DIRECTIVES.forEach(d -> directives.put(d, List.copyOf(origins)));
+      if (MAPS_WASM_ENTRYPOINTS.contains(ep)) {
+        directives.put("script-src", List.of(WASM_UNSAFE_EVAL));
+      }
+      result.put(ep, directives);
+    }
     return result;
   }
 
@@ -121,6 +141,23 @@ public final class CspBaseOverrides {
       }
     }
     return result;
+  }
+
+  /**
+   * The unsafe sources shipped in the base override of an app, as {@code "<entrypoint> <directive>
+   * <token>"} like the {@code unsafeTokens} of administrator overrides, so a UI can badge them.
+   */
+  public static List<String> unsafeTokens(String appKey, boolean https) {
+    List<String> tokens = new ArrayList<>();
+    forApp(appKey, https)
+        .forEach(
+            (ep, directives) ->
+                directives.forEach(
+                    (d, sources) ->
+                        sources.stream()
+                            .filter(CspOverrideValidator.UNSAFE_KEYWORDS::contains)
+                            .forEach(v -> tokens.add(ep + " " + d + " " + v))));
+    return tokens;
   }
 
   /** All base sources of an app as {@code "<directive> <source>"}, for disabledBaseSources. */

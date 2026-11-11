@@ -142,6 +142,26 @@ class CspAppPolicyServiceTest {
   }
 
   @Test
+  void mapsBaseOverride_shipsWasmUnsafeEvalForAppAndPluginOnly() {
+    for (String ep : List.of("app", "plugin")) {
+      assertEquals(
+          Set.of("'self'", "'wasm-unsafe-eval'"),
+          sources(compose("maps", ep, null).contentSecurityPolicy(), "script-src"));
+    }
+    for (String ep : List.of("worker", "*")) {
+      assertFalse(compose("maps", ep, null).contentSecurityPolicy().contains("wasm-unsafe-eval"));
+    }
+    for (String ep : CspEntrypoints.KEYS) {
+      assertFalse(
+          compose("dashboard", ep, null).contentSecurityPolicy().contains("wasm-unsafe-eval"));
+    }
+    assertEquals(
+        List.of("app script-src 'wasm-unsafe-eval'", "plugin script-src 'wasm-unsafe-eval'"),
+        CspBaseOverrides.unsafeTokens("maps", true));
+    assertTrue(CspBaseOverrides.unsafeTokens("dashboard", true).isEmpty());
+  }
+
+  @Test
   void mapsBaseOverride_addsHttpVariantsWhileHttpsIsOff() {
     https = false;
     String policy = compose("maps", "app", null).contentSecurityPolicy();
