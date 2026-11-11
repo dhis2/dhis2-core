@@ -933,6 +933,64 @@ class DataEntryImportCSVTest {
         ex.getMessage());
   }
 
+  /** Excel "CSV UTF-8" starts the file with a byte order mark. */
+  @Test
+  void testByteOrderMark() {
+    List<DataEntryValue.Input> values =
+        read("\uFEFFdataElement,period,orgUnit,value\n" + "de123456789,202501,ou123456789,1\n");
+    assertEquals(1, values.size());
+    assertEquals("de123456789", values.get(0).dataElement());
+    assertNull(values.get(0).categoryOptions());
+  }
+
+  /** The header written by the 2.42 CSV export, so an export can be imported again. */
+  @Test
+  void testHeader242Export() {
+    List<DataEntryValue.Input> values =
+        read(
+            """
+        dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value,storedby,lastupdated,comment,followup,deleted
+        de123456789,202501,ou123456789,coc23456789,aoc23456789,5,admin,2025-02-01T10:00:00.000,note,true,
+        """);
+    assertEquals(1, values.size());
+    DataEntryValue.Input dv = values.get(0);
+    assertEquals("de123456789", dv.dataElement());
+    assertEquals("202501", dv.period());
+    assertEquals("ou123456789", dv.orgUnit());
+    assertEquals("coc23456789", dv.categoryOptionCombo());
+    assertNull(dv.categoryOptions());
+    assertEquals("aoc23456789", dv.attributeOptionCombo());
+    assertEquals("5", dv.value());
+    assertEquals("note", dv.comment());
+    assertEquals(true, dv.followUp());
+    assertNull(dv.deleted());
+  }
+
+  /** A lower-case COC column (2.42 export) still switches off category option columns. */
+  @Test
+  void testCategoryOptionComboColumnCaseInsensitive() {
+    List<DataEntryValue.Input> values =
+        read(
+            """
+        dataelement,period,orgunit,categoryoptioncombo,value,c1234567890
+        de123456789,202501,ou123456789,,1,co123456789
+        """);
+    assertNull(values.get(0).categoryOptionCombo());
+    assertNull(values.get(0).categoryOptions());
+  }
+
+  @Test
+  void testCategoryOptionColumnsIgnoreTimestamps() {
+    List<DataEntryValue.Input> values =
+        read(
+            """
+        dataElement,period,orgUnit,value,c1234567890,lastUpdated,created
+        de123456789,202501,ou123456789,1,co123456789,2025-01-01,2025-01-01
+        """);
+    assertNull(values.get(0).categoryOptionCombo());
+    assertEquals(Map.of("c1234567890", "co123456789"), values.get(0).categoryOptions());
+  }
+
   private static List<DataEntryValue.Input> read(@Language("csv") String csv) {
     return CSV.of(csv).as(DataEntryValue.Input.class).list();
   }
