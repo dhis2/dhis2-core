@@ -30,11 +30,13 @@
 package org.hisp.dhis.query.planner;
 
 import javax.annotation.CheckForNull;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.operators.LikeOperator;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.springframework.stereotype.Component;
 
 /**
  * Decides whether a filter path such as {@code userGroups.id} or {@code
@@ -43,9 +45,11 @@ import org.hisp.dhis.schema.SchemaService;
  *
  * @author Jason P. Pickering <jason@dhis2.org>
  */
-public final class CollectionPaths {
+@Component
+@RequiredArgsConstructor
+public class CollectionPaths {
 
-  private CollectionPaths() {}
+  private final SchemaService schemaService;
 
   /**
    * Walks the filter path and returns the type that owns the terminal property, provided the path
@@ -55,15 +59,13 @@ public final class CollectionPaths {
    * Set<String>} that the schema marks as simple) are rejected: the EXISTS predicate cannot match
    * their elements, so they stay in memory. A like filter additionally requires a text terminal.
    *
-   * @param schemaService schema lookup
    * @param rootType root type of the query
    * @param filter the filter to evaluate
    * @param terminal the terminal property of the filter path
    * @return the type owning the terminal property, or {@code null} when the path is not eligible
    */
   @CheckForNull
-  public static Class<?> itemType(
-      SchemaService schemaService, Class<?> rootType, Filter filter, Property terminal) {
+  public Class<?> itemType(Class<?> rootType, Filter filter, Property terminal) {
     if (terminal == null || !terminal.isSimple() || terminal.isCollection()) return null;
     if (filter.getOperator() instanceof LikeOperator<?> && terminal.getKlass() != String.class) {
       return null;

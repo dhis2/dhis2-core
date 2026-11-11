@@ -52,6 +52,7 @@ import org.springframework.stereotype.Component;
 public class DefaultQueryPlanner implements QueryPlanner {
 
   private final SchemaService schemaService;
+  private final CollectionPaths collectionPaths;
 
   @Override
   public <T extends IdentifiableObject> QueryPlan<T> planQuery(Query<T> query) {
@@ -111,7 +112,9 @@ public class DefaultQueryPlanner implements QueryPlanner {
         continue;
       }
 
-      if (filter.isVirtual()) {
+      if (filter.isVirtual() || isCollectionDbFilter(query, filter)) {
+        // a collection filter is its own correlated EXISTS subquery with no join on the outer
+        // root, so its alias does not count towards the distinct root aliases below
         dbQuery.add(filter);
         continue;
       }
@@ -172,7 +175,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
     if (Attribute.ObjectType.isValidType(path.getPath())) return false;
 
     if (path.haveAlias()) {
-      if (isCollectionDbFilter(query, filter, path)) {
+      if (isCollectionDbFilter(query, filter)) {
         return true;
       }
       if (pathRequiresInMemoryFiltering(query.getObjectType(), path.getAlias())) {
@@ -183,18 +186,14 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return true;
   }
 
-  private boolean isCollectionDbFilter(Query<?> query, Filter filter, PropertyPath path) {
-    if (!query.allowsDbPredicate()) {
+  private boolean isCollectionDbFilter(Query<?> query, Filter filter) {
+    if (filter.isVirtual() || !query.allowsDbPredicate() || !filter.supportsDbPredicate()) {
       return false;
     }
+    PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
+    if (path == null || !path.haveAlias()) return false;
 
-    if (!filter.supportsDbPredicate()) {
-      return false;
-    }
-
-    return CollectionPaths.itemType(
-            schemaService, query.getObjectType(), filter, path.getProperty())
-        != null;
+    return collectionPaths.itemType(query.getObjectType(), filter, path.getProperty()) != null;
   }
 
   /**
