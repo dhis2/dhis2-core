@@ -160,31 +160,13 @@ public class CspViolationService {
     Integer column;
   }
 
+  /** The violations of one app; all access goes through its synchronized methods. */
   static final class Bucket implements Serializable {
-    final LinkedHashMap<String, Entry> entries = new LinkedHashMap<>();
-  }
+    private final LinkedHashMap<String, Entry> entries = new LinkedHashMap<>();
 
-  public boolean isReportingEnabled() {
-    return config.isEnabled(CSP_ENABLED) && config.isEnabled(CSP_REPORT_ENABLED);
-  }
-
-  public void record(Report report) {
-    record(report, Instant.now());
-  }
-
-  void record(Report report, Instant now) {
-    String fingerprint =
-        String.join(
-            "|",
-            report.appKey(),
-            report.entrypoint(),
-            report.disposition(),
-            report.effectiveDirective(),
-            report.blocked());
-    Bucket bucket = buckets.get(report.appKey(), k -> new Bucket());
-    synchronized (bucket) {
-      prune(bucket, now);
-      Entry entry = bucket.entries.remove(fingerprint);
+    synchronized void add(String fingerprint, Report report, Instant now) {
+      prune(now);
+      Entry entry = entries.remove(fingerprint);
       if (entry == null) {
         entry = new Entry();
         entry.id = id(fingerprint);
@@ -201,12 +183,42 @@ public class CspViolationService {
       entry.sourceFile = report.sourceFile();
       entry.line = report.line();
       entry.column = report.column();
-      bucket.entries.put(fingerprint, entry);
-      while (bucket.entries.size() > MAX_PER_APP) {
-        String eldest = bucket.entries.keySet().iterator().next();
-        bucket.entries.remove(eldest);
+      entries.put(fingerprint, entry);
+      while (entries.size() > MAX_PER_APP) {
+        entries.remove(entries.keySet().iterator().next());
       }
     }
+
+    synchronized List<Entry> snapshot(Instant now) {
+      prune(now);
+      return new ArrayList<>(entries.values());
+    }
+
+    private void prune(Instant now) {
+      long cutoff = now.minus(TTL).toEpochMilli();
+      entries.values().removeIf(e -> e.lastSeen < cutoff);
+    }
+  }
+
+  public boolean isReportingEnabled() {
+    return config.isEnabled(CSP_ENABLED) && config.isEnabled(CSP_REPORT_ENABLED);
+  }
+
+  public void recordReport(Report report) {
+    recordReport(report, Instant.now());
+  }
+
+  void recordReport(Report report, Instant now) {
+    String fingerprint =
+        String.join(
+            "|",
+            report.appKey(),
+            report.entrypoint(),
+            report.disposition(),
+            report.effectiveDirective(),
+            report.blocked());
+    Bucket bucket = buckets.get(report.appKey(), k -> new Bucket());
+    bucket.add(fingerprint, report, now);
     buckets.put(report.appKey(), bucket);
   }
 
@@ -218,9 +230,9 @@ public class CspViolationService {
   List<Violation> list(@CheckForNull String appKey, Instant now) {
     List<Entry> entries = new ArrayList<>();
     if (appKey != null) {
-      buckets.getIfPresent(appKey).ifPresent(b -> entries.addAll(snapshot(b, now)));
+      buckets.getIfPresent(appKey).ifPresent(b -> entries.addAll(b.snapshot(now)));
     } else {
-      buckets.getAll().forEach(b -> entries.addAll(snapshot(b, now)));
+      buckets.getAll().forEach(b -> entries.addAll(b.snapshot(now)));
     }
     entries.sort(Comparator.comparingLong((Entry e) -> e.lastSeen).reversed());
     Map<String, CspPolicy> policies = new LinkedHashMap<>();
@@ -246,7 +258,7 @@ public class CspViolationService {
       }
       long enforce = 0;
       long report = 0;
-      List<Entry> entries = snapshot(bucket.get(), now);
+      List<Entry> entries = bucket.get().snapshot(now);
       for (Entry e : entries) {
         if ("report".equals(e.disposition)) {
           report += e.count;
@@ -261,18 +273,6 @@ public class CspViolationService {
 
   public void clear(String appKey) {
     buckets.invalidate(appKey);
-  }
-
-  private static List<Entry> snapshot(Bucket bucket, Instant now) {
-    synchronized (bucket) {
-      prune(bucket, now);
-      return new ArrayList<>(bucket.entries.values());
-    }
-  }
-
-  private static void prune(Bucket bucket, Instant now) {
-    long cutoff = now.minus(TTL).toEpochMilli();
-    bucket.entries.values().removeIf(e -> e.lastSeen < cutoff);
   }
 
   private Violation toView(Entry e, Map<String, CspPolicy> policies) {

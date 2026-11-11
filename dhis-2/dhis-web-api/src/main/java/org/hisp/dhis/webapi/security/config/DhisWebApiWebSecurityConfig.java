@@ -251,8 +251,11 @@ public class DhisWebApiWebSecurityConfig {
                 c ->
                     c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
-                        // browsers send CSP violation reports without any token
-                        .ignoringRequestMatchers(cspReportMatcher()))
+                        // Only /api/security/csp/report is exempt: browsers post CSP violation
+                        // reports (report-uri) without a CSRF token, so the endpoint cannot
+                        // require one. It is permitAll, size-limited (8 KiB) and rate-limited, and
+                        // only updates an in-memory diagnostic store.
+                        .ignoringRequestMatchers(cspReportMatcher())) // NOSONAR
             .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
       } else {
         http.csrf(AbstractHttpConfigurer::disable);

@@ -89,14 +89,17 @@ public final class CspOverrideValidator {
 
   /**
    * An origin {@code scheme://host[:port]} followed by anything; the remainder must be empty. The
-   * host is either a DNS name (each label {@code [a-z0-9]([a-z0-9-]*[a-z0-9])?}) optionally
-   * prefixed by {@code *.}, or an IPv4 address (which matches the DNS form).
+   * host is a DNS name or an IPv4 address, optionally prefixed by {@code *.}; its labels are
+   * checked by {@link #isValidHost(String)}.
    */
   private static final Pattern ORIGIN =
       Pattern.compile(
-          "^(?<scheme>[a-z][a-z0-9+.-]*)://(?<wild>\\*\\.)?"
-              + "(?<host>[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*)"
+          "^(?<scheme>[a-z][a-z0-9+.-]*+)://(?<wild>\\*\\.)?(?<host>[a-z0-9.-]++)"
               + "(?::(?<port>\\d{1,5}))?(?<rest>.*)$");
+
+  private static final Pattern SCHEME_ONLY = Pattern.compile("^[a-z][a-z0-9+.-]*+:$");
+
+  private static final Pattern WHITESPACE = Pattern.compile("\\s+");
 
   private static final int MAX_PORT = 65535;
 
@@ -188,33 +191,10 @@ public final class CspOverrideValidator {
                 null,
                 UNKNOWN_ENTRYPOINT,
                 "Entrypoint must be one of *, app, plugin, worker"));
-        continue;
+      } else if (ep != null) {
+        exempt |= ep.enforcementMode() == CspEnforcementMode.REPORT_ONLY_EXEMPT;
+        normalized.put(key, validateEntrypoint(key, ep, baseSources, https, now, errors, unsafe));
       }
-      if (ep == null) {
-        continue;
-      }
-      CspEnforcementMode mode = ep.enforcementMode();
-      exempt |= mode == CspEnforcementMode.REPORT_ONLY_EXEMPT;
-
-      SourceChanges enforced = ep.enforcedOrEmpty();
-      Map<String, List<String>> add =
-          validateAdds(key, enforced.addOrEmpty(), https, errors, unsafe);
-      List<String> disabled =
-          validateDisabled(key, enforced.disabledOrEmpty(), baseSources, errors);
-
-      Draft draft = ep.draftOrEmpty();
-      Map<String, List<String>> draftAdd =
-          validateAdds(key, draft.addOrEmpty(), https, errors, unsafe);
-      List<String> draftDisabled =
-          validateDisabled(key, draft.disabledOrEmpty(), baseSources, errors);
-      String expiresAt = validateExpiry(key, draft.expiresAt(), now, errors);
-
-      normalized.put(
-          key,
-          new EntrypointOverride(
-              mode,
-              new SourceChanges(add, disabled),
-              new Draft(draft.enabled(), expiresAt, draftAdd, draftDisabled)));
     }
 
     if (exempt && (approvalNote == null || approvalNote.isBlank())) {
@@ -235,6 +215,31 @@ public final class CspOverrideValidator {
       warnings.add("Unsafe sources weaken XSS protection: " + String.join(", ", unsafe));
     }
     return new Result(errors, warnings, new ArrayList<>(unsafe), exempt, normalized);
+  }
+
+  private static EntrypointOverride validateEntrypoint(
+      String key,
+      EntrypointOverride ep,
+      Set<String> baseSources,
+      boolean https,
+      Instant now,
+      List<CspValidationError> errors,
+      Set<String> unsafe) {
+    SourceChanges enforced = ep.enforcedOrEmpty();
+    Map<String, List<String>> add = validateAdds(key, enforced.addOrEmpty(), https, errors, unsafe);
+    List<String> disabled = validateDisabled(key, enforced.disabledOrEmpty(), baseSources, errors);
+
+    Draft draft = ep.draftOrEmpty();
+    Map<String, List<String>> draftAdd =
+        validateAdds(key, draft.addOrEmpty(), https, errors, unsafe);
+    List<String> draftDisabled =
+        validateDisabled(key, draft.disabledOrEmpty(), baseSources, errors);
+    String expiresAt = validateExpiry(key, draft.expiresAt(), now, errors);
+
+    return new EntrypointOverride(
+        ep.enforcementMode(),
+        new SourceChanges(add, disabled),
+        new Draft(draft.enabled(), expiresAt, draftAdd, draftDisabled));
   }
 
   /**
@@ -274,56 +279,67 @@ public final class CspOverrideValidator {
     for (Map.Entry<String, List<String>> e : add.entrySet()) {
       String directive = e.getKey() == null ? "" : e.getKey().trim().toLowerCase(Locale.ROOT);
       List<String> values = e.getValue() == null ? List.of() : e.getValue();
-      if (LOCKED_DIRECTIVES.contains(directive)) {
-        errors.add(
-            new CspValidationError(
-                entrypoint,
-                directive,
-                null,
-                LOCKED_DIRECTIVE,
-                directive + " cannot be overridden"));
-        continue;
-      }
-      if (!OVERRIDABLE_DIRECTIVES.contains(directive)) {
-        errors.add(
-            new CspValidationError(
-                entrypoint,
-                directive,
-                null,
-                UNKNOWN_DIRECTIVE,
-                "Overridable directives: " + String.join(", ", OVERRIDABLE_DIRECTIVES)));
-        continue;
-      }
-      if (values.size() > MAX_VALUES_PER_DIRECTIVE) {
-        errors.add(
-            new CspValidationError(
-                entrypoint,
-                directive,
-                null,
-                TOO_MANY_VALUES,
-                "At most " + MAX_VALUES_PER_DIRECTIVE + " values per directive"));
-        continue;
-      }
-      Set<String> accepted = new LinkedHashSet<>();
-      for (String raw : values) {
-        SourceCheck check = checkSource(directive, raw, https);
-        switch (check.verdict()) {
-          case REJECTED ->
-              errors.add(
-                  new CspValidationError(
-                      entrypoint, directive, raw, check.code(), check.message()));
-          case UNSAFE -> {
-            accepted.add(check.normalized());
-            unsafe.add(entrypoint + " " + directive + " " + check.normalized());
-          }
-          case OK -> accepted.add(check.normalized());
+      CspValidationError directiveError = checkDirective(entrypoint, directive, values);
+      if (directiveError != null) {
+        errors.add(directiveError);
+      } else {
+        Set<String> accepted = acceptSources(entrypoint, directive, values, https, errors, unsafe);
+        if (!accepted.isEmpty()) {
+          result.computeIfAbsent(directive, k -> new ArrayList<>()).addAll(accepted);
         }
-      }
-      if (!accepted.isEmpty()) {
-        result.computeIfAbsent(directive, k -> new ArrayList<>()).addAll(accepted);
       }
     }
     return result;
+  }
+
+  @CheckForNull
+  private static CspValidationError checkDirective(
+      String entrypoint, String directive, List<String> values) {
+    if (LOCKED_DIRECTIVES.contains(directive)) {
+      return new CspValidationError(
+          entrypoint, directive, null, LOCKED_DIRECTIVE, directive + " cannot be overridden");
+    }
+    if (!OVERRIDABLE_DIRECTIVES.contains(directive)) {
+      return new CspValidationError(
+          entrypoint,
+          directive,
+          null,
+          UNKNOWN_DIRECTIVE,
+          "Overridable directives: " + String.join(", ", OVERRIDABLE_DIRECTIVES));
+    }
+    if (values.size() > MAX_VALUES_PER_DIRECTIVE) {
+      return new CspValidationError(
+          entrypoint,
+          directive,
+          null,
+          TOO_MANY_VALUES,
+          "At most " + MAX_VALUES_PER_DIRECTIVE + " values per directive");
+    }
+    return null;
+  }
+
+  private static Set<String> acceptSources(
+      String entrypoint,
+      String directive,
+      List<String> values,
+      boolean https,
+      List<CspValidationError> errors,
+      Set<String> unsafe) {
+    Set<String> accepted = new LinkedHashSet<>();
+    for (String raw : values) {
+      SourceCheck check = checkSource(directive, raw, https);
+      switch (check.verdict()) {
+        case REJECTED ->
+            errors.add(
+                new CspValidationError(entrypoint, directive, raw, check.code(), check.message()));
+        case UNSAFE -> {
+          accepted.add(check.normalized());
+          unsafe.add(entrypoint + " " + directive + " " + check.normalized());
+        }
+        case OK -> accepted.add(check.normalized());
+      }
+    }
+    return accepted;
   }
 
   private static List<String> validateDisabled(
@@ -333,7 +349,7 @@ public final class CspOverrideValidator {
       List<CspValidationError> errors) {
     Set<String> result = new LinkedHashSet<>();
     for (String raw : disabled) {
-      String value = raw == null ? "" : raw.trim().replaceAll("\\s+", " ");
+      String value = raw == null ? "" : WHITESPACE.matcher(raw.trim()).replaceAll(" ");
       if (hasForbiddenCharacters(value.replace(" ", ""))) {
         errors.add(
             new CspValidationError(
@@ -404,23 +420,7 @@ public final class CspOverrideValidator {
   private static SourceCheck checkScriptSource(String value, boolean https) {
     String lower = value.toLowerCase(Locale.ROOT);
     if (lower.startsWith("'")) {
-      if (SAFE_SCRIPT_KEYWORDS.contains(lower)) {
-        return SourceCheck.ok(lower);
-      }
-      if (UNSAFE_KEYWORDS.contains(lower)) {
-        return SourceCheck.unsafe(lower);
-      }
-      if (HASH.matcher(value).matches()) {
-        // base64 is case-sensitive: keep the hash value as given, only lower the algorithm
-        int dash = value.indexOf('-');
-        return SourceCheck.ok(
-            value.substring(0, dash).toLowerCase(Locale.ROOT) + value.substring(dash));
-      }
-      if (lower.startsWith("'nonce-")) {
-        return SourceCheck.reject(
-            KEYWORD_NOT_ALLOWED, "Nonces are generated per response and cannot be configured");
-      }
-      return SourceCheck.reject(KEYWORD_NOT_ALLOWED, "Unsupported keyword " + value);
+      return checkScriptKeyword(value, lower);
     }
     if (UNSAFE_SCRIPT_SCHEMES.contains(lower)) {
       if (https && "http:".equals(lower)) {
@@ -443,6 +443,26 @@ public final class CspOverrideValidator {
     return origin.wildcard() ? SourceCheck.unsafe(origin.value()) : SourceCheck.ok(origin.value());
   }
 
+  private static SourceCheck checkScriptKeyword(String value, String lower) {
+    if (SAFE_SCRIPT_KEYWORDS.contains(lower)) {
+      return SourceCheck.ok(lower);
+    }
+    if (UNSAFE_KEYWORDS.contains(lower)) {
+      return SourceCheck.unsafe(lower);
+    }
+    if (HASH.matcher(value).matches()) {
+      // base64 is case-sensitive: keep the hash value as given, only lower the algorithm
+      int dash = value.indexOf('-');
+      return SourceCheck.ok(
+          value.substring(0, dash).toLowerCase(Locale.ROOT) + value.substring(dash));
+    }
+    if (lower.startsWith("'nonce-")) {
+      return SourceCheck.reject(
+          KEYWORD_NOT_ALLOWED, "Nonces are generated per response and cannot be configured");
+    }
+    return SourceCheck.reject(KEYWORD_NOT_ALLOWED, "Unsupported keyword " + value);
+  }
+
   private static SourceCheck checkOriginSource(String directive, String value, boolean https) {
     String lower = value.toLowerCase(Locale.ROOT);
     if ("'self'".equals(lower)) {
@@ -456,7 +476,7 @@ public final class CspOverrideValidator {
     if ("*".equals(lower)) {
       return SourceCheck.reject(WILDCARD_NOT_ALLOWED, "A bare * is not allowed");
     }
-    if (lower.matches("^[a-z][a-z0-9+.-]*:$")) {
+    if (SCHEME_ONLY.matcher(lower).matches()) {
       return SourceCheck.reject(
           INVALID_SOURCE, "Scheme-only sources are not allowed; use scheme://host[:port]");
     }
@@ -465,31 +485,37 @@ public final class CspOverrideValidator {
       return origin.error();
     }
     boolean connect = "connect-src".equals(directive);
-    switch (origin.scheme()) {
-      case "https" -> {}
-      case "wss" -> {
-        if (!connect) {
-          return SourceCheck.reject(INVALID_SOURCE, "wss:// is only allowed in connect-src");
-        }
-      }
-      case "http", "ws" -> {
-        if (!connect && "ws".equals(origin.scheme())) {
-          return SourceCheck.reject(INVALID_SOURCE, "ws:// is only allowed in connect-src");
-        }
-        if (https) {
-          return SourceCheck.reject(
-              INSECURE_SCHEME, origin.scheme() + ":// is not allowed while server.https is on");
-        }
-      }
-      default -> {
-        return SourceCheck.reject(INVALID_SOURCE, "Unsupported scheme " + origin.scheme());
-      }
+    SourceCheck schemeError = checkScheme(origin.scheme(), connect, https);
+    if (schemeError != null) {
+      return schemeError;
     }
     if (origin.wildcard() && !(connect || "img-src".equals(directive))) {
       return SourceCheck.reject(
           WILDCARD_NOT_ALLOWED, "Wildcard hosts are only allowed in img-src and connect-src");
     }
     return SourceCheck.ok(origin.value());
+  }
+
+  /** The rejection for an origin scheme in a non-script directive, or {@code null} if allowed. */
+  @CheckForNull
+  private static SourceCheck checkScheme(String scheme, boolean connect, boolean https) {
+    return switch (scheme) {
+      case "https" -> null;
+      case "wss" ->
+          connect
+              ? null
+              : SourceCheck.reject(INVALID_SOURCE, "wss:// is only allowed in connect-src");
+      case "http", "ws" -> {
+        if (!connect && "ws".equals(scheme)) {
+          yield SourceCheck.reject(INVALID_SOURCE, "ws:// is only allowed in connect-src");
+        }
+        yield https
+            ? SourceCheck.reject(
+                INSECURE_SCHEME, scheme + ":// is not allowed while server.https is on")
+            : null;
+      }
+      default -> SourceCheck.reject(INVALID_SOURCE, "Unsupported scheme " + scheme);
+    };
   }
 
   private record OriginCheck(String scheme, String value, boolean wildcard, SourceCheck error) {
@@ -508,7 +534,7 @@ public final class CspOverrideValidator {
       return OriginCheck.fail(PATH_NOT_ALLOWED, "Userinfo is not allowed in an origin");
     }
     Matcher m = ORIGIN.matcher(lower);
-    if (!m.matches()) {
+    if (!m.matches() || !isValidHost(m.group("host"))) {
       return OriginCheck.fail(INVALID_SOURCE, "Expected an origin scheme://host[:port]");
     }
     if (!m.group("rest").isEmpty()) {
@@ -523,12 +549,28 @@ public final class CspOverrideValidator {
       }
     }
     boolean wildcard = m.group("wild") != null;
-    if (wildcard && m.group("host").split("\\.").length < 2) {
+    if (wildcard && m.group("host").indexOf('.') < 0) {
       return OriginCheck.fail(
           WILDCARD_NOT_ALLOWED,
           "A wildcard needs at least two labels after *., e.g. https://*.example.org");
     }
     return new OriginCheck(m.group("scheme"), lower, wildcard, null);
+  }
+
+  /**
+   * Checks the labels of a host matched by {@link #ORIGIN} (only {@code [a-z0-9.-]}): no empty
+   * label and no label starting or ending with {@code -}.
+   */
+  private static boolean isValidHost(String host) {
+    char previous = '.';
+    for (int i = 0; i < host.length(); i++) {
+      char c = host.charAt(i);
+      if (c == '.' && (previous == '.' || previous == '-') || c == '-' && previous == '.') {
+        return false;
+      }
+      previous = c;
+    }
+    return previous != '.' && previous != '-';
   }
 
   private static int indexOfAny(String s, String chars) {

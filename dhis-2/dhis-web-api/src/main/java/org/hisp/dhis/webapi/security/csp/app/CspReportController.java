@@ -123,7 +123,7 @@ public class CspReportController {
     }
     List<CspReportParser.Raw> reports;
     try {
-      reports = CspReportParser.parse(body, request.getContentType(), MAPPER);
+      reports = CspReportParser.parse(body, MAPPER);
     } catch (IOException e) {
       drop("invalid");
       return ResponseEntity.noContent().build();
@@ -134,7 +134,7 @@ public class CspReportController {
     for (CspReportParser.Raw raw : reports) {
       CspReportParser.Outcome outcome = CspReportParser.normalize(raw, appKey, entrypoint);
       if (outcome.report() != null) {
-        violationService.record(outcome.report());
+        violationService.recordReport(outcome.report());
       } else {
         drop(outcome.dropReason());
       }

@@ -71,7 +71,7 @@ class CspReportParserTest {
       """;
 
   private static List<CspViolationService.Report> parse(String json) throws IOException {
-    return CspReportParser.parse(json.getBytes(StandardCharsets.UTF_8), null, MAPPER).stream()
+    return CspReportParser.parse(json.getBytes(StandardCharsets.UTF_8), MAPPER).stream()
         .map(raw -> CspReportParser.normalize(raw, "maps", "app").report())
         .toList();
   }
@@ -119,7 +119,7 @@ class CspReportParserTest {
                   "\"" + field + "\":\"" + valueOf(field) + "\"",
                   "\"" + field + "\":\"" + uri + "\"");
       CspReportParser.Raw raw =
-          CspReportParser.parse(json.getBytes(StandardCharsets.UTF_8), null, MAPPER).get(0);
+          CspReportParser.parse(json.getBytes(StandardCharsets.UTF_8), MAPPER).get(0);
       CspReportParser.Outcome outcome = CspReportParser.normalize(raw, "maps", "app");
       assertNull(outcome.report(), field + "=" + uri);
       assertEquals("extension", outcome.dropReason());
@@ -160,7 +160,7 @@ class CspReportParserTest {
         {"csp-report":{"effective-directive":"img-src; script-src *","blocked-uri":"https://x.org"}}
         """;
     CspReportParser.Raw raw =
-        CspReportParser.parse(json.getBytes(StandardCharsets.UTF_8), null, MAPPER).get(0);
+        CspReportParser.parse(json.getBytes(StandardCharsets.UTF_8), MAPPER).get(0);
     assertEquals("invalid", CspReportParser.normalize(raw, "maps", "app").dropReason());
   }
 }

@@ -38,6 +38,7 @@ import static org.hisp.dhis.security.utils.CspConstants.USER_UPLOADED_CONTENT_CS
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -156,8 +157,8 @@ class CspPolicyServiceTest {
 
     when(dhisConfig.isEnabled(any())).thenReturn(false);
     HttpHeaders off = cspPolicyService.getSecurityHeaders("default-src 'self'", "img-src 'self'");
-    assertEquals(null, off.getFirst("Content-Security-Policy-Report-Only"));
-    assertEquals(null, off.getFirst("Content-Security-Policy"));
+    assertNull(off.getFirst("Content-Security-Policy-Report-Only"));
+    assertNull(off.getFirst("Content-Security-Policy"));
   }
 
   @Test

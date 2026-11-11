@@ -92,9 +92,10 @@ class CspViolationServiceTest {
 
   @Test
   void sameFingerprint_isCountedOnce_withFirstAndLastSeen() {
-    service.record(report("maps", "img-src", "https://wms.example.org"), NOW);
-    service.record(report("maps", "img-src", "https://wms.example.org"), NOW.plusSeconds(60));
-    service.record(report("maps", "connect-src", "https://wms.example.org"), NOW.plusSeconds(61));
+    service.recordReport(report("maps", "img-src", "https://wms.example.org"), NOW);
+    service.recordReport(report("maps", "img-src", "https://wms.example.org"), NOW.plusSeconds(60));
+    service.recordReport(
+        report("maps", "connect-src", "https://wms.example.org"), NOW.plusSeconds(61));
 
     List<CspViolationService.Violation> list = service.list("maps", NOW.plusSeconds(62));
 
@@ -113,12 +114,13 @@ class CspViolationServiceTest {
   @Test
   void perApp_atMost100Fingerprints_leastRecentlySeenEvicted() {
     for (int i = 0; i < 105; i++) {
-      service.record(
+      service.recordReport(
           report("maps", "img-src", "https://h" + i + ".example.org"), NOW.plusSeconds(i));
     }
     // touching h5 keeps it, h0..h4 and h6..h9 are the oldest
-    service.record(report("maps", "img-src", "https://h5.example.org"), NOW.plusSeconds(200));
-    service.record(report("maps", "img-src", "https://new.example.org"), NOW.plusSeconds(201));
+    service.recordReport(report("maps", "img-src", "https://h5.example.org"), NOW.plusSeconds(200));
+    service.recordReport(
+        report("maps", "img-src", "https://new.example.org"), NOW.plusSeconds(201));
 
     List<String> blocked =
         service.list("maps", NOW.plusSeconds(202)).stream()
@@ -134,8 +136,9 @@ class CspViolationServiceTest {
 
   @Test
   void entries_expire24HoursAfterLastSeen() {
-    service.record(report("maps", "img-src", "https://old.example.org"), NOW);
-    service.record(report("maps", "img-src", "https://fresh.example.org"), NOW.plusSeconds(3600));
+    service.recordReport(report("maps", "img-src", "https://old.example.org"), NOW);
+    service.recordReport(
+        report("maps", "img-src", "https://fresh.example.org"), NOW.plusSeconds(3600));
 
     List<CspViolationService.Violation> list = service.list("maps", NOW.plusSeconds(24 * 3600 + 1));
 
@@ -145,10 +148,10 @@ class CspViolationServiceTest {
 
   @Test
   void classification_inlineEvalAndLockedDirectives_areNotSuggestable() {
-    service.record(report("maps", "script-src", "inline"), NOW);
-    service.record(report("maps", "script-src", "eval"), NOW);
-    service.record(report("maps", "object-src", "https://flash.example.org"), NOW);
-    service.record(report("maps", "img-src", "http://insecure.example.org"), NOW);
+    service.recordReport(report("maps", "script-src", "inline"), NOW);
+    service.recordReport(report("maps", "script-src", "eval"), NOW);
+    service.recordReport(report("maps", "object-src", "https://flash.example.org"), NOW);
+    service.recordReport(report("maps", "img-src", "http://insecure.example.org"), NOW);
 
     for (CspViolationService.Violation v : service.list("maps", NOW)) {
       assertFalse(v.suggestable(), v.toString());
@@ -168,18 +171,18 @@ class CspViolationServiceTest {
 
   @Test
   void status_isAllowedNow_whenTheSourceIsInTheCurrentPolicy() {
-    service.record(report("maps", "img-src", "https://allowed.example.org"), NOW);
+    service.recordReport(report("maps", "img-src", "https://allowed.example.org"), NOW);
 
     assertEquals("ALLOWED_NOW", service.list("maps", NOW).get(0).status());
   }
 
   @Test
   void counts_splitEnforceAndReport_andClearRemovesAnApp() {
-    service.record(report("maps", "img-src", "https://a.example.org"));
-    service.record(
+    service.recordReport(report("maps", "img-src", "https://a.example.org"));
+    service.recordReport(
         new CspViolationService.Report(
             "maps", "app", "report", "img-src", "https://a.example.org", "d", null, null, null));
-    service.record(report("dashboard", "img-src", "https://b.example.org"));
+    service.recordReport(report("dashboard", "img-src", "https://b.example.org"));
 
     CspViolationService.Counts maps = service.counts24h().get("maps");
     assertEquals(new CspViolationService.Counts(2, 1, 1, 2), maps);

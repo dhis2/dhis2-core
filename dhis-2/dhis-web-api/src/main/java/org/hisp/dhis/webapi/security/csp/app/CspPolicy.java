@@ -29,12 +29,14 @@
  */
 package org.hisp.dhis.webapi.security.csp.app;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 
 /**
@@ -51,6 +53,8 @@ public final class CspPolicy {
           "worker-src", List.of("child-src", "script-src", "default-src"),
           "form-action", List.of());
 
+  private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+
   private final Map<String, Set<String>> directives = new LinkedHashMap<>();
 
   private CspPolicy() {}
@@ -62,11 +66,11 @@ public final class CspPolicy {
       if (trimmed.isEmpty()) {
         continue;
       }
-      String[] tokens = trimmed.split("\\s+");
-      Set<String> values = result.directives.computeIfAbsent(tokens[0], k -> new LinkedHashSet<>());
-      for (int i = 1; i < tokens.length; i++) {
-        values.add(tokens[i]);
-      }
+      String[] tokens = WHITESPACE.split(trimmed);
+      result
+          .directives
+          .computeIfAbsent(tokens[0], k -> new LinkedHashSet<>())
+          .addAll(Arrays.asList(tokens).subList(1, tokens.length));
     }
     return result;
   }
@@ -96,15 +100,17 @@ public final class CspPolicy {
     if (sources.isEmpty()) {
       return;
     }
-    Set<String> values = directives.get(directive);
-    if (values == null) {
-      values = new LinkedHashSet<>();
-      Set<String> fallback = resolveFallback(directive);
-      if (fallback != null) {
-        values.addAll(fallback);
-      }
-      directives.put(directive, values);
-    }
+    Set<String> values =
+        directives.computeIfAbsent(
+            directive,
+            d -> {
+              Set<String> seeded = new LinkedHashSet<>();
+              Set<String> fallback = resolveFallback(d);
+              if (fallback != null) {
+                seeded.addAll(fallback);
+              }
+              return seeded;
+            });
     values.addAll(sources);
     if (values.size() > 1) {
       values.remove("'none'");

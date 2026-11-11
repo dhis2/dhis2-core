@@ -78,6 +78,8 @@ final class CspReportParser {
 
   private static final Pattern KEYWORD = Pattern.compile("^[a-z-]{1,30}$");
 
+  private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+
   /** The fields read from a report payload, before redaction. */
   record Raw(
       String documentUri,
@@ -92,8 +94,7 @@ final class CspReportParser {
   /** Outcome of normalizing one report. */
   record Outcome(CspViolationService.Report report, String dropReason) {}
 
-  static List<Raw> parse(byte[] body, @CheckForNull String contentType, ObjectMapper mapper)
-      throws IOException {
+  static List<Raw> parse(byte[] body, ObjectMapper mapper) throws IOException {
     JsonNode root = mapper.readTree(body);
     List<Raw> result = new ArrayList<>();
     if (root == null) {
@@ -166,7 +167,9 @@ final class CspReportParser {
     String value = raw.effectiveDirective();
     if (value == null || value.isBlank()) {
       value =
-          raw.violatedDirective() == null ? null : raw.violatedDirective().trim().split("\\s+")[0];
+          raw.violatedDirective() == null
+              ? null
+              : WHITESPACE.split(raw.violatedDirective().trim())[0];
     }
     if (value == null) {
       return null;

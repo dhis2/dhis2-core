@@ -40,12 +40,14 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -78,6 +80,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CspAppOverrideService {
   private static final ObjectMapper MAPPER = JacksonObjectMapperConfig.staticJsonMapper();
+
+  private static final Pattern WHITESPACE = Pattern.compile("\\s+");
 
   private final CspAppOverrideStore store;
   private final CspAppPolicyService appPolicyService;
@@ -165,7 +169,7 @@ public class CspAppOverrideService {
   @Getter
   public static class RejectedException extends Exception {
     private final int status;
-    private final ValidateResponse body;
+    private final transient ValidateResponse body;
 
     RejectedException(int status, ValidateResponse body) {
       super("CSP override rejected");
@@ -182,33 +186,59 @@ public class CspAppOverrideService {
     List<App> installed = new ArrayList<>(appManager.getAllApps(contextPath));
     installed.sort(Comparator.comparing(App::getKey));
     for (App app : installed) {
-      String key = app.getKey();
-      CspAppOverride o = CspAppPolicyService.parse(key, stored.get(key));
-      List<String> overridden =
-          o == null ? List.of() : new ArrayList<>(o.entrypointsOrEmpty().keySet());
-      boolean activeDraft =
-          o != null
-              && o.entrypointsOrEmpty().values().stream()
-                  .anyMatch(ep -> ep != null && ep.draftOrEmpty().enabled());
-      apps.add(
-          new AppSummary(
-              key,
-              app.getDisplayName() != null ? app.getDisplayName() : app.getName(),
-              app.isBundled(),
-              !CspBaseOverrides.forApp(key, https).isEmpty(),
-              CspBaseOverrides.unsafeTokens(key, https),
-              o != null,
-              o != null && o.enabled(),
-              overridden,
-              o != null && o.hasExemptEntrypoint(),
-              o != null && o.hasUnsafeDirectives(),
-              o == null || o.unsafeTokens() == null ? List.of() : o.unsafeTokens(),
-              activeDraft,
-              o == null ? null : o.updatedAt(),
-              o == null ? null : o.updatedBy(),
-              counts.getOrDefault(key, CspViolationService.Counts.ZERO)));
+      apps.add(appSummary(app, stored.get(app.getKey()), counts, https));
     }
     return new Summary(violationService.isReportingEnabled(), https, apps);
+  }
+
+  private static AppSummary appSummary(
+      App app,
+      @CheckForNull String storedOverride,
+      Map<String, CspViolationService.Counts> counts,
+      boolean https) {
+    String key = app.getKey();
+    CspAppOverride o = CspAppPolicyService.parse(key, storedOverride);
+    if (o == null) {
+      return new AppSummary(
+          key,
+          displayName(app),
+          app.isBundled(),
+          !CspBaseOverrides.forApp(key, https).isEmpty(),
+          CspBaseOverrides.unsafeTokens(key, https),
+          false,
+          false,
+          List.of(),
+          false,
+          false,
+          List.of(),
+          false,
+          null,
+          null,
+          counts.getOrDefault(key, CspViolationService.Counts.ZERO));
+    }
+    boolean activeDraft =
+        o.entrypointsOrEmpty().values().stream()
+            .anyMatch(ep -> ep != null && ep.draftOrEmpty().enabled());
+    return new AppSummary(
+        key,
+        displayName(app),
+        app.isBundled(),
+        !CspBaseOverrides.forApp(key, https).isEmpty(),
+        CspBaseOverrides.unsafeTokens(key, https),
+        true,
+        o.enabled(),
+        new ArrayList<>(o.entrypointsOrEmpty().keySet()),
+        o.hasExemptEntrypoint(),
+        o.hasUnsafeDirectives(),
+        o.unsafeTokens() == null ? List.of() : o.unsafeTokens(),
+        activeDraft,
+        o.updatedAt(),
+        o.updatedBy(),
+        counts.getOrDefault(key, CspViolationService.Counts.ZERO));
+  }
+
+  private static String displayName(App app) {
+    return app.getDisplayName() != null ? app.getDisplayName() : app.getName();
   }
 
   public Detail detail(String appKey, String contextPath) throws NotFoundException {
@@ -219,7 +249,7 @@ public class CspAppOverrideService {
     Instant now = Instant.now();
     return new Detail(
         key,
-        app.getDisplayName() != null ? app.getDisplayName() : app.getName(),
+        displayName(app),
         app.isBundled(),
         entrypointPaths(app, contextPath),
         OVERRIDABLE_DIRECTIVES,
@@ -404,13 +434,9 @@ public class CspAppOverrideService {
   private static Map<String, Set<String>> policyMap(CspPolicy policy) {
     Map<String, Set<String>> map = new LinkedHashMap<>();
     for (String part : policy.toString().split(";")) {
-      String[] tokens = part.trim().split("\\s+");
+      String[] tokens = WHITESPACE.split(part.trim());
       if (tokens.length > 0 && !tokens[0].isEmpty()) {
-        Set<String> values = new LinkedHashSet<>();
-        for (int i = 1; i < tokens.length; i++) {
-          values.add(tokens[i]);
-        }
-        map.put(tokens[0], values);
+        map.put(tokens[0], new LinkedHashSet<>(Arrays.asList(tokens).subList(1, tokens.length)));
       }
     }
     return map;
@@ -531,7 +557,13 @@ public class CspAppOverrideService {
       AuditType type, String key, @CheckForNull CspAppOverride document, boolean existed) {
     Map<String, Object> data = new LinkedHashMap<>();
     data.put("appKey", key);
-    data.put("action", type == AuditType.DELETE ? "delete" : existed ? "update" : "create");
+    String action;
+    if (type == AuditType.DELETE) {
+      action = "delete";
+    } else {
+      action = existed ? "update" : "create";
+    }
+    data.put("action", action);
     if (document != null) {
       data.put("enabled", document.enabled());
       data.put("hasUnsafeDirectives", document.hasUnsafeDirectives());
