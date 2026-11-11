@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.DataEntrySummary;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -93,23 +94,28 @@ public class DataEntryPipeline {
     return importInputGroups(groups, options, progress);
   }
 
-  public ImportSummary importCsv(InputStream in) {
+  public ImportSummary importCsv(InputStream in) throws BadRequestException {
     return importCsv(in, new ImportOptions(), RecordingJobProgress.transitory());
   }
 
-  public ImportSummary importCsv(InputStream in, ImportOptions options, JobProgress progress) {
+  public ImportSummary importCsv(InputStream in, ImportOptions options, JobProgress progress)
+      throws BadRequestException {
     if (!options.isFirstRowIsHeader())
-      throw new UnsupportedOperationException("CSV without header row is no longer supported.");
-    progress.startingStage("Deserializing CVS data");
+      throw new BadRequestException(
+          ErrorCode.E8037, "CSV without header row is no longer supported");
+    progress.startingStage("Deserializing CSV data");
     List<DataEntryGroup.Input> groups =
-        progress.runStage(() -> DataEntryInput.fromCsv(in, options));
+        progress.runStageAndRethrow(
+            BadRequestException.class, () -> DataEntryInput.fromCsv(in, options));
     return importInputGroups(groups, options, progress);
   }
 
-  public ImportSummary importJson(InputStream in, ImportOptions options, JobProgress progress) {
+  public ImportSummary importJson(InputStream in, ImportOptions options, JobProgress progress)
+      throws BadRequestException {
     progress.startingStage("Deserializing JSON data");
     List<DataEntryGroup.Input> groups =
-        progress.runStage(() -> DataEntryInput.fromJson(in, options));
+        progress.runStageAndRethrow(
+            BadRequestException.class, () -> DataEntryInput.fromJson(in, options));
     return importInputGroups(groups, options, progress);
   }
 

@@ -282,9 +282,9 @@ public final class CSV {
           try {
             return c.newInstance(args);
           } catch (Exception ex) {
-            // should be impossible as long as there is no custom validation in the constructor
-            // throwing an exception, in which case the arguments are not proper, so this wraps as:
-            throw new IllegalArgumentException(ex);
+            // should be impossible as long as there is no custom validation in the constructor,
+            // so this is not an input problem (which are IllegalArgumentExceptions)
+            throw new IllegalStateException(ex);
           }
         };
       } catch (NoSuchMethodException ex) {

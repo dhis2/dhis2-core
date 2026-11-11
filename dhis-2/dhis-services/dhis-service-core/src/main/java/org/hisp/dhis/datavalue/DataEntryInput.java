@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,12 +54,16 @@ import org.hisp.dhis.dxf2.adx.AdxPeriod;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonAccessException;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonNode.Index;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonPathException;
 import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.JsonTreeException;
+import org.hisp.staxwax.XMLException;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
 
@@ -75,9 +79,15 @@ public final class DataEntryInput {
 
   @Nonnull
   public static List<DataEntryGroup.Input> fromCsv(
-      @Nonnull InputStream in, @Nonnull ImportOptions options) throws IOException {
-    List<DataEntryValue.Input> values =
-        CSV.of(wrapAndCheckCompressionFormat(in)).as(DataEntryValue.Input.class).list();
+      @Nonnull InputStream in, @Nonnull ImportOptions options)
+      throws IOException, BadRequestException {
+    List<DataEntryValue.Input> values;
+    try {
+      values = CSV.of(wrapAndCheckCompressionFormat(in)).as(DataEntryValue.Input.class).list();
+    } catch (IllegalArgumentException ex) {
+      // CSV reports all input problems as IllegalArgumentException
+      throw new BadRequestException(ErrorCode.E8037, ex.getMessage());
+    }
     String ds = options.getDataSet();
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
     return List.of(new DataEntryGroup.Input(ids, ds, values));
@@ -101,7 +111,8 @@ public final class DataEntryInput {
         }
       }
       throw new BadRequestException(ErrorCode.E8007, "No root tag found");
-    } catch (XMLStreamException ex) {
+    } catch (XMLStreamException | XMLException ex) {
+      // XMLException: staxwax wraps parse errors that occur while reading the values
       throw new BadRequestException(ErrorCode.E8007, ex.getMessage());
     }
   }
@@ -230,15 +241,32 @@ public final class DataEntryInput {
 
   @Nonnull
   public static List<DataEntryGroup.Input> fromJson(
-      @Nonnull InputStream in, @Nonnull ImportOptions options) throws IOException {
+      @Nonnull InputStream in, @Nonnull ImportOptions options)
+      throws IOException, BadRequestException {
+    byte[] json = wrapAndCheckCompressionFormat(in).readAllBytes();
+    try {
+      return fromJson(
+          JsonMixed.of(JsonNode.of(json, StandardCharsets.UTF_8, null, Index.AUTO_SKIP)), options);
+    } catch (JsonTreeException
+        | JsonPathException
+        | JsonAccessException
+        | IllegalArgumentException ex) {
+      // JsonFormatException and JsonSchemaException are IllegalArgumentExceptions,
+      // so are invalid ID schemes
+      throw new BadRequestException(ErrorCode.E8036, ex.getMessage());
+    }
+  }
+
+  @Nonnull
+  private static List<DataEntryGroup.Input> fromJson(
+      @Nonnull JsonMixed root, @Nonnull ImportOptions options) {
+    // the index is built lazily, this checks the syntax of the entire document so that
+    // incomplete input (e.g. a lone "{") and trailing content after the root are rejected
+    root.node().endIndex();
+    if (!root.isObject())
+      throw new IllegalArgumentException("Root must be an object but was: " + root.type());
+    JsonObject dvs = root.asObject();
     IdSchemes schemes = options.getIdSchemes();
-    JsonObject dvs =
-        JsonMixed.of(
-            JsonNode.of(
-                wrapAndCheckCompressionFormat(in).readAllBytes(),
-                StandardCharsets.UTF_8,
-                null,
-                Index.AUTO_SKIP));
     String ds = dvs.getString("dataSet").string();
     String completionDate = dvs.getString("completeDate").string();
     // keys that are common for all values
