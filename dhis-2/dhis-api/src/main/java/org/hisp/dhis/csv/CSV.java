@@ -298,7 +298,7 @@ public final class CSV {
           || components.stream()
               .map(Component::anyIfAbsent)
               .filter(not(String::isEmpty))
-              .anyMatch(header::contains);
+              .anyMatch(name -> header.stream().anyMatch(name::equalsIgnoreCase));
     }
 
     private void checkRequired(int[] compIdxByColIdx) {
@@ -435,6 +435,9 @@ public final class CSV {
     public Iterator<T> iterator() {
       LineBuffer buf = LineBuffer.of(16);
       try {
+        // a UTF-8 byte order mark (as written by Excel) is not part of the first column name
+        csv.mark(1);
+        if (csv.read() != '\uFEFF') csv.reset();
         // the header follows the same quoting rules as the records
         if (!buf.readLine(csv)) throw new IllegalArgumentException("No header line provided.");
       } catch (IOException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -126,7 +126,7 @@ public record DataEntryValue(
           @CheckForNull
           @CSV.Any(
               ifAbsent = "categoryOptionCombo",
-              ignore = {"storedBy", "timestamp"})
+              ignore = {"storedBy", "timestamp", "created", "lastUpdated"})
           Map<String, String> categoryOptions,
       @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
           String attributeOptionCombo,
