@@ -50,6 +50,8 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.DhisAuthenticationToken;
 import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
+import org.hisp.dhis.security.apikey.ApiToken;
+import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsChangeTracker;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
@@ -106,7 +108,9 @@ class ImpersonationSessionRefreshTest {
         new ImpersonateUserController(
             config, detailsService, mock(ApplicationEventPublisher.class), sessionRefresher);
     filter = new UserDetailsRefreshFilter(sessionRefresher);
+    // a session of an earlier login, which the refresh filter checks on every request
     session = new MockHttpSession();
+    session.setNew(false);
     SecurityContext context =
         new SecurityContextImpl(
             new DhisAuthenticationToken(source, null, source.getAuthorities(), LoginMethod.LOCAL));
@@ -228,6 +232,94 @@ class ImpersonationSessionRefreshTest {
 
     assertTrue(session.isInvalid());
     assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  static Stream<Arguments> requestsThatAuthenticateThemselves() {
+    return Stream.of(
+        Arguments.of("HTTP basic, no session", false, false),
+        Arguments.of("HTTP basic, session created by the request", true, false),
+        Arguments.of("personal access token, no session", false, true),
+        Arguments.of("personal access token, session created by the request", true, true));
+  }
+
+  /**
+   * A request that authenticates itself built the principal of the impersonating user from its
+   * current user details, so a change applied before the impersonation does not end it.
+   */
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("requestsThatAuthenticateThemselves")
+  void impersonationByARequestThatAuthenticatesItselfSurvivesTheNextRequest(
+      String scenario, boolean sessionCreatedByRequest, boolean personalAccessToken)
+      throws Exception {
+    when(tracker.getChangeToken("source")).thenReturn("source-before");
+
+    startImpersonationAuthenticatedByTheRequest(sessionCreatedByRequest, personalAccessToken);
+    nextRequest();
+
+    assertFalse(session.isInvalid());
+    assertEquals("target", SecurityContextHolder.getContext().getAuthentication().getName());
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("requestsThatAuthenticateThemselves")
+  void sourceChangeAfterAnImpersonationByARequestThatAuthenticatesItselfEndsTheSession(
+      String scenario, boolean sessionCreatedByRequest, boolean personalAccessToken)
+      throws Exception {
+    when(tracker.getChangeToken("source")).thenReturn("source-before");
+
+    startImpersonationAuthenticatedByTheRequest(sessionCreatedByRequest, personalAccessToken);
+    when(tracker.getChangeToken("source")).thenReturn("source-after");
+    nextRequest();
+
+    assertTrue(session.isInvalid());
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  /**
+   * An existing session whose authentication the request replaced, here with HTTP basic for another
+   * user, has no refresh state for the new authentication.
+   */
+  @Test
+  void impersonationByARequestThatReplacedTheSessionAuthenticationSurvivesTheNextRequest()
+      throws Exception {
+    UserDetails other = user("other", "F_IMPERSONATE_USER");
+    when(tracker.getChangeToken("other")).thenReturn("other-before");
+    SecurityContextHolder.setContext(
+        new SecurityContextImpl(
+            new DhisAuthenticationToken(other, null, other.getAuthorities(), LoginMethod.LOCAL)));
+
+    controller.impersonateUser(request(), new MockHttpServletResponse(), "target");
+    nextRequest();
+
+    assertFalse(session.isInvalid());
+    assertEquals("target", SecurityContextHolder.getContext().getAuthentication().getName());
+  }
+
+  /**
+   * Authenticates the impersonation request itself, as HTTP basic or a personal access token does:
+   * the session, if any, was created by the request and holds no refresh state.
+   */
+  private void startImpersonationAuthenticatedByTheRequest(
+      boolean sessionCreatedByRequest, boolean personalAccessToken) throws Exception {
+    Authentication authentication;
+    if (personalAccessToken) {
+      authentication = new ApiTokenAuthenticationToken(new ApiToken(), source);
+      authentication.setAuthenticated(true);
+    } else {
+      authentication =
+          new DhisAuthenticationToken(source, null, source.getAuthorities(), LoginMethod.LOCAL);
+    }
+    SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setRemoteAddr("127.0.0.1");
+    if (sessionCreatedByRequest) {
+      request.setSession(new MockHttpSession());
+    }
+
+    controller.impersonateUser(request, new MockHttpServletResponse(), "target");
+
+    session = (MockHttpSession) request.getSession(false);
+    session.setNew(false);
   }
 
   static Stream<Arguments> sourcesThatMayNoLongerImpersonate() {

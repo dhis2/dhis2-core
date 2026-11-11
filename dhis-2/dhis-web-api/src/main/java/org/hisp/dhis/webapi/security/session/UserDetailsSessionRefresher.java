@@ -178,6 +178,14 @@ public class UserDetailsSessionRefresher {
    * before {@code switchToTarget} loads the target, so that a change committed while loading is not
    * acknowledged unseen. The refresh state of the impersonating user is kept for the exit.
    *
+   * <p>The refresh state of the impersonating user comes from the session when the request was
+   * authenticated by it: the refresh filter has checked that authentication against the state. When
+   * the request authenticated itself, with HTTP basic or a personal access token, the session holds
+   * no state for it, and its principal was built from the current user details while authenticating
+   * this request. Its change token is then read here, before the target is loaded. A change
+   * committed between building that principal and reading the token is acknowledged unseen; the
+   * refresh interval revalidates the impersonating user in any case.
+   *
    * @param request the impersonation request
    * @param targetUsername the username of the user to impersonate
    * @param switchToTarget loads the target and saves its authentication in the session
@@ -190,13 +198,15 @@ public class UserDetailsSessionRefresher {
     withSessionLock(
         session,
         () -> {
+          Authentication impersonator = SecurityContextHolder.getContext().getAuthentication();
           // read before switchToTarget loads the target, see UserDetailsChangeTracker
           String targetToken = userDetailsChangeTracker.getChangeToken(targetUsername);
           long now = System.currentTimeMillis();
           UserDetailsRefreshState current =
-              session != null
+              isCheckedSessionAuthentication(session, impersonator)
                   ? UserDetailsRefreshState.of(session)
-                  : new UserDetailsRefreshState(null, now);
+                  : new UserDetailsRefreshState(
+                      userDetailsChangeTracker.getChangeToken(getUsername(impersonator)), now);
           switchToTarget.run();
           current.impersonating(targetToken, now).saveTo(request.getSession(false));
         });
@@ -318,6 +328,28 @@ public class UserDetailsSessionRefresher {
   private static boolean isReplacedInSession(HttpSession session, Authentication authentication) {
     return session.getAttribute(SPRING_SECURITY_CONTEXT_KEY) instanceof SecurityContext stored
         && stored.getAuthentication() != authentication;
+  }
+
+  /**
+   * Returns true when the authentication of the request is the one its session held when the
+   * request started, so that the refresh filter has checked it against the refresh state of the
+   * session. A session created by this request was not checked, nor is an authentication that this
+   * request replaced, for example with HTTP basic or a personal access token.
+   */
+  private static boolean isCheckedSessionAuthentication(
+      @CheckForNull HttpSession session, @CheckForNull Authentication authentication) {
+    return session != null
+        && !session.isNew()
+        && getSessionPrincipal(authentication) != null
+        && session.getAttribute(SPRING_SECURITY_CONTEXT_KEY) instanceof SecurityContext stored
+        && stored.getAuthentication() == authentication;
+  }
+
+  @Nonnull
+  private static String getUsername(@Nonnull Authentication authentication) {
+    return authentication.getPrincipal() instanceof UserDetails user
+        ? user.getUsername()
+        : authentication.getName();
   }
 
   private void withSessionLock(@CheckForNull HttpSession session, Runnable action) {
