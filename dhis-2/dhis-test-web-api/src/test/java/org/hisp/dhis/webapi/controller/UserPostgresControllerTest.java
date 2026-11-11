@@ -29,12 +29,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -128,5 +131,67 @@ class UserPostgresControllerTest extends PostgresControllerIntegrationTestBase {
     assertFalse(uids.contains(alice.getUid()), "alice (in orgA, not orgB) should not be returned");
     assertFalse(
         uids.contains(viewer.getUid()), "viewer (in orgA, not orgB) should not be returned");
+  }
+
+  @Test
+  @DisplayName(
+      "GET /users?filter=dataViewOrganisationUnits.path:like:uid returns users whose data view"
+          + " org units are at or below that org unit")
+  void testGetUsersFilterByDataViewOrgUnitPathLike() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+    OrganisationUnit orgC = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(orgC);
+
+    User alice = createUserWithAuth("alice");
+    alice.getDataViewOrganisationUnits().add(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.getDataViewOrganisationUnits().add(orgB);
+    userService.updateUser(bob);
+
+    User carol = createUserWithAuth("carol");
+    carol.getDataViewOrganisationUnits().add(orgC);
+    userService.updateUser(carol);
+
+    JsonObject response =
+        GET("/users?fields=id&total=true&filter=dataViewOrganisationUnits.path:like:"
+                + orgA.getUid())
+            .content(HttpStatus.OK);
+    List<String> uids =
+        response.getList("users", JsonUser.class).stream().map(JsonUser::getId).toList();
+
+    assertEquals(Set.of(alice.getUid(), bob.getUid()), Set.copyOf(uids));
+    assertEquals(2, response.getObject("pager").getNumber("total").intValue());
+
+    JsonObject firstPage =
+        GET("/users?fields=id&pageSize=1&total=true&filter=dataViewOrganisationUnits.path:like:"
+                + orgA.getUid())
+            .content(HttpStatus.OK);
+    assertEquals(1, firstPage.getArray("users").size());
+    assertEquals(2, firstPage.getObject("pager").getNumber("total").intValue());
+  }
+
+  @Test
+  @DisplayName(
+      "GET /users?filter=userRoles.authorities:in:[auth] returns users with a role holding that"
+          + " authority")
+  void testGetUsersFilterByRoleAuthority() {
+    User alice = createUserWithAuth("alice", "F_COLLECTION_TERMINAL_A");
+    createUserWithAuth("bob", "F_COLLECTION_TERMINAL_B");
+
+    // authorities is a collection of strings, so the filter must stay in memory
+    assertEquals(
+        List.of(alice.getUid()),
+        userIds("/users?fields=id&filter=userRoles.authorities:in:[F_COLLECTION_TERMINAL_A]"));
+  }
+
+  private List<String> userIds(String url) {
+    return GET(url).content(HttpStatus.OK).getList("users", JsonUser.class).stream()
+        .map(JsonUser::getId)
+        .toList();
   }
 }

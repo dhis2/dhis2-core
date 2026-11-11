@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,7 @@ import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.operators.Operator;
+import org.hisp.dhis.query.planner.CollectionPaths;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
@@ -357,7 +358,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     if (filter.isVirtual()) return Stream.empty();
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
     if (path == null) return Stream.empty();
-    if (isCollectionIdPredicate(query, filter, path)) return Stream.empty();
+    if (isCollectionPredicate(query, filter, path)) return Stream.empty();
     return Stream.of(path.getAlias());
   }
 
@@ -381,8 +382,8 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
         return null;
       }
 
-      if (isCollectionIdPredicate(query, filter, path)) {
-        return getCollectionIdExistsPredicate(builder, root, criteriaQuery, query, filter, path);
+      if (isCollectionPredicate(query, filter, path)) {
+        return getCollectionExistsPredicate(builder, root, criteriaQuery, query, filter, path);
       }
 
       return filter.getOperator().getPredicate(builder, root, path);
@@ -393,52 +394,39 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     throw new UnsupportedOperationException("Special filter is not implemented yet :/ " + filter);
   }
 
-  private boolean isCollectionIdPredicate(Query<?> query, Filter filter, PropertyPath path) {
+  /**
+   * Whether the filter targets a simple property reached through at least one collection (e.g.
+   * {@code dataViewOrganisationUnits.path}) and can be expressed as a correlated EXISTS.
+   */
+  private boolean isCollectionPredicate(Query<?> query, Filter filter, PropertyPath path) {
     if (!query.allowsDbPredicate() || !filter.supportsDbPredicate() || !path.haveAlias()) {
       return false;
     }
 
-    return isCollectionIdPath(query.getObjectType(), filter.getPath(), path.getProperty());
+    return CollectionPaths.itemType(
+            schemaService, query.getObjectType(), filter, path.getProperty())
+        != null;
   }
 
-  private boolean isCollectionIdPath(
-      Class<?> rootType, String filterPath, Property terminalProperty) {
-    if (terminalProperty == null || !"id".equals(terminalProperty.getName())) return false;
-
-    String[] components = filterPath.split("\\.");
-    if (components.length < 2) return false;
-
-    Schema schema = schemaService.getSchema(rootType);
-    boolean hasCollection = false;
-
-    for (int i = 0; i < components.length - 1; i++) {
-      Property property = schema.getProperty(components[i]);
-      if (property == null || property.isEmbeddedObject()) return false;
-
-      if (property.isCollection()) {
-        if (property.getItemKlass() == null) return false;
-        hasCollection = true;
-        schema = schemaService.getSchema(property.getItemKlass());
-        continue;
-      }
-
-      if (property.isSimple() || property.getKlass() == null) return false;
-      schema = schemaService.getSchema(property.getKlass());
-    }
-
-    return hasCollection;
-  }
-
+  /**
+   * Builds {@code EXISTS (select 1 from Root r join r.a join .. where r.id = root.id and <match>)}.
+   * An {@code id} eq/in match is applied directly on the joined entity. Any other match is
+   * delegated to the filter's operator, applied to a second root of the item type that is equated
+   * with the joined entity, since operators build their predicates from a {@link Root}.
+   */
   @SuppressWarnings({"rawtypes", "unchecked"})
-  private <Y> Predicate getCollectionIdExistsPredicate(
+  private <Y> Predicate getCollectionExistsPredicate(
       CriteriaBuilder builder,
       Root<Y> root,
       CriteriaQuery<?> criteriaQuery,
       Query<?> query,
       Filter filter,
       PropertyPath path) {
+    Property terminal = path.getProperty();
+    boolean idMatch = "id".equals(terminal.getName()) && filter.isIdentityMatch();
+
     Collection<?> values = filter.getOperator().getArgs();
-    if (values.isEmpty()) {
+    if (idMatch && values.isEmpty()) {
       return builder.disjunction();
     }
 
@@ -450,12 +438,23 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       joined = joined.join(alias);
     }
 
-    String terminalField = path.getPath();
-    terminalField = terminalField.substring(terminalField.lastIndexOf('.') + 1);
+    Predicate match;
+    if (idMatch) {
+      String terminalField = path.getPath();
+      terminalField = terminalField.substring(terminalField.lastIndexOf('.') + 1);
+      match = joined.get(terminalField).in(values);
+    } else {
+      Class<?> itemType =
+          CollectionPaths.itemType(schemaService, query.getObjectType(), filter, terminal);
+      Root<?> item = subquery.from((Class) itemType);
+      match =
+          builder.and(
+              builder.equal(joined, item),
+              filter.getOperator().getPredicate(builder, item, new PropertyPath(terminal, true)));
+    }
 
     subquery.select(builder.literal(1));
-    subquery.where(
-        builder.equal(subRoot.get("id"), root.get("id")), joined.get(terminalField).in(values));
+    subquery.where(builder.equal(subRoot.get("id"), root.get("id")), match);
 
     return builder.exists(subquery);
   }
