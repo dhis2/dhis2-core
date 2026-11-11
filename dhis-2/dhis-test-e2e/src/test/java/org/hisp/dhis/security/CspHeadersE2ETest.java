@@ -32,6 +32,9 @@ package org.hisp.dhis.security;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.BaseE2ETest;
 import org.hisp.dhis.test.e2e.helpers.config.TestConfiguration;
@@ -82,16 +85,34 @@ public class CspHeadersE2ETest extends BaseE2ETest {
 
   @Test
   void testGlobalShellEndpointWithAppHostCspPolicy() {
-    // GlobalShellFilter forwards /apps/{app} to AppController.renderApp, which has @CspAppHost
+    // GlobalShellFilter serves the global shell document for /apps/{app}; it gets the policy of
+    // the global-shell app, not the one of the app it frames
     ResponseEntity<String> response = getAuthenticatedFromHost("apps/maps");
-    assertAppHostCsp(response, "/apps/maps");
+    String csp = assertAppHostCsp(response, "/apps/maps");
+    assertEquals(
+        List.of("'self'"),
+        directives(csp).get("connect-src"),
+        "The global shell should not get the Maps basemap hosts, got: " + csp);
+    assertTrue(
+        csp.contains("report-uri /api/security/csp/report?app=global-shell&ep=app;"),
+        "The global shell should report as app global-shell, got: " + csp);
+  }
+
+  @Test
+  void testAppResourceEndpointWithoutRedirectFalseServesGlobalShell() {
+    // Without redirect=false, GlobalShellFilter redirects an app's index.html to /apps/{app}
+    ResponseEntity<String> response = getAuthenticated("/apps/maps/index.html");
+    String csp = assertAppHostCsp(response, "/api/apps/maps/index.html");
+    assertTrue(
+        csp.contains("report-uri /api/security/csp/report?app=global-shell&ep=app;"),
+        "/api/apps/maps/index.html should end at the global shell, got: " + csp);
   }
 
   @Test
   void testAppResourceEndpointWithAppHostCspPolicy() {
-    // AppController.renderApp has @CspAppHost
-    ResponseEntity<String> response = getAuthenticated("/apps/maps/index.html");
-    assertAppHostCsp(response, "/api/apps/maps/index.html");
+    // AppController.renderApp has @CspAppHost; the Maps app entrypoint gets the Maps base override
+    ResponseEntity<String> response = getAuthenticated("/apps/maps/index.html?redirect=false");
+    assertMapsAppCsp(response, "/api/apps/maps/index.html?redirect=false");
   }
 
   @Test
@@ -100,7 +121,7 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     // @CspAppHost. Without redirect=false, GlobalShellFilter redirects to the global shell instead.
     ResponseEntity<String> response =
         getAuthenticatedFromHost("dhis-web-maps/index.html?redirect=false");
-    assertAppHostCsp(response, "/dhis-web-maps/index.html");
+    assertMapsAppCsp(response, "/dhis-web-maps/index.html?redirect=false");
   }
 
   // ========================================================================
@@ -436,11 +457,12 @@ public class CspHeadersE2ETest extends BaseE2ETest {
   }
 
   /**
-   * Asserts that the app document was served with the app-host policy. The {@code child-src} and
-   * {@code img-src} directives only exist in that policy, so a response that fell back to the
-   * default policy, for example a login page after an authentication redirect, fails here.
+   * Asserts that the app document was served with the app-host baseline policy and returns it. The
+   * {@code child-src} and {@code img-src} directives only exist in that policy, so a response that
+   * fell back to the default policy, for example a login page after an authentication redirect,
+   * fails here.
    */
-  private void assertAppHostCsp(ResponseEntity<String> response, String label) {
+  private String assertAppHostCsp(ResponseEntity<String> response, String label) {
     assertEquals(HttpStatus.OK, response.getStatusCode(), label + " should be served");
     String csp = response.getHeaders().getFirst(CSP_HEADER);
     assertNotNull(csp, "CSP header should be present on " + label);
@@ -451,15 +473,47 @@ public class CspHeadersE2ETest extends BaseE2ETest {
         csp.contains("child-src 'self' blob:;"),
         "CSP for " + label + " should contain the app-host child-src, got: " + csp);
     assertTrue(
-        csp.contains("img-src 'self' data: blob: https://apps.dhis2.org "),
+        csp.contains("img-src 'self' data: blob: https://apps.dhis2.org"),
         "CSP for " + label + " should contain the app-host img-src, got: " + csp);
-    assertTrue(
-        csp.contains("connect-src 'self' https://"),
-        "CSP for " + label + " should contain the app-host connect-src, got: " + csp);
     assertTrue(
         csp.contains("frame-ancestors 'self'"),
         "CSP for " + label + " should contain frame-ancestors 'self', got: " + csp);
     verifyStandardSecurityHeaders(response);
+    return csp;
+  }
+
+  /**
+   * Asserts that the Maps app entrypoint got the app-host baseline plus the Maps base override: the
+   * basemap hosts in {@code img-src} and {@code connect-src}, {@code 'wasm-unsafe-eval'} in {@code
+   * script-src} and a {@code report-uri} for the Maps app.
+   */
+  private void assertMapsAppCsp(ResponseEntity<String> response, String label) {
+    String csp = assertAppHostCsp(response, label);
+    Map<String, List<String>> directives = directives(csp);
+    assertTrue(
+        directives.get("img-src").contains("https://tile.openstreetmap.org"),
+        "CSP for " + label + " should allow the Maps basemap images, got: " + csp);
+    assertTrue(
+        directives.get("connect-src").contains("https://tile.openstreetmap.org"),
+        "CSP for " + label + " should allow the Maps basemap requests, got: " + csp);
+    assertTrue(
+        directives.getOrDefault("script-src", List.of()).contains("'wasm-unsafe-eval'"),
+        "CSP for " + label + " should allow WebAssembly for Maps, got: " + csp);
+    assertTrue(
+        csp.contains("report-uri /api/security/csp/report?app=maps&ep=app;"),
+        "CSP for " + label + " should report as the Maps app entrypoint, got: " + csp);
+  }
+
+  /** Directive name to source list of a policy. */
+  private static Map<String, List<String>> directives(String policy) {
+    Map<String, List<String>> result = new HashMap<>();
+    for (String part : policy.split(";")) {
+      List<String> tokens = List.of(part.trim().split("\\s+"));
+      if (!tokens.get(0).isEmpty()) {
+        result.put(tokens.get(0), tokens.subList(1, tokens.size()));
+      }
+    }
+    return result;
   }
 
   /** Asserts that the response carries the user-uploaded-content CSP policy. */
