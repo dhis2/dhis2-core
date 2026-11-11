@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.security;
 import static org.hisp.dhis.http.HttpClientAdapter.ApiTokenHeader;
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
+import static org.hisp.dhis.user.UserConstants.LOGIN_MAX_FAILED_ATTEMPTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,6 +44,7 @@ import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.TokenWrapper;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.ControllerWithApiTokenAuthTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.user.User;
@@ -66,6 +68,8 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
   @Autowired private ApiTokenService apiTokenService;
 
   @Autowired private UserDetailsChangeTracker userDetailsChangeTracker;
+
+  @Autowired private SystemSettingsService settingsService;
 
   @BeforeAll
   static void setUpClass() {
@@ -257,6 +261,38 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
 
     userDetailsChangeTracker.markChanged(List.of(owner.getUsername()));
     assertTrue(GET(authorityUrl, ApiTokenHeader(plaintext)).content(HttpStatus.OK).booleanValue());
+  }
+
+  /**
+   * A cached token of an owner whose account got locked by failed logins is refused, and a request
+   * with it does not count as a successful login, which would lift the lock.
+   */
+  @Test
+  void testCachedTokenOfLockedOwnerIsRefusedUntilUnlocked() {
+    User owner = switchToNewUser("lockedowner");
+    String plaintext = new String(createNewToken().getPlaintextToken());
+    // the first request caches the token with the user details of its owner
+    GET(URI, ApiTokenHeader(plaintext)).content(HttpStatus.OK);
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
+    try {
+      for (int attempt = 0; attempt < LOGIN_MAX_FAILED_ATTEMPTS; attempt++) {
+        userService.registerFailedLogin(owner.getUsername());
+      }
+
+      assertEquals(
+          "The API token is disabled, locked or 2FA is enabled.",
+          GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
+      assertTrue(userService.isLocked(owner.getUsername()));
+
+      // what the expiry of the failed login counter does
+      userService.registerSuccessfulLogin(owner.getUsername());
+      JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content(HttpStatus.OK).as(JsonUser.class);
+      assertEquals(owner.getUid(), user.getId());
+    } finally {
+      settingsService.put("keyLockMultipleFailedLogins", false);
+      settingsService.clearCurrentSettings();
+    }
   }
 
   private ApiKeyTokenGenerator.TokenWrapper createNewToken() {

@@ -81,6 +81,7 @@ class UserSessionInvalidationTest {
   @Mock private AclService aclService;
   @Mock private OrganisationUnitService organisationUnitService;
   @Mock private AttributeService attributeService;
+  @Mock private UserDetailsChangeTracker userDetailsChangeTracker;
   @Mock private Cache<String> userDisplayNameCache;
   @Mock private Cache<Integer> userFailedLoginAttemptCache;
   @Mock private Cache<Integer> userAccountRecoverAttemptCache;
@@ -112,7 +113,8 @@ class UserSessionInvalidationTest {
             aclService,
             organisationUnitService,
             sessionRegistry,
-            attributeService);
+            attributeService,
+            userDetailsChangeTracker);
   }
 
   @Test
