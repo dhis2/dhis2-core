@@ -50,7 +50,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DefaultCspReportUriProvider implements CspReportUriProvider {
-  public static final String REPORT_PATH = "/api/security/csp/report";
+  /**
+   * The fixed route of {@link CspReportController#report}; only the context path varies per
+   * deployment and is prepended at runtime, so this is not a deployment setting.
+   */
+  public static final String REPORT_PATH = "/api/security/csp/report"; // NOSONAR
 
   private final DhisConfigurationProvider config;
 

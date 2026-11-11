@@ -198,6 +198,17 @@ public class CspViolationService {
       long cutoff = now.minus(TTL).toEpochMilli();
       entries.values().removeIf(e -> e.lastSeen < cutoff);
     }
+
+    private static String id(String fingerprint) {
+      try {
+        byte[] hash =
+            MessageDigest.getInstance("SHA-256")
+                .digest(fingerprint.getBytes(StandardCharsets.UTF_8));
+        return HexFormat.of().formatHex(hash, 0, 8);
+      } catch (NoSuchAlgorithmException e) {
+        throw new IllegalStateException(e);
+      }
+    }
   }
 
   public boolean isReportingEnabled() {
@@ -371,15 +382,5 @@ public class CspViolationService {
             && CspOverrideValidator.isAcceptableOnRead(
                 suggestionDirective, blocked, cspPolicyService.isHttpsEnabled());
     return new Classification("EXTERNAL", suggestable, suggestionDirective, blocked);
-  }
-
-  private static String id(String fingerprint) {
-    try {
-      byte[] hash =
-          MessageDigest.getInstance("SHA-256").digest(fingerprint.getBytes(StandardCharsets.UTF_8));
-      return HexFormat.of().formatHex(hash, 0, 8);
-    } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException(e);
-    }
   }
 }

@@ -70,7 +70,7 @@ public class CspInterceptor implements HandlerInterceptor {
   /** Path variable of {@code AppController.renderApp} holding the app name or key. */
   static final String APP_PATH_VARIABLE = "app";
 
-  private static final String APPS_PATH = "/api/apps/";
+  private static final String APPS_PATH = "/" + AppManager.INSTALLED_APP_PREFIX;
 
   private final CspPolicyService cspPolicyService;
   private final CspAppPolicyService cspAppPolicyService;
