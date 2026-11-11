@@ -33,6 +33,7 @@ import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.query.operators.MatchMode;
 import org.junit.jupiter.api.Test;
 
 class FilterTest {
@@ -48,9 +49,24 @@ class FilterTest {
   }
 
   @Test
+  void supportsDbPredicateForLikeOperators() {
+    assertTrue(Filters.like("members.path", "abc", MatchMode.ANYWHERE).supportsDbPredicate());
+    assertTrue(Filters.ilike("members.path", "abc", MatchMode.START).supportsDbPredicate());
+  }
+
+  @Test
   void doesNotSupportDbPredicateForNegatedOperators() {
     assertFalse(Filters.ne("members.id", "abc123").supportsDbPredicate());
     assertFalse(Filters.notIn("members.id", of("a", "b")).supportsDbPredicate());
+    assertFalse(Filters.notLike("members.path", "abc", MatchMode.ANYWHERE).supportsDbPredicate());
+  }
+
+  @Test
+  void identityMatchExcludesLike() {
+    assertTrue(Filters.eq("members.id", "abc123").isIdentityMatch());
+    assertTrue(Filters.in("members.id", of("a", "b")).isIdentityMatch());
+    assertFalse(Filters.like("members.id", "abc", MatchMode.ANYWHERE).isIdentityMatch());
+    assertFalse(Filters.notIn("members.id", of("a", "b")).isIdentityMatch());
   }
 
   @Test
