@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -401,40 +401,6 @@ public final class CSV {
     }
   }
 
-  private static String unquote(String str) {
-    return str == null || !str.startsWith("\"") || !str.endsWith("\"")
-        ? str
-        : str.substring(1, str.length() - 1);
-  }
-
-  /**
-   * @implNote a regex would work fine but might be used as attack vector, this is to make it safe
-   *     to handle large crafted inputs
-   */
-  private static List<String> splitOnComma(String line) {
-    if (line == null || line.isEmpty()) return List.of();
-
-    int from = 0;
-    int n = line.length();
-    List<String> elems = new ArrayList<>();
-    while (from < n) {
-      // Skip leading indent
-      while (from < n && isIndent(line.charAt(from))) from++;
-
-      // Find the next comma or end of string
-      int to = from;
-      while (to < n && line.charAt(to) != ',') to++;
-
-      // Trim trailing indent
-      int toB = to;
-      while (toB > from && isIndent(line.charAt(toB - 1))) toB--;
-
-      elems.add(line.substring(from, toB));
-      from = to + 1;
-    }
-    return elems;
-  }
-
   /**
    * @implNote a regex would work fine but might be used as attack vector, this is to make it safe
    *     to handle large crafted inputs
@@ -467,16 +433,16 @@ public final class CSV {
     @Nonnull
     @Override
     public Iterator<T> iterator() {
-      String header;
+      LineBuffer buf = LineBuffer.of(16);
       try {
-        header = csv.readLine();
+        // the header follows the same quoting rules as the records
+        if (!buf.readLine(csv)) throw new IllegalArgumentException("No header line provided.");
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
-      if (header == null) throw new IllegalArgumentException("No header line provided.");
-      List<String> columns = splitOnComma(header).stream().map(CSV::unquote).toList();
+      List<String> columns =
+          buf.split().stream().map(column -> column == null ? "" : column).toList();
       Function<List<String>, T> newRecord = as.from(columns);
-      LineBuffer buf = LineBuffer.of(columns);
       return new Iterator<>() {
         Boolean next;
 
