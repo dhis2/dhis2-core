@@ -48,6 +48,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource;
+import org.hisp.dhis.security.basic.UsernameNormalizingBasicAuthenticationConverter;
 import org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver;
 import org.hisp.dhis.security.jwt.DhisBearerJwtTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
@@ -410,6 +411,9 @@ public class DhisWebApiWebSecurityConfig {
                         // NullSecurityContextRepository by default now.
                         filter.setSecurityContextRepository(
                             new HttpSessionSecurityContextRepository());
+                        filter.setAuthenticationConverter(
+                            new UsernameNormalizingBasicAuthenticationConverter(
+                                httpBasicWebAuthenticationDetailsSource));
                         return filter;
                       }
                     }));

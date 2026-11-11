@@ -44,6 +44,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.auth.RegistrationParams;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
@@ -214,6 +215,61 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(passwordEncoder.matches(newPassword, updated.getPassword()));
     // The account is no longer expired, so the frontend's follow-up auth/login will succeed.
     assertTrue(userService.userNonExpired(updated));
+  }
+
+  /**
+   * Templates with whitespace at the edges, written as JSON string content: trailing, leading,
+   * both, tab and non-breaking space.
+   */
+  static Stream<String> edgeWhitespaceJsonTemplates() {
+    return Stream.of("%s ", " %s", " %s ", "\\t%s\\t", "\\u00a0%s\\u00a0");
+  }
+
+  @ParameterizedTest
+  @MethodSource("edgeWhitespaceJsonTemplates")
+  void testUpdatePasswordIgnoresEdgeWhitespaceInUsername(String template) {
+    String oldPassword = "Str0ng_old_1!";
+    String newPassword = "Str0ng_new_1!";
+    User user = createExpiredUser(uniqueUsername(), oldPassword);
+    clearSecurityContext();
+
+    POST(
+            "/auth/updatePassword",
+            "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                .formatted(template.formatted(user.getUsername()), oldPassword, newPassword))
+        .content(HttpStatus.OK);
+
+    User updated = userService.getUserByUsername(user.getUsername());
+    assertTrue(passwordEncoder.matches(newPassword, updated.getPassword()));
+  }
+
+  @ParameterizedTest
+  @MethodSource("edgeWhitespaceJsonTemplates")
+  void testResetPasswordIgnoresEdgeWhitespaceInUsername(String template) {
+    settingsService.put("keyAccountRecovery", true);
+    User user = switchToNewUser(uniqueUsername());
+    clearSecurityContext();
+
+    sendForgotPasswordRequest(template.formatted(user.getUsername()));
+
+    assertMessageSendTo(user.getEmail());
+  }
+
+  @ParameterizedTest
+  @MethodSource("edgeWhitespaceJsonTemplates")
+  void testResetPasswordIgnoresEdgeWhitespaceInEmail(String template) {
+    settingsService.put("keyAccountRecovery", true);
+    User user = switchToNewUser(uniqueUsername());
+    clearSecurityContext();
+
+    sendForgotPasswordRequest(template.formatted(user.getEmail()));
+
+    assertMessageSendTo(user.getEmail());
+  }
+
+  /** A fresh username per test, so the per-user recovery lockout never carries over. */
+  private static String uniqueUsername() {
+    return "user" + CodeGenerator.generateUid().toLowerCase();
   }
 
   @Test
