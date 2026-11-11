@@ -201,6 +201,17 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<String> getUsernamesByUserGroupIds(@Nonnull Collection<Long> userGroupIds);
 
   /**
+   * Reads the user groups and user roles of a user, with the authorities and restrictions of the
+   * roles, from the database. Unlike {@link User#getGroups()} and {@link User#getUserRoles()} this
+   * does not go through the second-level cache, so it is current on every node of a cluster.
+   *
+   * @param userId the primary key of the user
+   * @return the memberships of the user, empty when the user has none
+   */
+  @Nonnull
+  UserMemberships getMemberships(long userId);
+
+  /**
    * Returns all usernames in the system.
    *
    * @return a list of all usernames

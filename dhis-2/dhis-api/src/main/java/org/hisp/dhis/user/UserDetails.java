@@ -47,6 +47,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public interface UserDetails
     extends org.springframework.security.core.userdetails.UserDetails, UidObject {
@@ -138,16 +139,23 @@ public interface UserDetails
         searchOrgUnitUids,
         dataViewUnitUids,
         loadOrgUnits,
+        null,
         null);
   }
 
   /**
    * Variant of {@link #createUserDetails(User, boolean, boolean, Set, Set, Set, boolean)} that
-   * accepts a pre-resolved set of managed-group primary keys. When {@code managedGroupLongIds} is
-   * non-null it is used as-is, avoiding the per-group lazy-load N+1 incurred by {@link
-   * User#getManagedGroups()} (which initialises {@code getManagedGroups()} once per group). When
-   * null, the managed groups are resolved from the entity (legacy behaviour) for callers without
-   * access to a store.
+   * accepts a pre-resolved set of managed-group primary keys and the memberships of the user read
+   * from the database.
+   *
+   * <p>When {@code managedGroupLongIds} is non-null it is used as-is, avoiding the per-group
+   * lazy-load N+1 incurred by {@link User#getManagedGroups()} (which initialises {@code
+   * getManagedGroups()} once per group). When null, the managed groups are resolved from the entity
+   * (legacy behaviour) for callers without access to a store.
+   *
+   * <p>When {@code memberships} is non-null, the user groups, user roles, authorities and
+   * restrictions are taken from it, see {@link UserMemberships}. When null, they are read from the
+   * entity.
    */
   // TODO(DHIS2-21896) this overload chain has grown too many parameters (java:S107); replace with
   // a parameter object and change the Set<String> UID params to Set<UID>.
@@ -160,7 +168,8 @@ public interface UserDetails
       @CheckForNull Set<String> searchOrgUnitUids,
       @CheckForNull Set<String> dataViewUnitUids,
       boolean loadOrgUnits,
-      @CheckForNull Set<Long> managedGroupLongIds) {
+      @CheckForNull Set<Long> managedGroupLongIds,
+      @CheckForNull UserMemberships memberships) {
 
     if (user == null) {
       return null;
@@ -191,21 +200,34 @@ public interface UserDetails
             .accountNonLocked(accountNonLocked)
             .credentialsNonExpired(credentialsNonExpired)
             .dataViewMaxOrganisationUnitLevel(user.getDataViewMaxOrganisationUnitLevel())
-            .authorities(user.getAuthorities())
-            .allAuthorities(
-                new HashSet<>(
-                    Set.copyOf(
-                        user.getAuthorities().stream()
-                            .map(GrantedAuthority::getAuthority)
-                            .toList())))
-            .isSuper(user.isSuper())
-            .userRoleIds(new HashSet<>(setOfIds(user.getUserRoles())))
-            .userGroupIds(
-                new HashSet<>(user.getUid() == null ? Set.of() : setOfIds(user.getGroups())))
-            .managedGroupLongIds(new HashSet<>(resolvedManagedGroupLongIds))
-            .userRoleLongIds(
-                new HashSet<>(
-                    user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getUserRoles())));
+            .managedGroupLongIds(new HashSet<>(resolvedManagedGroupLongIds));
+
+    if (memberships != null) {
+      userDetailsImplBuilder
+          .authorities(
+              memberships.authorities().stream()
+                  .<GrantedAuthority>map(SimpleGrantedAuthority::new)
+                  .collect(Collectors.toList()))
+          .allAuthorities(new HashSet<>(memberships.authorities()))
+          .isSuper(memberships.authorities().contains(Authorities.ALL.toString()))
+          .userRoleIds(new HashSet<>(memberships.userRoles().values()))
+          .userGroupIds(new HashSet<>(memberships.userGroups().values()))
+          .userRoleLongIds(new HashSet<>(memberships.userRoles().keySet()));
+    } else {
+      userDetailsImplBuilder
+          .authorities(user.getAuthorities())
+          .allAuthorities(
+              new HashSet<>(
+                  Set.copyOf(
+                      user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())))
+          .isSuper(user.isSuper())
+          .userRoleIds(new HashSet<>(setOfIds(user.getUserRoles())))
+          .userGroupIds(
+              new HashSet<>(user.getUid() == null ? Set.of() : setOfIds(user.getGroups())))
+          .userRoleLongIds(
+              new HashSet<>(
+                  user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getUserRoles())));
+    }
 
     if (loadOrgUnits) {
       Set<String> userOrgUnitIds =
@@ -232,7 +254,9 @@ public interface UserDetails
           .userSearchOrgUnitIds(new HashSet<>(userSearchOrgUnitIds))
           .userEffectiveSearchOrgUnitIds(new HashSet<>(userEffectiveSearchOrgUnitIds))
           .userDataOrgUnitIds(new HashSet<>(userDataOrgUnitIds))
-          .allRestrictions(new HashSet<>(user.getAllRestrictions()));
+          .allRestrictions(
+              new HashSet<>(
+                  memberships != null ? memberships.restrictions() : user.getAllRestrictions()));
 
     } else {
       userDetailsImplBuilder

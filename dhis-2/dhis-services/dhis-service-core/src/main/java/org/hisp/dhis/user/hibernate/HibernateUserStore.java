@@ -48,6 +48,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -84,6 +86,7 @@ import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserDetailsChangeCollector;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserInvitationStatus;
+import org.hisp.dhis.user.UserMemberships;
 import org.hisp.dhis.user.UserOrgUnitProperty;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
@@ -689,6 +692,56 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             String.class)
         .setParameter("userGroupIds", userGroupIds)
         .list();
+  }
+
+  @Override
+  @Nonnull
+  public UserMemberships getMemberships(long userId) {
+    // One round trip; the first column tells which kind of row it is.
+    String sql =
+        """
+        select 1, g.usergroupid, g.uid, cast(null as varchar(255))
+        from usergroupmembers m join usergroup g on g.usergroupid = m.usergroupid
+        where m.userid = :userId
+        union all
+        select 2, r.userroleid, r.uid, cast(null as varchar(255))
+        from userrolemembers m join userrole r on r.userroleid = m.userroleid
+        where m.userid = :userId
+        union all
+        select 3, cast(null as bigint), cast(null as varchar(11)), a.authority
+        from userrolemembers m join userroleauthorities a on a.userroleid = m.userroleid
+        where m.userid = :userId
+        union all
+        select 4, cast(null as bigint), cast(null as varchar(11)), x.restriction
+        from userrolemembers m join userrolerestrictions x on x.userroleid = m.userroleid
+        where m.userid = :userId
+        """;
+    // Synchronized on the tables it reads: changes to them that are not flushed yet, for example
+    // a new member in the same transaction, are flushed before the query.
+    @SuppressWarnings("unchecked")
+    List<Object[]> rows =
+        nativeSynchronizedQuery(sql)
+            .addSynchronizedQuerySpace("usergroupmembers")
+            .addSynchronizedQuerySpace("usergroup")
+            .addSynchronizedQuerySpace("userrolemembers")
+            .addSynchronizedQuerySpace("userrole")
+            .addSynchronizedQuerySpace("userroleauthorities")
+            .addSynchronizedQuerySpace("userrolerestrictions")
+            .setParameter("userId", userId)
+            .list();
+    Map<Long, String> userGroups = new HashMap<>();
+    Map<Long, String> userRoles = new HashMap<>();
+    Set<String> authorities = new HashSet<>();
+    Set<String> restrictions = new HashSet<>();
+    for (Object[] row : rows) {
+      switch (((Number) row[0]).intValue()) {
+        case 1 -> userGroups.put(((Number) row[1]).longValue(), (String) row[2]);
+        case 2 -> userRoles.put(((Number) row[1]).longValue(), (String) row[2]);
+        case 3 -> authorities.add((String) row[3]);
+        default -> restrictions.add((String) row[3]);
+      }
+    }
+    return new UserMemberships(userGroups, userRoles, authorities, restrictions);
   }
 
   @Override
