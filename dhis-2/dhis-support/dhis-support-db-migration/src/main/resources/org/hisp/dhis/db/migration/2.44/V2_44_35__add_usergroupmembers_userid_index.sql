@@ -4,4 +4,4 @@
 -- whole table. A membership change makes every logged-in user read their groups again at once.
 -- IF NOT EXISTS lets large installations create it beforehand with CREATE INDEX CONCURRENTLY
 -- under the same name. DHIS2-22326.
-CREATE INDEX IF NOT EXISTS "in_usergroupmembers_userid" ON "usergroupmembers" ("userid");
+create index if not exists in_usergroupmembers_userid on usergroupmembers (userid);
