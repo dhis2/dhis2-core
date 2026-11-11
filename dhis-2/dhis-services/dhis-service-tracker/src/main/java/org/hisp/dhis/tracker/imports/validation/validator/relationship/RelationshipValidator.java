@@ -53,7 +53,9 @@ public class RelationshipValidator implements Validator<TrackerBundle> {
                 new MetaValidator(),
                 new LinkValidator(),
                 new ConstraintValidator(),
-                securityOwnershipValidator,
+                // the deleted link check runs after the security validator so it does not reveal
+                // anything about data the user has no access to
+                seq(securityOwnershipValidator, new DeletedLinkValidator()),
                 new DuplicationValidator()));
   }
 
