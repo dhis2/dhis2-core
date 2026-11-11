@@ -63,7 +63,11 @@ public class EventValidator implements Validator<TrackerBundle> {
                     new BlockEntryFormAfterCompletionValidator(),
                     new CategoryOptionComboValidator(),
                     new StatusValidator(),
-                    all(securityTrackerEventValidator, securitySingleEventValidator),
+                    // the deleted parent check runs after the security validators so it does not
+                    // reveal anything about data the user has no access to
+                    seq(
+                        all(securityTrackerEventValidator, securitySingleEventValidator),
+                        new DeletedParentValidator()),
                     all(
                         categoryOptValidator,
                         new DateValidator(),
