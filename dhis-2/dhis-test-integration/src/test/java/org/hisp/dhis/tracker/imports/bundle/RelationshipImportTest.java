@@ -96,7 +96,6 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
   @Test
   void successImportingRelationships() throws IOException {
-    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
     TrackerImportParams params = TrackerImportParams.builder().build();
 
     ImportReport importReport =
@@ -110,7 +109,6 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
   @Test
   void shouldPersistRelationshipFieldsAndItemWiringWhenRelationshipsAreCreated()
       throws IOException {
-    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
 
     assertNoErrors(
         trackerImportService.importTracker(
@@ -208,7 +206,6 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
   @Test
   void shouldFailWhenCreatingRelationshipToDeletedEnrollmentOrEventInDeletedEnrollment()
       throws IOException {
-    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
     // soft delete only the enrollment, leaving its event not deleted like older versions allowed
     manager.delete(manager.get(Enrollment.class, "TvctPPhpD8u"));
     manager.flush();
@@ -250,7 +247,6 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenCreatingRelationshipToDeletedTrackedEntity() throws IOException {
-    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
     manager.delete(manager.get(TrackedEntity.class, "IOR1AXXl24H"));
     manager.flush();
     manager.clear();
@@ -285,7 +281,6 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldRejectDuplicateRelationships() throws IOException {
-    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
     TrackerImportParams params = TrackerImportParams.builder().build();
 
     ImportReport first =
