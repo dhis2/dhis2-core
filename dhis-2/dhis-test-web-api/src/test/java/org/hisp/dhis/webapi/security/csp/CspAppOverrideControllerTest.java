@@ -152,20 +152,20 @@ class CspAppOverrideControllerTest extends H2ControllerIntegrationTestBase {
     return List.of();
   }
 
-  // (a) + (b): Maps hosts only for maps app/plugin entrypoints
+  // (a) + (b): Maps hosts only for the maps app, plugin and worker entrypoints
   @Test
-  void mapsHosts_onlyOnMapsAppAndPluginEntrypoints() {
+  void mapsHosts_onlyOnMapsEntrypoints() {
     String mapsApp = header("/apps/maps/index.html", CSP);
     String mapsPlugin = header("/apps/maps/plugin.html", CSP);
     String mapsWorker = header("/apps/maps/service-worker.js", CSP);
     String other = header("/apps/other-app/index.html", CSP);
     String otherPlugin = header("/apps/other-app/plugin.html", CSP);
 
-    for (String policy : List.of(mapsApp, mapsPlugin)) {
+    for (String policy : List.of(mapsApp, mapsPlugin, mapsWorker)) {
       assertTrue(sources(policy, "img-src").contains("https://tiles.openfreemap.org"), policy);
       assertTrue(sources(policy, "connect-src").contains("https://tile.openstreetmap.org"), policy);
     }
-    for (String policy : List.of(mapsWorker, other, otherPlugin)) {
+    for (String policy : List.of(other, otherPlugin)) {
       assertFalse(policy.contains("openfreemap"), policy);
       assertFalse(policy.contains("openstreetmap"), policy);
       assertEquals(List.of("'self'"), sources(policy, "connect-src"), policy);

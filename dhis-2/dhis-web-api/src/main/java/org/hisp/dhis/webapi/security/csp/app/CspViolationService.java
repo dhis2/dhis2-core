@@ -277,8 +277,12 @@ public class CspViolationService {
 
   private Violation toView(Entry e, Map<String, CspPolicy> policies) {
     Classification c = classify(e.directive, e.blocked);
+    if (PLATFORM_APP_KEY.equals(e.appKey) && c.suggestable()) {
+      // platform pages are not apps: nothing to add an override to
+      c = new Classification(c.kind(), false, c.directive(), c.source());
+    }
     String status = "NEW";
-    if (c.suggestable() && !PLATFORM_APP_KEY.equals(e.appKey)) {
+    if (c.suggestable()) {
       CspPolicy policy =
           policies.computeIfAbsent(
               e.appKey + "|" + e.entrypoint,

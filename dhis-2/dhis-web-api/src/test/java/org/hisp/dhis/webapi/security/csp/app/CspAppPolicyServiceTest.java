@@ -116,13 +116,13 @@ class CspAppPolicyServiceTest {
   }
 
   @Test
-  void nonMapsApps_getNoMapsHosts_mapsAppAndPluginDo() {
+  void nonMapsApps_getNoMapsHosts_mapsAppPluginAndWorkerDo() {
     for (String ep : CspEntrypoints.KEYS) {
       String policy = compose("dashboard", ep, null).contentSecurityPolicy();
       assertFalse(policy.contains("openstreetmap"), policy);
       assertFalse(policy.contains("openfreemap"), policy);
     }
-    for (String ep : List.of("app", "plugin")) {
+    for (String ep : List.of("app", "plugin", "worker")) {
       String policy = compose("maps", ep, null).contentSecurityPolicy();
       for (String directive : List.of("img-src", "connect-src")) {
         assertTrue(
@@ -138,7 +138,7 @@ class CspAppPolicyServiceTest {
       }
       assertFalse(policy.contains("http://"), policy);
     }
-    assertFalse(compose("maps", "worker", null).contentSecurityPolicy().contains("openfreemap"));
+    assertFalse(compose("maps", "*", null).contentSecurityPolicy().contains("openfreemap"));
   }
 
   @Test

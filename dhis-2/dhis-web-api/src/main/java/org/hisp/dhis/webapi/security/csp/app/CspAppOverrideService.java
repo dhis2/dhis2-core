@@ -36,6 +36,7 @@ import static org.hisp.dhis.security.utils.CspConstants.OVERRIDABLE_DIRECTIVES;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.appmanager.ResourceResult;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.audit.AuditScope;
@@ -366,7 +368,7 @@ public class CspAppOverrideService {
     return result;
   }
 
-  private static Map<String, String> entrypointPaths(App app, String contextPath) {
+  private Map<String, String> entrypointPaths(App app, String contextPath) {
     String base = (contextPath == null ? "" : contextPath) + "/api/apps/" + app.getKey() + "/";
     Map<String, String> paths = new LinkedHashMap<>();
     String launch = app.getLaunchPath();
@@ -376,8 +378,19 @@ public class CspAppOverrideService {
     if (app.getPluginLaunchPath() != null && !app.getPluginLaunchPath().isBlank()) {
       paths.put(CspEntrypoints.PLUGIN, base + strip(app.getPluginLaunchPath()));
     }
-    paths.put(CspEntrypoints.WORKER, base + CspEntrypoints.SERVICE_WORKER_FILE);
+    if (hasServiceWorker(app)) {
+      paths.put(CspEntrypoints.WORKER, base + CspEntrypoints.SERVICE_WORKER_FILE);
+    }
     return paths;
+  }
+
+  private boolean hasServiceWorker(App app) {
+    try {
+      return appManager.getRawAppResource(app, CspEntrypoints.SERVICE_WORKER_FILE)
+          instanceof ResourceResult.ResourceFound;
+    } catch (IOException | RuntimeException e) {
+      return false;
+    }
   }
 
   private static String strip(String path) {

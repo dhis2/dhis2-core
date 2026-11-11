@@ -43,8 +43,8 @@ import java.util.Set;
  * the server and applied to that app only. Administrators can disable single base sources per
  * entrypoint ({@code disabledBaseSources}) but never edit this table.
  *
- * <p>Maps ({@code maps}, app and plugin entrypoints) gets the basemap tile hosts of its built-in
- * basemap catalog:
+ * <p>Maps ({@code maps}, app, plugin and worker entrypoints) gets the basemap tile hosts of its
+ * built-in basemap catalog:
  *
  * <ul>
  *   <li>{@code tiles.openfreemap.org} for the vector "OSM Light" basemap (style, tiles, glyphs).
@@ -78,8 +78,12 @@ public final class CspBaseOverrides {
           "cartodb-basemaps-c.global.ssl.fastly.net",
           "tiles.maps.eox.at");
 
+  /**
+   * The service worker is included because the Maps PWA worker fetches basemap tiles itself (for
+   * its runtime cache), and those fetches are checked against the worker script's policy.
+   */
   private static final List<String> MAPS_ENTRYPOINTS =
-      List.of(CspEntrypoints.APP, CspEntrypoints.PLUGIN);
+      List.of(CspEntrypoints.APP, CspEntrypoints.PLUGIN, CspEntrypoints.WORKER);
 
   private static final List<String> MAPS_DIRECTIVES = List.of("img-src", "connect-src");
 
