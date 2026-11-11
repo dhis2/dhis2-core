@@ -39,10 +39,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.xml.stream.XMLStreamConstants;
@@ -57,7 +57,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonAccessException;
-import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonNode.Index;
@@ -65,6 +65,8 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonPathException;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonTreeException;
+import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.jsontree.Streamable;
 import org.hisp.staxwax.XMLException;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
@@ -269,77 +271,180 @@ public final class DataEntryInput {
       throw new IllegalArgumentException("Root must be an object but was: " + root.type());
     JsonObject dvs = root.asObject();
     IdSchemes schemes = options.getIdSchemes();
-    String ds = dvs.getString("dataSet").string();
-    String completionDate = dvs.getString("completeDate").string();
+    String ds = text(dvs.get("dataSet"));
+    String completionDate = text(dvs.get("completeDate"));
     // keys that are common for all values
-    String ou = dvs.getString("orgUnit").string();
-    String pe = dvs.getString("period").string();
-    JsonString aoc = dvs.getString("attributeOptionCombo");
-    String aocId = aoc.isString() ? aoc.string() : null;
-    Map<String, String> aocMap =
-        aoc.isObject() ? aoc.asMap(JsonString.class).toMap(JsonString::string) : null;
-    Boolean dryRun = dvs.getBoolean("dryRun").bool();
+    String ou = text(dvs.get("orgUnit"));
+    String pe = text(dvs.get("period"));
+    JsonValue aoc = dvs.get("attributeOptionCombo");
+    String aocId = aoc.isObject() ? null : text(aoc);
+    Map<String, String> aocMap = textMap(aoc);
+    Boolean dryRun = bool(dvs.get("dryRun"));
     if (dryRun != null) options.setDryRun(dryRun);
-    setIdSchemes(schemes, dvs);
-    DataEntryGroup.Input.Scope deletion = deletionScope(dvs);
+    // ID schemes
+    String scheme = text(dvs.get("idScheme"));
+    if (scheme != null) schemes.setIdScheme(scheme);
+    scheme = text(dvs.get("dataSetIdScheme"));
+    if (scheme != null) schemes.setDataSetIdScheme(scheme);
+    scheme = text(dvs.get("dataElementIdScheme"));
+    if (scheme != null) schemes.setDataElementIdScheme(scheme);
+    scheme = text(dvs.get("orgUnitIdScheme"));
+    if (scheme != null) schemes.setOrgUnitIdScheme(scheme);
+    scheme = text(dvs.get("categoryOptionComboIdScheme"));
+    if (scheme != null) schemes.setCategoryOptionComboIdScheme(scheme);
+    scheme = text(dvs.get("attributeOptionComboIdScheme"));
+    if (scheme != null) schemes.setAttributeOptionComboIdScheme(scheme);
+    scheme = text(dvs.get("categoryIdScheme"));
+    if (scheme != null) schemes.setCategoryIdScheme(scheme);
+    scheme = text(dvs.get("categoryOptionIdScheme"));
+    if (scheme != null) schemes.setCategoryOptionIdScheme(scheme);
+
+    // deletion scope
+    DataEntryGroup.Input.Scope deletion = null;
+    JsonValue del = dvs.get("deletion");
+    if (!del.isUndefined() && !del.isNull()) {
+      JsonObject scope = object(del);
+      deletion =
+          new DataEntryGroup.Input.Scope(
+              textList(scope.get("orgUnits")),
+              textList(scope.get("periods")),
+              elements(scope.get("elements")).stream()
+                  .map(DataEntryInput::object)
+                  .map(
+                      e ->
+                          new DataEntryGroup.Input.Scope.Element(
+                              requiredText(e.get("dataElement")),
+                              text(e.get("categoryOptionCombo")),
+                              text(e.get("attributeOptionCombo"))))
+                  .toList());
+    }
 
     // values...
     List<DataEntryValue.Input> values = new ArrayList<>();
-    JsonArray dataValues = dvs.get("dataValues");
-    if (dataValues.exists())
-      for (JsonObject dv : dataValues.values(Index.SKIP)) {
-        JsonString coc = dv.getString("categoryOptionCombo");
-        values.add(
-            new DataEntryValue.Input(
-                dv.getString("dataElement").string(),
-                dv.getString("orgUnit").string(),
-                coc.isString() ? coc.string() : null,
-                coc.isObject() ? coc.asMap(JsonString.class).toMap(JsonString::string) : null,
-                dv.getString("attributeOptionCombo").string(),
-                null,
-                null,
-                dv.getString("period").string(),
-                dv.getString("value").string(),
-                dv.getString("comment").string(),
-                dv.getBoolean("followUp").bool(),
-                dv.getBoolean("deleted").bool()));
-      }
+    for (JsonValue e : elements(dvs.get("dataValues"))) { // lazy, no copy of the array
+      JsonObject dv = object(e);
+      JsonValue coc = dv.get("categoryOptionCombo");
+      values.add(
+          new DataEntryValue.Input(
+              text(dv.get("dataElement")),
+              text(dv.get("orgUnit")),
+              coc.isObject() ? null : text(coc),
+              textMap(coc),
+              text(dv.get("attributeOptionCombo")),
+              null,
+              null,
+              text(dv.get("period")),
+              text(dv.get("value")),
+              text(dv.get("comment")),
+              bool(firstDefined(dv, "followUp", "followup")),
+              bool(dv.get("deleted"))));
+    }
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
     return List.of(
         new DataEntryGroup.Input(
             ids, ds, completionDate, null, ou, pe, aocId, aocMap, deletion, values));
   }
 
-  private static void setIdSchemes(@Nonnull IdSchemes schemes, @Nonnull JsonObject dvs) {
-    setIdScheme(dvs, "idScheme", schemes::setIdScheme);
-    setIdScheme(dvs, "dataSetIdScheme", schemes::setDataSetIdScheme);
-    setIdScheme(dvs, "dataElementIdScheme", schemes::setDataElementIdScheme);
-    setIdScheme(dvs, "orgUnitIdScheme", schemes::setOrgUnitIdScheme);
-    setIdScheme(dvs, "categoryOptionComboIdScheme", schemes::setCategoryOptionComboIdScheme);
-    setIdScheme(dvs, "attributeOptionComboIdScheme", schemes::setAttributeOptionComboIdScheme);
-    setIdScheme(dvs, "categoryIdScheme", schemes::setCategoryIdScheme);
-    setIdScheme(dvs, "categoryOptionIdScheme", schemes::setCategoryOptionIdScheme);
-  }
-
-  private static void setIdScheme(
-      @Nonnull JsonObject dvs, @Nonnull String name, @Nonnull Consumer<String> setter) {
-    if (!dvs.get(name).isUndefined()) setter.accept(dvs.getString(name).string());
-  }
-
+  /**
+   * Up to 2.42 the JSON input was mapped by Jackson which accepted any JSON scalar for a {@link
+   * String} property. Clients depend on this, for example by sending {@code "value": 5} or numeric
+   * codes, so numbers and booleans are accepted as their JSON text.
+   *
+   * @return the text of a JSON scalar or null if the value is undefined or JSON null
+   * @throws IllegalArgumentException if the value is an object or array
+   */
   @CheckForNull
-  private static DataEntryGroup.Input.Scope deletionScope(@Nonnull JsonObject dvs) {
-    if (dvs.get("deletion").isUndefined()) return null;
-    JsonObject del = dvs.getObject("deletion");
-    return new DataEntryGroup.Input.Scope(
-        del.getArray("orgUnits").stringValues(),
-        del.getArray("periods").stringValues(),
-        del.getList("elements", JsonObject.class)
-            .toList(
-                e ->
-                    new DataEntryGroup.Input.Scope.Element(
-                        e.getString("dataElement").string(),
-                        e.getString("categoryOptionCombo").string(),
-                        e.getString("attributeOptionCombo").string())));
+  private static String text(@Nonnull JsonValue value) {
+    if (value.isUndefined() || value.isNull()) return null;
+    if (value.isString()) return value.as(JsonString.class).string();
+    if (value.isNumber() || value.isBoolean()) return value.toJson();
+    throw new IllegalArgumentException(
+        "Property `%s` must be a string, number or boolean but was: %s"
+            .formatted(value.path(), value.type()));
+  }
+
+  @Nonnull
+  private static String requiredText(@Nonnull JsonValue value) {
+    String text = text(value);
+    if (text == null)
+      throw new IllegalArgumentException("Property `%s` is required".formatted(value.path()));
+    return text;
+  }
+
+  /**
+   * Accepts what 2.42 (Jackson) accepted for a boolean: JSON booleans, the strings {@code true} and
+   * {@code false} (any case), the numbers {@code 1} and {@code 0}, and an empty string as null.
+   *
+   * @return the boolean value or null if the value is undefined, JSON null or an empty string
+   * @throws IllegalArgumentException for any other value
+   */
+  @CheckForNull
+  private static Boolean bool(@Nonnull JsonValue value) {
+    if (value.isUndefined() || value.isNull()) return null;
+    if (value.isBoolean()) return value.as(JsonBoolean.class).booleanValue();
+    if (value.isString()) {
+      String str = value.as(JsonString.class).string();
+      if (str.isEmpty()) return null;
+      if ("true".equalsIgnoreCase(str)) return true;
+      if ("false".equalsIgnoreCase(str)) return false;
+    }
+    if (value.isNumber()) {
+      String num = value.toJson();
+      if ("1".equals(num)) return true;
+      if ("0".equals(num)) return false;
+    }
+    throw new IllegalArgumentException(
+        "Property `%s` must be a boolean but was: %s".formatted(value.path(), value.toJson()));
+  }
+
+  /**
+   * @return a category to option map if the value is an object, otherwise null
+   */
+  @CheckForNull
+  private static Map<String, String> textMap(@Nonnull JsonValue value) {
+    if (!value.isObject()) return null;
+    Map<String, String> res = new LinkedHashMap<>();
+    for (JsonMixed e : value.asObject().entries()) res.put(e.getKey().toString(), text(e));
+    return res;
+  }
+
+  @Nonnull
+  private static List<String> textList(@Nonnull JsonValue value) {
+    return elements(value).stream().map(DataEntryInput::requiredText).toList();
+  }
+
+  /**
+   * @return the elements of an array (iterated lazily), none if the value is undefined or JSON null
+   * @throws IllegalArgumentException if the value is not an array
+   */
+  @Nonnull
+  private static Streamable<? extends JsonValue> elements(@Nonnull JsonValue value) {
+    if (value.isUndefined() || value.isNull()) return Streamable.empty();
+    if (!value.isArray())
+      throw new IllegalArgumentException(
+          "Property `%s` must be an array but was: %s".formatted(value.path(), value.type()));
+    // SKIP: large arrays are iterated once, an index would only cost memory
+    return value.asArray().values(Index.SKIP);
+  }
+
+  /**
+   * @return the first of the given properties that is defined (not undefined), or the last one
+   */
+  @Nonnull
+  private static JsonValue firstDefined(@Nonnull JsonObject obj, @Nonnull String... names) {
+    for (int i = 0; i < names.length - 1; i++) {
+      JsonValue value = obj.get(names[i]);
+      if (!value.isUndefined()) return value;
+    }
+    return obj.get(names[names.length - 1]);
+  }
+
+  @Nonnull
+  private static JsonObject object(@Nonnull JsonValue value) {
+    if (!value.isObject())
+      throw new IllegalArgumentException(
+          "Property `%s` must be an object but was: %s".formatted(value.path(), value.type()));
+    return value.asObject();
   }
 
   @Nonnull
