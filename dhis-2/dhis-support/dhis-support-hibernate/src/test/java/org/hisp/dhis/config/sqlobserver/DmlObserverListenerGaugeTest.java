@@ -71,13 +71,10 @@ class DmlObserverListenerGaugeTest {
     registry = mock(HibernateTableEntityRegistry.class);
     eTagService = mock(ETagService.class);
     when(registry.getTableInfo("dataelement"))
-        .thenReturn(
-            new HibernateTableEntityRegistry.TableInfo(
-                "dataelement", DataElement.class, List.of()));
+        .thenReturn(new HibernateTableEntityRegistry.TableInfo("dataelement", DataElement.class));
     when(registry.getTableInfo("organisationunit"))
         .thenReturn(
-            new HibernateTableEntityRegistry.TableInfo(
-                "organisationunit", OrganisationUnit.class, List.of()));
+            new HibernateTableEntityRegistry.TableInfo("organisationunit", OrganisationUnit.class));
   }
 
   @Test

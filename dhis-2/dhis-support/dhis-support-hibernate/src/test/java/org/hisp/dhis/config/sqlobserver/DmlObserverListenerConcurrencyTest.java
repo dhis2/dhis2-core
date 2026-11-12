@@ -73,9 +73,7 @@ class DmlObserverListenerConcurrencyTest {
     registry = mock(HibernateTableEntityRegistry.class);
     // Map all tables to DataElement so version bumps happen
     when(registry.getTableInfo(any()))
-        .thenReturn(
-            new HibernateTableEntityRegistry.TableInfo(
-                "dataelement", DataElement.class, List.of()));
+        .thenReturn(new HibernateTableEntityRegistry.TableInfo("dataelement", DataElement.class));
 
     bumpCount = new AtomicInteger();
     ETagService eTagService = mock(ETagService.class);

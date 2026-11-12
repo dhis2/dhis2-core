@@ -58,7 +58,6 @@ class HibernateTableEntityRegistryTest {
   void getTableInfo_returnsMappedEntity() {
     AbstractEntityPersister persister = mock(AbstractEntityPersister.class);
     when(persister.getTableName()).thenReturn("dataelement");
-    when(persister.getIdentifierColumnNames()).thenReturn(new String[] {"dataelementid"});
     when(persister.getMappedClass()).thenReturn((Class) TestEntity.class);
 
     ObjectProvider<EntityManagerFactory> emfProvider =
@@ -68,7 +67,6 @@ class HibernateTableEntityRegistryTest {
     TableInfo info = registry.getTableInfo("dataelement");
     assertNotNull(info);
     assertEquals(TestEntity.class, info.entityClass());
-    assertEquals(java.util.List.of("dataelementid"), info.pkColumnNames());
     assertEquals("dataelement", info.tableName());
   }
 
@@ -76,7 +74,6 @@ class HibernateTableEntityRegistryTest {
   void getTableInfo_stripsSchemaPrefix() {
     AbstractEntityPersister persister = mock(AbstractEntityPersister.class);
     when(persister.getTableName()).thenReturn("public.dataelement");
-    when(persister.getIdentifierColumnNames()).thenReturn(new String[] {"dataelementid"});
     when(persister.getMappedClass()).thenReturn((Class) TestEntity.class);
 
     ObjectProvider<EntityManagerFactory> emfProvider =
@@ -92,7 +89,6 @@ class HibernateTableEntityRegistryTest {
   void getTableInfo_caseInsensitive() {
     AbstractEntityPersister persister = mock(AbstractEntityPersister.class);
     when(persister.getTableName()).thenReturn("DataElement");
-    when(persister.getIdentifierColumnNames()).thenReturn(new String[] {"dataelementid"});
     when(persister.getMappedClass()).thenReturn((Class) TestEntity.class);
 
     ObjectProvider<EntityManagerFactory> emfProvider =
@@ -107,7 +103,6 @@ class HibernateTableEntityRegistryTest {
   void getTableInfo_lazyInitializationOnlyOnFirstCall() {
     AbstractEntityPersister persister = mock(AbstractEntityPersister.class);
     when(persister.getTableName()).thenReturn("dataelement");
-    when(persister.getIdentifierColumnNames()).thenReturn(new String[] {"dataelementid"});
     when(persister.getMappedClass()).thenReturn((Class) TestEntity.class);
 
     ObjectProvider<EntityManagerFactory> emfProvider =

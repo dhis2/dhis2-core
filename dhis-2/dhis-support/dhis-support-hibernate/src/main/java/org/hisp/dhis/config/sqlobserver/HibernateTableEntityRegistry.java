@@ -30,7 +30,6 @@
 package org.hisp.dhis.config.sqlobserver;
 
 import jakarta.persistence.EntityManagerFactory;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,19 +42,18 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.springframework.beans.factory.ObjectProvider;
 
 /**
- * Maps SQL table names to Hibernate entity classes and their PK column names. Populated lazily to
- * break the circular dependency between DataSource and EntityManagerFactory.
+ * Maps SQL table names to Hibernate entity classes. Populated lazily to break the circular
+ * dependency between DataSource and EntityManagerFactory.
  *
  * @author Morten Svanæs
  */
 @Slf4j
 public class HibernateTableEntityRegistry {
 
-  public record TableInfo(String tableName, Class<?> entityClass, List<String> pkColumnNames) {
+  public record TableInfo(String tableName, Class<?> entityClass) {
     public TableInfo {
       Objects.requireNonNull(tableName);
       Objects.requireNonNull(entityClass);
-      pkColumnNames = List.copyOf(pkColumnNames);
     }
   }
 
@@ -101,14 +99,8 @@ public class HibernateTableEntityRegistry {
             tableName = tableName.substring(dotIdx + 1);
           }
 
-          String[] pkColumns = aep.getIdentifierColumnNames();
-          List<String> lowerPkColumns = new java.util.ArrayList<>(pkColumns.length);
-          for (String pkColumn : pkColumns) {
-            lowerPkColumns.add(pkColumn.toLowerCase());
-          }
-
           Class<?> entityClass = persister.getMappedClass();
-          map.put(tableName, new TableInfo(tableName, entityClass, lowerPkColumns));
+          map.put(tableName, new TableInfo(tableName, entityClass));
         }
       }
 

@@ -72,16 +72,12 @@ class DmlObserverListenerTest {
     registry = mock(HibernateTableEntityRegistry.class);
     eTagService = mock(ETagService.class);
     when(registry.getTableInfo("dataelement"))
-        .thenReturn(
-            new HibernateTableEntityRegistry.TableInfo(
-                "dataelement", DataElement.class, List.of()));
+        .thenReturn(new HibernateTableEntityRegistry.TableInfo("dataelement", DataElement.class));
     when(registry.getTableInfo("organisationunit"))
         .thenReturn(
-            new HibernateTableEntityRegistry.TableInfo(
-                "organisationunit", OrganisationUnit.class, List.of()));
+            new HibernateTableEntityRegistry.TableInfo("organisationunit", OrganisationUnit.class));
     when(registry.getTableInfo("datavalue"))
-        .thenReturn(
-            new HibernateTableEntityRegistry.TableInfo("datavalue", DataValue.class, List.of()));
+        .thenReturn(new HibernateTableEntityRegistry.TableInfo("datavalue", DataValue.class));
     listener = new DmlObserverListener(registry, eTagService, null);
     activateListener(listener);
   }
@@ -139,8 +135,7 @@ class DmlObserverListenerTest {
     // /api/jobConfigurations is a cached metadata endpoint, so its table must be observed
     when(registry.getTableInfo("jobconfiguration"))
         .thenReturn(
-            new HibernateTableEntityRegistry.TableInfo(
-                "jobconfiguration", JobConfiguration.class, List.of()));
+            new HibernateTableEntityRegistry.TableInfo("jobconfiguration", JobConfiguration.class));
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries =
         List.of(createQueryInfo("UPDATE jobconfiguration SET jobstatus = ? WHERE jobid = ?"));
