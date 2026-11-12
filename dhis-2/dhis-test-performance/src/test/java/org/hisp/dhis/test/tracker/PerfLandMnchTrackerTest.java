@@ -31,9 +31,12 @@ package org.hisp.dhis.test.tracker;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
+import static io.gatling.javaapi.core.CoreDsl.csv;
 import static io.gatling.javaapi.core.CoreDsl.details;
+import static io.gatling.javaapi.core.CoreDsl.doIf;
 import static io.gatling.javaapi.core.CoreDsl.during;
 import static io.gatling.javaapi.core.CoreDsl.exec;
+import static io.gatling.javaapi.core.CoreDsl.feed;
 import static io.gatling.javaapi.core.CoreDsl.forAll;
 import static io.gatling.javaapi.core.CoreDsl.group;
 import static io.gatling.javaapi.core.CoreDsl.incrementConcurrentUsers;
@@ -41,6 +44,7 @@ import static io.gatling.javaapi.core.CoreDsl.jsonPath;
 import static io.gatling.javaapi.core.CoreDsl.rampConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.repeat;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
+import static io.gatling.javaapi.http.HttpDsl.flushCookieJar;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
@@ -49,25 +53,15 @@ import io.gatling.javaapi.core.ChainBuilder;
 import io.gatling.javaapi.core.ClosedInjectionStep;
 import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.Session;
 import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
 import io.gatling.javaapi.http.HttpRequestActionBuilder;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,52 +78,48 @@ import org.slf4j.LoggerFactory;
  * <p>Differences to {@link TrackerTest}, for the data this database holds:
  *
  * <ul>
- *   <li>The org unit is a facility of district QP1613, and the replicated user one of its data
- *       clerks. A clerk captures in her facility and searches in her district.
+ *   <li>Each iteration takes the next case of {@code perfland-mnch/cases.csv}: a data clerk of a
+ *       facility of district QP1613 and the names she searches for. A clerk captures in her
+ *       facility and searches in her district. The test logs in as the clerk of the case, dbgen's
+ *       users, instead of replicating one.
+ *   <li>The cases cover facilities by their number of EIR children (small, median, large) and names
+ *       by how many records they match in the database (rare, common), as the query plans differ
+ *       between them. A request whose plan depends on one of them is named after its band, such as
+ *       "Get first page of TEs [small]", and has a p95 threshold per band: one p95 over all bands
+ *       is the slowest band's only.
  *   <li>EIR needs two attributes to search outside the capture scope, so every name search filters
- *       on the given and the family name, where {@link TrackerTest} filters on the first name.
- *   <li>The filter values are names of the database: {@code like:sek} on both names matches 11
- *       children in the district, {@code eq} a given and family name pair of 8. A search takes at
- *       least 3 characters (minCharactersToSearch).
- *   <li>EIR is PROTECTED, so a search returns only the clerk's children. DHIS2 2.42 drops the
- *       others after paging: a page has records only if the district's matches on it include one of
- *       the facility. The facility and the filter values are picked for that.
+ *       on the given and the family name, where {@link TrackerTest} filters on the first name. The
+ *       like search takes the first 3 letters of each name, as a user types them
+ *       (minCharactersToSearch is 3).
  *   <li>A child is linked to its mother by a Mother and child relationship when she is enrolled in
  *       ANC, so the relationships of a tracked entity are not always empty. Events have none.
  * </ul>
  *
- * <p>The p95 thresholds are {@link TrackerTest}'s, calibrated on Sierra Leone, so a run shows where
- * this database behaves differently.
+ * <p>The cases are bound to the records of the {@code perfland-mnch} dumps, which are the same for
+ * every DHIS2 version. The eq pair and the like letters of a case match a child of the clerk's
+ * facility among the first 5 matches in the district, so DHIS2 2.42, which drops what the clerk
+ * does not own after paging, returns her too. {@code -Dcases} reads another file.
  *
- * <p>Every UID and filter value is a system property, with the defaults of the {@code
- * perfland-mnch} build of QP1613: {@code -Dprogram}, {@code -DbirthStage}, {@code -DorgUnit},
- * {@code -DgivenName}, {@code -DfamilyName}, {@code -DnameLike}, {@code -DgivenEq}, {@code
- * -DfamilyEq}, {@code -DreplicaUser} and {@code -DreplicaPassword}. Profiles and their parameters
- * are those of {@link TrackerTest}.
+ * <p>The thresholds of requests without a band are {@link TrackerTest}'s, calibrated on Sierra
+ * Leone. The banded ones have none yet.
+ *
+ * <p>{@code -Dprogram}, {@code -DbirthStage}, {@code -DgivenName} and {@code -DfamilyName} default
+ * to the UIDs of the {@code perfland-mnch} metadata. Profiles and their parameters are those of
+ * {@link TrackerTest}.
  */
 public class PerfLandMnchTrackerTest extends Simulation {
   private static final Logger logger = LoggerFactory.getLogger(PerfLandMnchTrackerTest.class);
 
   private static final AtomicLong REQUEST_COUNTER = new AtomicLong();
 
-  private static final List<Map<String, Object>> userCredentials = new ArrayList<>();
-  private static FeederBuilder<Object> userFeeder;
-
   private final Profile profile;
   private final String instance;
   private final String program;
   private final String birthStage;
-  private final String orgUnit;
   private final String givenName;
   private final String familyName;
-  private final String nameLike;
-  private final String givenEq;
-  private final String familyEq;
-  private final String adminUser;
-  private final String adminPassword;
-  private final String replicaUser;
-  private final String replicaPassword;
-  private final int provisionUsers;
+  private final String password;
+  private final FeederBuilder<String> cases;
   private final int concurrentUsers;
   private final int repeat;
   private final int durationSec;
@@ -151,19 +141,72 @@ public class PerfLandMnchTrackerTest extends Simulation {
     }
   }
 
+  /** The column of a case a request's plan depends on, and its values. */
+  private enum Band {
+    NONE(null),
+    FACILITY("facilityBand", "small", "median", "large"),
+    NAMES("nameBand", "rare", "common");
+
+    private final String column;
+    private final List<String> values;
+
+    Band(String column, String... values) {
+      this.column = column;
+      this.values = List.of(values);
+    }
+  }
+
+  /**
+   * A request, named {@code name [band]} if it has a band. {@code p95Thresholds} maps a band's
+   * value, or {@code ""} for {@link Band#NONE}, to the p95 thresholds of each profile. A missing
+   * threshold asserts nothing.
+   */
   private record Request(
-      String url, EnumMap<Profile, Integer> p95Thresholds, String name, String... groups) {
-    HttpRequestActionBuilder action() {
-      return http(name).get(url).header("X-Request-ID", session -> nextRequestId(name));
+      String url,
+      Band band,
+      Map<String, Map<Profile, Integer>> p95Thresholds,
+      String name,
+      String... groups) {
+    static Request of(
+        String url, Map<Profile, Integer> p95Thresholds, String name, String... groups) {
+      return new Request(url, Band.NONE, Map.of("", p95Thresholds), name, groups);
     }
 
-    Optional<Assertion> assertion(Profile profile) {
-      return Optional.ofNullable(p95Thresholds.get(profile))
-          .map(
-              threshold -> {
+    static Request banded(
+        String url,
+        Band band,
+        Map<String, Map<Profile, Integer>> p95Thresholds,
+        String name,
+        String... groups) {
+      return new Request(url, band, p95Thresholds, name, groups);
+    }
+
+    private String name(Session session) {
+      return band == Band.NONE ? name : nameOf(session.getString(band.column));
+    }
+
+    private String nameOf(String value) {
+      return band == Band.NONE ? name : name + " [" + value + "]";
+    }
+
+    HttpRequestActionBuilder action() {
+      return http(this::name)
+          .get(url)
+          .header("X-Request-ID", session -> nextRequestId(name(session)));
+    }
+
+    Stream<Assertion> assertions(Profile profile) {
+      List<String> values = band == Band.NONE ? List.of("") : band.values;
+      return values.stream()
+          .flatMap(
+              value -> {
+                Integer threshold = p95Thresholds.getOrDefault(value, Map.of()).get(profile);
+                if (threshold == null) {
+                  return Stream.empty();
+                }
                 String[] parts = Arrays.copyOf(groups, groups.length + 1);
-                parts[groups.length] = name;
-                return details(parts).responseTime().percentile(95).lte(threshold);
+                parts[groups.length] = nameOf(value);
+                return Stream.of(details(parts).responseTime().percentile(95).lte(threshold));
               });
     }
   }
@@ -175,42 +218,26 @@ public class PerfLandMnchTrackerTest extends Simulation {
     this.instance = System.getProperty("instance", "http://localhost:8080");
     this.program = System.getProperty("program", "SSLpOM0r1U7"); // Electronic Immunization Registry
     this.birthStage = System.getProperty("birthStage", "RcbCl5ww8XY"); // Birth details
-    this.orgUnit = System.getProperty("orgUnit", "WDcivlpc7tU"); // Zotox District Hospital
     this.givenName = System.getProperty("givenName", "sB1IHYu2xQT"); // GEN - Given name
     this.familyName = System.getProperty("familyName", "ENRjVGxVL6l"); // GEN - Family name
-    this.nameLike = System.getProperty("nameLike", "sek");
-    this.givenEq = System.getProperty("givenEq", "Duhelos");
-    this.familyEq = System.getProperty("familyEq", "Nazotix");
-    this.adminUser = System.getProperty("adminUser", "admin");
-    this.adminPassword = System.getProperty("adminPassword", "district");
-    this.replicaUser = System.getProperty("replicaUser", "mnch.qp1613-21-02.1"); // clerk of orgUnit
-    this.replicaPassword = System.getProperty("replicaPassword", "Perf-Test-2026!");
+    this.password = System.getProperty("password", "Perf-Test-2026!"); // of every dbgen user
+    // Circular: every iteration takes the next case, so each band gets the same share of a run.
+    this.cases = csv(System.getProperty("cases", "perfland-mnch/cases.csv")).circular();
 
     record ProfileDefaults(
-        int concurrentUsers,
-        int provisionUsers,
-        int repeat,
-        int rampDurationSec,
-        int durationSec,
-        int steps) {}
+        int concurrentUsers, int repeat, int rampDurationSec, int durationSec, int steps) {}
     ProfileDefaults defaults =
         switch (this.profile) {
-          case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1);
-          case LOAD -> new ProfileDefaults(4, 4, 1, 15, 180, 1);
-          case CAPACITY -> new ProfileDefaults(8, 8, 1, 10, 30, 4);
+          // 120 is a multiple of the 6 cases: 40 iterations per facility band, 60 per name band.
+          case SMOKE -> new ProfileDefaults(1, 120, 1, 1, 1);
+          case LOAD -> new ProfileDefaults(4, 1, 15, 180, 1);
+          case CAPACITY -> new ProfileDefaults(8, 1, 10, 30, 4);
         };
     this.concurrentUsers = Integer.getInteger("concurrentUsers", defaults.concurrentUsers());
     this.repeat = Integer.getInteger("repeat", defaults.repeat());
-    this.provisionUsers = Integer.getInteger("provisionUsers", defaults.provisionUsers());
     this.rampDurationSec = Integer.getInteger("rampDurationSec", defaults.rampDurationSec());
     this.durationSec = Integer.getInteger("durationSec", defaults.durationSec());
     this.steps = Integer.getInteger("steps", defaults.steps());
-
-    try {
-      provisionUsers();
-    } catch (Exception e) {
-      throw new RuntimeException("User provisioning failed", e);
-    }
 
     ScenarioWithRequests trackerScenario = trackerProgramScenario();
 
@@ -235,114 +262,26 @@ public class PerfLandMnchTrackerTest extends Simulation {
     }
   }
 
-  /** Provisions test users by replicating a source user via DHIS2 API. */
-  private void provisionUsers() throws Exception {
-    logger.debug("Provisioning {} test users...", this.provisionUsers);
-
-    HttpClient client = HttpClient.newBuilder().build();
-    String auth =
-        Base64.getEncoder()
-            .encodeToString(
-                (this.adminUser + ":" + this.adminPassword).getBytes(StandardCharsets.UTF_8));
-
-    HttpRequest getUserRequest =
-        HttpRequest.newBuilder()
-            .uri(
-                URI.create(
-                    this.instance
-                        + "/api/users?filter=username:eq:"
-                        + this.replicaUser
-                        + "&fields=id"))
-            .header("Authorization", "Basic " + auth)
-            .header("Accept", "application/json")
-            .GET()
-            .build();
-
-    HttpResponse<String> getUserResponse =
-        client.send(getUserRequest, HttpResponse.BodyHandlers.ofString());
-
-    if (getUserResponse.statusCode() != 200) {
-      throw new RuntimeException(
-          "Failed to get source user: "
-              + getUserResponse.statusCode()
-              + " "
-              + getUserResponse.body());
-    }
-
-    Pattern pattern = Pattern.compile("\"id\"\\s*:\\s*\"([^\"]+)\"");
-    Matcher matcher = pattern.matcher(getUserResponse.body());
-    if (!matcher.find()) {
-      throw new RuntimeException("Could not find source user '" + this.replicaUser + "'");
-    }
-    String userId = matcher.group(1);
-    logger.debug("Found source user '{}' with ID: {}", this.replicaUser, userId);
-
-    // Throttle user creation to avoid overwhelming the system
-    int provisionDelayMs = Integer.getInteger("provisionDelayMs", 100);
-    for (int i = 1; i <= this.provisionUsers; i++) {
-      String username = "%s_user_%03d".formatted(this.replicaUser, i);
-      String requestBody =
-          """
-          {"username":"%s","password":"%s"}
-          """
-              .formatted(username, this.replicaPassword)
-              .trim();
-
-      HttpRequest replicateRequest =
-          HttpRequest.newBuilder()
-              .uri(URI.create(this.instance + "/api/users/" + userId + "/replica"))
-              .header("Authorization", "Basic " + auth)
-              .header("Content-Type", "application/json")
-              .header("Accept", "application/json")
-              .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-              .build();
-
-      HttpResponse<String> replicateResponse =
-          client.send(replicateRequest, HttpResponse.BodyHandlers.ofString());
-
-      if (replicateResponse.statusCode() == 201) {
-        userCredentials.add(Map.of("username", username, "password", this.replicaPassword));
-        logger.debug("Created user {}/{}: {}", i, this.provisionUsers, username);
-      } else if (replicateResponse.statusCode() == 409
-          && replicateResponse.body().contains("Username already taken")) {
-        userCredentials.add(Map.of("username", username, "password", this.replicaPassword));
-        logger.debug("User already exists {}/{}: {}", i, this.provisionUsers, username);
-      } else {
-        throw new RuntimeException(
-            "Failed to create user "
-                + username
-                + ": HTTP "
-                + replicateResponse.statusCode()
-                + " - "
-                + replicateResponse.body());
-      }
-
-      if (i < this.provisionUsers && provisionDelayMs > 0) {
-        Thread.sleep(provisionDelayMs);
-      }
-    }
-
-    // Use circular to reuse users across multiple VU executions
-    userFeeder = io.gatling.javaapi.core.CoreDsl.listFeeder(userCredentials).circular();
-
-    logger.debug("User provisioning complete! Total users: {}", userCredentials.size());
-
-    // Wait for DHIS2 to stabilize after user creation
-    int pauseAfterProvisioningSec = Integer.getInteger("pauseAfterProvisioningSec", 5);
-    if (pauseAfterProvisioningSec > 0) {
-      logger.debug("Waiting {}s for system to stabilize...", pauseAfterProvisioningSec);
-      Thread.sleep(pauseAfterProvisioningSec * 1000L);
-      logger.debug("Starting test execution...");
-    }
-  }
-
-  private HttpRequestActionBuilder login() {
-    return http("Login")
-        .post("/api/auth/login")
-        .header("Content-Type", "application/json")
-        .header("X-Request-ID", session -> nextRequestId("Login"))
-        .body(StringBody("{\"username\":\"#{username}\",\"password\":\"#{password}\"}"))
-        .check(status().is(200));
+  /**
+   * Logs in as the clerk of the case fed last, unless the session is already hers. The cases of a
+   * clerk follow each other, so a smoke run logs in once per clerk and cycle.
+   */
+  private ChainBuilder loginAsCaseUser() {
+    return doIf(session -> !session.getString("username").equals(session.getString("loggedIn")))
+        .then(
+            exec(flushCookieJar())
+                .exec(
+                    http("Login")
+                        .post("/api/auth/login")
+                        .header("Content-Type", "application/json")
+                        .header("X-Request-ID", session -> nextRequestId("Login"))
+                        .body(
+                            StringBody(
+                                "{\"username\":\"#{username}\",\"password\":\"%s\"}"
+                                    .formatted(this.password)))
+                        .check(status().is(200)))
+                .exitHereIfFailed()
+                .exec(session -> session.set("loggedIn", session.getString("username"))));
   }
 
   /** Filters on the given and the family name: EIR needs two attributes to search. */
@@ -355,7 +294,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
     String getTEsUrl =
         "/api/tracker/trackedEntities?"
             + "order=createdAt:desc&page=1&pageSize=15&orgUnits="
-            + this.orgUnit
+            + "#{orgUnit}"
             + "&orgUnitMode=SELECTED&program="
             + this.program
             + "&fields=:all,!relationships,programOwners[orgUnit,program]";
@@ -377,7 +316,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
     String searchTEByName =
         "/api/tracker/trackedEntities?"
-            + nameFilters("like", this.nameLike, this.nameLike)
+            + nameFilters("like", "#{givenLike}", "#{familyLike}")
             + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
             + this.program
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
@@ -391,7 +330,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
     String searchTEByExactName =
         "/api/tracker/trackedEntities?"
-            + nameFilters("eq", this.givenEq, this.familyEq)
+            + nameFilters("eq", "#{givenEq}", "#{familyEq}")
             + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
             + this.program
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
@@ -400,7 +339,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
     String androidSearchTEsUrl =
         "/api/tracker/trackedEntities?page=1&pageSize=50&orgUnitMode=ACCESSIBLE&program="
             + this.program
-            + nameFilters("like", this.nameLike, this.nameLike)
+            + nameFilters("like", "#{givenLike}", "#{familyLike}")
             + "&fields=trackedEntity,createdAt,updatedAt,createdAtClient,updatedAtClient,orgUnit,"
             + "trackedEntityType,geometry,deleted,attributes[attribute,value,createdAt,updatedAt],"
             + "programOwners";
@@ -408,7 +347,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
     String searchBirthEvents =
         "/api/tracker/events?order=createdAt:desc&page=1"
             + "&pageSize=15&orgUnit="
-            + this.orgUnit
+            + "#{orgUnit}"
             + "&orgUnitMode=SELECTED&program="
             + this.program
             + "&programStage="
@@ -436,94 +375,92 @@ public class PerfLandMnchTrackerTest extends Simulation {
     String eventUrl =
         "/api/tracker/events/#{eventUid}?fields=event,relationships[relationship,relationshipType,relationshipName,bidirectional,from[event[event,dataValues,occurredAt,scheduledAt,status,orgUnit,programStage,program]],to[event[event,dataValues,*,occurredAt,scheduledAt,status,orgUnit,programStage,program]]]";
 
-    // Request names and p95 thresholds are TrackerTest's, so runs of both compare side by side.
+    // Request names and the p95 thresholds of requests without a band are TrackerTest's, so runs
+    // of both compare side by side. The banded ones are to calibrate on this database.
     Request notFoundTeByNameWithLikeOperator =
-        new Request(
+        Request.of(
             notFoundTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 116)),
+            Map.of(Profile.SMOKE, 25, Profile.LOAD, 116),
             "Not found TE by name with like operator",
             "Get EIR TEs");
     Request notFoundTeByNameWithEqOperator =
-        new Request(
+        Request.of(
             notFoundTEByExactName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 35)),
+            Map.of(Profile.SMOKE, 25, Profile.LOAD, 35),
             "Not found TE by name with eq operator",
             "Get EIR TEs");
     Request searchTeByNameWithLikeOperator =
-        new Request(
+        Request.banded(
             searchTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 51, Profile.LOAD, 172)),
+            Band.NAMES,
+            Map.of(),
             "Search TE by name with like operator",
             "Get EIR TEs");
     Request searchTeByNameWithEqOperator =
-        new Request(
+        Request.banded(
             searchTEByExactName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 42, Profile.LOAD, 102)),
+            Band.NAMES,
+            Map.of(),
             "Search TE by name with eq operator",
             "Get EIR TEs");
     Request searchBirthEventsByStage =
-        new Request(
-            searchBirthEvents,
-            new EnumMap<>(Map.of(Profile.SMOKE, 54, Profile.LOAD, 201)),
-            "Search Birth events",
-            "Get EIR TEs");
+        Request.banded(
+            searchBirthEvents, Band.FACILITY, Map.of(), "Search Birth events", "Get EIR TEs");
     Request getTrackedEntitiesForEvents =
-        new Request(
+        Request.of(
             getTEsFromEvents,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 28)),
+            Map.of(Profile.SMOKE, 25, Profile.LOAD, 28),
             "Get TEs from events",
             "Get EIR TEs");
     Request searchTEsAsAndroidClient =
-        new Request(
+        Request.banded(
             androidSearchTEsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 29, Profile.LOAD, 151)),
+            Band.NAMES,
+            Map.of(),
             "Search TEs as Android client",
             "Get EIR TEs");
     Request getFirstPageOfTEs =
-        new Request(
-            getTEsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 53, Profile.LOAD, 166)),
-            "Get first page of TEs",
-            "Get EIR TEs");
+        Request.banded(getTEsUrl, Band.FACILITY, Map.of(), "Get first page of TEs", "Get EIR TEs");
     Request getTEsWithEnrollmentStatus =
-        new Request(
+        Request.banded(
             getTEsWithEnrollmentStatusUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 62, Profile.LOAD, 188)),
+            Band.FACILITY,
+            Map.of(),
             "Get TEs with enrollment status",
             "Get EIR TEs");
     Request getFirstTrackedEntity =
-        new Request(
+        Request.of(
             singleTrackedEntityUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 41, Profile.LOAD, 96)),
+            Map.of(Profile.SMOKE, 41, Profile.LOAD, 96),
             "Get first tracked entity",
             "Get EIR TEs",
             "Go to single enrollment");
     Request getFirstEnrollment =
-        new Request(
+        Request.of(
             singleEnrollmentUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 46)),
+            Map.of(Profile.SMOKE, 25, Profile.LOAD, 46),
             "Get first enrollment",
             "Get EIR TEs",
             "Go to single enrollment");
     Request getRelationshipsForTrackedEntity =
-        new Request(
+        Request.of(
             relationshipForTrackedEntityUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
+            Map.of(Profile.SMOKE, 25, Profile.LOAD, 25),
             "Get relationships for first tracked entity",
             "Get EIR TEs",
             "Go to single enrollment");
     Request getFirstEventFromEnrollment =
-        new Request(
+        Request.of(
             eventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 41, Profile.LOAD, 107)),
+            Map.of(Profile.SMOKE, 41, Profile.LOAD, 107),
             "Get first event from enrollment",
             "Get EIR TEs",
             "Go to single enrollment",
             "Get one event");
     Request getRelationshipsForEvent =
-        new Request(
+        Request.of(
             relationshipForEventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 28)),
+            Map.of(Profile.SMOKE, 25, Profile.LOAD, 28),
             "Get relationships for first event",
             "Get EIR TEs",
             "Go to single enrollment",
@@ -656,10 +593,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
     ScenarioBuilder scenarioBuilder =
         scenario("EIR export")
-            .feed(userFeeder)
-            .exec(login())
-            .exitHereIfFailed()
-            .exec(loopForProfile(exportRequests));
+            .exec(loopForProfile(feed(this.cases).exec(loginAsCaseUser()).exec(exportRequests)));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
@@ -720,7 +654,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
   private List<Assertion> getAssertions(Profile profile, ScenarioWithRequests scenario) {
     return Stream.concat(
             Stream.of(forAll().successfulRequests().percent().gte(100d)),
-            scenario.requests().stream().flatMap(r -> r.assertion(profile).stream()))
+            scenario.requests().stream().flatMap(r -> r.assertions(profile)))
         .toList();
   }
 
