@@ -289,6 +289,16 @@ public final class SQL {
     }
 
     /**
+     * DB must have returned a long equivalent value or a {@link ClassCastException} will occur.
+     *
+     * @param index zero based column index
+     * @return long value or null, if the DB returned null
+     */
+    default Double getDouble(int index) {
+      return (Double) getObject(index);
+    }
+
+    /**
      * DB must have returned a {@link Date} equivalent value (timestamp) or a {@link
      * ClassCastException} will occur.
      *
@@ -330,17 +340,34 @@ public final class SQL {
       return (Long[]) getArray(index);
     }
 
-    // TODO add to avoid boxing (default 0)
-    default int getInt(int i) {
-      return ((Number) getObject(i)).intValue();
+    /**
+     * DB must have returned a number equivalent value or a {@link ClassCastException} may occur.
+     *
+     * @param index zero based column index
+     * @return column value as int or 0 if it was SQL null
+     */
+    default int getIntValue(int index) {
+      return ((Number) getObject(index)).intValue();
     }
 
-    default long getPLong(int i) {
-      return ((Number) getObject(i)).longValue();
+    /**
+     * DB must have returned a number equivalent value or a {@link ClassCastException} may occur.
+     *
+     * @param index zero based column index
+     * @return column value as long or 0L if it was SQL null
+     */
+    default long getLongValue(int index) {
+      return ((Number) getObject(index)).longValue();
     }
 
-    default double getDouble(int i) {
-      return ((Number) getObject(i)).doubleValue();
+    /**
+     * DB must have returned a number equivalent value or a {@link ClassCastException} may occur.
+     *
+     * @param index zero based column index
+     * @return column value as double or 0d if it was SQL null
+     */
+    default double getDoubleValue(int index) {
+      return ((Number) getObject(index)).doubleValue();
     }
   }
 

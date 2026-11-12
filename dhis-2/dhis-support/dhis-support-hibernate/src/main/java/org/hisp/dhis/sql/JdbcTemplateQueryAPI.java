@@ -149,10 +149,30 @@ class JdbcTemplateQueryAPI {
     private final SQL.Row row =
         new SQL.Row() {
           @Override
-          public int getInt(int i) {
+          public int getIntValue(int index) {
             try {
               // override to avoid boxing
-              return rs.getInt(i + 1);
+              return rs.getInt(index + 1);
+            } catch (SQLException e) {
+              throw new UnsupportedOperationException(e);
+            }
+          }
+
+          @Override
+          public long getLongValue(int index) {
+            try {
+              // override to avoid boxing
+              return rs.getLong(index + 1);
+            } catch (SQLException e) {
+              throw new UnsupportedOperationException(e);
+            }
+          }
+
+          @Override
+          public double getDoubleValue(int index) {
+            try {
+              // override to avoid boxing
+              return rs.getDouble(index + 1);
             } catch (SQLException e) {
               throw new UnsupportedOperationException(e);
             }
