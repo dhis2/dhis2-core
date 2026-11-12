@@ -55,7 +55,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -98,6 +97,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class DefaultDataEntryService implements DataEntryService, DataDumpService {
+
+  private static final double MILLIS_IN_A_DAY = 86400000d;
 
   private final DataEntryStore store;
   private final IdCoder idCoder;
@@ -817,9 +818,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!periodsNotUsingEntrySpans.isEmpty()) {
       // - require: DS entry for period still allowed?
       // (how much later can data be entered relative to current period)
-      int expiryDays = store.getDataSetExpiryDays(ds);
+      double expiryDays = store.getDataSetExpiryDays(ds);
       // 0 = no expiry, always open
-      if (expiryDays != 0 && !getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
+      if (expiryDays != 0d && !getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
         Set<Period> pastPeriods =
             periodsNotUsingEntrySpans.stream()
                 .filter(p -> p.getEndDate().after(now))
@@ -830,6 +831,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
             source
                 .orgUnitPeriodPairs()
                 .filter(e -> pastPeriods.contains(e.getValue()))
+                .distinct()
                 // only check values not exempt
                 .filter(
                     e -> {
@@ -844,11 +846,11 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                       // day
                       Date endOfEntryPeriod =
                           new Date(
-                              p.getEndDate().getTime() + TimeUnit.DAYS.toMillis(expiryDays + 1L));
+                              p.getEndDate().getTime()
+                                  + Math.round(MILLIS_IN_A_DAY * (expiryDays + 1d)));
                       return now.after(endOfEntryPeriod);
                     })
                 .map(Map.Entry::getValue)
-                .distinct()
                 .toList();
         if (!peNoLongerOpen.isEmpty())
           throw new ConflictException(ErrorCode.E8030, ds, peNoLongerOpen);

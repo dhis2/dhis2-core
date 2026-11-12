@@ -198,7 +198,7 @@ public interface DataEntryStore {
    */
   boolean getDataSetCommentAllowsEmptyValue(UID dataSet);
 
-  int getDataSetExpiryDays(UID dataSet);
+  double getDataSetExpiryDays(UID dataSet);
 
   int getDataSetOpenPeriodsOffset(UID dataSet);
 
