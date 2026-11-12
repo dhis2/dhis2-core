@@ -119,6 +119,21 @@ class DisplayOptionsFilterPostgresControllerTest extends PostgresControllerInteg
     assertEquals(List.of(SECTION_A), ids("/sections?filter=displayOptions:like:alpha", "sections"));
   }
 
+  /** The same property reached through a collection of the root type. */
+  @Test
+  void organisationUnitDataSetsDisplayOptionsLike() {
+    assertEquals(
+        List.of(OU),
+        ids("/organisationUnits?filter=dataSets.displayOptions:like:alpha", "organisationUnits"));
+  }
+
+  @Test
+  void organisationUnitDataSetsDisplayOptionsEqPlainText() {
+    assertEquals(
+        List.of(),
+        ids("/organisationUnits?filter=dataSets.displayOptions:eq:alpha", "organisationUnits"));
+  }
+
   private List<String> ids(String url, String listName) {
     return GET(url + "&fields=id")
         .content(HttpStatus.OK)
