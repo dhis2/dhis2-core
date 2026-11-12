@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -805,7 +804,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     Date now = new Date();
     Map<String, List<DateRange>> entrySpansByIso = store.getEntrySpansByIsoPeriod(ds);
     List<Period> periodsUsingEntrySpans = new ArrayList<>();
-    Set<Period> periodsNotUsingEntrySpans = new HashSet<>();
+    List<Period> periodsNotUsingEntrySpans = new ArrayList<>();
     for (Period p : isoPeriods) {
       if (entrySpansByIso.containsKey(p.getIsoDate())) {
         periodsUsingEntrySpans.add(p);
@@ -821,12 +820,16 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       int expiryDays = store.getDataSetExpiryDays(ds);
       // 0 = no expiry, always open
       if (expiryDays != 0 && !getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
+        Set<Period> pastPeriods =
+            periodsNotUsingEntrySpans.stream()
+                .filter(p -> p.getEndDate().after(now))
+                .collect(toSet());
         Map<String, Set<String>> exemptedIsoByOu =
             store.getExpiryDaysExemptedIsoPeriodsByOrgUnit(ds);
         List<Period> peNoLongerOpen =
             source
                 .orgUnitPeriodPairs()
-                .filter(e -> periodsNotUsingEntrySpans.contains(e.getValue()))
+                .filter(e -> pastPeriods.contains(e.getValue()))
                 // only check values not exempt
                 .filter(
                     e -> {
@@ -853,7 +856,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       // - require: DS entry for period already allowed?
       // (how much earlier can data be entered relative to the current period)
       int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
-      PeriodType type = periodsNotUsingEntrySpans.iterator().next().getPeriodType();
+      PeriodType type = periodsNotUsingEntrySpans.get(0).getPeriodType();
       Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
       List<Period> isoNotYetOpen =
           periodsNotUsingEntrySpans.stream().filter(p -> p.isAfter(latestOpen)).toList();
