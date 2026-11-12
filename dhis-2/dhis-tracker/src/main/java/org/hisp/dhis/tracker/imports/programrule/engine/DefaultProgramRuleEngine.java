@@ -41,15 +41,26 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.rules.api.EnvironmentVariable;
+import org.hisp.dhis.rules.api.ExpressionFunction;
+import org.hisp.dhis.rules.api.ExpressionFunctionParameter;
+import org.hisp.dhis.rules.api.ExpressionOperator;
+import org.hisp.dhis.rules.api.ExpressionValueType;
+import org.hisp.dhis.rules.api.ItemValueType;
 import org.hisp.dhis.rules.api.RuleContextRequirements;
 import org.hisp.dhis.rules.api.RuleEngine;
 import org.hisp.dhis.rules.api.RuleEngineContext;
+import org.hisp.dhis.rules.api.RuleExpressionSyntax;
 import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.rules.models.RuleVariable;
+import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleExpressionSyntax.Function;
+import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleExpressionSyntax.Operator;
+import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleExpressionSyntax.Parameter;
+import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleExpressionSyntax.ValueType;
 import org.springframework.stereotype.Component;
 
 /**
@@ -69,6 +80,9 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
 
   private final RuleEngine ruleEngine;
 
+  /** The syntax is static, so it is mapped once. */
+  private final ProgramRuleExpressionSyntax expressionSyntax;
+
   public DefaultProgramRuleEngine(
       ProgramRuleEntityMapperService programRuleEntityMapperService,
       ProgramRuleVariableService programRuleVariableService,
@@ -79,6 +93,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
     this.constantService = constantService;
     this.programService = programService;
     this.ruleEngine = RuleEngine.getInstance();
+    this.expressionSyntax = toExpressionSyntax(ruleEngine.getExpressionSyntax());
   }
 
   @Override
@@ -145,5 +160,70 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   public RuleContextRequirements analyzeContextRequirements(
       @Nonnull List<Rule> rules, @Nonnull List<RuleVariable> variables) {
     return ruleEngine.analyzeContextRequirements(rules, variables);
+  }
+
+  @Override
+  @Nonnull
+  public ProgramRuleExpressionSyntax getExpressionSyntax() {
+    return expressionSyntax;
+  }
+
+  private static ProgramRuleExpressionSyntax toExpressionSyntax(RuleExpressionSyntax syntax) {
+    return new ProgramRuleExpressionSyntax(
+        syntax.getFunctions().stream().map(DefaultProgramRuleEngine::toFunction).toList(),
+        syntax.getBinaryOperators().stream().map(DefaultProgramRuleEngine::toOperator).toList(),
+        syntax.getUnaryOperators().stream().map(DefaultProgramRuleEngine::toOperator).toList(),
+        syntax.getEnvironmentVariables().stream()
+            .map(DefaultProgramRuleEngine::toEnvironmentVariable)
+            .toList());
+  }
+
+  private static Function toFunction(ExpressionFunction function) {
+    return new Function(
+        function.getName(),
+        toValueType(function.getReturnType()),
+        function.getParameters().stream().map(DefaultProgramRuleEngine::toParameter).toList());
+  }
+
+  private static Parameter toParameter(ExpressionFunctionParameter parameter) {
+    return new Parameter(
+        parameter.getName(),
+        toValueType(parameter.getType()),
+        parameter.isOptional(),
+        parameter.isVarargs());
+  }
+
+  private static Operator toOperator(ExpressionOperator operator) {
+    return new Operator(
+        operator.getSymbol(),
+        operator.getAliases(),
+        toValueType(operator.getReturnType()),
+        toValueType(operator.getOperandsType()));
+  }
+
+  private static ProgramRuleExpressionSyntax.EnvironmentVariable toEnvironmentVariable(
+      EnvironmentVariable variable) {
+    return new ProgramRuleExpressionSyntax.EnvironmentVariable(
+        variable.getName(), toValueType(variable.getValueType()));
+  }
+
+  private static ValueType toValueType(ExpressionValueType type) {
+    return switch (type) {
+      case MIXED -> ValueType.MIXED;
+      case NUMBER -> ValueType.NUMBER;
+      case BOOLEAN -> ValueType.BOOLEAN;
+      case DATE -> ValueType.DATE;
+      case STRING -> ValueType.STRING;
+      case SAME -> ValueType.SAME;
+    };
+  }
+
+  private static ValueType toValueType(ItemValueType type) {
+    return switch (type) {
+      case NUMBER -> ValueType.NUMBER;
+      case DATE -> ValueType.DATE;
+      case TEXT -> ValueType.STRING;
+      case BOOLEAN -> ValueType.BOOLEAN;
+    };
   }
 }

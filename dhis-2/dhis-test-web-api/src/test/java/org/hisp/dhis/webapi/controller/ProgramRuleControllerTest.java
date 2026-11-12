@@ -32,10 +32,12 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -141,6 +143,53 @@ class ProgramRuleControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject error = response.getArray("errors").getObject(0);
     assertEquals("Unknown variable: `doesNotExist`", error.getString("message").string());
     assertEquals("#{doesNotExist}", error.getString("position").string());
+  }
+
+  @Test
+  void shouldReturnFunctionsWhenGettingExpressionSyntax() {
+    JsonObject syntax = GET("/programRules/expressionSyntax").content(HttpStatus.OK);
+
+    JsonObject daysBetween =
+        findByName(syntax.getList("functions", JsonObject.class), "d2:daysBetween");
+    assertEquals("NUMBER", daysBetween.getString("returnType").string());
+    assertEquals(2, daysBetween.getArray("parameters").size());
+    JsonObject parameter = daysBetween.getArray("parameters").getObject(0);
+    assertEquals("DATE", parameter.getString("type").string());
+    assertFalse(parameter.getBoolean("optional").booleanValue());
+    assertFalse(parameter.getBoolean("varargs").booleanValue());
+  }
+
+  @Test
+  void shouldReturnOperatorsWhenGettingExpressionSyntax() {
+    JsonObject syntax = GET("/programRules/expressionSyntax").content(HttpStatus.OK);
+
+    JsonObject and =
+        syntax.getList("binaryOperators", JsonObject.class).stream()
+            .filter(o -> "&&".equals(o.getString("symbol").string()))
+            .findFirst()
+            .orElseThrow();
+    assertEquals("BOOLEAN", and.getString("returnType").string());
+    assertEquals("BOOLEAN", and.getString("operandsType").string());
+    assertTrue(and.getArray("aliases").stringValues().contains("and"));
+    assertTrue(
+        syntax.getList("unaryOperators", JsonObject.class).stream()
+            .anyMatch(o -> "!".equals(o.getString("symbol").string())));
+  }
+
+  @Test
+  void shouldReturnEnvironmentVariablesWhenGettingExpressionSyntax() {
+    JsonObject syntax = GET("/programRules/expressionSyntax").content(HttpStatus.OK);
+
+    JsonObject currentDate =
+        findByName(syntax.getList("environmentVariables", JsonObject.class), "current_date");
+    assertEquals("DATE", currentDate.getString("valueType").string());
+  }
+
+  private static JsonObject findByName(JsonList<JsonObject> objects, String name) {
+    return objects.stream()
+        .filter(o -> name.equals(o.getString("name").string()))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("No element named " + name));
   }
 
   private String createProgram() {
