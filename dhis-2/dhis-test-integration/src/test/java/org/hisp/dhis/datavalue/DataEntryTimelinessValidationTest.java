@@ -35,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -59,6 +61,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,13 +75,14 @@ import org.springframework.transaction.annotation.Transactional;
  * <ol>
  *   <li><b>Data input periods.</b> A period that has data input periods in the data set is open
  *       only while now is inside one of its opening/closing windows. Nothing else applies to it,
- *       and no authority bypasses it.
+ *       and no authority bypasses it; only a superuser importing with force can (see below).
  *   <li><b>Open future periods and expiry days.</b> Any other period is checked twice:
  *       <ul>
  *         <li><em>Open future periods</em> limit early entry: the period must not end after {@code
  *             PeriodType.getFuturePeriod(openFuturePeriods)}. With {@code 0} the current period is
  *             <em>not</em> open yet, with {@code 1} the current period is the latest open one, and
- *             so on. No authority bypasses this, not even {@code F_EDIT_EXPIRED} or {@code ALL}.
+ *             so on. No authority bypasses this, not even F_EDIT_EXPIRED or ALL; only a superuser
+ *             importing with force can (see below).
  *         <li><em>Expiry days</em> limit late entry: the period closes {@code expiryDays + 1} days
  *             after its end date (the end date is the start of the period's last day). {@code 0}
  *             means it never expires. Negative and fractional values are allowed. {@code
@@ -112,7 +116,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
 
-  private static final double MILLIS_PER_DAY = 86_400_000d;
+  private static final double MILLIS_PER_DAY = (double) Duration.ofDays(1).toMillis();
 
   private static final PeriodType MONTHLY = new MonthlyPeriodType();
 
@@ -125,7 +129,6 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
   private OrganisationUnit ouA;
-  private OrganisationUnit ouB;
   private DataElement de;
   private DataSet ds;
 
@@ -135,10 +138,10 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    Date longAgo = new Date(0L);
+    Date longAgo = Date.from(Instant.EPOCH);
     ouA = createOrganisationUnit('A');
     ouA.setOpeningDate(longAgo);
-    ouB = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('B');
     ouB.setOpeningDate(longAgo);
     manager.save(ouA);
     manager.save(ouB);
@@ -157,6 +160,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
 
     Set<OrganisationUnit> both = Set.of(ouA, ouB);
     capture = createAndAddUser(false, "capture", both, both);
+    // This user has the F_EDIT_EXPIRED authority, but not ALL, so it is not a superuser.
     editExpired =
         createAndAddUser(false, "editExpired", both, both, Authorities.F_EDIT_EXPIRED.name());
     superuser = createAndAddUser(true, "superuser", both, both);
@@ -167,36 +171,42 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // --------------------
 
   @Test
+  // Current period is not yet open with 0 open future periods, so it is locked.
   void zeroOpenFuturePeriodsLocksCurrentPeriod() {
     configure(0, 0d);
     assertUntimely(capture, month(0));
   }
 
   @Test
+  // Previous period is open with 0 open future periods, so it is accepted.
   void zeroOpenFuturePeriodsAllowsPreviousPeriod() throws Exception {
     configure(0, 0d);
     assertAccepted(capture, month(-1));
   }
 
   @Test
+  // One open future period allows the current period.
   void oneOpenFuturePeriodAllowsCurrentPeriod() throws Exception {
     configure(1, 0d);
     assertAccepted(capture, month(0));
   }
 
   @Test
+  // One open future period does not allow the next period.
   void oneOpenFuturePeriodLocksNextPeriod() {
     configure(1, 0d);
     assertUntimely(capture, month(1));
   }
 
   @Test
+  // Two open future periods allow the next period.
   void twoOpenFuturePeriodsAllowNextPeriod() throws Exception {
     configure(2, 0d);
     assertAccepted(capture, month(1));
   }
 
   @Test
+  // Two open future periods lock the period after the next.
   void twoOpenFuturePeriodsLockPeriodAfterNext() {
     configure(2, 0d);
     assertUntimely(capture, month(2));
@@ -212,6 +222,9 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
 
   /** DHIS2-22471: same with an expiry set, so the expiry branch is entered too. */
   @Test
+  // Same as above, but with expiry days set. F_EDIT_EXPIRED skips the expiry check, and that must
+  // not skip the open future periods check along with it (the DHIS2-22471 bug: on master both
+  // checks sat inside the same F_EDIT_EXPIRED guard).
   void editExpiredAuthorityDoesNotOpenFuturePeriodsWithExpiryDays() {
     configure(1, 10d);
     assertUntimely(editExpired, month(24));
@@ -225,16 +238,18 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // Superuser with force bypasses the open future periods check and can enter future periods.
   void superuserWithForceCanEnterFuturePeriods() throws Exception {
     configure(1, 0d);
-    assertAccepted(superuser, true, month(24));
+    assertAcceptedWithForce(superuser, month(24));
   }
 
   @Test
+  // Force has no effect for non-superusers.
   void forceHasNoEffectForNonSuperuser() {
     configure(1, 0d);
-    assertUntimely(editExpired, true, month(24));
-    assertUntimely(capture, true, month(24));
+    assertUntimelyWithForce(editExpired, month(24));
+    assertUntimelyWithForce(capture, month(24));
   }
 
   /** A negative expiry must not switch the open future periods check off. */
@@ -246,10 +261,14 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void reportsOnlyThePeriodsNotYetOpen() {
+  // One import with last month and this month (both open with openFuturePeriods = 1) and 3 months
+  // ahead (not open). The whole import is rejected, and the error names only the period that is
+  // not open, so a user debugging the file is not sent after the valid rows.
+  void untimelyErrorNamesOnlyThePeriodsNotYetOpen() {
     configure(1, 0d);
     ConflictException ex = assertUntimely(capture, month(-1), month(0), month(3));
-    assertMentionsOnly(ex, month(3), month(-1), month(0));
+    assertNamesPeriods(ex, month(3));
+    assertDoesNotNamePeriods(ex, month(-1), month(0));
   }
 
   // --------------------
@@ -257,30 +276,38 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // --------------------
 
   @Test
+  // Zero expiry days means the period never expires, so month(-24) is still open.
   void zeroExpiryDaysNeverExpire() throws Exception {
     configure(1, 0d);
     assertAccepted(capture, month(-24));
   }
 
   @Test
+  // A period within the expiry days is open.
   void periodWithinExpiryDaysIsOpen() throws Exception {
     configure(1, Math.ceil(daysSinceEnd(month(-1))) + 1);
     assertAccepted(capture, month(-1));
   }
 
   @Test
+  // A period beyond the expiry days is locked.
   void periodBeyondExpiryDaysIsLocked() {
     configure(1, Math.floor(daysSinceEnd(month(-3))) - 2);
     assertUntimely(capture, month(-3));
   }
 
   @Test
-  void currentPeriodIsOpenWithPositiveExpiryDays() throws Exception {
+  // Expiry days only limit late entry: with expiry 1 the current month closes 2 days after it ends,
+  // so it stays open. (It is opened by openFuturePeriods = 1, not by the expiry.) Guards against
+  // the expiry check misfiring on the current period.
+  void positiveExpiryDaysDoNotLockCurrentPeriod() throws Exception {
     configure(1, 1d);
     assertAccepted(capture, month(0));
   }
 
   @Test
+  // Fractional expiry is honoured, not truncated to whole days (it was an int before #26226). The
+  // expiry is chosen so month(-3) closes 6 hours from now: still open.
   void fractionalExpiryDaysJustBeforeCloseIsOpen() throws Exception {
     // closes 6 hours from now
     configure(1, daysSinceEnd(month(-3)) - 1 + 0.25);
@@ -288,6 +315,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // Same, but month(-3) closed 6 hours ago: locked.
   void fractionalExpiryDaysJustAfterCloseIsLocked() {
     // closed 6 hours ago
     configure(1, daysSinceEnd(month(-3)) - 1 - 0.25);
@@ -296,12 +324,17 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
 
   /** Negative expiry days close a period before (or right at) its end. */
   @Test
+  // Expiry -1: a period closes at the start of its own last day. Last month is therefore locked.
+  // On master negative expiry was ignored entirely (only > 0 was checked).
   void negativeExpiryDaysLockPastPeriod() {
     configure(1, -1d);
     assertUntimely(capture, month(-1));
   }
 
   @Test
+  // Negative expiry can close the CURRENT period before it ends (the targets use case: enter this
+  // period's data only until some date inside it). The expiry is chosen so the current month
+  // closed 2 days before the start of its last day, i.e. at least a day ago.
   void negativeExpiryDaysLockCurrentPeriodBeforeItEnds() {
     // closes 2 days before the start of the last day of the current period
     configure(1, -Math.ceil(daysUntilEnd(month(0))) - 3);
@@ -309,50 +342,60 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // month(-3) is past its 1-day expiry, but F_EDIT_EXPIRED may still enter it.
   void editExpiredAuthorityBypassesExpiryDays() throws Exception {
     configure(1, 1d);
     assertAccepted(editExpired, month(-3));
   }
 
   @Test
+  // ALL implies F_EDIT_EXPIRED, so a superuser enters expired periods even without force.
   void superuserBypassesExpiryDaysWithoutForce() throws Exception {
     configure(1, 1d);
     assertAccepted(superuser, month(-3));
   }
 
   @Test
+  // A lock exception for lets a normal user enter that expired period at A.
   void lockExceptionOpensExpiredPeriodForItsOrgUnit() throws Exception {
     configure(1, 1d);
     addLockException(ouA, month(-3));
-    assertAccepted(capture, ouA, month(-3));
+    assertAccepted(capture, month(-3));
   }
 
   @Test
+  // The lock exception is for org unit A only; the same period at B stays locked.
   void lockExceptionDoesNotOpenExpiredPeriodForOtherOrgUnit() {
     configure(1, 1d);
     addLockException(ouA, month(-3));
-    assertUntimely(capture, ouB, month(-3));
+    OrganisationUnit ouB = manager.get(OrganisationUnit.class, BASE_OU_UID + 'B');
+    assertRejected(ErrorCode.E8030, () -> upsert(capture, false, ouB, month(-3)));
   }
 
   @Test
+  // The lock exception is for month(-3) only; month(-4) at A stays locked.
   void lockExceptionDoesNotOpenOtherExpiredPeriod() {
     configure(1, 1d);
     addLockException(ouA, month(-3));
-    assertUntimely(capture, ouA, month(-4));
+    assertUntimely(capture, month(-4));
   }
 
   @Test
+  // Lock exceptions only bypass expiry. A lock exception for a future period does not open it.
   void lockExceptionDoesNotOpenFuturePeriod() {
     configure(1, 1d);
     addLockException(ouA, month(3));
-    assertUntimely(capture, ouA, month(3));
+    assertUntimely(capture, month(3));
   }
 
   @Test
-  void reportsOnlyTheExpiredPeriods() {
+  // Expiry chosen so last month is still open but month(-6) is not; the current month is open too.
+  // The import is rejected and the error names only month(-6).
+  void untimelyErrorNamesOnlyTheExpiredPeriods() {
     configure(1, Math.ceil(daysSinceEnd(month(-1))) + 1);
     ConflictException ex = assertUntimely(capture, month(-1), month(-6), month(0));
-    assertMentionsOnly(ex, month(-6), month(-1), month(0));
+    assertNamesPeriods(ex, month(-6));
+    assertDoesNotNamePeriods(ex, month(-1), month(0));
   }
 
   // --------------------
@@ -360,6 +403,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // --------------------
 
   @Test
+  // month(-1) has an input period whose window contains now: open.
   void openInputPeriodAllowsEntry() throws Exception {
     configure(1, 0d);
     addInputPeriod(month(-1), daysFromNow(-1), daysFromNow(1));
@@ -367,6 +411,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // The window opens tomorrow: locked.
   void inputPeriodNotYetOpenLocksEntry() {
     configure(1, 0d);
     addInputPeriod(month(-1), daysFromNow(1), daysFromNow(5));
@@ -374,6 +419,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // The window closed yesterday: locked.
   void closedInputPeriodLocksEntry() {
     configure(1, 0d);
     addInputPeriod(month(-1), daysFromNow(-5), daysFromNow(-1));
@@ -381,6 +427,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // No opening date means open from any time; the closing date is tomorrow: open.
   void inputPeriodWithoutOpeningDateIsOpenUntilClosingDate() throws Exception {
     configure(1, 0d);
     addInputPeriod(month(-1), null, daysFromNow(1));
@@ -388,6 +435,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // No closing date means open forever; the opening date was yesterday: open.
   void inputPeriodWithoutClosingDateIsOpenFromOpeningDate() throws Exception {
     configure(1, 0d);
     addInputPeriod(month(-1), daysFromNow(-1), null);
@@ -395,6 +443,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // Neither date set: the period is always open.
   void inputPeriodWithoutAnyDatesIsAlwaysOpen() throws Exception {
     configure(1, 0d);
     addInputPeriod(month(-1), null, null);
@@ -402,6 +451,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // Two windows for the same period, one closed and one open: open (any window is enough).
   void anyOpenWindowOfSeveralOpensThePeriod() throws Exception {
     configure(1, 0d);
     addInputPeriod(month(-1), daysFromNow(-10), daysFromNow(-5));
@@ -410,6 +460,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // A closed window is not bypassed by F_EDIT_EXPIRED, nor by ALL without force.
   void noAuthorityBypassesClosedInputPeriod() {
     configure(1, 0d);
     addInputPeriod(month(-1), daysFromNow(-5), daysFromNow(-1));
@@ -418,10 +469,11 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // A superuser importing with force skips all timeliness checks, including a closed window.
   void superuserWithForceBypassesClosedInputPeriod() throws Exception {
     configure(1, 0d);
     addInputPeriod(month(-1), daysFromNow(-5), daysFromNow(-1));
-    assertAccepted(superuser, true, month(-1));
+    assertAcceptedWithForce(superuser, month(-1));
   }
 
   /** An open input period wins over expiry days that would have closed the period. */
@@ -453,6 +505,8 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // Only month(-1) has an (open) input period. month(-3) has none, so it is still checked by
+  // expiry days and is locked: input periods for other periods do not exempt it.
   void periodWithoutInputPeriodStillExpires() {
     configure(1, 1d);
     addInputPeriod(month(-1), daysFromNow(-1), daysFromNow(1));
@@ -460,22 +514,32 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // Mixed import: month(-1) has an open input period, month(3) has none and is not yet open
+  // (openFuturePeriods = 1). The whole import is rejected and the error names only month(3).
   void mixedImportRejectsFuturePeriodWithoutInputPeriod() {
     configure(1, 0d);
     addInputPeriod(month(-1), daysFromNow(-1), daysFromNow(1));
     ConflictException ex = assertUntimely(capture, month(-1), month(3));
-    assertMentionsOnly(ex, month(3), month(-1));
+    assertNamesPeriods(ex, month(3));
+    assertDoesNotNamePeriods(ex, month(-1));
   }
 
   @Test
+  // Mixed import: month(-1) has a CLOSED input period, so it is locked. month(-2) has no input
+  // period and is open by the other rules (no expiry). The whole import is rejected and the error
+  // names only month(-1).
   void mixedImportRejectsClosedInputPeriod() {
     configure(1, 0d);
     addInputPeriod(month(-1), daysFromNow(-5), daysFromNow(-1));
     ConflictException ex = assertUntimely(capture, month(-1), month(-2));
-    assertMentionsOnly(ex, month(-1), month(-2));
+    assertNamesPeriods(ex, month(-1));
+    assertDoesNotNamePeriods(ex, month(-2));
   }
 
   @Test
+  // month(3) is open only through its input period; month(-2) and month(0) have none and are open
+  // by openFuturePeriods = 1 and no expiry. Each period uses its own rule, so all three are
+  // accepted.
   void mixedImportAcceptsWhenEveryPeriodIsOpenByItsOwnRule() throws Exception {
     configure(1, 0d);
     addInputPeriod(month(3), daysFromNow(-1), daysFromNow(1));
@@ -487,32 +551,31 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // --------------------
 
   @Test
+  // Org unit A opened during last month, so month(-2) starts before A existed: E8031.
   void periodBeforeOrgUnitOpeningIsRejected() {
     configure(1, 0d);
     ouA.setOpeningDate(month(-1).getEndDate());
     manager.update(ouA);
-    ConflictException ex =
-        assertThrows(ConflictException.class, () -> upsert(capture, false, ouA, month(-2)));
-    assertEquals(ErrorCode.E8031, ex.getCode());
+    assertRejected(ErrorCode.E8031, () -> upsert(capture, false, ouA, month(-2)));
   }
 
   @Test
+  // Org unit A closed during month(-3), so last month starts after A closed: E8031.
   void periodAfterOrgUnitClosedIsRejected() {
     configure(1, 0d);
     ouA.setClosedDate(month(-3).getEndDate());
     manager.update(ouA);
-    ConflictException ex =
-        assertThrows(ConflictException.class, () -> upsert(capture, false, ouA, month(-1)));
-    assertEquals(ErrorCode.E8031, ex.getCode());
+    assertRejected(ErrorCode.E8031, () -> upsert(capture, false, ouA, month(-1)));
   }
 
   @Test
+  // A is open from month(-3) until 30 days from now, so last month is accepted.
   void periodWhileOrgUnitIsOpenIsAccepted() throws Exception {
     configure(1, 0d);
     ouA.setOpeningDate(month(-3).getStartDate());
-    ouA.setClosedDate(daysFromNow(30));
+    ouA.setClosedDate(Date.from(daysFromNow(30)));
     manager.update(ouA);
-    assertAccepted(capture, ouA, month(-1));
+    assertAccepted(capture, month(-1));
   }
 
   // --------------------
@@ -520,24 +583,30 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // --------------------
 
   @Test
+  // The lock status the data entry app shows uses the same rules as the import: a future period
+  // is LOCKED for an F_EDIT_EXPIRED user (DHIS2-22471).
   void futurePeriodIsLockedForEditExpiredUser() throws Exception {
     configure(1, 0d);
     assertEquals(LockStatus.LOCKED, entryStatus(editExpired, month(24)));
   }
 
   @Test
+  // month(-3) is past its expiry: LOCKED for a normal user.
   void expiredPeriodIsLockedForCaptureUser() throws Exception {
     configure(1, 1d);
     assertEquals(LockStatus.LOCKED, entryStatus(capture, month(-3)));
   }
 
   @Test
+  // ... and OPEN for an F_EDIT_EXPIRED user.
   void expiredPeriodIsOpenForEditExpiredUser() throws Exception {
     configure(1, 1d);
     assertEquals(LockStatus.OPEN, entryStatus(editExpired, month(-3)));
   }
 
   @Test
+  // An open input period shows as OPEN even though expiry and openFuturePeriods = 0 would lock
+  // month(-3).
   void openInputPeriodIsOpen() throws Exception {
     configure(0, 1d);
     addInputPeriod(month(-3), daysFromNow(-1), daysFromNow(1));
@@ -550,11 +619,11 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     dataSetService.updateDataSet(ds);
   }
 
-  private void addInputPeriod(Period period, Date opening, Date closing) {
+  private void addInputPeriod(Period period, Instant opening, Instant closing) {
     DataInputPeriod dip = new DataInputPeriod();
     dip.setPeriod(persisted(period));
-    dip.setOpeningDate(opening);
-    dip.setClosingDate(closing);
+    dip.setOpeningDate(opening == null ? null : Date.from(opening));
+    dip.setClosingDate(closing == null ? null : Date.from(closing));
     ds.addDataInputPeriod(dip);
     dataSetService.updateDataSet(ds);
   }
@@ -574,13 +643,14 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     return MONTHLY.getShiftedPeriod(MONTHLY.createPeriod(), offset);
   }
 
-  private static Date daysFromNow(double days) {
-    return new Date(System.currentTimeMillis() + Math.round(days * MILLIS_PER_DAY));
+  private static Instant daysFromNow(int days) {
+    return Instant.now().plus(Duration.ofDays(days));
   }
 
   /** Days from the period's end date (start of its last day) until now. */
   private static double daysSinceEnd(Period period) {
-    return (System.currentTimeMillis() - period.getEndDate().getTime()) / MILLIS_PER_DAY;
+    Instant end = Instant.ofEpochMilli(period.getEndDate().getTime());
+    return Duration.between(end, Instant.now()).toMillis() / MILLIS_PER_DAY;
   }
 
   /** Days from now until the period's end date (start of its last day). */
@@ -588,43 +658,43 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     return -daysSinceEnd(period);
   }
 
+  /** Imports one value per period at A, without force, and expects all to be written. */
   private void assertAccepted(User user, Period... periods) throws Exception {
-    assertAccepted(user, false, periods);
+    assertEquals(periods.length, upsert(user, false, ouA, periods));
   }
 
-  private void assertAccepted(User user, boolean force, Period... periods) throws Exception {
-    assertEquals(periods.length, upsert(user, force, ouA, periods));
+  /** Same as {@link #assertAccepted(User, Period...)}, but importing with force. */
+  private void assertAcceptedWithForce(User user, Period... periods) throws Exception {
+    assertEquals(periods.length, upsert(user, true, ouA, periods));
   }
 
-  private void assertAccepted(User user, OrganisationUnit ou, Period... periods) throws Exception {
-    assertEquals(periods.length, upsert(user, false, ou, periods));
-  }
-
+  /** Imports one value per period at A, without force, and expects E8030 (untimely). */
   private ConflictException assertUntimely(User user, Period... periods) {
-    return assertUntimely(user, false, periods);
+    return assertRejected(ErrorCode.E8030, () -> upsert(user, false, ouA, periods));
   }
 
-  private ConflictException assertUntimely(User user, boolean force, Period... periods) {
-    return assertUntimely(user, force, ouA, periods);
+  /** Same as {@link #assertUntimely(User, Period...)}, but importing with force. */
+  private ConflictException assertUntimelyWithForce(User user, Period... periods) {
+    return assertRejected(ErrorCode.E8030, () -> upsert(user, true, ouA, periods));
   }
 
-  private ConflictException assertUntimely(User user, OrganisationUnit ou, Period... periods) {
-    return assertUntimely(user, false, ou, periods);
-  }
-
-  private ConflictException assertUntimely(
-      User user, boolean force, OrganisationUnit ou, Period... periods) {
-    ConflictException ex =
-        assertThrows(ConflictException.class, () -> upsert(user, force, ou, periods));
-    assertEquals(ErrorCode.E8030, ex.getCode(), ex.getMessage());
+  /** The import is rejected as a whole with the given error code. */
+  private static ConflictException assertRejected(ErrorCode code, Executable importCall) {
+    ConflictException ex = assertThrows(ConflictException.class, importCall);
+    assertEquals(code, ex.getCode(), ex.getMessage());
     return ex;
   }
 
-  /** The conflict names the first period and none of the others. */
-  private static void assertMentionsOnly(ConflictException ex, Period rejected, Period... others) {
+  /** The conflict message names every one of the given periods. */
+  private static void assertNamesPeriods(ConflictException ex, Period... periods) {
     String msg = ex.getMessage();
-    assertTrue(msg.contains(rejected.getIsoDate()), msg);
-    for (Period p : others) assertFalse(msg.contains(p.getIsoDate()), msg);
+    for (Period p : periods) assertTrue(msg.contains(p.getIsoDate()), msg);
+  }
+
+  /** The conflict message names none of the given periods. */
+  private static void assertDoesNotNamePeriods(ConflictException ex, Period... periods) {
+    String msg = ex.getMessage();
+    for (Period p : periods) assertFalse(msg.contains(p.getIsoDate()), msg);
   }
 
   private int upsert(User user, boolean force, OrganisationUnit ou, Period... periods)
