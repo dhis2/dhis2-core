@@ -76,13 +76,16 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <h2>Rules under test</h2>
  *
- * Each period of an import is checked by exactly one of two mechanisms:
+ * Each data set uses exactly one of two mechanisms for all of its periods:
  *
  * <ol>
- *   <li><b>Data input periods.</b> A period that has data input periods in the data set is open
- *       only while now is inside one of its opening/closing windows. Nothing else applies to it,
- *       and no authority bypasses it; only a superuser importing with force can (see below).
- *   <li><b>Open future periods and expiry days.</b> Any other period is checked twice:
+ *   <li><b>Data input periods.</b> If the data set has any data input periods, they are the
+ *       complete list of periods open for entry. A listed period is open only while now is inside
+ *       one of its opening/closing windows; a period that is not listed is never open. Open future
+ *       periods and expiry days do not apply, and no authority bypasses this; only a superuser
+ *       importing with force can (see below).
+ *   <li><b>Open future periods and expiry days.</b> If the data set has no data input periods, each
+ *       period is checked twice:
  *       <ul>
  *         <li><em>Open future periods</em> limit early entry: the period must not end after {@code
  *             PeriodType.getFuturePeriod(openFuturePeriods)}. With {@code 0} the current period is
@@ -474,58 +477,107 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     assertAccepted(capture, month(3));
   }
 
-  /**
-   * A period without input periods falls back to open future periods and expiry days, even when the
-   * data set has input periods for other periods.
-   */
+  // --------------------
+  // A data set with data input periods accepts only the periods listed there. A period without an
+  // input period is closed, whatever open future periods and expiry days say (as in 2.42 and
+  // before #26226).
+  // --------------------
+
   @Test
-  void periodWithoutInputPeriodUsesOtherRules() throws Exception {
+  // month(-2) has no input period. Without input periods it would be open (expiry 0 = never
+  // expires), but the data set lists only month(-1), so month(-2) is closed.
+  void unlistedPastPeriodIsClosed() {
     configure(1, 0d);
-    addInputPeriod(month(-1), daysFromNow(-5), daysFromNow(-1));
-    assertAccepted(capture, month(-2));
+    addInputPeriod(month(-1), daysFromNow(-1), daysFromNow(1));
+    assertUntimely(capture, month(-2));
+  }
+
+  @Test
+  // The current period is not listed: closed, although openFuturePeriods = 1 would open it.
+  void unlistedCurrentPeriodIsClosed() {
+    configure(1, 0d);
+    addInputPeriod(month(-1), daysFromNow(-1), daysFromNow(1));
+    assertUntimely(capture, month(0));
+  }
+
+  @Test
+  // month(3) is not listed: closed, although openFuturePeriods = 12 would open it.
+  void unlistedFuturePeriodIsClosed() {
+    configure(12, 0d);
+    addInputPeriod(month(-1), daysFromNow(-1), daysFromNow(1));
     assertUntimely(capture, month(3));
   }
 
   @Test
-  // Only month(-1) has an (open) input period. month(-3) has none, so it is still checked by
-  // expiry days and is locked: input periods for other periods do not exempt it.
-  void periodWithoutInputPeriodStillExpires() {
-    configure(1, 1d);
-    addInputPeriod(month(-1), daysFromNow(-1), daysFromNow(1));
-    assertUntimely(capture, month(-3));
+  // The only input period's window has closed. The data set still has input periods, so it does
+  // not fall back to open future periods and expiry days: month(-2) stays closed.
+  void unlistedPeriodIsClosedWhenEveryWindowHasClosed() {
+    configure(1, 0d);
+    addInputPeriod(month(-1), daysFromNow(-5), daysFromNow(-1));
+    assertUntimely(capture, month(-2));
   }
 
   @Test
-  // Mixed import: month(-1) has an open input period, month(3) has none and is not yet open
-  // (openFuturePeriods = 1). The whole import is rejected and the error names only month(3).
-  void mixedImportRejectsFuturePeriodWithoutInputPeriod() {
+  // F_EDIT_EXPIRED, ALL without force and a lock exception only bypass expiry; none of them opens
+  // a period that is not listed.
+  void noAuthorityOrLockExceptionOpensUnlistedPeriod() {
     configure(1, 0d);
     addInputPeriod(month(-1), daysFromNow(-1), daysFromNow(1));
-    ConflictException ex = assertUntimely(capture, month(-1), month(3));
-    assertNamesPeriods(ex, month(3));
+    addLockException(ds, ouA, month(-2));
+    assertUntimely(capture, month(-2));
+    assertUntimely(editExpired, month(-2));
+    assertUntimely(superuser, month(-2));
+  }
+
+  @Test
+  // A superuser importing with force skips all timeliness checks, including an unlisted period.
+  void superuserWithForceBypassesUnlistedPeriod() throws Exception {
+    configure(1, 0d);
+    addInputPeriod(month(-1), daysFromNow(-1), daysFromNow(1));
+    assertAcceptedWithForce(superuser, month(-2));
+  }
+
+  @Test
+  // Mixed import: month(-1) is listed and open, month(-2) is not listed. The whole import is
+  // rejected and the error names only month(-2).
+  void mixedImportRejectsUnlistedPeriod() {
+    configure(1, 0d);
+    addInputPeriod(month(-1), daysFromNow(-1), daysFromNow(1));
+    ConflictException ex = assertUntimely(capture, month(-1), month(-2));
+    assertNamesPeriods(ex, month(-2));
     assertDoesNotNamePeriods(ex, month(-1));
   }
 
   @Test
-  // Mixed import: month(-1) has a CLOSED input period, so it is locked. month(-2) has no input
-  // period and is open by the other rules (no expiry). The whole import is rejected and the error
-  // names only month(-1).
+  // Mixed import: month(-1)'s window has closed, month(-2)'s is open. The whole import is rejected
+  // and the error names only month(-1).
   void mixedImportRejectsClosedInputPeriod() {
     configure(1, 0d);
     addInputPeriod(month(-1), daysFromNow(-5), daysFromNow(-1));
+    addInputPeriod(month(-2), daysFromNow(-1), daysFromNow(1));
     ConflictException ex = assertUntimely(capture, month(-1), month(-2));
     assertNamesPeriods(ex, month(-1));
     assertDoesNotNamePeriods(ex, month(-2));
   }
 
   @Test
-  // month(3) is open only through its input period; month(-2) and month(0) have none and are open
-  // by openFuturePeriods = 1 and no expiry. Each period uses its own rule, so all three are
-  // accepted.
-  void mixedImportAcceptsWhenEveryPeriodIsOpenByItsOwnRule() throws Exception {
-    configure(1, 0d);
+  // month(-2), month(0) and month(3) each have an open window, so all three are accepted, although
+  // expiry 1 would close month(-2) and openFuturePeriods = 0 would close month(0) and month(3).
+  void mixedImportAcceptsWhenEveryPeriodHasAnOpenWindow() throws Exception {
+    configure(0, 1d);
+    addInputPeriod(month(-2), daysFromNow(-1), daysFromNow(1));
+    addInputPeriod(month(0), daysFromNow(-1), daysFromNow(1));
     addInputPeriod(month(3), daysFromNow(-1), daysFromNow(1));
-    assertAccepted(capture, month(3), month(-2), month(0));
+    assertAccepted(capture, month(-2), month(0), month(3));
+  }
+
+  @Test
+  // Input periods belong to their data set: those on ds do not close periods of dsTargets.
+  void inputPeriodsOfAnotherDataSetDoNotApply() throws Exception {
+    configure(1, 0d);
+    configure(dsTargets, 1, 0d);
+    addInputPeriod(month(-1), daysFromNow(-1), daysFromNow(1));
+    assertAccepted(capture, year(-1));
   }
 
   // --------------------

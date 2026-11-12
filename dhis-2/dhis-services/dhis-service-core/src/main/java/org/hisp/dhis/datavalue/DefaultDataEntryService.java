@@ -804,32 +804,34 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
     Date now = new Date();
     Map<String, List<DateRange>> entrySpansByIso = store.getEntrySpansByIsoPeriod(ds);
-    List<Period> periodsUsingEntrySpans = new ArrayList<>();
-    List<Period> periodsNotUsingEntrySpans = new ArrayList<>();
-    for (Period p : isoPeriods) {
-      if (entrySpansByIso.containsKey(p.getIsoDate())) {
-        periodsUsingEntrySpans.add(p);
-      } else {
-        periodsNotUsingEntrySpans.add(p);
-      }
-    }
-
-    // only if no explicit ranges are defined use expiry and future periods
-    if (!periodsNotUsingEntrySpans.isEmpty()) {
+    if (!entrySpansByIso.isEmpty()) {
+      // - require: DS input period is open explicitly
+      // a data set with data input periods accepts only the periods listed there, and each only
+      // within its windows; expiry days and open future periods do not apply
+      List<Period> peNotOpen =
+          isoPeriods.stream()
+              .filter(
+                  pe -> {
+                    List<DateRange> openSpan = entrySpansByIso.get(pe.getIsoDate());
+                    if (openSpan == null) return true; // not listed => never open
+                    return openSpan.stream().noneMatch(range -> range.includes(now));
+                  })
+              .toList();
+      if (!peNotOpen.isEmpty()) throw new ConflictException(ErrorCode.E8030, ds, peNotOpen);
+    } else {
+      // no data input periods: use expiry days and open future periods
       // - require: DS entry for period still allowed?
       // (how much later can data be entered relative to current period)
       double expiryDays = store.getDataSetExpiryDays(ds);
       // 0 = no expiry, always open
       if (expiryDays != 0d && !getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
-        // every period without entry spans: a period that has not ended yet can only be closed
-        // by a negative expiry, so past, current and future periods all need the check
-        Set<Period> periodsCheckedForExpiry = Set.copyOf(periodsNotUsingEntrySpans);
+        // a period that has not ended yet can only be closed by a negative expiry, so past,
+        // current and future periods all need the check
         Map<String, Set<String>> exemptedIsoByOu =
             store.getExpiryDaysExemptedIsoPeriodsByOrgUnit(ds);
         List<Period> peNoLongerOpen =
             source
                 .orgUnitPeriodPairs()
-                .filter(e -> periodsCheckedForExpiry.contains(e.getValue()))
                 .distinct()
                 // only check values not exempt
                 .filter(
@@ -837,7 +839,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                       Set<String> ouPeriods = exemptedIsoByOu.get(e.getKey().getValue());
                       return ouPeriods == null || !ouPeriods.contains(e.getValue().getIsoDate());
                     })
-                // find the values entered outside their input period
+                // find the periods whose expiry has passed
                 .filter(
                     e -> {
                       Period p = e.getValue();
@@ -858,25 +860,10 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       // - require: DS entry for period already allowed?
       // (how much earlier can data be entered relative to the current period)
       int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
-      PeriodType type = periodsNotUsingEntrySpans.get(0).getPeriodType();
+      PeriodType type = isoPeriods.get(0).getPeriodType();
       Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
-      List<Period> isoNotYetOpen =
-          periodsNotUsingEntrySpans.stream().filter(p -> p.isAfter(latestOpen)).toList();
+      List<Period> isoNotYetOpen = isoPeriods.stream().filter(p -> p.isAfter(latestOpen)).toList();
       if (!isoNotYetOpen.isEmpty()) throw new ConflictException(ErrorCode.E8030, ds, isoNotYetOpen);
-    }
-    // - require: DS input period is open explicitly
-    // entry time-frame(s) are explicitly defined...
-    if (!periodsUsingEntrySpans.isEmpty()) {
-      List<Period> peNotOpen =
-          periodsUsingEntrySpans.stream()
-              .filter(
-                  pe -> {
-                    List<DateRange> openSpan = entrySpansByIso.get(pe.getIsoDate());
-                    if (openSpan == null) return true;
-                    return openSpan.stream().noneMatch(range -> range.includes(now));
-                  })
-              .toList();
-      if (!peNotOpen.isEmpty()) throw new ConflictException(ErrorCode.E8030, ds, peNotOpen);
     }
 
     // - require: DS not already approved (data approval)
