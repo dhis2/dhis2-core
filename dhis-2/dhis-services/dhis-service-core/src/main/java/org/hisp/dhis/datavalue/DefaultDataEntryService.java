@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -803,61 +804,66 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
     Date now = new Date();
     Map<String, List<DateRange>> entrySpansByIso = store.getEntrySpansByIsoPeriod(ds);
+    List<Period> periodsUsingEntrySpans = new ArrayList<>();
+    Set<Period> periodsNotUsingEntrySpans = new HashSet<>();
+    for (Period p : isoPeriods) {
+      if (entrySpansByIso.containsKey(p.getIsoDate())) {
+        periodsUsingEntrySpans.add(p);
+      } else {
+        periodsNotUsingEntrySpans.add(p);
+      }
+    }
+
     // only if no explicit ranges are defined use expiry and future periods
-    if (entrySpansByIso.isEmpty()) {
+    if (!periodsNotUsingEntrySpans.isEmpty()) {
       // - require: DS entry for period still allowed?
       // (how much later can data be entered relative to current period)
       int expiryDays = store.getDataSetExpiryDays(ds);
-      if (!getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
-        if (expiryDays > 0) { // 0 = no expiry, always open
-
-          Map<String, Set<String>> exemptedIsoByOu =
-              store.getExpiryDaysExemptedIsoPeriodsByOrgUnit(ds);
-          List<Period> peNoLongerOpen =
-              source
-                  .orgUnitPeriodPairs()
-                  // only check values not exempt
-                  .filter(
-                      e -> {
-                        Set<String> ouPeriods = exemptedIsoByOu.get(e.getKey().getValue());
-                        return ouPeriods == null || !ouPeriods.contains(e.getValue().getIsoDate());
-                      })
-                  // find the values entered outside their input period
-                  .filter(
-                      e -> {
-                        Period p = e.getValue();
-                        // +1 because the period end date is start of day but should include that
-                        // day
-                        Date endOfEntryPeriod =
-                            new Date(
-                                p.getEndDate().getTime() + TimeUnit.DAYS.toMillis(expiryDays + 1L));
-                        return now.after(endOfEntryPeriod);
-                      })
-                  .map(Map.Entry::getValue)
-                  .distinct()
-                  .toList();
-          if (!peNoLongerOpen.isEmpty())
-            throw new ConflictException(ErrorCode.E8030, ds, peNoLongerOpen);
-        }
-
-        if (expiryDays >= 0) {
-          // - require: DS entry for period already allowed?
-          // (how much earlier can data be entered relative to the current period)
-          int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
-          PeriodType type = isoPeriods.get(0).getPeriodType();
-          Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
-          List<Period> isoNotYetOpen =
-              isoPeriods.stream().filter(p -> p.isAfter(latestOpen)).toList();
-          if (!isoNotYetOpen.isEmpty())
-            throw new ConflictException(ErrorCode.E8030, ds, isoNotYetOpen);
-        }
+      // 0 = no expiry, always open
+      if (expiryDays != 0 && !getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
+        Map<String, Set<String>> exemptedIsoByOu =
+            store.getExpiryDaysExemptedIsoPeriodsByOrgUnit(ds);
+        List<Period> peNoLongerOpen =
+            source
+                .orgUnitPeriodPairs()
+                .filter(e -> periodsNotUsingEntrySpans.contains(e.getValue()))
+                // only check values not exempt
+                .filter(
+                    e -> {
+                      Set<String> ouPeriods = exemptedIsoByOu.get(e.getKey().getValue());
+                      return ouPeriods == null || !ouPeriods.contains(e.getValue().getIsoDate());
+                    })
+                // find the values entered outside their input period
+                .filter(
+                    e -> {
+                      Period p = e.getValue();
+                      // +1 because the period end date is start of day but should include that
+                      // day
+                      Date endOfEntryPeriod =
+                          new Date(
+                              p.getEndDate().getTime() + TimeUnit.DAYS.toMillis(expiryDays + 1L));
+                      return now.after(endOfEntryPeriod);
+                    })
+                .map(Map.Entry::getValue)
+                .distinct()
+                .toList();
+        if (!peNoLongerOpen.isEmpty())
+          throw new ConflictException(ErrorCode.E8030, ds, peNoLongerOpen);
       }
-    } else {
-      // - require: DS input period is open explicitly
-      // entry time-frame(s) are explicitly defined...
+      // - require: DS entry for period already allowed?
+      // (how much earlier can data be entered relative to the current period)
+      int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
+      PeriodType type = periodsNotUsingEntrySpans.get(0).getPeriodType();
+      Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
+      List<Period> isoNotYetOpen =
+          periodsNotUsingEntrySpans.stream().filter(p -> p.isAfter(latestOpen)).toList();
+      if (!isoNotYetOpen.isEmpty()) throw new ConflictException(ErrorCode.E8030, ds, isoNotYetOpen);
+    }
+    // - require: DS input period is open explicitly
+    // entry time-frame(s) are explicitly defined...
+    if (!periodsUsingEntrySpans.isEmpty()) {
       List<Period> peNotOpen =
-          source
-              .periods()
+          periodsUsingEntrySpans.stream()
               .filter(
                   pe -> {
                     List<DateRange> openSpan = entrySpansByIso.get(pe.getIsoDate());
