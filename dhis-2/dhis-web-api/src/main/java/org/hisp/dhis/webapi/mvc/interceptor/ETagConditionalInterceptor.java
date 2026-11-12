@@ -614,8 +614,7 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
             ? eTagConditionalService.generateETag(userDetails, dependencyTypes.iterator().next())
             : eTagConditionalService.generateETag(userDetails, dependencyTypes);
 
-    // Include query string in the hash so different parameters produce different ETags.
-    String currentETag = hashWithQuery(baseETag, request.getQueryString());
+    String currentETag = requestETag(baseETag, request);
 
     if (eTagConditionalService.checkNotModified(request, currentETag)) {
       log.debug("ETag match for {} - returning 304", request.getRequestURI());
@@ -641,7 +640,7 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
       Set<String> namedKeys) {
 
     String baseETag = eTagConditionalService.generateETag(userDetails, entityTypes, namedKeys);
-    String currentETag = hashWithQuery(baseETag, request.getQueryString());
+    String currentETag = requestETag(baseETag, request);
 
     if (eTagConditionalService.checkNotModified(request, currentETag)) {
       log.debug("ETag match for {} - returning 304", request.getRequestURI());
@@ -656,15 +655,21 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
     return true;
   }
 
-  /** Combines the base ETag with the query string into a single hash. */
-  private static String hashWithQuery(String baseETag, String queryString) {
-    if (queryString == null || queryString.isEmpty()) {
-      return baseETag;
-    }
+  /**
+   * Combines the base ETag with what selects the representation within the same dependencies: the
+   * request path (object UID, format extension, API version) and the query string. Without the
+   * path, one object's ETag would answer 304 for another object, or for one that does not exist.
+   */
+  static String requestETag(String baseETag, HttpServletRequest request) {
     MessageDigest digest = newSha256Digest();
     digest.update(baseETag.getBytes(StandardCharsets.UTF_8));
-    digest.update((byte) '?');
-    digest.update(queryString.getBytes(StandardCharsets.UTF_8));
+    digest.update((byte) ' ');
+    digest.update(getPathWithinApplication(request).getBytes(StandardCharsets.UTF_8));
+    String queryString = request.getQueryString();
+    if (queryString != null && !queryString.isEmpty()) {
+      digest.update((byte) '?');
+      digest.update(queryString.getBytes(StandardCharsets.UTF_8));
+    }
     return HexFormat.of().formatHex(digest.digest());
   }
 
