@@ -137,12 +137,17 @@ class DisplayNameQueryPlanTest extends PostgresIntegrationTestBase {
     // generic plans, and a generic plan does not depend on the parameter values.
     String nulls =
         String.join(", ", Collections.nCopies(((Number) plans.get(0)[4]).intValue(), "null"));
-    String plan =
-        String.valueOf(
-            entityManager
-                .createNativeQuery("explain execute \"" + plans.get(0)[3] + "\"(" + nulls + ")")
-                .getResultList());
-    assertEquals(2, plan.split("InitPlan", -1).length - 1, plan);
+    List<?> plan =
+        entityManager
+            .createNativeQuery("explain execute \"" + plans.get(0)[3] + "\"(" + nulls + ")")
+            .getResultList();
+    // PostgreSQL 17 also names an InitPlan where its value is used, so count only plan nodes.
+    long initPlans =
+        plan.stream()
+            .map(line -> String.valueOf(line).strip())
+            .filter(line -> line.startsWith("InitPlan "))
+            .count();
+    assertEquals(2, initPlans, String.valueOf(plan));
   }
 
   private Map<String, long[]> planCounters() {
