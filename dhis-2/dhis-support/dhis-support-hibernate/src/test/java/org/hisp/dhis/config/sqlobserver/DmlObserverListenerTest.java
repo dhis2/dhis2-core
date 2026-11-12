@@ -30,6 +30,7 @@
 package org.hisp.dhis.config.sqlobserver;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -45,6 +46,8 @@ import java.sql.Connection;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import net.ttddyy.dsproxy.ConnectionInfo;
 import net.ttddyy.dsproxy.ExecutionInfo;
 import net.ttddyy.dsproxy.QueryInfo;
@@ -318,7 +321,8 @@ class DmlObserverListenerTest {
   @Test
   void afterQuery_reportsWritesTheParserCannotRead() {
     UnmatchedDmlLog unmatched = mock(UnmatchedDmlLog.class);
-    DmlObserverListener reporting = new DmlObserverListener(registry, eTagService, null, unmatched);
+    DmlObserverListener reporting =
+        new DmlObserverListener(registry, eTagService, null, unmatched, System::nanoTime);
     activateListener(reporting);
     String cteDelete = "WITH t AS (SELECT 1) DELETE FROM period WHERE periodid IN (SELECT 1)";
     String indentedUpdate = "  UPDATE dataelement SET name = ?";
@@ -334,6 +338,49 @@ class DmlObserverListenerTest {
     verify(unmatched).report(cteDelete);
     verify(unmatched).report(indentedUpdate);
     verifyNoMoreInteractions(unmatched);
+  }
+
+  @Test
+  void sweepKeepsTheBatchOfATransactionThatIsStillWriting() throws java.sql.SQLException {
+    AtomicLong now = new AtomicLong();
+    DmlObserverListener timed =
+        new DmlObserverListener(registry, eTagService, null, new UnmatchedDmlLog(), now::get);
+    activateListener(timed);
+    ExecutionInfo execInfo = createSuccessExecutionInfo(false);
+
+    // a long import: it writes for more than the stale age, never idle for that long
+    timed.afterQuery(
+        execInfo, List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)")));
+    now.addAndGet(TimeUnit.MINUTES.toNanos(4));
+    timed.afterQuery(
+        execInfo, List.of(createQueryInfo("INSERT INTO organisationunit (uid) VALUES (?)")));
+    now.addAndGet(TimeUnit.MINUTES.toNanos(4));
+    timed.sweepStaleBatches();
+    verifyNoInteractions(eTagService);
+
+    timed.afterMethod(createMethodContext(execInfo.getStatement().getConnection(), "commit"));
+
+    verify(eTagService).incrementEntityTypeVersion(DataElement.class);
+    verify(eTagService).incrementEntityTypeVersion(OrganisationUnit.class);
+  }
+
+  @Test
+  void sweepOfAnAbandonedBatchBumpsItsTypes() {
+    AtomicLong now = new AtomicLong();
+    DmlObserverListener timed =
+        new DmlObserverListener(registry, eTagService, null, new UnmatchedDmlLog(), now::get);
+    activateListener(timed);
+
+    // no commit, rollback or close is ever seen for this connection
+    timed.afterQuery(
+        createSuccessExecutionInfo(false),
+        List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)")));
+    now.addAndGet(TimeUnit.MINUTES.toNanos(6));
+    timed.sweepStaleBatches();
+
+    // dropping it silently would leave the ETag unchanged if the write did commit
+    verify(eTagService).incrementEntityTypeVersion(DataElement.class);
+    assertEquals(0, timed.pendingEventCount());
   }
 
   @lombok.SneakyThrows

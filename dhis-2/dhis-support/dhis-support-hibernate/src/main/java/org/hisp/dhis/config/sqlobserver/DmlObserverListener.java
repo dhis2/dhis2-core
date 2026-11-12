@@ -63,6 +63,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongSupplier;
 import lombok.extern.slf4j.Slf4j;
 import net.ttddyy.dsproxy.ExecutionInfo;
 import net.ttddyy.dsproxy.QueryInfo;
@@ -118,11 +119,13 @@ public class DmlObserverListener
   /**
    * Accumulated DML events for one connection. {@code seenTableOps} deduplicates by table+operation
    * so a bulk import produces at most one event per table/operation combo, bounding memory by
-   * distinct tables touched rather than row count.
+   * distinct tables touched rather than row count. {@code lastActivityNanos} is the time of the
+   * latest observed write on the connection.
    */
-  record PendingBatch(List<DmlEvent> events, Set<String> seenTableOps, long createdAtNanos) {}
+  record PendingBatch(
+      List<DmlEvent> events, Set<String> seenTableOps, AtomicLong lastActivityNanos) {}
 
-  /** Max age for pending batches before they are evicted as stale (5 minutes). */
+  /** Idle time after which a pending batch counts as abandoned (5 minutes without a write). */
   private static final long STALE_BATCH_NANOS = 5 * 60 * 1_000_000_000L;
 
   /** Sweep stale entries every N afterQuery calls to avoid checking on every single statement. */
@@ -139,20 +142,24 @@ public class DmlObserverListener
 
   private final UnmatchedDmlLog unmatchedDmlLog;
 
+  private final LongSupplier nanoClock;
+
   public DmlObserverListener(
       HibernateTableEntityRegistry registry, ETagService eTagService, MeterRegistry meterRegistry) {
-    this(registry, eTagService, meterRegistry, new UnmatchedDmlLog());
+    this(registry, eTagService, meterRegistry, new UnmatchedDmlLog(), System::nanoTime);
   }
 
   DmlObserverListener(
       HibernateTableEntityRegistry registry,
       ETagService eTagService,
       MeterRegistry meterRegistry,
-      UnmatchedDmlLog unmatchedDmlLog) {
+      UnmatchedDmlLog unmatchedDmlLog,
+      LongSupplier nanoClock) {
     this.registry = registry;
     this.eTagService = eTagService;
     this.meterRegistry = meterRegistry;
     this.unmatchedDmlLog = unmatchedDmlLog;
+    this.nanoClock = nanoClock;
 
     if (meterRegistry != null) {
       statementsObserved =
@@ -329,6 +336,7 @@ public class DmlObserverListener
    * creation/event addition. Only the first event per table+operation combo is kept.
    */
   private void accumulateEvent(String connectionId, String dedupeKey, DmlEvent event) {
+    long now = nanoClock.getAsLong();
     pendingBatches.compute(
         connectionId,
         (k, existing) -> {
@@ -338,7 +346,8 @@ public class DmlObserverListener
                   : new PendingBatch(
                       Collections.synchronizedList(new ArrayList<>()),
                       Collections.synchronizedSet(new HashSet<>()),
-                      System.nanoTime());
+                      new AtomicLong(now));
+          batch.lastActivityNanos().set(now);
           // Only add if we haven't seen this table+operation combo yet in this transaction
           if (batch.seenTableOps().add(dedupeKey)) {
             batch.events().add(event);
@@ -498,22 +507,39 @@ public class DmlObserverListener
   }
 
   /**
-   * Removes pending batches that have been waiting longer than {@link #STALE_BATCH_NANOS}. This
-   * prevents unbounded memory growth from abandoned connections (e.g., network timeouts, pool
-   * evictions) where neither commit, rollback, nor close was intercepted.
+   * Publishes and removes pending batches whose connection has not written for {@link
+   * #STALE_BATCH_NANOS}, so batches of abandoned connections (no commit, rollback or close was
+   * intercepted) cannot grow without bound. Idle time, not age, decides: a long import that keeps
+   * writing keeps its batch until it commits.
+   *
+   * <p>A swept batch bumps its types instead of being dropped: whether its writes committed is
+   * unknown, and an extra version bump only costs one 200 per client, while a missed one serves
+   * stale 304s until the TTL window ends.
    */
-  private void sweepStaleBatches() {
-    long now = System.nanoTime();
-    int swept = 0;
-    for (var entry : pendingBatches.entrySet()) {
-      if (now - entry.getValue().createdAtNanos() > STALE_BATCH_NANOS) {
-        pendingBatches.remove(entry.getKey());
-        swept++;
-      }
+  void sweepStaleBatches() {
+    long now = nanoClock.getAsLong();
+    List<PendingBatch> swept = new ArrayList<>();
+    for (String connectionId : pendingBatches.keySet()) {
+      pendingBatches.computeIfPresent(
+          connectionId,
+          (k, batch) -> {
+            if (now - batch.lastActivityNanos().get() <= STALE_BATCH_NANOS) {
+              return batch;
+            }
+            swept.add(batch);
+            return null;
+          });
     }
-    if (swept > 0) {
-      if (staleSweeps != null) staleSweeps.increment();
-      log.warn("Swept {} stale pending DML batches (abandoned connections)", swept);
+    if (swept.isEmpty()) {
+      return;
+    }
+    if (staleSweeps != null) staleSweeps.increment();
+    log.warn(
+        "Swept {} pending DML batches idle for more than 5 minutes (abandoned connections); "
+            + "bumping their ETag versions",
+        swept.size());
+    for (PendingBatch batch : swept) {
+      bumpETagVersions(batch.events());
     }
   }
 
