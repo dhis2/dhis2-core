@@ -230,25 +230,24 @@ class DataEntryImportCSVTest {
 
   @Test
   void testQuotedValueTooLong() {
-    String huge = "x".repeat(LineBuffer.MAX_QUOTED_VALUE_LENGTH + 1);
+    String huge = "x".repeat(CSV.MAX_VALUE_LENGTH + 1);
     IllegalArgumentException ex =
         assertThrowsExactly(
             IllegalArgumentException.class,
             () ->
                 read("dataElement,period,orgUnit,value\nde123456789,202501,ou123456789,\"" + huge));
     assertEquals(
-        "Quoted value starting in line 2 exceeds %d characters"
-            .formatted(LineBuffer.MAX_QUOTED_VALUE_LENGTH),
+        "Quoted value starting in line 2 exceeds %d characters".formatted(CSV.MAX_VALUE_LENGTH),
         ex.getMessage());
   }
 
   @Test
   void testQuotedValueAtMaxLength() {
-    String max = "x".repeat(LineBuffer.MAX_QUOTED_VALUE_LENGTH);
+    String max = "x".repeat(CSV.MAX_VALUE_LENGTH);
     List<DataEntryValue.Input> values =
         read(
             "dataElement,period,orgUnit,comment\nde123456789,202501,ou123456789,\"" + max + "\"\n");
-    assertEquals(LineBuffer.MAX_QUOTED_VALUE_LENGTH, values.get(0).comment().length());
+    assertEquals(CSV.MAX_VALUE_LENGTH, values.get(0).comment().length());
   }
 
   private static List<DataEntryValue.Input> read(String csv) {

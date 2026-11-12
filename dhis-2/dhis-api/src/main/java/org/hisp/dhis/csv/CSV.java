@@ -34,7 +34,6 @@ import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -68,6 +67,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.intellij.lang.annotations.Language;
@@ -85,6 +85,8 @@ import org.intellij.lang.annotations.Language;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CSV {
+
+  static final int MAX_VALUE_LENGTH = 50000;
 
   /**
    * Can be put on a {@link Map} component that will receive all colum values in the input that are
@@ -129,11 +131,11 @@ public final class CSV {
   }
 
   public static CsvConfig of(InputStream csv) {
-    return new Config(new BufferedReader(new InputStreamReader(csv, StandardCharsets.UTF_8)));
+    return new Config(new InputStreamReader(csv, StandardCharsets.UTF_8));
   }
 
   public static CsvConfig of(@Language("csv") String csv) {
-    return new Config(new BufferedReader(new StringReader(csv)));
+    return new Config(new StringReader(csv));
   }
 
   private static final Map<Class<?>, Function<String, ?>> DESERIALIZERS = new ConcurrentHashMap<>();
@@ -246,7 +248,7 @@ public final class CSV {
       this(type, components.stream().anyMatch(Component::any), components);
     }
 
-    Function<List<String>, T> from(List<String> header) {
+    Function<String[], T> from(String[] header) {
       int[] columnToCompIndex = columnToComponentIndexMapping(header);
       checkRequired(columnToCompIndex);
       Class<?>[] types = getComponentTypes(type);
@@ -256,19 +258,19 @@ public final class CSV {
         return values -> {
           Object[] args = new Object[types.length];
           Map<String, String> anyValues = null;
-          int maxColumns = Math.min(columnToCompIndex.length, values.size());
+          int maxColumns = Math.min(columnToCompIndex.length, values.length);
           for (int col = 0; col < maxColumns; col++) {
             int compIdx = columnToCompIndex[col];
             if (compIdx >= 0) {
-              String value = values.get(col);
+              String value = values[col];
               Component<?> comp = components.get(compIdx);
               if (comp.any) {
                 if (!skipAny) {
                   if (anyValues == null) {
-                    anyValues = new HashMap<>(header.size());
+                    anyValues = new HashMap<>(header.length);
                     args[compIdx] = anyValues;
                   }
-                  anyValues.put(header.get(col), value);
+                  anyValues.put(header[col], value);
                 }
               } else {
                 if (comp.required && value == null)
@@ -293,12 +295,13 @@ public final class CSV {
       }
     }
 
-    private boolean isSkipAny(List<String> header) {
+    private boolean isSkipAny(String[] header) {
+      Set<String> headers = Set.of(header);
       return !any
           || components.stream()
               .map(Component::anyIfAbsent)
               .filter(not(String::isEmpty))
-              .anyMatch(header::contains);
+              .anyMatch(headers::contains);
     }
 
     private void checkRequired(int[] compIdxByColIdx) {
@@ -316,11 +319,11 @@ public final class CSV {
                 + required.stream().filter(not(present::contains)).toList());
     }
 
-    private int[] columnToComponentIndexMapping(List<String> columns) {
+    private int[] columnToComponentIndexMapping(String[] columns) {
       Map<String, Integer> compIdxByName = compIdxByName();
-      int[] res = new int[columns.size()];
-      for (int i = 0; i < columns.size(); i++) {
-        String column = columns.get(i);
+      int[] res = new int[columns.length];
+      for (int i = 0; i < columns.length; i++) {
+        String column = columns[i];
         Integer compIdx = compIdxByName.get(column);
         if (compIdx == null) compIdx = compIdxByName.get(column.toLowerCase());
         if (compIdx == null) compIdx = compIdxByName.get("*");
@@ -392,12 +395,12 @@ public final class CSV {
     return any == null ? "" : any.ifAbsent();
   }
 
-  private record Config(BufferedReader csv) implements CsvConfig {
+  private record Config(java.io.Reader csv) implements CsvConfig {
 
     @Nonnull
     @Override
     public <T extends Record> CsvReader<T> as(Class<T> type) {
-      return new Reader<>(csv, getComponentsCached(type));
+      return new CSV.Reader<>(csv, getComponentsCached(type));
     }
   }
 
@@ -423,46 +426,191 @@ public final class CSV {
     return elems;
   }
 
-  private static boolean isIndent(char c) {
-    return c == ' ' || c == '\t';
-  }
+  @RequiredArgsConstructor
+  private static final class Reader<T extends Record> implements CsvReader<T> {
 
-  private record Reader<T extends Record>(BufferedReader csv, Components<T> as)
-      implements CsvReader<T> {
+    final java.io.Reader csv;
+    final Components<T> as;
+
+    char[] buffer = new char[2048];
+    boolean eoi;
+    int len = 0;
+    int pos = 0;
 
     @Nonnull
     @Override
     public Iterator<T> iterator() {
-      LineBuffer buf = LineBuffer.of(16);
-      try {
-        // the header follows the same quoting rules as the records
-        if (!buf.readLine(csv)) throw new IllegalArgumentException("No header line provided.");
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-      List<String> columns =
-          buf.split().stream().map(column -> column == null ? "" : column).toList();
-      Function<List<String>, T> newRecord = as.from(columns);
+      String[] headers = readHeaderRow();
+      if (headers == null) throw new IllegalArgumentException("No header line provided.");
+      Function<String[], T> newRecord = as.from(headers);
       return new Iterator<>() {
+        final String[] row = new String[headers.length];
         Boolean next;
 
         @Override
         public boolean hasNext() {
-          try {
-            next = buf.readLine(csv);
-            return next;
-          } catch (IOException e) {
-            throw new UncheckedIOException(e);
-          }
+          next = readDataRow(row);
+          return next;
         }
 
         @Override
         public T next() {
-          if (next == null) next = hasNext();
-          if (!next) throw new NoSuchElementException("No more rows in the CSV.");
-          return newRecord.apply(buf.split());
+          if (next == null || !next) throw new NoSuchElementException("No more rows in the CSV.");
+          return newRecord.apply(row);
         }
       };
     }
+
+    private void fillBufferTail(int keepLen) {
+      try {
+        int tailLen = buffer.length - keepLen;
+        int readLen = csv.read(buffer, keepLen, tailLen);
+        eoi = readLen < tailLen;
+        len = readLen + keepLen;
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+    }
+
+    private String[] readHeaderRow() {
+      fillBufferTail(0);
+      if (len == buffer.length)
+        throw new IllegalArgumentException("Header has excessively long names");
+      int n = countColumns();
+      if (n < 0) return null;
+      String[] header = new String[n];
+      int from = 0;
+      for (int i = 0; i < n; i++) {
+        int to = skipValue(from);
+        header[i] = value(from, to);
+        from = skipIndent(to);
+        if (from < len && buffer[from] == ',') from++;
+      }
+      pos = skipLineBreak(from);
+      return header;
+    }
+
+    private boolean readDataRow(String[] row) {
+      if (eoi && pos >= len) return false;
+      int from = pos;
+      for (int i = 0; i < row.length; i++) {
+        int to = skipValueGrowAndRefill(from);
+        row[i] = value(from, to);
+        from = skipIndent(to);
+        if (from < len && buffer[from] == ',') from++;
+      }
+      pos = skipLineBreak(from);
+      return true;
+    }
+
+    private int skipValueGrowAndRefill(int from) {
+      int to = -1;
+      while (to == -1) {
+        to = skipValue(from);
+        if (to == -1) {
+          int keepLen = len - from;
+          if (from == 0) {
+            // grow
+            char[] b2 = new char[buffer.length * 2];
+            System.arraycopy(buffer, from, b2, 0, keepLen);
+            buffer = b2;
+          } else {
+            // move
+            System.arraycopy(buffer, from, buffer, 0, keepLen);
+          }
+          // and fill
+          fillBufferTail(keepLen);
+        }
+      }
+      return to;
+    }
+
+    private boolean isEmpty(String[] row) {
+      for (String s : row) if (s != null) return false;
+      return true;
+    }
+
+    private int countColumns() {
+      int n = 1;
+      int p = 0;
+      while (p < len && !isLineBreak(buffer[p])) {
+        p = skipValue(p);
+        if (p >= len || !isValueSeparator(buffer[p]))
+          throw new IllegalArgumentException("Header column " + n + " does not terminate");
+        // skip , but not end of line
+        if (buffer[p] == ',') {
+          n++;
+          p++;
+        }
+      }
+      return n;
+    }
+
+    /**
+     * @param p start pos
+     * @return the pos after the value (, or line-break) or -1 if we ran out of buffer before we
+     *     could find it
+     */
+    private int skipValue(int p) {
+      while (p < len) {
+        char c = buffer[p];
+        if (isValueSeparator(c)) return p;
+        if (c == '"') {
+          p = skipQuotes(p + 1);
+          // still inside a quote, ran out of buffer
+          if (p == -1) return -1;
+        } else {
+          p++;
+        }
+      }
+      return eoi ? p : -1;
+    }
+
+    /**
+     * @param p start pos
+     * @return the pos after the closing quote or -1 if we ran out of buffer before we could find it
+     */
+    private int skipQuotes(int p) {
+      while (p < len) {
+        char c = buffer[p++];
+        if (c == '"') {
+          if (p < len && buffer[p] == '"') p++;
+          else return p;
+        } else if (c == '\\') {
+          p++;
+        }
+      }
+      // closing quote not found in this buffer
+      return eoi ? p : -1;
+    }
+
+    private int skipIndent(int p) {
+      while (p < len && isIndent(buffer[p])) p++;
+      return p;
+    }
+
+    private int skipLineBreak(int p) {
+      while (p < len && isLineBreak(buffer[p])) p++;
+      return p;
+    }
+
+    private String value(int from, int to) {
+      int f = skipIndent(from);
+      if (f < len && isValueSeparator(buffer[f])) return null;
+      if (buffer[f] == '"' && buffer[to - 1] == '"') return new String(buffer, f + 1, to - f - 2);
+      return new String(buffer, f, to - f);
+    }
+  }
+
+  private static boolean isValueSeparator(char c) {
+    return c == ',' || isLineBreak(c);
+  }
+
+  private static boolean isIndent(char c) {
+    return c == ' ' || c == '\t';
+  }
+
+  private static boolean isLineBreak(char c) {
+    return c == '\r' || c == '\n';
   }
 }
