@@ -32,17 +32,33 @@ package org.hisp.dhis.sms.command;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.Type;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Nguyen Kim Lai
  */
+@Entity
+@Table(name = "smsspecialcharacter")
 @JacksonXmlRootElement(localName = "smsspecialcharacter", namespace = DxfNamespaces.DXF_2_0)
 public class SMSSpecialCharacter {
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "specialcharacterid")
   private int id;
 
+  @Column(name = "name", columnDefinition = "text")
+  @Type(type = "text")
   private String name;
 
+  @Column(name = "value", columnDefinition = "text")
+  @Type(type = "text")
   private String value;
 
   public SMSSpecialCharacter() {}

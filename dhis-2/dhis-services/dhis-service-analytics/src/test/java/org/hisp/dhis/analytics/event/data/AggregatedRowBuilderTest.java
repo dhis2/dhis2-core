@@ -48,7 +48,6 @@ import java.util.function.Function;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.ou.OrgUnitRowAccess;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.IdScheme;
@@ -57,6 +56,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
@@ -168,7 +168,7 @@ class AggregatedRowBuilderTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
-            .withValue(numericElement)
+            .withValue(new Value(numericElement))
             .withAggregateData(true)
             .build();
 
@@ -250,7 +250,10 @@ class AggregatedRowBuilderTest {
     dateElement.setValueType(ValueType.DATE);
 
     EventQueryParams params =
-        new EventQueryParams.Builder().withProgram(programA).withValue(dateElement).build();
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withValue(new Value(dateElement))
+            .build();
 
     when(rowSet.getString("value")).thenReturn("2024-01-15");
 
@@ -296,7 +299,7 @@ class AggregatedRowBuilderTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
-            .withValue(numericElement)
+            .withValue(new Value(numericElement))
             .withSkipRounding(true)
             .build();
 
@@ -318,7 +321,7 @@ class AggregatedRowBuilderTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
-            .withValue(numericElement)
+            .withValue(new Value(numericElement))
             .withSkipRounding(false)
             .build();
 
@@ -339,7 +342,10 @@ class AggregatedRowBuilderTest {
     textElement.setValueType(ValueType.TEXT);
 
     EventQueryParams params =
-        new EventQueryParams.Builder().withProgram(programA).withValue(textElement).build();
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withValue(new Value(textElement))
+            .build();
 
     when(rowSet.getString("value")).thenReturn("textDimensionValue");
 
@@ -466,14 +472,14 @@ class AggregatedRowBuilderTest {
             .withEnrollmentOuDimension(List.of(createOrganisationUnit('A')))
             .build();
 
-    when(rowSet.getString(OrgUnitRowAccess.enrollmentOuResultColumn())).thenReturn("ouUid");
+    when(rowSet.getString(ColumnHeader.ENROLLMENT_OU.getItem())).thenReturn("ouUid");
     when(rowSet.getInt("value")).thenReturn(5);
 
     List<Object> row =
         AggregatedRowBuilder.create(params, rowSet, sqlBuilder, columnAliasResolver, itemIdProvider)
             .build();
 
-    verify(rowSet).getString(OrgUnitRowAccess.enrollmentOuResultColumn());
+    verify(rowSet).getString(ColumnHeader.ENROLLMENT_OU.getItem());
     assertThat(row, hasSize(2));
     assertThat(row.get(0), is("ouUid"));
     assertThat(row.get(1), is(5));

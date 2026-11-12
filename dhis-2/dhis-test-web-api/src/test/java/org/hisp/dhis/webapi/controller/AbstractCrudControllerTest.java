@@ -349,9 +349,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
     JsonErrorReport error = message.findErrorReport(ErrorCode.E1106);
     assertEquals(
-        String.format(
-            "There are duplicate translation records for property `name` and locale `sv` on DataSet `%s`",
-            id),
+        "There are duplicate translation records for property `name` and locale `sv`",
         error.getMessage());
     assertEquals("name", error.getErrorProperties().get(0));
   }
@@ -855,14 +853,6 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     manager.flush();
     manager.clear();
     switchToAdminUser();
-
-    // TODO: MAS: This tests fails because it will update the acting user's usergroups and then fail
-    // in the test:
-    // This should be the only case for using getCurrentUserGroupInfo() in the code.
-    // Hence we have to keep it until this is fixed in a separate PR.
-    // InternalHibernateGenericStoreImpl.getSharingPredicates()
-    // if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size())
-    // we need to make sure that user in session is updated when user groups change.
 
     String groupId =
         assertStatus(

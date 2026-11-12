@@ -93,4 +93,9 @@ public class EnrollmentQueryGenerator implements Generator {
   public boolean assertRowIndex() {
     return true;
   }
+
+  @Override
+  public boolean geospatialHeadersDependOnDatabase() {
+    return true;
+  }
 }

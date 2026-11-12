@@ -56,6 +56,8 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -405,6 +407,52 @@ class OrganisationUnitControllerTest extends PostgresControllerIntegrationTestBa
                 + "&filter=name:eq:L0&filter=name:eq:L31")
             .content(),
         "L31");
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "withinUserHierarchy=true, L21",
+    "withinDataViewUserHierarchy=true, L21",
+    "withinUserSearchHierarchy=true, L21",
+    "level=3, L21",
+    "maxLevel=2, L0",
+    "userOnly=true, L21",
+    "userDataViewOnly=true, L21",
+    "userDataViewFallback=true, L21"
+  })
+  void testGetScopeLimitationIsNotCombinedWithRootJunction(String limitation, String expected) {
+    switchToHierarchyUser(List.of(ou21), List.of(ou21), List.of(ou21));
+
+    // A search on two fields combined with OR must stay within the limitation.
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?"
+                + limitation
+                + "&rootJunction=OR&filter=shortName:eq:L0&filter=name:eq:L21")
+            .content(),
+        expected);
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "/organisationUnits/{id}/children?, L31",
+    "/organisationUnits/{id}/children?level=1&, L31",
+    "/organisationUnits/{id}/descendants?, L31",
+    "/organisationUnits/{id}/ancestors?, L0",
+    "/organisationUnits/{id}/parents?, L0"
+  })
+  void testGetRelativesAreNotCombinedWithRootJunction(String relatives, String expected) {
+    assertListOfOrganisationUnits(
+        GET(relatives + "rootJunction=OR&filter=shortName:eq:L0&filter=name:eq:L31", ou21)
+            .content(),
+        expected);
+  }
+
+  @Test
+  void testGetUserOnlyWithoutOrganisationUnitsAndRootJunction() {
+    switchToHierarchyUser(List.of(), List.of(), List.of());
+
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?userOnly=true&rootJunction=OR&filter=shortName:eq:L0").content());
   }
 
   @Test

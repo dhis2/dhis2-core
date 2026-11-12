@@ -15,7 +15,7 @@
   <properties>
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
-    <tomcat.version>11.0.26</tomcat.version>
+    <tomcat.version>11.0.27</tomcat.version>
     <jib.version>3.5.2</jib.version>
     <jib.from.image>gcr.io/distroless/java21-debian12@sha256:7c05bf8a64ff1a70a16083e9bdd35b463aa0d014c2fc782d31d13ea7a61de633</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
@@ -25,6 +25,26 @@
     <spring-boot-maven-plugin.version>4.1.1</spring-boot-maven-plugin.version>
     <packaging.type>war</packaging.type>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!--
+        spring-boot-starter-tomcat brings these Tomcat modules at Spring Boot's
+        Tomcat version, and the embedded profile packages them into
+        WEB-INF/lib-provided. Keep them on tomcat.version, next to tomcat-embed-core.
+      -->
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-el</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-websocket</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -71,6 +91,10 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-tomcat</artifactId>
       <version>${spring-boot-maven-plugin.version}</version>
@@ -109,6 +133,11 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

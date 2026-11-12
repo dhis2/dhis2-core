@@ -29,155 +29,138 @@
  */
 package org.hisp.dhis.analytics.event.data.ou;
 
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+
 import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
-/** Pure SQL fragments used by ENROLLMENT_OU support. */
+/** Pure SQL fragments used by the tracker org unit dimensions. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class OrgUnitSqlFragments {
 
   /**
-   * Builds the join predicate between the event analytics table and the enrollment analytics table.
+   * Builds the join predicate between the analytics table and the org unit structure table.
    *
-   * @param enrollmentAlias alias used for the enrollment analytics table in the current query
+   * @param dimension the tracker org unit dimension
+   * @param structAlias alias used for the org unit structure table in the current query
    * @param sqlBuilder database-specific SQL builder for column quoting
    * @return SQL join condition using quoted identifiers
    */
-  public static String joinCondition(String enrollmentAlias, SqlBuilder sqlBuilder) {
-    return sqlBuilder.quote(
-            OrgUnitSqlConstants.EVENT_TABLE_ALIAS, OrgUnitSqlConstants.ENROLLMENT_JOIN_COLUMN)
+  public static String joinCondition(
+      TrackerOrgUnitDimension dimension, String structAlias, SqlBuilder sqlBuilder) {
+    return sqlBuilder.quote(structAlias, OrgUnitSqlConstants.STRUCT_UID_COLUMN)
         + " = "
-        + sqlBuilder.quote(enrollmentAlias, OrgUnitSqlConstants.ENROLLMENT_JOIN_COLUMN);
+        + sqlBuilder.quote(ANALYTICS_TBL_ALIAS, dimension.getAnalyticsColumn());
   }
 
   /**
-   * Builds the legacy (string-based) inner join clause for enrollment OU resolution.
+   * Builds the string-based inner join clause to the org unit structure table. The join is inner
+   * because the org unit columns of the event analytics table are never null.
    *
-   * @param enrollmentTableName program-specific enrollment analytics table name
+   * @param dimension the tracker org unit dimension
    * @param sqlBuilder database-specific SQL builder for column quoting
    * @return full {@code inner join ... on ...} clause with trailing space
    */
-  public static String innerJoinClause(String enrollmentTableName, SqlBuilder sqlBuilder) {
+  public static String innerJoinClause(TrackerOrgUnitDimension dimension, SqlBuilder sqlBuilder) {
     return "inner join "
-        + enrollmentTableName
+        + OrgUnitSqlConstants.STRUCT_TABLE
         + " as "
-        + OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS
+        + dimension.getStructAlias()
         + " on "
-        + joinCondition(OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS, sqlBuilder)
+        + joinCondition(dimension, dimension.getStructAlias(), sqlBuilder)
         + " ";
   }
 
   /**
-   * Builds the enrollment OU UID projection for select/group-by clauses.
+   * Builds a predicate matching org units at or below the given org units, by comparing the
+   * ancestor UID held at their hierarchy level.
    *
-   * @param groupBy when true, returns a raw column reference suitable for group-by; when false,
-   *     returns a projected alias suitable for select output
+   * @param dimension the tracker org unit dimension
+   * @param level the org unit hierarchy level of the requested org units
+   * @param quotedUidList comma-delimited and quoted UID values
    * @param sqlBuilder database-specific SQL builder for column quoting
-   * @return SQL fragment for enrollment OU UID
+   * @return SQL predicate fragment
    */
-  public static String selectEnrollmentOuUid(boolean groupBy, SqlBuilder sqlBuilder) {
-    String uidCol =
-        sqlBuilder.quote(
-            OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS, OrgUnitSqlConstants.ENROLLMENT_OU_COLUMN);
-    return groupBy ? uidCol : uidCol + " as " + OrgUnitSqlConstants.ENROLLMENT_OU_RESULT_ALIAS;
+  public static String predicateByUidLevel(
+      TrackerOrgUnitDimension dimension, int level, String quotedUidList, SqlBuilder sqlBuilder) {
+    return uidLevelColumn(dimension, level, sqlBuilder) + " in (" + quotedUidList + ")";
   }
 
   /**
-   * Builds the enrollment OU display name projection used by event query output.
+   * Builds the aggregate disaggregation column, which is the ancestor UID at the level of the
+   * requested org units. This is what makes each requested org unit one output row aggregating its
+   * whole subtree.
    *
+   * @param dimension the tracker org unit dimension
+   * @param level the org unit hierarchy level of the requested org units
+   * @param groupBy when true returns a raw column reference for group-by, otherwise an aliased
+   *     projection
    * @param sqlBuilder database-specific SQL builder for column quoting
-   * @return SQL fragment mapping org unit name to the enrollment OU name alias
+   * @return SQL fragment
    */
-  public static String selectEnrollmentOuName(SqlBuilder sqlBuilder) {
-    return sqlBuilder.quote(
-            OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS,
-            OrgUnitSqlConstants.ENROLLMENT_OU_NAME_COLUMN)
+  public static String selectUidLevel(
+      TrackerOrgUnitDimension dimension, int level, boolean groupBy, SqlBuilder sqlBuilder) {
+    String column = uidLevelColumn(dimension, level, sqlBuilder);
+
+    return groupBy ? column : column + " as " + dimension.getUidHeader().getItem();
+  }
+
+  /**
+   * Builds the org unit UID projection for query output. This is the org unit held by the event
+   * row, not the requested ancestor.
+   *
+   * @param dimension the tracker org unit dimension
+   * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return SQL fragment
+   */
+  public static String selectUid(TrackerOrgUnitDimension dimension, SqlBuilder sqlBuilder) {
+    return sqlBuilder.quote(dimension.getStructAlias(), OrgUnitSqlConstants.STRUCT_UID_COLUMN)
         + " as "
-        + OrgUnitSqlConstants.ENROLLMENT_OU_NAME_RESULT_ALIAS;
+        + dimension.getUidHeader().getItem();
   }
 
   /**
-   * Builds the sort column for an enrollment OU output column, reading it from the joined
-   * enrollment analytics table.
+   * Builds the org unit display name projection for query output.
    *
+   * @param dimension the tracker org unit dimension
+   * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return SQL fragment
+   */
+  public static String selectName(TrackerOrgUnitDimension dimension, SqlBuilder sqlBuilder) {
+    return sqlBuilder.quote(dimension.getStructAlias(), OrgUnitSqlConstants.STRUCT_NAME_COLUMN)
+        + " as "
+        + dimension.getNameHeader().getItem();
+  }
+
+  private static String uidLevelColumn(
+      TrackerOrgUnitDimension dimension, int level, SqlBuilder sqlBuilder) {
+    return sqlBuilder.quote(
+        dimension.getStructAlias(), OrgUnitSqlConstants.UID_LEVEL_PREFIX + level);
+  }
+
+  /**
+   * Builds the sort column for an output column of the dimension, reading it from the joined org
+   * unit structure table.
+   *
+   * @param dimension the tracker org unit dimension
    * @param item the output column name to sort on
    * @param sqlBuilder database-specific SQL builder for column quoting
-   * @return the qualified enrollment table column, or empty when the item is not an enrollment OU
-   *     output column
+   * @return the qualified structure table column, or empty when the item is not an output column of
+   *     the dimension
    */
-  public static Optional<String> sortColumn(String item, SqlBuilder sqlBuilder) {
+  public static Optional<String> sortColumn(
+      TrackerOrgUnitDimension dimension, String item, SqlBuilder sqlBuilder) {
     String column = null;
 
-    if (OrgUnitSqlConstants.ENROLLMENT_OU_RESULT_ALIAS.equals(item)) {
-      column = OrgUnitSqlConstants.ENROLLMENT_OU_COLUMN;
-    } else if (OrgUnitSqlConstants.ENROLLMENT_OU_NAME_RESULT_ALIAS.equals(item)) {
-      column = OrgUnitSqlConstants.ENROLLMENT_OU_NAME_COLUMN;
+    if (dimension.getUidHeader().getItem().equals(item)) {
+      column = OrgUnitSqlConstants.STRUCT_UID_COLUMN;
+    } else if (dimension.getNameHeader().getItem().equals(item)) {
+      column = OrgUnitSqlConstants.STRUCT_NAME_COLUMN;
     }
 
     return Optional.ofNullable(column)
-        .map(col -> sqlBuilder.quote(OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS, col));
-  }
-
-  /**
-   * Builds a literal enrollment OU UID projection for hierarchical mode. Produces a constant value
-   * aliased as the enrollment OU column, collapsing all rows to one aggregated row.
-   *
-   * @param uid the org unit UID to use as a literal value
-   * @return SQL fragment like {@code 'uid' as enrollmentou}
-   */
-  public static String selectLiteralEnrollmentOuUid(String uid) {
-    return "'" + uid + "' as " + OrgUnitSqlConstants.ENROLLMENT_OU_RESULT_ALIAS;
-  }
-
-  /**
-   * Builds a UID-membership predicate for enrollment OU.
-   *
-   * @param quotedUidList comma-delimited and quoted UID values
-   * @param sqlBuilder database-specific SQL builder for column quoting
-   * @return SQL predicate fragment for org unit UID filtering
-   */
-  public static String predicateByUids(String quotedUidList, SqlBuilder sqlBuilder) {
-    return " "
-        + sqlBuilder.quote(
-            OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS, OrgUnitSqlConstants.ENROLLMENT_OU_COLUMN)
-        + " in ("
-        + quotedUidList
-        + ") ";
-  }
-
-  /**
-   * Builds a level-membership predicate for enrollment OU.
-   *
-   * @param commaSeparatedLevels comma-delimited level numbers
-   * @param sqlBuilder database-specific SQL builder for column quoting
-   * @return SQL predicate fragment for org unit level filtering
-   */
-  public static String predicateByLevels(String commaSeparatedLevels, SqlBuilder sqlBuilder) {
-    return " "
-        + sqlBuilder.quote(
-            OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS,
-            OrgUnitSqlConstants.ENROLLMENT_OU_LEVEL_COLUMN)
-        + " in ("
-        + commaSeparatedLevels
-        + ") ";
-  }
-
-  /**
-   * Builds a uidlevel-based predicate for enrollment OU hierarchical filtering.
-   *
-   * @param level the org unit hierarchy level
-   * @param quotedUidList comma-delimited and quoted UID values
-   * @param sqlBuilder database-specific SQL builder for column quoting
-   * @return SQL predicate fragment for uidlevel filtering
-   */
-  public static String predicateByUidLevel(int level, String quotedUidList, SqlBuilder sqlBuilder) {
-    return sqlBuilder.quote(
-            OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS,
-            OrgUnitSqlConstants.UID_LEVEL_PREFIX + level)
-        + " in ("
-        + quotedUidList
-        + ")";
+        .map(col -> sqlBuilder.quote(dimension.getStructAlias(), col));
   }
 }

@@ -31,6 +31,7 @@ package org.hisp.dhis.security.oidc;
 
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.AUTHORIZATION_GRANT_TYPE;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.AUTHORIZATION_URI;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ASSERTION_AUDIENCE;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_AUTHENTICATION_METHOD;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_SECRET;
@@ -40,6 +41,7 @@ import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ENABLE_P
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.END_SESSION_ENDPOINT;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTERNAL_CLIENT_PREFIX;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTRA_REQUEST_PARAMETERS;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ID_TOKEN_JWS_ALGORITHM;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ISSUER_URI;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.JWK_SET_URL;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.JWK_URI;
@@ -55,6 +57,8 @@ import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.REDIRECT
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.SCOPES;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.TOKEN_URI;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.USERINFO_URI;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.USER_INFO_JWS_ALGORITHM;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.USER_INFO_RESPONSE_TYPE;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -138,11 +142,25 @@ public final class GenericOidcProviderConfigParser {
     builder.put(AUTHORIZATION_GRANT_TYPE, Boolean.FALSE);
     builder.put(CLIENT_AUTHENTICATION_METHOD, Boolean.FALSE);
     builder.put(JWK_SET_URL, Boolean.FALSE);
+    builder.put(CLIENT_ASSERTION_AUDIENCE, Boolean.FALSE);
+    builder.put(ID_TOKEN_JWS_ALGORITHM, Boolean.FALSE);
+
+    // userinfo JWT response support
+    builder.put(USER_INFO_RESPONSE_TYPE, Boolean.FALSE);
+    builder.put(USER_INFO_JWS_ALGORITHM, Boolean.FALSE);
 
     KEY_REQUIRED_MAP = builder.build();
   }
 
   private static final Set<String> VALID_KEY_NAMES = KEY_REQUIRED_MAP.keySet();
+
+  /** Keys a provider must set to sign {@code private_key_jwt} client assertions. */
+  private static final List<String> PRIVATE_KEY_JWT_KEYS =
+      List.of(
+          JWT_PRIVATE_KEY_KEYSTORE_PATH,
+          JWT_PRIVATE_KEY_KEYSTORE_PASSWORD,
+          JWT_PRIVATE_KEY_ALIAS,
+          JWT_PRIVATE_KEY_PASSWORD);
 
   public static final Predicate<String> IS_EXTERNAL_CLIENT =
       s -> s.contains(EXTERNAL_CLIENT_PREFIX);
@@ -405,12 +423,20 @@ public final class GenericOidcProviderConfigParser {
     Objects.requireNonNull(providerConfig);
 
     String providerId = providerConfig.get(PROVIDER_ID);
+    boolean privateKeyJwt = GenericOidcProviderBuilder.isPrivateKeyJwt(providerConfig);
+    if (privateKeyJwt && !validatePrivateKeyJwtKeys(providerId, providerConfig)) {
+      return false;
+    }
 
     for (Map.Entry<String, Boolean> entry : KEY_REQUIRED_MAP.entrySet()) {
       String key = entry.getKey();
       boolean isRequired = entry.getValue();
-
       String value = providerConfig.get(key);
+
+      if (CLIENT_SECRET.equals(key) && privateKeyJwt) {
+        // private_key_jwt authenticates with the keystore key, not with a client_secret
+        continue;
+      }
 
       if (isRequired && Strings.isNullOrEmpty(value)) {
         log.error(
@@ -418,7 +444,6 @@ public final class GenericOidcProviderConfigParser {
                 + "Failed to configure the provider successfully!",
             providerId,
             key);
-
         return false;
       }
 
@@ -430,11 +455,62 @@ public final class GenericOidcProviderConfigParser {
             providerId,
             key,
             value);
-
         return false;
       }
     }
+    try {
+      SupportedJwsAlgorithms.parseOrDefault(providerConfig.get(ID_TOKEN_JWS_ALGORITHM));
+    } catch (IllegalArgumentException ex) {
+      log.error("OIDC provider '{}' has invalid id_token_jws_algorithm", providerId, ex);
+      return false;
+    }
 
+    return validateUserInfoResponseType(providerId, providerConfig);
+  }
+
+  private static boolean validatePrivateKeyJwtKeys(
+      String providerId, Map<String, String> providerConfig) {
+    for (String key : PRIVATE_KEY_JWT_KEYS) {
+      if (Strings.isNullOrEmpty(providerConfig.get(key))) {
+        log.error(
+            "OpenId Connect (OIDC) configuration for provider: '{}' uses client_authentication_method "
+                + "'private_key_jwt' but is missing the required property: '{}'. "
+                + "Failed to configure the provider successfully!",
+            providerId,
+            key);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean validateUserInfoResponseType(
+      String providerId, Map<String, String> providerConfig) {
+    String type = providerConfig.get(USER_INFO_RESPONSE_TYPE);
+    UserInfoResponseType resolved;
+    try {
+      resolved = UserInfoResponseType.fromConfig(type);
+    } catch (IllegalArgumentException ex) {
+      log.error(
+          "OIDC provider '{}' has invalid user_info_response_type='{}'. Allowed: json, jwt.",
+          providerId,
+          type);
+      return false;
+    }
+
+    if (resolved == UserInfoResponseType.JWT) {
+      String alg = providerConfig.get(USER_INFO_JWS_ALGORITHM);
+      try {
+        SupportedJwsAlgorithms.parseOrDefault(alg);
+      } catch (IllegalArgumentException ex) {
+        log.error(
+            "OIDC provider '{}' has unsupported user_info_jws_algorithm='{}'. {}",
+            providerId,
+            alg,
+            ex.getMessage());
+        return false;
+      }
+    }
     return true;
   }
 }

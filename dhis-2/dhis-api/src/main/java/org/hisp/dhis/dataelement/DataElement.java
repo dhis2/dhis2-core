@@ -154,6 +154,7 @@ public class DataElement extends BaseMetadataObject
   @Column(name = "shortname", nullable = false, unique = true, length = 50)
   private String shortName;
 
+  @Type(type = "text")
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
@@ -518,6 +519,7 @@ public class DataElement extends BaseMetadataObject
   // TODO can also be dimension
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.DATA_ELEMENT;
   }
