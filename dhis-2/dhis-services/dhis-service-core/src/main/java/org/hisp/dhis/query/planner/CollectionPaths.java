@@ -32,7 +32,6 @@ package org.hisp.dhis.query.planner;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.query.Filter;
-import org.hisp.dhis.query.operators.LikeOperator;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -66,10 +65,7 @@ public class CollectionPaths {
    */
   @CheckForNull
   public Class<?> itemType(Class<?> rootType, Filter filter, Property terminal) {
-    if (terminal == null || !terminal.isSimple() || terminal.isCollection()) return null;
-    if (filter.getOperator() instanceof LikeOperator<?> && terminal.getKlass() != String.class) {
-      return null;
-    }
+    if (!isEligibleTerminal(filter, terminal)) return null;
 
     String[] components = filter.getPath().split("\\.");
     if (components.length < 2) return null;
@@ -80,21 +76,29 @@ public class CollectionPaths {
 
     for (int i = 0; i < components.length - 1; i++) {
       Property property = schema.getProperty(components[i]);
-      if (property == null || property.isEmbeddedObject()) return null;
-
-      if (property.isCollection()) {
-        if (property.getItemKlass() == null) return null;
-        hasCollection = true;
-        owner = property.getItemKlass();
-        schema = schemaService.getSchema(owner);
-        continue;
-      }
-
-      if (property.isSimple() || property.getKlass() == null) return null;
-      owner = property.getKlass();
+      owner = stepType(property);
+      if (owner == null) return null;
+      hasCollection |= property.isCollection();
       schema = schemaService.getSchema(owner);
     }
 
     return hasCollection ? owner : null;
+  }
+
+  /** A single-valued simple terminal; a like filter additionally requires text. */
+  private static boolean isEligibleTerminal(Filter filter, Property terminal) {
+    if (terminal == null || !terminal.isSimple() || terminal.isCollection()) return false;
+    return !filter.isLike() || terminal.getKlass() == String.class;
+  }
+
+  /**
+   * @return the type the path continues into after {@code property}: the item type of a collection
+   *     or the type of a reference, or {@code null} when the path cannot continue through it
+   */
+  @CheckForNull
+  private static Class<?> stepType(@CheckForNull Property property) {
+    if (property == null || property.isEmbeddedObject()) return null;
+    if (property.isCollection()) return property.getItemKlass();
+    return property.isSimple() ? null : property.getKlass();
   }
 }

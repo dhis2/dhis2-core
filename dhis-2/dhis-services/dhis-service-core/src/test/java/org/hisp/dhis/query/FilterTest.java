@@ -33,6 +33,7 @@ import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.query.operators.LikeOperator;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.junit.jupiter.api.Test;
 
@@ -67,6 +68,23 @@ class FilterTest {
     assertTrue(Filters.in("members.id", of("a", "b")).isIdentityMatch());
     assertFalse(Filters.like("members.id", "abc", MatchMode.ANYWHERE).isIdentityMatch());
     assertFalse(Filters.notIn("members.id", of("a", "b")).isIdentityMatch());
+  }
+
+  @Test
+  void isLikeOnlyForLikeOperator() {
+    assertTrue(Filters.like("members.path", "abc", MatchMode.ANYWHERE).isLike());
+    assertTrue(Filters.ilike("members.path", "abc", MatchMode.START).isLike());
+    assertFalse(Filters.notLike("members.path", "abc", MatchMode.ANYWHERE).isLike());
+    assertFalse(Filters.eq("members.path", "abc").isLike());
+  }
+
+  @Test
+  void subclassOfLikeOperatorIsNotTreatedAsLike() {
+    // a future subclass (e.g. a negated variant) must not inherit like or DB predicate handling
+    Filter filter =
+        new Filter("members.path", new LikeOperator<>("abc", true, MatchMode.ANYWHERE) {});
+    assertFalse(filter.isLike());
+    assertFalse(filter.supportsDbPredicate());
   }
 
   @Test
