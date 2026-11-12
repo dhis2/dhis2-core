@@ -117,7 +117,7 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull UID uid) {
       OrgUnitPath p = m.parent();
       while (p != null && !aboveScopeRoot) {
         if (!contained.contains(p)) ancestors.add(p);
-        aboveScopeRoot = scope.contains(p.uid());
+        aboveScopeRoot = !scope.isEmpty() && scope.contains(p.uid());
         p = p.parent();
       }
     }
