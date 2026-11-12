@@ -53,7 +53,6 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
-import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -300,13 +299,13 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
   }
 
   /**
-   * A concurrent transaction adds the same member first. Its uncommitted row is invisible to the
-   * merge, so the merge's own insert waits for that commit and then violates the primary key. The
-   * failure must fail the merge as a whole: PostgreSQL has aborted the transaction, so the deletion
-   * that preceded the insert is rolled back and must not be reported as done.
+   * A concurrent transaction adds the same member first. Its row's foreign key holds a lock on the
+   * group's row, so the merge waits on its own lock of that row until the commit. The merge then
+   * reads the committed row: it counts the member as ignored, as a later request would, and still
+   * applies its deletion instead of violating the join table's key.
    */
   @Test
-  void concurrentAdditionFailsTheMergeAndRollsBackItsEarlierDeletion() throws Exception {
+  void concurrentAdditionIsIgnoredAndTheMergeAppliesItsDeletion() throws Exception {
     String removed = organisationUnit("Delta removed");
     String contested = organisationUnit("Delta contested");
     String group =
@@ -337,33 +336,33 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
           executor.submit(
               () -> {
                 try {
-                  awaitBlockedMemberInsert(concurrent);
+                  awaitWaitingTransaction(concurrent);
                 } finally {
                   concurrent.commit();
                 }
                 return null;
               });
 
-      assertThrows(
-          ConstraintViolationException.class,
-          () ->
-              transaction(
-                  () ->
-                      merge(
-                          manager.get(OrganisationUnitGroup.class, group),
-                          "organisationUnits",
-                          List.of(contested),
-                          List.of(removed))));
+      TypeReport report =
+          transaction(
+              () ->
+                  merge(
+                      manager.get(OrganisationUnitGroup.class, group),
+                      "organisationUnits",
+                      List.of(contested),
+                      List.of(removed)));
       commit.get();
+      assertEquals(0, report.getStats().updated());
+      assertEquals(1, report.getStats().deleted());
+      assertEquals(1, report.getStats().ignored());
     } finally {
       executor.shutdownNow();
     }
-    assertGroupMembers(group, removed, contested);
-    assertGroupMembers(group, removed, contested);
+    assertGroupMembers(group, contested);
   }
 
   /** Returns once another connection waits for the transaction of the given connection to end. */
-  private static void awaitBlockedMemberInsert(Connection connection) throws SQLException {
+  private static void awaitWaitingTransaction(Connection connection) throws SQLException {
     String sql =
         "select count(*) from pg_locks where not granted and locktype = 'transactionid'"
             + " and transactionid ="

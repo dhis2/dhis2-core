@@ -91,15 +91,15 @@ class CollectionItemsConcurrencyTest extends PostgresIntegrationTestBase {
 
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
-  void concurrentChangeOfTheSameItemIsIgnoredByTheLaterRequest(boolean addition)
-      throws Exception {
-    if (!addition) {
-      assertEquals(1, change(true).getStats().updated());
-    }
+  void concurrentChangeOfTheSameItemIsIgnoredByTheLaterRequest(boolean addition) throws Exception {
     CountDownLatch firstChanged = new CountDownLatch(1);
     CountDownLatch firstMayCommit = new CountDownLatch(1);
     ExecutorService pool = Executors.newFixedThreadPool(2);
     try {
+      if (!addition) {
+        Future<TypeReport> setup = pool.submit(() -> inTransaction(() -> change(true)));
+        assertEquals(1, setup.get(1, TimeUnit.MINUTES).getStats().updated());
+      }
       Future<TypeReport> first =
           pool.submit(
               () ->
@@ -113,9 +113,7 @@ class CollectionItemsConcurrencyTest extends PostgresIntegrationTestBase {
       assertTrue(firstChanged.await(1, TimeUnit.MINUTES), "first request did not change the item");
 
       Future<TypeReport> second = pool.submit(() -> inTransaction(() -> change(addition)));
-      await()
-          .atMost(1, TimeUnit.MINUTES)
-          .until(() -> waitingForLock() > 0 || second.isDone());
+      await().atMost(1, TimeUnit.MINUTES).until(() -> waitingForLock() > 0 || second.isDone());
       firstMayCommit.countDown();
 
       assertEquals(1, changed(first.get(1, TimeUnit.MINUTES), addition));

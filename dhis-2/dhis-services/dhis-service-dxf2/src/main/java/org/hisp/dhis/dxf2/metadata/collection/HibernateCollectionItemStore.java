@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata.collection;
 
 import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.ParameterExpression;
@@ -68,6 +69,11 @@ import org.springframework.stereotype.Repository;
  * of them are members. Hibernate's collection persister supplies the row mutation SQL, including
  * mapping-specific types and column names. A temporary set contains only the delta, never the
  * existing membership.
+ *
+ * <p>The owner's row is locked before the membership is read. A concurrent change of the same set
+ * waits for this transaction to end and then reads its committed rows, as a later request would.
+ * Without the lock both would read the same membership: a second addition of an item would violate
+ * the join table's key and a second removal would count a row that no longer exists.
  *
  * <p>Extra-lazy sets still initialize on owning-side writes: Hibernate only queues inverse-side
  * operations. Do not mark the real wrapper dirty or replace its snapshot with the partial set.
@@ -122,6 +128,7 @@ class HibernateCollectionItemStore {
       Collection<? extends IdentifiableObject> items,
       boolean addition) {
     SessionImplementor session = session();
+    entityManager.lock(owner, LockModeType.PESSIMISTIC_WRITE);
     Serializable key = session.getIdentifier(owner);
     List<IdentifiableObject> changes = changes(persister, key, items, addition, session);
     if (changes.isEmpty()) {
