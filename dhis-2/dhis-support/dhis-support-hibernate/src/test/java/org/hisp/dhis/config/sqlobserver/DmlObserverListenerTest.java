@@ -57,6 +57,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -146,6 +148,25 @@ class DmlObserverListenerTest {
     listener.afterQuery(execInfo, queries);
 
     verify(eTagService, times(1)).incrementEntityTypeVersion(JobConfiguration.class);
+  }
+
+  @Test
+  void commitOfAJoinTableWriteBumpsTheOwnersOfBothSides() throws java.sql.SQLException {
+    // adding a user to a group writes only usergroupmembers
+    when(registry.getTableInfo("usergroupmembers"))
+        .thenReturn(
+            new HibernateTableEntityRegistry.TableInfo(
+                "usergroupmembers", List.of(UserGroup.class, User.class)));
+    ExecutionInfo execInfo = createSuccessExecutionInfo(false);
+    listener.afterQuery(
+        execInfo,
+        List.of(
+            createQueryInfo("INSERT INTO usergroupmembers (usergroupid, userid) VALUES (?, ?)")));
+
+    listener.afterMethod(createMethodContext(execInfo.getStatement().getConnection(), "commit"));
+
+    verify(eTagService).incrementEntityTypeVersion(UserGroup.class);
+    verify(eTagService).incrementEntityTypeVersion(User.class);
   }
 
   @Test

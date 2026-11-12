@@ -299,43 +299,51 @@ public class DmlObserverListener
   }
 
   /**
-   * Builds the {@link DmlEvent} for an observed statement and either bumps ETag versions
-   * immediately (auto-commit) or accumulates it on the connection's pending batch for commit time.
+   * Builds the {@link DmlEvent}s for an observed statement (one per entity type the table maps to)
+   * and either bumps ETag versions immediately (auto-commit) or accumulates them on the
+   * connection's pending batch for commit time.
    */
   private void dispatchDmlEvent(
       DmlSqlParser.DmlFastResult result, String connectionId, boolean autoCommit) {
-    // Map table → entity
-    TableInfo tableInfo = registry.getTableInfo(result.tableName());
-    String entityClassName = tableInfo != null ? tableInfo.entityClass().getName() : null;
+    List<DmlEvent> events = toEvents(result, connectionId);
 
-    // Dedup key: "tablename:OPERATION" — one event per table/operation combo per transaction.
+    // Dedup key: "tablename:OPERATION" — one set of events per table/operation per transaction.
     String dedupeKey = result.tableName() + ":" + result.operation();
-
-    DmlEvent event =
-        new DmlEvent(
-            result.operation(), result.tableName(), entityClassName, Instant.now(), connectionId);
 
     if (statementsObserved != null) statementsObserved.increment();
 
     // For auto-commit connections, bump ETag versions immediately
     if (autoCommit) {
       log.debug(
-          "DML observed (auto-commit): op={}, table={}, entity={}",
-          event.operation(),
-          event.tableName(),
-          event.entityClassName());
-      bumpETagVersions(List.of(event));
+          "DML observed (auto-commit): op={}, table={}", result.operation(), result.tableName());
+      bumpETagVersions(events);
     } else {
-      accumulateEvent(connectionId, dedupeKey, event);
+      accumulateEvents(connectionId, dedupeKey, events);
     }
   }
 
+  /** An unmapped table gives one event without an entity class (counted as skipped later). */
+  private List<DmlEvent> toEvents(DmlSqlParser.DmlFastResult result, String connectionId) {
+    TableInfo tableInfo = registry.getTableInfo(result.tableName());
+    Instant now = Instant.now();
+    if (tableInfo == null) {
+      return List.of(new DmlEvent(result.operation(), result.tableName(), null, now, connectionId));
+    }
+    List<DmlEvent> events = new ArrayList<>(tableInfo.entityClasses().size());
+    for (Class<?> entityClass : tableInfo.entityClasses()) {
+      events.add(
+          new DmlEvent(
+              result.operation(), result.tableName(), entityClass.getName(), now, connectionId));
+    }
+    return events;
+  }
+
   /**
-   * Adds an event to the connection's pending batch, creating the batch on first use. {@code
+   * Adds events to the connection's pending batch, creating the batch on first use. {@code
    * compute()} holds the segment lock, preventing a race between {@link #publishAndClear} and batch
-   * creation/event addition. Only the first event per table+operation combo is kept.
+   * creation/event addition. Only the first statement per table+operation combo adds events.
    */
-  private void accumulateEvent(String connectionId, String dedupeKey, DmlEvent event) {
+  private void accumulateEvents(String connectionId, String dedupeKey, List<DmlEvent> events) {
     long now = nanoClock.getAsLong();
     pendingBatches.compute(
         connectionId,
@@ -350,12 +358,8 @@ public class DmlObserverListener
           batch.lastActivityNanos().set(now);
           // Only add if we haven't seen this table+operation combo yet in this transaction
           if (batch.seenTableOps().add(dedupeKey)) {
-            batch.events().add(event);
-            log.debug(
-                "DML observed: op={}, table={}, entity={}",
-                event.operation(),
-                event.tableName(),
-                event.entityClassName());
+            batch.events().addAll(events);
+            log.debug("DML observed: {}", dedupeKey);
           }
           return batch;
         });

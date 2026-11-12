@@ -32,14 +32,19 @@ package org.hisp.dhis.config.sqlobserver;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManagerFactory;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
+import org.hibernate.persister.collection.AbstractCollectionPersister;
 import org.hibernate.persister.entity.AbstractEntityPersister;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.config.sqlobserver.HibernateTableEntityRegistry.TableInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
@@ -66,7 +71,7 @@ class HibernateTableEntityRegistryTest {
 
     TableInfo info = registry.getTableInfo("dataelement");
     assertNotNull(info);
-    assertEquals(TestEntity.class, info.entityClass());
+    assertEquals(List.of(TestEntity.class), info.entityClasses());
     assertEquals("dataelement", info.tableName());
   }
 
@@ -82,7 +87,7 @@ class HibernateTableEntityRegistryTest {
 
     TableInfo info = registry.getTableInfo("dataelement");
     assertNotNull(info);
-    assertEquals(TestEntity.class, info.entityClass());
+    assertEquals(List.of(TestEntity.class), info.entityClasses());
   }
 
   @Test
@@ -118,6 +123,48 @@ class HibernateTableEntityRegistryTest {
     assertEquals(info1, info2);
   }
 
+  @Test
+  void getTableInfo_mapsAJoinTableToTheOwnersOfItsCollections() {
+    // usergroupmembers backs UserGroup.members and its inverse User.groups
+    AbstractCollectionPersister members = collectionPersister("usergroupmembers", OwnerA.class);
+    AbstractCollectionPersister groups = collectionPersister("usergroupmembers", OwnerB.class);
+    ObjectProvider<EntityManagerFactory> emfProvider =
+        createMockEmfProvider(Map.of(), Map.of("members", members, "groups", groups));
+
+    TableInfo info = new HibernateTableEntityRegistry(emfProvider).getTableInfo("usergroupmembers");
+
+    assertNotNull(info);
+    assertEquals(Set.of(OwnerA.class, OwnerB.class), Set.copyOf(info.entityClasses()));
+  }
+
+  @Test
+  void getTableInfo_entityTableIsNotWidenedByCollectionsStoredInIt() {
+    // a one-to-many collection is stored in the child's own table; that table stays the child's
+    AbstractEntityPersister child = mock(AbstractEntityPersister.class);
+    when(child.getTableName()).thenReturn("programstage");
+    when(child.getMappedClass()).thenReturn((Class) TestEntity.class);
+    AbstractCollectionPersister stages = collectionPersister("programstage", OwnerA.class);
+    ObjectProvider<EntityManagerFactory> emfProvider =
+        createMockEmfProvider(Map.of("child", child), Map.of("stages", stages));
+
+    TableInfo info = new HibernateTableEntityRegistry(emfProvider).getTableInfo("programstage");
+
+    assertEquals(List.of(TestEntity.class), info.entityClasses());
+  }
+
+  private static AbstractCollectionPersister collectionPersister(String table, Class<?> owner) {
+    AbstractCollectionPersister persister = mock(AbstractCollectionPersister.class);
+    EntityPersister ownerPersister = mock(EntityPersister.class);
+    when(persister.getTableName()).thenReturn(table);
+    when(persister.getOwnerEntityPersister()).thenReturn(ownerPersister);
+    when(ownerPersister.getMappedClass()).thenReturn((Class) owner);
+    return persister;
+  }
+
+  private static class OwnerA {}
+
+  private static class OwnerB {}
+
   // ── Helpers ──
 
   @SuppressWarnings("unchecked")
@@ -125,9 +172,15 @@ class HibernateTableEntityRegistryTest {
     return createMockEmfProviderWithPersisters(Map.of());
   }
 
-  @SuppressWarnings("unchecked")
   private ObjectProvider<EntityManagerFactory> createMockEmfProviderWithPersisters(
       Map<String, AbstractEntityPersister> persisters) {
+    return createMockEmfProvider(persisters, Map.of());
+  }
+
+  @SuppressWarnings("unchecked")
+  private ObjectProvider<EntityManagerFactory> createMockEmfProvider(
+      Map<String, AbstractEntityPersister> persisters,
+      Map<String, AbstractCollectionPersister> collectionPersisters) {
     EntityManagerFactory emf = mock(EntityManagerFactory.class);
     SessionFactoryImplementor sf = mock(SessionFactoryImplementor.class);
     MetamodelImplementor metamodel = mock(MetamodelImplementor.class);
@@ -135,6 +188,7 @@ class HibernateTableEntityRegistryTest {
     when(emf.unwrap(SessionFactoryImplementor.class)).thenReturn(sf);
     when(sf.getMetamodel()).thenReturn(metamodel);
     when(metamodel.entityPersisters()).thenReturn((Map) persisters);
+    lenient().when(metamodel.collectionPersisters()).thenReturn((Map) collectionPersisters);
 
     ObjectProvider<EntityManagerFactory> provider = mock(ObjectProvider.class);
     when(provider.getObject()).thenReturn(emf);
