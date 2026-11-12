@@ -113,6 +113,7 @@ class ETagLocalServiceConcurrencyTest {
   void concurrentAllCacheVersionIncrements() throws InterruptedException {
     int threadCount = 10;
     int incrementsPerThread = 1000;
+    long start = service.getAllCacheVersion();
 
     ExecutorService pool = Executors.newFixedThreadPool(threadCount);
     CountDownLatch ready = new CountDownLatch(threadCount);
@@ -138,7 +139,7 @@ class ETagLocalServiceConcurrencyTest {
     pool.shutdown();
     assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS));
 
-    long expected = (long) threadCount * incrementsPerThread;
+    long expected = start + (long) threadCount * incrementsPerThread;
     assertEquals(expected, service.getAllCacheVersion());
   }
 

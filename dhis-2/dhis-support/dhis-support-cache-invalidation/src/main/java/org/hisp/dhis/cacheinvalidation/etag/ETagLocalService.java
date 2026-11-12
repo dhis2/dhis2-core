@@ -34,6 +34,7 @@ import static org.hisp.dhis.dml.DmlETagMetrics.ETAG_NAMED_VERSIONS_SIZE;
 
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.security.SecureRandom;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -71,7 +72,12 @@ public class ETagLocalService implements ETagService, InitializingBean {
   /** Named versions — keys like {@code installedApps}; small fixed set of named endpoints. */
   private final ConcurrentHashMap<String, AtomicLong> namedVersions = new ConcurrentHashMap<>();
 
-  private final AtomicLong allCacheVersion = new AtomicLong(0);
+  /**
+   * Starts at a random value, not 0. All counters restart with the process, so without this an ETag
+   * handed out before a restart matches again after it, while the data behind it changed.
+   */
+  private final AtomicLong allCacheVersion =
+      new AtomicLong(new SecureRandom().nextLong() & Long.MAX_VALUE);
 
   @Autowired private DhisConfigurationProvider configurationProvider;
 
