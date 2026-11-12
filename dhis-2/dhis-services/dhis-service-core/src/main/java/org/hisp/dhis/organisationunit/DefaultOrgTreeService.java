@@ -29,8 +29,11 @@
  */
 package org.hisp.dhis.organisationunit;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +42,8 @@ import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadParameterException;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrgTree.OrgTreeEntry;
 import org.hisp.dhis.organisationunit.OrgTreeStore.StreamEntriesParams;
 import org.hisp.dhis.setting.UserSettings;
@@ -59,11 +64,7 @@ public class DefaultOrgTreeService implements OrgTreeService {
   @NonTransactional
   public OrgTreeParams decode(@Nonnull OrgTreeParams.RootInput params) throws BadRequestException {
     List<UID> roots = params.roots();
-    if (roots == null) roots = List.of();
-    if (roots.isEmpty() && CurrentUserUtil.hasCurrentUser()) {
-      UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-      roots = currentUser.getUserEffectiveSearchOrgUnitIds().stream().map(UID::of).toList();
-    }
+    if (roots == null || roots.isEmpty()) roots = currentUserOrgUnitSearch().toList();
     List<UID> groups = params.groups() == null ? List.of() : params.groups();
     String cursor = params.pageCursor();
     try {
@@ -114,6 +115,12 @@ public class DefaultOrgTreeService implements OrgTreeService {
     }
   }
 
+  private static Stream<UID> currentUserOrgUnitSearch() {
+    if (!CurrentUserUtil.hasCurrentUser()) return Stream.empty();
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    return currentUser.getUserEffectiveSearchOrgUnitIds().stream().map(UID::of);
+  }
+
   private static Locale decodeLocale(Locale locale) {
     if (locale == null) return UserSettings.getCurrentSettings().getUserDbLocale();
     return locale;
@@ -122,7 +129,8 @@ public class DefaultOrgTreeService implements OrgTreeService {
   @Nonnull
   @Override
   @Transactional(readOnly = true, propagation = Propagation.MANDATORY)
-  public OrgTree query(@Nonnull OrgTreeParams params) {
+  public OrgTree query(@Nonnull OrgTreeParams params) throws ForbiddenException {
+    checkUserAccess(params);
     List<OrgUnitPath> matches = store.queryPageMatches(params);
     Locale locale = params.locale();
     String property = params.translationPropertyKey();
@@ -140,7 +148,8 @@ public class DefaultOrgTreeService implements OrgTreeService {
               locale,
               property,
               true,
-              OrgUnitPath.ofMissingAncestors(matches).stream().map(OrgUnitPath::uid));
+              OrgUnitPath.ofMissingAncestors(matches, params.roots()).stream()
+                  .map(OrgUnitPath::uid));
       ancestors = store.streamEntries(ancestorsParams);
     } else {
       entries = entries.skip(1); // skip the parent
@@ -160,5 +169,22 @@ public class DefaultOrgTreeService implements OrgTreeService {
     if (page < pageCount) cursors.add(matches.get(matches.size() - 1));
     OrgTree.Pager pager = new OrgTree.Pager(page, pageSize, total, cursors);
     return new OrgTree(pager, entries, ancestors);
+  }
+
+  private void checkUserAccess(@Nonnull OrgTreeParams params) throws ForbiddenException {
+    Set<UID> roots = currentUserOrgUnitSearch().collect(toSet());
+    if (roots.isEmpty()) {
+      boolean access =
+          CurrentUserUtil.hasCurrentUser() && CurrentUserUtil.getCurrentUserDetails().isSuper();
+      if (access) return;
+      throw new ForbiddenException(ErrorCode.E3054, null, params.roots());
+    }
+    if (!roots.containsAll(params.roots())) {
+      List<UID> notInHierarchy = store.queryNotInRoots(params.roots(), roots);
+      if (!notInHierarchy.isEmpty()) {
+        UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+        throw new ForbiddenException(ErrorCode.E3054, currentUser.getUid(), notInHierarchy);
+      }
+    }
   }
 }

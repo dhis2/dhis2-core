@@ -32,6 +32,7 @@ package org.hisp.dhis.organisationunit;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 
 /**
  * Service API to search {@link OrganisationUnit} and fetch the matches as a connected (sub)tree.
@@ -49,5 +50,5 @@ public interface OrgTreeService {
       throws BadRequestException;
 
   @Nonnull
-  OrgTree query(@Nonnull OrgTreeParams params);
+  OrgTree query(@Nonnull OrgTreeParams params) throws ForbiddenException;
 }

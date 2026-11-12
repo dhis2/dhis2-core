@@ -88,7 +88,7 @@ public record OrgTree(
     int len = paths.size();
     if (len <= 1) return false;
     int level = paths.get(0).length();
-    return paths.stream().allMatch(path -> level == path.length());
+    return paths.stream().anyMatch(path -> level != path.length());
   }
 
   /*

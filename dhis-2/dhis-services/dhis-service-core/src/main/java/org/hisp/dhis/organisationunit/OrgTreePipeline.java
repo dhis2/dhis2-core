@@ -34,6 +34,7 @@ import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +46,7 @@ public class OrgTreePipeline {
 
   @Transactional(readOnly = true)
   public void exportAsJson(OrgTreeParams.RootInput params, Supplier<OutputStream> out)
-      throws BadRequestException {
+      throws BadRequestException, ForbiddenException {
     OrgTree tree = service.query(service.decode(params));
     OrgTreeOutput.toJson(tree, out.get());
   }
@@ -53,7 +54,7 @@ public class OrgTreePipeline {
   @Transactional(readOnly = true)
   public void exportAsJson(
       UID parent, OrgTreeParams.ChildrenInput params, Supplier<OutputStream> out)
-      throws BadRequestException {
+      throws BadRequestException, ForbiddenException {
     OrgTree tree = service.query(service.decode(parent, params));
     OrgTreeOutput.toJson(tree, out.get());
   }

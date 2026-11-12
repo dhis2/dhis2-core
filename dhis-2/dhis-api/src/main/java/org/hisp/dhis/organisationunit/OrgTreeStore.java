@@ -30,6 +30,7 @@
 package org.hisp.dhis.organisationunit;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
@@ -41,6 +42,17 @@ import org.hisp.dhis.common.UID;
  * @author Jan Bernitt
  */
 public interface OrgTreeStore {
+
+  /**
+   * Given the roots a user does have access it returns those candidates that do not reside within
+   * the subtrees of the given roots, or in other words the organisation units the user does not
+   * have access to.
+   *
+   * @param candidates UIDs of the OUs to check for access
+   * @param roots UIDs of the OUs roots the user does have access to
+   * @return the list of candidates the user does NOT have access to
+   */
+  List<UID> queryNotInRoots(List<UID> candidates, Set<UID> roots);
 
   /**
    * Note that it is crucial that the results are order by path so that matches within the same

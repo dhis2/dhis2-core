@@ -96,22 +96,40 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull UID uid) {
 
   /**
    * @param paths a set of paths
-   * @return a set of all paths not contained in given set of path which are direct or distant
-   *     parent paths of all the given paths
+   * @param scopeRoots UIDs of the OUs that are the roots of the allowed scopes; any path that is a
+   *     strict ancestor of one of these roots is outside the scope and is never included in the
+   *     result. Pass an empty collection for no filtering.
+   * @return a set of all paths not contained in {@code paths} which are direct or distant parent
+   *     paths of all the given paths, excluding those outside the given scope(s)
    */
   @Nonnull
-  public static Set<OrgUnitPath> ofMissingAncestors(@Nonnull Collection<OrgUnitPath> paths) {
+  public static Set<OrgUnitPath> ofMissingAncestors(
+      @Nonnull Collection<OrgUnitPath> paths, @Nonnull Collection<UID> scopeRoots) {
     if (paths.isEmpty()) return Set.of();
     Set<OrgUnitPath> contained = paths instanceof Set<OrgUnitPath> set ? set : new HashSet<>(paths);
+    if (scopeRoots.isEmpty()) return ofMissingAncestors(contained);
+
+    Set<UID> scope = scopeRoots instanceof Set<UID> s ? s : new HashSet<>(scopeRoots);
+
     Set<OrgUnitPath> ancestors = new HashSet<>();
     for (OrgUnitPath m : contained) {
+      // A scope root met while walking up is still in scope (and included if missing); every
+      // path above it is a strict ancestor of that root and therefore outside the scope.
+      boolean aboveScopeRoot = scope.contains(m.uid());
       OrgUnitPath p = m.parent();
-      while (p != null) {
-        if (!paths.contains(p)) ancestors.add(p);
+      while (p != null && !aboveScopeRoot) {
+        if (!contained.contains(p)) ancestors.add(p);
+        aboveScopeRoot = scope.contains(p.uid());
         p = p.parent();
       }
     }
     return ancestors;
+  }
+
+  /** Convenience overload preserving the previous behaviour (no scope filter). */
+  @Nonnull
+  public static Set<OrgUnitPath> ofMissingAncestors(@Nonnull Collection<OrgUnitPath> paths) {
+    return ofMissingAncestors(paths, Set.of());
   }
 
   public OrgUnitPath {

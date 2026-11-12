@@ -280,6 +280,8 @@ public enum ErrorCode {
   E3051("2FA code was sent to the user's email"),
   E3052("Email 2FA is enabled on user, can not change email. Disable 2FA first"),
   E3053("User `{0}` is not allowed to replicate a user lacking their dimension constraints"),
+  E3054(
+      "User `${id:{0}}` does not have access to the hierarchy of organisation unit(s) `${ids:{1}}`"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),

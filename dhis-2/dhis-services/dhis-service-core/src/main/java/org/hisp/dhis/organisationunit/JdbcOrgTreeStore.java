@@ -30,9 +30,11 @@
 package org.hisp.dhis.organisationunit;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrgTree.OrgTreeEntry;
 import org.hisp.dhis.sql.DirectiveQueryBuilder;
 import org.hisp.dhis.sql.NativeSQL;
@@ -47,6 +49,24 @@ import org.springframework.stereotype.Repository;
 public class JdbcOrgTreeStore implements OrgTreeStore {
 
   private final JdbcTemplate jdbcTemplate;
+
+  @Override
+  public List<UID> queryNotInRoots(List<UID> candidates, Set<UID> roots) {
+    String sql =
+        """
+      SELECT ou.uid
+      FROM organisationunit ou
+      WHERE ou.uid = ANY(:ids)
+        AND NOT ou.patharray && :roots
+      """;
+    return SQL
+        .ofDirective(sql, createQueryBackendAdapter())
+        .setParameter("roots", roots)
+        .setParameter("ids", candidates)
+        .stream(String.class)
+        .map(UID::of)
+        .toList();
+  }
 
   @Override
   public List<OrgUnitPath> queryPageMatches(OrgTreeParams params) {
@@ -131,11 +151,11 @@ public class JdbcOrgTreeStore implements OrgTreeStore {
               AND p_ou.programid = (SELECT p.programid FROM program p WHERE p.uid = :program)
           )
           --@end
+        --@if :count
+        --@else
           --@if :pageCursor
           AND ou.path > :pageCursor
           --@end
-        --@if :count
-        --@else
         ORDER BY ou.path
         --@end
         --@if :pageSize
