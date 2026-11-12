@@ -273,6 +273,7 @@ public class DefaultUserAccountService implements UserAccountService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public boolean canUseEmailPasswordRecovery(@CheckForNull User user) {
     if (user == null) {
       return false;
