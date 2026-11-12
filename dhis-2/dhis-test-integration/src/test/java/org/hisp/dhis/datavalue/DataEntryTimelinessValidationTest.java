@@ -43,6 +43,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboGenerateService;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -136,6 +142,8 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
 
   @Autowired private PeriodService periodService;
 
+  @Autowired private CategoryOptionComboGenerateService categoryOptionComboGenerateService;
+
   private OrganisationUnit ouA;
   private DataElement de;
   private DataSet ds;
@@ -148,6 +156,16 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
    * use the data element of their period's type.
    */
   private final Map<String, DataElement> dataElementByPeriodType = new HashMap<>();
+
+  /** Monthly data set with an attribute combo of two categories, P and Q (one option each). */
+  private DataSet dsAoc;
+
+  private DataElement deAoc;
+  private CategoryOption optionP;
+  private CategoryOption optionQ;
+
+  /** The single attribute option combo (P, Q) of {@link #dsAoc}. */
+  private CategoryOptionCombo aoc;
 
   private User capture;
   private User editExpired;
@@ -177,6 +195,37 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
 
     dataElementByPeriodType.put(MONTHLY.getName(), de);
     dsTargets = addDataSet('T', YEARLY);
+
+    // attribute combo of two categories, so the AOC's dates are the intersection of two options
+    optionP = createCategoryOption('P');
+    optionQ = createCategoryOption('Q');
+    manager.save(optionP);
+    manager.save(optionQ);
+    // saving resets sharing, so open data write access afterwards
+    optionP.getSharing().setPublicAccess("rwrw----");
+    optionQ.getSharing().setPublicAccess("rwrw----");
+    manager.update(optionP);
+    manager.update(optionQ);
+    Category categoryP = createCategory('P', optionP);
+    categoryP.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    Category categoryQ = createCategory('Q', optionQ);
+    categoryQ.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    manager.save(categoryP);
+    manager.save(categoryQ);
+    CategoryCombo comboPQ = createCategoryCombo('C', categoryP, categoryQ);
+    comboPQ.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    manager.save(comboPQ);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(comboPQ);
+    aoc = comboPQ.getOptionCombos().iterator().next();
+    deAoc = createDataElement('C');
+    manager.save(deAoc);
+    dsAoc = createDataSet('C', MONTHLY);
+    dsAoc.setCategoryCombo(comboPQ);
+    dsAoc.addDataSetElement(deAoc);
+    dsAoc.addOrganisationUnit(ouA);
+    dataSetService.addDataSet(dsAoc);
+    dsAoc.getSharing().setPublicAccess("rwrw----");
+    dataSetService.updateDataSet(dsAoc);
 
     Set<OrganisationUnit> both = Set.of(ouA, ouB);
     capture = createAndAddUser(false, "capture", both, both);
@@ -641,7 +690,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // A value in a future period cannot be deleted by an F_EDIT_EXPIRED user (DHIS2-22471).
   void deletionInFuturePeriodIsUntimely() {
     configure(1, 0d);
-    List<DataEntryValue.Input> deletion = List.of(value(de, month(24), true));
+    List<DataEntryValue.Input> deletion = List.of(value(de, null, month(24), true));
     assertRejected(ErrorCode.E8030, () -> upsert(editExpired, false, deletion));
   }
 
@@ -649,7 +698,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // A value in an expired period cannot be deleted by a normal user.
   void deletionInExpiredPeriodIsUntimely() {
     configure(1, 1d);
-    List<DataEntryValue.Input> deletion = List.of(value(de, month(-3), true));
+    List<DataEntryValue.Input> deletion = List.of(value(de, null, month(-3), true));
     assertRejected(ErrorCode.E8030, () -> upsert(capture, false, deletion));
   }
 
@@ -658,7 +707,107 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   void superuserWithForceCanDeleteInFuturePeriod() throws Exception {
     configure(1, 0d);
     assertAcceptedWithForce(superuser, month(24));
-    assertEquals(1, upsert(superuser, true, List.of(value(de, month(24), true))));
+    assertEquals(1, upsert(superuser, true, List.of(value(de, null, month(24), true))));
+  }
+
+  // --------------------
+  // Category option start and end dates (E8032). An attribute option combo (AOC) can be used from
+  // the latest start to the earliest end date of its options. "Open periods after category option
+  // end date" extends the end by that many periods. As in 2.42, a period is rejected only when it
+  // lies entirely outside these dates, so a period overlapping the start or end is accepted.
+  // --------------------
+
+  @Test
+  // P runs from the start of month(-6) to the end of month(-2): periods inside are accepted, also
+  // the first and the last one.
+  void periodWithinOptionDatesIsAccepted() throws Exception {
+    configureOption(optionP, month(-6).getStartDate(), month(-2).getEndDate());
+    assertWithinOptionDates(true, month(-6));
+    assertWithinOptionDates(true, month(-4));
+    assertWithinOptionDates(true, month(-2));
+  }
+
+  @Test
+  void periodBeforeOptionStartIsRejected() throws Exception {
+    configureOption(optionP, month(-6).getStartDate(), month(-2).getEndDate());
+    assertWithinOptionDates(false, month(-7));
+  }
+
+  @Test
+  void periodAfterOptionEndIsRejected() throws Exception {
+    configureOption(optionP, month(-6).getStartDate(), month(-2).getEndDate());
+    assertWithinOptionDates(false, month(-1));
+  }
+
+  @Test
+  // P starts in the middle of month(-6): month(-6) overlaps P, so it is accepted (2.42 rule).
+  void periodOverlappingOptionStartIsAccepted() throws Exception {
+    configureOption(optionP, midOf(month(-6)), month(-2).getEndDate());
+    assertWithinOptionDates(true, month(-6));
+  }
+
+  @Test
+  // P ends in the middle of month(-2): month(-2) overlaps P, so it is accepted (2.42 rule).
+  void periodOverlappingOptionEndIsAccepted() throws Exception {
+    configureOption(optionP, month(-6).getStartDate(), midOf(month(-2)));
+    assertWithinOptionDates(true, month(-2));
+  }
+
+  @Test
+  // P ends with month(-4); with 2 open periods after the end, month(-3) and month(-2) are still
+  // accepted, month(-1) is not.
+  void openPeriodsAfterOptionEndExtendTheEnd() throws Exception {
+    configureOption(optionP, month(-12).getStartDate(), month(-4).getEndDate());
+    configureOpenPeriodsAfterOptionEnd(2);
+    assertWithinOptionDates(true, month(-3));
+    assertWithinOptionDates(true, month(-2));
+    assertWithinOptionDates(false, month(-1));
+  }
+
+  @Test
+  // Same for an option that lasts only one period (month(-6)): the 2 extra periods are month(-5)
+  // and month(-4), regardless of how long the option itself lasted.
+  void openPeriodsAfterOptionEndExtendShortOption() throws Exception {
+    configureOption(optionP, month(-6).getStartDate(), month(-6).getEndDate());
+    configureOpenPeriodsAfterOptionEnd(2);
+    assertWithinOptionDates(true, month(-5));
+    assertWithinOptionDates(true, month(-4));
+    assertWithinOptionDates(false, month(-3));
+  }
+
+  @Test
+  // The extra periods are after the end only; they do not open periods before the start.
+  void openPeriodsAfterOptionEndDoNotExtendTheStart() throws Exception {
+    configureOption(optionP, month(-6).getStartDate(), month(-2).getEndDate());
+    configureOpenPeriodsAfterOptionEnd(2);
+    assertWithinOptionDates(false, month(-7));
+  }
+
+  @Test
+  // P runs month(-6) to month(-2), Q runs month(-4) to month(0): the AOC (P, Q) can only be used
+  // where both run, month(-4) to month(-2).
+  void optionDatesOfAnAocIntersect() throws Exception {
+    configureOption(optionP, month(-6).getStartDate(), month(-2).getEndDate());
+    configureOption(optionQ, month(-4).getStartDate(), month(0).getEndDate());
+    assertWithinOptionDates(false, month(-5));
+    assertWithinOptionDates(true, month(-3));
+    assertWithinOptionDates(false, month(-1));
+  }
+
+  @Test
+  // Only an end date: no limit into the past.
+  void optionWithOnlyEndDate() throws Exception {
+    configureOption(optionP, null, month(-2).getEndDate());
+    assertWithinOptionDates(true, month(-24));
+    assertWithinOptionDates(false, month(-1));
+  }
+
+  @Test
+  // Only a start date: no limit towards the present.
+  void optionWithOnlyStartDate() throws Exception {
+    configureOption(optionP, month(-6).getStartDate(), null);
+    assertWithinOptionDates(false, month(-7));
+    assertWithinOptionDates(true, month(-1));
   }
 
   // --------------------
@@ -759,6 +908,32 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     dataSetService.updateDataSet(dataSet);
     dataElementByPeriodType.put(periodType.getName(), element);
     return dataSet;
+  }
+
+  /** Sets the start and end date of a category option (null = no date). */
+  private void configureOption(CategoryOption option, Date start, Date end) {
+    option.setStartDate(start);
+    option.setEndDate(end);
+    manager.update(option);
+  }
+
+  /** Sets how many periods after the end of a category option data can still be entered. */
+  private void configureOpenPeriodsAfterOptionEnd(int periods) {
+    dsAoc.setOpenPeriodsAfterCoEndDate(periods);
+    dataSetService.updateDataSet(dsAoc);
+  }
+
+  /** Imports a value for the (P, Q) AOC and expects it written, or rejected with E8032. */
+  private void assertWithinOptionDates(boolean valid, Period period) throws Exception {
+    List<DataEntryValue.Input> values = List.of(value(deAoc, aoc, period, false));
+    if (valid) assertEquals(1, upsert(capture, false, values));
+    else assertRejected(ErrorCode.E8032, () -> upsert(capture, false, values));
+  }
+
+  /** A date 14 days into the period: a category option date in the middle of the period. */
+  private static Date midOf(Period period) {
+    return Date.from(
+        Instant.ofEpochMilli(period.getStartDate().getTime()).plus(Duration.ofDays(14)));
   }
 
   private void addInputPeriod(Period period, Instant opening, Instant closing) {
@@ -883,14 +1058,15 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
         de.getUid(), ou.getUid(), null, null, period.getIsoDate(), "1", null);
   }
 
-  /** A value (or, if deleted, a deletion) for the given data element at A. */
-  private DataEntryValue.Input value(DataElement de, Period period, boolean deleted) {
+  /** A value (or, if deleted, a deletion) for the monthly data element at A with the given AOC. */
+  private DataEntryValue.Input value(
+      DataElement de, CategoryOptionCombo aoc, Period period, boolean deleted) {
     return new DataEntryValue.Input(
         de.getUid(),
         ouA.getUid(),
         null,
         null,
-        null,
+        aoc == null ? null : aoc.getUid(),
         null,
         null,
         period.getIsoDate(),
