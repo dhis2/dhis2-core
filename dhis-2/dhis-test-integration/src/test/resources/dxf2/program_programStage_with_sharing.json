@@ -199,7 +199,6 @@
       "id": "wSdzlWUHmEu",
       "dataSets": [],
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
         "F_MAP_PUBLIC_ADD",

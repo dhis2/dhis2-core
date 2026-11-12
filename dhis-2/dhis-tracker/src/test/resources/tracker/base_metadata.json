@@ -2560,7 +2560,6 @@
     {
       "id": "nJ4Ml8ads4M",
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
         "F_USER_VIEW",
         "F_GENERATE_MIN_MAX_VALUES",
