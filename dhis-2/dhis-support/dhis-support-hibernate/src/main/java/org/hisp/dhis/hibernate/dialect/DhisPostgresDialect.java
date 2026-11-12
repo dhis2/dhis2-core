@@ -96,12 +96,16 @@ public class DhisPostgresDialect extends PostgisPG95Dialect {
             // cost and PostgreSQL's cost estimate, triggering expensive JIT for simple searches.
             // SQLFunctionTemplate cannot represent the JSONPath '?' operator.
             // Preserve argument order: Criteria binds the path before the locale.
+            // The path and its variables are bound parameters. A custom plan folds them to
+            // constants, but a generic plan of a server-prepared statement would cast and build
+            // them again for every row. Uncorrelated scalar subqueries become InitPlans, which
+            // PostgreSQL evaluates once per execution in both plan kinds.
             return """
                 case when coalesce(jsonb_array_length(%1$s), 0) = 0 then %2$s
                 else coalesce(
                   jsonb_path_query_first(
-                    %1$s, cast(%3$s as jsonpath),
-                    jsonb_build_object('locale', cast(%4$s as text))) ->> 'value',
+                    %1$s, (select cast(%3$s as jsonpath)),
+                    (select jsonb_build_object('locale', cast(%4$s as text)))) ->> 'value',
                   regexp_replace(%2$s, '^[\\x01-\\x20]+|[\\x01-\\x20]+$', '', 'g'))
                 end
                 """
