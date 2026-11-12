@@ -523,6 +523,64 @@ class DefaultQueryPlannerTest {
     assertTrue(plan.memoryQuery().isEmpty(), "Memory query should be empty");
   }
 
+  /**
+   * Tests that a path through two collections ({@code dataElementGroups.groupSets.id}) stays in
+   * memory: only {@code collection.property} directly on the root is matched with EXISTS.
+   */
+  @Test
+  void testCollectionThroughCollectionPathFallsBackToInMemory() {
+    Schema groupSchema = mockSchema();
+    when(groupSchema.getProperty("groupSets")).thenReturn(mockCollectionProperty("groupSets"));
+    when(schemaService.getSchema(DataElementGroup.class)).thenReturn(groupSchema);
+
+    QueryPlan<DataElement> plan =
+        planMultiHopIdFilter(
+            "dataElementGroups.groupSets.id",
+            mockCollectionProperty("dataElementGroups"),
+            "dataElementGroups",
+            "groupSets");
+
+    assertEquals(0, plan.dbQuery().getFilters().size(), "Multi-hop path should not be in DB");
+    assertEquals(1, plan.memoryQuery().getFilters().size(), "Multi-hop path should be in memory");
+  }
+
+  /**
+   * Tests that a collection reached through a reference ({@code parent.dataElementGroups.id}) stays
+   * in memory: the collection must be directly on the root type.
+   */
+  @Test
+  void testCollectionThroughReferencePathFallsBackToInMemory() {
+    Schema parentSchema = mockSchema();
+    when(parentSchema.getProperty("dataElementGroups"))
+        .thenReturn(mockCollectionProperty("dataElementGroups"));
+    when(schemaService.getSchema(DataElementGroup.class)).thenReturn(parentSchema);
+
+    QueryPlan<DataElement> plan =
+        planMultiHopIdFilter(
+            "parent.dataElementGroups.id",
+            mockManyToOneRelationshipProperty("parent", DataElementGroup.class),
+            "parent",
+            "dataElementGroups");
+
+    assertEquals(0, plan.dbQuery().getFilters().size(), "Multi-hop path should not be in DB");
+    assertEquals(1, plan.memoryQuery().getFilters().size(), "Multi-hop path should be in memory");
+  }
+
+  private QueryPlan<DataElement> planMultiHopIdFilter(
+      String filterPath, Property firstHop, String... aliases) {
+    Query<DataElement> query = Query.of(DataElement.class);
+    query.add(Filters.eq(filterPath, "abc123"));
+
+    Schema dataElementSchema = mockSchema();
+    when(dataElementSchema.getProperty(firstHop.getName())).thenReturn(firstHop);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
+
+    when(schemaService.getPropertyPath(DataElement.class, filterPath))
+        .thenReturn(new PropertyPath(mockSimplePersistedProperty("id"), true, aliases));
+
+    return queryPlanner.planQuery(query);
+  }
+
   private QueryPlan<DataElement> planCollectionFilter(Filter filter, Class<?> terminalType) {
     return planCollectionFilter(filter, terminalType, false);
   }

@@ -31,9 +31,9 @@ package org.hisp.dhis.query.planner;
 
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
@@ -51,8 +51,13 @@ public class CollectionPaths {
   private final SchemaService schemaService;
 
   /**
-   * Walks the filter path and returns the type that owns the terminal property, provided the path
-   * traverses at least one collection and ends in a single-valued simple property.
+   * Returns the item type of the collection a filter path such as {@code userGroups.id} or {@code
+   * dataViewOrganisationUnits.path} goes through, when the filter can be matched with a correlated
+   * EXISTS.
+   *
+   * <p>Only the shape {@code collection.property} is eligible: a collection directly on the root
+   * type followed by a single-valued simple property. Deeper paths (for example {@code
+   * userGroups.managedGroups.id} or {@code createdBy.userGroups.id}) stay in memory.
    *
    * <p>Collection-valued terminals (for example {@code userRoles.authorities}, a {@code
    * Set<String>} that the schema marks as simple) are rejected: the EXISTS predicate cannot match
@@ -61,44 +66,25 @@ public class CollectionPaths {
    * @param rootType root type of the query
    * @param filter the filter to evaluate
    * @param terminal the terminal property of the filter path
-   * @return the type owning the terminal property, or {@code null} when the path is not eligible
+   * @return the item type of the collection, or {@code null} when the path is not eligible
    */
   @CheckForNull
   public Class<?> itemType(Class<?> rootType, Filter filter, Property terminal) {
     if (!isEligibleTerminal(filter, terminal)) return null;
 
-    String[] components = filter.getPath().split("\\.");
-    if (components.length < 2) return null;
+    PropertyPath path = PropertyPath.of(filter.getPath());
+    if (path.length() != 2) return null;
 
-    Schema schema = schemaService.getSchema(rootType);
-    Class<?> owner = null;
-    boolean hasCollection = false;
-
-    for (int i = 0; i < components.length - 1; i++) {
-      Property property = schema.getProperty(components[i]);
-      owner = stepType(property);
-      if (owner == null) return null;
-      hasCollection |= property.isCollection();
-      schema = schemaService.getSchema(owner);
+    Property collection = schemaService.getSchema(rootType).getProperty(path.head().toString());
+    if (collection == null || !collection.isCollection() || collection.isEmbeddedObject()) {
+      return null;
     }
-
-    return hasCollection ? owner : null;
+    return collection.getItemKlass();
   }
 
   /** A single-valued simple terminal; a like filter additionally requires text. */
   private static boolean isEligibleTerminal(Filter filter, Property terminal) {
     if (terminal == null || !terminal.isSimple() || terminal.isCollection()) return false;
     return !filter.isLike() || terminal.getKlass() == String.class;
-  }
-
-  /**
-   * @return the type the path continues into after {@code property}: the item type of a collection
-   *     or the type of a reference, or {@code null} when the path cannot continue through it
-   */
-  @CheckForNull
-  private static Class<?> stepType(@CheckForNull Property property) {
-    if (property == null || property.isEmbeddedObject()) return null;
-    if (property.isCollection()) return property.getItemKlass();
-    return property.isSimple() ? null : property.getKlass();
   }
 }
