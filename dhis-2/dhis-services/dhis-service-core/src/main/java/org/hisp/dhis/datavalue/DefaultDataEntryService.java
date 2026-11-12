@@ -821,16 +821,15 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       double expiryDays = store.getDataSetExpiryDays(ds);
       // 0 = no expiry, always open
       if (expiryDays != 0d && !getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
-        Set<Period> pastPeriods =
-            periodsNotUsingEntrySpans.stream()
-                .filter(p -> p.getEndDate().after(now))
-                .collect(toSet());
+        // every period without entry spans: a period that has not ended yet can only be closed
+        // by a negative expiry, so past, current and future periods all need the check
+        Set<Period> periodsCheckedForExpiry = Set.copyOf(periodsNotUsingEntrySpans);
         Map<String, Set<String>> exemptedIsoByOu =
             store.getExpiryDaysExemptedIsoPeriodsByOrgUnit(ds);
         List<Period> peNoLongerOpen =
             source
                 .orgUnitPeriodPairs()
-                .filter(e -> pastPeriods.contains(e.getValue()))
+                .filter(e -> periodsCheckedForExpiry.contains(e.getValue()))
                 .distinct()
                 // only check values not exempt
                 .filter(
@@ -851,6 +850,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                       return now.after(endOfEntryPeriod);
                     })
                 .map(Map.Entry::getValue)
+                .distinct()
                 .toList();
         if (!peNoLongerOpen.isEmpty())
           throw new ConflictException(ErrorCode.E8030, ds, peNoLongerOpen);
