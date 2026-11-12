@@ -59,10 +59,11 @@ import lombok.ToString;
 final class LineBuffer {
 
   /**
-   * Maximum length of a single quoted value. Far above any legitimate value (data values and
-   * comments are limited to 50k characters) but bounds the memory a stray quote can consume.
+   * Maximum length of a single quoted value. Same as the limit for data values and comments
+   * ({@code ValidationUtils.VALUE_MAX_LENGTH}), so anything longer can never be valid. Also bounds
+   * the memory a stray quote can consume.
    */
-  static final int MAX_QUOTED_VALUE_LENGTH = 1_000_000;
+  static final int MAX_QUOTED_VALUE_LENGTH = 50_000;
 
   private final int columns;
   private final StringBuilder value = new StringBuilder(64);
