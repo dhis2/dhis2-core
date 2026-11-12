@@ -41,10 +41,13 @@ import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY_POINT;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.Database.POSTGRESQL;
+import static org.hisp.dhis.feedback.ErrorCode.E7132;
+import static org.hisp.dhis.feedback.ErrorCode.E7154;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -75,7 +78,11 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.TotalAggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -86,6 +93,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -110,7 +118,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
 
@@ -823,7 +835,9 @@ class AnalyticsUtilsTest extends TestBase {
 
   @Test
   void whenQueryRuntimeException_thenRethrow() {
-    QueryRuntimeException queryException = new QueryRuntimeException("Test error");
+    QueryRuntimeException queryException =
+        new QueryRuntimeException(
+            "Analytics tables are out of date. Ask your administrator to run a full analytics tables update.");
     Supplier<String> supplier =
         () -> {
           throw queryException;
@@ -833,7 +847,9 @@ class AnalyticsUtilsTest extends TestBase {
         assertThrows(
             QueryRuntimeException.class,
             () -> AnalyticsUtils.withExceptionHandling(supplier, false));
-    assertEquals("Test error", thrown.getMessage());
+    assertEquals(
+        "Analytics tables are out of date. Ask your administrator to run a full analytics tables update.",
+        thrown.getMessage());
   }
 
   @Test
@@ -841,7 +857,8 @@ class AnalyticsUtilsTest extends TestBase {
       "When an UncategorizedSQLException is thrown with a column not existing and multiple queries, then return empty")
   void whenUncategorizedSQLException_withColumnNotExisting_thenReturnEmpty() {
     SQLException sqlException =
-        new SQLException("Unknown column 'cX5k9anHEHd' in 'ax' in FILTER clause", "HY000");
+        new SQLException(
+            "Analytics tables are out of date. Ask your administrator to run a full analytics tables update.");
     UncategorizedSQLException uncategorizedSQLException =
         new UncategorizedSQLException("task", DUMMY_SQL, sqlException);
     Supplier<String> supplier =
@@ -851,6 +868,215 @@ class AnalyticsUtilsTest extends TestBase {
 
     Optional<String> result = AnalyticsUtils.withExceptionHandling(supplier, true);
     assertFalse(result.isPresent());
+  }
+
+  /**
+   * SQL exceptions signalling a missing column or a UNION with a different number of columns, for
+   * each supported analytics database.
+   */
+  private static Stream<SQLException> columnMismatchSqlExceptions() {
+    return Stream.of(
+        new SQLException("column ax.\"cX5k9anHEHd\" does not exist", "42703"),
+        new SQLException("each UNION query must have the same number of columns", "42601"),
+        new SQLException("Unknown column 'cX5k9anHEHd' in 'ax' in FILTER clause", "HY000"),
+        new SQLException("Column 'cX5k9anHEHd' does not exist in the table", "HY000"),
+        new SQLException(
+            "errCode = 2, detailMessage = Operands have unequal number of columns", "HY000"),
+        new SQLException(
+            "Code: 47. DB::Exception: Unknown expression identifier `cX5k9anHEHd`."
+                + " (UNKNOWN_IDENTIFIER)"),
+        new SQLException(
+            "Code: 258. DB::Exception: Different number of columns in UNION elements"));
+  }
+
+  private static Stream<Arguments> outdatedAnalyticsTableSqlExceptions() {
+    return columnMismatchSqlExceptions()
+        .flatMap(e -> Stream.of(Arguments.of(e, true), Arguments.of(e, false)));
+  }
+
+  /**
+   * Same SQL exceptions as above, each wrapped in both {@link DataAccessException} types handled by
+   * {@code handleDataAccessException}.
+   */
+  private static Stream<Arguments> columnMismatchDataAccessExceptions() {
+    return columnMismatchSqlExceptions()
+        .flatMap(
+            e ->
+                Stream.of(
+                    Arguments.of(new UncategorizedSQLException("task", DUMMY_SQL, e)),
+                    Arguments.of(new BadSqlGrammarException("task", DUMMY_SQL, e))));
+  }
+
+  @ParameterizedTest
+  @MethodSource("columnMismatchDataAccessExceptions")
+  @DisplayName(
+      "When a single query fails with a missing column or UNION column mismatch, then throw E7154")
+  void whenDataAccessException_withColumnMismatch_andSingleQuery_thenThrowE7154(
+      DataAccessException ex) {
+    Supplier<String> supplier =
+        () -> {
+          throw ex;
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+
+    assertEquals(E7154, thrown.getErrorCode());
+    assertEquals(E7154.getMessage(), thrown.getMessage());
+  }
+
+  @ParameterizedTest
+  @MethodSource("columnMismatchDataAccessExceptions")
+  @DisplayName(
+      "When one of multiple queries fails with a missing column or UNION column mismatch, then fall back silently")
+  void whenDataAccessException_withColumnMismatch_andMultipleQueries_thenReturnEmpty(
+      DataAccessException ex) {
+    Supplier<String> supplier =
+        () -> {
+          throw ex;
+        };
+
+    Optional<String> result = AnalyticsUtils.withExceptionHandling(supplier, true);
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  @DisplayName(
+      "When a single query fails with an unrelated SQL syntax error, then rethrow the original exception")
+  void whenBadSqlGrammarException_withUnrelatedSyntaxError_andSingleQuery_thenRethrow() {
+    SQLException sqlException = new SQLException("syntax error at or near \"from\"", "42601");
+    BadSqlGrammarException ex = new BadSqlGrammarException("task", DUMMY_SQL, sqlException);
+    Supplier<String> supplier =
+        () -> {
+          throw ex;
+        };
+
+    BadSqlGrammarException thrown =
+        assertThrows(
+            BadSqlGrammarException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+
+    assertSame(ex, thrown);
+  }
+
+  @ParameterizedTest
+  @MethodSource("outdatedAnalyticsTableSqlExceptions")
+  @DisplayName(
+      "When a DataIntegrityViolationException is caused by a missing column or UNION column mismatch, then throw E7154")
+  void whenDataIntegrityViolation_withColumnMismatch_thenThrowE7154(
+      SQLException sqlException, boolean isMultipleQueries) {
+    DataIntegrityViolationException ex =
+        new DataIntegrityViolationException("Data integrity violation", sqlException);
+    Supplier<String> supplier =
+        () -> {
+          throw ex;
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, isMultipleQueries));
+
+    assertEquals(E7154, thrown.getErrorCode());
+    assertEquals(E7154.getMessage(), thrown.getMessage());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  @DisplayName(
+      "When a DataIntegrityViolationException has a Postgres 42601 syntax error unrelated to UNION, then throw E7132")
+  void whenDataIntegrityViolation_withUnrelatedSyntaxError_thenThrowE7132(
+      boolean isMultipleQueries) {
+    SQLException sqlException = new SQLException("syntax error at or near \"from\"", "42601");
+    Supplier<String> supplier =
+        () -> {
+          throw new DataIntegrityViolationException("Data integrity violation", sqlException);
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, isMultipleQueries));
+
+    assertEquals(E7132, thrown.getErrorCode());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  @DisplayName(
+      "When a DataIntegrityViolationException is caused by a division by zero, then throw E7132")
+  void whenDataIntegrityViolation_withDivisionByZero_thenThrowE7132(boolean isMultipleQueries) {
+    SQLException sqlException = new SQLException("division by zero", "22012");
+    Supplier<String> supplier =
+        () -> {
+          throw new DataIntegrityViolationException("Data integrity violation", sqlException);
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, isMultipleQueries));
+
+    assertEquals(E7132, thrown.getErrorCode());
+  }
+
+  @Test
+  @DisplayName(
+      "When a DataIntegrityViolationException mentions a missing column but the cause is not a SQLException, then throw E7132")
+  void whenDataIntegrityViolation_withNonSqlExceptionCause_thenThrowE7132() {
+    Supplier<String> supplier =
+        () -> {
+          throw new DataIntegrityViolationException(
+              "Unknown column 'cX5k9anHEHd'",
+              new IllegalStateException("Unknown column 'cX5k9anHEHd'"));
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+
+    assertEquals(E7132, thrown.getErrorCode());
+  }
+
+  @Test
+  @DisplayName("When a DataIntegrityViolationException has no cause, then throw E7132")
+  void whenDataIntegrityViolation_withoutCause_thenThrowE7132() {
+    Supplier<String> supplier =
+        () -> {
+          throw new DataIntegrityViolationException("Data integrity violation");
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+
+    assertEquals(E7132, thrown.getErrorCode());
+  }
+
+  @Test
+  @DisplayName(
+      "When a DataIntegrityViolationException is caused by a missing table, then the table check takes precedence over E7154")
+  void whenDataIntegrityViolation_withTableAndColumnNotExisting_thenThrowBadSqlGrammar() {
+    // Message matches both the ClickHouse "missing table" and "missing column" patterns
+    SQLException sqlException =
+        new SQLException(
+            "Unknown table expression identifier 'analytics_2024'; Unknown column 'cX5k9anHEHd'");
+    Supplier<String> supplier =
+        () -> {
+          throw new DataIntegrityViolationException("Data integrity violation", sqlException);
+        };
+
+    BadSqlGrammarException thrown =
+        assertThrows(
+            BadSqlGrammarException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+
+    assertSame(sqlException, thrown.getSQLException());
   }
 
   @ParameterizedTest
@@ -944,5 +1170,203 @@ class AnalyticsUtilsTest extends TestBase {
     assertEquals(1, result.get(key).getOptions().size());
     assertEquals(option.getUid(), result.get(key).getOptions().get(0).get("uid"));
     assertEquals(option.getCode(), result.get(key).getOptions().get(0).get("code"));
+  }
+
+  // -------------------------------------------------------------------------
+  // getDimensionMetadataItemMap with ReportingRate items
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testGetDimensionMetadataItemMapReportingRateKeysAndNames() {
+    DataSet dataSetA = createDataSet('A');
+    List<DimensionalItemObject> reportingRates = createReportingRates(dataSetA);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, reportingRates))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+
+    Map<String, MetadataItem> result = AnalyticsUtils.getDimensionMetadataItemMap(params);
+
+    // One entry per reporting rate item plus one for the dx dimension
+    assertEquals(ReportingRateMetric.values().length + 1, result.size());
+    assertTrue(result.containsKey(DATA_X_DIM_ID));
+
+    for (ReportingRateMetric metric : ReportingRateMetric.values()) {
+      String key = dataSetA.getUid() + "." + metric.name();
+
+      assertTrue(result.containsKey(key), "Missing key: " + key);
+      assertEquals("DataSetA - " + metric.displayName(), result.get(key).getName());
+    }
+
+    // The plain data set uid is not used as a key
+    assertFalse(result.containsKey(dataSetA.getUid()));
+  }
+
+  @Test
+  void testGetDimensionMetadataItemMapReportingRateWithShortName() {
+    DataSet dataSetA = createDataSet('A');
+    List<DimensionalItemObject> reportingRates = createReportingRates(dataSetA);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, reportingRates))
+            .withDisplayProperty(DisplayProperty.SHORTNAME)
+            .build();
+
+    Map<String, MetadataItem> result = AnalyticsUtils.getDimensionMetadataItemMap(params);
+
+    for (ReportingRateMetric metric : ReportingRateMetric.values()) {
+      String key = dataSetA.getUid() + "." + metric.name();
+
+      assertEquals("DataSetShortA - " + metric.displayName(), result.get(key).getName());
+    }
+  }
+
+  @Test
+  void testGetDimensionMetadataItemMapReportingRateWithoutMetadataDetails() {
+    DataSet dataSetA = createDataSet('A');
+    ReportingRate reportingRate = new ReportingRate(dataSetA, ReportingRateMetric.REPORTING_RATE);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(reportingRate)))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .withIncludeMetadataDetails(false)
+            .build();
+
+    MetadataItem item =
+        AnalyticsUtils.getDimensionMetadataItemMap(params).get(reportingRate.getDimensionItem());
+
+    assertNotNull(item);
+    assertEquals("DataSetA - Reporting rate", item.getName());
+    assertNull(item.getUid());
+    assertNull(item.getCode());
+    assertNull(item.getDimensionItemType());
+    assertNull(item.getValueType());
+    assertNull(item.getTotalAggregationType());
+    assertNull(item.getStyle());
+  }
+
+  @ParameterizedTest
+  @EnumSource(ReportingRateMetric.class)
+  void testGetDimensionMetadataItemMapReportingRateWithMetadataDetails(ReportingRateMetric metric) {
+    DataSet dataSetA = createDataSet('A');
+    ObjectStyle style = new ObjectStyle();
+    style.setColor("#FF0000");
+    style.setIcon("icon-name");
+    dataSetA.setStyle(style);
+
+    ReportingRate reportingRate = new ReportingRate(dataSetA, metric);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(reportingRate)))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .withIncludeMetadataDetails(true)
+            .build();
+
+    MetadataItem item =
+        AnalyticsUtils.getDimensionMetadataItemMap(params)
+            .get(dataSetA.getUid() + "." + metric.name());
+
+    assertNotNull(item);
+    assertEquals("DataSetA - " + metric.displayName(), item.getName());
+    assertEquals(dataSetA.getUid(), item.getUid());
+    assertEquals(DimensionItemType.REPORTING_RATE, item.getDimensionItemType());
+    assertEquals(ValueType.NUMBER, item.getValueType());
+    assertEquals(
+        metric.isSum() ? TotalAggregationType.SUM : TotalAggregationType.AVERAGE,
+        item.getTotalAggregationType());
+    assertNull(item.getAggregationType());
+    assertNotNull(item.getStyle());
+    assertEquals("#FF0000", item.getStyle().getColor());
+    assertEquals("icon-name", item.getStyle().getIcon());
+  }
+
+  @Test
+  void testGetDimensionMetadataItemMapReportingRatesFromMultipleDataSetsInFilter() {
+    DataSet dataSetA = createDataSet('A');
+    DataSet dataSetB = createDataSet('B');
+
+    ReportingRate rateA = new ReportingRate(dataSetA, ReportingRateMetric.REPORTING_RATE);
+    ReportingRate rateB = new ReportingRate(dataSetB, ReportingRateMetric.EXPECTED_REPORTS);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addFilter(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(rateA, rateB)))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+
+    Map<String, MetadataItem> result = AnalyticsUtils.getDimensionMetadataItemMap(params);
+
+    assertEquals(3, result.size());
+    assertEquals(
+        "DataSetA - Reporting rate", result.get(dataSetA.getUid() + ".REPORTING_RATE").getName());
+    assertEquals(
+        "DataSetB - Expected reports",
+        result.get(dataSetB.getUid() + ".EXPECTED_REPORTS").getName());
+  }
+
+  @Test
+  void testGetDimensionMetadataItemMapReportingRateHasNoCategoryOptionCombos() {
+    DataSet dataSetA = createDataSet('A');
+    ReportingRate reportingRate = new ReportingRate(dataSetA, ReportingRateMetric.ACTUAL_REPORTS);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(reportingRate)))
+            .withIncludeMetadataDetails(true)
+            .build();
+
+    Map<String, MetadataItem> result = AnalyticsUtils.getDimensionMetadataItemMap(params);
+
+    // Unlike data elements, reporting rates do not add category option combo entries
+    assertEquals(2, result.size());
+    assertTrue(result.containsKey(reportingRate.getDimensionItem()));
+    assertTrue(result.containsKey(DATA_X_DIM_ID));
+  }
+
+  @Test
+  void testGetDimensionMetadataItemMapReportingRateUsesDataSetLegendSet() {
+    DataSet dataSetA = createDataSet('A');
+    LegendSet legendSet = createLegendSet('A');
+    dataSetA.setLegendSets(List.of(legendSet));
+
+    ReportingRate reportingRate = new ReportingRate(dataSetA, ReportingRateMetric.REPORTING_RATE);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(reportingRate)))
+            .withIncludeMetadataDetails(true)
+            .build();
+
+    MetadataItem item =
+        AnalyticsUtils.getDimensionMetadataItemMap(params).get(reportingRate.getDimensionItem());
+
+    assertEquals(legendSet.getUid(), item.getLegendSet());
+  }
+
+  private List<DimensionalItemObject> createReportingRates(DataSet dataSet) {
+    List<DimensionalItemObject> reportingRates = new ArrayList<>();
+
+    for (ReportingRateMetric metric : ReportingRateMetric.values()) {
+      reportingRates.add(new ReportingRate(dataSet, metric));
+    }
+
+    return reportingRates;
   }
 }

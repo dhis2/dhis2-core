@@ -67,8 +67,8 @@ public class TrackerEventProgramStageMapSupplier extends JdbcAbstractPreheatSupp
           + " where ev.deleted = false "
           + " and ev.status != 'SKIPPED' "
           + " and ps.programstageid = ev.programstageid "
-          + " and ps.uid in (:programStageUids) "
-          + " and en.uid in (:enrollmentUids) ";
+          + " and ps.uid = any(:programStageUids) "
+          + " and en.uid = any(:enrollmentUids) ";
 
   protected TrackerEventProgramStageMapSupplier(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
@@ -103,8 +103,9 @@ public class TrackerEventProgramStageMapSupplier extends JdbcAbstractPreheatSupp
 
     if (!notRepeatableProgramStageUids.isEmpty() && !enrollmentUids.isEmpty()) {
       MapSqlParameterSource parameters = new MapSqlParameterSource();
-      parameters.addValue("programStageUids", notRepeatableProgramStageUids);
-      parameters.addValue("enrollmentUids", UID.toValueList(enrollmentUids));
+      parameters.addValue("programStageUids", notRepeatableProgramStageUids.toArray(new String[0]));
+      parameters.addValue(
+          "enrollmentUids", enrollmentUids.stream().map(UID::getValue).toArray(String[]::new));
       jdbcTemplate.query(
           SQL,
           parameters,

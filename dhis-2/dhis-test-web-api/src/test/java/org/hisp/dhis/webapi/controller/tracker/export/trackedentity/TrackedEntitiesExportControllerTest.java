@@ -42,6 +42,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
@@ -95,7 +96,6 @@ import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -126,8 +126,6 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
       List.of("mHWCacsGYYn", "dUE514NMOlo", "QS6w44flWAf"); // no value or null as multi text value
 
   @Autowired private TrackerImportService trackerImportService;
-
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
@@ -1469,7 +1467,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     TrackedEntityAttributeValue attributeValue = attributeValue(tea, trackedEntity, value);
     trackedEntity.addAttributeValue(attributeValue);
     manager.save(trackedEntity, false);
-    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(attributeValue);
+    saveTrackedEntityAttributeValue(entityManager, attributeValue);
     manager.flush();
     manager.clear();
     return tea;
@@ -1481,7 +1479,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     TrackedEntityAttributeValue attributeValue = attributeValue(tea, trackedEntity, value);
     trackedEntity.addAttributeValue(attributeValue);
     manager.save(trackedEntity, false);
-    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(attributeValue);
+    saveTrackedEntityAttributeValue(entityManager, attributeValue);
     return tea;
   }
 

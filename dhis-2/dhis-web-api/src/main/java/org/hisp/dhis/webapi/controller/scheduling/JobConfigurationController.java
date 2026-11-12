@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -113,7 +114,8 @@ public class JobConfigurationController
 
   @Maturity.Beta
   @GetMapping("/stale")
-  public List<JobEntry> getStaleJobConfigurations(@RequestParam int seconds) {
+  public List<JobEntry> getStaleJobConfigurations(@RequestParam int seconds)
+      throws BadRequestException {
     return jobConfigurationService.getStaleConfigurations(seconds);
   }
 

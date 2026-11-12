@@ -42,6 +42,7 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -49,7 +50,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
+import org.hibernate.StatelessSession;
+import org.hibernate.Transaction;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.query.NativeQuery;
@@ -59,9 +64,12 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.deadline.DeadlineQueries;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * @author Lars Helge Overland
@@ -114,17 +122,19 @@ public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements
    */
   @SuppressWarnings("unchecked")
   protected final Query<T> getQuery(@Language("hql") String hql) {
-    return getSession()
-        .createQuery(hql)
-        .setCacheable(cacheable)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+    return DeadlineQueries.withDeadline(
+        getSession()
+            .createQuery(hql)
+            .setCacheable(cacheable)
+            .setHint(QueryHints.CACHEABLE, cacheable));
   }
 
   protected final <C> Query<C> getQuery(@Language("hql") String hql, Class<C> customClass) {
-    return getSession()
-        .createQuery(hql, customClass)
-        .setCacheable(cacheable)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+    return DeadlineQueries.withDeadline(
+        getSession()
+            .createQuery(hql, customClass)
+            .setCacheable(cacheable)
+            .setHint(QueryHints.CACHEABLE, cacheable));
   }
 
   /**
@@ -135,10 +145,11 @@ public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements
    */
   @SuppressWarnings("unchecked")
   protected final <V> Query<V> getTypedQuery(@Language("hql") String hql) {
-    return getSession()
-        .createQuery(hql)
-        .setCacheable(cacheable)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+    return DeadlineQueries.withDeadline(
+        getSession()
+            .createQuery(hql)
+            .setCacheable(cacheable)
+            .setHint(QueryHints.CACHEABLE, cacheable));
   }
 
   /** Override to add additional restrictions to criteria before it is invoked. */
@@ -158,7 +169,8 @@ public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements
    * @return executable TypedQuery
    */
   private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery) {
-    return entityManager.createQuery(criteriaQuery).setHint(QueryHints.CACHEABLE, cacheable);
+    return DeadlineQueries.withDeadline(
+        entityManager.createQuery(criteriaQuery).setHint(QueryHints.CACHEABLE, cacheable));
   }
 
   /** Method for adding additional Predicates into where clause */
@@ -317,9 +329,10 @@ public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements
       query.where(predicates.toArray(new Predicate[0]));
     }
 
-    return getSession()
-        .createQuery(query)
-        .setHint(QueryHints.CACHEABLE, parameters.isCacheable(cacheable))
+    return DeadlineQueries.withDeadline(
+            getSession()
+                .createQuery(query)
+                .setHint(QueryHints.CACHEABLE, parameters.isCacheable(cacheable)))
         .getSingleResult();
   }
 
@@ -485,5 +498,41 @@ public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements
    */
   protected JpaQueryParameters<T> newJpaParameters() {
     return new JpaQueryParameters<>();
+  }
+
+  public static <R> R runAutoJoinTransaction(
+      DataSource dataSource, SessionFactory sessionFactory, Function<StatelessSession, R> query) {
+    boolean active = TransactionSynchronizationManager.isActualTransactionActive();
+    boolean readOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+
+    if (active && !readOnly) {
+      // run in existing TX (for visibility)
+      Connection borrowedConnection = DataSourceUtils.getConnection(dataSource);
+      StatelessSession session = sessionFactory.openStatelessSession(borrowedConnection);
+      return query.apply(session);
+    }
+
+    // run in new TX
+    StatelessSession session = sessionFactory.openStatelessSession();
+
+    Transaction transaction = null;
+    try {
+      transaction = session.beginTransaction();
+      R result = query.apply(session);
+      transaction.commit();
+      return result;
+    } catch (RuntimeException e) {
+      // Handle rollback for self-managed transactions
+      if (transaction != null && transaction.isActive()) {
+        transaction.rollback();
+      }
+      throw e;
+    } finally {
+      try {
+        session.close();
+      } catch (Exception e) {
+        log.error("Session close error", e);
+      }
+    }
   }
 }

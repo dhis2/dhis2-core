@@ -266,20 +266,4 @@ public class ParserUtils {
           case TEXT -> ",'')";
         };
   }
-
-  /**
-   * Generate SQL to cast an analytics value to a data type.
-   *
-   * @param column SQL column to cast
-   * @param dataType data type to cast to
-   * @return a coalesce statement casting the column
-   */
-  public static String castSql(String column, DataType dataType) {
-    return column
-        + switch (dataType) {
-          case NUMERIC -> "::numeric";
-          case BOOLEAN -> "::numeric!=0";
-          case TEXT -> "::text";
-        };
-  }
 }

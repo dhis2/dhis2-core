@@ -1,0 +1,84 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name:  visualizations_wrong_sort_order
+description: Visualizations with possibly wrong sort order of data dimension items
+section: Visualizations
+section_order: 2
+summary_sql: >-
+    WITH visualizations_wrong_sort_order AS (
+    SELECT DISTINCT visualizationid, sort_order, expected_order
+    FROM (
+    SELECT
+    visualizationid,
+    sort_order,
+    row_number() OVER (PARTITION BY visualizationid ORDER BY sort_order)
+    + (MIN(sort_order) OVER (PARTITION BY visualizationid) - 1) AS expected_order
+    FROM visualization_datadimensionitems
+    ) AS foo
+    WHERE sort_order != expected_order
+    ORDER BY visualizationid, sort_order
+    )
+    SELECT
+    COUNT(*) AS value,
+    100 * (SELECT COUNT(*) FROM (SELECT DISTINCT visualizationid FROM visualizations_wrong_sort_order) AS bar) /
+    NULLIF((SELECT COUNT(*) FROM visualization), 0) AS percent
+    FROM visualizations_wrong_sort_order;
+details_sql: >-
+    SELECT
+    a.uid,
+    a.name,
+    b.sort_order || ' != ' || b.expected_order AS comment
+    FROM visualization a
+    INNER JOIN (
+    SELECT DISTINCT visualizationid, sort_order, expected_order
+    FROM (
+    SELECT
+    visualizationid,
+    sort_order,
+    row_number() OVER (PARTITION BY visualizationid ORDER BY sort_order)
+    + (MIN(sort_order) OVER (PARTITION BY visualizationid) - 1) AS expected_order
+    FROM visualization_datadimensionitems
+    ) AS foo
+    WHERE sort_order != expected_order
+    ORDER BY visualizationid, sort_order
+    ) b ON a.visualizationid = b.visualizationid;
+details_id_type: visualizations
+severity: CRITICAL
+introduction: >
+    The data dimension items within a visualization are ordered using a sort order column. If
+    this sort order contains gaps (for example 0, 1, 3, 4 instead of 0, 1, 2, 3), the visualization
+    will fail to open with an internal server error: the sort order is used as a list index when
+    the visualization is loaded, and a gap causes the missing position to be reconstructed as an
+    empty entry, which then causes an error when the visualization's data dimension items are
+    processed. This check identifies any visualizations where the sort order of the data dimension
+    items contains gaps.
+recommendation: >
+    To correct the sort order of a visualization's data dimension items, an administrator can
+    directly update the sort_order column of the affected rows in the visualization_datadimensionitems
+    table so that it forms a contiguous sequence starting at 0, with no gaps or duplicates, for each
+    affected visualization.

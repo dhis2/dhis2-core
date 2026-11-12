@@ -222,7 +222,8 @@ public class SingleEventOperationParams {
         .skipChangedBefore(skipChangedBefore)
         .skipSyncDataElementsByProgramStage(skipSyncDataElementsByProgramStage)
         .synchronizationQuery(true)
-        .includeDeleted(true);
+        .includeDeleted(true)
+        .fields(SingleEventFields.all());
   }
 
   // Do not remove this unused method. This hides the builder with no params which Lombok

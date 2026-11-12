@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import static java.util.function.Predicate.not;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.common.IdCoder.ObjectType.COC;
 import static org.hisp.dhis.common.IdCoder.ObjectType.DE;
 import static org.hisp.dhis.common.IdCoder.ObjectType.DEG;
@@ -37,7 +38,7 @@ import static org.hisp.dhis.common.IdCoder.ObjectType.DS;
 import static org.hisp.dhis.common.IdCoder.ObjectType.OU;
 import static org.hisp.dhis.common.IdCoder.ObjectType.OUG;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
-import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
+import static org.hisp.dhis.util.DateUtils.toLongGmtDateText;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -117,6 +118,8 @@ public class DefaultDataExportService implements DataExportService {
               .includeDeleted(true)
               .orders(List.of(Order.PE, Order.CREATED, Order.DE))
               .build();
+      // explicit AOCs are access checked on every path, sync included
+      validateAocAccess(params.getAttributeOptionCombos());
     } else {
       validateFilters(params);
       validateAccess(params);
@@ -337,8 +340,8 @@ public class DefaultDataExportService implements DataExportService {
                     emptyAsNull(dv.comment()),
                     dv.followUp(),
                     emptyAsNull(dv.storedBy()),
-                    toLongGmtDate(dv.created()),
-                    toLongGmtDate(dv.lastUpdated()),
+                    toLongGmtDateText(dv.created()),
+                    toLongGmtDateText(dv.lastUpdated()),
                     dv.deleted())));
   }
 
@@ -359,15 +362,17 @@ public class DefaultDataExportService implements DataExportService {
     if (ouIn == null) ouIn = anyIn;
     if (degIn == null) degIn = anyIn;
 
+    List<UID> dataSets = decodeIds(DS, dsIn, params.getDataSet());
+
     return DataExportParams.builder()
-        .dataSets(decodeIds(DS, dsIn, params.getDataSet()))
+        .dataSets(dataSets)
         .dataElementGroups(decodeIds(DEG, degIn, params.getDataElementGroup()))
         .dataElements(decodeIds(DE, deIn, params.getDataElement()))
         .organisationUnits(decodeIds(OU, ouIn, params.getOrgUnit()))
         .organisationUnitGroups(decodeIds(OUG, anyIn, params.getOrgUnitGroup()))
         .orgUnitLevel(params.getLevel())
         .categoryOptionCombos(decodeIds(COC, anyIn, params.getCategoryOptionCombo()))
-        .attributeOptionCombos(resolveAttributeOptionCombos(anyIn, params))
+        .attributeOptionCombos(resolveAttributeOptionCombos(anyIn, params, dataSets))
         .periods(decodePeriods(params.getPeriod()))
         .startDate(params.getStartDate())
         .endDate(params.getEndDate())
@@ -383,15 +388,30 @@ public class DefaultDataExportService implements DataExportService {
 
   @Nonnull
   private List<UID> resolveAttributeOptionCombos(
-      IdentifiableProperty anyIn, DataExportParams.Input params) {
+      IdentifiableProperty anyIn, DataExportParams.Input params, List<UID> dataSets) {
     List<UID> attributeOptionCombos = decodeIds(COC, anyIn, params.getAttributeOptionCombo());
-    if (!attributeOptionCombos.isEmpty() || params.getAttributeOptions() == null) {
+    if (!attributeOptionCombos.isEmpty()) {
       return attributeOptionCombos;
     }
-    UID aoc =
-        store.getAttributeOptionCombo(
-            params.getAttributeCombo(), params.getAttributeOptions().stream());
-    return aoc == null ? attributeOptionCombos : List.of(aoc);
+    if (params.getAttributeOptions() != null) {
+      UID aoc =
+          store.getAttributeOptionCombo(
+              params.getAttributeCombo(), params.getAttributeOptions().stream());
+      return aoc == null ? attributeOptionCombos : List.of(aoc);
+    }
+    // Fast path: when the export is scoped to data set(s) only (no additional data element or
+    // data element group selectors) and all requested data sets use the default attribute
+    // category combo, the only valid attribute option combo is the default one. Applying it as an
+    // explicit filter lets the export query skip the per-row AOC data-sharing check. A data
+    // element or data element group selector can pull in values from outside those data sets that
+    // legitimately use a non-default AOC, so the fast path must not apply to mixed selectors.
+    if (!dataSets.isEmpty()
+        && isEmpty(params.getDataElement())
+        && isEmpty(params.getDataElementGroup())) {
+      UID defaultAoc = store.getDefaultAttributeOptionComboForDataSets(dataSets.stream());
+      if (defaultAoc != null) return List.of(defaultAoc);
+    }
+    return attributeOptionCombos;
   }
 
   private List<Order> resolveOrders(DataExportParams.Input params) {
@@ -465,6 +485,16 @@ public class DefaultDataExportService implements DataExportService {
         params.getDataSets(), params.getAttributeOptionCombos(), params.getOrganisationUnits());
   }
 
+  private void validateAocAccess(List<UID> attributeCombos) throws ConflictException {
+    if (attributeCombos == null || attributeCombos.isEmpty()) return;
+    if (getCurrentUserDetails().isSuper()) return;
+    // an invalid AOC gets its own error, so it is not mistaken for a sharing problem
+    List<String> aocInvalid = store.getAocNotOfAttributeCombo(attributeCombos.stream());
+    if (!aocInvalid.isEmpty()) throw new ConflictException(ErrorCode.E2049, aocInvalid);
+    List<String> aocNoAccess = store.getAocNoDataReadAccess(attributeCombos.stream());
+    if (!aocNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E2011, aocNoAccess);
+  }
+
   private void validateAccess(List<UID> dataSets, List<UID> attributeCombos, List<UID> orgUnits)
       throws ConflictException {
     if (getCurrentUserDetails().isSuper()) return;
@@ -477,12 +507,9 @@ public class DefaultDataExportService implements DataExportService {
       if (!dsNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E2010, dsNoAccess);
     }
 
-    if (attributeCombos != null && !attributeCombos.isEmpty()) {
-      // Note that if no AOC filter is set AOC dimension acts as a filter
-      // and any data is removed from results that a user does not have access to
-      List<String> aocNoAccess = store.getAocNoDataReadAccess(attributeCombos.stream());
-      if (!aocNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E2011, aocNoAccess);
-    }
+    // Note that if no AOC filter is set AOC dimension acts as a filter
+    // and any data is removed from results that a user does not have access to
+    validateAocAccess(attributeCombos);
 
     if (orgUnits != null && !orgUnits.isEmpty()) {
       List<String> ouNotInHierarchy = store.getOrgUnitsNotInUserHierarchy(orgUnits.stream());

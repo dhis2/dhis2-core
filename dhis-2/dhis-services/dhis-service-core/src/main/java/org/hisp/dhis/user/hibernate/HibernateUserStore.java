@@ -41,6 +41,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.Root;
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -59,10 +60,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LockOptions;
+import org.hibernate.cache.spi.TimestampsCache;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.jpa.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
@@ -78,7 +83,6 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserGroup;
@@ -308,6 +312,10 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       hql += hlp.whereAnd() + " u.lastLogin < :inactiveSince ";
     }
 
+    if (params.isNeverLoggedIn()) {
+      hql += hlp.whereAnd() + " u.lastLogin is null ";
+    }
+
     if (params.getPasswordLastUpdated() != null) {
       hql += hlp.whereAnd() + " u.passwordLastUpdated < :passwordLastUpdated ";
     }
@@ -461,14 +469,6 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     typedQuery.setHint(QueryHints.HINT_CACHE_REGION, USERNAME_QUERY_CACHE_REGION);
 
     return QueryUtils.getSingleResult(typedQuery);
-  }
-
-  @Override
-  public int updateLastLogin(@Nonnull String username) {
-    return jdbcTemplate.update(
-        DmlSqlParser.DML_SKIP_MARKER
-            + " UPDATE userinfo SET lastlogin = now(), lastupdated = now() WHERE username = ?",
-        username);
   }
 
   @Override
@@ -649,6 +649,11 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
+  public List<String> getAllUsernames() {
+    return getSession().createQuery("select u.username from User u", String.class).list();
+  }
+
+  @Override
   public void setActiveLinkedAccounts(
       @Nonnull String actingUsername, @Nonnull String activeUsername) {
 
@@ -659,13 +664,59 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     List<User> linkedUserAccounts = getLinkedUserAccounts(actionUser);
     for (User user : linkedUserAccounts) {
-      user.setLastLogin(
+      updateLastLogin(
+          user,
           user.getUsername().equals(activeUsername)
               ? Date.from(oneHourInTheFuture)
               : Date.from(oneHourAgo));
-
-      update(user, new SystemUser());
     }
+  }
+
+  @Override
+  public void updateLastLogin(@Nonnull User user, @Nonnull Date lastLogin) {
+    // the dml-skip marker keeps a login from bumping the User ETag version
+    jdbcTemplate.update(
+        DmlSqlParser.DML_SKIP_MARKER + " UPDATE userinfo SET lastlogin = ? WHERE userinfoid = ?",
+        lastLogin,
+        user.getId());
+    // lastLogin is update="false", so this is not a change Hibernate writes, but an update of this
+    // instance puts its in-memory state into the second-level cache after the commit
+    user.setLastLogin(lastLogin);
+    // Bypasses Hibernate on purpose (no lastUpdated bump, no audit, no cache invalidation
+    // message), so do the local cache upkeep of an entity update ourselves. Other cluster nodes
+    // keep their cached last login until their L2 entry expires, see
+    // HibernateUserGroupStore#updateLastUpdated.
+    getSession().getSessionFactory().getCache().evictEntityData(User.class, user.getId());
+    invalidateUserQueryResults();
+  }
+
+  /**
+   * Marks the user table as changed for the query cache, as Hibernate does for an entity update:
+   * cached {@link User} query results are stale from now on, and again once the transaction
+   * completed. Without this, a query that filters or orders by last login, such as {@link
+   * #getUserByOpenId(String)}, keeps returning its old result until the cache entry expires.
+   * Without a query cache there is nothing to invalidate (and no timestamps cache to do it with).
+   *
+   * <p>A native query with synchronized query spaces would invalidate too, but it also evicts every
+   * cached {@link User} and every cached collection of users, on every login.
+   */
+  private void invalidateUserQueryResults() {
+    SessionImplementor session = getSession().unwrap(SessionImplementor.class);
+    SessionFactoryImplementor factory = session.getFactory();
+
+    if (!factory.getSessionFactoryOptions().isQueryCacheEnabled()) {
+      return;
+    }
+
+    Serializable[] userTables = factory.getMetamodel().entityPersister(User.class).getQuerySpaces();
+    TimestampsCache timestampsCache = factory.getCache().getTimestampsCache();
+
+    timestampsCache.preInvalidate(userTables, session);
+    session
+        .getActionQueue()
+        .registerProcess(
+            (success, completedSession) ->
+                timestampsCache.invalidate(userTables, completedSession));
   }
 
   @Override
@@ -746,8 +797,11 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             ORDER BY userid, dataelementcategoryid
         )
         """;
-    return getSession()
-        .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
+        // users_catdimensionconstraints is the User.catDimensionConstraints collection table.
+        // Collection regions are keyed by the collection's element entity, so Category is what
+        // reaches that region, not the owning User.
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
@@ -763,8 +817,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         DELETE FROM users_catdimensionconstraints
         WHERE dataelementcategoryid IN (:sourceCategoryIds)
         """;
-    return getSession()
-        .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
+        // see updateCatDimensionConstraintsCategoryRefs
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();
@@ -784,8 +839,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             WHERE dataelementcategoryid = :targetCategoryId
         )
         """;
-    return getSession()
-        .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
+        // see updateCatDimensionConstraintsCategoryRefs
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
@@ -959,6 +1015,36 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           attrUid.getValue(),
           userUid.getValue());
     }
+  }
+
+  @Override
+  public List<Integer> getActiveUserCounts(List<Date> sinceDates) {
+    if (sinceDates.isEmpty()) {
+      return List.of();
+    }
+    StringBuilder sql = new StringBuilder("select ");
+    for (int i = 0; i < sinceDates.size(); i++) {
+      if (i > 0) {
+        sql.append(", ");
+      }
+      sql.append("count(*) filter (where lastlogin >= ?) as c").append(i);
+    }
+    sql.append(" from userinfo");
+    return jdbcTemplate.query(
+        sql.toString(),
+        ps -> {
+          for (int i = 0; i < sinceDates.size(); i++) {
+            ps.setTimestamp(i + 1, new java.sql.Timestamp(sinceDates.get(i).getTime()));
+          }
+        },
+        rs -> {
+          rs.next();
+          List<Integer> counts = new ArrayList<>(sinceDates.size());
+          for (int i = 0; i < sinceDates.size(); i++) {
+            counts.add(rs.getInt(i + 1));
+          }
+          return counts;
+        });
   }
 
   @Override

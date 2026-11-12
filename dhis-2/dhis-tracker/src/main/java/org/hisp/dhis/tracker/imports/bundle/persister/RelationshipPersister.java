@@ -67,6 +67,11 @@ public class RelationshipPersister
   }
 
   @Override
+  protected Set<String> trackedEntityUidsForAttributeLoad(List<Relationship> dtos) {
+    return Set.of();
+  }
+
+  @Override
   protected void assignId(org.hisp.dhis.tracker.model.Relationship entity, long id) {
     entity.setId(id);
   }
@@ -145,6 +150,11 @@ public class RelationshipPersister
   @Override
   protected Set<UID> getUpdatedTrackedEntities(org.hisp.dhis.tracker.model.Relationship entity) {
     return entity.getTrackedEntityOrigins();
+  }
+
+  @Override
+  protected Set<UID> getUpdatedSingleEvents(org.hisp.dhis.tracker.model.Relationship entity) {
+    return entity.getSingleEventOrigins();
   }
 
   @Override

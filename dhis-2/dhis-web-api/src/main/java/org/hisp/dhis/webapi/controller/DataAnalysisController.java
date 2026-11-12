@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,6 +80,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -133,6 +134,9 @@ public class DataAnalysisController {
 
   private static final String KEY_ORG_UNIT = "orgUnit";
 
+  /** Max number of individual rules a validation rule analysis request may select via vr. */
+  static final int MAX_VALIDATION_RULES = 50;
+
   @Autowired private ContextUtils contextUtils;
 
   @Autowired private I18nManager i18nManager;
@@ -167,13 +171,31 @@ public class DataAnalysisController {
   @ResponseStatus(HttpStatus.OK)
   public @ResponseBody List<ValidationResultView> performValidationRulesAnalysis(
       @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams, HttpSession session)
-      throws WebMessageException, BadRequestException {
+      throws WebMessageException, BadRequestException, NotFoundException {
     I18nFormat format = i18nManager.getI18nFormat();
 
-    ValidationRuleGroup group = null;
-    if (validationRulesAnalysisParams.getVrg() != null) {
-      group = validationRuleService.getValidationRuleGroup(validationRulesAnalysisParams.getVrg());
+    List<UID> ruleIds = validationRulesAnalysisParams.getVr();
+    String groupId = validationRulesAnalysisParams.getVrg();
+    if (!ruleIds.isEmpty() && groupId != null) {
+      throw new BadRequestException("Only one of vr and vrg can be specified");
     }
+    if (ruleIds.contains(null)) {
+      throw new BadRequestException("vr must not contain null entries");
+    }
+    if (ruleIds.size() > MAX_VALIDATION_RULES) {
+      throw new BadRequestException(
+          "At most " + MAX_VALIDATION_RULES + " validation rules can be specified in vr");
+    }
+
+    ValidationRuleGroup group = null;
+    if (groupId != null) {
+      group = validationRuleService.getValidationRuleGroup(groupId);
+      if (group == null) {
+        throw new NotFoundException(ValidationRuleGroup.class, groupId);
+      }
+    }
+
+    List<ValidationRule> rules = getValidationRules(ruleIds);
 
     OrganisationUnit organisationUnit =
         organisationUnitService.getOrganisationUnit(validationRulesAnalysisParams.getOu());
@@ -191,13 +213,16 @@ public class DataAnalysisController {
       throw new BadRequestException("Max results must be between 1 and " + MAX_ALLOWED_RESULTS);
     }
 
+    Date startDate = format.parseDate(validationRulesAnalysisParams.getStartDate());
+    Date endDate = format.parseDate(validationRulesAnalysisParams.getEndDate());
+    ValidationAnalysisParams.Builder paramsBuilder =
+        rules.isEmpty()
+            ? validationService.newParamsBuilder(group, organisationUnit, startDate, endDate)
+            : validationService.newParamsBuilder(
+                rules, organisationUnit, periodService.getPeriodsBetweenDates(startDate, endDate));
+
     ValidationAnalysisParams params =
-        validationService
-            .newParamsBuilder(
-                group,
-                organisationUnit,
-                format.parseDate(validationRulesAnalysisParams.getStartDate()),
-                format.parseDate(validationRulesAnalysisParams.getEndDate()))
+        paramsBuilder
             .withIncludeOrgUnitDescendants(true)
             .withPersistResults(validationRulesAnalysisParams.isPersist())
             .withSendNotifications(validationRulesAnalysisParams.isNotification())
@@ -585,6 +610,25 @@ public class DataAnalysisController {
         false);
 
     GridUtils.toCsv(grid, response.getWriter());
+  }
+
+  /**
+   * Resolves the given validation rule UIDs.
+   *
+   * @throws NotFoundException if any of the rules does not exist
+   */
+  private List<ValidationRule> getValidationRules(List<UID> ruleIds) throws NotFoundException {
+    if (ruleIds.isEmpty()) {
+      return List.of();
+    }
+    List<String> uids = UID.toValueList(Set.copyOf(ruleIds));
+    List<ValidationRule> rules = validationRuleService.getValidationRulesByUid(uids);
+    if (rules.size() < uids.size()) {
+      Set<String> found = UID.toUidValueSet(rules);
+      List<String> missing = uids.stream().filter(uid -> !found.contains(uid)).sorted().toList();
+      throw new NotFoundException("Validation rules not found: " + String.join(", ", missing));
+    }
+    return rules;
   }
 
   private Grid generateAnalysisReportGridFromResults(

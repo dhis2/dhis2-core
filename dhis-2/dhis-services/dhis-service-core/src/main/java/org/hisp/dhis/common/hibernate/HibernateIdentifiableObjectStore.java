@@ -215,13 +215,11 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
 
     object.setAutoFields();
 
-    // TODO: MAS: id=0 should not be necessary, only needed for some few tests
-    // TODO: MAS: Replace all usage of id=0 with use of a SystemUser instance
-    // issues with transaction isolation
-    if (userDetails.getId() != 0L && !(userDetails instanceof SystemUser)) {
-
-      // See: https://www.baeldung.com/jpa-entity-manager-get-reference
-      User user = entityManager.find(User.class, userDetails.getId());
+    // Only a persisted user can be referenced. The system user has no user row, and the
+    // integration test bootstrap saves the admin user before that user has an id.
+    Long userId = userDetails.getId();
+    if (userId != null && userId > 0 && !(userDetails instanceof SystemUser)) {
+      User user = entityManager.find(User.class, userId);
       object.setLastUpdatedBy(user);
 
       if (object.getCreatedBy() == null) {
@@ -624,7 +622,7 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
             .addPredicates(getSharingPredicates(builder))
             .addPredicate(
                 root -> builder.greaterThanOrEqualTo(root.get("lastUpdated"), lastUpdated))
-            .count(root -> builder.countDistinct(root.get("id")));
+            .count(root -> builder.count(builder.literal(1)));
 
     return getCount(builder, param).intValue();
   }

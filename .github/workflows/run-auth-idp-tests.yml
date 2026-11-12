@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v7
       - name: Set up JDK 17
         if: env.REUSE_PR_IMAGE != 'true'
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: 17
           distribution: temurin
@@ -68,7 +68,7 @@ jobs:
       - name: Run auth IdP tests
         run: |
           cd dhis-2/dhis-test-e2e
-          DHIS2_E2E_TEST_ARGS="-Pauth-idp" SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME \
+          SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME \
             docker compose -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-auth.yml \
             up --remove-orphans --exit-code-from test
 

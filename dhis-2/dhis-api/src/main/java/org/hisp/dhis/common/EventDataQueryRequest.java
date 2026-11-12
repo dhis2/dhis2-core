@@ -346,7 +346,9 @@ public class EventDataQueryRequest {
 
     public EventDataQueryRequestBuilder fromCriteria(EnrollmentAnalyticsQueryCriteria criteria) {
       EventDataQueryRequestBuilder builder =
-          startDate(criteria.getStartDate())
+          // Enrollment requests always resolve items against the enrollment analytics table.
+          outputType(EventOutputType.ENROLLMENT)
+              .startDate(criteria.getStartDate())
               .timeField(criteria.getTimeField())
               .endDate(criteria.getEndDate())
               .filter(getGrouped(criteria.getFilter()))
@@ -380,6 +382,10 @@ public class EventDataQueryRequest {
               .enhancedConditions(criteria.isEnhancedConditions())
               .userOrganisationUnitCriteria(getAnalyticsQueryCriteria(criteria.getDimension()))
               .rowContext(criteria.isRowContext());
+
+      if (criteria.isAggregatedEnrollments()) {
+        builder.value(criteria.getValue()).aggregationType(criteria.getAggregationType());
+      }
 
       if (criteria.getDimension() == null) {
         criteria.setDimension(new HashSet<>());

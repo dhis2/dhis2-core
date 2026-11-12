@@ -33,19 +33,24 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 @Component
+@AllArgsConstructor
 public class ProgramNotificationTemplateObjectBundleHook
     extends AbstractObjectBundleHook<ProgramNotificationTemplate> {
+  private final ProgramNotificationTemplateService programNotificationTemplateService;
+
   private static final Map<
           ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>
       RECIPIENT_TO_VALUETYPE_RESOLVER =
@@ -79,11 +84,23 @@ public class ProgramNotificationTemplateObjectBundleHook
   @Override
   public void postCreate(ProgramNotificationTemplate template, ObjectBundle bundle) {
     postProcess(template);
+    // Evict any stale entry (e.g. a template deleted then re-created with the same uid) so the
+    // cached-template send path picks up the newly persisted delivery channels.
+    programNotificationTemplateService.invalidateCache(template.getUid());
   }
 
   @Override
   public void postUpdate(ProgramNotificationTemplate template, ObjectBundle bundle) {
     postProcess(template);
+    // The metadata import pipeline persists directly through the store and bypasses
+    // ProgramNotificationTemplateService, so the getByUidCached cache would otherwise keep serving
+    // the pre-edit template (e.g. still delivering email after the channel was deselected).
+    programNotificationTemplateService.invalidateCache(template.getUid());
+  }
+
+  @Override
+  public void preDelete(ProgramNotificationTemplate template, ObjectBundle bundle) {
+    programNotificationTemplateService.invalidateCache(template.getUid());
   }
 
   /** Removes any non-valid combinations of properties on the template object. */

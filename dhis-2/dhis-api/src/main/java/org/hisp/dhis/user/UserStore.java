@@ -83,6 +83,15 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   int getUserCount();
 
+  /**
+   * Returns the number of users whose last login is on or after each of the given dates. All counts
+   * are computed in a single query.
+   *
+   * @param sinceDates the last login cutoff dates.
+   * @return the user counts in the same order as the given dates.
+   */
+  List<Integer> getActiveUserCounts(List<Date> sinceDates);
+
   List<User> getExpiringUsers(UserQueryParams userQueryParams);
 
   /**
@@ -122,16 +131,6 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @return number of users disabled
    */
   int disableUsersInactiveSince(Date inactiveSince);
-
-  /**
-   * Updates only the {@code lastlogin} and {@code lastupdated} columns for the user with the given
-   * username. This is a lightweight native SQL update that bypasses Hibernate's full entity update
-   * and is invisible to the DML observer (uses dml-skip marker).
-   *
-   * @param username the username of the user to update
-   * @return the number of rows updated (0 or 1)
-   */
-  int updateLastLogin(@Nonnull String username);
 
   /**
    * Selects all not disabled users where the {@link User#getLastLogin()} is within the given
@@ -182,6 +181,13 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @return a list of usernames.
    */
   List<String> getUsernamesByUserRole(@Nonnull UID roleUid);
+
+  /**
+   * Returns all usernames in the system.
+   *
+   * @return a list of all usernames
+   */
+  List<String> getAllUsernames();
 
   /**
    * Retrieves the most recently-used enabled User associated with the given open ID.
@@ -247,6 +253,23 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param activeUsername the username of the user to set as active
    */
   void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
+
+  /**
+   * Writes the last login date of the given user, and nothing else. This is the only way to change
+   * the last login date of an existing user: entity updates do not write it.
+   *
+   * <p>This is a single column update outside the entity lifecycle: it does not bump {@code
+   * lastUpdated} and fires no Hibernate events, so it produces no audit entry and no cache
+   * invalidation message for other servers. On this server it does the cache upkeep of an entity
+   * update: the second-level cache entry of this user is evicted, and cached {@link User} query
+   * results are invalidated, as they can depend on the last login. The date is also set on the
+   * given user, so a later update of that instance in this session caches the new date, not the
+   * previous one.
+   *
+   * @param user the user, usually loaded in the current session
+   * @param lastLogin the last login date to write
+   */
+  void updateLastLogin(@Nonnull User user, @Nonnull Date lastLogin);
 
   User getUserByEmailVerificationToken(String token);
 

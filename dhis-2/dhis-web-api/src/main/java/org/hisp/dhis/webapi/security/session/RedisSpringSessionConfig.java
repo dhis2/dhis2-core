@@ -87,6 +87,12 @@ public class RedisSpringSessionConfig {
   }
 
   @Bean
+  public SessionCreationTimeProvider sessionCreationTimeProvider(
+      RedisIndexedSessionRepository sessionRepository) {
+    return new RedisSessionCreationTimeProvider(sessionRepository);
+  }
+
+  @Bean
   public static ConfigureRedisAction configureRedisAction() {
     return ConfigureRedisAction.NO_OP;
   }

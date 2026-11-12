@@ -74,6 +74,11 @@ public class NonRedisSessionConfig {
   }
 
   @Bean
+  public SessionCreationTimeProvider sessionCreationTimeProvider() {
+    return new InMemorySessionCreationTimeProvider();
+  }
+
+  @Bean
   public Filter springSessionRepositoryFilter() {
     return new CharacterEncodingFilter();
   }

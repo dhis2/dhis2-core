@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,23 +29,18 @@
  */
 package org.hisp.dhis.organisationunit.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.stream.Collectors.toSet;
-
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
-import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
@@ -61,19 +56,13 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.organisationunit.OrganisationUnitStore")
 public class HibernateOrganisationUnitStore
     extends HibernateIdentifiableObjectStore<OrganisationUnit> implements OrganisationUnitStore {
-  private final DbmsManager dbmsManager;
 
   public HibernateOrganisationUnitStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      AclService aclService,
-      DbmsManager dbmsManager) {
+      AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, OrganisationUnit.class, aclService, true);
-
-    checkNotNull(dbmsManager);
-
-    this.dbmsManager = dbmsManager;
   }
 
   // -------------------------------------------------------------------------
@@ -82,30 +71,41 @@ public class HibernateOrganisationUnitStore
 
   @Override
   public List<String> getOrganisationUnitsUidsByUser(String username) {
-    String sql = getOrgUnitTablesUids(username, "usermembership");
-    return jdbcTemplate.queryForList(sql, String.class);
+    String sql = getOrgUnitTablesUids("usermembership");
+    return jdbcTemplate.queryForList(sql, String.class, username);
   }
 
   @Override
   public List<String> getSearchOrganisationUnitsUidsByUser(String username) {
-    String sql = getOrgUnitTablesUids(username, "userteisearchorgunits");
-    return jdbcTemplate.queryForList(sql, String.class);
+    String sql = getOrgUnitTablesUids("userteisearchorgunits");
+    return jdbcTemplate.queryForList(sql, String.class, username);
   }
 
   @Override
   public List<String> getDataViewOrganisationUnitsUidsByUser(String username) {
-    String sql = getOrgUnitTablesUids(username, "userdatavieworgunits");
-    return jdbcTemplate.queryForList(sql, String.class);
+    String sql = getOrgUnitTablesUids("userdatavieworgunits");
+    return jdbcTemplate.queryForList(sql, String.class, username);
   }
 
-  private static String getOrgUnitTablesUids(String username, String orgUnitTableName) {
+  @Override
+  public List<String> getOrganisationUnitPathsByUid(Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getSession()
+        .createQuery(
+            "select ou.path from OrganisationUnit ou where ou.uid in :uids and ou.path is not null",
+            String.class)
+        .setParameterList("uids", UID.toValueList(uids))
+        .list();
+  }
+
+  private static String getOrgUnitTablesUids(String orgUnitTableName) {
     return """
         select ou.uid
         from organisationunit ou
         join %s um ON ou.organisationunitid = um.organisationunitid
         join userinfo ui ON um.userinfoid = ui.userinfoid
-        where ui.username = '%s';"""
-        .formatted(orgUnitTableName, username);
+        where ui.username = ?;"""
+        .formatted(orgUnitTableName);
   }
 
   @Override
@@ -132,17 +132,6 @@ public class HibernateOrganisationUnitStore
   }
 
   @Override
-  public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences() {
-    return getQuery(
-            "from OrganisationUnit o where exists (select 1 from OrganisationUnit i "
-                + "where i.id <> o.id "
-                + "and i.path like concat('%', o.uid, '%') "
-                + "and o.path like concat('%', i.uid, '%'))")
-        .stream()
-        .collect(toSet());
-  }
-
-  @Override
   public List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets() {
     // OBS: size(o.groups) > 1 is just to narrow search right away
     return getQuery(
@@ -152,26 +141,29 @@ public class HibernateOrganisationUnitStore
         .list();
   }
 
+  // program_organisationunits and datasetsource both have a composite primary key of
+  // (program/dataset id, org unit id), so filtering by a single program/dataset id can never
+  // join more than one row per org unit. distinct is a no-op here, so drop it rather than pay
+  // for a sort/hash pass on every call.
+
   @Override
   public List<OrganisationUnit> getOrganisationUnitsWithProgram(Program program) {
     final String jpql =
-        "select distinct o from OrganisationUnit o " + "join o.programs p where p.id = :programId";
+        "select o from OrganisationUnit o join o.programs p where p.id = :programId";
 
     return getQuery(jpql).setParameter("programId", program.getId()).list();
   }
 
   @Override
   public List<OrganisationUnit> getOrganisationUnitsByProgram(String programUid) {
-    String jpql =
-        "select distinct o from OrganisationUnit o join o.programs p where p.uid = :programUid";
+    String jpql = "select o from OrganisationUnit o join o.programs p where p.uid = :programUid";
 
     return getQuery(jpql).setParameter("programUid", programUid).list();
   }
 
   @Override
   public List<OrganisationUnit> getOrganisationUnitsByDataSet(String dataSetUid) {
-    String jpql =
-        "select distinct o from OrganisationUnit o join o.dataSets d where d.uid = :dataSetUid";
+    String jpql = "select o from OrganisationUnit o join o.dataSets d where d.uid = :dataSetUid";
 
     return getQuery(jpql).setParameter("dataSetUid", dataSetUid).list();
   }
@@ -196,7 +188,14 @@ public class HibernateOrganisationUnitStore
   public List<OrganisationUnit> getOrganisationUnits(OrganisationUnitQueryParams params) {
     SqlHelper hlp = new SqlHelper();
 
-    String hql = "select distinct o from OrganisationUnit o ";
+    // DISTINCT is only needed to collapse duplicate rows from a join that can legitimately
+    // produce more than one row per org unit: the children fetch join (one row per child) and
+    // the groups filter (one row per matching group when filtering by a set of group ids). A
+    // plain filter (levels, parents, query, maxLevels, geometryOnly) never joins a collection, so
+    // it can never produce a duplicate org unit row — adding DISTINCT there only costs Postgres a
+    // pointless sort/dedupe over the full entity, including geometry and attributeValues.
+    boolean requiresDistinct = params.isFetchChildren() || params.hasGroups();
+    String hql = "select " + (requiresDistinct ? "distinct " : "") + "o from OrganisationUnit o ";
 
     if (params.isFetchChildren()) {
       hql += "left join fetch o.children c ";
@@ -308,18 +307,6 @@ public class HibernateOrganisationUnitStore
   // -------------------------------------------------------------------------
 
   @Override
-  public void updatePaths() {
-    getQuery("from OrganisationUnit ou where ou.path is null or ou.hierarchyLevel is null").list();
-  }
-
-  @Override
-  public void forceUpdatePaths() {
-    List<OrganisationUnit> organisationUnits =
-        new ArrayList<>(getQuery("from OrganisationUnit").list());
-    updatePaths(organisationUnits);
-  }
-
-  @Override
   public int getMaxLevel() {
     String hql = "select max(ou.hierarchyLevel) from OrganisationUnit ou";
 
@@ -345,20 +332,5 @@ public class HibernateOrganisationUnitStore
             OrganisationUnit.class)
         .setParameter("categoryOptions", categoryOptions)
         .getResultList();
-  }
-
-  private void updatePaths(List<OrganisationUnit> organisationUnits) {
-    Session session = getSession();
-    int counter = 0;
-
-    for (OrganisationUnit organisationUnit : organisationUnits) {
-      session.update(organisationUnit);
-
-      if ((counter % 400) == 0) {
-        dbmsManager.flushSession();
-      }
-
-      counter++;
-    }
   }
 }

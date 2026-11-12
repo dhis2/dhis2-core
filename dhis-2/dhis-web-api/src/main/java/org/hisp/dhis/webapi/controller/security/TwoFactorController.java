@@ -74,7 +74,7 @@ public class TwoFactorController {
 
   @PostMapping(value = "/enrollTOTP2FA")
   @ResponseStatus(HttpStatus.OK)
-  public WebMessage enrollTOTP2FA(@CurrentUser User currentUser) throws ConflictException {
+  public WebMessage enrollTOTP2FA(@CurrentUser UserDetails currentUser) throws ConflictException {
     twoFactorAuthService.enrollTOTP2FA(currentUser.getUsername());
     return ok(
         "The user has enrolled in TOTP 2FA, call the QR code endpoint to continue the process");
@@ -82,7 +82,7 @@ public class TwoFactorController {
 
   @PostMapping(value = "/enrollEmail2FA")
   @ResponseStatus(HttpStatus.OK)
-  public WebMessage enrollEmail2FA(@CurrentUser User currentUser) throws ConflictException {
+  public WebMessage enrollEmail2FA(@CurrentUser UserDetails currentUser) throws ConflictException {
     twoFactorAuthService.enrollEmail2FA(currentUser.getUsername());
     return ok(
         "The user has enrolled in email-based 2FA, a code was generated and sent successfully to the user's email");

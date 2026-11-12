@@ -48,7 +48,8 @@ public class EventAnalyticsDimensionalItem {
     this.parentUid = parentUid;
   }
 
-  EventAnalyticsDimensionalItem(DimensionalItemObject dimensionalItemObject, String parentUid) {
+  public EventAnalyticsDimensionalItem(
+      DimensionalItemObject dimensionalItemObject, String parentUid) {
     this.dimensionalItemObject = dimensionalItemObject;
     this.parentUid = parentUid;
   }

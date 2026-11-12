@@ -49,12 +49,16 @@ public class CteDefinition {
 
   public static final String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
 
+  public static final String ENROLLMENT_VALUE = "enrollment_value";
+
   @Getter
   public enum CteType {
     /** CTE for standard program stage data/offsets. */
     PROGRAM_STAGE(10),
     /** CTE for the base aggregation query (e.g., enrollment_aggr_base). */
     BASE_AGGREGATION(10),
+    /** CTE holding the "value" data element of each enrollment in an enrollment aggregate query. */
+    ENROLLMENT_VALUE(10),
     /** CTE representing a full Program Indicator calculation. */
     PROGRAM_INDICATOR_EVENT(10),
 
@@ -317,6 +321,30 @@ public class CteDefinition {
         joinColumn, // Pass joinColumn
         null, // targetRank
         CteType.VARIABLE, // Set type
+        false, // hasFilter
+        false); // hasValueName
+  }
+
+  /**
+   * Creates the CTE definition reading the "value" data element from the latest event of its stage
+   * in each enrollment of an enrollment aggregate query.
+   *
+   * @param cteDefinitionSql The SQL body for the CTE.
+   */
+  public static CteDefinition forEnrollmentValue(String cteDefinitionSql) {
+    return new CteDefinition(
+        ENROLLMENT_VALUE, // itemId
+        null, // programStageUid
+        null, // programIndicatorUid
+        cteDefinitionSql,
+        ENROLLMENT_VALUE, // alias
+        false, // rowContext
+        false, // isExists
+        false, // requiresCoalesce
+        null, // aggregateWhereClause
+        "enrollment", // joinColumn
+        null, // targetRank
+        CteType.ENROLLMENT_VALUE,
         false, // hasFilter
         false); // hasValueName
   }

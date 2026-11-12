@@ -36,14 +36,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
+import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
+import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -153,7 +160,10 @@ class EventAttributeQueryBuilderTest {
 
     RenderableSqlQuery result =
         builder.buildSqlQuery(
-            null, List.of(eventDateHeader), Collections.emptyList(), Collections.emptyList());
+            rowLevelQueryContext(),
+            List.of(eventDateHeader),
+            Collections.emptyList(),
+            Collections.emptyList());
 
     List<Field> nonVirtualFields =
         result.getSelectFields().stream().filter(f -> !f.isVirtual()).toList();
@@ -171,7 +181,10 @@ class EventAttributeQueryBuilderTest {
 
     RenderableSqlQuery result =
         builder.buildSqlQuery(
-            null, List.of(scheduledDateHeader), Collections.emptyList(), Collections.emptyList());
+            rowLevelQueryContext(),
+            List.of(scheduledDateHeader),
+            Collections.emptyList(),
+            Collections.emptyList());
 
     List<Field> nonVirtualFields =
         result.getSelectFields().stream().filter(f -> !f.isVirtual()).toList();
@@ -187,7 +200,10 @@ class EventAttributeQueryBuilderTest {
 
     RenderableSqlQuery result =
         builder.buildSqlQuery(
-            null, List.of(ouHeader), Collections.emptyList(), Collections.emptyList());
+            rowLevelQueryContext(),
+            List.of(ouHeader),
+            Collections.emptyList(),
+            Collections.emptyList());
 
     List<Field> nonVirtualFields =
         result.getSelectFields().stream().filter(f -> !f.isVirtual()).toList();
@@ -205,7 +221,10 @@ class EventAttributeQueryBuilderTest {
 
     RenderableSqlQuery result =
         builder.buildSqlQuery(
-            null, List.of(eventStatusHeader), Collections.emptyList(), Collections.emptyList());
+            rowLevelQueryContext(),
+            List.of(eventStatusHeader),
+            Collections.emptyList(),
+            Collections.emptyList());
 
     List<Field> nonVirtualFields =
         result.getSelectFields().stream().filter(f -> !f.isVirtual()).toList();
@@ -223,7 +242,10 @@ class EventAttributeQueryBuilderTest {
 
     RenderableSqlQuery result =
         builder.buildSqlQuery(
-            null, Collections.emptyList(), List.of(eventDateDimension), Collections.emptyList());
+            rowLevelQueryContext(),
+            Collections.emptyList(),
+            List.of(eventDateDimension),
+            Collections.emptyList());
 
     List<Field> virtualFields = result.getSelectFields().stream().filter(Field::isVirtual).toList();
 
@@ -237,7 +259,7 @@ class EventAttributeQueryBuilderTest {
 
     RenderableSqlQuery result =
         builder.buildSqlQuery(
-            null,
+            rowLevelQueryContext(),
             List.of(eventDateDimension),
             List.of(eventDateDimension),
             Collections.emptyList());
@@ -260,7 +282,10 @@ class EventAttributeQueryBuilderTest {
 
     RenderableSqlQuery result =
         builder.buildSqlQuery(
-            null, Collections.emptyList(), Collections.emptyList(), List.of(sortingParams));
+            rowLevelQueryContext(),
+            Collections.emptyList(),
+            Collections.emptyList(),
+            List.of(sortingParams));
 
     assertEquals(1, result.getOrderClauses().size());
     String renderedOrder = result.getOrderClauses().get(0).getRenderable().render();
@@ -270,6 +295,22 @@ class EventAttributeQueryBuilderTest {
     assertFalse(
         renderedOrder.contains("status != 'SCHEDULE'"),
         "Did not expect schedule exclusion in: " + renderedOrder);
+  }
+
+  /** A context for a row level query, which is what this builder is exercised under. */
+  private QueryContext rowLevelQueryContext() {
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setUid("nEenWmSyUEp");
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(
+                TrackedEntityQueryParams.builder().trackedEntityType(trackedEntityType).build())
+            .commonRaw(new CommonRequestParams())
+            .commonParsed(CommonParsedParams.builder().build())
+            .build();
+
+    return QueryContext.of(contextParams, new SqlParameterManager());
   }
 
   private DimensionIdentifier<DimensionParam> createEventLevelDimension(

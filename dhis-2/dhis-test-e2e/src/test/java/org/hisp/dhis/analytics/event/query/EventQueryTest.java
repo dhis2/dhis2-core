@@ -911,7 +911,7 @@ public class EventQueryTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("dimension=edqlbukwRfQ.vANAXwtLwcT,ou:ImspTQPwCqd, pe:THIS_YEAR")
+            .add("dimension=edqlbukwRfQ.vANAXwtLwcT,ou:ImspTQPwCqd,pe:THIS_YEAR")
             .add("headers=ou,ounamehierarchy,edqlbukwRfQ.vANAXwtLwcT")
             .add("stage=edqlbukwRfQ")
             .add("displayProperty=NAME")
@@ -952,11 +952,16 @@ public class EventQueryTest extends AnalyticsApiTest {
         true);
 
     validateRow(
-        response, 0, List.of("Urk55T8KgpT", "Sierra Leone / Kailahun / Mandu / Yoyah CHP", "24"));
+        response,
+        0,
+        List.of(
+            "zQpYVEyAM2t",
+            "Sierra Leone / Western Area / Rural Western Area / Hastings Health Centre",
+            "10"));
     validateRow(
         response,
         1,
-        List.of("QFcMulIoEii", "Sierra Leone / Bombali / Gbanti Kamaranka / Gbainkfay MCHP", "21"));
+        List.of("lyONqUkY1Bq", "Sierra Leone / Tonkolili / Kunike / Matholey MCHP", "17"));
   }
 
   @Test
@@ -1222,5 +1227,48 @@ public class EventQueryTest extends AnalyticsApiTest {
         true);
 
     // no rows to assert
+  }
+
+  @Test
+  public void queryRejectsUnknownStageSortField() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:lY93YpCxJqf")
+            .add("stage=A03MvHHogjR")
+            .add("eventDate=202112")
+            .add("headers=A03MvHHogjR.ouname")
+            .add("asc=A03MvHHogjR.bogus");
+
+    // When
+    ApiResponse response = analyticsEventActions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("errorCode", equalTo("E7224"));
+  }
+
+  @Test
+  public void queryRejectsCategoryNotInProgramCategoryCombo() {
+    // Given: Implementing Partner is not part of the Child Programme category combo
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:ImspTQPwCqd")
+            .add("dimension=LFsZ8v5v7rq")
+            .add("startDate=2024-01-01")
+            .add("endDate=2026-12-31");
+
+    // When
+    ApiResponse response = analyticsEventActions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("errorCode", equalTo("E7268"));
   }
 }

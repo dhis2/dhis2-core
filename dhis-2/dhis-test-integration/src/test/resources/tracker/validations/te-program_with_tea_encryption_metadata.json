@@ -339,6 +339,21 @@
       },
       "programTrackedEntityAttributes": [
         {
+          "id": "OQeqChgVcMs",
+          "name": "Program Attribute_Identifier_Integer_OrgUnit_Scope",
+          "mandatory": false,
+          "valueType": "INTEGER_POSITIVE",
+          "searchable": false,
+          "displayInList": false,
+          "sortOrder": 5,
+          "program": {
+            "id": "hJUBNVQWl4e"
+          },
+          "trackedEntityAttribute": {
+            "id": "p5TPxx5Uhrf"
+          }
+        },
+        {
           "lastUpdated": "2020-02-20T12:08:40.006",
           "id": "OQeqChgVcMi",
           "created": "2020-02-12T15:07:06.260",
@@ -484,6 +499,9 @@
       "organisationUnits": [
         {
           "id": "cNEZTkdAvmg"
+        },
+        {
+          "id": "cNEZTkdAvfe"
         }
       ],
       "userGroupAccesses": [],
