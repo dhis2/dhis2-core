@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.security;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +76,8 @@ public final class CrossOriginGetGuard {
           + " or use POST where the endpoint supports it.";
 
   private static final int MAX_LOGGED_VALUE_LENGTH = 200;
+
+  private static final Pattern CONTROL_CHARACTERS = Pattern.compile("\\p{Cntrl}");
 
   private CrossOriginGetGuard() {
     throw new UnsupportedOperationException("util");
@@ -130,7 +133,7 @@ public final class CrossOriginGetGuard {
     if (value == null) {
       return "-";
     }
-    String clean = value.replaceAll("\\p{Cntrl}", "_");
+    String clean = CONTROL_CHARACTERS.matcher(value).replaceAll("_");
     return clean.length() > MAX_LOGGED_VALUE_LENGTH
         ? clean.substring(0, MAX_LOGGED_VALUE_LENGTH) + "..."
         : clean;
