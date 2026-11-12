@@ -35,7 +35,6 @@ import java.util.Map;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.User;
 
 /**
  * Defines the functionality for persisting DataElements and DataElementGroups.
@@ -85,16 +84,6 @@ public interface DataElementStore extends GenericDimensionalObjectStore<DataElem
    * @return all DataElements which have the given aggregation level assigned.
    */
   List<DataElement> getDataElementsByAggregationLevel(int aggregationLevel);
-
-  /**
-   * Returns all DataElements which the user hav access to.
-   *
-   * <p>NOTE: it should only be used in tests, should not be used in production code!
-   *
-   * @param uid data element uid.
-   * @return all DataElements which the user has access to.
-   */
-  DataElement getDataElement(String uid, User user);
 
   /** Get all DataElements that have any of the CategoryCombos */
   List<DataElement> getByCategoryCombo(List<CategoryCombo> categoryCombos);

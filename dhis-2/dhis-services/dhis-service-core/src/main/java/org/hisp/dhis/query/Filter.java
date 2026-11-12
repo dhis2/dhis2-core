@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.query.operators.EqualOperator;
 import org.hisp.dhis.query.operators.InOperator;
+import org.hisp.dhis.query.operators.MandatoryOperator;
 import org.hisp.dhis.query.operators.Operator;
 
 /**
@@ -77,6 +78,7 @@ public final class Filter {
    */
   public boolean isAlwaysFalse() {
     if (operator instanceof InOperator<?> in) return in.getArgs().isEmpty();
+    if (operator instanceof MandatoryOperator<?> mandatory) return mandatory.isAlwaysFalse();
     return false;
   }
 

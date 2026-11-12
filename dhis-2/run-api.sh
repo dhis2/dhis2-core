@@ -2,7 +2,7 @@
 
 # Command for running DHIS2 in an embedded Tomcat
 
-# Requires JDK 11
+# Requires Java 17
 
 # Supported options:
 #
@@ -45,10 +45,9 @@ function print_variables() {
 
 # Start DHIS2 in embedded Tomcat
 function start_dhis2() {
-  DHIS2_HTTP_PORT="$DHIS2_PORT" \
   DHIS2_HOME="$DHIS2_HOME_DIR" \
   java \
-    -Ddhis2.home="$DHIS2_DHIS2_HOME_DIR" \
+    -Ddhis2.home="$DHIS2_HOME_DIR" \
     -Dserver.port="$DHIS2_PORT" \
     -jar "$(dirname "$0")/dhis-web-server/target/dhis.war"
 }
@@ -86,7 +85,7 @@ while getopts "d:p:sm" OPT; do
 done
 shift "$(($OPTIND -1))"
 
-echo -e "Note: JDK 11 or later is required!\n"
+echo -e "Note: Java 17 or later is required!\n"
 
 print_variables
 

@@ -1,0 +1,68 @@
+# Copyright (c) 2004-2026, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: category_options_default_has_organisation_units
+description: The default category option should not be assigned to any organisation units
+section: Categories
+section_order: 21
+summary_sql: >-
+  WITH default_co_with_ous AS (
+    SELECT DISTINCT co.uid, co.name
+    FROM categoryoption co
+    JOIN categoryoption_organisationunits coou ON coou.categoryoptionid = co.categoryoptionid
+    WHERE co.name = 'default'
+  )
+  SELECT COUNT(*) AS value,
+  100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM categoryoption), 0) AS percent
+  FROM default_co_with_ous;
+details_sql: >-
+  SELECT co.uid, co.name,
+  'Assigned to ' || COUNT(coou.organisationunitid) || ' organisation unit(s)' AS comment
+  FROM categoryoption co
+  JOIN categoryoption_organisationunits coou ON coou.categoryoptionid = co.categoryoptionid
+  WHERE co.name = 'default'
+  GROUP BY co.uid, co.name;
+details_id_type: categoryOptions
+severity: SEVERE
+introduction: >
+  The default category option is used as a special category option throughout the system,
+  and is part of the default category option combination which is used whenever data has
+  no other disaggregation or attribute. It should not be assigned to any organisation units.
+  Assigning organisation units to a category option restricts the data which can be entered
+  using that option to those organisation units and their descendants. If the default category
+  option is assigned to organisation units, aggregate data values submitted with the default
+  attribute option combination are rejected for every organisation unit outside of that
+  hierarchy.
+recommendation: |
+  Remove all organisation unit assignments from the default category option. If this is not
+  possible through the API, the assignments can be removed directly in the database. As is
+  always the case when modifying the database directly, make sure to back up your database
+  before running the query.
+  ```sql
+  DELETE FROM categoryoption_organisationunits
+  WHERE categoryoptionid IN (SELECT categoryoptionid FROM categoryoption WHERE name = 'default');
+  ```

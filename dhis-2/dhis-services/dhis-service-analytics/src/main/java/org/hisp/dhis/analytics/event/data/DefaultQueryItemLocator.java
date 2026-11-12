@@ -474,7 +474,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
     if (EventOutputType.ENROLLMENT == type) {
       return EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
     }
-    return EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+    return EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME;
   }
 
   private String getLastUpdatedColumn(EventOutputType type) {

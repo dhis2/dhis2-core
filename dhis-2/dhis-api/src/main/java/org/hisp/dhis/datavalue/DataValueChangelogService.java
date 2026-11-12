@@ -33,6 +33,8 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 
 /**
  * @author Quang Nguyen
@@ -55,7 +57,7 @@ public interface DataValueChangelogService {
   void deleteByDataElement(@Nonnull UID dataElement);
 
   /**
-   * Returns all entries for the given DataValue.
+   * Returns the entries for the given DataValue that the current user may read.
    *
    * @param dataValue the DataValue to get entries for.
    * @return a list of entries which match the given DataValue, or an empty collection if there are
@@ -65,12 +67,15 @@ public interface DataValueChangelogService {
   List<DataValueChangelogEntry> getChangelogEntries(DataExportValue dataValue);
 
   /**
-   * Returns data value audits for the given parameters.
+   * Returns data value audits for the given parameters that the current user may read.
    *
    * @param params the {@link DataValueChangelogQueryParams}.
-   * @return a list of {@link DataValueChangelog}.
+   * @return a list of {@link DataValueChangelog}; paged, one more than the page size when there is
+   *     a next page
+   * @throws ConflictException when the user may not read data of a data set given as filter
    */
-  List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params);
+  List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params)
+      throws ConflictException;
 
   /**
    * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
@@ -78,14 +83,17 @@ public interface DataValueChangelogService {
    *
    * @param params the key to the value
    * @return the audit events for the value stored most recent to oldest
+   * @throws ForbiddenException when the current user may not read the data of the value
    */
-  List<DataValueChangelogEntry> getChangelogEntries(@Nonnull DataValueQueryParams params);
+  List<DataValueChangelogEntry> getChangelogEntries(@Nonnull DataValueQueryParams params)
+      throws ForbiddenException;
 
   /**
-   * Returns the count of data value audits for the given parameters.
+   * Returns the count of data value audits for the given parameters that the current user may read.
    *
    * @param params the {@link DataValueChangelogQueryParams}.
    * @return a count of {@link DataValueChangelog}.
+   * @throws ConflictException when the user may not read data of a data set given as filter
    */
-  int countEntries(DataValueChangelogQueryParams params);
+  int countEntries(DataValueChangelogQueryParams params) throws ConflictException;
 }

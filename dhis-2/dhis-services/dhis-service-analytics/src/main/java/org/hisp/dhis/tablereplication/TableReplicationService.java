@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,18 @@
  */
 package org.hisp.dhis.tablereplication;
 
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+
 public interface TableReplicationService {
+  /** Copies the whole tracked entity attribute value table to the analytics database. */
   void replicateTrackedEntityAttributeValue();
+
+  /**
+   * Brings the analytics database copy of the tracked entity attribute value table up to date for
+   * tracked entities changed since the last sync, as part of a continuous analytics table update.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @return the {@link ReplicaSyncOutcome}.
+   */
+  ReplicaSyncOutcome syncTrackedEntityAttributeValue(AnalyticsTableUpdateParams params);
 }

@@ -70,8 +70,11 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
 
   @Override
   public DateInterval parse(Calendar calendar, String period) {
-    Period.Input p = Period.Input.of(period);
-    return p == null ? null : parseInternal(calendar, p);
+    return parseInternal(calendar, Period.Input.of(period));
+  }
+
+  public DateInterval parse(Period.Input input) {
+    return parseInternal(getCalendar(), input);
   }
 
   private static DateInterval parseInternal(Calendar calendar, Period.Input period) {
