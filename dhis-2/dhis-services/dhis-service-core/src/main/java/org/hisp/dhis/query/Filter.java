@@ -128,6 +128,15 @@ public final class Filter {
    *     identity (equality or membership), as opposed to pattern matching
    */
   public boolean isIdentityMatch() {
-    return supportsDbPredicate() && !(operator instanceof LikeOperator<?>);
+    return supportsDbPredicate() && !isLike();
+  }
+
+  /**
+   * @return true when the operator is exactly {@link LikeOperator} (like or ilike). An exact class
+   *     check, not {@code instanceof}, so a future negated subclass cannot be mistaken for it, as
+   *     happened with {@code NotEqualOperator} and {@code NotInOperator}.
+   */
+  public boolean isLike() {
+    return operator.getClass() == LikeOperator.class;
   }
 }
