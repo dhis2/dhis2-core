@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
 import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.hisp.dhis.user.UserConstants.LOGIN_MAX_FAILED_ATTEMPTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,6 +42,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.DhisAuthenticationToken;
 import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -108,6 +111,48 @@ class UserDetailsRefreshTest extends AuthenticationApiTestBase {
     MockHttpServletResponse response = hasAuthority(userSession);
     assertEquals(200, response.getStatus());
     assertEquals("true", response.getContentAsString());
+    assertFalse(userSession.isInvalid());
+  }
+
+  @Test
+  void newUserGroupIsVisibleOnTheNextRequestOfTheSameSession() {
+    User user = createUserWithAuth("refreshgroupuser");
+    String groupId = assertStatus(CREATED, POST("/userGroups", "{'name':'Refresh group'}"));
+    MockHttpSession userSession = loggedInSession(user);
+    commit();
+    assertEquals(200, hasAuthority(userSession).getStatus());
+    assertFalse(principal(userSession).getUserGroupIds().contains(groupId));
+
+    TestTransaction.start();
+    POST("/userGroups/" + groupId + "/users/" + user.getUid()).content(OK);
+    commit();
+
+    assertEquals(200, hasAuthority(userSession).getStatus());
+    assertTrue(principal(userSession).getUserGroupIds().contains(groupId));
+    assertFalse(userSession.isInvalid());
+  }
+
+  @Test
+  void newOrganisationUnitIsVisibleOnTheNextRequestOfTheSameSession() {
+    User user = createUserWithAuth("refreshorgunituser");
+    OrganisationUnit orgUnit = createOrganisationUnit('O');
+    manager.save(orgUnit);
+    MockHttpSession userSession = loggedInSession(user);
+    commit();
+    assertEquals(200, hasAuthority(userSession).getStatus());
+    assertFalse(principal(userSession).getUserOrgUnitIds().contains(orgUnit.getUid()));
+
+    TestTransaction.start();
+    PATCH(
+            "/users/" + user.getUid(),
+            "[{'op':'add','path':'/organisationUnits','value':[{'id':'"
+                + orgUnit.getUid()
+                + "'}]}]")
+        .content(OK);
+    commit();
+
+    assertEquals(200, hasAuthority(userSession).getStatus());
+    assertTrue(principal(userSession).getUserOrgUnitIds().contains(orgUnit.getUid()));
     assertFalse(userSession.isInvalid());
   }
 
