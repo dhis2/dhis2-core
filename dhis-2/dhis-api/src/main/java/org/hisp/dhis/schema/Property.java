@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,6 +93,13 @@ public class Property implements Ordered, Klass {
   @Setter private boolean persisted;
 
   @Getter @Setter private boolean isTransient;
+
+  /**
+   * Is this a text property stored in a {@code jsonb} column (for example {@code
+   * DataSet.displayOptions}). SQL text predicates such as equality and like cannot be applied to
+   * such a column, so filters on it are evaluated in memory.
+   */
+  @Getter @Setter private boolean jsonbText;
 
   /** Name of collection wrapper. */
   @Setter private String collectionName;

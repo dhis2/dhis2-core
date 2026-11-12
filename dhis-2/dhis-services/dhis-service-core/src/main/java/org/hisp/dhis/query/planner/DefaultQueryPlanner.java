@@ -172,6 +172,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
     if (filter.isVirtual()) return filter.isIdentifiable() || filter.isQuery();
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
     if (path == null || !path.isPersisted()) return false;
+    if (path.getProperty().isJsonbText()) return false;
     if (Attribute.ObjectType.isValidType(path.getPath())) return false;
 
     if (path.haveAlias()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,7 @@ import org.hibernate.type.SingleColumnType;
 import org.hibernate.type.TextType;
 import org.hibernate.type.Type;
 import org.hisp.dhis.hibernate.HibernateMetadata;
+import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryPlainStringType;
 import org.hisp.dhis.schema.Property;
 
 /**
@@ -173,6 +174,9 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector {
     property.setFieldName(hibernateProperty.getName());
     property.setCascade(hibernateProperty.getCascade());
     property.setCollection(type.isCollectionType());
+    property.setJsonbText(
+        type instanceof CustomType custom
+            && custom.getUserType() instanceof JsonBinaryPlainStringType);
 
     property.setSetterMethod(hibernateProperty.getSetter(klass).getMethod());
     property.setGetterMethod(hibernateProperty.getGetter(klass).getMethod());
