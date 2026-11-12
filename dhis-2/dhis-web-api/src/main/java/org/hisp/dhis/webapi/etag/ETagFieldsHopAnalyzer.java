@@ -150,21 +150,15 @@ public class ETagFieldsHopAnalyzer {
     int hops = 0;
     for (int i = 0; i < segments.size(); i++) {
       String segment = stripExcludeMarker(segments.get(i));
-      if (segment.isEmpty()) {
-        return true;
-      }
-      if (segment.charAt(0) == PRESET_MARKER) {
+      if (isPreset(segment)) {
         if (i > 0) {
           return true; // nested preset (userGroups[*]): expansion depth unknown, fail safe
         }
         continue; // root-level preset renders references as id-stubs, 1-hop data
       }
-      if (current == null) {
-        return true; // previous segment's type has no schema, cannot reason further
-      }
-      Property property = current.getProperty(segment);
+      Property property = resolveProperty(current, segment);
       if (property == null) {
-        return true; // unknown segment (includes attribute UIDs), fail safe
+        return true; // empty or unknown segment (includes attribute UIDs), fail safe
       }
       if (isReference(property)) {
         hops++;
@@ -184,6 +178,22 @@ public class ETagFieldsHopAnalyzer {
     return property.isCollection()
         ? property.getItemPropertyType() == PropertyType.REFERENCE
         : property.getPropertyType() == PropertyType.REFERENCE;
+  }
+
+  private static boolean isPreset(String segment) {
+    return !segment.isEmpty() && segment.charAt(0) == PRESET_MARKER;
+  }
+
+  /**
+   * Returns the property named by the segment, or null when the segment is empty, the previous
+   * segment's type has no schema, or the schema has no such property.
+   */
+  @CheckForNull
+  private static Property resolveProperty(@CheckForNull Schema current, String segment) {
+    if (segment.isEmpty() || current == null) {
+      return null;
+    }
+    return current.getProperty(segment);
   }
 
   @CheckForNull

@@ -369,13 +369,7 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
     CompositeEndpointPattern compositeMatch =
         resolveCompositeEndpointPattern(apiRelativePath, COMPOSITE_PATH_PATTERNS);
     if (compositeMatch != null) {
-      if (compositeMatch.fieldsRoot() != null
-          && isDeepFieldsRequest(request, compositeMatch.fieldsRoot())) {
-        if (cacheSkipDeepFields != null) cacheSkipDeepFields.increment();
-        return true; // controller runs; no ETag stored, no 304 path: always fresh
-      }
-      if (endpointComposite != null) endpointComposite.increment();
-      return handleConditionalRequest(request, response, userDetails, compositeMatch.types());
+      return handleCompositeRequest(request, response, userDetails, compositeMatch);
     }
 
     String resourceName = extractResourceNameFromApiRelativePath(apiRelativePath);
@@ -398,6 +392,24 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
 
     if (endpointMetadata != null) endpointMetadata.increment();
     return handleConditionalRequest(request, response, userDetails, metadataTypes);
+  }
+
+  /**
+   * Handles a composite endpoint: a request with a designated schema root and a deep {@code
+   * fields=} expression bypasses the cache, every other request goes through the ETag check.
+   */
+  private boolean handleCompositeRequest(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      UserDetails userDetails,
+      CompositeEndpointPattern compositeMatch) {
+    if (compositeMatch.fieldsRoot() != null
+        && isDeepFieldsRequest(request, compositeMatch.fieldsRoot())) {
+      if (cacheSkipDeepFields != null) cacheSkipDeepFields.increment();
+      return true; // controller runs; no ETag stored, no 304 path: always fresh
+    }
+    if (endpointComposite != null) endpointComposite.increment();
+    return handleConditionalRequest(request, response, userDetails, compositeMatch.types());
   }
 
   /**
