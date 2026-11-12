@@ -32,8 +32,6 @@ package org.hisp.dhis.config.sqlobserver;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.dml.DmlOperation;
 
 /** Utility for parsing DML SQL statements and extracting table name and operation type. */
@@ -51,20 +49,13 @@ public class DmlSqlParser {
     return query != null && query.startsWith(DML_SKIP_MARKER);
   }
 
-  /**
-   * Bounded LRU cache for parse results keyed by SQL string. Hibernate typically uses ~200-300
-   * distinct SQL templates, so 512 entries provides ample headroom.
-   */
-  private static final int PARSE_CACHE_MAX_SIZE = 512;
-
-  private static final Cache<String, Optional<DmlFastResult>> FAST_PARSE_CACHE =
-      new Cache2kBuilder<String, Optional<DmlFastResult>>() {}.entryCapacity(PARSE_CACHE_MAX_SIZE)
-          .eternal(true)
-          .permitNullValues(true)
-          .build();
-
   /** Pre-compiled splitter for tokenizing SQL on runs of whitespace, hoisted off the parse path. */
   private static final Pattern WHITESPACE_SPLIT_PATTERN = Pattern.compile("\\s+");
+
+  /** A write inside a statement, as found in a {@code WITH ...} (CTE) statement. */
+  private static final Pattern WRITE_KEYWORD_PATTERN =
+      Pattern.compile(
+          "\\b(insert\\s+into|update\\s+\\S+\\s+set|delete\\s+from)\\b", Pattern.CASE_INSENSITIVE);
 
   /**
    * When {@code true}, SQL statements may carry a leading {@code /* MDC context *\/} block comment
@@ -77,7 +68,6 @@ public class DmlSqlParser {
   /** Called at startup to inform the parser whether SQL MDC comments are being injected. */
   public static void setSqlCommentsEnabled(boolean enabled) {
     sqlCommentsEnabled = enabled;
-    FAST_PARSE_CACHE.clear();
   }
 
   private DmlSqlParser() {}
@@ -97,14 +87,26 @@ public class DmlSqlParser {
       return Optional.empty();
     }
 
-    if (FAST_PARSE_CACHE.containsKey(query)) {
-      return FAST_PARSE_CACHE.peek(query);
-    }
-
     String sql = sqlCommentsEnabled ? stripLeadingComment(query) : query;
-    Optional<DmlFastResult> result = doParseFast(sql);
-    FAST_PARSE_CACHE.put(query, result);
-    return result;
+    return doParseFast(sql);
+  }
+
+  /**
+   * Returns {@code true} for a {@code WITH ...} (CTE) statement that writes: the fast parser only
+   * understands statements that start with INSERT, UPDATE or DELETE, so such a write is never
+   * observed. Cheap for ordinary statements: the keyword scan only runs after a leading {@code
+   * WITH}.
+   */
+  public static boolean isCteWrite(String query) {
+    if (query == null) {
+      return false;
+    }
+    int start = codeStart(query);
+    int afterKeyword = start + 4;
+    return query.regionMatches(true, start, "WITH", 0, 4)
+        && afterKeyword < query.length()
+        && Character.isWhitespace(query.charAt(afterKeyword))
+        && WRITE_KEYWORD_PATTERN.matcher(query).region(afterKeyword, query.length()).find();
   }
 
   private static Optional<DmlFastResult> doParseFast(String sql) {
@@ -187,6 +189,12 @@ public class DmlSqlParser {
 
   /** Strips a leading SQL block comment (e.g. MDC context) from the query. */
   static String stripLeadingComment(String query) {
+    int i = codeStart(query);
+    return i > 0 ? query.substring(i) : query;
+  }
+
+  /** Index of the first character after leading whitespace and one leading block comment. */
+  private static int codeStart(String query) {
     int i = 0;
     int len = query.length();
 
@@ -204,6 +212,6 @@ public class DmlSqlParser {
       }
     }
 
-    return i > 0 ? query.substring(i) : query;
+    return i;
   }
 }

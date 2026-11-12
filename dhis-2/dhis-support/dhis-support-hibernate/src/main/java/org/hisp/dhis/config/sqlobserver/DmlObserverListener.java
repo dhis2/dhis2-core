@@ -137,11 +137,22 @@ public class DmlObserverListener
   private final AtomicLong queryCounter = new AtomicLong(0);
   private volatile boolean observingEnabled;
 
+  private final UnmatchedDmlLog unmatchedDmlLog;
+
   public DmlObserverListener(
       HibernateTableEntityRegistry registry, ETagService eTagService, MeterRegistry meterRegistry) {
+    this(registry, eTagService, meterRegistry, new UnmatchedDmlLog());
+  }
+
+  DmlObserverListener(
+      HibernateTableEntityRegistry registry,
+      ETagService eTagService,
+      MeterRegistry meterRegistry,
+      UnmatchedDmlLog unmatchedDmlLog) {
     this.registry = registry;
     this.eTagService = eTagService;
     this.meterRegistry = meterRegistry;
+    this.unmatchedDmlLog = unmatchedDmlLog;
 
     if (meterRegistry != null) {
       statementsObserved =
@@ -255,12 +266,16 @@ public class DmlObserverListener
 
     // Fast-path: skip non-DML
     if (!DmlSqlParser.isPossibleDml(query)) {
+      if (DmlSqlParser.isCteWrite(query)) {
+        unmatchedDmlLog.report(query);
+      }
       if (statementsSkippedNonDml != null) statementsSkippedNonDml.increment();
       return null;
     }
 
     Optional<DmlSqlParser.DmlFastResult> parsed = DmlSqlParser.parseFast(query);
     if (parsed.isEmpty()) {
+      unmatchedDmlLog.report(query);
       if (statementsSkippedNonDml != null) statementsSkippedNonDml.increment();
       return null;
     }

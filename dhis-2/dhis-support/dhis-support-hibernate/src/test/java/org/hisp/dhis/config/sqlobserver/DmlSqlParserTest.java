@@ -201,4 +201,25 @@ class DmlSqlParserTest {
   void parseFast_emptyReturnsEmpty() {
     assertFalse(DmlSqlParser.parseFast("").isPresent());
   }
+
+  @Test
+  void isCteWrite_detectsWritesBehindWith() {
+    assertTrue(
+        DmlSqlParser.isCteWrite(
+            "with period_ids(periodid) as (select distinct periodid from datavalue) "
+                + "delete from period where periodid not in (select periodid from period_ids)"));
+    assertTrue(
+        DmlSqlParser.isCteWrite(
+            "/* controller='x' */ WITH t AS (SELECT 1) UPDATE dataelement SET name = 'a'"));
+    assertTrue(DmlSqlParser.isCteWrite("  WITH t AS (SELECT 1) INSERT INTO a SELECT * FROM t"));
+  }
+
+  @Test
+  void isCteWrite_ignoresReadsAndOtherStatements() {
+    assertFalse(DmlSqlParser.isCteWrite("with t as (select 1) select * from t"));
+    assertFalse(DmlSqlParser.isCteWrite("select * from dataelement"));
+    assertFalse(DmlSqlParser.isCteWrite("UPDATE dataelement SET name = ?"));
+    assertFalse(DmlSqlParser.isCteWrite("without_prefix delete from x"));
+    assertFalse(DmlSqlParser.isCteWrite(null));
+  }
 }

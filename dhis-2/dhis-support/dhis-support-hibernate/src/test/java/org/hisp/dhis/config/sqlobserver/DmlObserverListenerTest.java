@@ -37,6 +37,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
@@ -317,6 +318,27 @@ class DmlObserverListenerTest {
     assertDoesNotThrow(
         () -> listener.afterQuery(execInfo, queries),
         "Version bump failure should not propagate to JDBC layer");
+  }
+
+  @Test
+  void afterQuery_reportsWritesTheParserCannotRead() {
+    UnmatchedDmlLog unmatched = mock(UnmatchedDmlLog.class);
+    DmlObserverListener reporting = new DmlObserverListener(registry, eTagService, null, unmatched);
+    activateListener(reporting);
+    String cteDelete = "WITH t AS (SELECT 1) DELETE FROM period WHERE periodid IN (SELECT 1)";
+    String indentedUpdate = "  UPDATE dataelement SET name = ?";
+
+    reporting.afterQuery(
+        createSuccessExecutionInfo(true),
+        List.of(
+            createQueryInfo(cteDelete),
+            createQueryInfo(indentedUpdate),
+            createQueryInfo("SELECT * FROM dataelement"),
+            createQueryInfo("UPDATE dataelement SET name = ?")));
+
+    verify(unmatched).report(cteDelete);
+    verify(unmatched).report(indentedUpdate);
+    verifyNoMoreInteractions(unmatched);
   }
 
   @lombok.SneakyThrows
