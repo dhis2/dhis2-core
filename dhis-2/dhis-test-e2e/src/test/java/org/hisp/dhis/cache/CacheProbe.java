@@ -29,8 +29,11 @@
  */
 package org.hisp.dhis.cache;
 
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
+import io.restassured.specification.RequestSpecification;
 import org.apache.http.HttpHeaders;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -54,6 +57,19 @@ final class CacheProbe {
   CacheResponse head(String path) {
     RequestTarget target = RequestTarget.from(path);
     return new CacheResponse(new RestApiActions(target.resourcePath()).head(target.queryParams()));
+  }
+
+  /**
+   * GET of the path exactly as given. {@link RestApiActions} puts a slash before the query string,
+   * and some paths only match without it: the login page asks for {@code /loginConfig?locale=..},
+   * which is outside the security chain, while {@code /loginConfig/?locale=..} is not.
+   */
+  CacheResponse getExactPath(String path, String ifNoneMatch) {
+    RequestSpecification request = RestAssured.given().contentType(ContentType.TEXT);
+    if (ifNoneMatch != null) {
+      request.header(HttpHeaders.IF_NONE_MATCH, ifNoneMatch);
+    }
+    return new CacheResponse(new ApiResponse(request.get(path)));
   }
 
   record CacheResponse(ApiResponse response) {

@@ -33,7 +33,9 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 import java.util.List;
 import java.util.stream.Stream;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 class NoCacheEndpointTest extends CacheApiTest {
@@ -72,6 +74,18 @@ class NoCacheEndpointTest extends CacheApiTest {
                     }));
   }
 
+  /** The login page asks for loginConfig before anyone is logged in. */
+  @Test
+  void anonymousLoginConfigGetsTheBodyHashFallback() {
+    LoginActions.removeAuthenticationHeader();
+    String path = "/loginConfig?locale=en";
+
+    CacheProbe.CacheResponse first = probe.getExactPath(path, null);
+
+    CacheAssertions.assertBodyHashETag(first);
+    CacheAssertions.assertNotModified(probe.getExactPath(path, first.etag()), first.etag());
+  }
+
   private List<NoCacheRoute> routes() {
     return List.of(
         new NoCacheRoute(CacheProbeUser.SUPERUSER, "/system/info"),
@@ -91,7 +105,8 @@ class NoCacheEndpointTest extends CacheApiTest {
             CacheProbeUser.SUPERUSER, "/messageConversations?fields=id&page=1&pageSize=1"),
         new NoCacheRoute(CacheProbeUser.SUPERUSER, "/configuration"),
         new NoCacheRoute(CacheProbeUser.SUPERUSER, "/minMaxDataElements"),
-        new NoCacheRoute(CacheProbeUser.SUPERUSER, "/periodTypes"));
+        new NoCacheRoute(CacheProbeUser.SUPERUSER, "/periodTypes"),
+        new NoCacheRoute(CacheProbeUser.SUPERUSER, "/loginConfig?locale=en"));
   }
 
   private record NoCacheRoute(CacheProbeUser probeUser, String path) {}

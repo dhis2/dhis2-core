@@ -17,7 +17,7 @@ cached,/dimensions/constraints,/dimensions/constraints
 cached,/dimensions/dataSet/*,
 cached,/dataStatistics*startDate=*&endDate=*&interval=*,/dataStatistics?startDate=2024-01-01&endDate=2024-01-01&interval=DAY
 cached,/dataStatistics/favorites/*,
-cached,/loginConfig*locale=*,/loginConfig?locale=en
+shallow,/loginConfig*locale=*,/loginConfig?locale=en
 uncached,/system/info,/system/info
 uncached,/system/uid,/system/uid
 uncached,/dashboards/search*q=ANC*,/dashboards/search?q=ANC

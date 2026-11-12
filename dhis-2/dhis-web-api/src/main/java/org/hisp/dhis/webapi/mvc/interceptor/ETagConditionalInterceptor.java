@@ -66,7 +66,6 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
@@ -196,9 +195,8 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
           Map.entry("dataStatistics", Set.of(DataStatistics.class)),
           Map.entry(
               "dataStatistics/favorites/*", Set.of(DataStatisticsEvent.class, SystemSetting.class)),
-          Map.entry(
-              "loginConfig",
-              Set.of(SystemSetting.class, DatastoreEntry.class, Configuration.class)),
+          // loginConfig is not here: it is public and outside the security chain, so the login
+          // page asks for it anonymously and ETagFilter's body hash serves every caller the same.
           Map.entry("dataStore/**", Set.of(DatastoreEntry.class)));
 
   /**

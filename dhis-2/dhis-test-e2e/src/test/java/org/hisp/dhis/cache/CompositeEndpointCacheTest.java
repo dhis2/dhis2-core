@@ -228,14 +228,6 @@ class CompositeEndpointCacheTest extends CacheApiTest {
             test -> {},
             CacheDependency.DATA_STATISTICS_EVENT,
             CacheDependency.USER_DATASTORE_ENTRY,
-            true),
-        new CompositeCacheScenario(
-            "GET /loginConfig?locale=en",
-            CacheProbeUser.SUPERUSER,
-            test -> "/loginConfig?locale=en",
-            test -> {},
-            CacheDependency.SYSTEM_SETTING,
-            CacheDependency.USER_DATASTORE_ENTRY,
             true));
   }
 

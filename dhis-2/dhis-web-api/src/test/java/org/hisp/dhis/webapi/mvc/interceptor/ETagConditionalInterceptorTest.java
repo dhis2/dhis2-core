@@ -277,7 +277,6 @@ class ETagConditionalInterceptorTest {
     assertCompositeMatch("dimensions/dataSet/*", "/api/dimensions/dataSet/abc123");
     assertCompositeMatch("dataStatistics", "/api/dataStatistics");
     assertCompositeMatch("dataStatistics/favorites/*", "/api/dataStatistics/favorites/abc123");
-    assertCompositeMatch("loginConfig", "/api/loginConfig");
   }
 
   @Test
@@ -331,6 +330,10 @@ class ETagConditionalInterceptorTest {
             .isEmpty());
     assertTrue(
         ETagConditionalInterceptor.resolveCompositeEndpointTypes("/api/messageConversations")
+            .isEmpty());
+    // public and security-ignored: anonymous and logged-in requests get the same body-hash ETag
+    assertTrue(
+        ETagConditionalInterceptor.resolveCompositeEndpointTypes("/api/loginConfig?locale=en")
             .isEmpty());
   }
 
