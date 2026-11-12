@@ -94,6 +94,9 @@ import org.slf4j.LoggerFactory;
  *       (minCharactersToSearch is 3).
  *   <li>A child is linked to its mother by a Mother and child relationship when she is enrolled in
  *       ANC, so the relationships of a tracked entity are not always empty. Events have none.
+ *   <li>Every EIR child has a Unique System Identifier (EPI), a unique attribute. The test also
+ *       searches tracked entities and Birth events by the EPI of the newest child of the clerk's
+ *       facility, which {@link TrackerTest} does not.
  * </ul>
  *
  * <p>The cases are bound to the records of the {@code perfland-mnch} dumps, which are the same for
@@ -102,11 +105,11 @@ import org.slf4j.LoggerFactory;
  * does not own after paging, returns her too. {@code -Dcases} reads another file.
  *
  * <p>The thresholds of requests without a band are {@link TrackerTest}'s, calibrated on Sierra
- * Leone. The banded ones have none yet.
+ * Leone. The banded ones and the searches by EPI have none yet.
  *
- * <p>{@code -Dprogram}, {@code -DbirthStage}, {@code -DgivenName} and {@code -DfamilyName} default
- * to the UIDs of the {@code perfland-mnch} metadata. Profiles and their parameters are those of
- * {@link TrackerTest}.
+ * <p>{@code -Dprogram}, {@code -DbirthStage}, {@code -DgivenName}, {@code -DfamilyName} and {@code
+ * -DuniqueId} default to the UIDs of the {@code perfland-mnch} metadata. Profiles and their
+ * parameters are those of {@link TrackerTest}.
  */
 public class PerfLandMnchTrackerTest extends Simulation {
   private static final Logger logger = LoggerFactory.getLogger(PerfLandMnchTrackerTest.class);
@@ -119,6 +122,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
   private final String birthStage;
   private final String givenName;
   private final String familyName;
+  private final String uniqueId;
   private final String password;
   private final FeederBuilder<String> cases;
   private final int concurrentUsers;
@@ -220,6 +224,8 @@ public class PerfLandMnchTrackerTest extends Simulation {
     this.birthStage = System.getProperty("birthStage", "RcbCl5ww8XY"); // Birth details
     this.givenName = System.getProperty("givenName", "sB1IHYu2xQT"); // GEN - Given name
     this.familyName = System.getProperty("familyName", "ENRjVGxVL6l"); // GEN - Family name
+    // Unique System Identifier (EPI)
+    this.uniqueId = System.getProperty("uniqueId", "KSr2yTdu1AI");
     this.password = System.getProperty("password", "Perf-Test-2026!"); // of every dbgen user
     // Circular: every iteration takes the next case, so each band gets the same share of a run.
     this.cases = csv(System.getProperty("cases", "perfland-mnch/cases.csv")).circular();
@@ -344,6 +350,23 @@ public class PerfLandMnchTrackerTest extends Simulation {
             + "trackedEntityType,geometry,deleted,attributes[attribute,value,createdAt,updatedAt],"
             + "programOwners";
 
+    String searchTEByUniqueId =
+        "/api/tracker/trackedEntities?filter="
+            + this.uniqueId
+            + ":eq:#{epi}&fields=attributes,enrollments,trackedEntity,orgUnit&program="
+            + this.program
+            + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
+
+    // Events filtered by a tracked entity attribute, as #26109 measured them.
+    String searchBirthEventsByUniqueIdUrl =
+        "/api/tracker/events?program="
+            + this.program
+            + "&programStage="
+            + this.birthStage
+            + "&filterAttributes="
+            + this.uniqueId
+            + ":eq:#{epi}&fields=*";
+
     String searchBirthEvents =
         "/api/tracker/events?order=createdAt:desc&page=1"
             + "&pageSize=15&orgUnit="
@@ -400,6 +423,14 @@ public class PerfLandMnchTrackerTest extends Simulation {
             searchTEByExactName,
             Map.of(Profile.SMOKE, 42, Profile.LOAD, 102),
             "Search TE by name with eq operator",
+            "Get EIR TEs");
+    Request searchTeByUniqueId =
+        Request.of(searchTEByUniqueId, Map.of(), "Search TE by unique identifier", "Get EIR TEs");
+    Request searchBirthEventsByUniqueId =
+        Request.of(
+            searchBirthEventsByUniqueIdUrl,
+            Map.of(),
+            "Search Birth events by unique identifier",
             "Get EIR TEs");
     Request searchBirthEventsByStage =
         Request.banded(
@@ -499,6 +530,17 @@ public class PerfLandMnchTrackerTest extends Simulation {
                                 searchTEsAsAndroidClient
                                     .action()
                                     .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                            .pause(1, 3) // user reads results
+                            // User searches by the child's EPI, then lists its Birth event by it
+                            .exec(
+                                searchTeByUniqueId
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().is(1)))
+                            .pause(1, 3) // user reads the result
+                            .exec(
+                                searchBirthEventsByUniqueId
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().is(1)))
                             .pause(1, 3) // user reads results
                             // User opens event working list (Birth details stage)
                             // Capture fires events first, then enriches with TE data (sequential)
@@ -600,6 +642,8 @@ public class PerfLandMnchTrackerTest extends Simulation {
             searchTeByNameWithLikeOperator,
             searchTeByNameWithEqOperator,
             searchTEsAsAndroidClient,
+            searchTeByUniqueId,
+            searchBirthEventsByUniqueId,
             searchBirthEventsByStage,
             getTrackedEntitiesForEvents,
             getFirstPageOfTEs,
