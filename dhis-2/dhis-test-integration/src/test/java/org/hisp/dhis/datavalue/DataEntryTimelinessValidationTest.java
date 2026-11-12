@@ -578,7 +578,9 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   // --------------------
-  // The org unit's opening and closed dates (E8031).
+  // The org unit's opening and closed dates (E8031). Same rule as category options (DHIS2-22476):
+  // the org unit is valid for a period if it is open at any time within the period, so only
+  // periods entirely before the opening or entirely after the closing are rejected.
   // --------------------
 
   @Test
@@ -597,6 +599,45 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     ouA.setClosedDate(month(-3).getEndDate());
     manager.update(ouA);
     assertRejected(ErrorCode.E8031, () -> upsert(capture, false, ouA, month(-1)));
+  }
+
+  @Test
+  // A opened in the middle of month(-2): month(-2) is accepted (A was open for part of it), the
+  // month before is not.
+  void orgUnitOpenedMidPeriodIsValidForThatPeriod() throws Exception {
+    configure(1, 0d);
+    ouA.setOpeningDate(midOf(month(-2)));
+    manager.update(ouA);
+    assertAccepted(capture, month(-2));
+    assertRejected(ErrorCode.E8031, () -> upsert(capture, false, ouA, month(-3)));
+  }
+
+  @Test
+  // A closed in the middle of month(-2): month(-2) is accepted, the month after is not.
+  void orgUnitClosedMidPeriodIsValidForThatPeriod() throws Exception {
+    configure(1, 0d);
+    ouA.setClosedDate(midOf(month(-2)));
+    manager.update(ouA);
+    assertAccepted(capture, month(-2));
+    assertRejected(ErrorCode.E8031, () -> upsert(capture, false, ouA, month(-1)));
+  }
+
+  @Test
+  // Boundaries are inclusive: opened on the last day of month(-2) is enough for month(-2).
+  void orgUnitOpenedOnLastDayIsValidForThatPeriod() throws Exception {
+    configure(1, 0d);
+    ouA.setOpeningDate(month(-2).getEndDate());
+    manager.update(ouA);
+    assertAccepted(capture, month(-2));
+  }
+
+  @Test
+  // Boundaries are inclusive: closed on the first day of month(-2) is enough for month(-2).
+  void orgUnitClosedOnFirstDayIsValidForThatPeriod() throws Exception {
+    configure(1, 0d);
+    ouA.setClosedDate(month(-2).getStartDate());
+    manager.update(ouA);
+    assertAccepted(capture, month(-2));
   }
 
   @Test
@@ -713,8 +754,9 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // --------------------
   // Category option start and end dates (E8032). An attribute option combo (AOC) can be used from
   // the latest start to the earliest end date of its options. "Open periods after category option
-  // end date" extends the end by that many periods. As in 2.42, a period is rejected only when it
-  // lies entirely outside these dates, so a period overlapping the start or end is accepted.
+  // end date" extends the end by that many periods. As in 2.42 (and as for org units,
+  // DHIS2-22476), the AOC is valid for a period if it is valid at any time within the period: only
+  // periods entirely outside these dates are rejected.
   // --------------------
 
   @Test
@@ -751,6 +793,17 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   void periodOverlappingOptionEndIsAccepted() throws Exception {
     configureOption(optionP, month(-6).getStartDate(), midOf(month(-2)));
     assertWithinOptionDates(true, month(-2));
+  }
+
+  @Test
+  // Boundaries are inclusive: P ending on the first day of month(-2), or starting on the last day
+  // of month(-6), is enough for that month.
+  void optionValidOnOnlyOneDayOfThePeriodIsValidForThePeriod() throws Exception {
+    configureOption(optionP, month(-6).getEndDate(), month(-2).getStartDate());
+    assertWithinOptionDates(true, month(-6));
+    assertWithinOptionDates(true, month(-2));
+    assertWithinOptionDates(false, month(-7));
+    assertWithinOptionDates(false, month(-1));
   }
 
   @Test
