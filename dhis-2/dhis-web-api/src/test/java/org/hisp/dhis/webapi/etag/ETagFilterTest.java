@@ -36,6 +36,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -155,5 +156,36 @@ class ETagFilterTest {
     filter.doFilter(new MockHttpServletRequest("POST", "/api/dataElements"), response, HELLO_WORLD);
 
     assertNull(response.getHeader(HttpHeaders.ETAG));
+  }
+
+  /**
+   * Pins master's exclusion semantics: each pattern is found anywhere in the URI (no anchors), the
+   * API version prefix is exactly two digits, and UIDs must start with a letter. Expected values
+   * were taken from master's single combined regex.
+   */
+  @ParameterizedTest
+  @CsvSource({
+    "/api/dataValueSets, true",
+    "/api/dataValueSets.json, true",
+    "/api/41/dataValues, true",
+    "/api/4/dataValues, false",
+    "/api/dataEntry/dataValues, false",
+    "/api/fileResources/abcdefghijk/data, true",
+    "/api/dataEntry/metadata, true",
+    "/api/metadata/version/Version_1/data, true",
+    "/api/metadata/version/Version_1/data.gz, true",
+    "/api/metadata/version/Version_1, false",
+    "/api/metadata/version/data, false",
+    "/api/tracker/events/RkV9CZzmV2E/dataValues/q33Wv8jNvFA/file, true",
+    "/api/tracker/events/1kV9CZzmV2E/dataValues/q33Wv8jNvFA/file, false",
+    "/api/tracker/events/RkV9CZzmV2E/dataValues/q33Wv8jNvFA/video, false",
+    "/api/tracker/trackedEntities/vOxUH373fy5/attributes/nDlikr3TUS6/image, true",
+    "/api/dataElements, false",
+    "/api/tracker/events/V9bOpWXppIo, false",
+    "/dhis/api/dataValues, true",
+    "/api/dataElementGroups.xml, false"
+  })
+  void exclusionsMatchMastersPatterns(String uri, boolean excluded) {
+    assertEquals(excluded, ETagFilter.isExcluded(uri));
   }
 }

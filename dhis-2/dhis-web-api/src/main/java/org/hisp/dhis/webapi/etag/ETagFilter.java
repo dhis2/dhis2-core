@@ -35,7 +35,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
@@ -55,9 +57,9 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
  *       clustering or Redis cache invalidation forces it off).
  * </ol>
  *
- * <p>Requests whose URI matches {@link #ENDPOINTS} bypass both tiers' buffering and get no
- * body-hash ETag: they stream large payloads (file and image resources, data value sets, metadata
- * version snapshots) where buffering costs more than the ETag saves.
+ * <p>Requests whose URI matches one of {@link #EXCLUDED_URI_PATTERNS} bypass both tiers' buffering
+ * and get no body-hash ETag: they stream large payloads (file and image resources, data value sets,
+ * metadata version snapshots) where buffering costs more than the ETag saves.
  *
  * <p>Replaces {@code ExcludableShallowEtagHeaderFilter} with the same exclusions.
  *
@@ -72,39 +74,44 @@ public class ETagFilter extends ShallowEtagHeaderFilter {
   /** Bean name used by the {@code DelegatingFilterProxy} registration. */
   public static final String BEAN_NAME = "etagFilter";
 
-  private static final String UID_REGEXP = "[a-zA-Z][a-zA-Z0-9]{10}";
+  private static final String API = "/api/(\\d{2}/)?";
 
-  private static final String ENDPOINTS =
-      "/api/(\\d{2}/)?dataValueSets|"
-          + "/api/(\\d{2}/)?dataValues|"
-          + "/api/(\\d{2}/)?fileResources|"
-          + "/api/(\\d{2}/)?dataEntry/metadata|"
-          + "/api/(\\d{2}/)?tracker/events/"
-          + UID_REGEXP
-          + "/dataValues/"
-          + UID_REGEXP
-          + "/(file|image)|"
-          + "/api/(\\d{2}/)?tracker/trackedEntities/"
-          + UID_REGEXP
-          + "/attributes/"
-          + UID_REGEXP
-          + "/(file|image)|"
-          // Metadata version snapshots are not suitable for ETag buffering.
-          // Ideally, versions are only requested once per remote client.
-          + "/api/(\\d{2}/)?metadata/version/.+/data(\\.gz)?";
+  private static final String UID = "[a-zA-Z][a-zA-Z0-9]{10}";
 
-  private static final Pattern EXCLUDE_PATTERN = Pattern.compile(ENDPOINTS);
+  /**
+   * Master's exclusions, one pattern each: a URI is excluded when any of them is found in it. They
+   * stream large payloads where buffering costs more than the ETag saves.
+   */
+  private static final List<Pattern> EXCLUDED_URI_PATTERNS =
+      Stream.of(
+              API + "dataValueSets",
+              API + "dataValues",
+              API + "fileResources",
+              API + "dataEntry/metadata",
+              API + "tracker/events/" + UID + "/dataValues/" + UID + "/(file|image)",
+              API + "tracker/trackedEntities/" + UID + "/attributes/" + UID + "/(file|image)",
+              // Metadata version snapshots are not suitable for ETag buffering.
+              // Ideally, versions are only requested once per remote client.
+              API + "metadata/version/.+/data(\\.gz)?")
+          .map(Pattern::compile)
+          .toList();
 
   @PostConstruct
   void logConfiguration() {
-    log.debug("ETagFilter registered; URIs matching '{}' bypass ETag buffering", ENDPOINTS);
+    log.debug(
+        "ETagFilter registered; URIs matching any of {} bypass ETag buffering",
+        EXCLUDED_URI_PATTERNS);
+  }
+
+  static boolean isExcluded(String requestUri) {
+    return EXCLUDED_URI_PATTERNS.stream().anyMatch(pattern -> pattern.matcher(requestUri).find());
   }
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    if (EXCLUDE_PATTERN.matcher(request.getRequestURI()).find()) {
+    if (isExcluded(request.getRequestURI())) {
       filterChain.doFilter(request, response);
     } else {
       super.doFilterInternal(request, response, filterChain);
