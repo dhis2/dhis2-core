@@ -82,8 +82,9 @@ import org.slf4j.LoggerFactory;
  *       facility of district QP1613 and the names she searches for. A clerk captures in her
  *       facility and searches in her district. The test logs in as the clerk of the case, dbgen's
  *       users, instead of replicating one.
- *   <li>The cases cover facilities by their number of EIR children (small, median, large) and names
- *       by how many records they match in the database (rare, common), as the query plans differ
+ *   <li>The cases cover facilities by their number of EIR children (small, median, large, largest;
+ *       large is just above 1,000, where the first page's plan changes to its slowest) and names by
+ *       how many records they match in the database (rare, common), as the query plans differ
  *       between them. A request whose plan depends on one of them is named after its band, such as
  *       "Get first page of TEs [small]", and has a p95 threshold per band: one p95 over all bands
  *       is the slowest band's only.
@@ -144,7 +145,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
   /** The column of a case a request's plan depends on, and its values. */
   private enum Band {
     NONE(null),
-    FACILITY("facilityBand", "small", "median", "large"),
+    FACILITY("facilityBand", "small", "median", "large", "largest"),
     NAMES("nameBand", "rare", "common");
 
     private final String column;
@@ -228,7 +229,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
         int concurrentUsers, int repeat, int rampDurationSec, int durationSec, int steps) {}
     ProfileDefaults defaults =
         switch (this.profile) {
-          // 120 is a multiple of the 6 cases: 40 iterations per facility band, 60 per name band.
+          // 120 is a multiple of the 8 cases: 30 iterations per facility band, 60 per name band.
           case SMOKE -> new ProfileDefaults(1, 120, 1, 1, 1);
           case LOAD -> new ProfileDefaults(4, 1, 15, 180, 1);
           case CAPACITY -> new ProfileDefaults(8, 1, 10, 30, 4);
