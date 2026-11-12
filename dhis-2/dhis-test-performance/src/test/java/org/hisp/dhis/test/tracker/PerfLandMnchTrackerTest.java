@@ -121,10 +121,11 @@ public class PerfLandMnchTrackerTest extends Simulation {
   private static final String GIVEN_NAME = "sB1IHYu2xQT"; // GEN - Given name
   private static final String FAMILY_NAME = "ENRjVGxVL6l"; // GEN - Family name
   private static final String UNIQUE_ID = "KSr2yTdu1AI"; // Unique System Identifier (EPI)
+  // Of every dbgen user. Not a property: run-simulation.sh passes the admin's as -Dpassword.
+  private static final String PASSWORD = "Perf-Test-2026!";
 
   private final Profile profile;
   private final String instance;
-  private final String password;
   private final FeederBuilder<String> cases;
   private final int concurrentUsers;
   private final int repeat;
@@ -221,7 +222,6 @@ public class PerfLandMnchTrackerTest extends Simulation {
   public PerfLandMnchTrackerTest() {
     this.profile = Profile.fromString(System.getProperty("profile", "smoke"));
     this.instance = System.getProperty("instance", "http://localhost:8080");
-    this.password = System.getProperty("password", "Perf-Test-2026!"); // of every dbgen user
     // Circular: every iteration takes the next case, so each band gets the same share of a run.
     this.cases = csv(System.getProperty("cases", "perfland-mnch/cases.csv")).circular();
 
@@ -279,7 +279,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
                         .body(
                             StringBody(
                                 "{\"username\":\"#{username}\",\"password\":\"%s\"}"
-                                    .formatted(this.password)))
+                                    .formatted(PASSWORD)))
                         .check(status().is(200)))
                 .exitHereIfFailed()
                 .exec(session -> session.set("loggedIn", session.getString("username"))));
