@@ -62,8 +62,8 @@ import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.operators.Operator;
-import org.hisp.dhis.query.planner.CollectionPaths;
 import org.hisp.dhis.query.planner.PropertyPath;
+import org.hisp.dhis.query.planner.RootCollectionFilters;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -80,7 +80,7 @@ import org.springframework.stereotype.Component;
 public class JpaCriteriaQueryEngine implements QueryEngine {
 
   private final SchemaService schemaService;
-  private final CollectionPaths collectionPaths;
+  private final RootCollectionFilters rootCollectionFilters;
   private final List<IdentifiableObjectStore<?>> hibernateGenericStores;
   private final QueryCacheManager queryCacheManager;
   private final EntityManager entityManager;
@@ -404,7 +404,8 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       return false;
     }
 
-    return collectionPaths.itemType(query.getObjectType(), filter, path.getProperty()) != null;
+    return rootCollectionFilters.itemType(query.getObjectType(), filter, path.getProperty())
+        != null;
   }
 
   /**
@@ -443,7 +444,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       terminalField = terminalField.substring(terminalField.lastIndexOf('.') + 1);
       match = joined.get(terminalField).in(values);
     } else {
-      Class<?> itemType = collectionPaths.itemType(query.getObjectType(), filter, terminal);
+      Class<?> itemType = rootCollectionFilters.itemType(query.getObjectType(), filter, terminal);
       Root<?> item = subquery.from((Class) itemType);
       match =
           builder.and(
