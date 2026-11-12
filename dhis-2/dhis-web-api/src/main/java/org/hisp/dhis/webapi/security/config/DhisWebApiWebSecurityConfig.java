@@ -154,8 +154,6 @@ public class DhisWebApiWebSecurityConfig {
 
   @Autowired private RequestCache requestCache;
 
-  @Autowired private CrossOriginRequestFilter crossOriginRequestFilter;
-
   private static class CustomRequestMatcher implements RequestMatcher {
     private static final Pattern p1 = Pattern.compile("^/api/apps/.+", Pattern.CASE_INSENSITIVE);
     private static final Pattern p2 = Pattern.compile("^/apps/.+", Pattern.CASE_INSENSITIVE);
@@ -244,7 +242,8 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   @Bean
-  protected SecurityFilterChain filterChain(HttpSecurity http) {
+  protected SecurityFilterChain filterChain(
+      HttpSecurity http, CrossOriginRequestFilter crossOriginRequestFilter) {
     try {
       if (dhisConfig.isEnabled(ConfigurationKey.CSRF_ENABLED)) {
         http.csrf(
