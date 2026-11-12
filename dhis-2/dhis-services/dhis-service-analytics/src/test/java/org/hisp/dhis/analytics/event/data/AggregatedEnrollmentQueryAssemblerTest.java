@@ -70,6 +70,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
@@ -107,7 +108,7 @@ class AggregatedEnrollmentQueryAssemblerTest {
     DataElement element = createDataElement('A', ValueType.NUMBER, AggregationType.SUM);
     EventQueryParams params =
         new EventQueryParams.Builder()
-            .withValue(element)
+            .withValue(new Value(element))
             .withValueProgramStage(createProgramStage('A', createProgram('A')))
             .withAggregationType(AnalyticsAggregationType.AVERAGE)
             .build();
@@ -126,7 +127,7 @@ class AggregatedEnrollmentQueryAssemblerTest {
     attribute.setUid("lw1SqmMlnfh");
     EventQueryParams params =
         new EventQueryParams.Builder()
-            .withValue(attribute)
+            .withValue(new Value(attribute))
             .withAggregationType(AnalyticsAggregationType.SUM)
             .build();
     SelectBuilder sb = new SelectBuilder().from("eb_table", "eb");

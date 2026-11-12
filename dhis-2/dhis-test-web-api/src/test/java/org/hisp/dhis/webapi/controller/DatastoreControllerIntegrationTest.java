@@ -47,9 +47,6 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonDatastoreValue;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -71,14 +68,6 @@ class DatastoreControllerIntegrationTest extends PostgresControllerIntegrationTe
    * REST API.
    */
   @Autowired private DatastoreService service;
-
-  @BeforeEach
-  void setUp() {
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    currentUserDetails.setId(0L);
-    clearSecurityContext();
-    injectSecurityContext(currentUserDetails);
-  }
 
   @Test
   void testUpdateKeyJsonValue_AndroidApp() {

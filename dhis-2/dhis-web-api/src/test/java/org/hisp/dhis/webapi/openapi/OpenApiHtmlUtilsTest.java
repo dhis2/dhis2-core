@@ -29,11 +29,15 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.appendEscaped;
 import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.stripHtml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.ByteArrayOutputStream;
+import org.hisp.dhis.jsontree.Appender;
 import org.hisp.dhis.jsontree.Text;
+import org.hisp.dhis.jsontree.TextBuilder;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -135,8 +139,44 @@ class OpenApiHtmlUtilsTest {
         stripHtml("Any of <, >, \", ', and & will be stripped!"));
   }
 
+  @Test
+  void testEscapeHtml_SupplementaryPlane_UTF8_FastPath() {
+    // Regression: appendEncoded(char) writes one char at a time, so a surrogate pair on a
+    // UTF-8 sink becomes two U+FFFD. The fast path (no '&' in input) is affected because
+    // the unescaped default branch calls appendEncoded(c) per char.
+    assertEscapedUtf8("a \uD83D\uDE00 &lt;b&gt;", "a \uD83D\uDE00 <b>");
+  }
+
+  @Test
+  void testEscapeHtml_SupplementaryPlane_UTF8_SlowPath() {
+    // Same bug in the entity-preservation path — mixing '&' with a supplementary character
+    // still goes through the per-char default branch for the emoji.
+    assertEscapedUtf8("a \uD83D\uDE00 &amp; &lt;b&gt;", "a \uD83D\uDE00 & <b>");
+  }
+
+  @Test
+  void testEscapeHtml_SupplementaryPlane_UTF8_Multiple() {
+    // Multiple supplementary characters with escapes interleaved — pins down that the bug
+    // is not boundary-specific
+    assertEscapedUtf8("\uD83D\uDE00&lt;\uD83C\uDF89&gt;", "\uD83D\uDE00<\uD83C\uDF89>");
+  }
+
+  /**
+   * Asserts the escaped output against a UTF-8 round-trip. Unlike {@link #assertEscapedEquals},
+   * this exercises the same encode path as production {@code Appender.ofUTF8} sinks and is the only
+   * way to observe surrogate-pair corruption — {@link TextBuilder} preserves surrogates as raw
+   * {@code char} values and masks the bug.
+   */
+  private void assertEscapedUtf8(String expected, String actual) {
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    try (Appender out = Appender.ofUTF8(bytes)) {
+      appendEscaped(Text.of(actual), out);
+    }
+    assertEquals(expected, bytes.toString(UTF_8));
+  }
+
   private void assertEscapedEquals(String expected, String actual) {
-    StringBuilder escaped = new StringBuilder();
+    TextBuilder escaped = new TextBuilder();
     appendEscaped(Text.of(actual), escaped);
     assertEquals(expected, escaped.toString());
   }

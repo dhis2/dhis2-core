@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.TimeField.CREATED;
+import static org.hisp.dhis.analytics.TimeField.ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
 import static org.hisp.dhis.analytics.TimeField.OCCURRED_DATE;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
@@ -42,12 +44,14 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -204,6 +208,139 @@ class TimeFieldSqlRendererTest extends TestBase {
         "(((ax.\"scheduleddate\" >= '2022-03-01' and ax.\"scheduleddate\" < '2022-04-01') "
             + "or (ax.\"scheduleddate\" >= '2022-09-01' and ax.\"scheduleddate\" < '2022-10-01'))) ",
         eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+  }
+
+  @Test
+  void testRenderEnrollmentTimeFieldSqlAndsDateFieldFilterWithDateFieldDimension() {
+    EventQueryParams params =
+        withStartEndDates(
+            new EventQueryParams.Builder()
+                .addDimension(periods(year("2017", CREATED)))
+                .addFilter(periods(year("2023", ENROLLMENT_DATE))));
+
+    assertEquals(
+        "(((created >= '2017-01-01' and created < '2018-01-01')) "
+            + "and ((enrollmentdate >= '2023-01-01' and enrollmentdate < '2024-01-01'))) ",
+        enrollmentTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+  }
+
+  @Test
+  void testRenderEnrollmentTimeFieldSqlAndsFilterAndDimensionOnSameDateField() {
+    EventQueryParams params =
+        withStartEndDates(
+            new EventQueryParams.Builder()
+                .addDimension(periods(year("2022", ENROLLMENT_DATE), year("2023", ENROLLMENT_DATE)))
+                .addFilter(periods(year("2023", ENROLLMENT_DATE))));
+
+    assertEquals(
+        "(((enrollmentdate >= '2022-01-01' and enrollmentdate < '2024-01-01')) "
+            + "and ((enrollmentdate >= '2023-01-01' and enrollmentdate < '2024-01-01'))) ",
+        enrollmentTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+  }
+
+  @Test
+  void testRenderEnrollmentTimeFieldSqlAndsBareFilterOnDefaultColumn() {
+    EventQueryParams params =
+        withStartEndDates(
+            new EventQueryParams.Builder()
+                .addDimension(periods(year("2022", ENROLLMENT_DATE), year("2023", ENROLLMENT_DATE)))
+                .addFilter(periods(PeriodDimension.of("2016"))));
+
+    assertEquals(
+        "(((enrollmentdate >= '2022-01-01' and enrollmentdate < '2024-01-01')) "
+            + "and ((enrollmentdate >= '2016-01-01' and enrollmentdate < '2017-01-01'))) ",
+        enrollmentTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+  }
+
+  @Test
+  void testRenderEnrollmentTimeFieldSqlWithDateFieldFilterOnly() {
+    EventQueryParams params =
+        withStartEndDates(
+            new EventQueryParams.Builder().addFilter(periods(year("2023", ENROLLMENT_DATE))));
+
+    assertEquals(
+        "(((enrollmentdate >= '2023-01-01' and enrollmentdate < '2024-01-01'))) ",
+        enrollmentTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+  }
+
+  @Test
+  void testRenderEventTimeFieldSqlAndsBareFilterWithDateFieldDimension() {
+    EventQueryParams params =
+        withStartEndDates(
+            new EventQueryParams.Builder()
+                .addDimension(periods(year("2017", LAST_UPDATED)))
+                .addFilter(periods(PeriodDimension.of("2022"))));
+
+    assertEquals(
+        "(((ax.\"lastupdated\" >= '2017-01-01' and ax.\"lastupdated\" < '2018-01-01')) "
+            + "and ((ax.\"occurreddate\" >= '2022-01-01' and ax.\"occurreddate\" < '2023-01-01'))) ",
+        eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+  }
+
+  @Test
+  void testRenderEventTimeFieldSqlAndsDefaultPeriodFilterWithDefaultPeriodDimension() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods(PeriodDimension.of("2022"), PeriodDimension.of("2023")))
+            .addFilter(periods(PeriodDimension.of("2016")))
+            .build();
+
+    assertEquals(
+        "(ax.\"yearly\" in ('2022', '2023')  and ax.\"yearly\" in ('2016') ) ",
+        eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+  }
+
+  @Test
+  void testRenderEventTimeFieldSqlUsesEveryPeriodFilterAfterPeriodTypeSplit() {
+    // The query planner splits a period filter with mixed period types into one filter per type
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addFilter(periods(PeriodDimension.of("2021")))
+            .addFilter(periods(PeriodDimension.of("202212")))
+            .build();
+
+    assertEquals(
+        "( ((ax.\"monthly\" in ('202212')  or ax.\"yearly\" in ('2021') ))) ",
+        eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+  }
+
+  @Test
+  void testRenderEnrollmentTimeFieldSqlKeepsWholeFreeRangePeriodDimension() {
+    PeriodDimension freeRange =
+        freeRange(new DateTime(2022, 1, 1, 0, 0), new DateTime(2022, 3, 31, 0, 0));
+
+    // Mirrors EnrollmentAggregateService: periods become dates, then the period items are re-added
+    EventQueryParams params =
+        new EventQueryParams.Builder(
+                withStartEndDates(new EventQueryParams.Builder().addDimension(periods(freeRange))))
+            .withPeriods(List.of(freeRange), EMPTY)
+            .build();
+
+    assertEquals(
+        "(((enrollmentdate >= '2022-01-01' and enrollmentdate < '2022-04-01'))) ",
+        enrollmentTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+  }
+
+  private static PeriodDimension freeRange(DateTime start, DateTime end) {
+    Period period = new Period();
+    period.setPeriodType(new DailyPeriodType());
+    period.setStartDate(start.toDate());
+    period.setEndDate(end.toDate());
+    return PeriodDimension.of(period);
+  }
+
+  private static EventQueryParams withStartEndDates(EventQueryParams.Builder builder) {
+    return new EventQueryParams.Builder(builder.build()).withStartEndDatesForPeriods().build();
+  }
+
+  private static BaseDimensionalObject periods(PeriodDimension... periods) {
+    return new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(periods));
+  }
+
+  private static PeriodDimension year(String year, TimeField timeField) {
+    PeriodDimension period = PeriodDimension.of(year);
+    period.setDateField(timeField.name());
+    return period;
   }
 
   @Test
