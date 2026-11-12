@@ -37,8 +37,12 @@ import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPD
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
 import static org.hisp.dhis.tracker.imports.validation.Users.*;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1132;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -56,9 +60,11 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -436,6 +442,121 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyErrors(importReport, ValidationCode.E1082);
+  }
+
+  @Test
+  void shouldFailWhenCreatingEventInDeletedEnrollment() throws IOException {
+    deleteTrackerObjects(
+        TrackerObjects.builder()
+            .enrollments(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+                        .enrollment(UID.of("MNWZ6hnuhSw"))
+                        .build()))
+            .build());
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().build(),
+            testSetup.fromJson("tracker/validations/events-with-notes-data.json"));
+
+    assertHasOnlyErrors(importReport, E1132);
+    assertNull(manager.get(Event.class, "uLxFbxfYDQE"));
+  }
+
+  @Test
+  void shouldFailWhenCreatingEventInEnrollmentOfDeletedTrackedEntity() throws IOException {
+    // soft delete only the tracked entity, leaving its enrollment not deleted like older versions
+    // allowed
+    manager.delete(manager.get(TrackedEntity.class, "Kj6vYde4LHh"));
+    flushAndClear();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().build(),
+            testSetup.fromJson("tracker/validations/events-with-notes-data.json"));
+
+    assertHasOnlyErrors(importReport, E1132);
+    assertTrue(
+        importReport.getValidationReport().getErrors().stream()
+            .allMatch(e -> e.getMessage().contains("trackedEntity: `Kj6vYde4LHh` is deleted")));
+    assertNull(manager.get(Event.class, "uLxFbxfYDQE"));
+  }
+
+  @Test
+  void shouldFailWithAccessErrorWhenUserWithoutAccessCreatesEventInDeletedEnrollment()
+      throws IOException {
+    manager.delete(manager.get(Enrollment.class, "MNWZ6hnuhSw"));
+    flushAndClear();
+    injectSecurityContextUser(userService.getUser(USER_5));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().build(),
+            testSetup.fromJson("tracker/validations/events-with-notes-data.json"));
+
+    // the user gets the access errors, not an error revealing the deleted enrollment
+    assertHasOnlyErrors(importReport, E1000, E1102);
+    assertNull(manager.get(Event.class, "uLxFbxfYDQE"));
+  }
+
+  @Test
+  void shouldDeleteEventLeftNotDeletedInDeletedEnrollment() throws IOException {
+    createEvent("tracker/validations/events-with-notes-data.json");
+    // soft delete only the enrollment, leaving its event not deleted like older versions allowed
+    manager.delete(manager.get(Enrollment.class, "MNWZ6hnuhSw"));
+    flushAndClear();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(DELETE).build(),
+            TrackerObjects.builder()
+                .events(
+                    List.of(
+                        org.hisp.dhis.tracker.imports.domain.Event.builder()
+                            .event(UID.of("uLxFbxfYDQE"))
+                            .build()))
+                .build());
+
+    assertNoErrors(importReport);
+    assertEquals(1, importReport.getStats().getDeleted());
+  }
+
+  @Test
+  void shouldDeleteEventLeftNotDeletedInEnrollmentOfDeletedTrackedEntity() throws IOException {
+    createEvent("tracker/validations/events-with-notes-data.json");
+    // soft delete only the tracked entity, leaving its enrollment and event not deleted like older
+    // versions allowed
+    manager.delete(manager.get(TrackedEntity.class, "Kj6vYde4LHh"));
+    flushAndClear();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(DELETE).build(),
+            TrackerObjects.builder()
+                .events(
+                    List.of(
+                        org.hisp.dhis.tracker.imports.domain.Event.builder()
+                            .event(UID.of("uLxFbxfYDQE"))
+                            .build()))
+                .build());
+
+    assertNoErrors(importReport);
+    assertEquals(1, importReport.getStats().getDeleted());
+    flushAndClear();
+    assertTrue(manager.get(Event.class, "uLxFbxfYDQE").isDeleted());
+  }
+
+  private void deleteTrackerObjects(TrackerObjects trackerObjects) {
+    flushAndClear();
+    TrackerImportParams params = TrackerImportParams.builder().importStrategy(DELETE).build();
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+    flushAndClear();
+  }
+
+  private void flushAndClear() {
+    manager.flush();
+    manager.clear();
   }
 
   @Test

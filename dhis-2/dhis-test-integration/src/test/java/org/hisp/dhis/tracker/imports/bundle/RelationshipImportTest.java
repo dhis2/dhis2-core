@@ -32,7 +32,9 @@ package org.hisp.dhis.tracker.imports.bundle;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -40,9 +42,11 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -150,6 +154,85 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
     assertHasError(importReport, ValidationCode.E4017);
     assertThat(importReport.getStats().getIgnored(), is(2));
+  }
+
+  @Test
+  void shouldFailWhenCreatingRelationshipToDeletedEnrollmentOrEventInDeletedEnrollment()
+      throws IOException {
+    // soft delete only the enrollment, leaving its event not deleted like older versions allowed
+    manager.delete(manager.get(Enrollment.class, "TvctPPhpD8u"));
+    manager.flush();
+    manager.clear();
+    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().build(),
+            testSetup.fromJson("tracker/relationships.json"));
+
+    assertHasError(importReport, ValidationCode.E4021);
+    assertHasError(importReport, ValidationCode.E4022);
+    assertThat(importReport.getStats().getCreated(), is(0));
+    assertNull(manager.get(Relationship.class, "Nva3Xj2j75W"));
+    assertNull(manager.get(Relationship.class, "HiXiipNGsxT"));
+  }
+
+  @Test
+  void shouldNotRevealDeletedLinkedDataWhenUserNotAuthorizedToCreateRelationship()
+      throws IOException {
+    manager.delete(manager.get(Enrollment.class, "TvctPPhpD8u"));
+    manager.flush();
+    manager.clear();
+    injectSecurityContextUser(userService.getUser("o1HMTIzBGo7"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().build(),
+            testSetup.fromJson("tracker/relationships.json"));
+
+    assertHasError(importReport, ValidationCode.E4020);
+    assertTrue(
+        importReport.getValidationReport().getErrors().stream()
+            .noneMatch(
+                e ->
+                    ValidationCode.E4021.name().equals(e.getErrorCode())
+                        || ValidationCode.E4022.name().equals(e.getErrorCode())));
+  }
+
+  @Test
+  void shouldFailWhenCreatingRelationshipToDeletedTrackedEntity() throws IOException {
+    manager.delete(manager.get(TrackedEntity.class, "IOR1AXXl24H"));
+    manager.flush();
+    manager.clear();
+    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().build(),
+            testSetup.fromJson("tracker/relationships.json"));
+
+    assertHasError(importReport, ValidationCode.E4021);
+    assertThat(importReport.getStats().getCreated(), is(0));
+    assertThat(importReport.getStats().getIgnored(), is(2));
+  }
+
+  @Test
+  void shouldDeleteRelationshipsLinkingToDeletedTrackedEntity() throws IOException {
+    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
+    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/relationships.json");
+    // soft delete only the tracked entity, leaving its relationships not deleted like older
+    // versions allowed
+    manager.delete(manager.get(TrackedEntity.class, "IOR1AXXl24H"));
+    manager.flush();
+    manager.clear();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            trackerObjects);
+
+    assertNoErrors(importReport);
+    assertThat(importReport.getStats().getDeleted(), is(2));
   }
 
   @Test

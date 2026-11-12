@@ -58,6 +58,7 @@ public class EnrollmentValidator implements Validator<TrackerBundle> {
                 new UpdatableFieldsValidator(),
                 new DataRelationsValidator(),
                 securityOwnershipValidator,
+                new DeletedParentValidator(),
                 all(
                     new NoteValidator(),
                     new ExistingEnrollmentValidator(),
