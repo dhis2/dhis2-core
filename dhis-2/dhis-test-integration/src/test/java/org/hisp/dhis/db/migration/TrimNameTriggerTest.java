@@ -119,6 +119,32 @@ class TrimNameTriggerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void flushOfInsertTrimsNameOfObjectInSession() {
+    DataElement dataElement = createDataElement('F');
+    dataElement.setName(" \t\n\r\f\u000BSession insert \t\n\r\f\u000B");
+
+    manager.save(dataElement);
+    dbmsManager.flushSession();
+
+    assertEquals("Session insert", dataElement.getName());
+    assertEquals("Session insert", selectColumn("name", dataElement));
+  }
+
+  @Test
+  void flushOfUpdateTrimsNameOfObjectInSession() {
+    DataElement dataElement = createDataElement('G');
+    manager.save(dataElement);
+    dbmsManager.flushSession();
+
+    dataElement.setName("  Session update  ");
+    manager.update(dataElement);
+    dbmsManager.flushSession();
+
+    assertEquals("Session update", dataElement.getName());
+    assertEquals("Session update", selectColumn("name", dataElement));
+  }
+
+  @Test
   void triggerIsAttachedToEveryTableWithUidCodeAndName() {
     List<String> tablesWithoutTrigger =
         jdbcTemplate.queryForList(
