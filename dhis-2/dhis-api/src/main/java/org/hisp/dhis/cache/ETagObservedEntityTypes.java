@@ -29,66 +29,19 @@
  */
 package org.hisp.dhis.cache;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.configuration.Configuration;
-import org.hisp.dhis.datastatistics.DataStatistics;
-import org.hisp.dhis.datastatistics.DataStatisticsEvent;
-import org.hisp.dhis.datastore.DatastoreEntry;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.UserSetting;
-import org.hisp.dhis.userdatastore.UserDatastoreEntry;
 
 /** Shared rules for entity types that can participate in API ETag invalidation. */
-@Slf4j
 public final class ETagObservedEntityTypes {
-
-  // SystemSetting is in dhis-service-setting (not a dhis-api dependency). Resolved reflectively
-  // so a rename causes a ClassNotFoundException rather than a silent mismatch.
-  private static final String SYSTEM_SETTING_CLASS = "org.hisp.dhis.setting.SystemSetting";
-
-  private static final Set<String> ADDITIONAL_OBSERVED_TYPE_NAMES = buildAdditionalTypes();
-
-  private static Set<String> buildAdditionalTypes() {
-    Set<String> types = new LinkedHashSet<>();
-    types.add(Configuration.class.getName());
-    types.add(FileResource.class.getName());
-    types.add(UserSetting.class.getName());
-    types.add(DatastoreEntry.class.getName());
-    types.add(UserDatastoreEntry.class.getName());
-    types.add(DataStatistics.class.getName());
-    types.add(DataStatisticsEvent.class.getName());
-    try {
-      types.add(Class.forName(SYSTEM_SETTING_CLASS).getName());
-    } catch (ClassNotFoundException e) {
-      log.warn(
-          "SystemSetting class not found at {}. "
-              + "Was it moved or renamed? ETag cache invalidation for system settings will not work.",
-          SYSTEM_SETTING_CLASS);
-      types.add(SYSTEM_SETTING_CLASS);
-    }
-    return Set.copyOf(types);
-  }
-
-  /** Cache for isObservedType results — avoids repeated isAssignableFrom hierarchy walks. */
-  private static final Map<Class<?>, Boolean> OBSERVED_TYPE_CACHE = new ConcurrentHashMap<>();
 
   private ETagObservedEntityTypes() {}
 
+  /**
+   * @return true for every {@link MetadataObject} and every type marked {@link ETagObserved}
+   */
   public static boolean isObservedType(@Nonnull Class<?> entityType) {
-    return OBSERVED_TYPE_CACHE.computeIfAbsent(
-        entityType,
-        type ->
-            MetadataObject.class.isAssignableFrom(type)
-                || ADDITIONAL_OBSERVED_TYPE_NAMES.contains(type.getName()));
-  }
-
-  public static Set<String> getAdditionalObservedTypeNames() {
-    return ADDITIONAL_OBSERVED_TYPE_NAMES;
+    return MetadataObject.class.isAssignableFrom(entityType)
+        || ETagObserved.class.isAssignableFrom(entityType);
   }
 }

@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.cache.ETagObservedEntityTypes;
-import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
@@ -146,8 +145,7 @@ class ETagLocalServiceCardinalityTest {
   }
 
   @Test
-  @DisplayName(
-      "Production gate (ETagObservedEntityTypes) only lands observed types; map size <= closed universe")
+  @DisplayName("Production gate (ETagObservedEntityTypes) only lands observed types")
   void productionObservedGateAndCeiling() {
     // Same gate as DmlObserverListener.bumpVersionForEvent before incrementEntityTypeVersion.
     List<Class<?>> candidates =
@@ -176,41 +174,12 @@ class ETagLocalServiceCardinalityTest {
     assertTrue(service.entityTypeVersionKeys().contains(DataElement.class.getName()));
     assertTrue(service.entityTypeVersionKeys().contains(Configuration.class.getName()));
 
-    // Closed additional-observed universe from ETagObservedEntityTypes (not a magic number).
-    Set<String> additionalUniverse = ETagObservedEntityTypes.getAdditionalObservedTypeNames();
-    int additionalLoaded = 0;
-    for (String fqcn : additionalUniverse) {
-      try {
-        Class<?> type = Class.forName(fqcn);
-        if (bumpThroughProductionGate(type)) {
-          additionalLoaded++;
-        }
-      } catch (ClassNotFoundException e) {
-        // Reflective SystemSetting may be missing on slim classpaths; skip.
-      }
-    }
-
-    // Ceiling: every key is observed, and keys that are "additional" cannot exceed the
-    // ETagObservedEntityTypes additional set size.
-    long additionalKeysInMap =
-        service.entityTypeVersionKeys().stream().filter(additionalUniverse::contains).count();
-    assertTrue(
-        additionalKeysInMap <= additionalUniverse.size(),
-        "additional keys in map ("
-            + additionalKeysInMap
-            + ") exceed ETagObservedEntityTypes universe ("
-            + additionalUniverse.size()
-            + ")");
-
     for (String key : service.entityTypeVersionKeys()) {
       try {
         Class<?> type = Class.forName(key);
         assertTrue(
             ETagObservedEntityTypes.isObservedType(type),
             "Map key bypassed production gate: " + key);
-        assertTrue(
-            MetadataObject.class.isAssignableFrom(type) || additionalUniverse.contains(key),
-            "Key is neither MetadataObject nor in additional observed set: " + key);
       } catch (ClassNotFoundException e) {
         throw new AssertionError("Entity version key is not a loadable class: " + key, e);
       }
@@ -221,15 +190,7 @@ class ETagLocalServiceCardinalityTest {
     for (Class<?> type : candidates) {
       bumpThroughProductionGate(type);
     }
-    for (String fqcn : additionalUniverse) {
-      try {
-        bumpThroughProductionGate(Class.forName(fqcn));
-      } catch (ClassNotFoundException ignored) {
-        // same as above
-      }
-    }
     assertEquals(sizeAfter, service.entityTypeVersionMapSize());
-    assertTrue(additionalLoaded >= 1 || !additionalUniverse.isEmpty());
   }
 
   @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2026, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.setting;
+package org.hisp.dhis.cache;
 
 /**
- * Test-only shim so the cache invalidation bridge can resolve the runtime entity class name without
- * adding the production service-setting module as a direct dependency here.
+ * Marks a persistent type that is not a {@link org.hisp.dhis.common.MetadataObject} but whose
+ * writes must still change the API ETags of the endpoints that serve it (settings, datastore,
+ * configuration, file resources, data statistics).
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class SystemSetting {}
+public interface ETagObserved {}

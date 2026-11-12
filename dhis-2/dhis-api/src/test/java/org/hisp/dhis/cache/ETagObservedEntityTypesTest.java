@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.cache;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -86,22 +85,16 @@ class ETagObservedEntityTypesTest {
   }
 
   @Test
-  void systemSettingIsObservedViaClassName() {
-    assertTrue(
-        ETagObservedEntityTypes.getAdditionalObservedTypeNames()
-            .contains("org.hisp.dhis.setting.SystemSetting"));
+  void typesMarkedETagObservedAreObserved() {
+    // SystemSetting lives in dhis-service-setting and is observed through the same marker
+    assertTrue(ETagObservedEntityTypes.isObservedType(MarkedType.class));
   }
 
   @Test
   void nonMetadataDataTypesAreNotObserved() {
-    // DataValue is not a MetadataObject and not in the additional list
+    // DataValue is neither a MetadataObject nor marked ETagObserved
     assertFalse(ETagObservedEntityTypes.isObservedType(org.hisp.dhis.datavalue.DataValue.class));
   }
 
-  @Test
-  void additionalObservedTypeNamesHasExpectedCount() {
-    // Configuration, FileResource, UserSetting, DatastoreEntry, UserDatastoreEntry,
-    // DataStatistics, DataStatisticsEvent, SystemSetting = 8
-    assertEquals(8, ETagObservedEntityTypes.getAdditionalObservedTypeNames().size());
-  }
+  private static class MarkedType implements ETagObserved {}
 }
