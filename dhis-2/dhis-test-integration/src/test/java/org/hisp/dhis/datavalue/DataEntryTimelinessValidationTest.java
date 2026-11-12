@@ -56,6 +56,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -122,6 +123,8 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
 
   private static final PeriodType MONTHLY = new MonthlyPeriodType();
 
+  private static final PeriodType YEARLY = new YearlyPeriodType();
+
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private DataEntryService dataEntryService;
@@ -133,6 +136,11 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   private OrganisationUnit ouA;
   private DataElement de;
   private DataSet ds;
+
+  /** Yearly targets: own data element, so imports target this data set unambiguously. */
+  private DataElement deTargets;
+
+  private DataSet dsTargets;
 
   private User capture;
   private User editExpired;
@@ -159,6 +167,15 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     // addDataSet resets sharing, so open data write access afterwards
     ds.getSharing().setPublicAccess("rwrw----");
     dataSetService.updateDataSet(ds);
+
+    deTargets = createDataElement('T');
+    manager.save(deTargets);
+    dsTargets = createDataSet('T', YEARLY);
+    dsTargets.addDataSetElement(deTargets);
+    dsTargets.addOrganisationUnit(ouA);
+    dataSetService.addDataSet(dsTargets);
+    dsTargets.getSharing().setPublicAccess("rwrw----");
+    dataSetService.updateDataSet(dsTargets);
 
     Set<OrganisationUnit> both = Set.of(ouA, ouB);
     capture = createAndAddUser(false, "capture", both, both);
@@ -534,6 +551,62 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   // --------------------
+  // Yearly targets: a known use case. Targets for the current year are entered during that year,
+  // but only until a cut-off inside it (for example 31 March). This is set up as
+  // openFuturePeriods = 1 (the current year is open) with a negative expiryDays that closes the
+  // year early. The year's end date is the start of 31 December, and a period closes
+  // expiryDays + 1 days after it, so "until 31 March" (closed from the start of 1 April) is
+  // expiryDays = -275 in every year (1 April to 31 December is always 274 days).
+  // --------------------
+
+  @Test
+  // The real configuration: expiryDays = -275. Whether today is before or after the cut-off depends
+  // on when the test runs, so the expected outcome is computed from the same cut-off.
+  void yearlyTargetsWithMarch31CutOff() throws Exception {
+    configureTargets(1, -275d);
+    Instant cutOff = endOf(year(0)).minus(Duration.ofDays(274));
+    assertTimeliness(Instant.now().isBefore(cutOff), capture, year(0));
+  }
+
+  @Test
+  // Before the cut-off (here: tomorrow) the current year's targets can be entered.
+  void yearlyTargetsOpenBeforeCutOff() throws Exception {
+    configureTargets(1, expiryClosingAt(year(0), daysFromNow(1)));
+    assertTimeliness(true, capture, year(0));
+  }
+
+  @Test
+  // After the cut-off (here: yesterday) the current year is locked, although it has not ended.
+  void yearlyTargetsLockedAfterCutOff() throws Exception {
+    configureTargets(1, expiryClosingAt(year(0), daysFromNow(-1)));
+    assertTimeliness(false, capture, year(0));
+  }
+
+  @Test
+  // The cut-off is an expiry, so F_EDIT_EXPIRED may still enter targets after it.
+  void yearlyTargetsAfterCutOffOpenForEditExpired() throws Exception {
+    configureTargets(1, expiryClosingAt(year(0), daysFromNow(-1)));
+    assertTimeliness(true, editExpired, year(0));
+  }
+
+  @Test
+  // Only the current year is open: next year's targets cannot be entered yet, by anyone without
+  // force, even before the cut-off. On master a negative expiry disabled this check.
+  void yearlyTargetsNextYearNotOpen() throws Exception {
+    configureTargets(1, expiryClosingAt(year(0), daysFromNow(1)));
+    assertTimeliness(false, capture, year(1));
+    assertTimeliness(false, editExpired, year(1));
+    assertTimeliness(false, superuser, year(1));
+  }
+
+  @Test
+  // Last year's targets are long past the cut-off.
+  void yearlyTargetsLastYearLocked() throws Exception {
+    configureTargets(1, expiryClosingAt(year(0), daysFromNow(1)));
+    assertTimeliness(false, capture, year(-1));
+  }
+
+  // --------------------
   // The lock status shown in data entry uses the same rules.
   // --------------------
 
@@ -574,6 +647,12 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     dataSetService.updateDataSet(ds);
   }
 
+  private void configureTargets(int openFuturePeriods, double expiryDays) {
+    dsTargets.setOpenFuturePeriods(openFuturePeriods);
+    dsTargets.setExpiryDays(expiryDays);
+    dataSetService.updateDataSet(dsTargets);
+  }
+
   private void addInputPeriod(Period period, Instant opening, Instant closing) {
     DataInputPeriod dip = new DataInputPeriod();
     dip.setPeriod(persisted(period));
@@ -593,6 +672,21 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     return period;
   }
 
+  /** The yearly period {@code offset} years from the current one (0 = current year). */
+  private static Period year(int offset) {
+    return YEARLY.getShiftedPeriod(YEARLY.createPeriod(), offset);
+  }
+
+  /** The period's end date: the start of its last day. */
+  private static Instant endOf(Period period) {
+    return Instant.ofEpochMilli(period.getEndDate().getTime());
+  }
+
+  /** The expiryDays that make the period close exactly at the given instant. */
+  private static double expiryClosingAt(Period period, Instant cutOff) {
+    return Duration.between(endOf(period), cutOff).toMillis() / MILLIS_PER_DAY - 1;
+  }
+
   /** The monthly period {@code offset} months from the current one (0 = current month). */
   private static Period month(int offset) {
     return MONTHLY.getShiftedPeriod(MONTHLY.createPeriod(), offset);
@@ -604,8 +698,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
 
   /** Days from the period's end date (start of its last day) until now. */
   private static double daysSinceEnd(Period period) {
-    Instant end = Instant.ofEpochMilli(period.getEndDate().getTime());
-    return Duration.between(end, Instant.now()).toMillis() / MILLIS_PER_DAY;
+    return Duration.between(endOf(period), Instant.now()).toMillis() / MILLIS_PER_DAY;
   }
 
   /** Days from now until the period's end date (start of its last day). */
@@ -658,6 +751,11 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     for (Period p : periods) assertFalse(msg.contains(p.getIsoDate()), msg);
   }
 
+  /** Yearly periods go to the targets data set, all others to the monthly one. */
+  private DataElement dataElementFor(Period period) {
+    return YEARLY.equals(period.getPeriodType()) ? deTargets : de;
+  }
+
   private int upsert(User user, boolean force, OrganisationUnit ou, Period... periods)
       throws Exception {
     injectSecurityContextUser(user);
@@ -666,7 +764,13 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
             .map(
                 p ->
                     new DataEntryValue.Input(
-                        de.getUid(), ou.getUid(), null, null, p.getIsoDate(), "1", null))
+                        dataElementFor(p).getUid(),
+                        ou.getUid(),
+                        null,
+                        null,
+                        p.getIsoDate(),
+                        "1",
+                        null))
             .toList();
     return dataEntryService
         .upsertGroup(
