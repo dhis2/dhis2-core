@@ -81,8 +81,8 @@ class DmlObserverExclusionsTest {
   }
 
   @Test
-  void isExcluded_jobConfiguration() {
-    assertTrue(DmlObserverExclusions.isExcluded("jobconfiguration"));
+  void jobConfiguration_notExcluded_becauseServedByCachedEndpoint() {
+    assertFalse(DmlObserverExclusions.isExcluded("jobconfiguration"));
   }
 
   @Test

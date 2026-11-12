@@ -49,7 +49,6 @@ class MetadataEndpointCacheTest extends CacheApiTest {
           "oAuth2Authorizations",
           "oAuth2AuthorizationConsents",
           "categoryOptionCombos",
-          "jobConfigurations",
           // writes are rejected unless analytics.table_hooks.enabled=on (DHIS2-21791)
           "analyticsTableHooks");
 

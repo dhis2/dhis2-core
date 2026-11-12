@@ -52,6 +52,7 @@ import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -130,6 +131,22 @@ class DmlObserverListenerTest {
     listener.afterQuery(execInfo, queries);
 
     verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
+  }
+
+  @Test
+  void afterQuery_jobConfigurationUpdateBumpsVersion() {
+    // /api/jobConfigurations is a cached metadata endpoint, so its table must be observed
+    when(registry.getTableInfo("jobconfiguration"))
+        .thenReturn(
+            new HibernateTableEntityRegistry.TableInfo(
+                "jobconfiguration", JobConfiguration.class, List.of()));
+    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
+    List<QueryInfo> queries =
+        List.of(createQueryInfo("UPDATE jobconfiguration SET jobstatus = ? WHERE jobid = ?"));
+
+    listener.afterQuery(execInfo, queries);
+
+    verify(eTagService, times(1)).incrementEntityTypeVersion(JobConfiguration.class);
   }
 
   @Test

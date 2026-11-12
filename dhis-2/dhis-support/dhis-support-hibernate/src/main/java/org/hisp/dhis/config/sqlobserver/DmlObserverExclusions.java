@@ -40,12 +40,13 @@ public class DmlObserverExclusions {
   private DmlObserverExclusions() {}
 
   /**
-   * Tables excluded from DML observation:
+   * Tables excluded from DML observation. A table whose entity is an observed type must never be
+   * listed here: its cached endpoint would never be invalidated ({@code jobconfiguration} was, and
+   * {@code /api/jobConfigurations} served stale 304s).
    *
    * <ul>
    *   <li>{@code audit} — is never observed in the system, only externaly
    *   <li>{@code flyway_schema_history} — schema migration bookkeeping, not application data
-   *   <li>{@code jobconfiguration} — updated on every job execution (heartbeats), very high churn
    *   <li>{@code hibernate_sequence} — sequence generator, not meaningful for cache invalidation
    *   <li>{@code spring_session*} — session store, not application data
    *   <li>{@code icon} — static reference data, rarely changes
@@ -61,7 +62,6 @@ public class DmlObserverExclusions {
       Set.of(
           "audit",
           "flyway_schema_history",
-          "jobconfiguration",
           "hibernate_sequence",
           "spring_session",
           "spring_session_attributes",
