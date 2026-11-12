@@ -172,14 +172,16 @@ public class MeController {
 
     List<ApiToken> patTokens = apiTokenService.getAllOwning(user);
 
-    // Filter userGroups and userRoles based on ACL read access
+    // The user groups, user roles and authorities come from the user details, which read them with
+    // SQL: User.getGroups() and User.getUserRoles() can be stale in the second-level cache of this
+    // node when another node of a cluster changed them. Only those the user can read are listed.
     Set<UserGroup> filteredUserGroups =
-        user.getGroups().stream()
+        manager.getByUid(UserGroup.class, userDetails.getUserGroupIds()).stream()
             .filter(group -> aclService.canRead(userDetails, group))
             .collect(Collectors.toSet());
 
     Set<UserRole> filteredUserRoles =
-        user.getUserRoles().stream()
+        manager.getByUid(UserRole.class, userDetails.getUserRoleIds()).stream()
             .filter(role -> aclService.canRead(userDetails, role))
             .collect(Collectors.toSet());
 
@@ -193,8 +195,16 @@ public class MeController {
     JsonMap<JsonMixed> s =
         settingKeys.isEmpty() ? settings.toJson(false) : settings.toJson(true, settingKeys);
     MeDto meDto =
-        new MeDto(user, s, programs, dataSets, patTokens, filteredUserGroups, filteredUserRoles);
-    determineUserImpersonation(meDto, user.getAllAuthorities(), request);
+        new MeDto(
+            user,
+            s,
+            programs,
+            dataSets,
+            patTokens,
+            filteredUserGroups,
+            filteredUserRoles,
+            userDetails.getAllAuthorities());
+    determineUserImpersonation(meDto, userDetails.getAllAuthorities(), request);
 
     ObjectNode jsonNodes = fieldFilterService.toObjectNodes(of(meDto, fields)).get(0);
 
