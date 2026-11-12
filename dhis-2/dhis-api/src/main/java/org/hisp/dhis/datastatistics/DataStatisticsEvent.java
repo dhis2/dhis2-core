@@ -38,7 +38,8 @@ import org.hisp.dhis.cache.ETagObserved;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-public class DataStatisticsEvent implements ETagObserved {
+@ETagObserved
+public class DataStatisticsEvent {
   private int id;
 
   private DataStatisticsEventType eventType;

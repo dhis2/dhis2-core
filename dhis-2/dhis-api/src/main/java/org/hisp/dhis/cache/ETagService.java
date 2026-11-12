@@ -43,14 +43,14 @@ public interface ETagService {
 
   /**
    * Whether writes to the given entity type take part in API ETag invalidation: every {@link
-   * MetadataObject} and every type marked {@link ETagObserved}.
+   * MetadataObject} and every type annotated {@link ETagObserved} (also through a superclass).
    *
    * @param entityType the entity class
    * @return true when a write to this type must bump its ETag version
    */
   static boolean isObservedType(@Nonnull Class<?> entityType) {
     return MetadataObject.class.isAssignableFrom(entityType)
-        || ETagObserved.class.isAssignableFrom(entityType);
+        || entityType.isAnnotationPresent(ETagObserved.class);
   }
 
   /** Returns the all-cache version. Incrementing this invalidates every API ETag family at once. */

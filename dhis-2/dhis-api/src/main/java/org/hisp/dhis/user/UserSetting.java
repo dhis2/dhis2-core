@@ -48,7 +48,8 @@ import org.hisp.dhis.cache.ETagObserved;
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserSetting implements Serializable, ETagObserved {
+@ETagObserved
+public class UserSetting implements Serializable {
 
   @Nonnull private User user;
 

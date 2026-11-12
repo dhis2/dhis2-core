@@ -51,7 +51,8 @@ import org.hisp.dhis.cache.ETagObserved;
 @NoArgsConstructor
 @Entity
 @Table(name = "systemsetting")
-public class SystemSetting implements ETagObserved {
+@ETagObserved
+public class SystemSetting {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)

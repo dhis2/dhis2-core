@@ -47,7 +47,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 @Setter
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DataStatistics extends BaseIdentifiableObject implements ETagObserved {
+@ETagObserved
+public class DataStatistics extends BaseIdentifiableObject {
 
   /** The total number of map views. */
   @JsonProperty private Long mapViews;

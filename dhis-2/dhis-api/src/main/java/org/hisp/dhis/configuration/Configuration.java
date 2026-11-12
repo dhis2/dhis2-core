@@ -58,7 +58,8 @@ import org.hisp.dhis.user.UserRole;
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement(localName = "configuration", namespace = DxfNamespaces.DXF_2_0)
-public class Configuration implements Serializable, ETagObserved {
+@ETagObserved
+public class Configuration implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 936186436040704261L;
 

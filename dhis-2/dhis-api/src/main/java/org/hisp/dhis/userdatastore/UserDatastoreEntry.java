@@ -46,7 +46,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @NoArgsConstructor
-public class UserDatastoreEntry extends BaseIdentifiableObject implements ETagObserved {
+@ETagObserved
+public class UserDatastoreEntry extends BaseIdentifiableObject {
   /** A namespace represents a collection of keys */
   @JsonProperty @ToString.Include @EqualsAndHashCode.Include private String namespace;
 

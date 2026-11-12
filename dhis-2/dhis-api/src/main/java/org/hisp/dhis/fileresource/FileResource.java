@@ -44,7 +44,8 @@ import org.springframework.util.MimeTypeUtils;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class FileResource extends BaseIdentifiableObject implements ETagObserved {
+@ETagObserved
+public class FileResource extends BaseIdentifiableObject {
   public static final String DEFAULT_FILENAME = "untitled";
 
   public static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;

@@ -76,5 +76,14 @@ class ETagServiceObservedTypeTest {
     assertFalse(ETagService.isObservedType(org.hisp.dhis.datavalue.DataValue.class));
   }
 
-  private static class MarkedType implements ETagObserved {}
+  @ETagObserved
+  private static class MarkedType {}
+
+  /** A subclass of an annotated type, such as a Hibernate proxy, is observed too. */
+  private static class MarkedSubtype extends MarkedType {}
+
+  @Test
+  void subclassesOfAnnotatedTypesAreObserved() {
+    assertTrue(ETagService.isObservedType(MarkedSubtype.class));
+  }
 }

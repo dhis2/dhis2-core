@@ -29,6 +29,13 @@
  */
 package org.hisp.dhis.cache;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * Marks a persistent type that is not a {@link org.hisp.dhis.common.MetadataObject} but whose
  * writes must still change the API ETags of the endpoints that serve it (settings, datastore,
@@ -36,4 +43,8 @@ package org.hisp.dhis.cache;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface ETagObserved {}
+@Documented
+@Inherited
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface ETagObserved {}
