@@ -44,56 +44,36 @@ import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.userdatastore.UserDatastoreEntry;
 import org.junit.jupiter.api.Test;
 
-class ETagObservedEntityTypesTest {
+class ETagServiceObservedTypeTest {
 
   @Test
   void metadataTypesAreObserved() {
-    assertTrue(ETagObservedEntityTypes.isObservedType(DataElement.class));
-    assertTrue(ETagObservedEntityTypes.isObservedType(OrganisationUnit.class));
-    assertTrue(ETagObservedEntityTypes.isObservedType(Indicator.class));
+    assertTrue(ETagService.isObservedType(DataElement.class));
+    assertTrue(ETagService.isObservedType(OrganisationUnit.class));
+    assertTrue(ETagService.isObservedType(Indicator.class));
   }
 
   @Test
-  void configurationIsObserved() {
-    assertTrue(ETagObservedEntityTypes.isObservedType(Configuration.class));
-  }
-
-  @Test
-  void fileResourceIsObserved() {
-    assertTrue(ETagObservedEntityTypes.isObservedType(FileResource.class));
-  }
-
-  @Test
-  void userSettingIsObserved() {
-    assertTrue(ETagObservedEntityTypes.isObservedType(UserSetting.class));
-  }
-
-  @Test
-  void datastoreEntryIsObserved() {
-    assertTrue(ETagObservedEntityTypes.isObservedType(DatastoreEntry.class));
-  }
-
-  @Test
-  void userDatastoreEntryIsObserved() {
-    assertTrue(ETagObservedEntityTypes.isObservedType(UserDatastoreEntry.class));
-  }
-
-  @Test
-  void dataStatisticsTypesAreObserved() {
-    assertTrue(ETagObservedEntityTypes.isObservedType(DataStatistics.class));
-    assertTrue(ETagObservedEntityTypes.isObservedType(DataStatisticsEvent.class));
+  void markedNonMetadataTypesAreObserved() {
+    assertTrue(ETagService.isObservedType(Configuration.class));
+    assertTrue(ETagService.isObservedType(FileResource.class));
+    assertTrue(ETagService.isObservedType(UserSetting.class));
+    assertTrue(ETagService.isObservedType(DatastoreEntry.class));
+    assertTrue(ETagService.isObservedType(UserDatastoreEntry.class));
+    assertTrue(ETagService.isObservedType(DataStatistics.class));
+    assertTrue(ETagService.isObservedType(DataStatisticsEvent.class));
   }
 
   @Test
   void typesMarkedETagObservedAreObserved() {
     // SystemSetting lives in dhis-service-setting and is observed through the same marker
-    assertTrue(ETagObservedEntityTypes.isObservedType(MarkedType.class));
+    assertTrue(ETagService.isObservedType(MarkedType.class));
   }
 
   @Test
   void nonMetadataDataTypesAreNotObserved() {
     // DataValue is neither a MetadataObject nor marked ETagObserved
-    assertFalse(ETagObservedEntityTypes.isObservedType(org.hisp.dhis.datavalue.DataValue.class));
+    assertFalse(ETagService.isObservedType(org.hisp.dhis.datavalue.DataValue.class));
   }
 
   private static class MarkedType implements ETagObserved {}

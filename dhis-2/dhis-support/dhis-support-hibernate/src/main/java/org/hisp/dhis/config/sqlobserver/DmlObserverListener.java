@@ -69,7 +69,6 @@ import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.MethodExecutionListener;
 import net.ttddyy.dsproxy.listener.QueryExecutionListener;
-import org.hisp.dhis.cache.ETagObservedEntityTypes;
 import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.config.sqlobserver.HibernateTableEntityRegistry.TableInfo;
 import org.hisp.dhis.dml.DmlEvent;
@@ -440,7 +439,7 @@ public class DmlObserverListener
       return;
     }
 
-    if (!ETagObservedEntityTypes.isObservedType(entityClass)) {
+    if (!ETagService.isObservedType(entityClass)) {
       if (eventsSkippedUntracked != null) eventsSkippedUntracked.increment();
       return;
     }

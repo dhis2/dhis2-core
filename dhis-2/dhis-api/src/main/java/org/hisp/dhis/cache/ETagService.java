@@ -30,6 +30,7 @@
 package org.hisp.dhis.cache;
 
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.MetadataObject;
 
 /**
  * Manages ETag version counters used for conditional HTTP caching. Versions are incremented when
@@ -39,6 +40,18 @@ import javax.annotation.Nonnull;
  * @author Morten Svanæs
  */
 public interface ETagService {
+
+  /**
+   * Whether writes to the given entity type take part in API ETag invalidation: every {@link
+   * MetadataObject} and every type marked {@link ETagObserved}.
+   *
+   * @param entityType the entity class
+   * @return true when a write to this type must bump its ETag version
+   */
+  static boolean isObservedType(@Nonnull Class<?> entityType) {
+    return MetadataObject.class.isAssignableFrom(entityType)
+        || ETagObserved.class.isAssignableFrom(entityType);
+  }
 
   /** Returns the all-cache version. Incrementing this invalidates every API ETag family at once. */
   long getAllCacheVersion();

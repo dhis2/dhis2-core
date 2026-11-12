@@ -63,7 +63,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.cache.ETagObservedEntityTypes;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.configuration.Configuration;
@@ -678,7 +678,7 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
 
   private static void addObservedMetadataDependency(
       LinkedHashSet<Class<?>> dependencyTypes, Class<?> dependencyType) {
-    if (dependencyType != null && ETagObservedEntityTypes.isObservedType(dependencyType)) {
+    if (dependencyType != null && ETagService.isObservedType(dependencyType)) {
       dependencyTypes.add(dependencyType);
     }
   }

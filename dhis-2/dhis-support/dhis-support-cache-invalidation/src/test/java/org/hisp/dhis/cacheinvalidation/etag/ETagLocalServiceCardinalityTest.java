@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.cache.ETagObservedEntityTypes;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
@@ -136,7 +136,7 @@ class ETagLocalServiceCardinalityTest {
       try {
         Class<?> type = Class.forName(key);
         assertTrue(
-            ETagObservedEntityTypes.isObservedType(type),
+            ETagService.isObservedType(type),
             "Unexpected non-observed type key in entity map: " + key);
       } catch (ClassNotFoundException e) {
         throw new AssertionError("Entity version key is not a loadable class: " + key, e);
@@ -145,7 +145,7 @@ class ETagLocalServiceCardinalityTest {
   }
 
   @Test
-  @DisplayName("Production gate (ETagObservedEntityTypes) only lands observed types")
+  @DisplayName("Production gate (ETagService.isObservedType) only lands observed types")
   void productionObservedGateAndCeiling() {
     // Same gate as DmlObserverListener.bumpVersionForEvent before incrementEntityTypeVersion.
     List<Class<?>> candidates =
@@ -177,9 +177,7 @@ class ETagLocalServiceCardinalityTest {
     for (String key : service.entityTypeVersionKeys()) {
       try {
         Class<?> type = Class.forName(key);
-        assertTrue(
-            ETagObservedEntityTypes.isObservedType(type),
-            "Map key bypassed production gate: " + key);
+        assertTrue(ETagService.isObservedType(type), "Map key bypassed production gate: " + key);
       } catch (ClassNotFoundException e) {
         throw new AssertionError("Entity version key is not a loadable class: " + key, e);
       }
@@ -215,7 +213,7 @@ class ETagLocalServiceCardinalityTest {
    * @return true if a version bump was performed
    */
   private boolean bumpThroughProductionGate(Class<?> entityClass) {
-    if (!ETagObservedEntityTypes.isObservedType(entityClass)) {
+    if (!ETagService.isObservedType(entityClass)) {
       return false;
     }
     service.incrementEntityTypeVersion(entityClass);
