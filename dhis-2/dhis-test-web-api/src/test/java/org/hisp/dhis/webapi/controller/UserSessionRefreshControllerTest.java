@@ -53,6 +53,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -77,6 +78,8 @@ class UserSessionRefreshControllerTest extends H2ControllerIntegrationTestBase {
   private ThreadPoolTaskExecutor userDetailsChangeExecutor;
 
   @Autowired private TransactionTemplate transactionTemplate;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private User user;
 
@@ -238,15 +241,11 @@ class UserSessionRefreshControllerTest extends H2ControllerIntegrationTestBase {
   void disablingInactiveUsersMarksThemAsChanged() {
     User active = createUserWithAuth("active");
     Date threeMonthsAgo = Date.from(ZonedDateTime.now().minusMonths(3).toInstant());
-    transactionTemplate.executeWithoutResult(
-        status -> {
-          User persisted = userService.getUser(user.getUid());
-          persisted.setLastLogin(threeMonthsAgo);
-          userService.updateUser(persisted);
-          User persistedActive = userService.getUser(active.getUid());
-          persistedActive.setLastLogin(new Date());
-          userService.updateUser(persistedActive);
-        });
+    // with plain SQL: an update of the user entity does not write the last login
+    jdbcTemplate.update(
+        "update userinfo set lastlogin = ? where uid = ?", threeMonthsAgo, user.getUid());
+    jdbcTemplate.update(
+        "update userinfo set lastlogin = ? where uid = ?", new Date(), active.getUid());
     awaitUserDetailsChanges();
     String tokenBefore = changeToken();
     String activeTokenBefore = userDetailsChangeTracker.getChangeToken(active.getUsername());
