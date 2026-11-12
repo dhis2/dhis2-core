@@ -31,6 +31,7 @@ package org.hisp.dhis.user;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import javax.annotation.CheckForNull;
 import org.hisp.dhis.common.auth.RegistrationParams;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
@@ -122,7 +123,7 @@ public interface UserAccountService {
    * @param user account under consideration; {@code null} yields {@code false}
    * @return {@code true} when email recovery is the required path for this user
    */
-  boolean canUseEmailPasswordRecovery(User user);
+  boolean canUseEmailPasswordRecovery(@CheckForNull User user);
 
   /**
    * Self-service change of an <b>expired</b> password. The caller is not logged in, so the method

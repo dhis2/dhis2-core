@@ -35,6 +35,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Collection;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -272,7 +273,7 @@ public class DefaultUserAccountService implements UserAccountService {
   }
 
   @Override
-  public boolean canUseEmailPasswordRecovery(User user) {
+  public boolean canUseEmailPasswordRecovery(@CheckForNull User user) {
     if (user == null) {
       return false;
     }
