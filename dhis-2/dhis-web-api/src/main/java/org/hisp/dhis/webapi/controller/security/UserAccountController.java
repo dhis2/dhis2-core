@@ -207,7 +207,7 @@ public class UserAccountController {
   @PostMapping("/updatePassword")
   @ResponseStatus(HttpStatus.OK)
   public WebMessage updatePassword(@RequestBody UpdatePasswordRequest request)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ConflictException, ForbiddenException {
     userAccountService.updateExpiredPassword(
         request.getUsername(), request.getOldPassword(), request.getNewPassword());
     return ok("Password updated");
