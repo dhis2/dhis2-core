@@ -29,11 +29,11 @@
  */
 package org.hisp.dhis.webapi.security.session;
 
-import java.time.Duration;
 import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.user.UserDetailsChangeTracker;
+import org.hisp.dhis.user.UserDetailsRefreshSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -104,9 +104,8 @@ public class RedisSpringSessionConfig {
   @Bean
   public UserDetailsChangeTracker userDetailsChangeTracker(
       @Qualifier("stringRedisTemplate") StringRedisTemplate stringRedisTemplate) {
-    int sessionTimeout = config.getIntProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT);
     return new RedisUserDetailsChangeTracker(
-        stringRedisTemplate, Duration.ofSeconds(sessionTimeout));
+        stringRedisTemplate, UserDetailsRefreshSettings.changeTokenTimeToLive(config));
   }
 
   @Bean

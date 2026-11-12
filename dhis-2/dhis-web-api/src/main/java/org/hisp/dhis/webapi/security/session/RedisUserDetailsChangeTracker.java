@@ -40,7 +40,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 /**
  * Redis-backed {@link UserDetailsChangeTracker} for the Redis session stack, so that the change
  * tokens are shared by all nodes of a cluster, like the sessions themselves. Each token is stored
- * under its own key that expires after the session timeout.
+ * under its own key that expires after the session timeout, or never when the session timeout is
+ * not positive.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -50,6 +51,7 @@ public class RedisUserDetailsChangeTracker implements UserDetailsChangeTracker {
 
   private final StringRedisTemplate redisTemplate;
 
+  /** Time to live of a change token, zero for no expiry. */
   private final Duration timeToLive;
 
   public RedisUserDetailsChangeTracker(StringRedisTemplate redisTemplate, Duration timeToLive) {
@@ -60,8 +62,14 @@ public class RedisUserDetailsChangeTracker implements UserDetailsChangeTracker {
   @Override
   public void markChanged(@Nonnull Collection<String> usernames) {
     String token = UUID.randomUUID().toString();
-    usernames.forEach(
-        username -> redisTemplate.opsForValue().set(KEY_PREFIX + username, token, timeToLive));
+    for (String username : usernames) {
+      // Redis refuses an expiry that is not positive
+      if (timeToLive.isZero() || timeToLive.isNegative()) {
+        redisTemplate.opsForValue().set(KEY_PREFIX + username, token);
+      } else {
+        redisTemplate.opsForValue().set(KEY_PREFIX + username, token, timeToLive);
+      }
+    }
   }
 
   @Override

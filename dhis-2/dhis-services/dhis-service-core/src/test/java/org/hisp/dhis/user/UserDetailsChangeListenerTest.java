@@ -71,7 +71,7 @@ class UserDetailsChangeListenerTest {
   void setUp() {
     userService = mock(UserService.class);
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
-    when(config.getIntProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT)).thenReturn(3600);
+    when(config.getProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT)).thenReturn("3600");
     tracker = new InMemoryUserDetailsChangeTracker(config);
     listener = new UserDetailsChangeListener(userService, tracker);
   }

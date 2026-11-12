@@ -51,6 +51,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.DhisAuthenticationToken;
 import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
@@ -235,6 +237,31 @@ class UserDetailsRefreshFilterTest {
     new UserDetailsRefreshState(
             null, System.currentTimeMillis() - Duration.ofMinutes(14).toMillis())
         .saveTo(session);
+
+    doFilter(passwordLogin(user("F_OLD")));
+
+    verify(userService, never()).createUserDetailsSafe(anyString());
+  }
+
+  /** Values that are not a number of seconds of 0 or more give the default interval of 900 s. */
+  @ParameterizedTest
+  @ValueSource(strings = {" 900 ", "900s", "15m", "-1", ""})
+  void configuredRefreshIntervalThatIsNotZeroRebuildsAPrincipalOlderThan900Seconds(String value)
+      throws Exception {
+    filter = filterWithConfiguredInterval(value);
+    when(userService.createUserDetailsSafe(USER_UID)).thenReturn(user("F_NEW"));
+    long refreshedAt = System.currentTimeMillis() - Duration.ofSeconds(901).toMillis();
+    new UserDetailsRefreshState(null, refreshedAt).saveTo(session);
+
+    doFilter(passwordLogin(user("F_OLD")));
+
+    verify(userService).createUserDetailsSafe(USER_UID);
+  }
+
+  @Test
+  void configuredRefreshIntervalOfZeroTurnsTheTimedRebuildOff() throws Exception {
+    filter = filterWithConfiguredInterval("0");
+    new UserDetailsRefreshState(null, 0L).saveTo(session);
 
     doFilter(passwordLogin(user("F_OLD")));
 
@@ -444,6 +471,15 @@ class UserDetailsRefreshFilterTest {
   private UserDetailsRefreshFilter filter(Duration refreshInterval) {
     return new UserDetailsRefreshFilter(
         new UserDetailsSessionRefresher(tracker, userService, refreshInterval));
+  }
+
+  private UserDetailsRefreshFilter filterWithConfiguredInterval(String value) {
+    DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
+    when(config.getProperty(ConfigurationKey.SYSTEM_SESSION_USER_DETAILS_REFRESH_INTERVAL))
+        .thenReturn(value);
+    when(tracker.getChangeTokenTimeToLive()).thenReturn(Duration.ofHours(1));
+    return new UserDetailsRefreshFilter(
+        new UserDetailsSessionRefresher(tracker, userService, config));
   }
 
   private void doFilter(Authentication authentication) throws Exception {

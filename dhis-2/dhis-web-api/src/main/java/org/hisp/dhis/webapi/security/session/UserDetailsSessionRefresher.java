@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.security.session;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_SESSION_USER_DETAILS_REFRESH_INTERVAL;
 import static org.hisp.dhis.security.Authorities.F_IMPERSONATE_USER;
 import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME;
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
@@ -51,6 +50,7 @@ import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsChangeTracker;
+import org.hisp.dhis.user.UserDetailsRefreshSettings;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -135,10 +135,9 @@ public class UserDetailsSessionRefresher {
       UserDetailsChangeTracker userDetailsChangeTracker,
       UserService userService,
       DhisConfigurationProvider config) {
-    this(
-        userDetailsChangeTracker,
-        userService,
-        Duration.ofSeconds(config.getIntProperty(SYSTEM_SESSION_USER_DETAILS_REFRESH_INTERVAL)));
+    this(userDetailsChangeTracker, userService, UserDetailsRefreshSettings.refreshInterval(config));
+    log.info(
+        describeSettings(userDetailsChangeTracker.getChangeTokenTimeToLive(), refreshInterval));
   }
 
   public UserDetailsSessionRefresher(
@@ -148,6 +147,27 @@ public class UserDetailsSessionRefresher {
     this.userDetailsChangeTracker = userDetailsChangeTracker;
     this.userService = userService;
     this.refreshInterval = refreshInterval;
+  }
+
+  /**
+   * Describes in one line whether and how session principals are refreshed, for the startup log.
+   *
+   * @param changeTokenTimeToLive how long a change is remembered, zero or less for no expiry
+   * @param refreshInterval the interval of the timed rebuild, zero or less when it is off
+   */
+  static String describeSettings(Duration changeTokenTimeToLive, Duration refreshInterval) {
+    String changes =
+        changeTokenTimeToLive.isZero() || changeTokenTimeToLive.isNegative()
+            ? "remembered without expiry"
+            : "remembered for " + changeTokenTimeToLive.toSeconds() + " seconds";
+    String timed =
+        refreshInterval.isZero() || refreshInterval.isNegative()
+            ? "the timed rebuild is off"
+            : "principals are also rebuilt every " + refreshInterval.toSeconds() + " seconds";
+    return "Session principals are refreshed on user changes (changes are "
+        + changes
+        + "); "
+        + timed;
   }
 
   /**

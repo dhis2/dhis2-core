@@ -29,16 +29,21 @@
  */
 package org.hisp.dhis.user;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Unit test of {@link InMemoryUserDetailsChangeTracker}.
@@ -61,16 +66,39 @@ class InMemoryUserDetailsChangeTrackerTest {
 
   @Test
   void changesAreForgottenAfterTheSessionTimeout() {
-    UserDetailsChangeTracker tracker = trackerWithSessionTimeout(0);
+    AtomicLong now = new AtomicLong(1_000_000L);
+    UserDetailsChangeTracker tracker =
+        new InMemoryUserDetailsChangeTracker(Duration.ofSeconds(60), now::get);
 
     tracker.markChanged(List.of("alice"));
+    now.addAndGet(59_999L);
+    assertNotNull(tracker.getChangeToken("alice"));
+    now.incrementAndGet();
 
     assertNull(tracker.getChangeToken("alice"));
   }
 
+  /**
+   * A session timeout that is not positive does not expire the sessions in time, so their changes
+   * must not expire either. Before, such a timeout forgot every change at once.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = {"0", "-1", "1h"})
+  void changesAreKeptWhenTheSessionTimeoutIsNotPositive(String sessionTimeout) {
+    DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
+    when(config.getProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT)).thenReturn(sessionTimeout);
+    UserDetailsChangeTracker tracker = new InMemoryUserDetailsChangeTracker(config);
+
+    tracker.markChanged(List.of("alice"));
+
+    assertNotNull(tracker.getChangeToken("alice"));
+    assertEquals(Duration.ZERO, tracker.getChangeTokenTimeToLive());
+  }
+
   private static UserDetailsChangeTracker trackerWithSessionTimeout(int seconds) {
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
-    when(config.getIntProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT)).thenReturn(seconds);
+    when(config.getProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT))
+        .thenReturn(String.valueOf(seconds));
     return new InMemoryUserDetailsChangeTracker(config);
   }
 }
