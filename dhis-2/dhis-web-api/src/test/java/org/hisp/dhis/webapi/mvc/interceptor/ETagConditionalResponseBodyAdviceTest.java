@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.etag.ETagFieldsHopAnalyzer;
 import org.hisp.dhis.webapi.service.ETagConditionalService;
@@ -74,6 +75,8 @@ class ETagConditionalResponseBodyAdviceTest {
   void setUp() {
     UserDetails userDetails = mock(UserDetails.class);
     lenient().when(userDetails.getUid()).thenReturn("userUid123");
+    // a real UserDetails always has a username; the ETag reads the user's settings by it
+    lenient().when(userDetails.getUsername()).thenReturn("etag-advice-user");
 
     SecurityContextHolder.getContext()
         .setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, List.of()));
@@ -101,6 +104,7 @@ class ETagConditionalResponseBodyAdviceTest {
   @AfterEach
   void tearDown() {
     SecurityContextHolder.clearContext();
+    ThreadUserSettings.clear();
   }
 
   @Test

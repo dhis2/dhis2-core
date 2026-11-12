@@ -43,6 +43,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -75,6 +76,12 @@ class ETagConditionalServiceTest {
     user.setUid("testUser123");
     user.setUsername("testuser");
     userDetails = UserDetails.fromUser(user);
+  }
+
+  @AfterEach
+  void tearDown() {
+    // generating an ETag reads the thread's user settings; do not leave them to the next test
+    ThreadUserSettings.clear();
   }
 
   @Test

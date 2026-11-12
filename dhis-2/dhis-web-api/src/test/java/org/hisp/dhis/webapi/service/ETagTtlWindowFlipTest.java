@@ -40,9 +40,11 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -77,6 +79,12 @@ class ETagTtlWindowFlipTest {
   @Mock private ETagService eTagVersionService;
 
   private UserDetails userDetails;
+
+  @AfterEach
+  void tearDown() {
+    // generating an ETag reads the thread's user settings; do not leave them to the next test
+    ThreadUserSettings.clear();
+  }
 
   @BeforeEach
   void setUp() {

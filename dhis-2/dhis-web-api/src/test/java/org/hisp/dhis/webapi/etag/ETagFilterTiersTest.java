@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.interceptor.ETagConditionalInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.ETagConditionalResponseBodyAdvice;
@@ -80,6 +81,7 @@ class ETagFilterTiersTest {
   @AfterEach
   void tearDown() {
     SecurityContextHolder.clearContext();
+    ThreadUserSettings.clear();
   }
 
   @Test
