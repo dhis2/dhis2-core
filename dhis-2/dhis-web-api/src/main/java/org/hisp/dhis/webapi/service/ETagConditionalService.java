@@ -51,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.ETagService;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
@@ -60,8 +61,9 @@ import org.springframework.stereotype.Service;
  * Service for conditional ETag caching with DML-observer-based invalidation. ETags are validated
  * before heavy computations, returning 304 Not Modified when possible.
  *
- * <p>ETag inputs include user UID, build revision, time window, all-cache version, and
- * entity-type/composite version. The raw ETag is SHA-256 hashed to prevent leaking internals.
+ * <p>ETag inputs include user UID, the user's UI and DB locale, build revision, time window,
+ * all-cache version, and entity-type/composite version. The raw ETag is SHA-256 hashed to prevent
+ * leaking internals.
  *
  * @author Morten Svanæs
  */
@@ -131,8 +133,9 @@ public class ETagConditionalService {
 
     return hashETag(
         String.format(
-            "%s-%s-%s-%d-%d-%d",
+            "%s-%s-%s-%s-%d-%d-%d",
             userUid,
+            currentLocales(),
             buildRevision,
             entityTypeName,
             timeWindow,
@@ -163,7 +166,8 @@ public class ETagConditionalService {
                     type.getName() + "=" + eTagVersionService.getEntityTypeVersion(type)));
     return hashETag(
         String.format(
-            "%s-%s-c-%d-%d-%s", userUid, buildRevision, timeWindow, allCacheVersion, versionParts));
+            "%s-%s-%s-c-%d-%d-%s",
+            userUid, currentLocales(), buildRevision, timeWindow, allCacheVersion, versionParts));
   }
 
   /**
@@ -196,7 +200,18 @@ public class ETagConditionalService {
 
     return hashETag(
         String.format(
-            "%s-%s-n-%d-%d-%s", userUid, buildRevision, timeWindow, allCacheVersion, versionParts));
+            "%s-%s-%s-n-%d-%d-%s",
+            userUid, currentLocales(), buildRevision, timeWindow, allCacheVersion, versionParts));
+  }
+
+  /**
+   * The current user's UI and DB locale. They select translations and localized text in the body,
+   * and a locale change is a user setting write that does not touch the entity types an endpoint
+   * depends on.
+   */
+  private static String currentLocales() {
+    UserSettings settings = UserSettings.getCurrentSettings();
+    return settings.getUserUiLocale() + "|" + settings.getUserDbLocale();
   }
 
   /** Hashes the raw ETag value using SHA-256. */

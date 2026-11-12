@@ -33,10 +33,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.google.common.net.HttpHeaders;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
@@ -311,5 +313,33 @@ class ETagConditionalServiceTest {
         service.generateETag(
             userDetails, Set.of(User.class, UserRole.class), Set.of("installedApps"));
     assertNotEquals(etag, etag2);
+  }
+
+  @Test
+  @DisplayName("ETag changes when the user's DB or UI locale changes")
+  void testGenerateETag_DependsOnUserLocale() {
+    when(eTagService.getTtlMinutes()).thenReturn(60);
+    Set<Class<?>> types = Set.of(User.class, UserRole.class);
+    Set<String> keys = Set.of("installedApps");
+    try {
+      String single = service.generateETag(userDetails, OrganisationUnit.class);
+      String composite = service.generateETag(userDetails, types);
+      String named = service.generateETag(userDetails, types, keys);
+
+      ThreadUserSettings.put(Map.of("keyDbLocale", "fr"));
+      String singleFr = service.generateETag(userDetails, OrganisationUnit.class);
+      String compositeFr = service.generateETag(userDetails, types);
+      String namedFr = service.generateETag(userDetails, types, keys);
+
+      ThreadUserSettings.put(Map.of("keyUiLocale", "es"));
+      String singleEs = service.generateETag(userDetails, OrganisationUnit.class);
+
+      assertNotEquals(single, singleFr);
+      assertNotEquals(composite, compositeFr);
+      assertNotEquals(named, namedFr);
+      assertNotEquals(singleFr, singleEs);
+    } finally {
+      ThreadUserSettings.clear();
+    }
   }
 }

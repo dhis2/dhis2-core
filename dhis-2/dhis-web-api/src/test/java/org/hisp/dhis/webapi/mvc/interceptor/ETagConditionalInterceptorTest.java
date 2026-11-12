@@ -71,6 +71,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -288,6 +290,25 @@ class ETagConditionalInterceptorTest {
     assertEquals(expectedTypes, ETagConditionalInterceptor.getCompositeEndpointTypes("me"));
     assertEquals(
         expectedTypes, ETagConditionalInterceptor.resolveCompositeEndpointTypes("/api/me"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "me",
+        "me/settings",
+        "me/settings/*",
+        "me/authorization",
+        "me/authorization/*",
+        "me/authorities",
+        "me/authorities/*",
+        "me/dataApprovalLevels",
+        "me/dataApprovalWorkflows"
+      })
+  void testMeEndpointsDependOnUser(String pattern) {
+    // removing a role from a user writes userrolemembers and userinfo only, so /me/authorities
+    // must change its ETag on a User bump
+    assertTrue(ETagConditionalInterceptor.getCompositeEndpointTypes(pattern).contains(User.class));
   }
 
   @Test

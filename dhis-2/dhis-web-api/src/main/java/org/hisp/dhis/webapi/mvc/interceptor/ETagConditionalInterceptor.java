@@ -136,7 +136,11 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
           "eventReports", Set.of(OrganisationUnit.class),
           "eventVisualizations", Set.of(OrganisationUnit.class));
 
-  /** Non-CRUD endpoints mapped to their entity-type dependencies. */
+  /**
+   * Non-CRUD endpoints mapped to their entity-type dependencies. Every {@code me*} entry depends on
+   * {@link User}: role, group and org unit assignments are join-table writes that only bump the
+   * {@code userinfo} row.
+   */
   private static final Map<String, Set<Class<?>>> COMPOSITE_ENDPOINTS =
       Map.ofEntries(
           Map.entry(
@@ -156,18 +160,23 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
           Map.entry("userSettings", Set.of(UserSetting.class, SystemSetting.class)),
           Map.entry("userSettings/*", Set.of(UserSetting.class, SystemSetting.class)),
           Map.entry("userDataStore/**", Set.of(UserDatastoreEntry.class)),
-          Map.entry("me/settings", Set.of(UserSetting.class, SystemSetting.class)),
-          Map.entry("me/settings/*", Set.of(UserSetting.class, SystemSetting.class)),
-          Map.entry("me/authorization", Set.of(UserRole.class, UserGroup.class)),
-          Map.entry("me/authorization/*", Set.of(UserRole.class, UserGroup.class)),
-          Map.entry("me/authorities", Set.of(UserRole.class, UserGroup.class)),
-          Map.entry("me/authorities/*", Set.of(UserRole.class, UserGroup.class)),
+          Map.entry("me/settings", Set.of(User.class, UserSetting.class, SystemSetting.class)),
+          Map.entry("me/settings/*", Set.of(User.class, UserSetting.class, SystemSetting.class)),
+          Map.entry("me/authorization", Set.of(User.class, UserRole.class, UserGroup.class)),
+          Map.entry("me/authorization/*", Set.of(User.class, UserRole.class, UserGroup.class)),
+          Map.entry("me/authorities", Set.of(User.class, UserRole.class, UserGroup.class)),
+          Map.entry("me/authorities/*", Set.of(User.class, UserRole.class, UserGroup.class)),
           Map.entry(
               "me/dataApprovalLevels",
-              Set.of(DataApprovalLevel.class, OrganisationUnitLevel.class, OrganisationUnit.class)),
+              Set.of(
+                  User.class,
+                  DataApprovalLevel.class,
+                  OrganisationUnitLevel.class,
+                  OrganisationUnit.class)),
           Map.entry(
               "me/dataApprovalWorkflows",
               Set.of(
+                  User.class,
                   DataApprovalWorkflow.class,
                   DataApprovalLevel.class,
                   OrganisationUnit.class,
