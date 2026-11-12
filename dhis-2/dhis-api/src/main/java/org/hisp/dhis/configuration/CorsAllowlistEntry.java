@@ -69,9 +69,9 @@ public final class CorsAllowlistEntry {
 
   private static final Pattern IPV6_LITERAL = Pattern.compile("\\[[0-9a-f:.]+]");
 
-  private static final Pattern PORT = Pattern.compile("[0-9]{1,5}");
+  private static final Pattern PORT = Pattern.compile("\\d{1,5}");
 
-  private static final Pattern DIGITS = Pattern.compile("[0-9]+");
+  private static final Pattern DIGITS = Pattern.compile("\\d+");
 
   private final String origin;
 
@@ -92,53 +92,16 @@ public final class CorsAllowlistEntry {
    */
   @Nonnull
   public static CorsAllowlistEntry parse(@CheckForNull String entry) {
-    String value = entry == null ? "" : entry.strip();
-    if (value.isEmpty()) {
-      throw invalid("the entry is empty");
-    }
-    if (value.equalsIgnoreCase("null")) {
-      throw invalid("the opaque origin `null` cannot be trusted");
-    }
-    if (value.endsWith("/")) {
-      value = value.substring(0, value.length() - 1);
-    }
+    String value = stripEntry(entry);
 
     int schemeEnd = value.indexOf(SCHEME_SEPARATOR);
     if (schemeEnd < 0) {
       throw invalid("an origin must start with http:// or https://");
     }
-    String scheme = value.substring(0, schemeEnd).toLowerCase(Locale.ROOT);
-    if (!SCHEMES.contains(scheme)) {
-      throw invalid("the scheme must be http or https");
-    }
-
-    String authority = value.substring(schemeEnd + SCHEME_SEPARATOR.length());
-    if (authority.isEmpty()) {
-      throw invalid("the host is missing");
-    }
-    if (authority.contains("/") || authority.contains("?") || authority.contains("#")) {
-      throw invalid("an origin must not contain a path, query or fragment");
-    }
-    if (authority.contains("@")) {
-      throw invalid("an origin must not contain user info");
-    }
-
-    String host;
-    String port;
-    if (authority.startsWith("[")) {
-      int ipv6End = authority.indexOf(']');
-      host = ipv6End < 0 ? authority : authority.substring(0, ipv6End + 1);
-      port = portAfter(authority.substring(host.length()));
-      host = host.toLowerCase(Locale.ROOT);
-      if (!IPV6_LITERAL.matcher(host).matches()) {
-        throw invalid("the IPv6 address is malformed");
-      }
-    } else {
-      int portStart = authority.lastIndexOf(':');
-      host = portStart < 0 ? authority : authority.substring(0, portStart);
-      port = portStart < 0 ? null : portAfter(authority.substring(portStart));
-      host = toAsciiHost(host);
-    }
+    String scheme = parseScheme(value.substring(0, schemeEnd));
+    HostAndPort authority = parseAuthority(value.substring(schemeEnd + SCHEME_SEPARATOR.length()));
+    String host = authority.host();
+    String port = authority.port();
 
     boolean wildcard = host.startsWith(WILDCARD_LABEL + ".");
     validateHost(wildcard ? host.substring(2) : host, wildcard);
@@ -181,6 +144,66 @@ public final class CorsAllowlistEntry {
   @Override
   public String toString() {
     return origin;
+  }
+
+  /** Host and optional port of an entry, before validation of the host. */
+  private record HostAndPort(String host, @CheckForNull String port) {}
+
+  /**
+   * @return the stripped entry without a single trailing {@code /}
+   */
+  private static String stripEntry(@CheckForNull String entry) {
+    String value = entry == null ? "" : entry.strip();
+    if (value.isEmpty()) {
+      throw invalid("the entry is empty");
+    }
+    if (value.equalsIgnoreCase("null")) {
+      throw invalid("the opaque origin `null` cannot be trusted");
+    }
+    return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
+  }
+
+  private static String parseScheme(String value) {
+    String scheme = value.toLowerCase(Locale.ROOT);
+    if (!SCHEMES.contains(scheme)) {
+      throw invalid("the scheme must be http or https");
+    }
+    return scheme;
+  }
+
+  private static HostAndPort parseAuthority(String authority) {
+    if (authority.isEmpty()) {
+      throw invalid("the host is missing");
+    }
+    if (authority.contains("/") || authority.contains("?") || authority.contains("#")) {
+      throw invalid("an origin must not contain a path, query or fragment");
+    }
+    if (authority.contains("@")) {
+      throw invalid("an origin must not contain user info");
+    }
+    return authority.startsWith("[")
+        ? parseIpv6Authority(authority)
+        : parseHostAuthority(authority);
+  }
+
+  private static HostAndPort parseIpv6Authority(String authority) {
+    int ipv6End = authority.indexOf(']');
+    String host = ipv6End < 0 ? authority : authority.substring(0, ipv6End + 1);
+    String port = portAfter(authority.substring(host.length()));
+    host = host.toLowerCase(Locale.ROOT);
+    if (!IPV6_LITERAL.matcher(host).matches()) {
+      throw invalid("the IPv6 address is malformed");
+    }
+    return new HostAndPort(host, port);
+  }
+
+  private static HostAndPort parseHostAuthority(String authority) {
+    int portStart = authority.lastIndexOf(':');
+    if (portStart < 0) {
+      return new HostAndPort(toAsciiHost(authority), null);
+    }
+    String port = portAfter(authority.substring(portStart));
+    return new HostAndPort(toAsciiHost(authority.substring(0, portStart)), port);
   }
 
   @CheckForNull
