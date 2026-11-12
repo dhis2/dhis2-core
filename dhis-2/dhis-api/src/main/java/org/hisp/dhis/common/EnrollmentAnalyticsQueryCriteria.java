@@ -30,6 +30,7 @@
 package org.hisp.dhis.common;
 
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -119,10 +120,10 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
    *
    * @deprecated use {@link #enrollmentStatus} instead
    */
-  @Deprecated private Set<EnrollmentStatus> programStatus = new HashSet<>();
+  @Deprecated private Set<EnrollmentStatus> programStatus = EnumSet.noneOf(EnrollmentStatus.class);
 
   /** The enrollment statuses to filter on. */
-  private Set<EnrollmentStatus> enrollmentStatus = new HashSet<>();
+  private Set<EnrollmentStatus> enrollmentStatus = EnumSet.noneOf(EnrollmentStatus.class);
 
   private DisplayProperty displayProperty;
 

@@ -814,24 +814,72 @@ public class EnrollmentsQuery10AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name at specific indices (sorted results).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "pi", "FS085BEkJo2");
-    validateRowValueByName(response, actualHeaders, 0, "programstatus", "COMPLETED");
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2023-01-10 00:00:00.0");
+    // 7. Assert row existence by value (unsorted results).
 
-    // Validate selected values for row index 2
-    validateRowValueByName(response, actualHeaders, 2, "pi", "KpknKHptul0");
-    validateRowValueByName(response, actualHeaders, 2, "programstatus", "COMPLETED");
-    validateRowValueByName(response, actualHeaders, 2, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 2, "enrollmentdate", "2023-01-10 00:00:00.0");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "pi",
+            "FS085BEkJo2",
+            "ouname",
+            "Ngelehun CHC",
+            "enrollmentdate",
+            "2023-01-10 00:00:00.0",
+            "programstatus",
+            "COMPLETED"));
 
-    // Validate selected values for row index 4
-    validateRowValueByName(response, actualHeaders, 4, "pi", "KxXkjF6buFN");
-    validateRowValueByName(response, actualHeaders, 4, "programstatus", "COMPLETED");
-    validateRowValueByName(response, actualHeaders, 4, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 4, "enrollmentdate", "2022-04-02 02:00:00.0");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "pi",
+            "JSWtFiSkiON",
+            "ouname",
+            "Ngelehun CHC",
+            "enrollmentdate",
+            "2023-01-01 00:00:00.0",
+            "programstatus",
+            "COMPLETED"));
+
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "pi",
+            "KpknKHptul0",
+            "ouname",
+            "Ngelehun CHC",
+            "enrollmentdate",
+            "2023-01-10 00:00:00.0",
+            "programstatus",
+            "COMPLETED"));
+
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "pi",
+            "ygDTsAB0cT2",
+            "ouname",
+            "Ngelehun CHC",
+            "enrollmentdate",
+            "2022-05-01 02:00:00.0",
+            "programstatus",
+            "COMPLETED"));
+
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "pi",
+            "KxXkjF6buFN",
+            "ouname",
+            "Ngelehun CHC",
+            "enrollmentdate",
+            "2022-04-02 02:00:00.0",
+            "programstatus",
+            "COMPLETED"));
   }
 
   private static final String PROGRAM = "IpHINAT79UW";

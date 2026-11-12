@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
@@ -995,21 +996,32 @@ public class EventsQuery9AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name at specific indices (sorted results).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "psi", "V9HVjkqcUcg");
-    validateRowValueByName(response, actualHeaders, 0, "programstatus", "COMPLETED");
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
+    // 7. Assert row existence by value (unsorted results).
 
-    // Validate selected values for row index 2
-    validateRowValueByName(response, actualHeaders, 2, "psi", "kNn9HkRjk1c");
-    validateRowValueByName(response, actualHeaders, 2, "programstatus", "COMPLETED");
-    validateRowValueByName(response, actualHeaders, 2, "ouname", "Ngelehun CHC");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "V9HVjkqcUcg", "ouname", "Ngelehun CHC", "programstatus", "COMPLETED"));
 
-    // Validate selected values for row index 4
-    validateRowValueByName(response, actualHeaders, 4, "psi", "Ni0yhZ7XhAP");
-    validateRowValueByName(response, actualHeaders, 4, "programstatus", "COMPLETED");
-    validateRowValueByName(response, actualHeaders, 4, "ouname", "Ngelehun CHC");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "nN7gGLW5Akv", "ouname", "Ngelehun CHC", "programstatus", "COMPLETED"));
+
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "kNn9HkRjk1c", "ouname", "Ngelehun CHC", "programstatus", "COMPLETED"));
+
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "EsHa0edW6uY", "ouname", "Ngelehun CHC", "programstatus", "COMPLETED"));
+
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "Ni0yhZ7XhAP", "ouname", "Ngelehun CHC", "programstatus", "COMPLETED"));
   }
 
   private static final String PROGRAM = "IpHINAT79UW";

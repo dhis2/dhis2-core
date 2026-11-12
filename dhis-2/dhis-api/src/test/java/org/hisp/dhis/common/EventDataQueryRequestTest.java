@@ -323,6 +323,24 @@ public class EventDataQueryRequestTest {
   }
 
   @Test
+  void eventsWithoutStatusParamsHaveNoEnrollmentStatusFilter() {
+    EventDataQueryRequest request =
+        EventDataQueryRequest.builder().fromCriteria(new EventsAnalyticsQueryCriteria()).build();
+
+    assertEquals(Set.of(), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void enrollmentsWithoutStatusParamsHaveNoEnrollmentStatusFilter() {
+    EventDataQueryRequest request =
+        EventDataQueryRequest.builder()
+            .fromCriteria(new EnrollmentAnalyticsQueryCriteria())
+            .build();
+
+    assertEquals(Set.of(), request.getEnrollmentStatus());
+  }
+
+  @Test
   void eventsEnrollmentStatusIsMapped() {
     EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
     criteria.setEnrollmentStatus(Set.of(COMPLETED));
