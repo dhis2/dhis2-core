@@ -784,7 +784,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                     DateRange operational = ouOpSpan.get(e.getKey().getValue());
                     if (operational == null) return false; // null => no issue with the timeframe
                     // valid if the OU is open at any time within the period
-                    return !overlaps(operational, e.getValue());
+                    return !overlaps(operational, e.getValue(), 0);
                   })
               .distinct()
               .toList();
@@ -924,13 +924,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                   e -> {
                     DateRange span = entrySpanByAoc.get(e.getKey().getValue());
                     if (span == null) return false;
-                    Period pe = e.getValue();
-                    Date end = span.getEndDate();
-                    if (end != null && openPeriodsAfterCoEndDate > 0)
-                      // the end is extended by N periods of the data set's period type
-                      end = pe.getPeriodType().getRewindedDate(end, -openPeriodsAfterCoEndDate);
                     // valid if the AOC is valid at any time within the period
-                    return !overlaps(new DateRange(span.getStartDate(), end), pe);
+                    return !overlaps(span, e.getValue(), openPeriodsAfterCoEndDate);
                   })
               .toList();
       if (!peNotInAocRange.isEmpty()) {
@@ -950,13 +945,23 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   /**
    * Is the span valid at any time within the period? Only a span ending before the period starts or
-   * starting after the period's last day does not overlap. Missing span dates are open-ended.
+   * starting after the period's last day does not overlap. Missing span dates are open-ended. A
+   * span that starts after it ends (e.g. category options without a common day) is never valid.
+   *
+   * @param periodsAfterEnd the span's end is extended by this many periods of the period's type
    */
-  private static boolean overlaps(DateRange span, Period period) {
+  private static boolean overlaps(DateRange span, Period period, int periodsAfterEnd) {
     Date spanStart = span.getStartDate();
     Date spanEnd = span.getEndDate();
+    if (spanStart != null && spanEnd != null && spanStart.after(spanEnd)) return false;
+    // instead of moving the span's end forward the period's start is moved back: rewinding by a
+    // negative count is not supported by all calendars (e.g. Ethiopian, Nepali, Persian)
+    Date periodStart =
+        periodsAfterEnd > 0
+            ? period.getPeriodType().getRewindedDate(period.getStartDate(), periodsAfterEnd)
+            : period.getStartDate();
     return (spanStart == null || !spanStart.after(period.getEndDate()))
-        && (spanEnd == null || !spanEnd.before(period.getStartDate()));
+        && (spanEnd == null || !spanEnd.before(periodStart));
   }
 
   private DateRange timeframeOf(Collection<Period> isoPeriods) {

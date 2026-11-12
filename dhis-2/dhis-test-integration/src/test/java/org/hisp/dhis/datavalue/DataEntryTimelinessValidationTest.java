@@ -102,9 +102,10 @@ import org.springframework.transaction.annotation.Transactional;
  *       </ul>
  * </ol>
  *
- * Independently of both, a period must start within the operational span of the org unit (E8031). A
- * superuser importing with {@code force} skips all of these checks; {@code force} has no effect for
- * anyone else.
+ * Independently of both, the org unit must be open at any time within the period (E8031), and so
+ * must the attribute option combo, whose end is extended by the data set's open periods after
+ * category option end date (E8032). A superuser importing with {@code force} skips all of these
+ * checks; {@code force} has no effect for anyone else.
  *
  * <h2>Fixture</h2>
  *
@@ -641,6 +642,18 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // Misconfigured: closed on the 10th, opened on the 20th of the same month. The org unit is never
+  // open, so not even that month is valid.
+  void orgUnitClosedBeforeItOpenedIsNeverValid() {
+    configure(1, 0d);
+    Instant start = month(-3).getStartDate().toInstant();
+    ouA.setOpeningDate(Date.from(start.plus(Duration.ofDays(19))));
+    ouA.setClosedDate(Date.from(start.plus(Duration.ofDays(9))));
+    manager.update(ouA);
+    assertRejected(ErrorCode.E8031, () -> upsert(capture, false, ouA, month(-3)));
+  }
+
+  @Test
   // A is open from month(-3) until 30 days from now, so last month is accepted.
   void periodWhileOrgUnitIsOpenIsAccepted() throws Exception {
     configure(1, 0d);
@@ -848,6 +861,20 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  // P is valid 1 to 10, Q 20 to the end of month(-3): the AOC (P, Q) has no valid day at all, so no
+  // period is valid, not even with grace periods after the end date.
+  void optionsWithoutACommonDayAreNeverValid() throws Exception {
+    Date start = month(-3).getStartDate();
+    configureOption(optionP, start, Date.from(start.toInstant().plus(Duration.ofDays(9))));
+    configureOption(
+        optionQ, Date.from(start.toInstant().plus(Duration.ofDays(19))), month(-3).getEndDate());
+    assertWithinOptionDates(false, month(-3));
+    configureOpenPeriodsAfterOptionEnd(2);
+    assertWithinOptionDates(false, month(-3));
+    assertWithinOptionDates(false, month(-2));
+  }
+
+  @Test
   // Only an end date: no limit into the past.
   void optionWithOnlyEndDate() throws Exception {
     configureOption(optionP, null, month(-2).getEndDate());
@@ -965,6 +992,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
 
   /** Sets the start and end date of a category option (null = no date). */
   private void configureOption(CategoryOption option, Date start, Date end) {
+    injectAdminIntoSecurityContext();
     option.setStartDate(start);
     option.setEndDate(end);
     manager.update(option);
@@ -972,6 +1000,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
 
   /** Sets how many periods after the end of a category option data can still be entered. */
   private void configureOpenPeriodsAfterOptionEnd(int periods) {
+    injectAdminIntoSecurityContext();
     dsAoc.setOpenPeriodsAfterCoEndDate(periods);
     dataSetService.updateDataSet(dsAoc);
   }
