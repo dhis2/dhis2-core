@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManagerFactory;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class ReportMetadataControllerTest extends PostgresControllerIntegrationTestBase {
   private static final String REPORT_UID = "RepUid00001";
+
+  private static final String UNTRANSLATED_REPORT_UID = "RepUid00002";
 
   private static final String VISUALIZATION_UID = "RepVis00001";
 
@@ -216,6 +219,22 @@ class ReportMetadataControllerTest extends PostgresControllerIntegrationTestBase
     assertEquals("CACHE_6AM_TOMORROW", report.getString("cacheStrategy").string());
   }
 
+  /** The translations filters resolve the JSONB column inside the embedded translations. */
+  @Test
+  void shouldFilterReportsByEmptyTranslations() {
+    importMetadata(report("REP_A", "Imported report", true, "CACHE_6AM_TOMORROW"));
+    importMetadata(
+        """
+        {'reports':[{'id':'%s','name':'Untranslated report','type':'HTML',
+          'designContent':'<html>U</html>'}]}
+        """
+            .formatted(UNTRANSLATED_REPORT_UID));
+    startNewRequestSession();
+
+    assertEquals(List.of(UNTRANSLATED_REPORT_UID), getReportIds("filter=translations:empty"));
+    assertEquals(List.of(REPORT_UID), getReportIds("filter=translations:!empty"));
+  }
+
   /** The OpenAPI document describes dashboard reports as identifiable objects. */
   @Test
   void shouldDescribeDashboardReportsAsIdentifiableObjectsInOpenApi() {
@@ -337,6 +356,16 @@ class ReportMetadataControllerTest extends PostgresControllerIntegrationTestBase
   private void importMetadata(String metadata) {
     HttpResponse response = POST("/metadata", metadata);
     assertEquals(HttpStatus.OK, response.status(), () -> response.contentUnchecked().toJson());
+  }
+
+  private List<String> getReportIds(String filter) {
+    JsonArray reports =
+        GET("/reports?fields=id&paging=false&" + filter).content(HttpStatus.OK).getArray("reports");
+    List<String> ids = new ArrayList<>();
+    for (int i = 0; i < reports.size(); i++) {
+      ids.add(reports.getObject(i).getString("id").string());
+    }
+    return ids;
   }
 
   /** Reads the report from the database, bypassing the session and the L2 cache. */

@@ -38,6 +38,7 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
@@ -155,6 +156,19 @@ public abstract class Operator<T extends Comparable<T>> {
       fieldName = propertyPath.getProperty().getName();
     }
     return path.get(fieldName);
+  }
+
+  /**
+   * Resolves the path of a property stored in a JSONB column. An embedded {@link
+   * TranslationProperty} is a component, which cannot be cast to text, so its JSONB member is
+   * returned instead.
+   */
+  protected <Y> Path<Object> getJsonbPropertyPath(Root<Y> root, PropertyPath propertyPath) {
+    Path<Object> path = getPropertyPath(root, propertyPath);
+    if (TranslationProperty.class.equals(path.getJavaType())) {
+      return path.get(TranslationProperty.JSONB_MEMBER);
+    }
+    return path;
   }
 
   org.hibernate.criterion.MatchMode getMatchMode(MatchMode matchMode) {

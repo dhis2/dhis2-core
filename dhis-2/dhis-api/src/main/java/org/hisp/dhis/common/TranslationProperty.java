@@ -58,6 +58,9 @@ import org.hisp.dhis.translation.Translation;
 @AllArgsConstructor
 public class TranslationProperty implements Serializable {
 
+  /** The name of the member mapped to the {@code translations} jsonb column. */
+  public static final String JSONB_MEMBER = "translations";
+
   @Type(type = "jblTranslations")
   private Set<Translation> translations = new HashSet<>();
 
