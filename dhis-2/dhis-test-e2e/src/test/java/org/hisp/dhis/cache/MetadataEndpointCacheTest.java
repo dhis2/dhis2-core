@@ -49,7 +49,9 @@ class MetadataEndpointCacheTest extends CacheApiTest {
           "oAuth2Authorizations",
           "oAuth2AuthorizationConsents",
           "categoryOptionCombos",
-          "jobConfigurations");
+          "jobConfigurations",
+          // writes are rejected unless analytics.table_hooks.enabled=on (DHIS2-21791)
+          "analyticsTableHooks");
 
   /**
    * Extra handshake re-baselines after the first conditional GET when the ETag has moved. CI has
