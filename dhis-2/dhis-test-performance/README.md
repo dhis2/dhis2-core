@@ -254,7 +254,9 @@ or describe one request as a meaningful p95 sample.
 
 `DB_TYPE=empty` builds a fresh PostGIS database locally without downloading a dump or
 requiring an S3 artifact. Leave `DB_DIR` unset; `DB_VERSION` remains an image-cache label.
-The normal Sierra Leone, HMIS, and platform-perf modes are unchanged.
+It has no dump, so the S3 ETag check is skipped: the image is rebuilt on every run, which the
+build cache makes cheap, and `DB_URL`/`DB_ETAG` stay empty in `run-simulation.env`.
+The Sierra Leone, HMIS, Perf Land MNCH and platform-perf modes are unchanged.
 
 The optional `FIXTURE_SETUP_CLASS` / `FIXTURE_SETUP_ARGS` runner hook invokes a Java main
 class with the test classpath exactly once after application readiness, before analytics,
