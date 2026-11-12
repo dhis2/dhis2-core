@@ -396,8 +396,9 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   /**
-   * Whether the filter targets a simple property reached through at least one collection (e.g.
-   * {@code dataViewOrganisationUnits.path}) and can be expressed as a correlated EXISTS.
+   * Whether the filter has the shape {@code collection.property}, a collection directly on the root
+   * type followed by a simple property (e.g. {@code dataViewOrganisationUnits.path}), and can be
+   * expressed as a correlated EXISTS. See {@link RootCollectionFilters}.
    */
   private boolean isCollectionPredicate(Query<?> query, Filter filter, PropertyPath path) {
     if (!query.allowsDbPredicate() || !filter.supportsDbPredicate() || !path.haveAlias()) {
