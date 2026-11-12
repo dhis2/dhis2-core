@@ -39,7 +39,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -65,6 +67,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -137,10 +140,14 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   private DataElement de;
   private DataSet ds;
 
-  /** Yearly targets: own data element, so imports target this data set unambiguously. */
-  private DataElement deTargets;
-
+  /** Yearly targets data set. */
   private DataSet dsTargets;
+
+  /**
+   * Each data set has its own data element, so an import targets its data set unambiguously; values
+   * use the data element of their period's type.
+   */
+  private final Map<String, DataElement> dataElementByPeriodType = new HashMap<>();
 
   private User capture;
   private User editExpired;
@@ -168,14 +175,8 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     ds.getSharing().setPublicAccess("rwrw----");
     dataSetService.updateDataSet(ds);
 
-    deTargets = createDataElement('T');
-    manager.save(deTargets);
-    dsTargets = createDataSet('T', YEARLY);
-    dsTargets.addDataSetElement(deTargets);
-    dsTargets.addOrganisationUnit(ouA);
-    dataSetService.addDataSet(dsTargets);
-    dsTargets.getSharing().setPublicAccess("rwrw----");
-    dataSetService.updateDataSet(dsTargets);
+    dataElementByPeriodType.put(MONTHLY.getName(), de);
+    dsTargets = addDataSet('T', YEARLY);
 
     Set<OrganisationUnit> both = Set.of(ouA, ouB);
     capture = createAndAddUser(false, "capture", both, both);
@@ -224,6 +225,15 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   void editExpiredAuthorityDoesNotOpenFuturePeriodsWithExpiryDays() {
     configure(1, 10d);
     assertUntimely(editExpired, month(24));
+  }
+
+  @Test
+  // Future periods not enabled at all (openFuturePeriods = 0): F_EDIT_EXPIRED does not open even
+  // the current period, let alone later ones.
+  void editExpiredAuthorityDoesNotOpenCurrentPeriodWithZeroOpenFuturePeriods() {
+    configure(0, 0d);
+    assertUntimely(editExpired, month(0));
+    assertUntimely(editExpired, month(1));
   }
 
   /** DHIS2-22471: a superuser has every authority, but still needs force for future periods. */
@@ -356,7 +366,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // A.
   void lockExceptionOpensExpiredPeriodForItsOrgUnit() throws Exception {
     configure(1, 1d);
-    addLockException(ouA, month(-3));
+    addLockException(ds, ouA, month(-3));
     assertAccepted(capture, month(-3));
   }
 
@@ -364,7 +374,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // The lock exception is for org unit A only; the same period at B stays locked.
   void lockExceptionDoesNotOpenExpiredPeriodForOtherOrgUnit() {
     configure(1, 1d);
-    addLockException(ouA, month(-3));
+    addLockException(ds, ouA, month(-3));
     OrganisationUnit ouB = manager.get(OrganisationUnit.class, BASE_OU_UID + 'B');
     assertRejected(ErrorCode.E8030, () -> upsert(capture, false, ouB, month(-3)));
   }
@@ -373,7 +383,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // The lock exception is for month(-3) only; month(-4) at A stays locked.
   void lockExceptionDoesNotOpenOtherExpiredPeriod() {
     configure(1, 1d);
-    addLockException(ouA, month(-3));
+    addLockException(ds, ouA, month(-3));
     assertUntimely(capture, month(-4));
   }
 
@@ -381,7 +391,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // Lock exceptions only bypass expiry. A lock exception for a future period does not open it.
   void lockExceptionDoesNotOpenFuturePeriod() {
     configure(1, 1d);
-    addLockException(ouA, month(3));
+    addLockException(ds, ouA, month(3));
     assertUntimely(capture, month(3));
   }
 
@@ -563,7 +573,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // The real configuration: expiryDays = -275. Whether today is before or after the cut-off depends
   // on when the test runs, so the expected outcome is computed from the same cut-off.
   void yearlyTargetsWithMarch31CutOff() throws Exception {
-    configureTargets(1, -275d);
+    configure(dsTargets, 1, -275d);
     Instant cutOff = endOf(year(0)).minus(Duration.ofDays(274));
     assertTimeliness(Instant.now().isBefore(cutOff), capture, year(0));
   }
@@ -571,21 +581,21 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   @Test
   // Before the cut-off (here: tomorrow) the current year's targets can be entered.
   void yearlyTargetsOpenBeforeCutOff() throws Exception {
-    configureTargets(1, expiryClosingAt(year(0), daysFromNow(1)));
+    configure(dsTargets, 1, expiryClosingAt(year(0), daysFromNow(1)));
     assertTimeliness(true, capture, year(0));
   }
 
   @Test
   // After the cut-off (here: yesterday) the current year is locked, although it has not ended.
   void yearlyTargetsLockedAfterCutOff() throws Exception {
-    configureTargets(1, expiryClosingAt(year(0), daysFromNow(-1)));
+    configure(dsTargets, 1, expiryClosingAt(year(0), daysFromNow(-1)));
     assertTimeliness(false, capture, year(0));
   }
 
   @Test
   // The cut-off is an expiry, so F_EDIT_EXPIRED may still enter targets after it.
   void yearlyTargetsAfterCutOffOpenForEditExpired() throws Exception {
-    configureTargets(1, expiryClosingAt(year(0), daysFromNow(-1)));
+    configure(dsTargets, 1, expiryClosingAt(year(0), daysFromNow(-1)));
     assertTimeliness(true, editExpired, year(0));
   }
 
@@ -593,7 +603,7 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // Only the current year is open: next year's targets cannot be entered yet, by anyone without
   // force, even before the cut-off. On master a negative expiry disabled this check.
   void yearlyTargetsNextYearNotOpen() throws Exception {
-    configureTargets(1, expiryClosingAt(year(0), daysFromNow(1)));
+    configure(dsTargets, 1, expiryClosingAt(year(0), daysFromNow(1)));
     assertTimeliness(false, capture, year(1));
     assertTimeliness(false, editExpired, year(1));
     assertTimeliness(false, superuser, year(1));
@@ -602,8 +612,89 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   @Test
   // Last year's targets are long past the cut-off.
   void yearlyTargetsLastYearLocked() throws Exception {
-    configureTargets(1, expiryClosingAt(year(0), daysFromNow(1)));
+    configure(dsTargets, 1, expiryClosingAt(year(0), daysFromNow(1)));
     assertTimeliness(false, capture, year(-1));
+  }
+
+  @Test
+  // Late submitter: after the cut-off, a lock exception reopens this year's targets for one org
+  // unit.
+  void yearlyTargetsLockExceptionReopensAfterCutOff() throws Exception {
+    configure(dsTargets, 1, expiryClosingAt(year(0), daysFromNow(-1)));
+    addLockException(dsTargets, ouA, year(0));
+    assertTimeliness(true, capture, year(0));
+  }
+
+  @Test
+  // A negative expiry longer than the period closes it before it starts: never open. This is a
+  // misconfiguration, but the outcome must be "locked", not "open".
+  void negativeExpiryLongerThanPeriodNeverOpens() throws Exception {
+    configure(dsTargets, 1, -400d);
+    assertTimeliness(false, capture, year(0));
+  }
+
+  // --------------------
+  // Deletions go through the same timeliness rules as other data entry.
+  // --------------------
+
+  @Test
+  // A value in a future period cannot be deleted by an F_EDIT_EXPIRED user (DHIS2-22471).
+  void deletionInFuturePeriodIsUntimely() {
+    configure(1, 0d);
+    List<DataEntryValue.Input> deletion = List.of(value(de, month(24), true));
+    assertRejected(ErrorCode.E8030, () -> upsert(editExpired, false, deletion));
+  }
+
+  @Test
+  // A value in an expired period cannot be deleted by a normal user.
+  void deletionInExpiredPeriodIsUntimely() {
+    configure(1, 1d);
+    List<DataEntryValue.Input> deletion = List.of(value(de, month(-3), true));
+    assertRejected(ErrorCode.E8030, () -> upsert(capture, false, deletion));
+  }
+
+  @Test
+  // A superuser with force can delete a value in a future period (here: one it entered with force).
+  void superuserWithForceCanDeleteInFuturePeriod() throws Exception {
+    configure(1, 0d);
+    assertAcceptedWithForce(superuser, month(24));
+    assertEquals(1, upsert(superuser, true, List.of(value(de, month(24), true))));
+  }
+
+  // --------------------
+  // Open future periods are counted in periods of the data set's own period type.
+  // --------------------
+
+  /**
+   * For each period type: with openFuturePeriods = 0 the current period is locked and the previous
+   * one open; with 1 the current period is open and the next one locked.
+   */
+  @ParameterizedTest(name = "{0}")
+  @ValueSource(
+      strings = {
+        "Daily",
+        "Weekly",
+        "WeeklySunday",
+        "BiWeekly",
+        "BiMonthly",
+        "Quarterly",
+        "SixMonthly",
+        "SixMonthlyApril",
+        "FinancialApril",
+        "FinancialOct"
+      })
+  void openFuturePeriodsForPeriodType(String periodTypeName) throws Exception {
+    PeriodType type = PeriodType.getPeriodTypeByName(periodTypeName);
+    DataSet dataSet = addDataSet('Z', type);
+    Period current = type.createPeriod();
+
+    configure(dataSet, 0, 0d);
+    assertTimeliness(false, capture, current);
+    assertTimeliness(true, capture, type.getPreviousPeriod(current));
+
+    configure(dataSet, 1, 0d);
+    assertTimeliness(true, capture, current);
+    assertTimeliness(false, capture, type.getNextPeriod(current));
   }
 
   // --------------------
@@ -642,15 +733,32 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   private void configure(int openFuturePeriods, double expiryDays) {
-    ds.setOpenFuturePeriods(openFuturePeriods);
-    ds.setExpiryDays(expiryDays);
-    dataSetService.updateDataSet(ds);
+    configure(ds, openFuturePeriods, expiryDays);
   }
 
-  private void configureTargets(int openFuturePeriods, double expiryDays) {
-    dsTargets.setOpenFuturePeriods(openFuturePeriods);
-    dsTargets.setExpiryDays(expiryDays);
-    dataSetService.updateDataSet(dsTargets);
+  /** Changes the data set as admin (the previous import may have left a normal user logged in). */
+  private void configure(DataSet dataSet, int openFuturePeriods, double expiryDays) {
+    injectAdminIntoSecurityContext();
+    dataSet.setOpenFuturePeriods(openFuturePeriods);
+    dataSet.setExpiryDays(expiryDays);
+    dataSetService.updateDataSet(dataSet);
+  }
+
+  /**
+   * Adds a data set of the given period type at A with its own data element, which imports of that
+   * period type then use.
+   */
+  private DataSet addDataSet(char uniqueCharacter, PeriodType periodType) {
+    DataElement element = createDataElement(uniqueCharacter);
+    manager.save(element);
+    DataSet dataSet = createDataSet(uniqueCharacter, periodType);
+    dataSet.addDataSetElement(element);
+    dataSet.addOrganisationUnit(ouA);
+    dataSetService.addDataSet(dataSet);
+    dataSet.getSharing().setPublicAccess("rwrw----");
+    dataSetService.updateDataSet(dataSet);
+    dataElementByPeriodType.put(periodType.getName(), element);
+    return dataSet;
   }
 
   private void addInputPeriod(Period period, Instant opening, Instant closing) {
@@ -662,8 +770,8 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     dataSetService.updateDataSet(ds);
   }
 
-  private void addLockException(OrganisationUnit ou, Period period) {
-    dataSetService.addLockException(new LockException(persisted(period), ou, ds));
+  private void addLockException(DataSet dataSet, OrganisationUnit ou, Period period) {
+    dataSetService.addLockException(new LockException(persisted(period), ou, dataSet));
   }
 
   /** Load-or-create; avoids getPeriod, whose ISO to ID cache outlives the per-test DB wipe. */
@@ -751,33 +859,45 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
     for (Period p : periods) assertFalse(msg.contains(p.getIsoDate()), msg);
   }
 
-  /** Yearly periods go to the targets data set, all others to the monthly one. */
-  private DataElement dataElementFor(Period period) {
-    return YEARLY.equals(period.getPeriodType()) ? deTargets : de;
-  }
-
   private int upsert(User user, boolean force, OrganisationUnit ou, Period... periods)
       throws Exception {
-    injectSecurityContextUser(user);
     List<DataEntryValue.Input> values =
         Arrays.stream(periods)
-            .map(
-                p ->
-                    new DataEntryValue.Input(
-                        dataElementFor(p).getUid(),
-                        ou.getUid(),
-                        null,
-                        null,
-                        p.getIsoDate(),
-                        "1",
-                        null))
+            .map(p -> value(dataElementByPeriodType.get(p.getPeriodType().getName()), ou, p))
             .toList();
+    return upsert(user, force, values);
+  }
+
+  private int upsert(User user, boolean force, List<DataEntryValue.Input> values) throws Exception {
+    injectSecurityContextUser(user);
     return dataEntryService
         .upsertGroup(
             new DataEntryGroup.Options(false, false, force),
             dataEntryService.decodeGroup(new DataEntryGroup.Input(values)),
             transitory())
         .succeeded();
+  }
+
+  private static DataEntryValue.Input value(DataElement de, OrganisationUnit ou, Period period) {
+    return new DataEntryValue.Input(
+        de.getUid(), ou.getUid(), null, null, period.getIsoDate(), "1", null);
+  }
+
+  /** A value (or, if deleted, a deletion) for the given data element at A. */
+  private DataEntryValue.Input value(DataElement de, Period period, boolean deleted) {
+    return new DataEntryValue.Input(
+        de.getUid(),
+        ouA.getUid(),
+        null,
+        null,
+        null,
+        null,
+        null,
+        period.getIsoDate(),
+        deleted ? null : "1",
+        null,
+        null,
+        deleted);
   }
 
   private LockStatus entryStatus(User user, Period period) throws ConflictException {
