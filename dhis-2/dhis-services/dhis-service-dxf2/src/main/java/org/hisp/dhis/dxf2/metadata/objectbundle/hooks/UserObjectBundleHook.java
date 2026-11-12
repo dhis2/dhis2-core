@@ -68,7 +68,6 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   public static final String USERNAME = "username";
-  public static final String INVALIDATE_SESSIONS_KEY = "shouldInvalidateUserSessions";
   public static final String PRE_UPDATE_USER_KEY = "preUpdateUser";
 
   private final UserService userService;
@@ -180,7 +179,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     if (user == null) return;
 
     bundle.putExtras(user, PRE_UPDATE_USER_KEY, user);
-    bundle.putExtras(persisted, INVALIDATE_SESSIONS_KEY, userRolesUpdated(user, persisted));
 
     if (persisted.getAvatar() != null
         && (user.getAvatar() == null
@@ -197,20 +195,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     }
   }
 
-  private Boolean userRolesUpdated(User preUpdateUser, User persistedUser) {
-    Set<String> before =
-        preUpdateUser.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
-    Set<String> after =
-        persistedUser.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
-
-    return !Objects.equals(before, after);
-  }
-
   @Override
   public void postUpdate(User persistedUser, ObjectBundle bundle) {
     final User preUpdateUser = (User) bundle.getExtras(persistedUser, PRE_UPDATE_USER_KEY);
-    final Boolean invalidateSessions =
-        (Boolean) bundle.getExtras(persistedUser, INVALIDATE_SESSIONS_KEY);
 
     if (!StringUtils.isEmpty(preUpdateUser.getPassword())) {
       userService.encodeAndSetPassword(persistedUser, preUpdateUser.getPassword());
@@ -222,12 +209,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
     updateUserSettings(persistedUser);
 
-    if (Boolean.TRUE.equals(invalidateSessions)) {
-      userService.invalidateUserSessions(persistedUser.getUsername());
-    }
-
     bundle.removeExtras(persistedUser, PRE_UPDATE_USER_KEY);
-    bundle.removeExtras(persistedUser, INVALIDATE_SESSIONS_KEY);
   }
 
   @Override

@@ -77,17 +77,24 @@ public class ServiceConfig {
   }
 
   /**
-   * Single-threaded, bounded executor for asynchronous user session invalidation, see {@code
-   * UserSessionInvalidationListener}. A single thread serializes the work and keeps it from
-   * competing with more important work.
+   * Single-threaded executor for marking the sessions of users with changed {@link
+   * org.hisp.dhis.user.UserDetails} for a refresh, see {@code UserDetailsChangeListener}. A single
+   * thread serializes the work and keeps it from competing with more important work.
+   *
+   * <p>The queue is unbounded, so that no task is ever rejected: tasks are submitted after the
+   * changing transaction has completed, where a rejection is only logged, and the sessions of the
+   * users of a rejected task would keep their old principal until the refresh interval. A queued
+   * task holds only the ids of one change, so a burst that the thread works off later costs little
+   * memory. Running a rejected task on the submitting thread instead would run its queries in the
+   * completion of that thread's transaction.
    */
-  @Bean("userSessionInvalidationTaskExecutor")
-  public Executor userSessionInvalidationTaskExecutor() {
+  @Bean("userDetailsChangeTaskExecutor")
+  public Executor userDetailsChangeTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(1);
     executor.setMaxPoolSize(1);
-    executor.setQueueCapacity(1000);
-    executor.setThreadNamePrefix("SessionInvalidation-");
+    executor.setQueueCapacity(Integer.MAX_VALUE);
+    executor.setThreadNamePrefix("UserDetailsChange-");
     executor.initialize();
     return executor;
   }

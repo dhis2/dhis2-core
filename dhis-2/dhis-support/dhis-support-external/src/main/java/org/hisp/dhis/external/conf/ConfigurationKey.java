@@ -47,6 +47,14 @@ public enum ConfigurationKey {
   /** Session timeout in seconds. (default: 3600). */
   SYSTEM_SESSION_TIMEOUT("system.session.timeout", "3600", false),
 
+  /**
+   * Interval in seconds after which the user details of a logged-in session are rebuilt from the
+   * database, also when no change of the user was recorded. 0 turns the timed rebuild off; a value
+   * that is not a number of seconds of 0 or more gives the default, with a warning. (default: 900).
+   */
+  SYSTEM_SESSION_USER_DETAILS_REFRESH_INTERVAL(
+      "system.session.user_details_refresh_interval", "900", false),
+
   /** System monitoring URL. */
   SYSTEM_MONITORING_URL("system.monitoring.url"),
 

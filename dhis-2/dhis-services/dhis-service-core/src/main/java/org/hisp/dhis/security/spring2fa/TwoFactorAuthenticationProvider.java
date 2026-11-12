@@ -41,6 +41,8 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.security.DhisAuthenticationToken;
+import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.security.twofa.TwoFactorType;
@@ -51,7 +53,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -123,8 +124,11 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
       authorities.add(
           FactorGrantedAuthority.fromAuthority(FactorGrantedAuthority.PASSWORD_AUTHORITY));
     }
-    return new UsernamePasswordAuthenticationToken(
-        userDetails, result.getCredentials(), authorities);
+    DhisAuthenticationToken authenticated =
+        new DhisAuthenticationToken(
+            userDetails, result.getCredentials(), authorities, LoginMethod.LOCAL);
+    authenticated.setDetails(result.getDetails());
+    return authenticated;
   }
 
   private void checkLockout(String username, String ip) {

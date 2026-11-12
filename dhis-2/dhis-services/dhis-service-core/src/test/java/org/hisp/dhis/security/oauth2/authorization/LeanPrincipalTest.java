@@ -34,6 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -42,12 +44,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.security.DhisAuthenticationToken;
+import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.UserDetailsImpl;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -76,16 +83,22 @@ class LeanPrincipalTest {
     assertSame(attributes, Dhis2OAuth2AuthorizationServiceImpl.leanPrincipal(attributes));
   }
 
-  @Test
-  void formLoginUserDetailsImplPrincipal_isLeaned() {
+  @ParameterizedTest
+  @EnumSource(LoginMethod.class)
+  void passwordLoginPrincipalSurvivesAuthorizationJsonRoundTrip(LoginMethod method)
+      throws Exception {
     UserDetailsImpl userDetails = userDetails("formuser");
     Map<String, Object> attributes = new LinkedHashMap<>();
     attributes.put(
         Principal.class.getName(),
-        new UsernamePasswordAuthenticationToken(
-            userDetails, "secret", userDetails.getAuthorities()));
+        new DhisAuthenticationToken(userDetails, "secret", userDetails.getAuthorities(), method));
 
-    assertLean(Dhis2OAuth2AuthorizationServiceImpl.leanPrincipal(attributes), "formuser");
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModules(SecurityJackson2Modules.getModules(getClass().getClassLoader()));
+    Map<String, Object> lean = Dhis2OAuth2AuthorizationServiceImpl.leanPrincipal(attributes);
+    Map<String, Object> restored =
+        mapper.readValue(mapper.writeValueAsString(lean), new TypeReference<>() {});
+    assertLean(restored, "formuser");
   }
 
   @Test

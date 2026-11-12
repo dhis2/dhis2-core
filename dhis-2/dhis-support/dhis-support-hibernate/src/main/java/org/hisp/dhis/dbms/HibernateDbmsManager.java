@@ -163,6 +163,7 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("users_cogsdimensionconstraints");
     emptyTable("userrolemembers");
     emptyTable("userroleauthorities");
+    emptyTable("userrolerestrictions");
     emptyTable("userdatavieworgunits");
     emptyTable("usermembership");
     emptyTable("userrole");
@@ -317,6 +318,7 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("message");
 
     emptyTable("usergroupmembers");
+    emptyTable("usergroupmanaged");
     emptyTable("usergroup");
 
     emptyTable("previouspasswords");

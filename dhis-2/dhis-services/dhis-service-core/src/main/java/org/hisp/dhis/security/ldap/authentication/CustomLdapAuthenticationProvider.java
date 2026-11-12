@@ -33,7 +33,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.hisp.dhis.security.DhisAuthenticationToken;
+import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -79,9 +80,9 @@ public class CustomLdapAuthenticationProvider extends LdapAuthenticationProvider
       throw new UsernameNotFoundException(msg);
     }
 
-    UsernamePasswordAuthenticationToken result =
-        UsernamePasswordAuthenticationToken.authenticated(
-            userDetails, user.getPassword(), userDetails.getAuthorities());
+    DhisAuthenticationToken result =
+        new DhisAuthenticationToken(
+            userDetails, user.getPassword(), userDetails.getAuthorities(), LoginMethod.LDAP);
     result.setDetails(authenticate.getDetails());
 
     return result;

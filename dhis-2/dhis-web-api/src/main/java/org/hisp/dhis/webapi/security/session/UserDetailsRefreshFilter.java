@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.webapi.security.session;
 
-import org.hisp.dhis.common.UID;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.user.UserDetails;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Event published after the authorities of a {@link UserRole} have changed, so that active sessions
- * of users with that role can be invalidated asynchronously, outside the updating transaction and
- * off the request thread.
+ * Refreshes the {@link UserDetails} principal of the session of a request in place when the user
+ * changed since the principal was built, or ends the session when the user may no longer stay
+ * logged in. See {@link UserDetailsSessionRefresher} for the rules.
+ *
+ * <p>Only the session from {@code request.getSession(false)} is used: the filter never creates or
+ * switches a session.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public record UserRoleAuthoritiesChangedEvent(UID userRoleUid) {}
+@RequiredArgsConstructor
+public class UserDetailsRefreshFilter extends OncePerRequestFilter {
+
+  private final UserDetailsSessionRefresher sessionRefresher;
+
+  @Override
+  protected void doFilterInternal(
+      @Nonnull HttpServletRequest request,
+      @Nonnull HttpServletResponse response,
+      @Nonnull FilterChain filterChain)
+      throws ServletException, IOException {
+    sessionRefresher.refresh(request);
+    filterChain.doFilter(request, response);
+  }
+}

@@ -1187,12 +1187,23 @@ public class DefaultUserService implements UserService {
     List<String> dataViewOrganisationUnitsUidsByUser =
         organisationUnitService.getDataViewOrganisationUnitsUidsByUser(user.getUsername());
 
+    // The groups, roles, authorities and restrictions are read with SQL, not through the cached
+    // collections User.getGroups() and User.getUserRoles(): another node of a cluster does not
+    // evict those for every change, so a login or a refresh there would build the principal from
+    // stale memberships (DHIS2-22326). A user that is not stored yet has no rows to read.
+    UserMemberships memberships = user.getId() > 0 ? userStore.getMemberships(user.getId()) : null;
+
     // Resolve managed-group primary keys in a single SQL query instead of letting
     // UserDetails.createUserDetails walk User.getManagedGroups() (one lazy-load query per group).
-    Set<Long> userGroupPrimaryKeys =
-        user.getGroups() == null
-            ? Set.of()
-            : user.getGroups().stream().map(UserGroup::getId).collect(Collectors.toSet());
+    Set<Long> userGroupPrimaryKeys;
+    if (memberships != null) {
+      userGroupPrimaryKeys = memberships.userGroups().keySet();
+    } else {
+      userGroupPrimaryKeys =
+          user.getGroups() == null
+              ? Set.of()
+              : user.getGroups().stream().map(UserGroup::getId).collect(Collectors.toSet());
+    }
     Set<Long> managedGroupLongIds = userGroupService.getManagedGroupIds(userGroupPrimaryKeys);
 
     return UserDetails.createUserDetails(
@@ -1203,7 +1214,8 @@ public class DefaultUserService implements UserService {
         new HashSet<>(searchOrganisationUnitsUidsByUser),
         new HashSet<>(dataViewOrganisationUnitsUidsByUser),
         true,
-        managedGroupLongIds);
+        managedGroupLongIds,
+        memberships);
   }
 
   @Override
@@ -1345,6 +1357,12 @@ public class DefaultUserService implements UserService {
   @Transactional(readOnly = true)
   public List<String> getUsernamesByIds(@Nonnull Collection<Long> userIds) {
     return userStore.getUsernamesByIds(userIds);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getUsernamesByUserGroupIds(@Nonnull Collection<Long> userGroupIds) {
+    return userStore.getUsernamesByUserGroupIds(userGroupIds);
   }
 
   @Override
