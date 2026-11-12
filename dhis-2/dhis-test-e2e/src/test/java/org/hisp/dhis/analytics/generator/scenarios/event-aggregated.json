@@ -671,6 +671,20 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "mixedPeriodTypeFilterYearAndMonth",
+      "query": "/api/analytics/events/aggregate/eBAyeGv0exc.json?dimension=ou:ImspTQPwCqd;LEVEL-2&filter=pe:2021;202212&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "mixedRelativePeriodTypeFilter",
+      "query": "/api/analytics/events/aggregate/eBAyeGv0exc.json?dimension=ou:ImspTQPwCqd&filter=pe:LAST_12_MONTHS;THIS_YEAR&relativePeriodDate=2022-06-01&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

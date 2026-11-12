@@ -21,7 +21,7 @@ show_usage() {
   echo "                        Valid values: dev"
   echo "                        Pattern: s3://databases.dhis2.org/<dir>/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DB_TYPE               Database type (default: sierra-leone)"
-  echo "                        Valid values without DB_DIR: sierra-leone, hmis, empty"
+  echo "                        Valid values without DB_DIR: sierra-leone, hmis, perfland-mnch, empty"
   echo "                        Valid values with DB_DIR: platform-perf"
   echo "  DB_VERSION            Database version (default: dev)"
   echo "                        Must be alphanumeric, dots, hyphens, underscores only"
@@ -134,6 +134,11 @@ DHIS_CONF_FILE=${DHIS_CONF_FILE:-"dhis.conf"}
 COMPOSE_EXTRA_FILE=${COMPOSE_EXTRA_FILE:-""}
 # docker compose interpolates ${DHIS_CONF_FILE} in the volume mount
 export DHIS_CONF_FILE
+# Set by ensure_db_image from the dump in S3 and the database image the run uses
+DB_ETAG=""
+DB_S3_VERSION_ID=""
+DB_IMAGE=""
+DB_IMAGE_ID=""
 
 if [ -n "$POPULATE_SCRIPT" ] && [ ! -x "$POPULATE_SCRIPT" ]; then
   echo "Error: POPULATE_SCRIPT=$POPULATE_SCRIPT is not an executable file"
@@ -159,11 +164,11 @@ fi
 if [ -z "$DB_DIR" ]; then
   # No DB_DIR: public databases or an empty local database are allowed
   case "$DB_TYPE" in
-    sierra-leone|hmis|empty)
+    sierra-leone|hmis|perfland-mnch|empty)
       # Valid
       ;;
     *)
-      echo "Error: DB_TYPE must be 'sierra-leone', 'hmis', or 'empty' when DB_DIR is not set, got: $DB_TYPE" >&2
+      echo "Error: DB_TYPE must be 'sierra-leone', 'hmis', 'perfland-mnch' or 'empty' when DB_DIR is not set, got: $DB_TYPE" >&2
       echo "Set DB_DIR to use a custom database type" >&2
       echo "Run '$0' without arguments to see usage" >&2
       exit 1
@@ -282,6 +287,120 @@ pull_mutable_image() {
     echo "========================================"
     echo "Pulling mutable image tag: $DHIS2_IMAGE"
     docker pull "$DHIS2_IMAGE"
+  fi
+}
+
+db_url() {
+  # Keep in sync with DB_URL in docker/Dockerfile.postgres. Path-style, as the bucket's name has
+  # dots, which its virtual-hosted URL's TLS certificate doesn't cover.
+  # DB_TYPE=empty has no dump in S3, so it has no URL.
+  if [ "$DB_TYPE" = "empty" ]; then
+    echo ""
+    return 0
+  fi
+  local key="${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"
+  if [ -n "$DB_DIR" ]; then
+    key="${DB_DIR}/${key}"
+  fi
+  echo "https://s3.eu-west-1.amazonaws.com/databases.dhis2.org/${key}"
+}
+
+image_label() {
+  # Print the value of a label of a local image, or nothing if it has no such label
+  local image="$1"
+  local label="$2"
+  local value
+  value=$(docker image inspect --format "{{ index .Config.Labels \"$label\" }}" "$image" 2>/dev/null || true)
+  if [ "$value" = "<no value>" ]; then
+    value=""
+  fi
+  echo "$value"
+}
+
+ensure_db_image() {
+  # The database image is built once and cached under a tag of the type and version. The dumps in
+  # S3 are overwritten in place, so a cached image can hold an older dump than S3. The image is
+  # labelled with the ETag of the dump it was built from: rebuild it when the dump's ETag in S3
+  # differs, and remove the image it replaces.
+  echo ""
+  echo "========================================"
+  echo "PHASE: Database Image"
+  echo "========================================"
+
+  local compose_args
+  compose_args=$(get_compose_args)
+  # shellcheck disable=SC2086
+  DB_IMAGE=$(docker compose $compose_args config --images db)
+
+  # An empty database has no dump, so no ETag to compare: build it, which reuses the build cache
+  # when nothing changed.
+  if [ "$DB_TYPE" = "empty" ]; then
+    echo "Building $DB_IMAGE as an empty database (no dump download)"
+    # shellcheck disable=SC2086
+    docker compose $compose_args build db
+    DB_IMAGE_ID=$(docker image inspect --format '{{.Id}}' "$DB_IMAGE")
+    return 0
+  fi
+
+  local url
+  url=$(db_url)
+  local cached_id=""
+  local cached_etag=""
+  if docker image inspect "$DB_IMAGE" >/dev/null 2>&1; then
+    cached_id=$(docker image inspect --format '{{.Id}}' "$DB_IMAGE")
+    cached_etag=$(image_label "$DB_IMAGE" org.dhis2.db.etag)
+  fi
+
+  local headers
+  headers=$(curl --head --silent --fail --max-time 30 "$url" | tr -d '\r' || true)
+  DB_ETAG=$(echo "$headers" | awk 'tolower($1) == "etag:" { gsub(/"/, "", $2); print $2 }')
+  DB_S3_VERSION_ID=$(echo "$headers" | awk 'tolower($1) == "x-amz-version-id:" { print $2 }')
+
+  if [ -z "$DB_ETAG" ]; then
+    if [ -z "$cached_id" ]; then
+      echo "Error: Cannot get the ETag of $url, and $DB_IMAGE is not cached" >&2
+      exit 1
+    fi
+    echo "Warning: Cannot get the ETag of $url; using the cached $DB_IMAGE"
+    echo "  built from ETag ${cached_etag:-unknown}, which may be older than the dump in S3"
+    DB_ETAG="$cached_etag"
+    DB_S3_VERSION_ID=$(image_label "$DB_IMAGE" org.dhis2.db.s3-version-id)
+    DB_IMAGE_ID="$cached_id"
+    return 0
+  fi
+
+  if [ "$DB_ETAG" = "$cached_etag" ]; then
+    echo "$DB_IMAGE is up to date with $url (ETag $DB_ETAG)"
+    DB_IMAGE_ID="$cached_id"
+    return 0
+  fi
+
+  local cached="not cached"
+  if [ -n "$cached_id" ]; then
+    cached="${cached_etag:-none}"
+  fi
+  echo "Building $DB_IMAGE from $url"
+  echo "  ETag in S3: $DB_ETAG, of the cached image: $cached"
+  export DB_ETAG DB_S3_VERSION_ID
+  local start_time
+  start_time=$(date +%s)
+  # shellcheck disable=SC2086
+  docker compose $compose_args build db
+  DB_IMAGE_ID=$(docker image inspect --format '{{.Id}}' "$DB_IMAGE")
+  echo "Built $DB_IMAGE (took $(($(date +%s) - start_time))s)"
+
+  # The replaced image is left untagged. The containerd image store removes it itself.
+  if [ -n "$cached_id" ] && [ "$cached_id" != "$DB_IMAGE_ID" ] \
+    && docker image inspect "$cached_id" >/dev/null 2>&1; then
+    echo "Removing the image it replaces, $cached_id"
+    docker image rm "$cached_id" || echo "Warning: Failed to remove $cached_id"
+  fi
+
+  # On CI, nothing but database images is built, and their build cache holds a dump and its
+  # restored data directory per build, which a rebuild never reuses. Locally, leave the cache alone.
+  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    echo "Pruning the build cache"
+    docker builder prune --all --force
   fi
 }
 
@@ -717,7 +836,8 @@ generate_metadata() {
     jq --raw-output 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "\(.key)=\(.value)"' 2>/dev/null || echo "")
 
   # A registry digest is portable; an image ID requires the image to exist locally.
-  # DB image is reproducible via DB_TYPE and DB_VERSION args
+  # The DB image is identified by DB_DIR, DB_TYPE and DB_VERSION, and its content by DB_ETAG: the
+  # dumps in S3 are overwritten in place, and S3 keeps the overwritten versions (DB_S3_VERSION_ID)
   local dhis2_image_immutable="$DHIS2_IMAGE"
   if [ "$dhis2_image_digest" != "unknown" ] && [ -n "$dhis2_image_digest" ]; then
     dhis2_image_immutable="$dhis2_image_digest"
@@ -765,6 +885,11 @@ generate_metadata() {
     echo "GIT_COMMIT_PERFORMANCE_TESTS=$git_commit"
     echo "GIT_DIRTY_PERFORMANCE_TESTS=$([ -n "$(git status --porcelain 2>/dev/null)" ] && echo 'true' || echo 'false')"
     echo "DHIS2_IMAGE_DIGEST=$dhis2_image_digest"
+    echo "DB_URL=$(db_url)"
+    echo "DB_ETAG=$DB_ETAG"
+    echo "DB_S3_VERSION_ID=$DB_S3_VERSION_ID"
+    echo "DB_IMAGE=$DB_IMAGE"
+    echo "DB_IMAGE_ID=$DB_IMAGE_ID"
     if [ -n "$dhis2_labels" ]; then
       echo "$dhis2_labels"
     fi
@@ -905,6 +1030,7 @@ run_simulation() {
 # MAIN EXECUTION
 ################################################################################
 pull_mutable_image
+ensure_db_image
 
 echo ""
 echo "========================================"
