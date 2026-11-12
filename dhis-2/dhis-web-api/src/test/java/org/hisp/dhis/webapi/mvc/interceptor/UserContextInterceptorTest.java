@@ -59,7 +59,7 @@ class UserContextInterceptorTest {
   }
 
   @Test
-  void settingsAreClearedWhenALaterInterceptorEndsTheRequest() throws Exception {
+  void settingsAreClearedWhenALaterInterceptorEndsTheRequest() {
     UserDetails user = mock(UserDetails.class);
     when(user.getUsername()).thenReturn("locale-user");
     SecurityContextHolder.getContext()
