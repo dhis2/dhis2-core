@@ -414,8 +414,8 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Tests ran on self-hosted runner with the following specifications:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "* **CPU**: Intel(R) Xeon(R) CPU E3-1275 v6 @ 3.80GHz (8 core)" >> $GITHUB_STEP_SUMMARY
-        echo "* **Memory**: 64GiB System Memory" >> $GITHUB_STEP_SUMMARY
+        echo "* **CPU**: Intel Xeon E3-1275 v6 @ 3.80GHz (4 cores, 8 threads)" >> $GITHUB_STEP_SUMMARY
+        echo "* **Memory**: 64 GB" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "## 🔄 Reproduce this run" >> $GITHUB_STEP_SUMMARY
