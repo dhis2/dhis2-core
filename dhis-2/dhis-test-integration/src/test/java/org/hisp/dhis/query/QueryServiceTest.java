@@ -1028,16 +1028,35 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void displayNameFallbackPreservesConditionalTrimmingAndWhitespaceTranslations() {
     ThreadUserSettings.put(Map.of("keyDbLocale", "fr"));
-    OrganisationUnit absent = saveSearchOrganisationUnit('A', "\t Fallback absent \r");
+    OrganisationUnit absent = saveSearchOrganisationUnit('A', "Fallback absent");
     OrganisationUnit missing =
         saveSearchOrganisationUnit(
-            'B', "\t Fallback missing \r", new Translation(Locale.ENGLISH, "NAME", "English"));
+            'B', "Fallback missing", new Translation(Locale.ENGLISH, "NAME", "English"));
     OrganisationUnit empty =
         saveSearchOrganisationUnit(
-            'C', "\t Fallback empty \r", new Translation(Locale.FRENCH, "NAME", ""));
+            'C', "Fallback empty", new Translation(Locale.FRENCH, "NAME", ""));
     OrganisationUnit whitespace =
         saveSearchOrganisationUnit(
             'D', "Fallback hidden", new Translation(Locale.FRENCH, "NAME", "   "));
+    entityManager.flush();
+    // Hibernate writes (TrimNameEventListener) and trg_trim_name (V2_44_31) trim names, but rows
+    // written before V2_44_31 keep untrimmed names. Write such legacy names natively.
+    entityManager
+        .createNativeQuery("alter table organisationunit disable trigger trg_trim_name")
+        .executeUpdate();
+    for (OrganisationUnit unit : List.of(absent, missing, empty)) {
+      entityManager
+          .createNativeQuery("update organisationunit set name = :name where uid = :uid")
+          .setParameter("name", "\t " + unit.getName() + " \r")
+          .setParameter("uid", unit.getUid())
+          .executeUpdate();
+    }
+    absent = reloadSearchOrganisationUnit(absent);
+    missing = reloadSearchOrganisationUnit(missing);
+    empty = reloadSearchOrganisationUnit(empty);
+    whitespace = reloadSearchOrganisationUnit(whitespace);
+    assertEquals("\t Fallback absent \r", absent.getDisplayName());
+    assertEquals("Fallback missing", missing.getDisplayName());
 
     for (OrganisationUnit unit : List.of(absent, missing, empty, whitespace)) {
       Query<OrganisationUnit> query =
