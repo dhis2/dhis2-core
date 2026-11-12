@@ -477,18 +477,24 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * select ...
    * from trackerevent ev
    *   inner join enrollment en on ...
-   *   inner join program p on ...            -- conditional
-   *   inner join programstage ps on ...      -- conditional
    *   inner join trackedentity te on ...
    *   inner join trackedentityprogramowner po on ...
    *   inner join organisationunit ou on ...
+   *   inner join on filtered attributes ... -- conditional
+   *   inner join program p on ...            -- conditional
+   *   inner join programstage ps on ...      -- conditional
    *   inner join organisationunit evou on ...
    *   inner join organisationunit teou on ...
    *   left join userinfo au on ...
-   *   left join on attributes ...           -- conditional
    *   inner join (...) coc_agg on ...
+   *   left join on order-only attributes ... -- conditional
    * where ...
    * </pre>
+   *
+   * <p>The join order matters: PostgreSQL only reorders the first {@code join_collapse_limit}
+   * (default 8) tables of explicit joins; later tables are joined to that result. Joins that narrow
+   * down the events (owner org unit scope, attribute filters) must therefore come first so the
+   * planner can start from them. Joins that only add columns to the response come last.
    */
   private String getQuery(
       TrackerEventQueryParams params, MapSqlParameterSource sqlParams, UserDetails user) {
@@ -496,20 +502,21 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     addSelect(sql, params);
     sql.append(" from trackerevent ev ");
     addJoinOnEnrollment(sql);
+    addJoinOnTrackedEntity(sql);
+    addJoinOnProgramOwner(sql);
+    addJoinOnOwnerOrgUnit(sql);
+    addAttributeJoins(sql, "inner", params.getInnerJoinAttributes());
     if (!params.hasEnrolledInTrackerProgram()) {
       addJoinOnProgram(sql);
     }
     if (!params.hasProgramStage()) {
       addJoinOnProgramStage(sql);
     }
-    addJoinOnTrackedEntity(sql);
-    addJoinOnProgramOwner(sql);
-    addJoinOnOwnerOrgUnit(sql);
     addJoinOnEventOrgUnit(sql);
     addJoinOnTrackedEntityOrgUnit(sql);
     addLeftJoinOnAssignedUser(sql);
-    addJoinOnAttributes(sql, params);
     addJoinOnCategoryOptionCombo(sql, user);
+    addAttributeJoins(sql, "left", params.getLeftJoinAttributes());
     addWhereConditions(sql, sqlParams, params);
     return sql.toString();
   }
@@ -561,7 +568,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       TrackerEventQueryParams params,
       boolean hasTrackedEntityJoin) {
     SqlHelper hlp = new SqlHelper(true);
-    addDataElementConditions(sql, sqlParams, params);
+    addDataElementConditions(sql, sqlParams, params, hlp);
     if (hasTrackedEntityJoin) {
       addTrackedEntityConditions(sql, sqlParams, params, hlp);
     } else {
@@ -787,12 +794,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * planner use the join as a filter. Order-only attributes use LEFT JOIN to preserve rows without
    * a value.
    */
-  private void addJoinOnAttributes(StringBuilder sql, TrackerEventQueryParams params) {
-    for (TrackedEntityAttribute attribute : params.getInnerJoinAttributes()) {
-      addAttributeJoin(sql, "inner", attribute);
-    }
-    for (TrackedEntityAttribute attribute : params.getLeftJoinAttributes()) {
-      addAttributeJoin(sql, "left", attribute);
+  private void addAttributeJoins(
+      StringBuilder sql, String joinType, List<TrackedEntityAttribute> attributes) {
+    for (TrackedEntityAttribute attribute : attributes) {
+      addAttributeJoin(sql, joinType, attribute);
     }
   }
 
@@ -861,7 +866,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private void addWhereConditions(
       StringBuilder sql, MapSqlParameterSource sqlParams, TrackerEventQueryParams params) {
     SqlHelper hlp = new SqlHelper(true);
-    addDataElementConditions(sql, sqlParams, params);
+    addDataElementConditions(sql, sqlParams, params, hlp);
     addAttributeFilterConditions(sql, sqlParams, params, hlp);
     addTrackedEntityConditions(sql, sqlParams, params, hlp);
     addProgramConditions(sql, sqlParams, params, hlp);
@@ -879,9 +884,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private void addDataElementConditions(
-      StringBuilder sql, MapSqlParameterSource sqlParams, TrackerEventQueryParams params) {
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      TrackerEventQueryParams params,
+      SqlHelper hlp) {
     if (!params.getDataElements().isEmpty()) {
-      sql.append(" and ");
+      sql.append(hlp.whereAnd());
       addPredicates(sql, sqlParams, params.getDataElements());
       sql.append(" ");
     }

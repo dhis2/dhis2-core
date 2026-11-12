@@ -321,6 +321,20 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "incidentDateFilterForEnrollments",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&filter=INCIDENT_DATE:GT:2022-12-15&desc=lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "incidentDateDimensionForEnrollments",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=INCIDENT_DATE:GT:2022-12-15&desc=lastupdated",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

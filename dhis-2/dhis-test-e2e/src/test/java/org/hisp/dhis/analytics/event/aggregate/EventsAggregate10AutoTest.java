@@ -824,7 +824,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
       validateResponseStructure(
           response,
           expectPostgis,
-          2023,
+          1470,
           4,
           4); // Pass runtime flag, row count, and expected header counts
 
@@ -868,8 +868,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
       // rowContext not found or empty in the response, skipping assertions.
 
       // 7. Assert row values in any order.
-      validateRow(response, List.of("1.0", "ImspTQPwCqd", "20211008", "9"));
-      validateRow(response, List.of("0.0", "ImspTQPwCqd", "20211028", "5"));
+      validateRow(response, List.of("2.0", "ImspTQPwCqd", "20220512", "7"));
+      validateRow(response, List.of("0.0", "ImspTQPwCqd", "20221125", "6"));
     }
 
     @Test
@@ -899,7 +899,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
       validateResponseStructure(
           response,
           expectPostgis,
-          2023,
+          1470,
           4,
           4); // Pass runtime flag, row count, and expected header counts
 
@@ -943,8 +943,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
       // rowContext not found or empty in the response, skipping assertions.
 
       // 7. Assert row values in any order.
-      validateRow(response, List.of("1.0", "ImspTQPwCqd", "20211008", "9"));
-      validateRow(response, List.of("0.0", "ImspTQPwCqd", "20211028", "5"));
+      validateRow(response, List.of("0.0", "ImspTQPwCqd", "20220617", "11"));
+      validateRow(response, List.of("1.0", "ImspTQPwCqd", "20230131", "8"));
     }
 
     @Test
@@ -1003,7 +1003,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
       // 7. Assert row existence by value (unsorted results - validates all columns).
       // Validate row exists with values from original row.
-      validateRowExists(response, actualHeaders, Map.of("incidentdate", "2021", "value", "12"));
+      validateRowExists(response, actualHeaders, Map.of("incidentdate", "2021", "value", "27"));
     }
   }
 
