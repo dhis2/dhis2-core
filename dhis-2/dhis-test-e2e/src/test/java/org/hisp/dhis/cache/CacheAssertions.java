@@ -41,7 +41,7 @@ final class CacheAssertions {
     assertEquals(200, response.statusCode(), "Expected 200 response");
     assertNotNull(response.etag(), "Expected ETag header");
     assertFalse(response.etag().isBlank(), "Expected non-empty ETag header");
-    assertEquals("Cookie, Authorization", response.vary(), "Unexpected Vary header");
+    assertEquals("Accept, Cookie, Authorization", response.vary(), "Unexpected Vary header");
     assertNotNull(response.cacheControl(), "Expected Cache-Control header");
   }
 

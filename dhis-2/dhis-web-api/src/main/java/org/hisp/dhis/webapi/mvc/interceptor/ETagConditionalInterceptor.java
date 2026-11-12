@@ -92,6 +92,7 @@ import org.hisp.dhis.userdatastore.UserDatastoreEntry;
 import org.hisp.dhis.webapi.etag.ETagFieldsHopAnalyzer;
 import org.hisp.dhis.webapi.service.ETagConditionalService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.PathContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -657,8 +658,10 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
 
   /**
    * Combines the base ETag with what selects the representation within the same dependencies: the
-   * request path (object UID, format extension, API version) and the query string. Without the
-   * path, one object's ETag would answer 304 for another object, or for one that does not exist.
+   * request path (object UID, format extension, API version), the query string and the {@code
+   * Accept} header. Without the path, one object's ETag would answer 304 for another object, or for
+   * one that does not exist. Without {@code Accept}, a JSON ETag would answer 304 for an XML
+   * request before content negotiation runs.
    */
   static String requestETag(String baseETag, HttpServletRequest request) {
     MessageDigest digest = newSha256Digest();
@@ -669,6 +672,11 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
     if (queryString != null && !queryString.isEmpty()) {
       digest.update((byte) '?');
       digest.update(queryString.getBytes(StandardCharsets.UTF_8));
+    }
+    String accept = request.getHeader(HttpHeaders.ACCEPT);
+    if (accept != null) {
+      digest.update((byte) ' ');
+      digest.update(accept.getBytes(StandardCharsets.UTF_8));
     }
     return HexFormat.of().formatHex(digest.digest());
   }

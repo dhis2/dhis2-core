@@ -288,7 +288,7 @@ public class ETagConditionalService {
    */
   public void setETagHeaders(@Nonnull HttpServletResponse response, @Nonnull String currentETag) {
     response.setHeader(HttpHeaders.ETAG, quote(currentETag));
-    response.setHeader(HttpHeaders.VARY, "Cookie, Authorization");
+    response.setHeader(HttpHeaders.VARY, "Accept, Cookie, Authorization");
 
     String cacheControlValue = buildCacheControl().getHeaderValue();
     Collection<String> existing = response.getHeaders(HttpHeaders.CACHE_CONTROL);

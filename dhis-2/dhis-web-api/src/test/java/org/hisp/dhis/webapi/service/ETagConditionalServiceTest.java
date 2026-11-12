@@ -109,7 +109,7 @@ class ETagConditionalServiceTest {
     service.setETagHeaders(response, "stored-etag-value");
 
     assertEquals("\"stored-etag-value\"", response.getHeader(HttpHeaders.ETAG));
-    assertEquals("Cookie, Authorization", response.getHeader(HttpHeaders.VARY));
+    assertEquals("Accept, Cookie, Authorization", response.getHeader(HttpHeaders.VARY));
     assertEquals(
         "max-age=0, private, stale-while-revalidate=60",
         response.getHeader(HttpHeaders.CACHE_CONTROL));

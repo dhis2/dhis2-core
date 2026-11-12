@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.mvc.interceptor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -113,7 +114,7 @@ class ETagConditionalResponseBodyAdviceTest {
         .perform(get("/api/me/settings"))
         .andExpect(status().isOk())
         .andExpect(header().exists("ETag"))
-        .andExpect(header().string("Vary", "Cookie, Authorization"))
+        .andExpect(header().string("Vary", "Accept, Cookie, Authorization"))
         .andExpect(
             header().string("Cache-Control", "max-age=0, private, stale-while-revalidate=60"));
   }
@@ -127,7 +128,7 @@ class ETagConditionalResponseBodyAdviceTest {
                 .param("fields", "id"))
         .andExpect(status().isOk())
         .andExpect(header().exists("ETag"))
-        .andExpect(header().string("Vary", "Cookie, Authorization"))
+        .andExpect(header().string("Vary", "Accept, Cookie, Authorization"))
         .andExpect(
             header().string("Cache-Control", "max-age=0, private, stale-while-revalidate=60"));
   }
@@ -146,6 +147,27 @@ class ETagConditionalResponseBodyAdviceTest {
         .andExpect(header().string("ETag", etag));
 
     assertEquals(1, controller.meSettingsResponses.get());
+  }
+
+  @Test
+  void testETagOfOneRepresentationDoesNotAnswerAnother() throws Exception {
+    String jsonETag =
+        mockMvc
+            .perform(get("/api/me/settings").accept("application/json"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getHeader("ETag");
+
+    // an XML request must reach the controller and get XML, not a 304 for the JSON body
+    MvcResult xml =
+        mockMvc
+            .perform(
+                get("/api/me/settings").accept("application/xml").header("If-None-Match", jsonETag))
+            .andExpect(status().isOk())
+            .andReturn();
+    assertNotEquals(jsonETag, xml.getResponse().getHeader("ETag"));
+    assertEquals(2, controller.meSettingsResponses.get());
   }
 
   @Test
@@ -172,7 +194,7 @@ class ETagConditionalResponseBodyAdviceTest {
         .perform(head("/api/me/settings"))
         .andExpect(status().isOk())
         .andExpect(header().exists("ETag"))
-        .andExpect(header().string("Vary", "Cookie, Authorization"))
+        .andExpect(header().string("Vary", "Accept, Cookie, Authorization"))
         .andExpect(
             header().string("Cache-Control", "max-age=0, private, stale-while-revalidate=60"));
   }
