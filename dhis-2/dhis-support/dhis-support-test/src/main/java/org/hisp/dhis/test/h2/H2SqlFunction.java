@@ -60,7 +60,7 @@ public class H2SqlFunction {
       createAliasForFunction(connection, "jsonb_has_user_id");
       createAliasForFunction(connection, "jsonb_check_user_access");
       createAliasForFunction(connection, "jsonb_get_translated_value");
-      createAliasForFunction(connection, "jsonb_get_display_name");
+      createAliasForFunction(connection, "jsonb_get_display_name", "jsonbGetDisplayName");
     } catch (SQLException exception) {
       log.info(
           "Failed to register custom H2Functions, probably already registered, ignoring this.",
@@ -70,10 +70,15 @@ public class H2SqlFunction {
 
   private static void createAliasForFunction(Connection connection, String name)
       throws SQLException {
+    createAliasForFunction(connection, name, name);
+  }
+
+  private static void createAliasForFunction(Connection connection, String name, String method)
+      throws SQLException {
     try (Statement statement = connection.createStatement()) {
       statement.execute(
           String.format(
-              "CREATE ALIAS %s FOR \"%s.%s\"", name, H2SqlFunction.class.getName(), name));
+              "CREATE ALIAS %s FOR \"%s.%s\"", name, H2SqlFunction.class.getName(), method));
     }
   }
 
@@ -220,7 +225,10 @@ public class H2SqlFunction {
     }
   }
 
-  public static String jsonb_get_display_name(
+  // H2 binds the same four arguments as the PostgreSQL rendering. H2 has no JSONPath, so it matches
+  // the locale with the Java parser below and ignores the translation path.
+  @SuppressWarnings("java:S1172")
+  public static String jsonbGetDisplayName(
       PGobject input, String name, String translationPath, String locale) {
     if (locale == null || input == null || input.getValue() == null) return name;
     JsonArray translations = new Gson().fromJson(input.getValue(), JsonArray.class);
