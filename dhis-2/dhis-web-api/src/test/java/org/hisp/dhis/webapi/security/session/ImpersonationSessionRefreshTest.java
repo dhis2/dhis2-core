@@ -213,6 +213,56 @@ class ImpersonationSessionRefreshTest {
     assertNull(SecurityContextHolder.getContext().getAuthentication());
   }
 
+  /**
+   * The impersonation request is authenticated by its session, so the refresh filter checked the
+   * principal of the impersonating user against the refresh state of the session. A change of that
+   * user committed after the check is not in the principal, and must not be acknowledged by the
+   * impersonation.
+   */
+  @Test
+  void sourceChangeAfterTheSessionCheckOfTheImpersonationRequestEndsTheSession() throws Exception {
+    when(tracker.getChangeToken("source")).thenReturn("source-before");
+
+    filter.doFilter(
+        request(),
+        new MockHttpServletResponse(),
+        (request, response) -> {
+          when(tracker.getChangeToken("source")).thenReturn("source-after");
+          try {
+            controller.impersonateUser(
+                (HttpServletRequest) request, (HttpServletResponse) response, "target");
+          } catch (ForbiddenException | NotFoundException ex) {
+            throw new ServletException(ex);
+          }
+        });
+    assertEquals("target", SecurityContextHolder.getContext().getAuthentication().getName());
+    nextRequest();
+
+    assertTrue(session.isInvalid());
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  @Test
+  void impersonationByARequestAuthenticatedByItsSessionSurvivesTheNextRequest() throws Exception {
+    when(tracker.getChangeToken("source")).thenReturn("source-before");
+
+    filter.doFilter(
+        request(),
+        new MockHttpServletResponse(),
+        (request, response) -> {
+          try {
+            controller.impersonateUser(
+                (HttpServletRequest) request, (HttpServletResponse) response, "target");
+          } catch (ForbiddenException | NotFoundException ex) {
+            throw new ServletException(ex);
+          }
+        });
+    nextRequest();
+
+    assertFalse(session.isInvalid());
+    assertEquals("target", SecurityContextHolder.getContext().getAuthentication().getName());
+  }
+
   /** No live token, or the token the source session had already applied before the entry. */
   @ParameterizedTest
   @NullSource
