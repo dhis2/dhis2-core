@@ -34,6 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -94,6 +96,8 @@ class DisplayNameQueryPlanTest extends PostgresIntegrationTestBase {
 
   @Test
   void displayNameListAndCountNeverRunOnAGenericPlan() {
+    // Prepared statements live as long as the pooled connection, so compare counters, not totals.
+    Map<String, long[]> before = planCounters();
     // Distinct terms keep the list query out of the query cache, so every search reaches the DB.
     for (int i = 0; i < SEARCHES; i++) {
       Query<OrganisationUnit> query =
@@ -107,12 +111,14 @@ class DisplayNameQueryPlanTest extends PostgresIntegrationTestBase {
       assertEquals(1, queryService.count(query));
     }
 
-    List<Object[]> plans = displayNameStatementPlans();
-    assertFalse(plans.isEmpty(), "pgjdbc should have server-prepared the display-name statements");
-    for (Object[] plan : plans) {
-      assertEquals(0L, ((Number) plan[0]).longValue(), "generic plans of " + plan[2]);
-      assertTrue(((Number) plan[1]).longValue() > 0, "custom plans of " + plan[2]);
-    }
+    Map<String, long[]> after = planCounters();
+    assertFalse(after.isEmpty(), "pgjdbc should have server-prepared the display-name statements");
+    after.forEach(
+        (statement, plans) -> {
+          long[] previous = before.getOrDefault(statement, new long[2]);
+          assertEquals(previous[0], plans[0], "generic plans of " + statement);
+          assertTrue(plans[1] > previous[1], "custom plans of " + statement);
+        });
     assertEquals("force_generic_plan", planCacheMode(), "the session setting is restored");
   }
 
@@ -127,20 +133,34 @@ class DisplayNameQueryPlanTest extends PostgresIntegrationTestBase {
     assertFalse(plans.isEmpty(), "pgjdbc should have server-prepared the display-name statement");
 
     // Should the custom plan not be forced, the generic plan must still evaluate the bound JSONPath
-    // and its variables once per execution (InitPlans), not once per row.
+    // and its variables once per execution (InitPlans), not once per row. The session prefers
+    // generic plans, and a generic plan does not depend on the parameter values.
+    String nulls =
+        String.join(", ", Collections.nCopies(((Number) plans.get(0)[4]).intValue(), "null"));
     String plan =
         String.valueOf(
             entityManager
-                .createNativeQuery("explain (generic_plan) " + plans.get(0)[2])
+                .createNativeQuery("explain execute \"" + plans.get(0)[3] + "\"(" + nulls + ")")
                 .getResultList());
     assertEquals(2, plan.split("InitPlan", -1).length - 1, plan);
+  }
+
+  private Map<String, long[]> planCounters() {
+    Map<String, long[]> counters = new HashMap<>();
+    for (Object[] plan : displayNameStatementPlans()) {
+      counters.put(
+          (String) plan[2],
+          new long[] {((Number) plan[0]).longValue(), ((Number) plan[1]).longValue()});
+    }
+    return counters;
   }
 
   @SuppressWarnings("unchecked")
   private List<Object[]> displayNameStatementPlans() {
     return entityManager
         .createNativeQuery(
-            "select generic_plans, custom_plans, statement from pg_prepared_statements"
+            "select generic_plans, custom_plans, statement, name,"
+                + " cardinality(parameter_types) from pg_prepared_statements"
                 + " where statement like '%jsonb_path_query_first%'")
         .getResultList();
   }
