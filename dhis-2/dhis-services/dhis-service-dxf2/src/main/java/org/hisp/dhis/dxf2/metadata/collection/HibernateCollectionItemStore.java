@@ -31,6 +31,11 @@ package org.hisp.dhis.dxf2.metadata.collection;
 
 import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.ParameterExpression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Root;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,6 +56,8 @@ import org.hibernate.engine.spi.CollectionKey;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.persister.collection.AbstractCollectionPersister;
 import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.persister.collection.QueryableCollection;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.event.CollectionMembershipChangedEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -159,23 +166,37 @@ class HibernateCollectionItemStore {
       Serializable key,
       List<Serializable> itemIds,
       SessionImplementor session) {
-    String ownerName = persister.getOwnerEntityPersister().getEntityName();
-    String hql =
-        "select item.id from "
-            + ownerName
-            + " owner join owner."
-            + persister.getRole().substring(ownerName.length() + 1)
-            + " item where owner.id = :ownerId and item.id in (:itemIds)";
+    EntityPersister ownerPersister = persister.getOwnerEntityPersister();
+    EntityPersister itemPersister = ((QueryableCollection) persister).getElementPersister();
+    String property = persister.getRole().substring(ownerPersister.getEntityName().length() + 1);
+
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<Serializable> query = builder.createQuery(Serializable.class);
+    Root<?> owner = query.from(ownerPersister.getMappedClass());
+    Path<Serializable> itemId = owner.join(property).get(itemPersister.getIdentifierPropertyName());
+    ParameterExpression<Serializable> ownerId = builder.parameter(Serializable.class);
+    ParameterExpression<Collection<?>> ids = builder.parameter(collectionType());
+    query
+        .select(itemId)
+        .where(
+            builder.equal(owner.get(ownerPersister.getIdentifierPropertyName()), ownerId),
+            itemId.in(ids));
+
     Set<Serializable> members = new HashSet<>();
     for (List<Serializable> partition : Lists.partition(itemIds, MEMBERSHIP_QUERY_SIZE)) {
       members.addAll(
           session
-              .createQuery(hql, Serializable.class)
-              .setParameter("ownerId", key)
-              .setParameterList("itemIds", partition)
-              .list());
+              .createQuery(query)
+              .setParameter(ownerId, key)
+              .setParameter(ids, partition)
+              .getResultList());
     }
     return members;
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Class<Collection<?>> collectionType() {
+    return (Class<Collection<?>>) (Class<?>) Collection.class;
   }
 
   private static void writeRows(
