@@ -62,6 +62,8 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -170,46 +172,23 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // Open future periods; no expiry and no data input periods.
   // --------------------
 
-  @Test
-  // Current period is not yet open with 0 open future periods, so it is locked.
-  void zeroOpenFuturePeriodsLocksCurrentPeriod() {
-    configure(0, 0d);
-    assertUntimely(capture, month(0));
-  }
-
-  @Test
-  // Previous period is open with 0 open future periods, so it is accepted.
-  void zeroOpenFuturePeriodsAllowsPreviousPeriod() throws Exception {
-    configure(0, 0d);
-    assertAccepted(capture, month(-1));
-  }
-
-  @Test
-  // One open future period allows the current period.
-  void oneOpenFuturePeriodAllowsCurrentPeriod() throws Exception {
-    configure(1, 0d);
-    assertAccepted(capture, month(0));
-  }
-
-  @Test
-  // One open future period does not allow the next period.
-  void oneOpenFuturePeriodLocksNextPeriod() {
-    configure(1, 0d);
-    assertUntimely(capture, month(1));
-  }
-
-  @Test
-  // Two open future periods allow the next period.
-  void twoOpenFuturePeriodsAllowNextPeriod() throws Exception {
-    configure(2, 0d);
-    assertAccepted(capture, month(1));
-  }
-
-  @Test
-  // Two open future periods lock the period after the next.
-  void twoOpenFuturePeriodsLockPeriodAfterNext() {
-    configure(2, 0d);
-    assertUntimely(capture, month(2));
+  /**
+   * Boundaries of open future periods, with no expiry and no input periods. With 0 the current
+   * period is not open yet; with n the latest open period is n - 1 periods after the current one.
+   */
+  @ParameterizedTest(name = "openFuturePeriods={0}, month({1}) open={2}")
+  @CsvSource({
+    "0, -1, true", // previous period is open
+    "0, 0, false", // current period is not open yet
+    "1, 0, true", // current period is the latest open one
+    "1, 1, false", // next period is not open
+    "2, 1, true", // next period is the latest open one
+    "2, 2, false" // the period after next is not open
+  })
+  void openFuturePeriodsBoundary(int openFuturePeriods, int monthOffset, boolean open)
+      throws Exception {
+    configure(openFuturePeriods, 0d);
+    assertTimeliness(open, capture, month(monthOffset));
   }
 
   /** DHIS2-22471: "Edit expired data" is about late entry and must not open future periods. */
@@ -334,9 +313,9 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   @Test
   // Negative expiry can close the CURRENT period before it ends (the targets use case: enter this
   // period's data only until some date inside it). The expiry is chosen so the current month
-  // closed 2 days before the start of its last day, i.e. at least a day ago.
+  // closed 2 to 3 days ago.
   void negativeExpiryDaysLockCurrentPeriodBeforeItEnds() {
-    // closes 2 days before the start of the last day of the current period
+    // closed 2 to 3 days ago
     configure(1, -Math.ceil(daysUntilEnd(month(0))) - 3);
     assertUntimely(capture, month(0));
   }
@@ -356,7 +335,8 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  // A lock exception for lets a normal user enter that expired period at A.
+  // A lock exception for org unit A and month(-3) lets a normal user enter that expired period at
+  // A.
   void lockExceptionOpensExpiredPeriodForItsOrgUnit() throws Exception {
     configure(1, 1d);
     addLockException(ouA, month(-3));
@@ -402,52 +382,27 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   // Data input periods take over from open future periods and expiry days for their periods.
   // --------------------
 
-  @Test
-  // month(-1) has an input period whose window contains now: open.
-  void openInputPeriodAllowsEntry() throws Exception {
+  /**
+   * One input period for last month, with its window in days from now (empty = no date). The period
+   * is open only while now is inside the window. No opening date means open from any time; no
+   * closing date means open forever.
+   */
+  @ParameterizedTest(name = "window [{0}, {1}] days from now: open={2}")
+  @CsvSource({
+    "-1, 1, true", // window contains now
+    "1, 5, false", // window opens tomorrow
+    "-5, -1, false", // window closed yesterday
+    ", 1, true", // no opening date, closes tomorrow
+    "-1, , true", // opened yesterday, no closing date
+    ", , true" // no dates at all: always open
+  })
+  void inputPeriodWindow(Integer openingDays, Integer closingDays, boolean open) throws Exception {
     configure(1, 0d);
-    addInputPeriod(month(-1), daysFromNow(-1), daysFromNow(1));
-    assertAccepted(capture, month(-1));
-  }
-
-  @Test
-  // The window opens tomorrow: locked.
-  void inputPeriodNotYetOpenLocksEntry() {
-    configure(1, 0d);
-    addInputPeriod(month(-1), daysFromNow(1), daysFromNow(5));
-    assertUntimely(capture, month(-1));
-  }
-
-  @Test
-  // The window closed yesterday: locked.
-  void closedInputPeriodLocksEntry() {
-    configure(1, 0d);
-    addInputPeriod(month(-1), daysFromNow(-5), daysFromNow(-1));
-    assertUntimely(capture, month(-1));
-  }
-
-  @Test
-  // No opening date means open from any time; the closing date is tomorrow: open.
-  void inputPeriodWithoutOpeningDateIsOpenUntilClosingDate() throws Exception {
-    configure(1, 0d);
-    addInputPeriod(month(-1), null, daysFromNow(1));
-    assertAccepted(capture, month(-1));
-  }
-
-  @Test
-  // No closing date means open forever; the opening date was yesterday: open.
-  void inputPeriodWithoutClosingDateIsOpenFromOpeningDate() throws Exception {
-    configure(1, 0d);
-    addInputPeriod(month(-1), daysFromNow(-1), null);
-    assertAccepted(capture, month(-1));
-  }
-
-  @Test
-  // Neither date set: the period is always open.
-  void inputPeriodWithoutAnyDatesIsAlwaysOpen() throws Exception {
-    configure(1, 0d);
-    addInputPeriod(month(-1), null, null);
-    assertAccepted(capture, month(-1));
+    addInputPeriod(
+        month(-1),
+        openingDays == null ? null : daysFromNow(openingDays),
+        closingDays == null ? null : daysFromNow(closingDays));
+    assertTimeliness(open, capture, month(-1));
   }
 
   @Test
@@ -666,6 +621,12 @@ class DataEntryTimelinessValidationTest extends PostgresIntegrationTestBase {
   /** Same as {@link #assertAccepted(User, Period...)}, but importing with force. */
   private void assertAcceptedWithForce(User user, Period... periods) throws Exception {
     assertEquals(periods.length, upsert(user, true, ouA, periods));
+  }
+
+  /** Calls {@link #assertAccepted} if open, else {@link #assertUntimely}. */
+  private void assertTimeliness(boolean open, User user, Period period) throws Exception {
+    if (open) assertAccepted(user, period);
+    else assertUntimely(user, period);
   }
 
   /** Imports one value per period at A, without force, and expects E8030 (untimely). */
