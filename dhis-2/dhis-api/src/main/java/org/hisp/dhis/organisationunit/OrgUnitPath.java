@@ -107,15 +107,13 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull UID uid) {
       @Nonnull Collection<OrgUnitPath> paths, @Nonnull Collection<UID> scopeRoots) {
     if (paths.isEmpty()) return Set.of();
     Set<OrgUnitPath> contained = paths instanceof Set<OrgUnitPath> set ? set : new HashSet<>(paths);
-    if (scopeRoots.isEmpty()) return ofMissingAncestors(contained);
-
     Set<UID> scope = scopeRoots instanceof Set<UID> s ? s : new HashSet<>(scopeRoots);
 
     Set<OrgUnitPath> ancestors = new HashSet<>();
     for (OrgUnitPath m : contained) {
       // A scope root met while walking up is still in scope (and included if missing); every
       // path above it is a strict ancestor of that root and therefore outside the scope.
-      boolean aboveScopeRoot = scope.contains(m.uid());
+      boolean aboveScopeRoot = !scope.isEmpty() && scope.contains(m.uid());
       OrgUnitPath p = m.parent();
       while (p != null && !aboveScopeRoot) {
         if (!contained.contains(p)) ancestors.add(p);
