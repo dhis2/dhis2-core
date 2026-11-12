@@ -884,11 +884,12 @@ public enum ConfigurationKey {
   CACHE_API_ETAG_TTL_MINUTES("cache.api.etag.ttl.minutes", "10", false),
 
   /**
-   * Duration in seconds for stale-while-revalidate Cache-Control directive. When set, the browser
-   * can serve a stale cached response instantly while revalidating in the background. Set to 0 to
-   * disable (forces synchronous revalidation). (default: 60)
+   * Duration in seconds for the stale-while-revalidate Cache-Control directive. When above 0, the
+   * browser can show a stale cached response at once while it revalidates in the background, so a
+   * user can see a list from before their own save once. 0 forces synchronous revalidation; a
+   * matching ETag still costs only a 304. (default: 0)
    */
-  CACHE_API_ETAG_STALE_SECONDS("cache.api.etag.stale.seconds", "60", false),
+  CACHE_API_ETAG_STALE_SECONDS("cache.api.etag.stale.seconds", "0", false),
 
   // Enable saved requests, this will save the URL the user tries to access before they are logged
   // in, and redirect to that URL after they are logged in.
