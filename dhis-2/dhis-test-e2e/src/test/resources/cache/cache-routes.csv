@@ -24,6 +24,10 @@ uncached,/dashboards/search*q=ANC*,/dashboards/search?q=ANC
 uncached,/dimensions/recommendations*dimension=dx*,/dimensions/recommendations?dimension=dx
 uncached,/dataStatistics/favorites*eventType=VISUALIZATION_VIEW*,/dataStatistics/favorites?eventType=VISUALIZATION_VIEW
 uncached,/messageConversations*fields=id*page=1*pageSize=1*,/messageConversations?fields=id&page=1&pageSize=1
+shallow,/configuration,/configuration
+shallow,/minMaxDataElements,/minMaxDataElements
+shallow,/periodTypes,/periodTypes
+shallow,/icons,/icons
 suspect,/users/*,
 suspect,/optionSets/*/metadata,
 suspect,/visualizations/*/data*,

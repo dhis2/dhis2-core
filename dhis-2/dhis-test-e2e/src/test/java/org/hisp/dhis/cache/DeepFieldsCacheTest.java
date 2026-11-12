@@ -64,19 +64,19 @@ class DeepFieldsCacheTest extends CacheApiTest {
   @Test
   void deepFieldsRequestBypassesEtagCaching() {
     CacheProbeUser.SUPERUSER.login(loginActions);
-    CacheAssertions.assertNoAutomaticCacheHeaders(probe.get(DEEP_FIELDS_PATH));
+    CacheAssertions.assertNoSmartCacheHeaders(probe.get(DEEP_FIELDS_PATH));
   }
 
   @Test
   void deepFieldsGistRequestBypassesEtagCaching() {
     CacheProbeUser.SUPERUSER.login(loginActions);
-    CacheAssertions.assertNoAutomaticCacheHeaders(probe.get(DEEP_FIELDS_GIST_PATH));
+    CacheAssertions.assertNoSmartCacheHeaders(probe.get(DEEP_FIELDS_GIST_PATH));
   }
 
   @Test
   void deepFieldsOnMeBypassesEtagCaching() {
     CacheProbeUser.SUPERUSER.login(loginActions);
-    CacheAssertions.assertNoAutomaticCacheHeaders(
+    CacheAssertions.assertNoSmartCacheHeaders(
         probe.get("/me?fields=organisationUnits[dataSets[name]]"));
   }
 

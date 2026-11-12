@@ -42,6 +42,7 @@ import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.hisp.dhis.system.startup.StartupListener;
+import org.hisp.dhis.webapi.etag.ETagFilter;
 import org.hisp.dhis.webapi.filter.ConditionalOpenEntityManagerInViewFilter;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.springframework.core.annotation.Order;
@@ -164,6 +165,11 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter(
             "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
         .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+
+    FilterRegistration.Dynamic etagFilter =
+        context.addFilter(ETagFilter.BEAN_NAME, new DelegatingFilterProxy(ETagFilter.BEAN_NAME));
+    etagFilter.setAsyncSupported(true);
+    etagFilter.addMappingForUrlPatterns(null, true, "/api/*");
 
     context
         .addFilter("ApiVersionFilter", new DelegatingFilterProxy("apiVersionFilter"))

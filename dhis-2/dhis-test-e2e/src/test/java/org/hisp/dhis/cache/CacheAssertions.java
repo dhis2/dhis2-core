@@ -63,12 +63,27 @@ final class CacheAssertions {
     assertEquals("", headResponse.body(), "HEAD responses should not contain a body");
   }
 
-  static void assertNoAutomaticCacheHeaders(CacheProbe.CacheResponse response) {
+  /**
+   * No smart (version-based) cache headers: either no ETag at all or only the body-hash fallback of
+   * {@code ETagFilter}, and no smart {@code Vary}.
+   */
+  static void assertNoSmartCacheHeaders(CacheProbe.CacheResponse response) {
+    String etag = response.etag();
     assertTrue(
-        response.etag() == null || response.etag().isBlank(),
-        "Unexpected ETag header: " + response.etag());
+        etag == null || etag.isBlank() || isBodyHashETag(etag),
+        "Unexpected smart ETag header: " + etag);
     assertTrue(
         response.vary() == null || response.vary().isBlank(),
         "Unexpected Vary header: " + response.vary());
+  }
+
+  /** The body-hash fallback ETag of {@code ETagFilter}: a quoted "0" plus a hex MD5. */
+  static void assertBodyHashETag(CacheProbe.CacheResponse response) {
+    assertEquals(200, response.statusCode(), "Expected 200 response");
+    assertTrue(isBodyHashETag(response.etag()), "Expected a body-hash ETag: " + response.etag());
+  }
+
+  private static boolean isBodyHashETag(String etag) {
+    return etag != null && etag.matches("\"0[0-9a-f]{32}\"");
   }
 }

@@ -39,7 +39,7 @@ import org.junit.jupiter.api.TestFactory;
 class NoCacheEndpointTest extends CacheApiTest {
 
   @TestFactory
-  Stream<DynamicTest> uncachedEndpointsDoNotEmitAutomaticConditionalCacheHeaders() {
+  Stream<DynamicTest> uncachedEndpointsDoNotEmitSmartConditionalCacheHeaders() {
     return routes().stream()
         .map(
             route ->
@@ -48,7 +48,27 @@ class NoCacheEndpointTest extends CacheApiTest {
                     () -> {
                       route.probeUser().login(loginActions);
                       CacheProbe.CacheResponse response = probe.get(route.path());
-                      CacheAssertions.assertNoAutomaticCacheHeaders(response);
+                      CacheAssertions.assertNoSmartCacheHeaders(response);
+                    }));
+  }
+
+  /**
+   * Endpoints the smart tier does not cover still get master's body-hash ETag from {@code
+   * ETagFilter}, and a matching {@code If-None-Match} gets 304.
+   */
+  @TestFactory
+  Stream<DynamicTest> uncoveredEndpointsGetTheBodyHashFallback() {
+    return shallowRoutes().stream()
+        .map(
+            route ->
+                dynamicTest(
+                    "GET " + route.path(),
+                    () -> {
+                      route.probeUser().login(loginActions);
+                      CacheProbe.CacheResponse first = probe.get(route.path());
+                      CacheAssertions.assertBodyHashETag(first);
+                      CacheAssertions.assertNotModified(
+                          probe.getIfNoneMatch(route.path(), first.etag()), first.etag());
                     }));
   }
 
@@ -62,6 +82,16 @@ class NoCacheEndpointTest extends CacheApiTest {
             CacheProbeUser.SUPERUSER, "/dataStatistics/favorites?eventType=VISUALIZATION_VIEW"),
         new NoCacheRoute(
             CacheProbeUser.SUPERUSER, "/messageConversations?fields=id&page=1&pageSize=1"));
+  }
+
+  private List<NoCacheRoute> shallowRoutes() {
+    return List.of(
+        new NoCacheRoute(CacheProbeUser.SUPERUSER, "/dashboards/search?q=ANC"),
+        new NoCacheRoute(
+            CacheProbeUser.SUPERUSER, "/messageConversations?fields=id&page=1&pageSize=1"),
+        new NoCacheRoute(CacheProbeUser.SUPERUSER, "/configuration"),
+        new NoCacheRoute(CacheProbeUser.SUPERUSER, "/minMaxDataElements"),
+        new NoCacheRoute(CacheProbeUser.SUPERUSER, "/periodTypes"));
   }
 
   private record NoCacheRoute(CacheProbeUser probeUser, String path) {}

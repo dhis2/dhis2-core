@@ -77,9 +77,11 @@ To replay harvested `coverage.csv` URLs and classify them as cached, uncached, o
     --coverage coverage.csv
 ```
 
-The default smoke manifest lives at `src/test/resources/cache/cache-routes.csv`. Add curated
-metadata fixtures under `src/test/resources/cache/fixtures/` when schema-driven object generation
-is not stable enough for exhaustive invalidation coverage.
+The default smoke manifest lives at `src/test/resources/cache/cache-routes.csv`. Its classes:
+`cached` (smart ETag, `Vary`, 304 on match), `shallow` (no smart ETag; `ETagFilter`'s body-hash
+ETag `"0<md5>"` and 304 on match), `uncached` (no smart headers; a body-hash ETag is allowed) and
+`suspect` (reported only). Add curated metadata fixtures under `src/test/resources/cache/fixtures/`
+when schema-driven object generation is not stable enough for exhaustive invalidation coverage.
 
 ### Real eSignet OIDC login (opt-in)
 

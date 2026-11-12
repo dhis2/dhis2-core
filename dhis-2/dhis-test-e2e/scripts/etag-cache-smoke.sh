@@ -218,11 +218,26 @@ probe_path() {
         "${result}" "${classification}" "${first_status}/${second_status:-NA}" "${first_etag:-<none>}" "${VARY:-<none>}" "${CACHE_CONTROL:-<none>}" "${normalized}"
       ;;
     uncached)
-      if [[ -n "${first_etag}" || -n "${VARY}" ]]; then
+      # No smart headers; the body-hash fallback of ETagFilter ("0<md5>") is allowed.
+      if [[ -n "${VARY}" || ( -n "${first_etag}" && ! "${first_etag}" =~ ^\"0[0-9a-f]{32}\"$ ) ]]; then
         result="MISMATCH"
       fi
       printf '%-8s %-9s %-10s etag=%-36s vary=%-24s cache-control=%s %s\n' \
         "${result}" "${classification}" "${first_status}" "${first_etag:-<none>}" "${VARY:-<none>}" "${CACHE_CONTROL:-<none>}" "${normalized}"
+      ;;
+    shallow)
+      # Not covered by the smart tier: ETagFilter's body-hash ETag and a 304 on a match.
+      if [[ "${first_status}" != "200" || ! "${first_etag}" =~ ^\"0[0-9a-f]{32}\"$ ]]; then
+        result="MISMATCH"
+      else
+        http_request "GET" "${normalized}" "${first_etag}"
+        second_status="${STATUS}"
+        if [[ "${second_status}" != "304" || "${BODY_BYTES}" != "0" ]]; then
+          result="MISMATCH"
+        fi
+      fi
+      printf '%-8s %-9s %-10s etag=%-36s vary=%-24s cache-control=%s %s\n' \
+        "${result}" "${classification}" "${first_status}/${second_status:-NA}" "${first_etag:-<none>}" "${VARY:-<none>}" "${CACHE_CONTROL:-<none>}" "${normalized}"
       ;;
     *)
       printf '%-8s %-9s %-10s etag=%-36s vary=%-24s cache-control=%s %s\n' \
