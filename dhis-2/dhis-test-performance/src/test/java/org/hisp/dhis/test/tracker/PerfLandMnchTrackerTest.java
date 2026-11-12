@@ -107,22 +107,23 @@ import org.slf4j.LoggerFactory;
  * <p>The thresholds of requests without a band are {@link TrackerTest}'s, calibrated on Sierra
  * Leone. The banded ones and the searches by EPI have none yet.
  *
- * <p>{@code -Dprogram}, {@code -DbirthStage}, {@code -DgivenName}, {@code -DfamilyName} and {@code
- * -DuniqueId} default to the UIDs of the {@code perfland-mnch} metadata. Profiles and their
- * parameters are those of {@link TrackerTest}.
+ * <p>The UIDs of the program, stage and attributes are constants, as {@link TrackerTest}'s
+ * attributes: the cases' values belong to them. Profiles and their parameters are those of {@link
+ * TrackerTest}.
  */
 public class PerfLandMnchTrackerTest extends Simulation {
   private static final Logger logger = LoggerFactory.getLogger(PerfLandMnchTrackerTest.class);
 
   private static final AtomicLong REQUEST_COUNTER = new AtomicLong();
 
+  private static final String PROGRAM = "SSLpOM0r1U7"; // Electronic Immunization Registry
+  private static final String BIRTH_STAGE = "RcbCl5ww8XY"; // Birth details
+  private static final String GIVEN_NAME = "sB1IHYu2xQT"; // GEN - Given name
+  private static final String FAMILY_NAME = "ENRjVGxVL6l"; // GEN - Family name
+  private static final String UNIQUE_ID = "KSr2yTdu1AI"; // Unique System Identifier (EPI)
+
   private final Profile profile;
   private final String instance;
-  private final String program;
-  private final String birthStage;
-  private final String givenName;
-  private final String familyName;
-  private final String uniqueId;
   private final String password;
   private final FeederBuilder<String> cases;
   private final int concurrentUsers;
@@ -220,12 +221,6 @@ public class PerfLandMnchTrackerTest extends Simulation {
   public PerfLandMnchTrackerTest() {
     this.profile = Profile.fromString(System.getProperty("profile", "smoke"));
     this.instance = System.getProperty("instance", "http://localhost:8080");
-    this.program = System.getProperty("program", "SSLpOM0r1U7"); // Electronic Immunization Registry
-    this.birthStage = System.getProperty("birthStage", "RcbCl5ww8XY"); // Birth details
-    this.givenName = System.getProperty("givenName", "sB1IHYu2xQT"); // GEN - Given name
-    this.familyName = System.getProperty("familyName", "ENRjVGxVL6l"); // GEN - Family name
-    // Unique System Identifier (EPI)
-    this.uniqueId = System.getProperty("uniqueId", "KSr2yTdu1AI");
     this.password = System.getProperty("password", "Perf-Test-2026!"); // of every dbgen user
     // Circular: every iteration takes the next case, so each band gets the same share of a run.
     this.cases = csv(System.getProperty("cases", "perfland-mnch/cases.csv")).circular();
@@ -293,7 +288,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
   /** Filters on the given and the family name: EIR needs two attributes to search. */
   private String nameFilters(String operator, String given, String family) {
     return "&filter=%s:%s:%s&filter=%s:%s:%s"
-        .formatted(this.givenName, operator, given, this.familyName, operator, family);
+        .formatted(GIVEN_NAME, operator, given, FAMILY_NAME, operator, family);
   }
 
   private ScenarioWithRequests trackerProgramScenario() {
@@ -302,13 +297,13 @@ public class PerfLandMnchTrackerTest extends Simulation {
             + "order=createdAt:desc&page=1&pageSize=15&orgUnits="
             + "#{orgUnit}"
             + "&orgUnitMode=SELECTED&program="
-            + this.program
+            + PROGRAM
             + "&fields=:all,!relationships,programOwners[orgUnit,program]";
 
     String getTEsWithEnrollmentStatusUrl =
         "/api/tracker/trackedEntities?"
             + "order=createdAt:desc&page=1&pageSize=15&orgUnitMode=ACCESSIBLE&program="
-            + this.program
+            + PROGRAM
             + nameFilters("ge", "A", "A")
             + "&enrollmentStatus=ACTIVE"
             + "&fields=:all,!relationships,programOwners[orgUnit,program]";
@@ -317,34 +312,34 @@ public class PerfLandMnchTrackerTest extends Simulation {
         "/api/tracker/trackedEntities?"
             + nameFilters("like", "notfoundname", "notfoundname")
             + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
-            + this.program
+            + PROGRAM
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
     String searchTEByName =
         "/api/tracker/trackedEntities?"
             + nameFilters("like", "#{givenLike}", "#{familyLike}")
             + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
-            + this.program
+            + PROGRAM
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
     String notFoundTEByExactName =
         "/api/tracker/trackedEntities?"
             + nameFilters("eq", "notfoundname", "notfoundname")
             + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
-            + this.program
+            + PROGRAM
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
     String searchTEByExactName =
         "/api/tracker/trackedEntities?"
             + nameFilters("eq", "#{givenEq}", "#{familyEq}")
             + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
-            + this.program
+            + PROGRAM
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
     // The android-sdk's NewTrackedEntityInstanceFields.asSearchFields, see TrackerTest.
     String androidSearchTEsUrl =
         "/api/tracker/trackedEntities?page=1&pageSize=50&orgUnitMode=ACCESSIBLE&program="
-            + this.program
+            + PROGRAM
             + nameFilters("like", "#{givenLike}", "#{familyLike}")
             + "&fields=trackedEntity,createdAt,updatedAt,createdAtClient,updatedAtClient,orgUnit,"
             + "trackedEntityType,geometry,deleted,attributes[attribute,value,createdAt,updatedAt],"
@@ -352,19 +347,19 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
     String searchTEByUniqueId =
         "/api/tracker/trackedEntities?filter="
-            + this.uniqueId
+            + UNIQUE_ID
             + ":eq:#{epi}&fields=attributes,enrollments,trackedEntity,orgUnit&program="
-            + this.program
+            + PROGRAM
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
     // Events filtered by a tracked entity attribute, as #26109 measured them.
     String searchBirthEventsByUniqueIdUrl =
         "/api/tracker/events?program="
-            + this.program
+            + PROGRAM
             + "&programStage="
-            + this.birthStage
+            + BIRTH_STAGE
             + "&filterAttributes="
-            + this.uniqueId
+            + UNIQUE_ID
             + ":eq:#{epi}&fields=*";
 
     String searchBirthEvents =
@@ -372,19 +367,19 @@ public class PerfLandMnchTrackerTest extends Simulation {
             + "&pageSize=15&orgUnit="
             + "#{orgUnit}"
             + "&orgUnitMode=SELECTED&program="
-            + this.program
+            + PROGRAM
             + "&programStage="
-            + this.birthStage
+            + BIRTH_STAGE
             + "&fields=*";
 
     String getTEsFromEvents =
         "/api/tracker/trackedEntities?pageSize=15&program="
-            + this.program
+            + PROGRAM
             + "&trackedEntities=#{trackedEntityUids}&fields=trackedEntity,createdAt,attributes[attribute,value],programOwners[orgUnit],enrollments[enrollment,status,orgUnit,enrolledAt]";
 
     String singleTrackedEntityUrl =
         "/api/tracker/trackedEntities/#{trackedEntityUid}?program="
-            + this.program
+            + PROGRAM
             + "&fields=programOwners[orgUnit],enrollments";
     String singleEnrollmentUrl =
         "/api/tracker/enrollments/#{enrollmentUid}?fields=enrollment,trackedEntity,program,status,orgUnit,enrolledAt,occurredAt,followUp,deleted,createdBy,updatedBy,updatedAt,geometry";
