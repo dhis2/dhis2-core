@@ -59,6 +59,7 @@ import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleVariable;
+import org.hisp.dhis.rules.models.TriggerEnvironment;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
@@ -316,7 +317,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
                         requirements.getNeedsOrgUnitGroups(),
                         orgUnitUids != null ? orgUnitUids : Set.of(),
                         user),
-                    constantMap),
+                    constantMap,
+                    TriggerEnvironment.SERVER),
                 requirements.getNeedsAttributes(),
                 requirements.getNeedsAllEvents()));
       }
