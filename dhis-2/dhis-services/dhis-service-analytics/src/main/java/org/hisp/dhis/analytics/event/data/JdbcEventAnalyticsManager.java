@@ -53,6 +53,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -67,7 +68,6 @@ import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
@@ -96,6 +96,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.ListBuilder;
 import org.postgresql.util.PSQLException;
@@ -163,7 +164,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         new EventItemSelectColumnResolver(
             sqlBuilder,
             organisationUnitResolver,
-            this::getStageOuValueColumnTableAlias,
             (item, queryParams) -> getColumnAndAlias(item, queryParams, false, false),
             this::handleRowContext);
   }
@@ -475,8 +475,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   @Override
   protected String getFromClause(EventQueryParams params) {
     StringBuilder sql = new StringBuilder(" from ");
+    boolean isFirstOrLast =
+        params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType();
 
-    if (params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
+    if (isFirstOrLast) {
       sql.append(firstOrLastRenderer.render(params));
     } else {
       sql.append(params.getTableName());
@@ -497,10 +499,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
           .append(" ");
     }
 
-    resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
-        .forEach(join -> sql.append(join.toSql()).append(" "));
+    // First/last queries hold a single period, rendered as a literal, so no period bucket is read
+    if (!isFirstOrLast) {
+      resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
+          .forEach(join -> sql.append(join.toSql()).append(" "));
+    }
 
-    OrgUnitSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
+    sql.append(OrgUnitSqlCoordinator.joinClause(params, sqlBuilder));
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
@@ -650,14 +655,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // Program stage
     // ---------------------------------------------------------------------
 
-    if (params.hasProgramStage()) {
-      sql +=
-          hlp.whereAnd()
-              + " "
-              + quoteAlias("ps")
-              + " = '"
-              + params.getProgramStage().getUid()
-              + "' ";
+    Optional<ProgramStage> programStage =
+        params.hasProgramStage()
+            ? Optional.of(params.getProgramStage())
+            : params.getStageOfStageSpecificItemsWithoutFilter();
+
+    if (programStage.isPresent()) {
+      sql += hlp.whereAnd() + " " + quoteAlias("ps") + " = '" + programStage.get().getUid() + "' ";
     }
 
     sql += getOptionFilter(params, hlp);
@@ -734,9 +738,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       sql += hlp.whereAnd() + " completeddate is not null ";
     }
 
-    StringBuilder enrollmentOuSql = new StringBuilder();
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params, sqlBuilder);
-    sql += enrollmentOuSql;
+    sql += OrgUnitSqlCoordinator.wherePredicate(params, hlp, sqlBuilder);
 
     if (params.hasBbox()) {
       sql +=
@@ -790,7 +792,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    */
   private String getOptionFilter(EventQueryParams params, SqlHelper sqlHelper) {
     if (params.hasOption() && params.hasValue()) {
-      DimensionalItemObject dimensionalItemObject = params.getValue();
+      DimensionalItemObject dimensionalItemObject = params.getValue().getDimensionalObject();
       Option option = params.getOption();
 
       return new StringBuilder()
@@ -810,7 +812,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   /** Generates a sub query which provides a filter by organisation descendant level. */
   private String getOrgUnitDescendantsClause(
       OrgUnitField orgUnitField, List<DimensionalItemObject> dimensionOrFilterItems) {
-    Map<String, List<OrganisationUnit>> collect =
+    Map<String, List<OrganisationUnit>> orgUnitsMap =
         dimensionOrFilterItems.stream()
             .map(object -> (OrganisationUnit) object)
             .collect(
@@ -820,9 +822,29 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                             .withSqlBuilder(sqlBuilder)
                             .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())));
 
-    return collect.keySet().stream()
-        .map(org -> toInCondition(org, collect.get(org)))
-        .collect(joining(" and "));
+    return getOuInCondition(orgUnitsMap);
+  }
+
+  /**
+   * Builds a SQL filter clause from a map of org unit level columns to their matching org units.
+   * Each entry produces an {@code IN} condition, and the conditions are joined with {@code OR}.
+   *
+   * <p>Example output for two level groups:
+   *
+   * <pre>
+   * ax."uidlevel2" in ('uid1','uid2') or ax."uidlevel3" in ('uid3')
+   * </pre>
+   *
+   * @param orgUnitsMap a map where each key is a SQL column expression representing an org unit
+   *     level (e.g. {@code ax."uidlevel2"}) and each value is the list of {@link OrganisationUnit}
+   *     objects whose UIDs should appear in the {@code IN} condition for that level.
+   * @return a SQL {@code OR}-joined string of {@code IN} conditions, or an empty string if the map
+   *     is empty.
+   */
+  String getOuInCondition(Map<String, List<OrganisationUnit>> orgUnitsMap) {
+    return orgUnitsMap.keySet().stream()
+        .map(org -> toInCondition(org, orgUnitsMap.get(org)))
+        .collect(joining(" or "));
   }
 
   /**
@@ -897,7 +919,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     List<String> columns = new ArrayList<>(getStandardColumns(params));
     addDimensionSelectColumns(columns, params, false, false);
-    OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
+    columns.addAll(OrgUnitSqlCoordinator.querySelectColumns(params, sqlBuilder));
     columns.addAll(eventItemSelectColumnResolver.resolve(params, cteContext));
 
     columns.forEach(
@@ -915,12 +937,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (cteContext.hasCteDefinitions() && sqlBuilder.supportsCorrelatedSubquery()) {
       getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
     }
-  }
-
-  private String getStageOuValueColumnTableAlias(EventQueryParams params) {
-    return params.hasEnrollmentOu()
-        ? OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS
-        : ANALYTICS_TBL_ALIAS;
   }
 
   /**

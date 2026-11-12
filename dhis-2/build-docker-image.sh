@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-BASE_IMAGE=${BASE_IMAGE}
+BASE_IMAGE=${BASE_IMAGE:-}
 IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-'dhis2/core'}
 IMAGE_APP_ROOT=${IMAGE_APP_ROOT:-'/usr/local/tomcat/webapps/ROOT'}
 IMAGE_USER=${IMAGE_USER:-'65534'}
@@ -25,6 +25,7 @@ function help() {
    echo '-t <tag>    DHIS2 version tag to build.'
    echo '-d          Create image from a "dev" version.'
    echo '-r          Rebuild image with an existing WAR for the given DHIS2 version. Without this option the image will be built with a new WAR.'
+   echo '-p <image>  Promote an existing image, e.g. one built and tested elsewhere, instead of building one.'
    echo '-h          Print this help message.'
    echo
    echo 'Environment variables:'
@@ -32,6 +33,7 @@ function help() {
    echo '                Example: ARCHITECTURES="amd64 arm64" build-docker-image.sh -t 40.1.1 -d'
    echo
    echo 'Example: build-docker-image.sh -t 40.1.1 -r'
+   echo 'Example: build-docker-image.sh -t 40.1.1 -p registry.example.org/dhis2/core@sha256:<digest>'
 }
 
 function create_immutable_tag() {
@@ -158,6 +160,11 @@ function use_new_war() {
 }
 
 function build_main_image() {
+  if [[ -z "$BASE_IMAGE" ]]; then
+    echo 'Error: BASE_IMAGE is required to build an image'
+    exit 1
+  fi
+
   echo "Building image for version $image_tag, based on $BASE_IMAGE ..."
 
   local timestamp
@@ -194,6 +201,12 @@ function build_main_image() {
   docker manifest push "$IMAGE_REPOSITORY:$main_image_tag"
 }
 
+# Copies the manifest list and the image manifests it references as they are, so the promoted image has the digests of the source.
+function copy_main_image() {
+  echo "Copying $source_image to $IMAGE_REPOSITORY:$main_image_tag ..."
+  docker buildx imagetools create --tag "$IMAGE_REPOSITORY:$main_image_tag" "$source_image"
+}
+
 # To create additional rolling tags for a multi-architecture image (manifest list) we have to create a new manifest list,
 # based on the supported image architectures' sha256 digests.
 function create_additional_manifests() {
@@ -216,7 +229,7 @@ function create_additional_manifests() {
   done
 }
 
-while getopts 'ht:dr' option; do
+while getopts 'ht:drp:' option; do
    case $option in
       h)
         help
@@ -227,11 +240,18 @@ while getopts 'ht:dr' option; do
         dev_image=1;;
       r)
         rebuild_image=1;;
+      p)
+        source_image=$OPTARG;;
       \?)
         echo 'Error: Invalid option'
         exit;;
    esac
 done
+
+if [[ -n ${source_image:-} && ( ${dev_image:-} -eq 1 || ${rebuild_image:-} -eq 1 ) ]]; then
+  echo 'Error: -p cannot be combined with -d or -r'
+  exit 1
+fi
 
 if [[ ${dev_image:-} -eq 1 ]]; then
   echo 'Creating image from a dev version ...'
@@ -260,13 +280,17 @@ create_rolling_tags
 
 list_tags
 
-if [[ ${rebuild_image:-} -eq 1 ]]; then
-  use_existing_war
+if [[ -n ${source_image:-} ]]; then
+  copy_main_image
 else
-  use_new_war
-fi
+  if [[ ${rebuild_image:-} -eq 1 ]]; then
+    use_existing_war
+  else
+    use_new_war
+  fi
 
-build_main_image
+  build_main_image
+fi
 
 create_additional_manifests
 

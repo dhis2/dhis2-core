@@ -164,6 +164,212 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testPostWithValueProgramStage() {
+    // Given
+    String body =
+        """
+        {
+          "name": "Name Test",
+          "type": "LINE_LIST",
+          "program": {"id": "%s"},
+          "value": {
+            "id": "deabcdefghC",
+            "programStage": {"id": "%s"}
+          }
+        }
+        """
+            .formatted(mockProgram.getUid(), mockProgramStage.getUid());
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    JsonObject response =
+        GET("/eventVisualizations/" + uid + "?fields=value[id,programStage[id]]").content();
+
+    assertEquals("deabcdefghC", response.getString("value.id").string());
+    assertEquals(mockProgramStage.getUid(), response.getString("value.programStage.id").string());
+  }
+
+  @Test
+  void testPutWithValueProgramStage() {
+    // Given
+    String body = valueProgramStageBody("deabcdefghC", mockProgramStage.getUid());
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // When
+    assertStatus(OK, PUT("/eventVisualizations/" + uid, body));
+
+    // Then
+    assertValueProgramStage(uid, "deabcdefghC", mockProgramStage.getUid());
+  }
+
+  @Test
+  void testPutWithValueProgramStageFromGetResponse() {
+    // Given
+    String uid =
+        assertStatus(
+            CREATED,
+            POST(
+                "/eventVisualizations/",
+                valueProgramStageBody("deabcdefghC", mockProgramStage.getUid())));
+
+    // Round trip, the way the apps do it: GET the object and PUT it back.
+    String body =
+        GET("/eventVisualizations/"
+                + uid
+                + "?fields=name,type,program[id],value[id,programStage[id]],"
+                + "programStageValueDimension[id]")
+            .content()
+            .toJson();
+
+    // When
+    assertStatus(OK, PUT("/eventVisualizations/" + uid, body));
+
+    // Then
+    assertValueProgramStage(uid, "deabcdefghC", mockProgramStage.getUid());
+  }
+
+  @Test
+  void testPutWithValueProgramStageChanged() throws JsonProcessingException {
+    // Given
+    ProgramStage otherProgramStage = createProgramStage('B', mockProgram);
+    otherProgramStage.setUid("deabcdefghT");
+    POST("/programStages", jsonMapper.writeValueAsString(otherProgramStage)).content(CREATED);
+
+    String uid =
+        assertStatus(
+            CREATED,
+            POST(
+                "/eventVisualizations/",
+                valueProgramStageBody("deabcdefghC", mockProgramStage.getUid())));
+
+    // When
+    assertStatus(
+        OK,
+        PUT(
+            "/eventVisualizations/" + uid,
+            valueProgramStageBody("deabcdefghC", otherProgramStage.getUid())));
+
+    // Then
+    assertValueProgramStage(uid, "deabcdefghC", otherProgramStage.getUid());
+  }
+
+  @Test
+  void testPutAddingValueProgramStage() {
+    // Given
+    String bodyWithoutStage =
+        """
+        {
+          "name": "Name Test",
+          "type": "LINE_LIST",
+          "program": {"id": "%s"},
+          "value": {"id": "deabcdefghC"}
+        }
+        """
+            .formatted(mockProgram.getUid());
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", bodyWithoutStage));
+
+    // When
+    assertStatus(
+        OK,
+        PUT(
+            "/eventVisualizations/" + uid,
+            valueProgramStageBody("deabcdefghC", mockProgramStage.getUid())));
+
+    // Then
+    assertValueProgramStage(uid, "deabcdefghC", mockProgramStage.getUid());
+  }
+
+  @Test
+  void testPostWithInvalidValueProgramStage() {
+    // Given
+    String body = valueProgramStageBody("deabcdefghC", "invalidUid1");
+
+    // Then
+    assertStatus(CONFLICT, POST("/eventVisualizations/", body));
+  }
+
+  @Test
+  void testPutWithInvalidValueProgramStage() {
+    // Given
+    String uid =
+        assertStatus(
+            CREATED,
+            POST(
+                "/eventVisualizations/",
+                valueProgramStageBody("deabcdefghC", mockProgramStage.getUid())));
+
+    // Then
+    assertStatus(
+        CONFLICT,
+        PUT("/eventVisualizations/" + uid, valueProgramStageBody("deabcdefghC", "invalidUid1")));
+  }
+
+  @Test
+  void testPutWithInvalidValueProgramStageWhenNoneBefore() {
+    // Given
+    String bodyWithoutStage =
+        """
+        {
+          "name": "Name Test",
+          "type": "LINE_LIST",
+          "program": {"id": "%s"},
+          "value": {"id": "deabcdefghC"}
+        }
+        """
+            .formatted(mockProgram.getUid());
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", bodyWithoutStage));
+
+    // When
+    assertStatus(
+        CONFLICT,
+        PUT("/eventVisualizations/" + uid, valueProgramStageBody("deabcdefghC", "invalidUid1")));
+
+    // Then
+    assertValueWithoutProgramStage(uid, "deabcdefghC");
+  }
+
+  private String valueProgramStageBody(String valueUid, String programStageUid) {
+    return """
+        {
+          "name": "Name Test",
+          "type": "LINE_LIST",
+          "program": {"id": "%s"},
+          "value": {
+            "id": "%s",
+            "programStage": {"id": "%s"}
+          }
+        }
+        """
+        .formatted(mockProgram.getUid(), valueUid, programStageUid);
+  }
+
+  private void assertValueProgramStage(String uid, String valueUid, String programStageUid) {
+    JsonObject response =
+        GET("/eventVisualizations/"
+                + uid
+                + "?fields=value[id,programStage[id]],programStageValueDimension[id]")
+            .content();
+
+    assertEquals(valueUid, response.getString("value.id").string());
+    assertEquals(programStageUid, response.getString("value.programStage.id").string());
+    assertEquals(programStageUid, response.getString("programStageValueDimension.id").string());
+  }
+
+  private void assertValueWithoutProgramStage(String uid, String valueUid) {
+    JsonObject response =
+        GET("/eventVisualizations/"
+                + uid
+                + "?fields=value[id,programStage[id]],programStageValueDimension[id]")
+            .content();
+
+    assertEquals(valueUid, response.getString("value.id").string());
+    assertFalse(response.get("value.programStage").exists());
+    assertFalse(response.get("programStageValueDimension").exists());
+  }
+
+  @Test
   void testPostForOuDimensionAsFilter() throws JsonProcessingException {
     // Given
     DataElement ouDe = createDataElement('D', ValueType.TEXT, AggregationType.SUM, TRACKER);
@@ -1107,6 +1313,40 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertThat(response.get("simpleDimensions").toString(), containsString("ROW"));
     assertThat(response.get("simpleDimensions").toString(), containsString("USER_ORGUNIT"));
     assertThat(response.get("rows").toString(), containsString(enrollmentOuDimension));
+    assertThat(response.get("rows").toString(), containsString(mockProgram.getUid()));
+  }
+
+  @Test
+  void testPostForRegistrationOu() {
+    // Given
+    String registrationOuDimension = "registrationOu";
+    String registrationOuBody =
+        "{'dimension': '"
+            + registrationOuDimension
+            + "',"
+            + "'items': [{'id': 'USER_ORGUNIT'}],"
+            + "'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}}";
+
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'rows': ["
+            + registrationOuBody
+            + "]}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    JsonObject response =
+        GET("/eventVisualizations/" + uid + "?fields=*,rows[:all,items[:all],program[id]]")
+            .content();
+
+    assertThat(response.get("simpleDimensions").toString(), containsString("ROW"));
+    assertThat(response.get("simpleDimensions").toString(), containsString("USER_ORGUNIT"));
+    assertThat(response.get("rows").toString(), containsString(registrationOuDimension));
     assertThat(response.get("rows").toString(), containsString(mockProgram.getUid()));
   }
 

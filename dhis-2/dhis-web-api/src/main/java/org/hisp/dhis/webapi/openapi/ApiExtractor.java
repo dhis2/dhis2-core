@@ -182,9 +182,12 @@ final class ApiExtractor {
   }
 
   private static Stream<Method> methodsIn(Class<?> source) {
-    return source == null || source == Object.class
-        ? Stream.empty()
-        : Stream.concat(stream(source.getDeclaredMethods()), methodsIn(source.getSuperclass()));
+    if (source == null || source == Object.class) return Stream.empty();
+    Stream<Method> res =
+        Stream.concat(stream(source.getDeclaredMethods()), methodsIn(source.getSuperclass()));
+    return Stream.concat(
+        res,
+        stream(source.getInterfaces()).flatMap(ApiExtractor::methodsIn).filter(Method::isDefault));
   }
 
   private Api.Endpoint extractEndpoint(Api.Controller controller, EndpointMapping mapping) {

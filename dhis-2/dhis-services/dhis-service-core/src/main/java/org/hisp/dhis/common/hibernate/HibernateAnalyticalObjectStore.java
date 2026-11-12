@@ -136,6 +136,15 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
   }
 
   @Override
+  public List<T> getAnalyticalObjectsByDataDimension(ProgramIndicator programIndicator) {
+    String hql =
+        "select distinct c from "
+            + clazz.getName()
+            + " c join c.programIndicatorDimensions d where d.programIndicator = :programIndicator";
+    return getQuery(hql).setParameter("programIndicator", programIndicator).list();
+  }
+
+  @Override
   public List<T> getByDataElementDimensionsWithAnyOf(List<DataElement> dataElements) {
     return getQuery(
             "select distinct c from "

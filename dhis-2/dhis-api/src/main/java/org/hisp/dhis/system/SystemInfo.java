@@ -31,11 +31,13 @@ package org.hisp.dhis.system;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.system.capability.SystemCapability;
 import org.hisp.dhis.system.database.DatabaseInfo;
 
@@ -71,6 +73,11 @@ public final class SystemInfo {
   @JsonProperty private final Date lastAnalyticsTablePartitionSuccess;
   @JsonProperty private final String intervalSinceLastAnalyticsTablePartitionSuccess;
   @JsonProperty private final String lastAnalyticsTablePartitionRuntime;
+  @JsonProperty private final Map<AnalyticsTableType, Date> lastAnalyticsTableSuccessByType;
+
+  @JsonProperty
+  private final Map<AnalyticsTableType, Date> lastAnalyticsTablePartitionSuccessByType;
+
   @JsonProperty private final DatabaseInfo databaseInfo;
   @JsonProperty private final SystemCapability capability;
 

@@ -30,6 +30,10 @@
 package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -53,13 +57,17 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   }
 
   @Override
-  public void save(@Nonnull UserGroup object, boolean clearSharing) {
-    super.save(object, clearSharing);
-
-    // TODO: MAS: send event to invalidate sessions for users in this group
-    //        object
-    //            .getMembers()
-    //            .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
+  @Nonnull
+  public Set<Long> getManagedGroupIds(@Nonnull Collection<Long> userGroupIds) {
+    if (userGroupIds.isEmpty()) {
+      return Set.of();
+    }
+    String placeholders = String.join(",", Collections.nCopies(userGroupIds.size(), "?"));
+    String sql =
+        "select managedgroupid from usergroupmanaged where managedbygroupid in ("
+            + placeholders
+            + ")";
+    return new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, userGroupIds.toArray()));
   }
 
   @Override
@@ -145,13 +153,4 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
         "DELETE FROM usergroupmembers WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)",
         userUid.getValue());
   }
-
-  //  @Override
-  // TODO: MAS: send event to invalidate sessions for users in this group
-  //  public void update(@Nonnull UserGroup object, User user) {
-  //    super.update(object, user);
-  //    //    object
-  //    //        .getMembers()
-  //    //        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
-  //  }
 }

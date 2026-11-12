@@ -71,7 +71,7 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
       String name = type.getName().replace("-", "_");
       JsonDataIntegritySummary summary = checksByName.get(name);
       if (summary.exists()) { // not all checks might be done by now
-        assertTrue(summary.getIsSlow());
+        assertTrue(summary.getIsProgrammatic());
         checked++;
       }
     }

@@ -104,14 +104,7 @@ public class UserRoleController
       throw new NotFoundException("User does not exist: " + pvUserId);
     }
 
-    if (!aclService.canUpdate(currentUser, userRole)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
-
-    if (!user.getUserRoles().contains(userRole)) {
-      user.getUserRoles().add(userRole);
-      userService.updateUser(user);
-    }
+    userService.addUserToRole(userRole, user, currentUser);
   }
 
   @DeleteMapping("/{id}/users/{userId}")
@@ -134,13 +127,6 @@ public class UserRoleController
       throw new NotFoundException("User does not exist: " + pvUserId);
     }
 
-    if (!aclService.canUpdate(currentUser, userRole)) {
-      throw new ForbiddenException("You don't have the proper permissions to delete this object.");
-    }
-
-    if (user.getUserRoles().contains(userRole)) {
-      user.getUserRoles().remove(userRole);
-      userService.updateUser(user);
-    }
+    userService.removeUserFromRole(userRole, user, currentUser);
   }
 }

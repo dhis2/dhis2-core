@@ -51,6 +51,7 @@ import org.hisp.dhis.webapi.mvc.UrlParamsMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.HandlerMethodInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
+import org.hisp.dhis.webapi.mvc.interceptor.TrackerExportDeadlineInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.TrailingSlashInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.FilteredPageHttpMessageConverter;
@@ -121,6 +122,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Autowired private SystemSettingsInterceptor settingsInterceptor;
 
   @Autowired private StaticCacheInterceptor staticCacheInterceptor;
+
+  @Autowired private TrackerExportDeadlineInterceptor trackerExportDeadlineInterceptor;
 
   @Autowired private NodeService nodeService;
 
@@ -243,7 +246,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     // CustomRequestMappingHandlerMapping#getHandlerInternal (literal-first, then normalised path).
     // Do not rely on setUseSuffixPatternMatch / setUseTrailingSlashMatch / favorPathExtension -
     // those are removed in Spring Framework 7.
-    mapping.setPatternParser(null);
+    // PR-K1: use Spring default PathPatternParser (do not force Ant with null parser).
+    // Controllers with trailing /** are PathPattern-legal; security mid-** is PR-K2/K3.
     return mapping;
   }
 
@@ -257,6 +261,10 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     registry
         .addInterceptor(staticCacheInterceptor)
         .addPathPatterns("/dhis-web-*/**", "/icons/**", "/images/**", "/favicon.ico");
+    // Scoped to the tracker export endpoints so no other product's requests get a deadline.
+    registry
+        .addInterceptor(trackerExportDeadlineInterceptor)
+        .addPathPatterns(TrackerExportDeadlineInterceptor.PATH_PATTERNS);
   }
 
   @Override

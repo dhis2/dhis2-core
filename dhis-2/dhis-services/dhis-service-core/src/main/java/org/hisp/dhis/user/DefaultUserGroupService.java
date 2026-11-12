@@ -34,6 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -120,6 +121,12 @@ public class DefaultUserGroupService implements UserGroupService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<UserGroup> getUserGroupsByUid(@Nonnull Collection<UID> uids) {
+    return userGroupStore.getByUid(UID.toValueList(uids));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public boolean canAddOrRemoveMember(String uid) {
     return canAddOrRemoveMember(uid, CurrentUserUtil.getCurrentUserDetails());
   }
@@ -186,10 +193,6 @@ public class DefaultUserGroupService implements UserGroupService {
     aclService.invalidateCurrentUserGroupInfoCache();
   }
 
-  private Collection<UserGroup> getUserGroupsByUid(@Nonnull Collection<UID> uids) {
-    return userGroupStore.getByUid(UID.toValueList(uids));
-  }
-
   @Override
   @Transactional(readOnly = true)
   public List<UserGroup> getUserGroupByName(String name) {
@@ -212,5 +215,12 @@ public class DefaultUserGroupService implements UserGroupService {
   @Transactional(readOnly = true)
   public String getDisplayName(String uid) {
     return userGroupNameCache.get(uid, n -> userGroupStore.getByUidNoAcl(uid).getDisplayName());
+  }
+
+  @Override
+  @Nonnull
+  @Transactional(readOnly = true)
+  public Set<Long> getManagedGroupIds(@Nonnull Collection<Long> userGroupIds) {
+    return userGroupStore.getManagedGroupIds(userGroupIds);
   }
 }

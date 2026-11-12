@@ -129,7 +129,6 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
-
     // Then
     response
         .validate()

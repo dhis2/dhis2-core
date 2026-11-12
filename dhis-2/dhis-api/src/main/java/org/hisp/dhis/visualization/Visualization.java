@@ -65,6 +65,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.category.CategoryCombo;
@@ -76,6 +78,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.FavoritableObject;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -93,11 +96,13 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.visualization.Icon.IconType;
 import org.springframework.util.Assert;
 
 @JacksonXmlRootElement(localName = "visualization", namespace = DXF_2_0)
-public class Visualization extends BaseAnalyticalObject implements MetadataObject {
+public class Visualization extends BaseAnalyticalObject
+    implements FavoritableObject, MetadataObject {
 
   public static final String REPORTING_MONTH_COLUMN_NAME = "reporting_month_name";
 
@@ -136,6 +141,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   // -------------------------------------------------------------------------
   // Common attributes
   // -------------------------------------------------------------------------
+
+  @Getter @Setter @JsonProperty private Set<String> favorites = new HashSet<>();
 
   /** The type of this visualization object. */
   private VisualizationType type;
@@ -651,6 +658,18 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     this.axes = axes;
 
     keepAxesReadingCompatibility(this);
+  }
+
+  @Override
+  public boolean setAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.add(user.getUid());
+  }
+
+  @Override
+  public boolean removeAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.remove(user.getUid());
   }
 
   /**

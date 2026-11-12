@@ -59,6 +59,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -72,6 +73,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.TestNotes;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -136,6 +138,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Autowired private TestNotes testNotes;
 
   private Date enrollmentDate;
 
@@ -568,6 +572,56 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testDeleteSoftDeletedEnrollmentWithNotes() {
+    manager.save(trackerEvent);
+    Note enrollmentNote = testNotes.save(enrollment, "enrollment note");
+    Note eventNote = testNotes.save(trackerEvent, "event note");
+    manager.delete(enrollment);
+
+    maintenanceService.deleteSoftDeletedEnrollments();
+
+    assertFalse(noteExists(enrollmentNote.getUid()));
+    assertFalse(noteExists(eventNote.getUid()));
+  }
+
+  @Test
+  void testDeleteSoftDeletedTrackerEventWithNotes() {
+    manager.save(trackerEvent);
+    Note enrollmentNote = testNotes.save(enrollment, "enrollment note");
+    Note eventNote = testNotes.save(trackerEvent, "event note");
+    manager.delete(trackerEvent);
+
+    maintenanceService.deleteSoftDeletedEvents();
+
+    assertFalse(noteExists(eventNote.getUid()));
+    assertTrue(noteExists(enrollmentNote.getUid()), "enrollment is not deleted");
+  }
+
+  @Test
+  void testDeleteSoftDeletedSingleEventWithNotes() {
+    manager.save(singleEvent);
+    Note note = testNotes.save(singleEvent, "event note");
+    manager.delete(singleEvent);
+
+    maintenanceService.deleteSoftDeletedEvents();
+
+    assertFalse(noteExists(note.getUid()));
+  }
+
+  @Test
+  void testDeleteSoftDeletedTrackedEntityWithNotes() {
+    manager.save(trackerEvent);
+    Note enrollmentNote = testNotes.save(enrollment, "enrollment note");
+    Note eventNote = testNotes.save(trackerEvent, "event note");
+    manager.delete(trackedEntity);
+
+    maintenanceService.deleteSoftDeletedTrackedEntities();
+
+    assertFalse(noteExists(enrollmentNote.getUid()));
+    assertFalse(noteExists(eventNote.getUid()));
+  }
+
+  @Test
   @Disabled("until we can inject dhis.conf property overrides")
   void testAuditEntryForDeletionOfSoftDeletedTrackedEntity() {
     manager.delete(trackedEntityWithAssociations);
@@ -628,6 +682,12 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     return Boolean.TRUE.equals(
         jdbcTemplate.queryForObject(
             "select exists(select 1 from singleevent where uid=?)", Boolean.class, uid));
+  }
+
+  private boolean noteExists(String uid) {
+    return Boolean.TRUE.equals(
+        jdbcTemplate.queryForObject(
+            "select exists(select 1 from note where uid=?)", Boolean.class, uid));
   }
 
   private boolean relationshipExistsIncludingDeleted(String uid) {

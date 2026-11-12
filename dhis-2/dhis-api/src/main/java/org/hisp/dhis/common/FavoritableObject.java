@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -41,7 +43,12 @@ public interface FavoritableObject {
 
   Set<String> getFavorites();
 
-  boolean isFavorite();
+  @JsonProperty
+  default boolean isFavorite() {
+    Set<String> favorites = getFavorites();
+    if (favorites == null || favorites.isEmpty() || !CurrentUserUtil.hasCurrentUser()) return false;
+    return favorites.contains(CurrentUserUtil.getCurrentUserDetails().getUid());
+  }
 
   boolean setAsFavorite(UserDetails user);
 

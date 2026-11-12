@@ -258,7 +258,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, params.getOrganisationUnits().size());
     assertEquals(1, params.getItems().size());
     assertEquals(1, params.getFilterPeriods().size());
-    assertEquals(deA, params.getValue());
+    assertEquals(deA, params.getValue().getDimensionalObject());
     assertEquals(AnalyticsAggregationType.AVERAGE, params.getAggregationType());
     assertEquals(List.of("eventgeometry", "ougeometry"), params.getCoordinateFields());
     assertEquals(List.of("psigeometry", "ougeometry"), getGeometrySources(params));
@@ -287,7 +287,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, params.getOrganisationUnits().size());
     assertEquals(1, params.getItems().size());
     assertEquals(1, params.getFilterPeriods().size());
-    assertEquals(deA, params.getValue());
+    assertEquals(deA, params.getValue().getDimensionalObject());
     assertEquals(1, params.getDesc().size());
     assertEquals("occurreddate", params.getDesc().get(0).getItem().getName());
     assertEquals(AnalyticsAggregationType.AVERAGE, params.getAggregationType());
@@ -316,7 +316,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, params.getOrganisationUnits().size());
     assertEquals(1, params.getItems().size());
     assertEquals(1, params.getFilterPeriods().size());
-    assertEquals(deA, params.getValue());
+    assertEquals(deA, params.getValue().getDimensionalObject());
     assertEquals(1, params.getDesc().size());
     assertEquals("ouname", params.getDesc().get(0).getItem().getName());
     assertEquals(AnalyticsAggregationType.AVERAGE, params.getAggregationType());
@@ -345,7 +345,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, params.getOrganisationUnits().size());
     assertEquals(1, params.getItems().size());
     assertEquals(1, params.getFilterPeriods().size());
-    assertEquals(deA, params.getValue());
+    assertEquals(deA, params.getValue().getDimensionalObject());
     assertEquals(1, params.getDesc().size());
     assertEquals(deA.getUid(), params.getDesc().get(0).getItem().getUid());
     assertEquals(AnalyticsAggregationType.AVERAGE, params.getAggregationType());
@@ -374,7 +374,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, params.getOrganisationUnits().size());
     assertEquals(1, params.getItems().size());
     assertEquals(1, params.getFilterPeriods().size());
-    assertEquals(deA, params.getValue());
+    assertEquals(deA, params.getValue().getDimensionalObject());
     assertEquals(1, params.getDesc().size());
     assertEquals(atA.getUid(), params.getDesc().get(0).getItem().getUid());
     assertEquals(AnalyticsAggregationType.AVERAGE, params.getAggregationType());

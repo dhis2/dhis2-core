@@ -29,17 +29,25 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -125,6 +133,49 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
+  void testPostContainingOver255Favorites() {
+    // Given
+    Set<String> randomUids = new HashSet<>();
+    int favoritesTotal = 300;
+
+    for (int i = 0; i < favoritesTotal; i++) {
+      randomUids.add("'" + RandomStringUtils.randomAlphanumeric(11) + "'");
+    }
+
+    String body =
+        """
+            {
+              'name': 'some name',
+              'restrictFilters': false,
+              'allowedFilters': [],
+              'favorites': [
+                _favorites
+              ],
+              'displayName': 'Antenatal Care',
+              'access': {
+                'manage': true,
+                'write': true,
+                'read': true,
+                'update': true,
+                'delete': true
+              }
+            }
+          """
+            .replaceFirst(
+                "_favorites",
+                randomUids.stream().toList().stream().collect(Collectors.joining(",")));
+
+    // When
+    String uid = assertStatus(CREATED, POST("/dashboards/", body));
+
+    // Then
+    JsonObject response = GET("/dashboards/" + uid + "?fields=favorites").content();
+
+    JsonList<JsonObject> favorites = response.getList("favorites", JsonObject.class);
+    assertEquals(favoritesTotal, favorites.size());
+  }
+
+  @Test
   void testGetPrivateDashboardWithSuperUser() {
     switchToNewUser("userTest", "ALL");
     POST("/metadata", Path.of("dashboard/create_dashboard.json")).content(HttpStatus.OK);
@@ -138,5 +189,61 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
     POST("/metadata", Path.of("dashboard/create_dashboard.json")).content(HttpStatus.OK);
     switchToAdminUser();
     DELETE("/dashboards/f1OijtLnf8a").content(HttpStatus.OK);
+  }
+
+  @Test
+  void testGetDashboardWithLocaleAppliesTranslationByDefault() {
+    // Given: a dashboard exists
+    POST("/metadata", Path.of("dashboard/create_dashboard.json")).content(HttpStatus.OK);
+
+    String dashboardId = "f1OijtLnf8a";
+
+    // Capture the untranslated displayName
+    String originalDisplayName =
+        GET("/dashboards/" + dashboardId + "?fields=displayName")
+            .content()
+            .getString("displayName")
+            .string();
+
+    // Add a Norwegian translation for the dashboard name
+    String translatedName = "Norsk dashbordnavn";
+
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        PUT(
+            "/dashboards/" + dashboardId + "/translations",
+            """
+            {
+                'translations': [
+                    {
+                        'locale': 'no',
+                        'property': 'name',
+                        'value': '%s'
+                    }
+                ]
+            }
+            """
+                .formatted(translatedName)));
+
+    // When: requesting with only the locale parameter (no translate param)
+    JsonObject translatedResponse =
+        GET("/dashboards/" + dashboardId + "?fields=displayName&locale=no").content();
+
+    // Then: the translation is applied
+    assertEquals(
+        translatedName,
+        translatedResponse.getString("displayName").string(),
+        "locale should imply translate=true");
+
+    // When: explicitly opting out with translate=false
+    JsonObject untranslatedResponse =
+        GET("/dashboards/" + dashboardId + "?fields=displayName&locale=no&translate=false")
+            .content();
+
+    // Then: the original displayName is returned
+    assertEquals(
+        originalDisplayName,
+        untranslatedResponse.getString("displayName").string(),
+        "translate=false should skip translation");
   }
 }

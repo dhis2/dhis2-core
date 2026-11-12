@@ -1674,8 +1674,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
     validationRuleService.saveValidationRule(rule);
     String instructionTranslated = "Validation rule instruction translated";
     Set<Translation> listObjectTranslation = new HashSet<>(rule.getTranslations());
-    listObjectTranslation.add(
-        new Translation(locale.language(), "INSTRUCTION", instructionTranslated));
+    listObjectTranslation.add(Translation.ofLanguage(locale, "INSTRUCTION", instructionTranslated));
     identifiableObjectManager.updateTranslations(rule, listObjectTranslation);
     assertEquals(instructionTranslated, rule.getDisplayInstruction());
   }

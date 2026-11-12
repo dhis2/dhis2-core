@@ -294,6 +294,7 @@ public class DhisWebApiWebSecurityConfig {
             .requestMatchers(
                 new AntPathRequestMatcher("/api/ping"),
                 new AntPathRequestMatcher("/api/system/ping"),
+                new AntPathRequestMatcher(apiContextPath + "/**/loginConfig"),
                 new AntPathRequestMatcher("/favicon.ico"));
   }
 
@@ -327,8 +328,6 @@ public class DhisWebApiWebSecurityConfig {
               .requestMatchers(new AntPathRequestMatcher("/api/apps/login/**"))
               .permitAll()
               .requestMatchers(new AntPathRequestMatcher("/login/**"))
-              .permitAll()
-              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/loginConfig"))
               .permitAll()
               .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/login"))
               .permitAll()

@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.qualifyVariables;
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
+import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
@@ -41,6 +42,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +52,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -62,6 +67,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -76,6 +82,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -125,7 +132,7 @@ class JdbcAnalyticsTableManagerTest {
   @InjectMocks private JdbcAnalyticsTableManager subject;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
   }
@@ -215,6 +222,35 @@ class JdbcAnalyticsTableManagerTest {
     assertTrue(partitionB.isUnlogged());
     assertEquals(
         partitionB.getYear().intValue(), new DateTime(partitionB.getStartDate()).getYear());
+  }
+
+  @Test
+  void testGetRegularAnalyticsTableIdColumnRemainsTextOnPostgres() {
+    // Doris needs a bounded type for the id key column (see JdbcAnalyticsTableManagerDorisTest),
+    // but that must not change Postgres behavior, since
+    // PostgreSqlBuilder.requiresUniqueKeyAnalyticsTables()
+    // is false and id is not used as a key column there.
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+    List<Integer> dataYears = List.of(2018, 2019);
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build();
+
+    when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
+    when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(dataYears);
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertEquals(1, tables.size());
+    AnalyticsTable table = tables.get(0);
+    Column idColumn =
+        table.getColumns().stream().filter(c -> "id".equals(c.getName())).findFirst().orElseThrow();
+
+    assertEquals(TEXT, idColumn.getDataType());
   }
 
   @Test
@@ -377,5 +413,134 @@ class JdbcAnalyticsTableManagerTest {
   void testGetStartEndDatesCondition() {
     assertTrue(subject.getStartEndDatesCondition(false).isEmpty());
     assertTrue(subject.getStartEndDatesCondition(true).startsWith(" "));
+  }
+
+  @Test
+  @DisplayName(
+      "Outlier stats join statement must not treat text values like serial numbers "
+          + "(e.g. '224E10000913') as numeric, since PostgreSQL cannot cast the implied "
+          + "scientific-notation exponent to double precision and aborts the whole table build")
+  void testGetOutliersJoinStatementDoesNotMatchScientificNotationLikeText() {
+    String joinStatement = subject.getOutliersJoinStatement();
+
+    Matcher regexLiterals = Pattern.compile("~ '([^']+)'").matcher(joinStatement);
+    List<Pattern> valueRegexes = new ArrayList<>();
+    while (regexLiterals.find()) {
+      valueRegexes.add(Pattern.compile(regexLiterals.group(1)));
+    }
+
+    assertFalse(valueRegexes.isEmpty(), "expected to find dv1.value numeric regex in SQL");
+
+    for (Pattern valueRegex : valueRegexes) {
+      assertFalse(
+          valueRegex.matcher("224E10000913").matches(),
+          "serial-number-like text must not be treated as numeric: " + valueRegex.pattern());
+      assertFalse(
+          valueRegex.matcher("46E-1309013").matches(),
+          "serial-number-like text must not be treated as numeric: " + valueRegex.pattern());
+      assertTrue(valueRegex.matcher("12.34").matches(), "genuine decimal values must still match");
+      assertTrue(valueRegex.matcher("-5").matches(), "genuine negative integers must still match");
+    }
+  }
+
+  @Test
+  @DisplayName(
+      "Outlier stats subquery must be structurally scoped to numeric-type data elements, "
+          + "so a LONG_TEXT (or other text/date/boolean) data element is never fed into the "
+          + "double precision stats regardless of what its stored value looks like")
+  void testGetOutliersJoinStatementScopedToNumericDataElements() {
+    String joinStatement = subject.getOutliersJoinStatement();
+
+    assertTrue(
+        joinStatement.contains(
+            "inner join dataelement de1 on dv1.dataelementid = de1.dataelementid"),
+        "outlier stats subquery must join to dataelement to check valuetype");
+    assertTrue(
+        joinStatement.contains("de1.valuetype in ("),
+        "outlier stats subquery must filter by valuetype");
+    assertTrue(joinStatement.contains("'NUMBER'"), "numeric value types must be included");
+    assertFalse(joinStatement.contains("'LONG_TEXT'"), "text value types must not be included");
+  }
+
+  @Test
+  void testRemoveLatestPartitionOverlap() {
+    AnalyticsTable table =
+        tableWithPartitionChecks(List.of(List.of("year = 2022"), List.of("year = 2023")));
+
+    when(jdbcTemplate.queryForList(any())).thenReturn(List.of(Map.of("table_name", "analytics_0")));
+
+    subject.removeLatestPartitionOverlap(List.of(table));
+
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(jdbcTemplate).execute(sql.capture());
+
+    assertEquals(
+        "delete from \"analytics_0\" where (year = 2022) or (year = 2023);", sql.getValue());
+  }
+
+  @Test
+  void testRemoveLatestPartitionOverlapJoinsChecksOfSamePartition() {
+    AnalyticsTable table =
+        tableWithPartitionChecks(List.of(List.of("year = 2022", "pestartdate < '2023-01-01'")));
+
+    when(jdbcTemplate.queryForList(any())).thenReturn(List.of(Map.of("table_name", "analytics_0")));
+
+    subject.removeLatestPartitionOverlap(List.of(table));
+
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(jdbcTemplate).execute(sql.capture());
+
+    assertEquals(
+        "delete from \"analytics_0\" where (year = 2022 and pestartdate < '2023-01-01');",
+        sql.getValue());
+  }
+
+  @Test
+  void testRemoveLatestPartitionOverlapWhenLatestPartitionAbsent() {
+    AnalyticsTable table = tableWithPartitionChecks(List.of(List.of("year = 2022")));
+
+    when(jdbcTemplate.queryForList(any())).thenReturn(List.of());
+
+    subject.removeLatestPartitionOverlap(List.of(table));
+
+    verify(jdbcTemplate, never()).execute(anyString());
+  }
+
+  @Test
+  void testRemoveLatestPartitionOverlapWhenPartitionsHaveNoChecks() {
+    AnalyticsTable table = tableWithPartitionChecks(List.of(List.of()));
+
+    when(jdbcTemplate.queryForList(any())).thenReturn(List.of(Map.of("table_name", "analytics_0")));
+
+    subject.removeLatestPartitionOverlap(List.of(table));
+
+    verify(jdbcTemplate, never()).execute(anyString());
+  }
+
+  /** Returns a data value analytics table with one partition per given list of partition checks. */
+  private AnalyticsTable tableWithPartitionChecks(List<List<String>> checks) {
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("year")
+                .dataType(INTEGER)
+                .selectExpression("")
+                .build());
+
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of("dx"), LOGGED);
+
+    int year = 2022;
+
+    for (List<String> partitionChecks : checks) {
+      table.addTablePartition(
+          partitionChecks,
+          year,
+          new DateTime(year, 1, 1, 0, 0).toDate(),
+          new DateTime(year + 1, 1, 1, 0, 0).toDate());
+      year++;
+    }
+
+    return table;
   }
 }

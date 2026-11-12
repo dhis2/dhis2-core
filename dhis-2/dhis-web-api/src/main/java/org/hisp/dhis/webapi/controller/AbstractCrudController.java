@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.FavoritableObject;
@@ -57,9 +57,9 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.input.ReplaceTranslationsParams;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -76,6 +76,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -118,7 +119,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
 public abstract class AbstractCrudController<
         T extends IdentifiableObject, P extends GetObjectListParams>
-    extends AbstractFullReadOnlyController<T, P> {
+    extends AbstractFullReadOnlyController<T, P> implements CrudOperationsSupport {
   @Autowired protected SchemaValidator schemaValidator;
 
   @Autowired protected RenderService renderService;
@@ -146,8 +147,6 @@ public abstract class AbstractCrudController<
   @Autowired protected SharingService sharingService;
 
   @Autowired protected BulkPatchManager bulkPatchManager;
-
-  @Autowired private TranslationsCheck translationsCheck;
 
   @Autowired protected EventHookPublisher eventHookPublisher;
 
@@ -335,35 +334,6 @@ public abstract class AbstractCrudController<
   }
 
   @OpenApi.Filter(
-      includes = {
-        Dashboard.class,
-        EventVisualization.class,
-        org.hisp.dhis.mapping.Map.class,
-        Visualization.class
-      })
-  @PostMapping(value = "/{uid}/favorite")
-  @ResponseBody
-  public WebMessage setAsFavorite(
-      @PathVariable("uid") UID uid, @CurrentUser UserDetails currentUser)
-      throws ConflictException, NotFoundException {
-
-    if (!getSchema().isFavoritable()) {
-      throw new ConflictException("Objects of this class cannot be set as favorite");
-    }
-
-    T object = getEntity(uid);
-    if (object instanceof FavoritableObject favoritableObject) {
-      favoritableObject.setAsFavorite(currentUser);
-      manager.updateNoAcl(object);
-      return ok(
-          String.format(
-              "Object '%s' set as favorite for user '%s'", uid, currentUser.getUsername()));
-    } else {
-      throw new ConflictException("Objects of this class cannot be set as favorite");
-    }
-  }
-
-  @OpenApi.Filter(
       includes = {EventVisualization.class, org.hisp.dhis.mapping.Map.class, Visualization.class})
   @PostMapping(value = "/{uid}/subscriber")
   @ResponseBody
@@ -439,27 +409,25 @@ public abstract class AbstractCrudController<
   public WebMessage replaceTranslations(
       @PathVariable("uid") UID uid,
       @CurrentUser UserDetails currentUser,
-      HttpServletRequest request)
-      throws NotFoundException, ForbiddenException, IOException {
+      @RequestBody ReplaceTranslationsParams params)
+      throws NotFoundException, ForbiddenException {
     T persistedObject = getEntity(uid);
 
     updatePermissionCheck(currentUser, persistedObject);
 
-    T inputObject = renderService.fromJson(request.getInputStream(), getEntityClass());
+    List<Translation> translations = params.translations();
 
-    HashSet<Translation> translations = new HashSet<>(inputObject.getTranslations());
+    ObjectReport report = new ObjectReport(getEntityClass(), 0);
+    TranslationsCheck.checkTranslatable(getSchema(), report::addErrorReport);
+    TranslationsCheck.checkTranslations(translations, report::addErrorReport);
 
-    persistedObject.setTranslations(translations);
-    List<ObjectReport> objectReports = new ArrayList<>();
-    translationsCheck.run(
-        persistedObject, getEntityClass(), objectReports::add, getSchema(), 0, null);
-
-    if (objectReports.isEmpty()) {
+    if (!report.hasErrorReports()) {
+      persistedObject.setTranslations(
+          new HashSet<>(translations == null ? Set.of() : translations));
       manager.update(persistedObject);
       return null;
     }
-
-    return objectReport(objectReports.get(0));
+    return objectReport(report);
   }
 
   // --------------------------------------------------------------------------
@@ -497,36 +465,6 @@ public abstract class AbstractCrudController<
     postDeleteEntity(uid);
 
     return objectReport(importReport);
-  }
-
-  @OpenApi.Filter(
-      includes = {
-        Dashboard.class,
-        EventVisualization.class,
-        org.hisp.dhis.mapping.Map.class,
-        Visualization.class
-      })
-  @DeleteMapping(value = "/{uid}/favorite")
-  @ResponseBody
-  public WebMessage removeAsFavorite(
-      @PathVariable("uid") UID uid, @CurrentUser UserDetails currentUser)
-      throws NotFoundException, ConflictException {
-
-    if (!getSchema().isFavoritable()) {
-      throw new ConflictException("Objects of this class cannot be set as favorite");
-    }
-
-    T object = getEntity(uid);
-    if (object instanceof FavoritableObject favoritableObject) {
-      favoritableObject.removeAsFavorite(currentUser);
-      manager.updateNoAcl(object);
-
-      return ok(
-          String.format(
-              "Object '%s' removed as favorite for user '%s'", uid, currentUser.getUsername()));
-    } else {
-      throw new ConflictException("Objects of this class cannot be set as favorite");
-    }
   }
 
   @OpenApi.Filter(
@@ -578,7 +516,7 @@ public abstract class AbstractCrudController<
     preUpdateItems(object, items);
     TypeReport report = collectionService.mergeCollectionItems(object, property, items);
     postUpdateItems(object, items);
-    hibernateCacheManager.clearCache();
+    clearCacheIfChanged(report);
     return typeReport(report);
   }
 
@@ -607,7 +545,7 @@ public abstract class AbstractCrudController<
     TypeReport report =
         collectionService.replaceCollectionItems(object, property, items.getIdentifiableObjects());
     postUpdateItems(object, items);
-    hibernateCacheManager.clearCache();
+    clearCacheIfChanged(report);
     return typeReport(report);
   }
 
@@ -627,7 +565,7 @@ public abstract class AbstractCrudController<
     TypeReport report =
         collectionService.addCollectionItems(object, property, items.getIdentifiableObjects());
     postUpdateItems(object, items);
-    hibernateCacheManager.clearCache();
+    clearCacheIfChanged(report);
     return typeReport(report);
   }
 
@@ -656,7 +594,7 @@ public abstract class AbstractCrudController<
     TypeReport report =
         collectionService.delCollectionItems(object, property, items.getIdentifiableObjects());
     postUpdateItems(object, items);
-    hibernateCacheManager.clearCache();
+    clearCacheIfChanged(report);
     return typeReport(report);
   }
 
@@ -731,6 +669,14 @@ public abstract class AbstractCrudController<
 
   protected void postPatchEntity(JsonPatch patch, T entityAfter) {}
 
+  /** Collection updates that changed nothing leave the Hibernate caches intact. */
+  private void clearCacheIfChanged(TypeReport report) {
+    Stats stats = report.getStats();
+    if (stats.created() + stats.updated() + stats.deleted() > 0) {
+      hibernateCacheManager.clearCache();
+    }
+  }
+
   protected void preUpdateItems(T entity, IdentifiableObjects items) throws ConflictException {}
 
   protected void postUpdateItems(T entity, IdentifiableObjects items) {}
@@ -740,5 +686,31 @@ public abstract class AbstractCrudController<
     if (!aclService.canUpdate(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
+  }
+
+  /*
+  Special operations support
+   */
+
+  @Override
+  public boolean setAsFavorite(UID id, UserDetails user) throws NotFoundException {
+    T object = getEntity(id);
+    if (object instanceof FavoritableObject obj) {
+      obj.setAsFavorite(user);
+      manager.updateNoAcl(object);
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public boolean removeAsFavorite(UID id, UserDetails user) throws NotFoundException {
+    T object = getEntity(id);
+    if (object instanceof FavoritableObject favoritableObject) {
+      favoritableObject.removeAsFavorite(user);
+      manager.updateNoAcl(object);
+      return true;
+    }
+    return false;
   }
 }

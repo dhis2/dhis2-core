@@ -35,9 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,55 +58,50 @@ class JsonSchemaValidatorTest {
   @Test
   void validateCheck_ValidFile() {
     JsonNode jsonNode = getJsonNodeFromFile("check_with_all_required_fields.yaml");
-    Set<ValidationMessage> validationMessages =
-        JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
+    List<Error> validationMessages = JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
     assertTrue(validationMessages.isEmpty());
   }
 
   @Test
   void validateCheck_CheckMissingDescription() {
     JsonNode jsonNode = getJsonNodeFromFile("check_without_description.yaml");
-    Set<ValidationMessage> validationMessages =
-        JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
+    List<Error> validationMessages = JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
     assertEquals(1, validationMessages.size());
     assertContainsValidationMessages(
-        validationMessages, Set.of("$: required property 'description' not found"));
+        validationMessages, Set.of("required property 'description' not found"));
   }
 
   @Test
   void validateCheck_CheckMissingName() {
     JsonNode jsonNode = getJsonNodeFromFile("check_without_name.yaml");
-    Set<ValidationMessage> validationMessages =
-        JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
+    List<Error> validationMessages = JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
     assertEquals(1, validationMessages.size());
     assertContainsValidationMessages(
-        validationMessages, Set.of("$: required property 'name' not found"));
+        validationMessages, Set.of("required property 'name' not found"));
   }
 
   @Test
   void validateCheck_CheckMissing10Fields() {
     JsonNode jsonNode = getJsonNodeFromFile("check_without_10_required_fields.yaml");
-    Set<ValidationMessage> validationMessages =
-        JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
+    List<Error> validationMessages = JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
     assertEquals(8, validationMessages.size());
     assertContainsValidationMessages(
         validationMessages,
         Set.of(
-            "$: required property 'details_id_type' not found",
-            "$: required property 'details_sql' not found",
-            "$: required property 'introduction' not found",
-            "$: required property 'recommendation' not found",
-            "$: required property 'section' not found",
-            "$: required property 'section_order' not found",
-            "$: required property 'severity' not found",
-            "$: required property 'summary_sql' not found"));
+            "required property 'details_id_type' not found",
+            "required property 'details_sql' not found",
+            "required property 'introduction' not found",
+            "required property 'recommendation' not found",
+            "required property 'section' not found",
+            "required property 'section_order' not found",
+            "required property 'severity' not found",
+            "required property 'summary_sql' not found"));
   }
 
-  private void assertContainsValidationMessages(
-      Set<ValidationMessage> validations, Set<String> expected) {
+  private void assertContainsValidationMessages(List<Error> validations, Set<String> expected) {
     assertTrue(
         validations.stream()
-            .map(ValidationMessage::getMessage)
+            .map(Error::getMessage)
             .collect(Collectors.toSet())
             .containsAll(expected));
   }

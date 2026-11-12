@@ -86,6 +86,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.OpenApi;
@@ -155,60 +156,78 @@ public class Program extends BaseMetadataObject
   @Column(name = "shortname", nullable = false, length = 50)
   private String shortName;
 
+  @Type(type = "text")
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
+  @Type(type = "text")
   @Column(name = "formname", columnDefinition = "text")
   private String formName;
 
   @Column(name = "version")
   private int version;
 
+  @Type(type = "text")
   @Column(name = "enrollmentdatelabel", columnDefinition = "text")
   private String enrollmentDateLabel;
 
+  @Type(type = "text")
   @Column(name = "incidentdatelabel", columnDefinition = "text")
   private String incidentDateLabel;
 
+  @Type(type = "text")
   @Column(name = "enrollmentlabel", columnDefinition = "text")
   private String enrollmentLabel;
 
+  @Type(type = "text")
   @Column(name = "enrollmentslabel", columnDefinition = "text")
   private String enrollmentsLabel;
 
+  @Type(type = "text")
   @Column(name = "followuplabel", columnDefinition = "text")
   private String followUpLabel;
 
+  @Type(type = "text")
   @Column(name = "orgunitlabel", columnDefinition = "text")
   private String orgUnitLabel;
 
+  @Type(type = "text")
   @Column(name = "relationshiplabel", columnDefinition = "text")
   private String relationshipLabel;
 
+  @Type(type = "text")
   @Column(name = "relationshipslabel", columnDefinition = "text")
   private String relationshipsLabel;
 
+  @Type(type = "text")
   @Column(name = "notelabel", columnDefinition = "text")
   private String noteLabel;
 
+  @Type(type = "text")
   @Column(name = "noteslabel", columnDefinition = "text")
   private String notesLabel;
 
+  @Type(type = "text")
   @Column(name = "trackedentityattributelabel", columnDefinition = "text")
   private String trackedEntityAttributeLabel;
 
+  @Type(type = "text")
   @Column(name = "trackedentityattributeslabel", columnDefinition = "text")
   private String trackedEntityAttributesLabel;
 
+  @Type(type = "text")
   @Column(name = "programstagelabel", columnDefinition = "text")
   private String programStageLabel;
 
+  @Type(type = "text")
   @Column(name = "eventlabel", columnDefinition = "text")
   private String eventLabel;
 
+  @Type(type = "text")
   @Column(name = "programstageslabel", columnDefinition = "text")
   private String programStagesLabel;
 
+  @Type(type = "text")
   @Column(name = "eventslabel", columnDefinition = "text")
   private String eventsLabel;
 
@@ -750,14 +769,14 @@ public class Program extends BaseMetadataObject
       return defaultValue;
     }
     return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+        Translation.getCacheKey(locale, translationKey),
+        key -> getTranslationValue(locale, translationKey, defaultTranslation));
   }
 
-  private String getTranslationValue(String locale, String translationKey, String defaultValue) {
+  private String getTranslationValue(Locale locale, String translationKey, String defaultValue) {
     for (Translation translation : getTranslations()) {
       if (locale.equals(translation.getLocale())
-          && translationKey.equals(translation.getProperty())
+          && translationKey.equalsIgnoreCase(translation.getProperty())
           && !StringUtils.isEmpty(translation.getValue())) {
         return translation.getValue();
       }

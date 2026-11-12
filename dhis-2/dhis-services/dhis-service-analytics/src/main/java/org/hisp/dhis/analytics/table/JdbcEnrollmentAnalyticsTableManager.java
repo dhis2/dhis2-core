@@ -165,7 +165,6 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             inner join analytics_rs_categorystructure acs on en.attributeoptioncomboid=acs.categoryoptioncomboid \
             ${attributeJoinClause}\
             where pr.programid = ${programId} \
-            and en.organisationunitid is not null \
             and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             and en.lastupdated <= '${startTime}' \
             and en.occurreddate is not null \

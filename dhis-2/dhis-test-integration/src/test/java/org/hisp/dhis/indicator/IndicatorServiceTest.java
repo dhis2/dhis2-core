@@ -288,9 +288,9 @@ class IndicatorServiceTest extends PostgresIntegrationTestBase {
     String denominatorTranslated = "Denominator description translated";
     Set<Translation> listObjectTranslation = new HashSet<>(indicatorA.getTranslations());
     listObjectTranslation.add(
-        new Translation(locale.language(), "NUMERATOR_DESCRIPTION", numeratorTranslated));
+        Translation.ofLanguage(locale, "NUMERATOR_DESCRIPTION", numeratorTranslated));
     listObjectTranslation.add(
-        new Translation(locale.language(), "DENOMINATOR_DESCRIPTION", denominatorTranslated));
+        Translation.ofLanguage(locale, "DENOMINATOR_DESCRIPTION", denominatorTranslated));
     identifiableObjectManager.updateTranslations(indicatorA, listObjectTranslation);
     assertEquals(numeratorTranslated, indicatorA.getDisplayNumeratorDescription());
     assertEquals(denominatorTranslated, indicatorA.getDisplayDenominatorDescription());

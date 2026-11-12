@@ -66,17 +66,33 @@ public interface BlobStoreService {
   }
 
   /** Returns {@code true} if a blob with the given key exists in the container. */
-  boolean blobExists(BlobKey key);
+  default boolean blobExists(BlobKey key) {
+    return blobExists(key, BlobReadOptions.none());
+  }
+
+  /** {@link #blobExists(BlobKey)} bounded by {@code options}. */
+  boolean blobExists(BlobKey key, BlobReadOptions options);
 
   /**
    * Opens a stream for the blob content. Returns {@code null} if no blob exists for the key.
    * Callers are responsible for closing the returned stream.
    */
   @CheckForNull
-  InputStream openStream(BlobKey key);
+  default InputStream openStream(BlobKey key) {
+    return openStream(key, BlobReadOptions.none());
+  }
+
+  /** {@link #openStream(BlobKey)} bounded by {@code options}. */
+  @CheckForNull
+  InputStream openStream(BlobKey key, BlobReadOptions options);
 
   /** Returns the content length in bytes of the blob, or {@code 0} if the blob does not exist. */
-  long contentLength(BlobKey key);
+  default long contentLength(BlobKey key) {
+    return contentLength(key, BlobReadOptions.none());
+  }
+
+  /** {@link #contentLength(BlobKey)} bounded by {@code options}. */
+  long contentLength(BlobKey key, BlobReadOptions options);
 
   /**
    * Stores a streaming payload under the given key.

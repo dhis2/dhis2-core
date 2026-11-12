@@ -40,12 +40,16 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_5;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_6;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1132;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -55,16 +59,25 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -80,9 +93,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EventImportValidationTest extends PostgresIntegrationTestBase {
+  private static final String EVENT_UID = "ZwwuwNp6gVd";
+
+  private static final String ORG_UNIT_UID = "QfUVllTs6cS";
+
   @Autowired private TestSetup testSetup;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TrackerEventService trackerEventService;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -362,19 +381,33 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testValidateAndAddNotesToEvent() throws IOException {
+  void shouldPassWhenOccurredAtIsWithinOpenDaysAfterCategoryOptionEndDate() throws IOException {
+    Program program = manager.get(Program.class, "rT3rvcn2vid");
+    program.setOpenDaysAfterCoEndDate(365);
+    manager.update(program);
+
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/validations/events_combo-date-wrong.json"));
+
+    assertHasOnlyErrors(importReport, ValidationCode.E1056);
+  }
+
+  @Test
+  void testValidateAndAddNotesToEvent() throws IOException, NotFoundException {
     Date now = new Date();
     // When
     ImportReport importReport = createEvent("tracker/validations/events-with-notes-data.json");
     // Then
     // Fetch the UID of the newly created event
-    final TrackerEvent event = getEventFromReport(importReport);
-    assertThat(event.getNotes(), hasSize(3));
+    final List<Note> notes = getNotesFromReport(importReport);
+    assertThat(notes, hasSize(3));
     // Validate note content
     Stream.of("first note", "second note", "third note")
         .forEach(
             t -> {
-              Note note = getByNote(event.getNotes(), t);
+              Note note = getByNote(notes, t);
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
               assertEquals(importUser.getUid(), note.getLastUpdatedBy().getUid());
@@ -382,7 +415,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testValidateAndAddNotesToUpdatedEvent() throws IOException {
+  void testValidateAndAddNotesToUpdatedEvent() throws IOException, NotFoundException {
     Date now = new Date();
     // Given -> Creates an event with 3 notes
     createEvent("tracker/validations/events-with-notes-data.json");
@@ -391,13 +424,13 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
         createEvent("tracker/validations/events-with-notes-update-data.json");
     clearSession();
     // Then
-    final TrackerEvent event = getEventFromReport(importReport);
-    assertThat(event.getNotes(), hasSize(6));
+    final List<Note> notes = getNotesFromReport(importReport);
+    assertThat(notes, hasSize(6));
     // validate note content
     Stream.of("first note", "second note", "third note", "4th note", "5th note", "6th note")
         .forEach(
             t -> {
-              Note note = getByNote(event.getNotes(), t);
+              Note note = getByNote(notes, t);
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
               assertEquals(importUser.getUid(), note.getLastUpdatedBy().getUid());
@@ -433,6 +466,115 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldFailWhenCreatingEventInDeletedEnrollment() throws IOException {
+    deleteTrackerObjects(
+        TrackerObjects.builder()
+            .enrollments(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+                        .enrollment(UID.of("MNWZ6hnuhSw"))
+                        .build()))
+            .build());
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().build(),
+            testSetup.fromJson("tracker/validations/events-with-notes-data.json"));
+
+    assertHasOnlyErrors(importReport, E1132);
+    assertNull(manager.get(TrackerEvent.class, "uLxFbxfYDQE"));
+  }
+
+  @Test
+  void shouldFailWhenCreatingEventInEnrollmentOfDeletedTrackedEntity() throws IOException {
+    // soft delete only the tracked entity, leaving its enrollment not deleted like older versions
+    // allowed
+    manager.delete(manager.get(TrackedEntity.class, "Kj6vYde4LHh"));
+    clearSession();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().build(),
+            testSetup.fromJson("tracker/validations/events-with-notes-data.json"));
+
+    assertHasOnlyErrors(importReport, E1132);
+    assertTrue(
+        importReport.getValidationReport().getErrors().stream()
+            .allMatch(e -> e.getMessage().contains("trackedEntity: `Kj6vYde4LHh` is deleted")));
+    assertNull(manager.get(TrackerEvent.class, "uLxFbxfYDQE"));
+  }
+
+  @Test
+  void shouldFailWithAccessErrorWhenUserWithoutAccessCreatesEventInDeletedEnrollment()
+      throws IOException {
+    manager.delete(manager.get(Enrollment.class, "MNWZ6hnuhSw"));
+    clearSession();
+    injectSecurityContextUser(userService.getUser(USER_5));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().build(),
+            testSetup.fromJson("tracker/validations/events-with-notes-data.json"));
+
+    // the user gets the access errors, not an error revealing the deleted enrollment
+    assertHasOnlyErrors(importReport, E1000, E1102);
+    assertNull(manager.get(TrackerEvent.class, "uLxFbxfYDQE"));
+  }
+
+  @Test
+  void shouldDeleteEventLeftNotDeletedInDeletedEnrollment() throws IOException {
+    createEvent("tracker/validations/events-with-notes-data.json");
+    // soft delete only the enrollment, leaving its event not deleted like older versions allowed
+    manager.delete(manager.get(Enrollment.class, "MNWZ6hnuhSw"));
+    clearSession();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(DELETE).build(),
+            TrackerObjects.builder()
+                .events(
+                    List.of(
+                        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+                            .event(UID.of("uLxFbxfYDQE"))
+                            .build()))
+                .build());
+
+    assertNoErrors(importReport);
+    assertEquals(1, importReport.getStats().getDeleted());
+  }
+
+  @Test
+  void shouldDeleteEventLeftNotDeletedInEnrollmentOfDeletedTrackedEntity() throws IOException {
+    createEvent("tracker/validations/events-with-notes-data.json");
+    // soft delete only the tracked entity, leaving its enrollment and event not deleted like older
+    // versions allowed
+    manager.delete(manager.get(TrackedEntity.class, "Kj6vYde4LHh"));
+    clearSession();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(DELETE).build(),
+            TrackerObjects.builder()
+                .events(
+                    List.of(
+                        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+                            .event(UID.of("uLxFbxfYDQE"))
+                            .build()))
+                .build());
+
+    assertNoErrors(importReport);
+    assertEquals(1, importReport.getStats().getDeleted());
+    clearSession();
+    assertTrue(manager.get(TrackerEvent.class, "uLxFbxfYDQE").isDeleted());
+  }
+
+  private void deleteTrackerObjects(TrackerObjects trackerObjects) {
+    TrackerImportParams params = TrackerImportParams.builder().importStrategy(DELETE).build();
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+    clearSession();
+  }
+
+  @Test
   void testEventDeleteOk() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
@@ -452,6 +594,70 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
         trackerImportService.importTracker(params, deleteTrackerObjects);
     assertNoErrors(importReportDelete);
     assertEquals(1, importReportDelete.getStats().getDeleted());
+  }
+
+  @Test
+  void shouldFailDeletingEventWhenItsCompletionHasExpiredAndUserIsNotAuthorized()
+      throws IOException {
+    createExpiredCompletedEvent();
+    injectSecurityContextUser(userWithoutEditExpiredAuthority());
+
+    TrackerImportParams params = new TrackerImportParams();
+    params.setImportStrategy(DELETE);
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/validations/event-data-delete.json"));
+
+    assertHasOnlyErrors(importReport, ValidationCode.E1043);
+    assertNotNull(manager.get(TrackerEvent.class, EVENT_UID));
+  }
+
+  @Test
+  void shouldDeleteEventWhenItsCompletionHasExpiredAndUserIsAuthorized() throws IOException {
+    createExpiredCompletedEvent();
+
+    TrackerImportParams params = new TrackerImportParams();
+    params.setImportStrategy(DELETE);
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/validations/event-data-delete.json"));
+
+    assertNoErrors(importReport);
+    assertEquals(1, importReport.getStats().getDeleted());
+  }
+
+  /**
+   * Creates an event which was completed long before the number of days its program allows changes
+   * to a completed event.
+   */
+  private void createExpiredCompletedEvent() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/validations/events-with-registration.json")));
+    clearSession();
+
+    TrackerEvent event = manager.get(TrackerEvent.class, EVENT_UID);
+    event.setStatus(EventStatus.COMPLETED);
+    event.setCompletedDate(Date.from(Instant.now().minus(Duration.ofDays(30))));
+    manager.update(event);
+    assertTrue(
+        event.getProgramStage().getProgram().getCompleteEventsExpiryDays() > 0,
+        "the program of the event is expected to expire completed events");
+    clearSession();
+  }
+
+  private User userWithoutEditExpiredAuthority() {
+    User user = userService.getUser(USER_5);
+    user.addOrganisationUnit(manager.get(OrganisationUnit.class, ORG_UNIT_UID));
+    user.getUserRoles()
+        .forEach(
+            role -> {
+              role.getAuthorities().remove(Authorities.F_EDIT_EXPIRED.name());
+              manager.update(role);
+            });
+    manager.update(user);
+    return user;
   }
 
   private ImportReport createEvent(String jsonPayload) throws IOException {
@@ -476,10 +682,15 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     return null;
   }
 
-  private TrackerEvent getEventFromReport(ImportReport importReport) {
+  private List<Note> getNotesFromReport(ImportReport importReport) throws NotFoundException {
     final Map<TrackerType, TrackerTypeReport> typeReportMap =
         importReport.getPersistenceReport().getTypeReportMap();
     UID newEvent = typeReportMap.get(TrackerType.EVENT).getEntityReport().get(0).getUid();
-    return manager.get(TrackerEvent.class, newEvent);
+    return trackerEventService
+        .getEvent(
+            newEvent,
+            TrackerIdSchemeParams.builder().build(),
+            TrackerEventFields.builder().includeNotes().build())
+        .getNotes();
   }
 }

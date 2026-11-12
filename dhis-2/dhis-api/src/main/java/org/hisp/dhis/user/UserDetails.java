@@ -130,10 +130,46 @@ public interface UserDetails
       @CheckForNull Set<String> searchOrgUnitUids,
       @CheckForNull Set<String> dataViewUnitUids,
       boolean loadOrgUnits) {
+    return createUserDetails(
+        user,
+        accountNonLocked,
+        credentialsNonExpired,
+        orgUnitUids,
+        searchOrgUnitUids,
+        dataViewUnitUids,
+        loadOrgUnits,
+        null);
+  }
+
+  /**
+   * Variant of {@link #createUserDetails(User, boolean, boolean, Set, Set, Set, boolean)} that
+   * accepts a pre-resolved set of managed-group primary keys. When {@code managedGroupLongIds} is
+   * non-null it is used as-is, avoiding the per-group lazy-load N+1 incurred by {@link
+   * User#getManagedGroups()} (which initialises {@code getManagedGroups()} once per group). When
+   * null, the managed groups are resolved from the entity (legacy behaviour) for callers without
+   * access to a store.
+   */
+  // TODO(DHIS2-21896) this overload chain has grown too many parameters (java:S107); replace with
+  // a parameter object and change the Set<String> UID params to Set<UID>.
+  @CheckForNull
+  static UserDetails createUserDetails(
+      @CheckForNull User user,
+      boolean accountNonLocked,
+      boolean credentialsNonExpired,
+      @CheckForNull Set<String> orgUnitUids,
+      @CheckForNull Set<String> searchOrgUnitUids,
+      @CheckForNull Set<String> dataViewUnitUids,
+      boolean loadOrgUnits,
+      @CheckForNull Set<Long> managedGroupLongIds) {
 
     if (user == null) {
       return null;
     }
+
+    Set<Long> resolvedManagedGroupLongIds =
+        managedGroupLongIds != null
+            ? managedGroupLongIds
+            : (user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getManagedGroups()));
 
     UserDetailsImplBuilder userDetailsImplBuilder =
         UserDetailsImpl.builder()
@@ -166,9 +202,7 @@ public interface UserDetails
             .userRoleIds(new HashSet<>(setOfIds(user.getUserRoles())))
             .userGroupIds(
                 new HashSet<>(user.getUid() == null ? Set.of() : setOfIds(user.getGroups())))
-            .managedGroupLongIds(
-                new HashSet<>(
-                    user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getManagedGroups())))
+            .managedGroupLongIds(new HashSet<>(resolvedManagedGroupLongIds))
             .userRoleLongIds(
                 new HashSet<>(
                     user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getUserRoles())));
@@ -304,8 +338,6 @@ public interface UserDetails
 
   boolean hasAnyRestrictions(Collection<String> restrictions);
 
-  void setId(Long id);
-
   default boolean canIssueUserRole(UserRole role, boolean canGrantOwnUserRole) {
     if (role == null) {
       return false;
@@ -319,7 +351,11 @@ public interface UserDetails
     if (!canGrantOwnUserRole && getUserRoleIds().contains(role.getUid())) {
       return false;
     }
-    return getAllAuthorities().containsAll(role.getAuthorities());
+    Set<String> authorities = role.getAuthorities();
+    Set<String> held = getAllAuthorities();
+    // A null entry is never held; immutable sets throw on contains(null), so test entries one by
+    // one.
+    return authorities == null || authorities.stream().allMatch(a -> a != null && held.contains(a));
   }
 
   default boolean canManage(UserGroup userGroup) {

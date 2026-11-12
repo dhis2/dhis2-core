@@ -293,7 +293,7 @@ public class UserController
 
   @Override
   @Nonnull
-  protected User getEntity(@Nonnull UID uid) throws NotFoundException {
+  public User getEntity(@Nonnull UID uid) throws NotFoundException {
     User user = userService.getUser(uid.getValue());
     if (user == null) {
       throw new NotFoundException(User.class, uid);

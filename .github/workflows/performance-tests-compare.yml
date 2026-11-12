@@ -124,7 +124,7 @@ jobs:
     steps:
     - name: Checkout performance tests
       id: checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         ref: ${{ inputs.perf_tests_git_ref }}
         sparse-checkout: |
@@ -266,6 +266,7 @@ jobs:
         CAPTURE_SQL_LOGS_VALUE=$(grep "^CAPTURE_SQL_LOGS=" "$CANDIDATE_ENV" | cut -d= -f2-)
         DB_TYPE=$(grep "^DB_TYPE=" "$CANDIDATE_ENV" | cut -d= -f2-)
         DB_VERSION=$(grep "^DB_VERSION=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        DB_ETAG=$(grep "^DB_ETAG=" "$CANDIDATE_ENV" | cut -d= -f2-)
 
         # Parse baseline env (only for baseline-specific values)
         if [ -f "$BASELINE_ENV" ]; then
@@ -287,6 +288,7 @@ jobs:
         BASELINE_WARMUP=$(grep "^WARMUP=" "$BASELINE_ENV" | cut -d= -f2-)
         BASELINE_DB_TYPE=$(grep "^DB_TYPE=" "$BASELINE_ENV" | cut -d= -f2-)
         BASELINE_DB_VERSION=$(grep "^DB_VERSION=" "$BASELINE_ENV" | cut -d= -f2-)
+        BASELINE_DB_ETAG=$(grep "^DB_ETAG=" "$BASELINE_ENV" | cut -d= -f2-)
 
         echo "**Common settings:**" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -303,6 +305,14 @@ jobs:
         fi
         echo "| **Warmup iterations** | $BASELINE_WARMUP | $WARMUP_COUNT |" >> $GITHUB_STEP_SUMMARY
         echo "| **Database** | \`$BASELINE_DB_TYPE\` / \`$BASELINE_DB_VERSION\` | \`$DB_TYPE\` / \`$DB_VERSION\` |" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$BASELINE_DB_ETAG" ] || [ -n "$DB_ETAG" ]; then
+          # The same database with another ETag: its dump in S3 was replaced between the runs
+          DB_ETAG_WARNING=""
+          if [ "$BASELINE_DB_TYPE/$BASELINE_DB_VERSION" = "$DB_TYPE/$DB_VERSION" ] && [ "$BASELINE_DB_ETAG" != "$DB_ETAG" ]; then
+            DB_ETAG_WARNING=" ⚠️ another dump"
+          fi
+          echo "| **Database ETag** | \`${BASELINE_DB_ETAG:-none}\` | \`${DB_ETAG:-none}\`$DB_ETAG_WARNING |" >> $GITHUB_STEP_SUMMARY
+        fi
         if [ -n "$CAPTURE_SQL_LOGS_VALUE" ]; then
           echo "| **SQL logging** | enabled | enabled |" >> $GITHUB_STEP_SUMMARY
         fi

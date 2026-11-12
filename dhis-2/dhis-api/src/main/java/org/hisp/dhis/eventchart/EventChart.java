@@ -30,9 +30,9 @@
 package org.hisp.dhis.eventchart;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -40,22 +40,27 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.AnalyticsType;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.FavoritableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -63,7 +68,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * DEPRECATED: THIS CLASS IS DEPRECATED IN FAVOUR OF THE EventVisualization MODEL. WE SHOULD AVOID
@@ -73,7 +78,12 @@ import org.hisp.dhis.util.ObjectUtils;
  * @author Jan Henrik Overland
  */
 @JacksonXmlRootElement(localName = "eventChart", namespace = DxfNamespaces.DXF_2_0)
-public class EventChart extends BaseChart implements EventAnalyticalObject, MetadataObject {
+public class EventChart extends BaseChart
+    implements EventAnalyticalObject, MetadataObject, FavoritableObject {
+
+  /** Users who have marked this object as a favorite. */
+  @Getter @Setter @JsonProperty private Set<String> favorites = new HashSet<>();
+
   /** Program. Required. */
   private Program program;
 
@@ -85,6 +95,9 @@ public class EventChart extends BaseChart implements EventAnalyticalObject, Meta
 
   /** Attribute value dimension. */
   private TrackedEntityAttribute attributeValueDimension;
+
+  /** Program stage of the value dimension. */
+  private ProgramStage programStageValueDimension;
 
   /** Dimensions to crosstabulate / use as columns. */
   private List<String> columnDimensions = new ArrayList<>();
@@ -121,7 +134,7 @@ public class EventChart extends BaseChart implements EventAnalyticalObject, Meta
   // -------------------------------------------------------------------------
 
   /** Value dimension. */
-  private transient DimensionalItemObject value;
+  private transient Value value;
 
   // -------------------------------------------------------------------------
   // BACKWARD compatible attributes.
@@ -179,7 +192,12 @@ public class EventChart extends BaseChart implements EventAnalyticalObject, Meta
     super.populateDimensions(rowDimensions, rows);
     super.populateDimensions(filterDimensions, filters);
 
-    value = ObjectUtils.firstNonNull(dataElementValueDimension, attributeValueDimension);
+    DimensionalItemObject dimensionalItemObject =
+        firstNonNull(dataElementValueDimension, attributeValueDimension);
+
+    if (dimensionalItemObject != null) {
+      value = new Value(dimensionalItemObject, programStageValueDimension);
+    }
   }
 
   @Override
@@ -402,14 +420,25 @@ public class EventChart extends BaseChart implements EventAnalyticalObject, Meta
 
   @Override
   @JsonProperty
-  @JsonDeserialize(as = BaseDimensionalItemObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DimensionalItemObject getValue() {
+  public Value getValue() {
     return value;
   }
 
-  public void setValue(DimensionalItemObject value) {
+  public void setValue(Value value) {
     this.value = value;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public ProgramStage getProgramStageValueDimension() {
+    return programStageValueDimension;
+  }
+
+  @Override
+  public void setProgramStageValueDimension(ProgramStage programStageValueDimension) {
+    this.programStageValueDimension = programStageValueDimension;
   }
 
   @JsonProperty
@@ -420,5 +449,17 @@ public class EventChart extends BaseChart implements EventAnalyticalObject, Meta
 
   public void setLegacy(final boolean legacy) {
     this.legacy = legacy;
+  }
+
+  @Override
+  public boolean setAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.add(user.getUid());
+  }
+
+  @Override
+  public boolean removeAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.remove(user.getUid());
   }
 }

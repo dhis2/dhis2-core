@@ -36,6 +36,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
+import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.supportsCustomLabel;
@@ -55,6 +56,7 @@ import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.MetadataInfo;
+import org.hisp.dhis.analytics.common.NoValueDimensions;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -112,11 +114,14 @@ public class MetadataParamsHandler {
                   addDimensionIdentifierToItemsIfNeeded(dimensionIdentifier, items));
 
       getUserOrganisationUnitItems(user, userOrgUnitMetaDataKeys).forEach(items::putAll);
+
       MetadataInfo metadataInfo = new MetadataInfo();
       metadataInfo.put(ITEMS.getKey(), items);
 
-      metadataInfo.put(
-          DIMENSIONS.getKey(), new MetadataDimensionsHandler().handle(grid, commonParsed));
+      Map<String, List<String>> dimensions =
+          new MetadataDimensionsHandler().handle(grid, commonParsed);
+      addNoValueToDimensions(dimensions, commonParsed);
+      metadataInfo.put(DIMENSIONS.getKey(), dimensions);
 
       // Org. Units.
       boolean hierarchyMeta = commonRequest.isHierarchyMeta();
@@ -146,6 +151,39 @@ public class MetadataParamsHandler {
 
       grid.setMetaData(metadataInfo.getMap());
     }
+  }
+
+  /**
+   * Appends the no-value keyword to the dimension item list of every option-set dimension whose
+   * filter explicitly contains the keyword (filter-scoped). Only {@code metaData.dimensions} is
+   * affected; rows and {@code metaData.items} are unchanged.
+   *
+   * @param dimensions the dimension items map.
+   * @param commonParsed the {@link CommonParsedParams}.
+   */
+  private void addNoValueToDimensions(
+      Map<String, List<String>> dimensions, CommonParsedParams commonParsed) {
+    for (DimensionIdentifier<DimensionParam> dimensionIdentifier :
+        commonParsed.getDimensionIdentifiers()) {
+      DimensionParam dimension = dimensionIdentifier.getDimension();
+
+      if (isFilteredByNoValue(dimension)) {
+        QueryItem item = dimension.getQueryItem();
+        NoValueDimensions.append(dimensions, getItemUid(item), item.getItemId());
+      }
+    }
+  }
+
+  /**
+   * Indicates whether the dimension is option-set-backed and filtered by the reserved no-value
+   * keyword. The filter values live in the {@link DimensionParam} items (not in {@link
+   * QueryItem#getFilters()}).
+   */
+  private boolean isFilteredByNoValue(DimensionParam dimension) {
+    return dimension.hasOptionSet()
+        && dimension.getItems().stream()
+            .flatMap(item -> item.getValues().stream())
+            .anyMatch(NO_VALUE::equals);
   }
 
   /**

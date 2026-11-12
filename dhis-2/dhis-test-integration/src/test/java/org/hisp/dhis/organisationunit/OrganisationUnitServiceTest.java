@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.organisationunit;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,6 +46,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
@@ -251,6 +253,26 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
     assertEquals(3, actual.size());
     assertTrue(actual.contains(unit1));
     assertTrue(actual.contains(unit2));
+  }
+
+  @Test
+  void testGetOrganisationUnitWithChildrenReturnsSubtreeWithLazyChildrenCollections() {
+    OrganisationUnit unitA = createOrganisationUnit('A');
+    OrganisationUnit unitB = createOrganisationUnit('B', unitA);
+    OrganisationUnit unitC = createOrganisationUnit('C', unitA);
+    OrganisationUnit unitD = createOrganisationUnit('D', unitB);
+    long idA = organisationUnitService.addOrganisationUnit(unitA);
+    organisationUnitService.addOrganisationUnit(unitB);
+    organisationUnitService.addOrganisationUnit(unitC);
+    organisationUnitService.addOrganisationUnit(unitD);
+    clearSession();
+
+    List<OrganisationUnit> actual = organisationUnitService.getOrganisationUnitWithChildren(idA);
+
+    // Each org unit is returned exactly once and its children collection is left lazy; eagerly
+    // join fetching children doubles the rows read for large hierarchies and no caller needs it
+    assertContainsOnly(List.of(unitA, unitB, unitC, unitD), actual);
+    actual.forEach(ou -> assertFalse(Hibernate.isInitialized(ou.getChildren()), ou.getName()));
   }
 
   @Test

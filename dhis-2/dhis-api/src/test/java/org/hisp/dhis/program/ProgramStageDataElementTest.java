@@ -109,7 +109,7 @@ class ProgramStageDataElementTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(ProgramStageDataElement.class);
-    assertEquals(27, allClassFieldsIncludingInherited.length);
+    assertEquals(26, allClassFieldsIncludingInherited.length);
   }
 
   public static ProgramStageDataElement getNewProgramStageDataElement(

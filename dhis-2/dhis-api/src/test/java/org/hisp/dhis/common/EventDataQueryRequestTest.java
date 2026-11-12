@@ -33,15 +33,19 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.EventOutputType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class EventDataQueryRequestTest {
@@ -189,6 +193,27 @@ public class EventDataQueryRequestTest {
                 "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:OCCURRED_DATE;2021:OCCURRED_DATE;TODAY:OCCURRED_DATE")));
   }
 
+  /**
+   * Enrollment requests must carry the ENROLLMENT output type so query items such as {@code
+   * INCIDENT_DATE} resolve to enrollment analytics table columns.
+   */
+  @ParameterizedTest
+  @EnumSource(
+      value = RequestTypeAware.EndpointAction.class,
+      names = {"QUERY", "AGGREGATE"})
+  void testEnrollmentCriteriaSetsEnrollmentOutputType(RequestTypeAware.EndpointAction action) {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+
+    EventDataQueryRequest eventDataQueryRequest =
+        EventDataQueryRequest.builder()
+            .fromCriteria(
+                (EnrollmentAnalyticsQueryCriteria)
+                    criteria.withEndpointAction(action).withEndpointItem(ENROLLMENT))
+            .build();
+
+    assertEquals(EventOutputType.ENROLLMENT, eventDataQueryRequest.getOutputType());
+  }
+
   @Test
   void testAggregateEnrollmentMultiOptionsAreCorrectlyParsed() {
     // Given
@@ -221,5 +246,39 @@ public class EventDataQueryRequestTest {
 
     assertEquals(
         EventDataQueryRequest.builder().fromCriteria(criteria).build().isTotalPages(), totalPages);
+  }
+
+  @Test
+  void aggregateEnrollmentMapsValueAndAggregationType() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setValue("edqlbukwRfQ.vANAXwtLwcT");
+    criteria.setAggregationType(AggregationType.AVERAGE);
+
+    EventDataQueryRequest request =
+        EventDataQueryRequest.builder()
+            .fromCriteria(
+                (EnrollmentAnalyticsQueryCriteria)
+                    criteria.withEndpointAction(AGGREGATE).withEndpointItem(ENROLLMENT))
+            .build();
+
+    assertEquals("edqlbukwRfQ.vANAXwtLwcT", request.getValue());
+    assertEquals(AggregationType.AVERAGE, request.getAggregationType());
+  }
+
+  @Test
+  void enrollmentQueryDoesNotMapValueOrAggregationType() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setValue("edqlbukwRfQ.vANAXwtLwcT");
+    criteria.setAggregationType(AggregationType.AVERAGE);
+
+    EventDataQueryRequest request =
+        EventDataQueryRequest.builder()
+            .fromCriteria(
+                (EnrollmentAnalyticsQueryCriteria)
+                    criteria.withEndpointAction(QUERY).withEndpointItem(ENROLLMENT))
+            .build();
+
+    assertNull(request.getValue());
+    assertNull(request.getAggregationType());
   }
 }

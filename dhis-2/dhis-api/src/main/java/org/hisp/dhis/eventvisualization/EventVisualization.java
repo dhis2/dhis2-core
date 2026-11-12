@@ -46,26 +46,29 @@ import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.analytics.EventDataType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.FavoritableObject;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -85,12 +88,16 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 @JacksonXmlRootElement(localName = "eventVisualization", namespace = DXF_2_0)
 public class EventVisualization extends BaseAnalyticalObject
-    implements MetadataObject, EventAnalyticalObject {
+    implements MetadataObject, EventAnalyticalObject, FavoritableObject {
 
   protected EventVisualizationType type;
+
+  /** Users who have marked this object as a favorite. */
+  @Getter @Setter @JsonProperty private Set<String> favorites = new HashSet<>();
 
   // -------------------------------------------------------------------------
   // Dimensional properties
@@ -119,6 +126,9 @@ public class EventVisualization extends BaseAnalyticalObject
 
   /** Attribute value dimension. */
   private TrackedEntityAttribute attributeValueDimension;
+
+  /** Program stage of the value dimension. */
+  private ProgramStage programStageValueDimension;
 
   /** Dimensions to crosstabulate / use as columns. */
   private List<String> columnDimensions = new ArrayList<>();
@@ -173,7 +183,7 @@ public class EventVisualization extends BaseAnalyticalObject
   // -------------------------------------------------------------------------
 
   /** Value dimension. */
-  private transient DimensionalItemObject value;
+  private transient Value value;
 
   private EventDataType dataType;
 
@@ -391,7 +401,13 @@ public class EventVisualization extends BaseAnalyticalObject
     super.populateDimensions(rowDimensions, rows, ROW, this);
     super.populateDimensions(filterDimensions, filters, FILTER, this);
 
-    value = firstNonNull(dataElementValueDimension, attributeValueDimension);
+    DimensionalItemObject dimensionalItemObject =
+        firstNonNull(dataElementValueDimension, attributeValueDimension);
+
+    if (dimensionalItemObject != null) {
+      value = new Value(dimensionalItemObject, programStageValueDimension);
+      value.setUid(dimensionalItemObject.getUID().getValue());
+    }
   }
 
   public void associateSimpleDimensions() {
@@ -481,6 +497,18 @@ public class EventVisualization extends BaseAnalyticalObject
   @Override
   public void setDataElementValueDimension(DataElement dataElementValueDimension) {
     this.dataElementValueDimension = dataElementValueDimension;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public ProgramStage getProgramStageValueDimension() {
+    return programStageValueDimension;
+  }
+
+  @Override
+  public void setProgramStageValueDimension(ProgramStage programStageValueDimension) {
+    this.programStageValueDimension = programStageValueDimension;
   }
 
   @JsonProperty
@@ -637,14 +665,27 @@ public class EventVisualization extends BaseAnalyticalObject
 
   @Override
   @JsonProperty
-  @JsonDeserialize(as = BaseDimensionalItemObject.class)
   @JacksonXmlProperty(namespace = DXF_2_0)
-  public DimensionalItemObject getValue() {
+  public Value getValue() {
     return value;
   }
 
-  public void setValue(DimensionalItemObject value) {
+  public void setValue(Value value) {
     this.value = value;
+
+    if (value != null) {
+      if (value.getDimensionalObject() instanceof DataElement dataElement) {
+        dataElementValueDimension = dataElement;
+      }
+
+      if (value.getDimensionalObject() instanceof TrackedEntityAttribute trackedEntityAttribute) {
+        attributeValueDimension = trackedEntityAttribute;
+      }
+
+      if (value.getProgramStage() != null && programStageValueDimension == null) {
+        programStageValueDimension = value.getProgramStage();
+      }
+    }
   }
 
   /**
@@ -683,5 +724,17 @@ public class EventVisualization extends BaseAnalyticalObject
 
   public void setLegacy(boolean legacy) {
     this.legacy = legacy;
+  }
+
+  @Override
+  public boolean setAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.add(user.getUid());
+  }
+
+  @Override
+  public boolean removeAsFavorite(UserDetails user) {
+    if (favorites == null) favorites = new HashSet<>();
+    return favorites.remove(user.getUid());
   }
 }

@@ -82,7 +82,6 @@ public class MeDto {
     this.created = user.getCreated();
     this.lastUpdated = user.getLastUpdated();
     this.dataViewOrganisationUnits = user.getDataViewOrganisationUnits();
-    this.favorites = user.getFavorites();
     this.userGroups = filteredUserGroups;
     this.translations = user.getTranslations();
     this.teiSearchOrganisationUnits = user.getTeiSearchOrganisationUnits();
@@ -141,8 +140,6 @@ public class MeDto {
   @OpenApi.Property(BaseIdentifiableObject[].class)
   @JsonProperty
   private Set<OrganisationUnit> dataViewOrganisationUnits;
-
-  @JsonProperty protected Set<String> favorites;
 
   @JsonProperty protected Sharing sharing;
 

@@ -407,7 +407,7 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
 
     String translatedName = "translatedName";
     Set<Translation> translations = new HashSet<>(legendSetA.getTranslations());
-    translations.add(new Translation(locale.language(), "NAME", translatedName));
+    translations.add(Translation.ofLanguage(locale, "NAME", translatedName));
     objectManager.updateTranslations(legendSetA, translations);
 
     LegendSet retrieved = legendSetService.getLegendSet(idA);

@@ -30,7 +30,6 @@
 package org.hisp.dhis.analytics.trackedentity.query;
 
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.DECIMAL;
-import static org.hisp.dhis.analytics.trackedentity.query.DataElementCondition.getDataValueRenderable;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -48,11 +47,21 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class DataElementWithLegendSetCondition extends BaseRenderable {
   private final QueryContext queryContext;
 
   private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+
+  private final DataValueResolver dataValueResolver;
+
+  static DataElementWithLegendSetCondition of(
+      QueryContext queryContext,
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      DataValueResolver dataValueResolver) {
+    return new DataElementWithLegendSetCondition(
+        queryContext, dimensionIdentifier, dataValueResolver);
+  }
 
   @Override
   public String render() {
@@ -72,14 +81,14 @@ public class DataElementWithLegendSetCondition extends BaseRenderable {
     Double endValue = legend.getEndValue();
     Renderable greaterThanOrEqualsStartValueCondition =
         BinaryConditionRenderer.of(
-            getDataValueRenderable(dimensionIdentifier, DECIMAL),
+            dataValueResolver.resolve(DECIMAL),
             AnalyticsQueryOperator.of(QueryOperator.GE),
             List.of(startValue.toString()),
             DECIMAL,
             queryContext);
     Renderable lessThanEndValueCondition =
         BinaryConditionRenderer.of(
-            getDataValueRenderable(dimensionIdentifier, DECIMAL),
+            dataValueResolver.resolve(DECIMAL),
             AnalyticsQueryOperator.of(QueryOperator.LT),
             List.of(endValue.toString()),
             DECIMAL,

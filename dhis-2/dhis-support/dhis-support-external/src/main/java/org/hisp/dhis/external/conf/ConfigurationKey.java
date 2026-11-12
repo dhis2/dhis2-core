@@ -62,6 +62,9 @@ public enum ConfigurationKey {
   /** SQL view write enabled, can be 'on', 'off'. (default: off) */
   SYSTEM_SQL_VIEW_WRITE_ENABLED("system.sql_view_write_enabled", Constants.OFF, false),
 
+  /** JasperReports report designs enabled, can be 'on', 'off'. (default: off) */
+  JASPER_REPORTS_ENABLED("jasper.reports.enabled", Constants.OFF, false),
+
   /**
    * Set the maximum size for the cache instance to be built. If set to 0, no caching will take
    * place. Cannot be a negative value. (default: 0).
@@ -396,7 +399,7 @@ public enum ConfigurationKey {
    */
   META_DATA_SYNC_RETRY("metadata.sync.retry", "3", false),
 
-  /** Sets up {@see RetryTemplate} retry frequency. (default: 30000) */
+  /** Sets up Spring Framework core {@code RetryTemplate} backoff delay. (default: 30000) */
   META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC(
       "metadata.sync.retry.time.frequency.millisec", "30000", false),
 
@@ -454,6 +457,21 @@ public enum ConfigurationKey {
 
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
+  /**
+   * Maximum number of seconds a tracker export request may spend fetching data before it is
+   * canceled and fails with 504. The budget is shared by every database query and object store read
+   * of one request but covers only the time they run, not the wait for a connection, which the pool
+   * bounds separately via {@code connection.pool.timeout} and answers with a 503. {@code 0}
+   * disables the timeout. (default: 600)
+   *
+   * <p>Because the underlying JDBC timeout has whole second granularity and the remaining budget is
+   * rounded up, a request can take up to one second longer than this value.
+   *
+   * <p>Set this below any timeout in front of DHIS2, such as a reverse proxy or load balancer. If
+   * the proxy times out first it returns its own 504 while the query is never cancelled.
+   */
+  TRACKER_EXPORT_TIMEOUT("tracker.export.timeout", "600", false),
+
   /** Use unlogged tables during analytics export. (default: ON) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 
@@ -468,6 +486,15 @@ public enum ConfigurationKey {
    * identifiers. Experimental.
    */
   ANALYTICS_TABLE_SKIP_COLUMN("analytics.table.skip_column", "", false),
+
+  /**
+   * Analytics table SQL hooks feature. When off (default), create/update of {@code
+   * AnalyticsTableHook} metadata is rejected, also for superusers importing with {@code
+   * skipValidation}, and scheduled hook SQL is not executed. High risk when enabled: stored SQL
+   * runs as the DHIS2 database role, and every stored hook runs from the next table generation.
+   * When enabled, only superusers can create or update hooks. Values: on/off.
+   */
+  ANALYTICS_TABLE_HOOKS_ENABLED("analytics.table_hooks.enabled", Constants.OFF, false),
 
   /**
    * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded Artemis which lives in
@@ -584,6 +611,13 @@ public enum ConfigurationKey {
   /** CPU monitoring. (default: off) */
   MONITORING_CPU_ENABLED("monitoring.cpu.enabled", Constants.OFF, false),
 
+  /**
+   * JMX monitoring: expose selected statistics (user statistics) and HikariCP connection pool
+   * MBeans, for monitoring tools that consume JMX rather than Prometheus, such as Glowroot.
+   * (default: off)
+   */
+  MONITORING_JMX_ENABLED("monitoring.jmx.enabled", Constants.OFF, false),
+
   /** AppHub base URL. (default: https://apps.dhis2.org). */
   APPHUB_BASE_URL("apphub.base.url", "https://apps.dhis2.org", false),
 
@@ -595,6 +629,17 @@ public enum ConfigurationKey {
    * (default: on)
    */
   CHANGELOG_AGGREGATE("changelog.aggregate", Constants.ON),
+
+  /**
+   * Maximum number of seconds a statement reading the aggregate data value change log ({@code
+   * /api/audits/dataValue}, {@code /api/dataEntry/dataValueContext}) may run for a user who is not
+   * a superuser. A statement that runs longer is cancelled and the request fails with 409. {@code
+   * 0} disables the timeout. (default: 30)
+   *
+   * <p>Set this below any timeout in front of DHIS2, such as a reverse proxy or load balancer: a
+   * client that gives up does not cancel the statement.
+   */
+  CHANGELOG_AGGREGATE_QUERY_TIMEOUT("changelog.aggregate.query.timeout", "30", false),
 
   /** Use in-memory queue before sending audits into the Artemis queue. (default: off). */
   AUDIT_USE_IN_MEMORY_QUEUE_ENABLED(
@@ -801,6 +846,14 @@ public enum ConfigurationKey {
   /** Whether to generate a new JWT key if the keystore is missing. */
   OAUTH2_JWT_KEYSTORE_GENERATE_IF_MISSING(
       "oauth2.server.jwt.keystore.generate-if-missing", "true", false),
+
+  /**
+   * Refresh token time-to-live in seconds for clients registered through OIDC Dynamic Client
+   * Registration (e.g. Android devices). Refresh tokens are rotated on every use, so this is a
+   * sliding window: each refresh issues a new refresh token valid for this duration. (default: 30
+   * days)
+   */
+  OAUTH2_SERVER_DCR_REFRESH_TOKEN_TTL("oauth2.server.dcr.refresh-token-ttl", "2592000", false),
 
   /** Ehcache monitoring. (default: off) */
   MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false),

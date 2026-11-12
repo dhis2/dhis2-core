@@ -90,10 +90,7 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
       throw new ParserException(getErrorMessage(programStageId));
     }
 
-    String description =
-        programStage.getDisplayName()
-            + ProgramIndicator.SEPARATOR_ID
-            + dataElement.getDisplayName();
+    String description = programStage.getDisplayName() + "." + dataElement.getDisplayName();
 
     visitor.getItemDescriptions().put(ctx.getText(), description);
 
@@ -127,8 +124,14 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
 
     // Construct the placeholder string
     return String.format(
-        "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s')",
-        programStageId, dataElementId, stageOffset, boundaryHash, programIndicator.getUid());
+        "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s',"
+            + " replaceNulls='%b')",
+        programStageId,
+        dataElementId,
+        stageOffset,
+        boundaryHash,
+        programIndicator.getUid(),
+        visitor.getState().isReplaceNulls());
   }
 
   /**

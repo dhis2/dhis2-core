@@ -77,6 +77,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.FavoritableOperations;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -96,7 +97,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/maps")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class MapController extends AbstractCrudController<Map, GetObjectListParams> {
+public class MapController extends AbstractCrudController<Map, GetObjectListParams>
+    implements FavoritableOperations<Map> {
   private static final int MAP_MIN_WIDTH = 140;
 
   private static final int MAP_MIN_HEIGHT = 25;
