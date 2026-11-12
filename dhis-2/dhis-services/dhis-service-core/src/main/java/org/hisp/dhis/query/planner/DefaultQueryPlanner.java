@@ -52,7 +52,7 @@ import org.springframework.stereotype.Component;
 public class DefaultQueryPlanner implements QueryPlanner {
 
   private final SchemaService schemaService;
-  private final CollectionPaths collectionPaths;
+  private final RootCollectionFilters rootCollectionFilters;
 
   @Override
   public <T extends IdentifiableObject> QueryPlan<T> planQuery(Query<T> query) {
@@ -193,7 +193,8 @@ public class DefaultQueryPlanner implements QueryPlanner {
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
     if (path == null || !path.haveAlias()) return false;
 
-    return collectionPaths.itemType(query.getObjectType(), filter, path.getProperty()) != null;
+    return rootCollectionFilters.itemType(query.getObjectType(), filter, path.getProperty())
+        != null;
   }
 
   /**

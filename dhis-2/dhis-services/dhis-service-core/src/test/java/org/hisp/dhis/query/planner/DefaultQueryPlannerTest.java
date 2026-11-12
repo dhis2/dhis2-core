@@ -73,7 +73,7 @@ class DefaultQueryPlannerTest {
 
   @BeforeEach
   void setUp() {
-    queryPlanner = new DefaultQueryPlanner(schemaService, new CollectionPaths(schemaService));
+    queryPlanner = new DefaultQueryPlanner(schemaService, new RootCollectionFilters(schemaService));
   }
 
   @Test

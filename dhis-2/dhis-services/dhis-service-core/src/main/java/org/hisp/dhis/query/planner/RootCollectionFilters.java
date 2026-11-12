@@ -38,15 +38,16 @@ import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 /**
- * Decides whether a filter path such as {@code userGroups.id} or {@code
- * dataViewOrganisationUnits.path} can be matched in SQL with a correlated EXISTS. Shared by the
- * query planner and the JPA query engine so both apply the same rules.
+ * Decides whether a filter on a collection of the root type, of the shape {@code
+ * collection.property} such as {@code userGroups.id} or {@code dataViewOrganisationUnits.path}, can
+ * be matched in SQL with a correlated EXISTS. Deeper paths are not handled here and stay in memory.
+ * Shared by the query planner and the JPA query engine so both apply the same rules.
  *
  * @author Jason P. Pickering <jason@dhis2.org>
  */
 @Component
 @RequiredArgsConstructor
-public class CollectionPaths {
+public class RootCollectionFilters {
 
   private final SchemaService schemaService;
 
