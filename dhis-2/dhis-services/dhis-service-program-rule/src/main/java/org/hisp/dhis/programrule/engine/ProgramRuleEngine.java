@@ -47,11 +47,7 @@ import org.hisp.dhis.rules.api.RuleContextRequirements;
 import org.hisp.dhis.rules.api.RuleEngine;
 import org.hisp.dhis.rules.api.RuleEngineContext;
 import org.hisp.dhis.rules.api.RuleSupplementaryData;
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.rules.models.RuleEffects;
-import org.hisp.dhis.rules.models.RuleEnrollment;
-import org.hisp.dhis.rules.models.RuleEvent;
-import org.hisp.dhis.rules.models.RuleValidationResult;
+import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserDetails;
 
@@ -435,7 +431,8 @@ public class ProgramRuleEngine {
         programRuleEntityMapperService.toMappedProgramRules(programRules),
         programRuleEntityMapperService.toMappedProgramRuleVariables(programRuleVariables),
         supplementaryData,
-        constantMap);
+        constantMap,
+        TriggerEnvironment.SERVER);
   }
 
   private RuleEngineContext getRuleEngineContext(
@@ -453,7 +450,8 @@ public class ProgramRuleEngine {
         programRuleEntityMapperService.toMappedProgramRules(programRules),
         programRuleEntityMapperService.toMappedProgramRuleVariables(programRuleVariables),
         supplementaryData,
-        constantMap);
+        constantMap,
+        TriggerEnvironment.SERVER);
   }
 
   private RuleEngineContext getRuleEngineContext(
@@ -468,7 +466,8 @@ public class ProgramRuleEngine {
         programRuleEntityMapperService.toMappedProgramRules(programRules),
         programRuleEntityMapperService.toMappedProgramRuleVariables(programRuleVariables),
         supplementaryData,
-        constantMap);
+        constantMap,
+        TriggerEnvironment.SERVER);
   }
 
   private RuleEngineContext getRuleEngineContext(
@@ -484,7 +483,8 @@ public class ProgramRuleEngine {
         programRuleEntityMapperService.toMappedProgramRules(programRules),
         programRuleEntityMapperService.toMappedProgramRuleVariables(programRuleVariables),
         supplementaryData,
-        constantMap);
+        constantMap,
+        TriggerEnvironment.SERVER);
   }
 
   private RuleEvent getRuleEvent(Event event) {
