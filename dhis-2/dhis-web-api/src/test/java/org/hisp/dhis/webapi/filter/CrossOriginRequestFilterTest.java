@@ -116,7 +116,8 @@ class CrossOriginRequestFilterTest {
   private static boolean isAllowedByRules(OriginHeader origin, String method, String fetchSite) {
     return switch (origin) {
       case SELF, ALLOWLISTED -> true;
-      case FOREIGN, NULL -> false;
+      case FOREIGN -> false;
+      case NULL -> "same-origin".equals(fetchSite);
       case ABSENT ->
           !UNSAFE_METHODS.contains(method)
               || fetchSite == null
@@ -185,6 +186,45 @@ class CrossOriginRequestFilterTest {
 
     assertNotNull(chain.getRequest(), "log-only mode must not block the request");
     assertEquals(200, response.getStatus());
+  }
+
+  @ParameterizedTest(name = "Origin null, Sec-Fetch-Site {0}")
+  @MethodSource("nullOriginFetchSites")
+  void logOnlyModeLetsNullOriginThrough(String fetchSite) throws ServletException, IOException {
+    CrossOriginRequestFilter filter = filter("on", "on");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    MockFilterChain chain = new MockFilterChain();
+
+    filter.doFilter(request("POST", "null", fetchSite), response, chain);
+
+    assertNotNull(chain.getRequest(), "log-only mode must not block the request");
+    assertEquals(200, response.getStatus());
+  }
+
+  static Stream<String> nullOriginFetchSites() {
+    return Stream.of(null, "same-origin", "none", "same-site", "cross-site");
+  }
+
+  @ParameterizedTest(name = "Origin {0}, Sec-Fetch-Site same-origin -> allowed {1}")
+  @MethodSource("nullOriginSpellings")
+  void nullOriginSpellingsWithSameOriginFetchSite(String origin, boolean expectedAllowed)
+      throws ServletException, IOException {
+    CrossOriginRequestFilter filter = filter("on", "off");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    MockFilterChain chain = new MockFilterChain();
+
+    filter.doFilter(request("POST", origin, "same-origin"), response, chain);
+
+    assertEquals(expectedAllowed, chain.getRequest() != null);
+    assertEquals(expectedAllowed ? 200 : 403, response.getStatus());
+  }
+
+  static Stream<Arguments> nullOriginSpellings() {
+    return Stream.of(
+        Arguments.of("null", true),
+        Arguments.of("NULL", true),
+        Arguments.of("null ", false),
+        Arguments.of("nulls", false));
   }
 
   @ParameterizedTest

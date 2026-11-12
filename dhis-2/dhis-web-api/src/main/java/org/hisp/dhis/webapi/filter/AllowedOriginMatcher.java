@@ -57,7 +57,9 @@ public class AllowedOriginMatcher {
 
   /**
    * The serialized origin browsers send for opaque origins (sandboxed frames, {@code file:} and
-   * {@code data:} documents, privacy-sensitive redirects). It never identifies a trusted site.
+   * {@code data:} documents, privacy-sensitive redirects). It never identifies a trusted site, so
+   * it never gets CORS headers. {@link CrossOriginRequestFilter} lets it through only when the
+   * browser also sends {@code Sec-Fetch-Site: same-origin}.
    */
   static final String NULL_ORIGIN = "null";
 

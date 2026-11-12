@@ -35,6 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.hisp.dhis.test.webapi.ControllerWithJwtTokenAuthTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -62,6 +64,27 @@ class AuthorizationServerCrossOriginProtectionTest extends ControllerWithJwtToke
     mvc.perform(tokenRequest())
         .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.error").value("invalid_client"));
+  }
+
+  @Test
+  void tokenRequestWithNullOriginFromSameOriginPageReachesClientAuthentication() throws Exception {
+    mvc.perform(tokenRequest().header("Origin", "null").header("Sec-Fetch-Site", "same-origin"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.error").value("invalid_client"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"none", "same-site", "cross-site"})
+  void tokenRequestWithNullOriginAndOtherFetchSiteIsRejected(String fetchSite) throws Exception {
+    mvc.perform(tokenRequest().header("Origin", "null").header("Sec-Fetch-Site", fetchSite))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.message").value("Cross-origin request rejected: origin is not allowed"));
+  }
+
+  @Test
+  void tokenRequestWithNullOriginAndNoFetchSiteIsRejected() throws Exception {
+    mvc.perform(tokenRequest().header("Origin", "null")).andExpect(status().isForbidden());
   }
 
   private static MockHttpServletRequestBuilder tokenRequest() {

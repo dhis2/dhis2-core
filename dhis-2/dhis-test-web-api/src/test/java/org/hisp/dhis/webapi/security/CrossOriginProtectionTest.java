@@ -112,6 +112,38 @@ class CrossOriginProtectionTest extends AuthenticationApiTestBase {
     assertRejected(response);
     assertEquals(0, countConstantsNamed(name));
   }
+  @Test
+  void postWithNullOriginFromSameOriginPageCreatesObject() {
+    String name = "Constant" + CodeGenerator.generateUid();
+
+    HttpResponse response =
+        POST(
+            "/constants",
+            constantBody(name),
+            Header("Origin", "null"),
+            Header("Sec-Fetch-Site", "same-origin"));
+
+    assertEquals(HttpStatus.CREATED, response.status());
+    assertNull(response.header("Access-Control-Allow-Origin"));
+    assertEquals(1, countConstantsNamed(name));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"none", "same-site", "cross-site"})
+  void postWithNullOriginAndOtherFetchSiteIsRejectedAndNotExecuted(String fetchSite) {
+    String name = "Constant" + CodeGenerator.generateUid();
+
+    HttpResponse response =
+        POST(
+            "/constants",
+            constantBody(name),
+            Header("Origin", "null"),
+            Header("Sec-Fetch-Site", fetchSite));
+
+    assertRejected(response);
+    assertEquals(0, countConstantsNamed(name));
+  }
+
 
   @Test
   void crossSitePostWithoutOriginIsRejectedAndNotExecuted() {

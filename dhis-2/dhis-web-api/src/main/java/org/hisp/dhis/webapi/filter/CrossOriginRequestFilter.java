@@ -38,6 +38,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -58,8 +59,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *
  * <ol>
  *   <li>If the {@code Origin} header is present, the origin must be accepted by {@link
- *       AllowedOriginMatcher}: the server's own origin or an allowlisted one. {@code Origin: null}
- *       is never accepted. This applies to all HTTP methods.
+ *       AllowedOriginMatcher}: the server's own origin or an allowlisted one. This applies to all
+ *       HTTP methods.
+ *   <li>{@code Origin: null} is accepted only together with {@code Sec-Fetch-Site: same-origin}.
+ *       Browsers send this pair for a same-origin request from a page with the {@code no-referrer}
+ *       referrer policy. Page scripts cannot set {@code Sec-Fetch-Site}, so the browser itself
+ *       attests that the request is same-origin. Sandboxed frames and other opaque origins get
+ *       {@code cross-site} and stay rejected, as does {@code Origin: null} without that header.
  *   <li>Without an {@code Origin} header, a state-changing request (any method except GET, HEAD,
  *       OPTIONS and TRACE) is rejected if its {@code Sec-Fetch-Site} header is present and is
  *       neither {@code same-origin} nor {@code none}.
@@ -84,8 +90,10 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
   /** Methods that must not change state, so a cross-site request using them is not rejected. */
   private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS", "TRACE");
 
+  private static final String SAME_ORIGIN = "same-origin";
+
   /** {@code Sec-Fetch-Site} values of requests the user or this server's own pages initiated. */
-  private static final Set<String> TRUSTED_FETCH_SITES = Set.of("same-origin", "none");
+  private static final Set<String> TRUSTED_FETCH_SITES = Set.of(SAME_ORIGIN, "none");
 
   private enum Verdict {
     ALLOWED,
@@ -141,14 +149,14 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
 
   private Verdict evaluate(HttpServletRequest request) {
     String origin = request.getHeader(HttpHeaders.ORIGIN);
+    String fetchSite = request.getHeader(SEC_FETCH_SITE);
 
     if (!StringUtils.isEmpty(origin)) {
       return allowedOriginMatcher.isAllowed(request, origin)
+              || isSameOriginNullOrigin(origin, fetchSite)
           ? Verdict.ALLOWED
           : Verdict.ORIGIN_NOT_ALLOWED;
     }
-
-    String fetchSite = request.getHeader(SEC_FETCH_SITE);
 
     if (fetchSite == null
         || SAFE_METHODS.contains(request.getMethod())
@@ -157,6 +165,15 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
     }
 
     return Verdict.CROSS_SITE_WITHOUT_ORIGIN;
+  }
+
+  /**
+   * @return true for {@code Origin: null} sent with {@code Sec-Fetch-Site: same-origin}, which only
+   *     a browser can produce for a request from one of this server's own pages
+   */
+  private static boolean isSameOriginNullOrigin(String origin, @CheckForNull String fetchSite) {
+    return AllowedOriginMatcher.NULL_ORIGIN.equalsIgnoreCase(origin)
+        && SAME_ORIGIN.equalsIgnoreCase(fetchSite);
   }
 
   private void logRejection(HttpServletRequest request, Verdict verdict) {
