@@ -56,7 +56,9 @@ public class EnrollmentValidator implements Validator<TrackerBundle> {
                 new MetaValidator(),
                 new UpdatableFieldsValidator(),
                 new DataRelationsValidator(),
-                securityOwnershipValidator,
+                // the deleted parent check runs after the security validator so it does not reveal
+                // anything about data the user has no access to
+                seq(securityOwnershipValidator, new DeletedParentValidator()),
                 all(
                     new NoteValidator(),
                     new ExistingEnrollmentValidator(),

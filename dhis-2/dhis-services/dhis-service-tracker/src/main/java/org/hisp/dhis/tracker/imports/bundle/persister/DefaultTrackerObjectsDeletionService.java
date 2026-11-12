@@ -199,8 +199,12 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
           .forEach(
               teUid -> {
                 TrackedEntity trackedEntity = teService.getTrackedEntity(teUid.getValue());
-                trackedEntity.setLastUpdatedByUserInfo(bundle.getUserInfo());
-                teService.updateTrackedEntity(trackedEntity);
+                // a soft deleted tracked entity is not returned, relationships left linking to it
+                // by older versions must still be deletable
+                if (trackedEntity != null) {
+                  trackedEntity.setLastUpdatedByUserInfo(bundle.getUserInfo());
+                  teService.updateTrackedEntity(trackedEntity);
+                }
               });
 
       relationshipService.deleteRelationship(relationship);
