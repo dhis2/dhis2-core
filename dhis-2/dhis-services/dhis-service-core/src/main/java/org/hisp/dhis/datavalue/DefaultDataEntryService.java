@@ -853,7 +853,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       // - require: DS entry for period already allowed?
       // (how much earlier can data be entered relative to the current period)
       int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
-      PeriodType type = periodsNotUsingEntrySpans.get(0).getPeriodType();
+      PeriodType type = periodsNotUsingEntrySpans.iterator().next().getPeriodType();
       Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
       List<Period> isoNotYetOpen =
           periodsNotUsingEntrySpans.stream().filter(p -> p.isAfter(latestOpen)).toList();
