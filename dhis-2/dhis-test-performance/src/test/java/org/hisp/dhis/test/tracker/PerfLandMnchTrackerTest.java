@@ -83,11 +83,11 @@ import org.slf4j.LoggerFactory;
  *       facility and searches in her district. The test logs in as the clerk of the case, dbgen's
  *       users, instead of replicating one.
  *   <li>The cases cover facilities by their number of EIR children (small, median, large, largest;
- *       large is just above 1,000, where the first page's plan changes to its slowest) and names by
- *       how many records they match in the database (rare, common), as the query plans differ
- *       between them. A request whose plan depends on one of them is named after its band, such as
- *       "Get first page of TEs [small]", and has a p95 threshold per band: one p95 over all bands
- *       is the slowest band's only.
+ *       large is just above 1,000, where the first page's plan changes to its slowest), as the
+ *       query plans differ between them. A request whose plan depends on the facility is named
+ *       after its band, such as "Get first page of TEs [small]", and has a p95 threshold per band:
+ *       one p95 over all bands is the slowest band's only. The names are common ones of the clerk's
+ *       children: how many records a name matches changes the time of a search, not its plan.
  *   <li>EIR needs two attributes to search outside the capture scope, so every name search filters
  *       on the given and the family name, where {@link TrackerTest} filters on the first name. The
  *       like search takes the first 3 letters of each name, as a user types them
@@ -145,8 +145,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
   /** The column of a case a request's plan depends on, and its values. */
   private enum Band {
     NONE(null),
-    FACILITY("facilityBand", "small", "median", "large", "largest"),
-    NAMES("nameBand", "rare", "common");
+    FACILITY("facilityBand", "small", "median", "large", "largest");
 
     private final String column;
     private final List<String> values;
@@ -229,7 +228,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
         int concurrentUsers, int repeat, int rampDurationSec, int durationSec, int steps) {}
     ProfileDefaults defaults =
         switch (this.profile) {
-          // 120 is a multiple of the 8 cases: 30 iterations per facility band, 60 per name band.
+          // 120 is a multiple of the 4 cases: 30 iterations per facility band.
           case SMOKE -> new ProfileDefaults(1, 120, 1, 1, 1);
           case LOAD -> new ProfileDefaults(4, 1, 15, 180, 1);
           case CAPACITY -> new ProfileDefaults(8, 1, 10, 30, 4);
@@ -264,8 +263,8 @@ public class PerfLandMnchTrackerTest extends Simulation {
   }
 
   /**
-   * Logs in as the clerk of the case fed last, unless the session is already hers. The cases of a
-   * clerk follow each other, so a smoke run logs in once per clerk and cycle.
+   * Logs in as the clerk of the case fed last, unless the session is already hers: with one case
+   * per clerk, every iteration logs in, except when a csv of {@code -Dcases} repeats a clerk.
    */
   private ChainBuilder loginAsCaseUser() {
     return doIf(session -> !session.getString("username").equals(session.getString("loggedIn")))
@@ -391,17 +390,15 @@ public class PerfLandMnchTrackerTest extends Simulation {
             "Not found TE by name with eq operator",
             "Get EIR TEs");
     Request searchTeByNameWithLikeOperator =
-        Request.banded(
+        Request.of(
             searchTEByName,
-            Band.NAMES,
-            Map.of(),
+            Map.of(Profile.SMOKE, 51, Profile.LOAD, 172),
             "Search TE by name with like operator",
             "Get EIR TEs");
     Request searchTeByNameWithEqOperator =
-        Request.banded(
+        Request.of(
             searchTEByExactName,
-            Band.NAMES,
-            Map.of(),
+            Map.of(Profile.SMOKE, 42, Profile.LOAD, 102),
             "Search TE by name with eq operator",
             "Get EIR TEs");
     Request searchBirthEventsByStage =
@@ -414,10 +411,9 @@ public class PerfLandMnchTrackerTest extends Simulation {
             "Get TEs from events",
             "Get EIR TEs");
     Request searchTEsAsAndroidClient =
-        Request.banded(
+        Request.of(
             androidSearchTEsUrl,
-            Band.NAMES,
-            Map.of(),
+            Map.of(Profile.SMOKE, 29, Profile.LOAD, 151),
             "Search TEs as Android client",
             "Get EIR TEs");
     Request getFirstPageOfTEs =
