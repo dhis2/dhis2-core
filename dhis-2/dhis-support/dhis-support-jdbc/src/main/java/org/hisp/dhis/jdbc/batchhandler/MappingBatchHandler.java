@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 import lombok.Builder;
 import lombok.Getter;
 import org.hisp.quick.JdbcConfiguration;
@@ -50,6 +51,10 @@ import org.hisp.quick.batchhandler.AbstractBatchHandler;
  * <p>If only inserting is desired, then only the JDBC configuration, table name, and list of
  * columns need to be specified. If other operations are desired, then other fields must be
  * specified as needed.
+ *
+ * <p>Column names are used as keys in the row value map. If the table columns need quoting in SQL
+ * (e.g. mixed-case names), specify a column quoter, which is applied to the column names in the
+ * generated SQL only.
  *
  * @author Jim Grace
  */
@@ -71,11 +76,15 @@ public class MappingBatchHandler extends AbstractBatchHandler<Map<String, Object
 
   @Builder.Default private List<String> uniqueColumns = emptyList();
 
+  @Builder.Default private UnaryOperator<String> columnQuoter = UnaryOperator.identity();
+
   // -------------------------------------------------------------------------
   // Constructor
   // -------------------------------------------------------------------------
 
-  // Lombok builder will use this constructor which must call super()
+  // Lombok builder will use this constructor which must call super(). It takes every field, so the
+  // parameter count is dictated by the builder; callers use the builder, never this directly.
+  @SuppressWarnings("java:S107")
   public MappingBatchHandler(
       JdbcConfiguration jdbcConfiguration,
       String tableName,
@@ -83,7 +92,8 @@ public class MappingBatchHandler extends AbstractBatchHandler<Map<String, Object
       String autoIncrementColumn,
       boolean inclusiveUniqueColumns,
       List<String> identifierColumns,
-      List<String> uniqueColumns) {
+      List<String> uniqueColumns,
+      UnaryOperator<String> columnQuoter) {
     super(jdbcConfiguration);
     this.jdbcConfiguration = jdbcConfiguration;
     this.tableName = tableName;
@@ -92,11 +102,32 @@ public class MappingBatchHandler extends AbstractBatchHandler<Map<String, Object
     this.inclusiveUniqueColumns = inclusiveUniqueColumns;
     this.identifierColumns = identifierColumns;
     this.uniqueColumns = uniqueColumns;
+    this.columnQuoter = columnQuoter;
   }
 
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
+
+  @Override
+  public List<String> getColumns() {
+    return quote(columns);
+  }
+
+  @Override
+  public String getAutoIncrementColumn() {
+    return autoIncrementColumn == null ? null : columnQuoter.apply(autoIncrementColumn);
+  }
+
+  @Override
+  public List<String> getIdentifierColumns() {
+    return quote(identifierColumns);
+  }
+
+  @Override
+  public List<String> getUniqueColumns() {
+    return quote(uniqueColumns);
+  }
 
   @Override
   public List<Object> getIdentifierValues(Map<String, Object> row) {
@@ -129,6 +160,10 @@ public class MappingBatchHandler extends AbstractBatchHandler<Map<String, Object
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
+
+  private List<String> quote(List<String> cols) {
+    return cols.stream().map(columnQuoter).toList();
+  }
 
   private List<Object> getValueList(List<String> cols, Map<String, Object> row) {
     return cols.stream().map(row::get).collect(toList());
