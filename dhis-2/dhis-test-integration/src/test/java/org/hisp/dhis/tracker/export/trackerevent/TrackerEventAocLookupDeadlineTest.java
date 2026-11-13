@@ -80,9 +80,9 @@ class TrackerEventAocLookupDeadlineTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(userService.getUser(NON_SUPERUSER));
     QueryCountDataSourceProxy.clearCapturedSql();
     DeadlineHolder.set(new Deadline(Duration.ofSeconds(30), 0L, () -> 1L));
+    TrackerEventQueryParams params = new TrackerEventQueryParams();
 
-    assertThrows(
-        DeadlineExceededException.class, () -> store.getEvents(new TrackerEventQueryParams()));
+    assertThrows(DeadlineExceededException.class, () -> store.getEvents(params));
 
     assertEquals(0, QueryCountDataSourceProxy.countCapturedSqlMatching(AOC_LOOKUP));
   }
