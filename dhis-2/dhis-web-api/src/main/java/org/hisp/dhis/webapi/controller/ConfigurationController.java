@@ -59,6 +59,7 @@ import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -69,7 +70,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.PeriodTypes;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.UserGroup;
@@ -105,8 +105,6 @@ public class ConfigurationController {
 
   @Autowired private PeriodService periodService;
   @Autowired private PeriodPipeline periodPipeline;
-
-  @Autowired private RenderService renderService;
 
   @Autowired private AppManager appManager;
 
@@ -465,15 +463,12 @@ public class ConfigurationController {
     return configurationService.getCorsWhitelist();
   }
 
-  @SuppressWarnings("unchecked")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping(
       value = {"/corsWhitelist", "/corsAllowlist"},
       consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void setCorsWhitelist(@RequestBody String input) throws IOException {
-    Set<String> corsWhitelist = renderService.fromJson(input, Set.class);
-
+  public void setCorsWhitelist(@RequestBody Set<String> corsWhitelist) throws ConflictException {
     configurationService.setCorsWhitelist(corsWhitelist);
   }
 

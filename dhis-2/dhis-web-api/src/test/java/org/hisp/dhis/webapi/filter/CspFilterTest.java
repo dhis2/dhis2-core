@@ -33,14 +33,12 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
 import static org.hisp.dhis.webapi.filter.CspFilter.CONTENT_SECURITY_POLICY_HEADER_NAME;
 import static org.hisp.dhis.webapi.filter.CspFilter.FRAME_ANCESTORS_DEFAULT_CSP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.FilterChain;
-import java.util.Set;
+import java.util.List;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,9 +50,9 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 /**
- * Unit tests for {@link CspFilter}. CORS-whitelist caching is owned by {@link
- * ConfigurationService#getCorsWhitelist()} and is exercised by {@code ConfigurationServiceTest};
- * here we just verify the filter renders the right headers given whatever the service returns.
+ * Unit tests for {@link CspFilter}. Validation and caching of the CORS allowlist are owned by
+ * {@link ConfigurationService#getCorsAllowlistOrigins()}; here we just verify the filter renders
+ * the right headers given whatever the service returns.
  *
  * @author Morten Svanæs
  */
@@ -75,8 +73,8 @@ class CspFilterTest {
 
   @Test
   void shouldSetFrameAncestorsCspWithCorsWhitelist() throws Exception {
-    when(configurationService.getCorsWhitelist())
-        .thenReturn(Set.of("https://example.com", "https://other.com"));
+    when(configurationService.getCorsAllowlistOrigins())
+        .thenReturn(List.of("https://example.com", "https://*.other.com"));
 
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/test");
     request.setServerName("localhost");
@@ -84,17 +82,14 @@ class CspFilterTest {
 
     filter.doFilter(request, response, mockFilterChain());
 
-    String cspHeader = response.getHeader(CONTENT_SECURITY_POLICY_HEADER_NAME);
-    assertNotNull(cspHeader);
-    assertTrue(cspHeader.startsWith(FRAME_ANCESTORS_DEFAULT_CSP));
-    assertTrue(
-        cspHeader.contains("https://example.com") || cspHeader.contains("https://other.com"));
-    assertTrue(cspHeader.endsWith(";"));
+    assertEquals(
+        FRAME_ANCESTORS_DEFAULT_CSP + " https://example.com https://*.other.com;",
+        response.getHeader(CONTENT_SECURITY_POLICY_HEADER_NAME));
   }
 
   @Test
   void shouldSetDefaultFrameAncestorsCspWhenCorsWhitelistEmpty() throws Exception {
-    when(configurationService.getCorsWhitelist()).thenReturn(Set.of());
+    when(configurationService.getCorsAllowlistOrigins()).thenReturn(List.of());
 
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/test");
     request.setServerName("localhost");
@@ -118,7 +113,7 @@ class CspFilterTest {
     disabledFilter.doFilter(request, response, mockFilterChain());
 
     assertEquals("SAMEORIGIN", response.getHeader("X-Frame-Options"));
-    verify(configurationService, never()).getCorsWhitelist();
+    verify(configurationService, never()).getCorsAllowlistOrigins();
   }
 
   private static FilterChain mockFilterChain() {
