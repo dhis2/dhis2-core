@@ -33,12 +33,14 @@ import static java.lang.String.format;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -255,6 +257,30 @@ class DataValueChangelogAccessControllerTest extends PostgresControllerIntegrati
     assertTrue(Set.of("11", "12").containsAll(visible), visible.toString());
     assertContextForbidden(metadataOnlyDe, ou, coc, null);
     assertContextForbidden(restrictedCocDe, ou, restrictedCoc, null);
+  }
+
+  @Test
+  @DisplayName("Owning the category option of an attribute option combo does not grant data read")
+  void testDataValue_ownerOfAttributeCategoryOption() {
+    User reader = createAndAddUser("reader", manager.get(OrganisationUnit.class, ou));
+    setSharingAsStored(
+        "categoryoption",
+        restrictedOption,
+        format("{'owner':'%s','public':'rw------','users':{},'userGroups':{}}", reader.getUid()));
+
+    switchToNewUser(reader);
+    assertFalse(getChangelogValues("").contains("51"));
+    assertEquals(
+        ErrorCode.E2011,
+        GET(
+                "/dataValues?de={de}&pe={pe}&ou={ou}&cc={cc}&cp={cp}",
+                restrictedAocDe,
+                PE,
+                ou,
+                attributeCombo,
+                restrictedOption)
+            .error(HttpStatus.CONFLICT)
+            .getErrorCode());
   }
 
   @Test

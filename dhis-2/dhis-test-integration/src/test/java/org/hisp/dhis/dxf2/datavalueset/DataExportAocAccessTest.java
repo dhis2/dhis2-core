@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -284,6 +285,36 @@ class DataExportAocAccessTest extends PostgresIntegrationTestBase {
     ConflictException ex =
         assertThrows(ConflictException.class, () -> exportedValues(aocClosed.getUid()));
     assertEquals(ErrorCode.E2011, ex.getCode());
+  }
+
+  @Test
+  void nonSuperuser_ownerOfRestrictedOption_doesNotReadIt() throws Exception {
+    // ownership does not grant data read (DHIS2-22479)
+    coClosed.getSharing().setOwner(user.getUid());
+    save(coClosed);
+    injectSecurityContextUser(user);
+    assertEquals(Set.of("1"), exportedValues(null));
+  }
+
+  @Test
+  void explicitAocOfOwnedRestrictedOption_E2011() {
+    coClosed.getSharing().setOwner(user.getUid());
+    save(coClosed);
+    injectSecurityContextUser(user);
+    ConflictException ex =
+        assertThrows(ConflictException.class, () -> exportedValues(aocClosed.getUid()));
+    assertEquals(ErrorCode.E2011, ex.getCode());
+  }
+
+  @Test
+  void ownedDataSetWithoutDataSharing_E2010() {
+    ds.getSharing().setOwner(user.getUid());
+    ds.getSharing().setPublicAccess(AccessStringHelper.READ_WRITE);
+    ds.getSharing().setUsers(new HashMap<>());
+    dataSetService.updateDataSet(ds);
+    injectSecurityContextUser(user);
+    ConflictException ex = assertThrows(ConflictException.class, () -> exportedValues(null));
+    assertEquals(ErrorCode.E2010, ex.getCode());
   }
 
   @Test

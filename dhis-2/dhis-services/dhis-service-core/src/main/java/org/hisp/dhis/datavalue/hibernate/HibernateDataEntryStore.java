@@ -37,6 +37,7 @@ import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
 import static org.hisp.dhis.security.acl.AclService.LIKE_WRITE_DATA;
+import static org.hisp.dhis.security.acl.HibernateAccessControlStore.createDataReadCheck;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
@@ -703,7 +704,11 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       Stream<UID> optionCombos, String accessPattern) {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return List.of();
-    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, accessPattern);
+    // only data read sharing grants data read, ownership does not (DHIS2-22479)
+    String accessSql =
+        LIKE_READ_DATA.equals(accessPattern)
+            ? createDataReadCheck("co.sharing", user)
+            : generateSQlQueryForSharingCheck("co.sharing", user, accessPattern);
     @Language("SQL")
     String sql =
         """
