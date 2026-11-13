@@ -683,6 +683,7 @@ public final class CSV {
           p = skipQuotes(p + 1);
           if (p != -1) {
             p = skipIndent(p);
+            if (p == len && !eoi) return -1; // refill to see what follows
             if (p < len && !isValueSeparator(buffer[p]))
               throw error("Unexpected character after closing quote");
           }
@@ -748,7 +749,11 @@ public final class CSV {
           if (p < len && buffer[p] == '"') {
             twinQuotes = true;
             p++;
-          } else return p;
+          } else if (p == len && !eoi) {
+            return -1; // might still be a twin quote; refill and rescan
+          } else {
+            return p; // closing quote, either mid-buffer or at true EOI
+          }
         } else if (c == '\\') {
           p++;
         }

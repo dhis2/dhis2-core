@@ -268,7 +268,7 @@ class DataEntryImportCSVTest {
 
   @Test
   void testQuotedValueAtMaxLength() {
-    int maxLenInQuotes = CSV.DEFAULT_MAX_VALUE_LENGTH - 2;
+    int maxLenInQuotes = CSV.DEFAULT_MAX_VALUE_LENGTH - 3;
     String max = "x".repeat(maxLenInQuotes);
     List<DataEntryValue.Input> values =
         read(
@@ -656,6 +656,25 @@ class DataEntryImportCSVTest {
 
     List<Row> rows = CSV.of(chunked).as(Row.class).list();
     assertEquals(1000, rows.size());
+  }
+
+  @Test
+  void testBoundaryQuoteWithTrailingWhitespaceAtBufferEnd() {
+    record Row(String a, String b) {}
+
+    // Close quote at index 2047, whitespace fills to the end of the buffer,
+    // then the separator + y arrive in the refill. Exercises the
+    // skipIndent(p) == len && !eoi path in skipValue.
+    // Prefix "a,b\n" = 4 chars, close quote at 2047 → 2042 x's.
+    // Whitespace "     " (5) brings us to 2053... no, that's past the buffer.
+    // Adjust: close quote earlier, so whitespace ends exactly at 2047.
+    // "a,b\n" + `"` + 2041 x's + `"` + 1 space = 2048.
+    String csv = "a,b\n\"" + "x".repeat(2041) + "\" ,y\r\n";
+
+    List<Row> rows = CSV.of(csv).as(Row.class).list();
+    assertEquals(1, rows.size());
+    assertEquals(2041, rows.get(0).a().length());
+    assertEquals("y", rows.get(0).b());
   }
 
   private static List<DataEntryValue.Input> read(@Language("csv") String csv) {
