@@ -762,16 +762,9 @@ public final class CSV {
 
   private static boolean isJavaName(CharSequence property) {
     if (property.isEmpty()) return false;
-    for (int i = 0; i < property.length(); i++) if (!isJavaName(property.charAt(i))) return false;
-    return isLetter(property.charAt(0));
-  }
-
-  private static boolean isJavaName(char c) {
-    return isLetter(c) || '0' <= c && c <= '9' || c == '_';
-  }
-
-  private static boolean isLetter(char c) {
-    return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z';
+    for (int i = 0; i < property.length(); i++)
+      if (!Character.isJavaIdentifierPart(property.charAt(i))) return false;
+    return Character.isJavaIdentifierStart(property.charAt(0));
   }
 
   private static boolean isValueSeparator(char c) {
