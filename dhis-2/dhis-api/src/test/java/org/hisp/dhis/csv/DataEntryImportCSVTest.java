@@ -218,7 +218,7 @@ class DataEntryImportCSVTest {
         read(
             """
                 \r
-                "note, extra","data""Element",dataElement,period,orgUnit,value\r
+                 note_extra ,"comment" ,dataElement,period,orgUnit,value\r
                 x,y,de123456789,202501,ou123456789,5\r
                 """);
     assertEquals(1, values.size());
@@ -668,6 +668,136 @@ class DataEntryImportCSVTest {
                 """);
     assertEquals(1, values.size());
     assertEquals("say \\\"hi\\\"", values.get(0).comment());
+  }
+
+  // ---------------------------------------------------------------- S1
+  // Header validation: every header cell must be non-null, non-empty,
+  // unique (case-insensitively, matching columnToComponentIndexMapping),
+  // and a syntactically valid Java identifier.
+
+  @Test
+  void testEmptyHeaderNameAtStartRejected() {
+    record Row(String a, String b, String c) {}
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class, () -> CSV.of(",b,c\n1,2,3\n").as(Row.class).list());
+    assertEquals("CSV input error at line 1 column 1: Empty header name", ex.getMessage());
+  }
+
+  @Test
+  void testEmptyHeaderNameInMiddleRejected() {
+    record Row(String a, String b, String c) {}
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class, () -> CSV.of("a,,c\n1,2,3\n").as(Row.class).list());
+    assertEquals("CSV input error at line 1 column 2: Empty header name", ex.getMessage());
+  }
+
+  @Test
+  void testEmptyHeaderNameAtEndRejected() {
+    // Two trailing commas: the parser treats the single trailing comma as
+    // end-of-row but a *double* comma yields one empty middle cell.
+    record Row(String a, String b, String c) {}
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class, () -> CSV.of("a,b,,\n1,2,3\n").as(Row.class).list());
+    assertEquals("CSV input error at line 1 column 3: Empty header name", ex.getMessage());
+  }
+
+  @Test
+  void testWhitespaceOnlyHeaderNameRejected() {
+    // Unquoted whitespace-only cell is trimmed to null by the CSV reader,
+    // so it hits the same "empty" check as an unquoted empty cell.
+    record Row(String a, String b, String c) {}
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class, () -> CSV.of("a,  ,c\n1,2,3\n").as(Row.class).list());
+    assertEquals("CSV input error at line 1 column 2: Empty header name", ex.getMessage());
+  }
+
+  @Test
+  void testQuotedEmptyHeaderNameRejected() {
+    // Quoted "" produces the empty string, not null — different code path
+    // in value(), but still rejected.
+    record Row(String a, String b, String c) {}
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class, () -> CSV.of("a,\"\",c\n1,2,3\n").as(Row.class).list());
+    assertEquals("CSV input error at line 1 column 2: Empty header name", ex.getMessage());
+  }
+
+  @Test
+  void testDuplicateHeaderNameRejected() {
+    record Row(String a, String b, String c) {}
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class, () -> CSV.of("a,b,b\n1,2,3\n").as(Row.class).list());
+    assertEquals("CSV input error at line 1 column 3: Duplicate header name: b", ex.getMessage());
+  }
+
+  @Test
+  void testDuplicateHeaderNameCaseInsensitiveRejected() {
+    // b and B both resolve to component "b" via the lowercase lookup in
+    // columnToComponentIndexMapping, so they must be rejected as duplicates.
+    // Message reports the second occurrence as written ("B"); switch to "b"
+    // if the implementation normalises to lowercase before reporting.
+    record Row(String a, String b, String c) {}
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class, () -> CSV.of("a,b,B\n1,2,3\n").as(Row.class).list());
+    assertEquals("CSV input error at line 1 column 3: Duplicate header name: B", ex.getMessage());
+  }
+
+  @Test
+  void testHeaderNameStartingWithDigitRejected() {
+    record Row(String a, String b, String c) {}
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class, () -> CSV.of("a,1b,c\n1,2,3\n").as(Row.class).list());
+    assertEquals("CSV input error at line 1 column 2: Invalid header name: 1b", ex.getMessage());
+  }
+
+  @Test
+  void testHeaderNameWithHyphenRejected() {
+    record Row(String a, String b, String c) {}
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class, () -> CSV.of("a,b-c,d\n1,2,3\n").as(Row.class).list());
+    assertEquals("CSV input error at line 1 column 2: Invalid header name: b-c", ex.getMessage());
+  }
+
+  @Test
+  void testHeaderNameWithInternalSpaceRejected() {
+    // Internal space is not trimmed (only leading/trailing are) and is not
+    // a valid Java identifier character.
+    record Row(String a, String b, String c) {}
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class, () -> CSV.of("a,b c,d\n1,2,3\n").as(Row.class).list());
+    assertEquals("CSV input error at line 1 column 2: Invalid header name: b c", ex.getMessage());
+  }
+
+  @Test
+  void testValidHeaderNamesAccepted() {
+    record Row(String a, String b, String c) {}
+    List<Row> rows = CSV.of("a,b,c\n1,2,3\n").as(Row.class).list();
+    assertEquals(1, rows.size());
+    Row r0 = rows.get(0);
+    assertEquals("1", r0.a());
+    assertEquals("2", r0.b());
+    assertEquals("3", r0.c());
+  }
+
+  @Test
+  void testHeaderNamesMatchedCaseInsensitively() {
+    // Sanity: validation must not break the existing case-insensitive
+    // lookup (all-uppercase / mixed-case headers still map correctly).
+    record Row(String dataElement, String period) {}
+    List<Row> rows = CSV.of("DATAELEMENT,Period\nde,2025\n").as(Row.class).list();
+    assertEquals(1, rows.size());
+    Row r0 = rows.get(0);
+    assertEquals("de", r0.dataElement());
+    assertEquals("2025", r0.period());
   }
 
   private static List<DataEntryValue.Input> read(@Language("csv") String csv) {

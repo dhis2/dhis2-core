@@ -601,14 +601,23 @@ public final class CSV {
       while (from < len && !isLineBreak(buffer[from])) {
         int to = skipValueGrowAndRefill(from);
         from = pos; // in case we did move/grow
-        header.add(value(from, to));
+        String value = value(from, to);
+        checkHeader(value, header);
+        header.add(value);
         from = skipIndent(to);
         if (from < len && buffer[from] == ',') from++;
         col++;
       }
-      pos = skipLineBreak(from);
       if (header.isEmpty()) throw error("No header row found");
+      pos = skipLineBreak(from);
       return header.toArray(String[]::new);
+    }
+
+    private void checkHeader(String header, List<String> headers) {
+      if (header == null || header.isEmpty()) throw error("Empty header name");
+      if (!isJavaName(header)) throw error("Invalid header name: " + header);
+      if (headers.stream().anyMatch(header::equalsIgnoreCase))
+        throw error("Duplicate header name: " + header);
     }
 
     private boolean readDataRow(String[] row) {
@@ -749,6 +758,20 @@ public final class CSV {
       return new IllegalArgumentException(
           "CSV input error at line %d column %d: %s".formatted(line, col, msg));
     }
+  }
+
+  private static boolean isJavaName(CharSequence property) {
+    if (property.isEmpty()) return false;
+    for (int i = 0; i < property.length(); i++) if (!isJavaName(property.charAt(i))) return false;
+    return isLetter(property.charAt(0));
+  }
+
+  private static boolean isJavaName(char c) {
+    return isLetter(c) || '0' <= c && c <= '9' || c == '_';
+  }
+
+  private static boolean isLetter(char c) {
+    return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z';
   }
 
   private static boolean isValueSeparator(char c) {
