@@ -139,7 +139,12 @@ class DataEntryImportCSVTest {
     IllegalArgumentException ex =
         assertThrowsExactly(
             IllegalArgumentException.class,
-            () -> read("dataElement,period,orgUnit,value\nde123456789,202501,ou123456789,\"5\n"));
+            () ->
+                read(
+                    """
+                dataElement,period,orgUnit,value
+                de123456789,202501,ou123456789,"5
+                """));
     assertEquals(
         "CSV input error at line 2 column 4: Quoted value is not terminated", ex.getMessage());
   }
@@ -249,7 +254,7 @@ class DataEntryImportCSVTest {
                         de123456789,202503,ou123456789,3,x
                         """));
     assertEquals(
-        "CSV input error at line 4 column 5: Quoted value is not terminated", ex.getMessage());
+        "CSV input error at line 5 column 5: Quoted value is not terminated", ex.getMessage());
   }
 
   @Test

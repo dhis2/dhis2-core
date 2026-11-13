@@ -704,6 +704,7 @@ public final class CSV {
      *     closing quote could be found
      */
     private int skipQuotes(int p) {
+      int lines0 = line;
       twinQuotes = false;
       while (p < len) {
         char c = buffer[p++];
@@ -712,12 +713,15 @@ public final class CSV {
             twinQuotes = true;
             p++;
           } else if (p == len && !eoi) {
+            line = lines0; // revert
             return -1; // might still be a twin quote; refill and rescan
           } else {
             return p; // closing quote, either mid-buffer or at true EOI
           }
         }
+        if (isLineBreak(c)) p = skipLineBreak(p - 1);
       }
+      line = lines0; // revert
       if (eoi) throw error("Quoted value is not terminated");
       // closing quote not found in this buffer
       return -1;
