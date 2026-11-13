@@ -34,6 +34,7 @@ import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
 
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -77,11 +78,11 @@ public class HibernateAccessControlStore implements AccessControlStore {
   private static DataReadableAocs getDataReadableAttributeOptionCombos(
       SQL.QueryAPI api, UserDetails user, @CheckForNull Collection<UID> limitTo) {
     if (user.isSuper()) return DataReadableAocs.unrestricted();
-    // a single bigint column comes back as a plain number per row, not as an Object[] row
-    return new DataReadableAocs(
-        createDataReadableAocQuery(api, user, limitTo).stream(Number.class)
-            .mapToLong(Number::longValue)
-            .toArray());
+    // a single bigint column comes back as a plain number per row, not as an Object[] row;
+    // closing the stream releases its statement (and, outside a transaction, its connection)
+    try (Stream<Number> ids = createDataReadableAocQuery(api, user, limitTo).stream(Number.class)) {
+      return new DataReadableAocs(ids.mapToLong(Number::longValue).toArray());
+    }
   }
 
   static QueryBuilder createDataReadableAocQuery(

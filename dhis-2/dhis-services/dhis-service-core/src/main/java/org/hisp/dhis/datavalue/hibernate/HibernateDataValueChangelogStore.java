@@ -282,9 +282,9 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
    * category combos with only category options the user may read data of.
    *
    * <p>Resolved up front, so the planner sees a known list instead of guessing the size of a
-   * sharing-filtered set of option combos. Copied from {@code
-   * HibernateDataExportStore#getAllowedAocIds} and {@code #createAllowedAocQuery} on master
-   * (DHIS2-22290), with this store's data read check.
+   * sharing-filtered set of option combos. Same lookup as {@link
+   * org.hisp.dhis.security.acl.AccessControlStore#getDataReadableAttributeOptionCombos}, with this
+   * store's data read check; the changelog moves onto that lookup in a follow-up (DHIS2-22479).
    *
    * @param aoc the only attribute option combo to check, null to check all
    * @return internal ids of the option combos, null when the user reads all (superuser)
