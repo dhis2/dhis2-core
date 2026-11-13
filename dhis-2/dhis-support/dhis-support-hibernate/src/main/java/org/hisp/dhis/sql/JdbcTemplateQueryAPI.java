@@ -91,14 +91,18 @@ class JdbcTemplateQueryAPI {
 
     @Override
     public <T> Stream<T> stream(@Nonnull Class<T> of) {
-      @SuppressWarnings("unchecked")
-      RowMapper<T> mapper =
-          of == Object[].class
-              ? (RowMapper<T>) new ObjectArrayRowMapper()
-              : isSingleColumnType(of)
-                  ? (RowMapper<T>) new SingleColumnRowMapper<>(of)
-                  : new BeanPropertyRowMapper<>(of);
-      return stream(mapper);
+      return stream(rowMapper(of));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> RowMapper<T> rowMapper(Class<T> of) {
+      if (of == Object[].class) {
+        return (RowMapper<T>) new ObjectArrayRowMapper();
+      }
+      if (isSingleColumnType(of)) {
+        return new SingleColumnRowMapper<>(of);
+      }
+      return new BeanPropertyRowMapper<>(of);
     }
 
     /** Types read from the only column of a row, as the Hibernate query API does. */

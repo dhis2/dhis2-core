@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.security.acl;
 
+import java.util.Arrays;
 import javax.annotation.CheckForNull;
 
 /**
@@ -53,5 +54,20 @@ public record DataReadableAocs(@CheckForNull long[] ids) {
   /** True when the user may read the data of no AOC: there is no data to query. */
   public boolean isNone() {
     return ids != null && ids.length == 0;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof DataReadableAocs other && Arrays.equals(ids, other.ids);
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(ids);
+  }
+
+  @Override
+  public String toString() {
+    return "DataReadableAocs[ids=" + Arrays.toString(ids) + "]";
   }
 }
