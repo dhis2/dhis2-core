@@ -78,7 +78,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.Geometries;
-import org.hisp.dhis.tracker.export.JdbcAttributeOptionComboLoader;
+import org.hisp.dhis.tracker.export.JdbcAttributeOptionComboUid;
 import org.hisp.dhis.tracker.export.JdbcNotes;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
@@ -123,7 +123,7 @@ class JdbcSingleEventStore {
           entry("lastUpdated", "ev_lastupdated"),
           entry("lastUpdatedAtClient", "ev_lastupdatedatclient"),
           entry("completedBy", "ev_completedby"),
-          entry(JdbcAttributeOptionComboLoader.ORDER_BY_UID, "coc_uid"),
+          entry(JdbcAttributeOptionComboUid.ORDER_BY_UID, "coc_uid"),
           entry("completedDate", "ev_completeddate"),
           entry("deleted", "ev_deleted"),
           entry("assignedUser", "user_assigned_username"),
@@ -251,10 +251,10 @@ class JdbcSingleEventStore {
 
               event.setDeleted(resultSet.getBoolean("ev_deleted"));
 
-              // filled after the export query, once per distinct attribute option combo
+              // a placeholder with the id; the service loads each distinct option combo once
               event.setAttributeOptionCombo(
                   attributeOptionCombos.computeIfAbsent(
-                      resultSet.getLong("coc_id"), id -> new CategoryOptionCombo()));
+                      resultSet.getLong("coc_id"), JdbcAttributeOptionComboUid::placeholder));
 
               event.setOccurredDate(resultSet.getTimestamp("ev_occurreddate"));
               event.setCreated(resultSet.getTimestamp("ev_created"));
@@ -317,9 +317,6 @@ class JdbcSingleEventStore {
               }
             }
           }
-
-          JdbcAttributeOptionComboLoader.fetchAttributeOptionCombos(
-              jdbcTemplate, attributeOptionCombos);
 
           return events;
         });
@@ -612,9 +609,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             au.username as user_assigned_username, \s""");
     addOrderFieldsToSelect(sql, params.getOrder());
     sql.append(" ev.attributeoptioncomboid as coc_id");
-    if (JdbcAttributeOptionComboLoader.isOrderedByUid(params.getOrder())) {
+    if (JdbcAttributeOptionComboUid.isOrderedByUid(params.getOrder())) {
       sql.append(", ")
-          .append(JdbcAttributeOptionComboLoader.uidSubquery("ev.attributeoptioncomboid"))
+          .append(JdbcAttributeOptionComboUid.uidSubquery("ev.attributeoptioncomboid"))
           .append(" as coc_uid");
     }
   }
