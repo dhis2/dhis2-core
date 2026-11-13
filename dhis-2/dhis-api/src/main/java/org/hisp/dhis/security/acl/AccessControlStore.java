@@ -51,6 +51,9 @@ public interface AccessControlStore {
    * guards on default), and the option combos of {@code ATTRIBUTE} category combos for which the
    * user can read data of every category option. Runs on the caller's Hibernate session.
    *
+   * <p>Data read of a category option is granted by its public, user or user group access. Only
+   * data read grants it: neither ownership nor data write does.
+   *
    * @param user the user to check access for
    * @param limitTo checks only these option combos; null or empty checks all of them
    * @return the readable AOCs, {@link DataReadableAocs#unrestricted()} for a superuser

@@ -30,6 +30,7 @@
 package org.hisp.dhis.security.acl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
@@ -67,6 +68,7 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private JdbcTemplate jdbcTemplate;
+  @Autowired private AclService aclService;
 
   private CategoryOption coOpen;
   private CategoryOption coClosed;
@@ -167,6 +169,39 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void dataWriteAccessWithoutDataReadDoesNotMakeAComboReadable() {
+    enableDataSharing(user, coClosed, AccessStringHelper.DATA_WRITE);
+    categoryService.updateCategoryOption(coClosed, new SystemUser());
+
+    assertEquals(
+        Set.of(defaultCoc().getId(), aocOpen.getId()), readable(UserDetails.fromUser(user), null));
+  }
+
+  @Test
+  void ownerOfRestrictedOptionCannotReadItsData() {
+    coClosed.getSharing().setOwner(user.getUid());
+    categoryService.updateCategoryOption(coClosed, new SystemUser());
+    UserDetails details = UserDetails.fromUser(user);
+
+    assertFalse(aclService.canDataRead(details, aocClosed));
+    assertEquals(Set.of(defaultCoc().getId(), aocOpen.getId()), readable(details, null));
+  }
+
+  @Test
+  void restrictedOptionWithoutOwnerIsNotReadable() {
+    // saving sets a missing owner, so only migrated sharing has none
+    entityManager.flush();
+    entityManager
+        .createNativeQuery("update categoryoption set sharing = sharing - 'owner' where uid = :uid")
+        .setParameter("uid", coClosed.getUid())
+        .executeUpdate();
+    entityManager.clear();
+    UserDetails details = UserDetails.fromUser(user);
+
+    assertEquals(Set.of(defaultCoc().getId(), aocOpen.getId()), readable(details, null));
+  }
+
+  @Test
   void sameLookupOnAJdbcTemplate() {
     UserDetails details = UserDetails.fromUser(user);
     NamedParameterJdbcTemplate jdbc = new NamedParameterJdbcTemplate(jdbcTemplate);
@@ -196,7 +231,7 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
   }
 
   private static void restrict(CategoryOption option) {
-    // not the test user as owner (a null owner counts as readable), no public access
+    // no public access; the owner is irrelevant, ownership does not grant data read
     option.getSharing().setOwner("ownerOther1");
     option.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
   }

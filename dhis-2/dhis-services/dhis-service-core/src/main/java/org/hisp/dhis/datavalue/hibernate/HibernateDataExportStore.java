@@ -31,8 +31,7 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.function.Function.identity;
-import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
-import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
+import static org.hisp.dhis.security.acl.HibernateAccessControlStore.createDataReadCheck;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import jakarta.persistence.EntityManager;
@@ -363,7 +362,7 @@ public class HibernateDataExportStore implements DataExportStore {
   public List<String> getDataSetsNoDataReadAccess(@Nonnull Stream<UID> dataSets) {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return List.of();
-    String accessSql = generateSQlQueryForSharingCheck("ds.sharing", user, LIKE_READ_DATA);
+    String accessSql = createDataReadCheck("ds.sharing", user);
     String sql =
         """
       SELECT ds.uid
@@ -405,7 +404,7 @@ public class HibernateDataExportStore implements DataExportStore {
   public List<String> getAocNoDataReadAccess(@Nonnull Stream<UID> attributeOptionCombos) {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return List.of();
-    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_READ_DATA);
+    String accessSql = createDataReadCheck("co.sharing", user);
     String sql =
         """
       SELECT coc.uid

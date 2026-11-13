@@ -29,11 +29,11 @@
  */
 package org.hisp.dhis.security.acl;
 
-import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
 
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
+import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -86,7 +86,7 @@ public class HibernateAccessControlStore implements AccessControlStore {
 
   static QueryBuilder createDataReadableAocQuery(
       SQL.QueryAPI api, UserDetails user, @CheckForNull Collection<UID> limitTo) {
-    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_READ_DATA);
+    String accessSql = createDataReadCheck("co.sharing", user);
     String sql =
         """
       SELECT DISTINCT ccoc.categoryoptioncomboid
@@ -108,6 +108,48 @@ public class HibernateAccessControlStore implements AccessControlStore {
         .eraseNullParameterLines()
         .eraseNullParameterJoinLine("aoc", "aoc")
         .useEqualsOverInForParameters("aoc");
+  }
+
+  /**
+   * A condition that is true exactly when a user who is not a superuser may read data of the object
+   * with the given sharing column: the public access, the user's own entry, or the entry of one of
+   * the user's groups grants data read. An entry without access string, or no public access string,
+   * grants access, as {@link AccessStringHelper#isEnabled} does. The condition is never null, also
+   * for sharing without, or with JSON {@code null}, user or user group entries.
+   *
+   * <p>Only data read grants data read. Ownership does not, unlike in {@code
+   * JpaQueryUtils.generateSQlQueryForSharingCheck}. Data write does not either, unlike in {@code
+   * AclService.canDataRead}: sharing can only grant data write without data read through the API,
+   * and such sharing does not give access to the data.
+   */
+  public static String createDataReadCheck(String sharing, UserDetails user) {
+    String uid = user.getUid();
+    String publicAccess = "(%s->>'public')".formatted(sharing);
+    String check =
+        "%s OR jsonb_typeof(%s->'users'->'%s') = 'object' AND (%s)"
+            .formatted(
+                grantsDataRead(publicAccess),
+                sharing,
+                uid,
+                grantsDataRead("(%s->'users'->'%s'->>'access')".formatted(sharing, uid)));
+    Set<String> groups = user.getUserGroupIds();
+    if (groups != null && !groups.isEmpty()) {
+      // CASE, not AND, guarantees jsonb_each only sees an object (migrated sharing has JSON null)
+      check +=
+          (" OR EXISTS (SELECT 1 FROM jsonb_each(CASE WHEN jsonb_typeof(%1$s->'userGroups') ="
+                  + " 'object' THEN %1$s->'userGroups' ELSE '{}' END) g"
+                  + " WHERE g.key = ANY(cast('{%2$s}' as text[])) AND (%3$s))")
+              .formatted(
+                  sharing,
+                  String.join(",", groups.stream().sorted().toList()),
+                  grantsDataRead("(g.value->>'access')"));
+    }
+    return "(%s) IS TRUE".formatted(check);
+  }
+
+  /** An access string grants data read when it is missing, or allows data read. */
+  private static String grantsDataRead(String access) {
+    return "(%1$s IS NULL OR %1$s LIKE '%2$s')".formatted(access, LIKE_READ_DATA);
   }
 
   private Session getSession() {
