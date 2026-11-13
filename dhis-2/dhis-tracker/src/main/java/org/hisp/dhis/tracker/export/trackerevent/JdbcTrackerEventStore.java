@@ -174,7 +174,7 @@ class JdbcTrackerEventStore {
     List<TrackerEvent> events = new ArrayList<>();
 
     final MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
-    if (!addReadableAocs(sqlParameters, currentUser)) {
+    if (!addDataReadableAocs(sqlParameters, currentUser)) {
       return List.of();
     }
     String sql = buildSql(queryParams, pageParams, sqlParameters);
@@ -345,7 +345,7 @@ class JdbcTrackerEventStore {
    *
    * @return false when the user may read no attribute option combo, so no event at all
    */
-  private boolean addReadableAocs(MapSqlParameterSource sqlParams, UserDetails user) {
+  private boolean addDataReadableAocs(MapSqlParameterSource sqlParams, UserDetails user) {
     // on the export template, so the lookup is bounded by the export deadline
     DataReadableAocs readable =
         accessControlStore.getDataReadableAttributeOptionCombos(jdbcTemplate, user, null);
@@ -418,7 +418,7 @@ class JdbcTrackerEventStore {
   private long getEventCount(TrackerEventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
-    if (!addReadableAocs(sqlParams, currentUser)) {
+    if (!addDataReadableAocs(sqlParams, currentUser)) {
       return 0L;
     }
     String sql = getCountQuery(params, sqlParams);

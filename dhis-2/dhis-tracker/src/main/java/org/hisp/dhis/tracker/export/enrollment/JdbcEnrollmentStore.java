@@ -119,7 +119,7 @@ class JdbcEnrollmentStore {
     }
 
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
-    if (!addReadableAocs(sqlParams)) {
+    if (!addDataReadableAocs(sqlParams)) {
       return List.of();
     }
     String sql = getQuery(enrollmentParams, sqlParams);
@@ -278,7 +278,7 @@ class JdbcEnrollmentStore {
    *
    * @return false when the user may read no attribute option combo, so no enrollment at all
    */
-  private boolean addReadableAocs(MapSqlParameterSource sqlParams) {
+  private boolean addDataReadableAocs(MapSqlParameterSource sqlParams) {
     // on the export template, so the lookup is bounded by the export deadline
     DataReadableAocs readable =
         accessControlStore.getDataReadableAttributeOptionCombos(
@@ -471,7 +471,7 @@ class JdbcEnrollmentStore {
     }
 
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
-    if (!addReadableAocs(sqlParams)) {
+    if (!addDataReadableAocs(sqlParams)) {
       return Page.empty();
     }
     String sql = getQuery(enrollmentParams, sqlParams);
@@ -491,7 +491,7 @@ class JdbcEnrollmentStore {
 
   private long countEnrollments(EnrollmentQueryParams params) {
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
-    if (!addReadableAocs(sqlParams)) {
+    if (!addDataReadableAocs(sqlParams)) {
       return 0L;
     }
     String sql = getCountQuery(params, sqlParams);

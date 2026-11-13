@@ -168,7 +168,7 @@ class JdbcSingleEventStore {
     List<SingleEvent> events = new ArrayList<>();
 
     final MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
-    if (!addReadableAocs(sqlParameters, CurrentUserUtil.getCurrentUserDetails())) {
+    if (!addDataReadableAocs(sqlParameters, CurrentUserUtil.getCurrentUserDetails())) {
       return List.of();
     }
     String sql = buildSql(queryParams, pageParams, sqlParameters);
@@ -331,7 +331,7 @@ class JdbcSingleEventStore {
    *
    * @return false when the user may read no attribute option combo, so no event at all
    */
-  private boolean addReadableAocs(MapSqlParameterSource sqlParams, UserDetails user) {
+  private boolean addDataReadableAocs(MapSqlParameterSource sqlParams, UserDetails user) {
     // on the export template, so the lookup is bounded by the export deadline
     DataReadableAocs readable =
         accessControlStore.getDataReadableAttributeOptionCombos(jdbcTemplate, user, null);
@@ -418,7 +418,7 @@ class JdbcSingleEventStore {
   public long getEventCount(SingleEventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
-    if (!addReadableAocs(sqlParams, currentUser)) {
+    if (!addDataReadableAocs(sqlParams, currentUser)) {
       return 0L;
     }
     String sql = getCountQuery(params, sqlParams);
