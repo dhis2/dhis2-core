@@ -91,7 +91,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.8.7</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.9.0</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
@@ -247,7 +247,7 @@
     <maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
     <maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>3.0.0</restrict-imports-enforcer.version>
-    <versions-maven-plugin.version>2.23.0</versions-maven-plugin.version>
+    <versions-maven-plugin.version>2.24.0</versions-maven-plugin.version>
     <dependency-check-maven.version>13.0.0</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.10.5.0</spotbugs-maven-plugin.version>
     <spotless.version>3.11.0</spotless.version>

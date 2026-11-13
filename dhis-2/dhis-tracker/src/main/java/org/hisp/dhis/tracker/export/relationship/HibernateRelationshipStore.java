@@ -224,6 +224,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   }
 
   public List<RelationshipItem> getRelationshipItemsByEvent(UID event, boolean includeDeleted) {
+    // The event is in either table: compare each foreign key to the id of its table's event, so
+    // that Postgres combines the indexes on both. An "or" over the uids of left joined tables
+    // instead reads every relationship item.
     @Language("hql")
     String hql =
         """
@@ -231,10 +234,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
             from RelationshipItem ri \
             join ri.relationship r \
             join r.relationshipType rt \
-            left join ri.trackerEvent tev \
-            left join ri.singleEvent sev \
             where (r.from = ri or rt.bidirectional = true) \
-            and (sev.uid = :event or tev.uid = :event) \
+            and (ri.trackerEvent.id = (select tev.id from TrackerEvent tev where tev.uid = :event) \
+              or ri.singleEvent.id = (select sev.id from SingleEvent sev where sev.uid = :event)) \
             """;
     if (!includeDeleted) {
       hql += "and r.deleted = false";
@@ -328,30 +330,22 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       CriteriaQuery<?> relationshipItemCriteriaQuery,
       Root<Relationship> root,
       boolean includeDeleted) {
-    Subquery<RelationshipItem> fromSubQuery =
-        relationshipItemCriteriaQuery.subquery(RelationshipItem.class);
-    Root<RelationshipItem> fromRoot = fromSubQuery.from(RelationshipItem.class);
-
-    String relationshipEntityType = getRelationshipEntityType(entity);
-
-    fromSubQuery.where(
-        builder.equal(root.get("from"), fromRoot.get("id")),
-        builder.equal(fromRoot.get(relationshipEntityType), entity.getId()));
-
-    fromSubQuery.select(fromRoot.get("id"));
-
-    Subquery<RelationshipItem> toSubQuery =
-        relationshipItemCriteriaQuery.subquery(RelationshipItem.class);
-    Root<RelationshipItem> toRoot = toSubQuery.from(RelationshipItem.class);
-
-    toSubQuery.where(
-        builder.equal(root.get("to"), toRoot.get("id")),
-        builder.equal(toRoot.get(relationshipEntityType), entity.getId()));
-
-    toSubQuery.select(toRoot.get("id"));
+    // The relationships whose from or to is one of the entity's items. Joining from the entity's
+    // items lets Postgres find them by index and then their relationships by the unique from and
+    // to indexes. An "or" of two exists over every relationship instead reads all of them.
+    Subquery<Long> subQuery = relationshipItemCriteriaQuery.subquery(Long.class);
+    Root<RelationshipItem> item = subQuery.from(RelationshipItem.class);
+    Root<Relationship> relationship = subQuery.from(Relationship.class);
+    subQuery
+        .select(relationship.get("id"))
+        .where(
+            builder.equal(item.get(getRelationshipEntityType(entity)), entity.getId()),
+            builder.or(
+                builder.equal(relationship.get("from"), item.get("id")),
+                builder.equal(relationship.get("to"), item.get("id"))));
 
     List<Predicate> predicates = new ArrayList<>();
-    predicates.add(builder.or(builder.exists(fromSubQuery), builder.exists(toSubQuery)));
+    predicates.add(root.get("id").in(subQuery));
 
     if (!includeDeleted) {
       predicates.add(builder.equal(root.get("deleted"), false));
