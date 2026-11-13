@@ -88,10 +88,13 @@ import org.slf4j.LoggerFactory;
  *       users, instead of replicating one.
  *   <li>The cases cover facilities by their number of EIR children (small, median, large, largest;
  *       large is just above 1,000, where the first page's plan changes to its slowest), as the
- *       query plans differ between them. A request whose plan depends on the facility is named
- *       after its band, such as "Get first page of TEs [small]", and has a p95 threshold per band:
- *       one p95 over all bands is the slowest band's only. The names are common ones of the clerk's
- *       children: how many records a name matches changes the time of a search, not its plan.
+ *       query plans differ between them. In smoke, a request whose plan depends on the facility is
+ *       named after its band, such as "Get first page of TEs [small]", and has a p95 threshold per
+ *       band: one p95 over all bands is about the slowest band's p80, so a faster band could get
+ *       several times slower unnoticed. Load has about 9 iterations per band, too few for a p95
+ *       each: it names and asserts these requests over all bands, for what concurrency adds. The
+ *       names are common ones of the clerk's children: how many records a name matches changes the
+ *       time of a search, not its plan.
  *   <li>EIR needs two attributes to search outside the capture scope, so every name search filters
  *       on the given and the family name, where {@link TrackerTest} filters on the first name. The
  *       like search takes the first 3 letters of each name, as a user types them
@@ -285,6 +288,9 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
     // Request names and the p95 thresholds of requests without a band are TrackerTest's, so runs
     // of both compare side by side. The banded ones are to calibrate on this database.
+    // Bands only in smoke: 30 iterations per band (1 user, 120 iterations), against about 9 in
+    // load, too few for a p95 per band.
+    Band facility = this.profile == Profile.SMOKE ? Band.FACILITY : Band.NONE;
     Request notFoundTeByNameWithLikeOperator =
         Request.of(
             notFoundTEByName,
@@ -318,8 +324,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
             "Search Birth events by unique identifier",
             "Get EIR TEs");
     Request searchBirthEventsByStage =
-        Request.banded(
-            searchBirthEvents, Band.FACILITY, Map.of(), "Search Birth events", "Get EIR TEs");
+        Request.banded(searchBirthEvents, facility, Map.of(), "Search Birth events", "Get EIR TEs");
     Request getTrackedEntitiesForEvents =
         Request.of(
             getTEsFromEvents,
@@ -333,11 +338,11 @@ public class PerfLandMnchTrackerTest extends Simulation {
             "Search TEs as Android client",
             "Get EIR TEs");
     Request getFirstPageOfTEs =
-        Request.banded(getTEsUrl, Band.FACILITY, Map.of(), "Get first page of TEs", "Get EIR TEs");
+        Request.banded(getTEsUrl, facility, Map.of(), "Get first page of TEs", "Get EIR TEs");
     Request getTEsWithEnrollmentStatus =
         Request.banded(
             getTEsWithEnrollmentStatusUrl,
-            Band.FACILITY,
+            facility,
             Map.of(),
             "Get TEs with enrollment status",
             "Get EIR TEs");
@@ -650,8 +655,9 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
   /**
    * A request, named {@code name [band]} if it has a band. {@code p95Thresholds} maps a band's
-   * value, or {@code ""} for {@link Band#NONE}, to the p95 thresholds of each profile. A missing
-   * threshold asserts nothing.
+   * value, or {@code ""} for {@link Band#NONE}, to the p95 thresholds of each profile: a banded
+   * request's load threshold is under {@code ""}, as it has no band in load. A missing threshold
+   * asserts nothing.
    */
   private record Request(
       String url,
