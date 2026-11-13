@@ -512,6 +512,13 @@
       }
     },
     {
+      "name": "enrollmentStatusCompletedOnEventsQuery",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?stage=A03MvHHogjR&dimension=ou:ImspTQPwCqd&dimension=pe:LAST_10_YEARS&enrollmentStatus=COMPLETED&headers=psi,ouname,eventdate,programstatus&totalPages=true&pageSize=100&page=1&relativePeriodDate=2025-01-01",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "enrollmentOccurredDateParam",
       "query": "/api/analytics/events/query/IpHINAT79UW.json?stage=A03MvHHogjR&dimension=ou:ImspTQPwCqd&enrollmentOccurredDate=2022-01-01_2022-01-01&headers=psi,incidentdate,ouname&pageSize=100&totalPages=true&asc=eventdate,lastupdated",
       "version": {

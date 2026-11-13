@@ -335,6 +335,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "enrollmentStatusCompletedOnEnrollmentsQuery",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:LAST_10_YEARS&enrollmentStatus=COMPLETED&headers=pi,ouname,enrollmentdate,programstatus&totalPages=true&pageSize=100&page=1&relativePeriodDate=2025-01-01",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
