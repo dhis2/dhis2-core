@@ -42,6 +42,7 @@ import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -79,7 +80,16 @@ public class DefaultUserSettingsService implements UserSettingsService, UserSess
     Object principal = event.getAuthentication().getPrincipal();
     if (principal instanceof UserDetails user) {
       String username = user.getUsername();
-      SessionUserSettings.put(username, getUserSettings(username, true));
+      // always load: settings already held are from an earlier login of the user
+      SessionUserSettings.put(username, loadUserSettings(username, true));
+    }
+  }
+
+  @Override
+  @IndirectTransactional
+  public void onSessionRequest(@Nonnull String username) {
+    if (SessionUserSettings.get(username).isEmpty()) {
+      SessionUserSettings.put(username, loadUserSettings(username, true));
     }
   }
 
@@ -101,9 +111,13 @@ public class DefaultUserSettingsService implements UserSettingsService, UserSess
       Optional<UserSettings> settings = SessionUserSettings.get(username);
       if (settings.isPresent()) return settings.get();
     }
+    return loadUserSettings(username, includeSystemFallbacks);
+  }
+
+  @Nonnull
+  private UserSettings loadUserSettings(@Nonnull String username, boolean includeFallbacks) {
     return requireNonNull(
-        transactionTemplate.execute(
-            status -> getUserSettingsInternal(username, includeSystemFallbacks)));
+        transactionTemplate.execute(status -> getUserSettingsInternal(username, includeFallbacks)));
   }
 
   @Nonnull

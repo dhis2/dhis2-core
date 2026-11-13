@@ -29,15 +29,28 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.session.HttpSessionDestroyedEvent;
 
 /**
  * Tests the {@link UserSettingsController} using (mocked) REST requests.
@@ -45,6 +58,22 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class UserSettingsControllerTest extends H2ControllerIntegrationTestBase {
+
+  @Autowired private ApplicationEventPublisher publisher;
+
+  @BeforeEach
+  void setUp() {
+    // settings of an earlier login might be held for the user
+    login();
+  }
+
+  @AfterEach
+  void resetSettings() {
+    DELETE("/userSettings/keyUiLocale");
+    DELETE("/systemSettings/keyUiLocale");
+    DELETE("/systemSettings/keyAnalysisDisplayProperty");
+    login();
+  }
 
   @Test
   void testGetAllUserSettings() {
@@ -70,5 +99,115 @@ class UserSettingsControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetUserSettingByKey() {
     assertEquals("en", GET("/userSettings/keyUiLocale").content("text/plain"));
+  }
+
+  @Test
+  void testGetAllUserSettings_NoFallbackReturnsNullForUnset() {
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=fr"));
+
+    JsonObject settings = GET("/userSettings?useFallback=false").content();
+    UserSettings.keysWithDefaults()
+        .forEach(key -> assertTrue(settings.get(key).exists(), "expected " + key));
+    assertTrue(settings.get("keyUiLocale").isNull(), "unset setting must not report a default");
+
+    // an explicit value equal to the default is still reported as set
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?value=en"));
+    assertEquals(
+        "en",
+        GET("/userSettings?useFallback=false&key=keyUiLocale")
+            .content()
+            .getString("keyUiLocale")
+            .string());
+  }
+
+  /** The short form of a key (without the {@code key} prefix) refers to the same setting. */
+  @ParameterizedTest
+  @ValueSource(strings = {"keyUiLocale", "uiLocale"})
+  void testGetAllUserSettings_NoFallbackByKey(String key) {
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=fr"));
+
+    JsonObject settings = GET("/userSettings?useFallback=false&key=" + key).content();
+    assertEquals(List.of(key), settings.names());
+    assertTrue(settings.get(key).isNull(), "unset setting must not report a default");
+
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?value=de"));
+    settings = GET("/userSettings?useFallback=false&key=" + key).content();
+    assertEquals("de", settings.getString(key).string());
+  }
+
+  @Test
+  void testGetUserSettingByKey_NoFallbackHasNoValueForUnset() {
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=fr"));
+    login();
+    assertEquals("fr", GET("/userSettings/keyUiLocale").content("text/plain"));
+
+    HttpResponse unset = GET("/userSettings/keyUiLocale?useFallback=false");
+    assertEquals(HttpStatus.OK, unset.status());
+    assertEquals("", unset.content("text/plain"), "unset setting must not report a default");
+
+    // an explicit value equal to the default is still reported as set
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?value=en"));
+    assertEquals("en", GET("/userSettings/keyUiLocale?useFallback=false").content("text/plain"));
+  }
+
+  @Test
+  void testSystemSettingChangeAppliesAtNextLogin() {
+    assertEquals("en", getEffectiveUiLocale());
+
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=fr"));
+    assertEquals("en", getEffectiveUiLocale(), "settings are stable until the next login");
+
+    // settings of the first login are still held, as they are when the user has another session
+    login();
+    assertEquals("fr", getEffectiveUiLocale());
+  }
+
+  @Test
+  void testUserValueWinsOverSystemSetting() {
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?value=de"));
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=fr"));
+    login();
+    assertEquals("de", getEffectiveUiLocale());
+
+    // "Use system default"
+    DELETE("/userSettings/keyUiLocale");
+    assertEquals("fr", getEffectiveUiLocale());
+  }
+
+  @Test
+  void testSettingsAreKeptWhenAnotherSessionOfUserEnds() {
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?value=de"));
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyAnalysisDisplayProperty?value=shortName"));
+    login();
+
+    MockHttpSession otherSession = new MockHttpSession();
+    otherSession.setAttribute(SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
+    publisher.publishEvent(new HttpSessionDestroyedEvent(otherSession));
+
+    JsonObject settings =
+        GET("/me?fields=settings[keyUiLocale,keyAnalysisDisplayProperty]")
+            .content()
+            .getObject("settings");
+    assertEquals("de", settings.getString("keyUiLocale").string());
+    assertEquals("shortName", settings.getString("keyAnalysisDisplayProperty").string());
+  }
+
+  /** A login of the current user, which loads the settings held for the user's sessions. */
+  private void login() {
+    publisher.publishEvent(
+        new AuthenticationSuccessEvent(SecurityContextHolder.getContext().getAuthentication()));
+  }
+
+  /** Asserts both sources apps read agree, then returns the UI locale they report. */
+  private String getEffectiveUiLocale() {
+    String fromUserSettings = GET("/userSettings/keyUiLocale").content("text/plain");
+    String fromMe =
+        GET("/me?fields=settings[keyUiLocale]")
+            .content()
+            .getObject("settings")
+            .getString("keyUiLocale")
+            .string();
+    assertEquals(fromUserSettings, fromMe, "/userSettings and /me disagree");
+    return fromMe;
   }
 }
