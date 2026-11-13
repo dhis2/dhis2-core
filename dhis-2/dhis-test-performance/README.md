@@ -26,6 +26,22 @@ Performance tests run on a single shared [self-hosted
 runner](https://github.com/dhis2/dhis2-core/actions/runners?tab=self-hosted) with exclusive access.
 Iterate locally; use CI only to publish numbers for PRs or release notes.
 
+### Runner
+
+The GitHub runner is a dedicated server: Intel Xeon E3-1275 v6 @ 3.80GHz (4 cores, 8 threads),
+64 GB of memory, mirrored NVMe drives. DHIS2 and Postgres get 4 CPUs and 16 GB each. Gatling
+shares the cores with them.
+
+Settings that keep baseline and candidate comparable:
+
+* The CPU runs at a fixed 3.8 GHz: `performance` governor, turbo off.
+* One job at a time. Setup (image build, database copy) happens before the measured part.
+* Maintenance (RAID check, upgrades, reboots) runs from 19:00 to 00:59 UTC, outside the nightly
+  run at 01:00 UTC and the hours when compares typically run.
+
+Each run records the host's CPU governor and turbo setting in `run-simulation.env`. On CI, a run
+warns when the CPU clock is not fixed.
+
 ## Results
 
 Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
@@ -62,6 +78,10 @@ useful to include in your PR review. Each side may also be a directory containin
 side automatically (same behavior as `gstat --combine` for non-compare output, but always on for
 `compare` since a row per request needs a single value per side). Pass `--exclude warmup` to drop
 warmup runs.
+
+Look at a request's sample count before its percentiles. A percentile from few samples moves a lot
+between two runs of the same image, so a large difference on such a request is not a regression on
+its own.
 
 `gstat` percentiles are computed over the full sample, not Gatling's `index.html` t-digest, so they
 may differ slightly from the numbers shown in Gatling's HTML report. If exact parity with Gatling's

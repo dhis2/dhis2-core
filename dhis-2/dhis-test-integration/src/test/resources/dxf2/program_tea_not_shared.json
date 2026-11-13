@@ -419,7 +419,6 @@
       "dataSets": [],
       "authorities": [
         "ALL",
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
         "F_MAP_PUBLIC_ADD",
         "F_USER_ADD_WITHIN_MANAGED_GROUP",

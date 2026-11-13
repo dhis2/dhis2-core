@@ -67,6 +67,11 @@ public class EventDataQueryRequestTest {
       {
         (Consumer<EventsAnalyticsQueryCriteria>) criteria -> criteria.setIncidentDate("2021-06-30"),
         "pe:2021-06-30:INCIDENT_DATE"
+      },
+      {
+        (Consumer<EventsAnalyticsQueryCriteria>)
+            criteria -> criteria.setEnrollmentOccurredDate("2021-06-30"),
+        "pe:2021-06-30:INCIDENT_DATE"
       }
     };
 
@@ -172,6 +177,37 @@ public class EventDataQueryRequestTest {
         Set.of(
             Set.of(
                 "pe:LAST_MONTH;LAST_YEAR:EVENT_DATE;202111:ENROLLMENT_DATE;2021:ENROLLMENT_DATE;TODAY:ENROLLMENT_DATE")));
+  }
+
+  @Test
+  void testEventsAggregateMapsEnrollmentOccurredDate() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setEnrollmentOccurredDate("2021-01-01_2022-12-31");
+
+    EventDataQueryRequest eventDataQueryRequest =
+        EventDataQueryRequest.builder()
+            .fromCriteria((EventsAnalyticsQueryCriteria) criteria.withEndpointAction(AGGREGATE))
+            .build();
+
+    assertEquals(
+        Set.of(Set.of("pe:2021-01-01_2022-12-31:INCIDENT_DATE")),
+        eventDataQueryRequest.getDimension());
+  }
+
+  @Test
+  void testEventsIncidentDateAndEnrollmentOccurredDateAreCombined() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setIncidentDate("2021");
+    criteria.setEnrollmentOccurredDate("2022");
+
+    EventDataQueryRequest eventDataQueryRequest =
+        EventDataQueryRequest.builder()
+            .fromCriteria((EventsAnalyticsQueryCriteria) criteria.withEndpointAction(QUERY))
+            .build();
+
+    assertEquals(
+        Set.of(Set.of("pe:2021:INCIDENT_DATE;2022:INCIDENT_DATE")),
+        eventDataQueryRequest.getDimension());
   }
 
   @Test

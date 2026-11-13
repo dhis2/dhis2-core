@@ -453,7 +453,7 @@ class JdbcSingleEventStore {
       SingleEventQueryParams params,
       boolean hasProgramJoin) {
     SqlHelper hlp = new SqlHelper(true);
-    addDataElementConditions(sql, sqlParams, params);
+    addDataElementConditions(sql, sqlParams, params, hlp);
     if (hasProgramJoin) {
       addProgramConditions(sql, sqlParams, params, hlp);
     } else {
@@ -702,7 +702,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private void addWhereConditions(
       StringBuilder sql, MapSqlParameterSource sqlParams, SingleEventQueryParams params) {
     SqlHelper hlp = new SqlHelper(true);
-    addDataElementConditions(sql, sqlParams, params);
+    addDataElementConditions(sql, sqlParams, params, hlp);
     addProgramConditions(sql, sqlParams, params, hlp);
     addLastUpdatedConditions(sql, sqlParams, params, hlp);
     addCategoryOptionComboConditions(sql, sqlParams, params, hlp);
@@ -716,9 +716,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private void addDataElementConditions(
-      StringBuilder sql, MapSqlParameterSource sqlParams, SingleEventQueryParams params) {
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
     if (!params.getDataElements().isEmpty()) {
-      sql.append(" and ");
+      sql.append(hlp.whereAnd());
       addPredicates(sql, sqlParams, params.getDataElements());
       sql.append(" ");
     }
