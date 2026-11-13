@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -68,6 +67,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.intellij.lang.annotations.Language;
@@ -80,11 +80,90 @@ import org.intellij.lang.annotations.Language;
  * <p>Required properties either use a primitive type or are annotated with {@link Nonnull} or
  * {@link org.hisp.dhis.common.OpenApi.Required}.
  *
+ * <h2>RFC 4180 conformance</h2>
+ *
+ * <p>Well-formed <a href="https://www.rfc-editor.org/rfc/rfc4180">RFC 4180</a> CSV is read as
+ * specified. The following behaviors, listed for the avoidance of doubt, are all standard.
+ *
+ * <pre>{@code
+ * +-----------------------------+-------------------------------------------------+
+ * | Behavior                    | Notes                                           |
+ * +-----------------------------+-------------------------------------------------+
+ * | Comma delimiter             | , separates fields; CRLF ends records.          |
+ * | Double-quote quoting        | "..." wraps a field; "" parses to ".            |
+ * | Line breaks in quoted field | Preserved verbatim; record continues next line. |
+ * | Quoted empty value          | "" parses to ""; distinct from unquoted (null). |
+ * | Last record w/o trailing NL | Accepted; file need not end in CRLF.            |
+ * +-----------------------------+-------------------------------------------------+
+ * }</pre>
+ *
+ * <p>The parser additionally accepts input that deviates from RFC 4180. The deviations are
+ * deliberate, driven by the real-world inputs this reader consumes (Excel exports, hand-edited
+ * files, data value import).
+ *
+ * <pre>{@code
+ * +--------------------+--------------------------------+------------------------------------+
+ * | Deviation          | RFC 4180                       | This parser                        |
+ * +--------------------+--------------------------------+------------------------------------+
+ * | Whitespace         | "Spaces are considered part    | Leading/trailing space and tab are |
+ * |                    | of a field and should not be   | stripped from unquoted fields and  |
+ * |                    | ignored." (§2.6)               | header names. Quote to preserve.   |
+ * | Line endings       | CRLF only.                     | CRLF, LF and CR are accepted.      |
+ * | Blank lines        | Not specified.                 | Skipped, along with rows of only   |
+ * |                    |                                | delimiters and whitespace.         |
+ * | Empty unquoted     | Empty string.                  | null. A quoted "" is still "".     |
+ * | Header row         | Optional.                      | Required; names map CSV columns to |
+ * |                    |                                | record components.                 |
+ * | Column count       | "Each line should contain the  | Short rows accepted (missing       |
+ * |                    | same number of fields" (§2.4). | fields are null); long rows are    |
+ * |                    |                                | rejected.                          |
+ * | Header names       | Not addressed.                 | Matched case-insensitively.        |
+ * | Whitespace after   | A quoted field must be         | Space and tab between the closing  |
+ * | closing quote      | followed by a comma or line    | quote and the delimiter or line    |
+ * |                    | break.                         | end are tolerated.                 |
+ * +--------------------+--------------------------------+------------------------------------+
+ * }</pre>
+ *
+ * <h2>Extensions</h2>
+ *
+ * <ul>
+ *   <li><b>Required columns</b>: a record component is required when its type is primitive or it is
+ *       annotated {@link Nonnull} or {@link OpenApi.Required}. A missing required column is
+ *       reported before any data rows are read.
+ *   <li><b>{@link Any}</b>: a {@link java.util.Map} component annotated {@link Any} receives every
+ *       CSV column not mapped to another component, with optional {@link Any#ignore()} and {@link
+ *       Any#ifAbsent()} filters.
+ * </ul>
+ *
+ * <h2>Malformed input</h2>
+ *
+ * <p>Input that cannot have been produced by a conforming writer is rejected with an {@link
+ * IllegalArgumentException}. The message identifies the line and column, for example {@code "CSV
+ * input error at line 2 column 4: Quoted value is not terminated"}. The following are rejected:
+ *
+ * <ul>
+ *   <li>a quote appearing inside an unquoted field ({@code ab"cd,ef}),
+ *   <li>a non-whitespace, non-delimiter character after a closing quote ({@code "abc"def}),
+ *   <li>an unterminated quoted value,
+ *   <li>a value longer than {@link CsvConfig#maxValueBufferLength(int)},
+ *   <li>a record with more fields than the header, and
+ *   <li>a missing required column.
+ * </ul>
+ *
  * @author Jan Bernitt
  * @since 2.43
+ * @see CsvConfig
+ * @see CsvReader
+ * @see Any
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CSV {
+
+  /**
+   * 50000 for no reason other than this is the longest any aggregate data value property allows.
+   * Can be adjusted using {@link CsvConfig#maxValueBufferLength(int)}.
+   */
+  static final int DEFAULT_MAX_VALUE_LENGTH = 50000;
 
   /**
    * Can be put on a {@link Map} component that will receive all colum values in the input that are
@@ -107,14 +186,25 @@ public final class CSV {
     String ifAbsent() default "";
   }
 
+  /**
+   * The API for the different terminal operations that read the data from the file.
+   *
+   * @param <T> row type
+   */
   @FunctionalInterface
   public interface CsvReader<T> extends Iterable<T> {
 
+    /**
+     * @return reads CSV data into a list
+     */
     @Nonnull
     default List<T> list() {
       return stream().toList();
     }
 
+    /**
+     * @return reads CSV data into a stream
+     */
     @Nonnull
     default Stream<T> stream() {
       return StreamSupport.stream(spliteratorUnknownSize(iterator(), Spliterator.ORDERED), false);
@@ -124,16 +214,40 @@ public final class CSV {
   /** Allows to configure the expected CSV formatting before starting to read the input. */
   public interface CsvConfig {
 
+    /**
+     * Note the maximum length of the value itself is somewhat shorter depending on situation. At
+     * the very least it is 1 character shorter to be able to find the comma or end of line after
+     * the value. When quoted the maximum is 2 characters shorter for the quotes. If escaped quoted
+     * are contained via pairs of quotes the actual value itself is shorter again as 2 characters
+     * fold to 1 for each pair.
+     *
+     * @param maxLength the maximum buffer size to hold a single value
+     * @return a new updated configuration for chaining
+     */
+    CsvConfig maxValueBufferLength(int maxLength);
+
+    /**
+     * Terminal operation of the configuration builder that creates the reader with the current
+     * configuration
+     *
+     * @param type each row becomes an instance of this {@link Record} type
+     * @return a reader
+     * @param <T> row type
+     */
     @Nonnull
     <T extends Record> CsvReader<T> as(Class<T> type);
   }
 
   public static CsvConfig of(InputStream csv) {
-    return new Config(new BufferedReader(new InputStreamReader(csv, StandardCharsets.UTF_8)));
+    return of(new InputStreamReader(csv, StandardCharsets.UTF_8));
   }
 
   public static CsvConfig of(@Language("csv") String csv) {
-    return new Config(new BufferedReader(new StringReader(csv)));
+    return of(new StringReader(csv));
+  }
+
+  static CsvConfig of(java.io.Reader csv) {
+    return new Config(csv, DEFAULT_MAX_VALUE_LENGTH);
   }
 
   private static final Map<Class<?>, Function<String, ?>> DESERIALIZERS = new ConcurrentHashMap<>();
@@ -246,7 +360,7 @@ public final class CSV {
       this(type, components.stream().anyMatch(Component::any), components);
     }
 
-    Function<List<String>, T> from(List<String> header) {
+    Function<String[], T> from(String[] header) {
       int[] columnToCompIndex = columnToComponentIndexMapping(header);
       checkRequired(columnToCompIndex);
       Class<?>[] types = getComponentTypes(type);
@@ -256,19 +370,19 @@ public final class CSV {
         return values -> {
           Object[] args = new Object[types.length];
           Map<String, String> anyValues = null;
-          int maxColumns = Math.min(columnToCompIndex.length, values.size());
+          int maxColumns = Math.min(columnToCompIndex.length, values.length);
           for (int col = 0; col < maxColumns; col++) {
             int compIdx = columnToCompIndex[col];
             if (compIdx >= 0) {
-              String value = values.get(col);
+              String value = values[col];
               Component<?> comp = components.get(compIdx);
               if (comp.any) {
                 if (!skipAny) {
                   if (anyValues == null) {
-                    anyValues = new HashMap<>(header.size());
+                    anyValues = new HashMap<>(header.length);
                     args[compIdx] = anyValues;
                   }
-                  anyValues.put(header.get(col), value);
+                  anyValues.put(header[col], value);
                 }
               } else {
                 if (comp.required && value == null)
@@ -293,12 +407,13 @@ public final class CSV {
       }
     }
 
-    private boolean isSkipAny(List<String> header) {
+    private boolean isSkipAny(String[] header) {
+      Set<String> headers = Set.of(header);
       return !any
           || components.stream()
               .map(Component::anyIfAbsent)
               .filter(not(String::isEmpty))
-              .anyMatch(header::contains);
+              .anyMatch(headers::contains);
     }
 
     private void checkRequired(int[] compIdxByColIdx) {
@@ -316,11 +431,11 @@ public final class CSV {
                 + required.stream().filter(not(present::contains)).toList());
     }
 
-    private int[] columnToComponentIndexMapping(List<String> columns) {
+    private int[] columnToComponentIndexMapping(String[] columns) {
       Map<String, Integer> compIdxByName = compIdxByName();
-      int[] res = new int[columns.size()];
-      for (int i = 0; i < columns.size(); i++) {
-        String column = columns.get(i);
+      int[] res = new int[columns.length];
+      for (int i = 0; i < columns.length; i++) {
+        String column = columns[i];
         Integer compIdx = compIdxByName.get(column);
         if (compIdx == null) compIdx = compIdxByName.get(column.toLowerCase());
         if (compIdx == null) compIdx = compIdxByName.get("*");
@@ -392,47 +507,18 @@ public final class CSV {
     return any == null ? "" : any.ifAbsent();
   }
 
-  private record Config(BufferedReader csv) implements CsvConfig {
+  private record Config(java.io.Reader csv, int maxValueLength) implements CsvConfig {
+
+    @Override
+    public CsvConfig maxValueBufferLength(int maxLength) {
+      return new Config(csv, maxLength);
+    }
 
     @Nonnull
     @Override
     public <T extends Record> CsvReader<T> as(Class<T> type) {
-      return new Reader<>(csv, getComponentsCached(type));
+      return new CSV.Reader<>(csv, getComponentsCached(type), maxValueLength);
     }
-  }
-
-  private static String unquote(String str) {
-    return str == null || !str.startsWith("\"") || !str.endsWith("\"")
-        ? str
-        : str.substring(1, str.length() - 1);
-  }
-
-  /**
-   * @implNote a regex would work fine but might be used as attack vector, this is to make it safe
-   *     to handle large crafted inputs
-   */
-  private static List<String> splitOnComma(String line) {
-    if (line == null || line.isEmpty()) return List.of();
-
-    int from = 0;
-    int n = line.length();
-    List<String> elems = new ArrayList<>();
-    while (from < n) {
-      // Skip leading indent
-      while (from < n && isIndent(line.charAt(from))) from++;
-
-      // Find the next comma or end of string
-      int to = from;
-      while (to < n && line.charAt(to) != ',') to++;
-
-      // Trim trailing indent
-      int toB = to;
-      while (toB > from && isIndent(line.charAt(toB - 1))) toB--;
-
-      elems.add(line.substring(from, toB));
-      from = to + 1;
-    }
-    return elems;
   }
 
   /**
@@ -457,46 +543,244 @@ public final class CSV {
     return elems;
   }
 
-  private static boolean isIndent(char c) {
-    return c == ' ' || c == '\t';
-  }
+  @RequiredArgsConstructor
+  private static final class Reader<T extends Record> implements CsvReader<T> {
 
-  private record Reader<T extends Record>(BufferedReader csv, Components<T> as)
-      implements CsvReader<T> {
+    final java.io.Reader csv;
+    final Components<T> as;
+    final int maxValueLength;
+
+    char[] buffer = new char[2048];
+    boolean eoi;
+    boolean twinQuotes;
+    int len = 0;
+    int pos = 0;
+    // track lines and columns
+    int line = 1;
+    int col = 1;
 
     @Nonnull
     @Override
     public Iterator<T> iterator() {
-      String header;
-      try {
-        header = csv.readLine();
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-      if (header == null) throw new IllegalArgumentException("No header line provided.");
-      List<String> columns = splitOnComma(header).stream().map(CSV::unquote).toList();
-      Function<List<String>, T> newRecord = as.from(columns);
-      LineBuffer buf = LineBuffer.of(columns);
+      String[] headers = readHeaderRow();
+      if (headers == null) throw new IllegalArgumentException("No header line provided.");
+      Function<String[], T> newRecord = as.from(headers);
       return new Iterator<>() {
+        final String[] row = new String[headers.length];
         Boolean next;
 
         @Override
         public boolean hasNext() {
-          try {
-            next = buf.readLine(csv);
-            return next;
-          } catch (IOException e) {
-            throw new UncheckedIOException(e);
-          }
+          if (next == null) next = readDataRow(row);
+          return next;
         }
 
         @Override
         public T next() {
-          if (next == null) next = hasNext();
-          if (!next) throw new NoSuchElementException("No more rows in the CSV.");
-          return newRecord.apply(buf.split());
+          if (!hasNext()) throw new NoSuchElementException("No more rows in the CSV.");
+          next = null;
+          return newRecord.apply(row);
         }
       };
     }
+
+    private void fillBufferTail(int keepLen) {
+      try {
+        int tailLen = buffer.length - keepLen;
+        int readLen = csv.read(buffer, keepLen, tailLen);
+        eoi = readLen == -1;
+        len = eoi ? keepLen : keepLen + readLen;
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+    }
+
+    private String[] readHeaderRow() {
+      fillBufferTail(0);
+      int from = skipLineBreak(skipIndent(0));
+      List<String> header = new ArrayList<>();
+      while (from < len && !isLineBreak(buffer[from])) {
+        int to = skipValueGrowAndRefill(from);
+        from = pos; // in case we did move/grow
+        String value = value(from, to);
+        checkHeader(value, header);
+        header.add(value);
+        from = skipIndent(to);
+        if (from < len && buffer[from] == ',') from++;
+        col++;
+      }
+      if (header.isEmpty()) throw error("No header row found");
+      pos = skipLineBreak(from);
+      return header.toArray(String[]::new);
+    }
+
+    private void checkHeader(String header, List<String> headers) {
+      if (header == null || header.isEmpty()) throw error("Empty header name");
+      if (!isJavaName(header)) throw error("Invalid header name: " + header);
+      if (headers.stream().anyMatch(header::equalsIgnoreCase))
+        throw error("Duplicate header name: " + header);
+    }
+
+    private boolean readDataRow(String[] row) {
+      do {
+        if (eoi && pos >= len) return false;
+        int from = pos;
+        col = 1;
+        for (int i = 0; i < row.length; i++) {
+          int to = skipValueGrowAndRefill(from);
+          from = pos; // in case we did move/grow
+          row[i] = value(from, to);
+          from = skipIndent(to);
+          if (from < len && buffer[from] == ',') from++;
+          col++;
+        }
+        if (from < len && !isLineBreak(buffer[from])) throw error("Additional columns found");
+        pos = skipLineBreak(from);
+      } while (isEmpty(row));
+      return true;
+    }
+
+    private int skipValueGrowAndRefill(int from) {
+      pos = from;
+      int to = -1;
+      while (to == -1) {
+        to = skipValue(pos);
+        if (to == -1) {
+          int keepLen = len - pos;
+          if (keepLen == buffer.length) {
+            // grow
+            if (buffer.length >= maxValueLength) throw error("Value longer than " + maxValueLength);
+            char[] b2 = new char[Math.min(maxValueLength, buffer.length * 2)];
+            System.arraycopy(buffer, pos, b2, 0, keepLen);
+            buffer = b2;
+          } else {
+            // move
+            System.arraycopy(buffer, pos, buffer, 0, keepLen);
+          }
+          pos = 0;
+          // and fill
+          fillBufferTail(keepLen);
+        }
+      }
+      return to;
+    }
+
+    private boolean isEmpty(String[] row) {
+      for (String s : row) if (s != null) return false;
+      return true;
+    }
+
+    /**
+     * @param p start pos
+     * @return the pos after the value (, or line-break) or -1 if we ran out of buffer before we
+     *     could find it
+     */
+    private int skipValue(int p) {
+      boolean nonIndent = false;
+      while (p < len) {
+        char c = buffer[p];
+        if (isValueSeparator(c)) return p;
+        if (c == '"') {
+          if (nonIndent) throw error("Quote inside unquoted value");
+          p = skipQuotes(p + 1);
+          if (p != -1) {
+            p = skipIndent(p);
+            if (p == len && !eoi) return -1; // refill to see what follows
+            if (p < len && !isValueSeparator(buffer[p]))
+              throw error("Unexpected character after closing quote");
+          }
+          return p;
+        }
+        nonIndent |= !isIndent(c);
+        p++;
+      }
+      return eoi ? p : -1;
+    }
+
+    /**
+     * Scans a quoted value starting immediately after its opening quote.
+     *
+     * @param p buffer position immediately after the opening quote
+     * @return the position after the closing quote, or -1 if the buffer was exhausted before the
+     *     closing quote could be found
+     */
+    private int skipQuotes(int p) {
+      int lines0 = line;
+      twinQuotes = false;
+      while (p < len) {
+        char c = buffer[p++];
+        if (c == '"') {
+          if (p < len && buffer[p] == '"') {
+            twinQuotes = true;
+            p++;
+          } else if (p == len && !eoi) {
+            line = lines0; // revert
+            return -1; // might still be a twin quote; refill and rescan
+          } else {
+            return p; // closing quote, either mid-buffer or at true EOI
+          }
+        }
+        if (isLineBreak(c)) p = skipLineBreak(p - 1);
+      }
+      line = lines0; // revert
+      if (eoi) throw error("Quoted value is not terminated");
+      // closing quote not found in this buffer
+      return -1;
+    }
+
+    private int skipIndent(int p) {
+      while (p < len && isIndent(buffer[p])) p++;
+      return p;
+    }
+
+    private int skipLineBreak(int p) {
+      while (p < len && isLineBreak(buffer[p])) {
+        if (buffer[p] == '\r') {
+          p++;
+          line++;
+          if (p < len && buffer[p] == '\n') p++;
+        } else if (buffer[p] == '\n') {
+          p++;
+          line++;
+        }
+      }
+      return p;
+    }
+
+    private String value(int from, int to) {
+      int f = skipIndent(from);
+      int t = to;
+      while (t > f && isIndent(buffer[t - 1])) t--;
+      if (f >= t || (f < len && isValueSeparator(buffer[f]))) return null;
+      if (buffer[f] == '"' && buffer[t - 1] == '"') {
+        String str = new String(buffer, f + 1, t - f - 2);
+        return twinQuotes ? str.replace("\"\"", "\"") : str;
+      }
+      return new String(buffer, f, t - f);
+    }
+
+    private IllegalArgumentException error(String msg) {
+      return new IllegalArgumentException(
+          "CSV input error at line %d column %d: %s".formatted(line, col, msg));
+    }
+  }
+
+  private static boolean isJavaName(CharSequence property) {
+    if (property.isEmpty()) return false;
+    for (int i = 0; i < property.length(); i++)
+      if (!Character.isJavaIdentifierPart(property.charAt(i))) return false;
+    return Character.isJavaIdentifierStart(property.charAt(0));
+  }
+
+  private static boolean isValueSeparator(char c) {
+    return c == ',' || isLineBreak(c);
+  }
+
+  private static boolean isIndent(char c) {
+    return c == ' ' || c == '\t';
+  }
+
+  private static boolean isLineBreak(char c) {
+    return c == '\r' || c == '\n';
   }
 }
