@@ -1371,7 +1371,8 @@ public class DataHandler {
       return new ArrayListValuedHashMap<>();
     }
 
-    return getAggregatedValueMapFromGrid(params, items, grid);
+    return getAggregatedValueMapFromGrid(
+        params, items, grid, dataSourceParams.getPeriodDimensionIndex());
   }
 
   /**
@@ -1380,15 +1381,15 @@ public class DataHandler {
    * @param params the {@link DataQueryParams}.
    * @param items the list of {@link DimensionalItemObject}.
    * @param grid the {@link Grid}.
+   * @param periodIndex the index of the period column in the grid rows, -1 if period is not a
+   *     dimension of the grid.
    * @return a dimensional items to aggregate values map.
    */
   private MultiValuedMap<String, DimensionItemObjectValue> getAggregatedValueMapFromGrid(
-      DataQueryParams params, List<DimensionalItemObject> items, Grid grid) {
-    // Derive the Grid indexes for data, value and period based on the first
-    // row of the Grid
+      DataQueryParams params, List<DimensionalItemObject> items, Grid grid, int periodIndex) {
+    // Derive the Grid indexes for data and value based on the first row of the Grid
 
     int dataIndex = getGridIndexByDimensionItem(grid.getRow(0), items, 0);
-    int periodIndex = getGridIndexByDimensionItem(grid.getRow(0), params.getPeriods(), 1);
     int valueIndex = grid.getWidth() - 1;
 
     List<DimensionalItemObject> basePeriods = params.getPeriods();
