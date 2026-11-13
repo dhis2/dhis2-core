@@ -30,6 +30,7 @@
 package org.hisp.dhis.security.acl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
@@ -77,8 +78,11 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>data read of an option is granted by its public access, the user's own entry, or the entry
  *       of a group the user is a member of; entries of other users and groups do not count, and an
  *       entry that does not grant data read does not take away what another entry grants
- *   <li>only the data read flag counts: metadata read or write and data write do not grant it
- *   <li>a missing public access grants it
+ *   <li>only the data read flag counts: metadata read or write, data write and ownership do not
+ *       grant it
+ *   <li>a missing public access, or an entry without access string, grants it, as {@link
+ *       AccessStringHelper#isEnabled}; an entry that is not a JSON object grants nothing, and
+ *       sharing of any shape never fails the lookup
  *   <li>{@code limitTo} restricts the result to the given combos; null or empty means all
  * </ul>
  */
@@ -89,6 +93,7 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private JdbcTemplate jdbcTemplate;
+  @Autowired private AclService aclService;
 
   private CategoryOption coOpen;
   private CategoryOption coClosed;
@@ -342,6 +347,88 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
     assertReadable(aocOpen, aocClosed);
   }
 
+  // ownership grants no data read
+
+  @Test
+  void ownerOfRestrictedOptionCannotReadItsData() {
+    coClosed.getSharing().setOwner(user.getUid());
+    categoryService.updateCategoryOption(coClosed, new SystemUser());
+    UserDetails details = UserDetails.fromUser(user);
+
+    assertFalse(aclService.canDataRead(details, aocClosed));
+    assertReadable(aocOpen);
+  }
+
+  @Test
+  void ownershipDoesNotTakeAwayPublicDataRead() {
+    coClosed.getSharing().setOwner(user.getUid());
+    coClosed.getSharing().setPublicAccess(AccessStringHelper.CATEGORY_OPTION_DEFAULT);
+    categoryService.updateCategoryOption(coClosed, new SystemUser());
+
+    assertReadable(aocOpen, aocClosed);
+  }
+
+  @Test
+  void restrictedOptionWithoutOwnerIsNotReadable() {
+    // saving sets a missing owner, so only migrated sharing has none
+    UserDetails details = UserDetails.fromUser(user);
+    setSharing(coClosed, "{\"public\": \"--------\", \"users\": {}, \"userGroups\": {}}");
+
+    assertEquals(Set.of(defaultCoc().getId(), aocOpen.getId()), readable(details, null));
+  }
+
+  @Test
+  void dataWriteAccessWithoutDataReadDoesNotMakeAComboReadable() {
+    enableDataSharing(user, coClosed, AccessStringHelper.DATA_WRITE);
+    categoryService.updateCategoryOption(coClosed, new SystemUser());
+
+    assertReadable(aocOpen);
+  }
+
+  // sharing as a migration or import may have left it
+
+  /**
+   * Sharing JSON of the restricted option, with {@code USER} and {@code GROUP} standing for the
+   * test user and a group the user is a member of. Public access is none in all of them.
+   */
+  @ParameterizedTest
+  @CsvSource(
+      delimiter = '|',
+      value = {
+        // an entry without access string grants data read, as AccessStringHelper#isEnabled
+        "{'users': {'USER': {'id': 'USER'}}} | true",
+        "{'users': {'USER': {'id': 'USER', 'access': null}}} | true",
+        "{'userGroups': {'GROUP': {'id': 'GROUP'}}} | true",
+        "{'userGroups': {'GROUP': {'id': 'GROUP', 'access': null}}} | true",
+        // an entry that is not an object grants nothing
+        "{'users': {'USER': null}} | false",
+        "{'users': {'USER': '--r-----'}} | false",
+        "{'userGroups': {'GROUP': null}} | false",
+        "{'userGroups': {'GROUP': '--r-----'}} | false",
+        // entries missing, JSON null or not an object: no entry grants, and no error
+        "{} | false",
+        "{'users': null, 'userGroups': null} | false",
+        "{'users': [], 'userGroups': []} | false",
+        "{'users': '--r-----', 'userGroups': '--r-----'} | false"
+      })
+  void sharingOfAnyShapeGrantsDataReadOnlyThroughAnEntryForTheUser(
+      String entries, boolean readable) {
+    UserGroup group = groupOf('G', user);
+    UserDetails details = UserDetails.fromUser(user);
+    String sharing =
+        entries
+            .replaceFirst("^\\{", "{'public': '--------', ")
+            .replace(", }", "}")
+            .replace("USER", user.getUid())
+            .replace("GROUP", group.getUid())
+            .replace('\'', '"');
+    setSharing(coClosed, sharing);
+
+    Set<Long> expected = new HashSet<>(Set.of(defaultCoc().getId(), aocOpen.getId()));
+    if (readable) expected.add(aocClosed.getId());
+    assertEquals(expected, readable(details, null));
+  }
+
   // limitTo
 
   @Test
@@ -493,7 +580,7 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
   }
 
   private static void restrict(CategoryOption option) {
-    // not the test user as owner (a null owner counts as readable), no public access
+    // no public access; the owner is irrelevant, ownership does not grant data read
     option.getSharing().setOwner("ownerOther1");
     option.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
   }
