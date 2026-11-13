@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.common;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.apache.commons.lang3.StringUtils.substringBefore;
@@ -36,6 +37,7 @@ import static org.hisp.dhis.common.CustomDateHelper.getCustomDateFilters;
 import static org.hisp.dhis.common.CustomDateHelper.getDimensionsWithRefactoredPeDimension;
 import static org.hisp.dhis.common.CustomDateHelper.isPeDimension;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.feedback.ErrorCode.E7139;
 import static org.hisp.dhis.util.OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria;
 
 import java.util.Arrays;
@@ -58,6 +60,7 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.EnrollmentStatus;
 
 @Getter
@@ -278,7 +281,8 @@ public class EventDataQueryRequest {
               .page(criteria.getPage())
               .pageSize(criteria.getPageSize())
               .paging(criteria.isPaging())
-              .enrollmentStatus(criteria.getProgramStatus())
+              .enrollmentStatus(
+                  getEnrollmentStatus(criteria.getProgramStatus(), criteria.getEnrollmentStatus()))
               .relativePeriodDate(criteria.getRelativePeriodDate())
               .showHierarchy(criteria.isShowHierarchy())
               .skipRounding(criteria.isSkipRounding())
@@ -340,13 +344,33 @@ public class EventDataQueryRequest {
       return builder.dimension(getGrouped(dimensions));
     }
 
+    /**
+     * Returns the enrollment statuses given through either the enrollmentStatus parameter or its
+     * deprecated alias programStatus.
+     *
+     * @param programStatus the statuses given through the deprecated programStatus parameter.
+     * @param enrollmentStatus the statuses given through the enrollmentStatus parameter.
+     * @return the requested enrollment statuses.
+     * @throws IllegalQueryException if both parameters are given.
+     */
+    private static Set<EnrollmentStatus> getEnrollmentStatus(
+        Set<EnrollmentStatus> programStatus, Set<EnrollmentStatus> enrollmentStatus) {
+      if (isNotEmpty(programStatus) && isNotEmpty(enrollmentStatus)) {
+        throw new IllegalQueryException(new ErrorMessage(E7139));
+      }
+
+      return isNotEmpty(enrollmentStatus) ? enrollmentStatus : programStatus;
+    }
+
     private static Set<String> splitDimension(String dimension) {
       return Arrays.stream(DIMENSION_OR_SEPARATOR.split(dimension)).collect(Collectors.toSet());
     }
 
     public EventDataQueryRequestBuilder fromCriteria(EnrollmentAnalyticsQueryCriteria criteria) {
       EventDataQueryRequestBuilder builder =
-          startDate(criteria.getStartDate())
+          // Enrollment requests always resolve items against the enrollment analytics table.
+          outputType(EventOutputType.ENROLLMENT)
+              .startDate(criteria.getStartDate())
               .timeField(criteria.getTimeField())
               .endDate(criteria.getEndDate())
               .filter(getGrouped(criteria.getFilter()))
@@ -364,7 +388,8 @@ public class EventDataQueryRequest {
               .includeMetadataDetails(criteria.isIncludeMetadataDetails())
               .dataIdScheme(criteria.getDataIdScheme())
               .outputIdScheme(criteria.getOutputIdScheme())
-              .enrollmentStatus(criteria.getProgramStatus())
+              .enrollmentStatus(
+                  getEnrollmentStatus(criteria.getProgramStatus(), criteria.getEnrollmentStatus()))
               .page(criteria.getPage())
               .pageSize(criteria.getPageSize())
               .paging(criteria.isPaging())

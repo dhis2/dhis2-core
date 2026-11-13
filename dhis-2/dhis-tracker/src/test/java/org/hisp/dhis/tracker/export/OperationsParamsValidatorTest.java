@@ -131,7 +131,8 @@ class OperationsParamsValidatorTest {
         assertThrows(ForbiddenException.class, () -> validateOrgUnitMode(ALL, program, user));
 
     assertEquals(
-        "User is not authorized to query across all organisation units", exception.getMessage());
+        "Only superusers are authorized to query across all organisation units",
+        exception.getMessage());
   }
 
   @Test

@@ -32,8 +32,11 @@ package org.hisp.dhis.common;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
+import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
+import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -41,9 +44,12 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class EventDataQueryRequestTest {
@@ -64,6 +70,11 @@ public class EventDataQueryRequestTest {
       },
       {
         (Consumer<EventsAnalyticsQueryCriteria>) criteria -> criteria.setIncidentDate("2021-06-30"),
+        "pe:2021-06-30:INCIDENT_DATE"
+      },
+      {
+        (Consumer<EventsAnalyticsQueryCriteria>)
+            criteria -> criteria.setEnrollmentOccurredDate("2021-06-30"),
         "pe:2021-06-30:INCIDENT_DATE"
       }
     };
@@ -173,6 +184,37 @@ public class EventDataQueryRequestTest {
   }
 
   @Test
+  void testEventsAggregateMapsEnrollmentOccurredDate() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setEnrollmentOccurredDate("2021-01-01_2022-12-31");
+
+    EventDataQueryRequest eventDataQueryRequest =
+        EventDataQueryRequest.builder()
+            .fromCriteria((EventsAnalyticsQueryCriteria) criteria.withEndpointAction(AGGREGATE))
+            .build();
+
+    assertEquals(
+        Set.of(Set.of("pe:2021-01-01_2022-12-31:INCIDENT_DATE")),
+        eventDataQueryRequest.getDimension());
+  }
+
+  @Test
+  void testEventsIncidentDateAndEnrollmentOccurredDateAreCombined() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setIncidentDate("2021");
+    criteria.setEnrollmentOccurredDate("2022");
+
+    EventDataQueryRequest eventDataQueryRequest =
+        EventDataQueryRequest.builder()
+            .fromCriteria((EventsAnalyticsQueryCriteria) criteria.withEndpointAction(QUERY))
+            .build();
+
+    assertEquals(
+        Set.of(Set.of("pe:2021:INCIDENT_DATE;2022:INCIDENT_DATE")),
+        eventDataQueryRequest.getDimension());
+  }
+
+  @Test
   void testEnrollmentMultiOptionsAreCorrectlyParsed() {
     EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
     criteria.setOccurredDate("202111,2021;TODAY");
@@ -189,6 +231,27 @@ public class EventDataQueryRequestTest {
         Set.of(
             Set.of(
                 "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:OCCURRED_DATE;2021:OCCURRED_DATE;TODAY:OCCURRED_DATE")));
+  }
+
+  /**
+   * Enrollment requests must carry the ENROLLMENT output type so query items such as {@code
+   * INCIDENT_DATE} resolve to enrollment analytics table columns.
+   */
+  @ParameterizedTest
+  @EnumSource(
+      value = RequestTypeAware.EndpointAction.class,
+      names = {"QUERY", "AGGREGATE"})
+  void testEnrollmentCriteriaSetsEnrollmentOutputType(RequestTypeAware.EndpointAction action) {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+
+    EventDataQueryRequest eventDataQueryRequest =
+        EventDataQueryRequest.builder()
+            .fromCriteria(
+                (EnrollmentAnalyticsQueryCriteria)
+                    criteria.withEndpointAction(action).withEndpointItem(ENROLLMENT))
+            .build();
+
+    assertEquals(EventOutputType.ENROLLMENT, eventDataQueryRequest.getOutputType());
   }
 
   @Test
@@ -257,5 +320,91 @@ public class EventDataQueryRequestTest {
 
     assertNull(request.getValue());
     assertNull(request.getAggregationType());
+  }
+
+  @Test
+  void eventsWithoutStatusParamsHaveNoEnrollmentStatusFilter() {
+    EventDataQueryRequest request =
+        EventDataQueryRequest.builder().fromCriteria(new EventsAnalyticsQueryCriteria()).build();
+
+    assertEquals(Set.of(), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void enrollmentsWithoutStatusParamsHaveNoEnrollmentStatusFilter() {
+    EventDataQueryRequest request =
+        EventDataQueryRequest.builder()
+            .fromCriteria(new EnrollmentAnalyticsQueryCriteria())
+            .build();
+
+    assertEquals(Set.of(), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void eventsEnrollmentStatusIsMapped() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setEnrollmentStatus(Set.of(COMPLETED));
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(COMPLETED), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void eventsDeprecatedProgramStatusIsMapped() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setProgramStatus(Set.of(ACTIVE));
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(ACTIVE), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void eventsProgramStatusAndEnrollmentStatusTogetherAreRejected() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setProgramStatus(Set.of(ACTIVE));
+    criteria.setEnrollmentStatus(Set.of(COMPLETED));
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> EventDataQueryRequest.builder().fromCriteria(criteria));
+
+    assertEquals(ErrorCode.E7139, ex.getErrorCode());
+  }
+
+  @Test
+  void enrollmentsEnrollmentStatusIsMapped() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setEnrollmentStatus(Set.of(COMPLETED));
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(COMPLETED), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void enrollmentsDeprecatedProgramStatusIsMapped() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setProgramStatus(Set.of(ACTIVE));
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(ACTIVE), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void enrollmentsProgramStatusAndEnrollmentStatusTogetherAreRejected() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setProgramStatus(Set.of(ACTIVE));
+    criteria.setEnrollmentStatus(Set.of(COMPLETED));
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> EventDataQueryRequest.builder().fromCriteria(criteria));
+
+    assertEquals(ErrorCode.E7139, ex.getErrorCode());
   }
 }

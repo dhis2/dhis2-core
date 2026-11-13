@@ -342,6 +342,20 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "incidentDateDimensionForEnrollments",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=INCIDENT_DATE:GT:2022-12-15",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "enrollmentStatusCompletedOnEnrollmentsAggregate",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:LAST_10_YEARS&enrollmentStatus=COMPLETED&displayProperty=NAME&totalPages=false&relativePeriodDate=2025-01-01",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

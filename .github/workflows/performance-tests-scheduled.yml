@@ -34,6 +34,22 @@ jobs:
               SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
               MVN_ARGS=-Dprofile=load
             slack_webhook_secret: SLACK_WEBHOOK_TRACKER_BACKEND
+          # Daily samples of the Perf Land MNCH test while its thresholds are calibrated on it:
+          # its assertions don't fail the run (gatling.failOnError=false), nor notify Slack.
+          - name: perfland-mnch-smoke
+            env: |
+              DHIS2_IMAGE=dhis2/core-dev:latest
+              SIMULATION_CLASS=org.hisp.dhis.test.tracker.PerfLandMnchTrackerTest
+              DB_TYPE=perfland-mnch
+              DB_VERSION=dev
+              MVN_ARGS="-Dprofile=smoke -Dgatling.failOnError=false"
+          - name: perfland-mnch-load
+            env: |
+              DHIS2_IMAGE=dhis2/core-dev:latest
+              SIMULATION_CLASS=org.hisp.dhis.test.tracker.PerfLandMnchTrackerTest
+              DB_TYPE=perfland-mnch
+              DB_VERSION=dev
+              MVN_ARGS="-Dprofile=load -Dgatling.failOnError=false"
           - name: users-smoke
             env: |
               DHIS2_IMAGE=dhis2/core-dev:latest

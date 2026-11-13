@@ -30,6 +30,7 @@
 package org.hisp.dhis.common;
 
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -122,8 +123,15 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
   /** Specify ths status of events to include. */
   private Set<EventStatus> eventStatus = new HashSet<>();
 
+  /**
+   * Specify the enrollment status of events to include.
+   *
+   * @deprecated use {@link #enrollmentStatus} instead
+   */
+  @Deprecated private Set<EnrollmentStatus> programStatus = EnumSet.noneOf(EnrollmentStatus.class);
+
   /** Specify the enrollment status of events to include. */
-  private Set<EnrollmentStatus> programStatus = new HashSet<>();
+  private Set<EnrollmentStatus> enrollmentStatus = EnumSet.noneOf(EnrollmentStatus.class);
 
   /** Overrides the start date of the relative period. */
   private Date relativePeriodDate;

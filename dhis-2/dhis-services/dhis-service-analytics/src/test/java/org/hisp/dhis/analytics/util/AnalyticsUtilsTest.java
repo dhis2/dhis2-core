@@ -796,6 +796,8 @@ class AnalyticsUtilsTest extends TestBase {
     assertFalse(AnalyticsUtils.hasPeriod(row, 4));
     // fail - index 2 is a Double
     assertFalse(AnalyticsUtils.hasPeriod(row, 2));
+    // fail - index -1 means period is not a dimension
+    assertFalse(AnalyticsUtils.hasPeriod(row, -1));
     row = new ArrayList<>();
     row.add("someUid");
     row.add("2020A");
