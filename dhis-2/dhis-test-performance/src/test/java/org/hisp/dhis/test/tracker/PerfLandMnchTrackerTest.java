@@ -83,13 +83,12 @@ import org.slf4j.LoggerFactory;
  *
  * <ul>
  *   <li>Each iteration takes the next case of {@code perfland-mnch/cases.csv}: a data clerk of a
- *       facility of district QP1613 and the names she searches for. A clerk captures in her
- *       facility and searches in her district. The test logs in as the clerk of the case, dbgen's
- *       users, instead of replicating one. Each clerk has 3 cases, which differ in the names, the
- *       EPI and the child she opens: a run covers more than one point of the searches and the
- *       dashboard. The names of a clerk's cases match about as many children, so that the time of a
- *       request doesn't spread more than its band's. The cases alternate the bands, and the
- *       circular feeder gives baseline and candidate the same order.
+ *       facility of district QP1613 and a child of her facility. A clerk captures in her facility
+ *       and searches in her district. The test logs in as the clerk of the case, dbgen's users,
+ *       instead of replicating one. She searches the child by name and EPI and opens it, as clerks
+ *       work on different children all day: 60 per clerk, picked at random with a fixed seed by
+ *       {@code perfland-mnch/cases.sql}, so a smoke run opens none twice. The cases alternate the
+ *       clerks, and the circular feeder gives every run, baseline and candidate, the same order.
  *   <li>The cases cover facilities by their number of EIR children (small, median, large, largest;
  *       large is in the middle of the first page's slowest plan, about 1,000 to 1,400), as the
  *       query plans differ between them. Each case's facility is away from where a request's plan
@@ -98,8 +97,8 @@ import org.slf4j.LoggerFactory;
  *       of TEs [small]", and has a p95 threshold per band: one p95 over all bands is about the
  *       slowest band's p80, so a faster band could get several times slower unnoticed. Load has
  *       about 9 iterations per band, too few for a p95 each: it names and asserts these requests
- *       over all bands, for what concurrency adds. The names are common ones of the clerk's
- *       children: how many records a name matches changes the time of a search, not its plan.
+ *       over all bands, for what concurrency adds. How many records a name matches changes the time
+ *       of a search, not its plan, so the names don't get bands.
  *   <li>EIR needs two attributes to search outside the capture scope, so every name search filters
  *       on the given and the family name, where {@link TrackerTest} filters on the first name. The
  *       like search takes the first 3 letters of each name, as a user types them
@@ -109,8 +108,8 @@ import org.slf4j.LoggerFactory;
  *   <li>Every EIR child has a Unique System Identifier (EPI), a unique attribute. The test also
  *       searches tracked entities and Birth events by the EPI of the case's child, which {@link
  *       TrackerTest} does not. The tracked entity search is Capture's.
- *   <li>The case's child is one of the first page of the clerk's facility, where {@link
- *       TrackerTest} opens the first of the page. Some have a mother, some don't.
+ *   <li>The test opens the case's child, where {@link TrackerTest} opens the first of the first
+ *       page.
  *   <li>{@link TrackerTest}'s lists are those of Capture before v106.2.8 ({@code fields=*} and
  *       {@code :all}), which its CSV download still sends. They stay, as they read relationships
  *       and notes that Capture's lists no longer do, and fixes such as #26186 were measured with
@@ -121,9 +120,10 @@ import org.slf4j.LoggerFactory;
  * </ul>
  *
  * <p>The cases are bound to the records of the {@code perfland-mnch} dumps, which are the same for
- * every DHIS2 version. The eq pair and the like letters of a case match a child of the clerk's
- * facility among the first 5 matches in the district, so DHIS2 2.42, which drops what the clerk
- * does not own after paging, returns her too. {@code -Dcases} reads another file.
+ * every DHIS2 version: re-generate them with {@code cases.sql} when the dumps change. The eq pair
+ * and the like letters of a case match a child of the clerk's facility among the first 5 matches in
+ * the district, so DHIS2 2.42, which drops what the clerk does not own after paging, returns her
+ * too. {@code -Dcases} reads another file.
  *
  * <p>The thresholds of requests without a band are {@link TrackerTest}'s, calibrated on Sierra
  * Leone. The banded ones, the searches by EPI and the Capture and Android ones have none yet.
@@ -204,8 +204,8 @@ public class PerfLandMnchTrackerTest extends Simulation {
         int concurrentUsers, int repeat, int rampDurationSec, int durationSec, int steps) {}
     ProfileDefaults defaults =
         switch (this.profile) {
-          // 240 is a multiple of the 12 cases: 60 iterations per facility band, the fewest whose
-          // max is a 95% upper bound of the p95 (59).
+          // 240 cases: 60 iterations per facility band, the fewest whose max is a 95% upper bound
+          // of the p95 (59).
           case SMOKE -> new ProfileDefaults(1, 240, 1, 1, 1);
           case LOAD -> new ProfileDefaults(4, 1, 15, 180, 1);
           case CAPACITY -> new ProfileDefaults(8, 1, 10, 30, 4);
@@ -616,12 +616,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
                             .exec(
                                 getFirstPageOfTEs
                                     .action()
-                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1))
-                                    // the case's tracked entity is one of this page
-                                    .check(
-                                        jsonPath(
-                                                "$.trackedEntities[?(@.trackedEntity == '#{trackedEntity}')]")
-                                            .exists()))
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
                             .exec(
                                 searchTEsAsCapture
                                     .action()
