@@ -571,13 +571,14 @@ public final class CSV {
 
         @Override
         public boolean hasNext() {
-          next = readDataRow(row);
+          if (next == null) next = readDataRow(row);
           return next;
         }
 
         @Override
         public T next() {
-          if (next == null || !next) throw new NoSuchElementException("No more rows in the CSV.");
+          if (!hasNext()) throw new NoSuchElementException("No more rows in the CSV.");
+          next = null;
           return newRecord.apply(row);
         }
       };

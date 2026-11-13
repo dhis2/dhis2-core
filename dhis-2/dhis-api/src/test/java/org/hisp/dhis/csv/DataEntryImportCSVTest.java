@@ -30,12 +30,16 @@
 package org.hisp.dhis.csv;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
@@ -803,6 +807,63 @@ class DataEntryImportCSVTest {
     Row r0 = rows.get(0);
     assertEquals("de", r0.dataElement());
     assertEquals("2025", r0.period());
+  }
+
+  // ----------------------------------------------------------------
+  // Iterator contract: next() must work without a preceding hasNext(),
+  // hasNext() must be idempotent (no row consumption), and next() past
+  // the last row must throw NoSuchElementException (not replay the last).
+
+  @Test
+  void testNextWithoutHasNextReturnsFirstRow() {
+    record Row(String v) {}
+    Iterator<Row> it = CSV.of("v\n1\n2\n").as(Row.class).iterator();
+    // Contract: next() returns the next element without requiring hasNext()
+    // first. Currently throws NoSuchElementException ("next == null").
+    assertEquals("1", it.next().v());
+    assertEquals("2", it.next().v());
+    assertThrowsExactly(NoSuchElementException.class, it::next);
+  }
+
+  @Test
+  void testHasNextIsIdempotent() {
+    record Row(String v) {}
+    Iterator<Row> it = CSV.of("v\n1\n2\n").as(Row.class).iterator();
+    assertTrue(it.hasNext());
+    assertTrue(it.hasNext());
+    assertTrue(it.hasNext());
+    // Multiple hasNext() calls must not consume a row; next() returns "1".
+    // Currently the third call hits EOI and returns false, and next() would
+    // return "2" because the pending slot was overwritten.
+    assertEquals("1", it.next().v());
+    assertEquals("2", it.next().v());
+    assertFalse(it.hasNext());
+  }
+
+  @Test
+  void testNextPastEndDoesNotReplayLastRow() {
+    record Row(String v) {}
+    Iterator<Row> it = CSV.of("v\n1\n").as(Row.class).iterator();
+    assertTrue(it.hasNext());
+    assertEquals("1", it.next().v());
+    // Second next() without an intervening hasNext() must throw, not
+    // return "1" again. Currently `next` is still `true`, so the second
+    // call returns "1" a second time and the whole file is duplicated.
+    assertThrowsExactly(NoSuchElementException.class, it::next);
+    assertFalse(it.hasNext());
+    assertThrowsExactly(NoSuchElementException.class, it::next);
+  }
+
+  @Test
+  void testHasNextFalseOnEmptyData() {
+    // Regression guard: with a header but no data rows, hasNext() returns
+    // false repeatedly and next() throws. Currently passes; keep it so the
+    // fix does not change this behaviour.
+    record Row(String v) {}
+    Iterator<Row> it = CSV.of("v\n").as(Row.class).iterator();
+    assertFalse(it.hasNext());
+    assertFalse(it.hasNext());
+    assertThrowsExactly(NoSuchElementException.class, it::next);
   }
 
   private static List<DataEntryValue.Input> read(@Language("csv") String csv) {
