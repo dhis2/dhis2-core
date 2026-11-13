@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.query.Filters;
+import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.operators.MatchMode;
@@ -48,6 +49,8 @@ import org.hisp.dhis.schema.SchemaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -71,20 +74,22 @@ class DefaultQueryPlannerTest {
     queryPlanner = new DefaultQueryPlanner(schemaService);
   }
 
-  @Test
-  void testDisplayNameFilterResultsInDatabaseQuery() {
+  @ParameterizedTest
+  @EnumSource(Junction.Type.class)
+  void testDisplayNameFilterResultsInDatabaseQuery(Junction.Type junction) {
     // Given: A query with a filter on displayName (a translatable property)
-    Query<DataElement> query = Query.of(DataElement.class);
+    Query<DataElement> query = Query.of(DataElement.class, junction);
     query.add(Filters.like("displayName", "Health", MatchMode.ANYWHERE));
+    query.setMaxResults(2);
 
-    // Mock schema to indicate displayName is persisted and translatable
+    // displayName is computed; its persisted name and translations support this SQL predicate.
     Schema schema = mockSchema();
     Property displayNameProperty = mockTranslatableProperty("displayName", "NAME");
     when(schema.getProperty("displayName")).thenReturn(displayNameProperty);
     when(schema.hasPersistedProperty("name")).thenReturn(true);
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
-    PropertyPath displayNamePath = new PropertyPath(displayNameProperty, true);
+    PropertyPath displayNamePath = new PropertyPath(displayNameProperty, false);
     when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "displayName"))
         .thenReturn(displayNamePath);
@@ -99,15 +104,16 @@ class DefaultQueryPlannerTest {
         plan.memoryQuery().getFilters().size(),
         "displayName filter should NOT be in memory query");
     assertTrue(plan.memoryQuery().isEmpty(), "Memory query should be empty");
+    assertEquals(2, plan.dbQuery().getMaxResults());
   }
 
   @Test
-  void testDisplayDescriptionFilterResultsInDatabaseQuery() {
+  void testDisplayDescriptionFilterRemainsInMemory() {
     // Given: A query with a filter on displayDescription (a translatable property)
     Query<DataElement> query = Query.of(DataElement.class);
     query.add(Filters.like("displayDescription", "program", MatchMode.ANYWHERE));
 
-    // Mock schema to indicate displayDescription is persisted and translatable
+    // No SQL filtering semantics are declared for displayDescription.
     Schema schema = mockSchema();
     Property displayDescriptionProperty =
         mockTranslatableProperty("displayDescription", "DESCRIPTION");
@@ -115,7 +121,7 @@ class DefaultQueryPlannerTest {
     when(schema.hasPersistedProperty("name")).thenReturn(true);
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
-    PropertyPath displayDescriptionPath = new PropertyPath(displayDescriptionProperty, true);
+    PropertyPath displayDescriptionPath = new PropertyPath(displayDescriptionProperty, false);
     when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "displayDescription"))
         .thenReturn(displayDescriptionPath);
@@ -123,26 +129,25 @@ class DefaultQueryPlannerTest {
     // When: Query plan is created
     QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
 
-    // Then: The filter should be in the database query
-    assertEquals(
-        1, plan.dbQuery().getFilters().size(), "displayDescription filter should be in DB query");
-    assertTrue(plan.memoryQuery().isEmpty(), "Memory query should be empty");
+    assertTrue(plan.dbQuery().getFilters().isEmpty());
+    assertEquals(1, plan.memoryQuery().getFilters().size());
+    assertTrue(plan.dbQuery().isSkipPaging());
   }
 
   @Test
-  void testDisplayShortNameFilterResultsInDatabaseQuery() {
+  void testDisplayShortNameFilterRemainsInMemory() {
     // Given: A query with a filter on displayShortName (a translatable property)
     Query<DataElement> query = Query.of(DataElement.class);
     query.add(Filters.like("displayShortName", "ANC", MatchMode.ANYWHERE));
 
-    // Mock schema to indicate displayShortName is persisted and translatable
+    // No SQL filtering semantics are declared for displayShortName.
     Schema schema = mockSchema();
     Property displayShortNameProperty = mockTranslatableProperty("displayShortName", "SHORT_NAME");
     when(schema.getProperty("displayShortName")).thenReturn(displayShortNameProperty);
     when(schema.hasPersistedProperty("name")).thenReturn(true);
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
-    PropertyPath displayShortNamePath = new PropertyPath(displayShortNameProperty, true);
+    PropertyPath displayShortNamePath = new PropertyPath(displayShortNameProperty, false);
     when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "displayShortName"))
         .thenReturn(displayShortNamePath);
@@ -150,10 +155,9 @@ class DefaultQueryPlannerTest {
     // When: Query plan is created
     QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
 
-    // Then: The filter should be in the database query
-    assertEquals(
-        1, plan.dbQuery().getFilters().size(), "displayShortName filter should be in DB query");
-    assertTrue(plan.memoryQuery().isEmpty(), "Memory query should be empty");
+    assertTrue(plan.dbQuery().getFilters().isEmpty());
+    assertEquals(1, plan.memoryQuery().getFilters().size());
+    assertTrue(plan.dbQuery().isSkipPaging());
   }
 
   @Test
@@ -185,7 +189,7 @@ class DefaultQueryPlannerTest {
 
   @Test
   void testMixedPersistedAndNonPersistedFilters() {
-    // Given: A query with both displayName (persisted) and a non-persisted property filter
+    // A supported displayName filter can run in SQL, but the other filter still disables paging.
     Query<DataElement> query = Query.of(DataElement.class);
     query.add(Filters.like("displayName", "Health", MatchMode.ANYWHERE));
     query.add(Filters.eq("customProperty", "value")); // Non-persisted property
@@ -200,7 +204,7 @@ class DefaultQueryPlannerTest {
     when(schema.hasPersistedProperty("name")).thenReturn(true);
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
-    PropertyPath displayNamePath = new PropertyPath(displayNameProperty, true);
+    PropertyPath displayNamePath = new PropertyPath(displayNameProperty, false);
     PropertyPath customPropertyPath = new PropertyPath(customProperty, false);
 
     when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
@@ -216,6 +220,7 @@ class DefaultQueryPlannerTest {
     assertEquals(1, plan.dbQuery().getFilters().size(), "DB query should have 1 filter");
     assertEquals(1, plan.memoryQuery().getFilters().size(), "Memory query should have 1 filter");
     assertFalse(plan.memoryQuery().isEmpty(), "Memory query should NOT be empty");
+    assertTrue(plan.dbQuery().isSkipPaging());
   }
 
   @Test
@@ -243,6 +248,64 @@ class DefaultQueryPlannerTest {
     assertEquals(0, plan.dbQuery().getFilters().size(), "DB query should have no filters");
     assertEquals(1, plan.memoryQuery().getFilters().size(), "Memory query should have 1 filter");
     assertFalse(plan.memoryQuery().isEmpty(), "Memory query should NOT be empty");
+  }
+
+  @Test
+  void testUnsupportedDisplayNameOperatorsRemainInMemory() {
+    Schema schema = mockSchema();
+    Property displayName = mockTranslatableProperty("displayName", "NAME");
+    when(schema.getProperty("displayName")).thenReturn(displayName);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getPropertyPath(DataElement.class, "displayName"))
+        .thenReturn(new PropertyPath(displayName, false));
+    Query<DataElement> query =
+        Query.of(DataElement.class)
+            .add(Filters.eq("displayName", "Health"))
+            .add(Filters.token("displayName", "Health", MatchMode.START))
+            .add(Filters.notLike("displayName", "Health", MatchMode.ANYWHERE));
+    QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
+    assertTrue(plan.dbQuery().getFilters().isEmpty());
+    assertEquals(query.getFilters(), plan.memoryQuery().getFilters());
+    assertTrue(plan.dbQuery().isSkipPaging());
+  }
+
+  @Test
+  void testNestedDisplayNameRemainsInMemory() {
+    Schema schema = mockSchema();
+    Property displayName = mockTranslatableProperty("displayName", "NAME");
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getPropertyPath(DataElement.class, "parent.displayName"))
+        .thenReturn(new PropertyPath(displayName, false, new String[] {"parent"}));
+    Query<DataElement> query =
+        Query.of(DataElement.class)
+            .add(Filters.ilike("parent.displayName", "Health", MatchMode.ANYWHERE));
+    QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
+    assertTrue(plan.dbQuery().getFilters().isEmpty());
+    assertEquals(query.getFilters(), plan.memoryQuery().getFilters());
+    assertTrue(plan.dbQuery().isSkipPaging());
+  }
+
+  @Test
+  void testMixedOrRetainsAllFiltersInMemory() {
+    Schema schema = mockSchema();
+    Property displayName = mockTranslatableProperty("displayName", "NAME");
+    Property displayShortName = mockTranslatableProperty("displayShortName", "SHORT_NAME");
+    when(schema.getProperty("displayName")).thenReturn(displayName);
+    when(schema.getProperty("displayShortName")).thenReturn(displayShortName);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getPropertyPath(DataElement.class, "displayName"))
+        .thenReturn(new PropertyPath(displayName, false));
+    when(schemaService.getPropertyPath(DataElement.class, "displayShortName"))
+        .thenReturn(new PropertyPath(displayShortName, false));
+    Query<DataElement> query =
+        Query.of(DataElement.class, Junction.Type.OR)
+            .add(Filters.ilike("displayName", "Health", MatchMode.ANYWHERE))
+            .add(Filters.eq("displayShortName", "ANC"))
+            .setMaxResults(2);
+    QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
+    assertTrue(plan.dbQuery().getFilters().isEmpty());
+    assertEquals(query.getFilters(), plan.memoryQuery().getFilters());
+    assertTrue(plan.dbQuery().isSkipPaging());
   }
 
   // -------------------------------------------------------------------------
@@ -452,12 +515,14 @@ class DefaultQueryPlannerTest {
 
   /**
    * Tests mixing simple filter with single nested many-to-one filter (e.g., id:eq:X AND
-   * parent.id:eq:Y). Both should go to DB because there's only one distinct root alias.
+   * parent.id:eq:Y), under either junction. Both should go to DB because there's only one distinct
+   * root alias.
    */
-  @Test
-  void testMixingSimpleAndSingleNestedFilterGoToDb() {
+  @ParameterizedTest
+  @EnumSource(Junction.Type.class)
+  void testMixingSimpleAndSingleNestedFilterGoToDb(Junction.Type junction) {
     // Given: A simple filter and a single nested filter (one root alias)
-    Query<DataElement> query = Query.of(DataElement.class);
+    Query<DataElement> query = Query.of(DataElement.class, junction);
     query.add(Filters.eq("id", "element123"));
     query.add(Filters.eq("parent.id", "parent123"));
 
@@ -549,6 +614,8 @@ class DefaultQueryPlannerTest {
   private Schema mockSchema() {
     Schema schema = mock(Schema.class);
     when(schema.hasPersistedProperty(any())).thenReturn(false);
+    when(schema.getProperty("name")).thenReturn(mockTranslatableProperty("name", "NAME"));
+    when(schema.hasPersistedProperty("translations")).thenReturn(true);
     return schema;
   }
 
@@ -556,7 +623,7 @@ class DefaultQueryPlannerTest {
     Property property = new Property();
     property.setName(name);
     property.setFieldName(name);
-    property.setPersisted(true);
+    property.setPersisted(!name.startsWith("display"));
     property.setSimple(true);
     property.setTranslatable(true);
     property.setTranslationKey(translationKey);

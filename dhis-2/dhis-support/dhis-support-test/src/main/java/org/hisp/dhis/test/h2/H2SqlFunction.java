@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -59,6 +60,7 @@ public class H2SqlFunction {
       createAliasForFunction(connection, "jsonb_has_user_id");
       createAliasForFunction(connection, "jsonb_check_user_access");
       createAliasForFunction(connection, "jsonb_get_translated_value");
+      createAliasForFunction(connection, "jsonb_get_display_name", "jsonbGetDisplayName");
     } catch (SQLException exception) {
       log.info(
           "Failed to register custom H2Functions, probably already registered, ignoring this.",
@@ -68,10 +70,15 @@ public class H2SqlFunction {
 
   private static void createAliasForFunction(Connection connection, String name)
       throws SQLException {
+    createAliasForFunction(connection, name, name);
+  }
+
+  private static void createAliasForFunction(Connection connection, String name, String method)
+      throws SQLException {
     try (Statement statement = connection.createStatement()) {
       statement.execute(
           String.format(
-              "CREATE ALIAS %s FOR \"%s.%s\"", name, H2SqlFunction.class.getName(), name));
+              "CREATE ALIAS %s FOR \"%s.%s\"", name, H2SqlFunction.class.getName(), method));
     }
   }
 
@@ -216,5 +223,35 @@ public class H2SqlFunction {
       log.error("Failed to get translated value", e);
       throw e;
     }
+  }
+
+  // H2 binds the same four arguments as the PostgreSQL rendering. H2 has no JSONPath, so it matches
+  // the locale with the Java parser below and ignores the translation path.
+  @SuppressWarnings("java:S1172")
+  public static String jsonbGetDisplayName(
+      PGobject input, String name, String translationPath, String locale) {
+    if (locale == null || input == null || input.getValue() == null) return name;
+    JsonArray translations = new Gson().fromJson(input.getValue(), JsonArray.class);
+    if (translations == null || translations.isEmpty()) return name;
+    // H2 has no PostgreSQL JSONPath evaluator; compare with the same parser used on hydration.
+    Locale effectiveLocale = Locale.of(locale);
+    for (JsonElement element : translations) {
+      JsonObject translation = element.getAsJsonObject();
+      JsonElement property = translation.get("property");
+      JsonElement language = translation.get("locale");
+      JsonElement value = translation.get("value");
+      if (property != null
+          && !property.isJsonNull()
+          && "NAME".equalsIgnoreCase(property.getAsString())
+          && language != null
+          && !language.isJsonNull()
+          && effectiveLocale.equals(Locale.ofNullable(language.getAsString()))
+          && value != null
+          && !value.isJsonNull()
+          && !value.getAsString().isEmpty()) {
+        return value.getAsString();
+      }
+    }
+    return name == null ? null : name.trim();
   }
 }

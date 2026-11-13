@@ -42,6 +42,11 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -51,16 +56,23 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
+import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
+import org.hisp.dhis.hibernate.dialect.DhisPostgresDialect;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
+import org.hisp.dhis.query.operators.LikeOperator;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
@@ -74,9 +86,12 @@ import org.springframework.stereotype.Component;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JpaCriteriaQueryEngine implements QueryEngine {
+
+  private static final String FORCE_CUSTOM_PLAN = "force_custom_plan";
 
   private final SchemaService schemaService;
   private final List<IdentifiableObjectStore<?>> hibernateGenericStores;
@@ -120,7 +135,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
           queryCacheManager.getQueryCacheRegionName(objectType, typedQuery));
     }
 
-    return typedQuery.getResultList();
+    return withCustomPlan(query, typedQuery::getResultList);
   }
 
   private <T extends IdentifiableObject> Predicate buildFilters(
@@ -190,7 +205,81 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
     TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
 
-    return typedQuery.getSingleResult();
+    return withCustomPlan(query, typedQuery::getSingleResult);
+  }
+
+  /**
+   * Runs a query that filters on the computed display name with a custom plan on PostgreSQL.
+   *
+   * <p>pgjdbc server-prepares a statement after five executions, and PostgreSQL then switches to a
+   * generic plan when its estimate looks no worse. For the display-name expression that estimate is
+   * wrong: the generic plan scans by the order index and is several times slower than the custom
+   * plan. This forces custom plans for this statement only and restores the previous setting
+   * afterwards. The session holds its connection ({@code DELAYED_ACQUISITION_AND_HOLD}, set by
+   * Spring's {@code HibernateJpaVendorAdapter}), so the setting and the query share it.
+   */
+  private <T extends IdentifiableObject, R> R withCustomPlan(
+      Query<T> query, Supplier<R> execution) {
+    if (!needsCustomPlan(query)) return execution.get();
+    Session session = entityManager.unwrap(Session.class);
+    String previous = session.doReturningWork(JpaCriteriaQueryEngine::forceCustomPlan);
+    try {
+      return execution.get();
+    } finally {
+      if (previous != null) restorePlanCacheMode(session, previous);
+    }
+  }
+
+  private <T extends IdentifiableObject> boolean needsCustomPlan(Query<T> query) {
+    if (!(getDialect() instanceof DhisPostgresDialect)
+        || UserSettings.getCurrentSettings().getUserDbLocale() == null) {
+      return false;
+    }
+    Schema schema = schemaService.getSchema(query.getObjectType());
+    return query.getFilters().stream().anyMatch(f -> supportsTranslatedNameFilter(schema, f));
+  }
+
+  private Dialect getDialect() {
+    return entityManager
+        .getEntityManagerFactory()
+        .unwrap(SessionFactoryImplementor.class)
+        .getJdbcServices()
+        .getDialect();
+  }
+
+  /**
+   * Sets {@code plan_cache_mode} to {@code force_custom_plan} for the session.
+   *
+   * @return the previous value, or null when it already was {@code force_custom_plan}
+   */
+  private static String forceCustomPlan(Connection connection) throws SQLException {
+    String previous;
+    try (Statement statement = connection.createStatement();
+        ResultSet result = statement.executeQuery("select current_setting('plan_cache_mode')")) {
+      result.next();
+      previous = result.getString(1);
+    }
+    if (FORCE_CUSTOM_PLAN.equals(previous)) return null;
+    setPlanCacheMode(connection, FORCE_CUSTOM_PLAN);
+    return previous;
+  }
+
+  private static void restorePlanCacheMode(Session session, String previous) {
+    try {
+      session.doWork(connection -> setPlanCacheMode(connection, previous));
+    } catch (RuntimeException ex) {
+      // In an aborted transaction the rollback restores the setting; a broken connection is
+      // discarded. Do not hide the query's own exception.
+      log.warn("Could not restore plan_cache_mode to {}", previous, ex);
+    }
+  }
+
+  private static void setPlanCacheMode(Connection connection, String mode) throws SQLException {
+    try (PreparedStatement statement =
+        connection.prepareStatement("select set_config('plan_cache_mode', ?, false)")) {
+      statement.setString(1, mode);
+      statement.execute();
+    }
   }
 
   @Nonnull
@@ -361,6 +450,67 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     return Stream.of(path.getAlias());
   }
 
+  /** Only root displayName LIKE/ILIKE has a computed SQL filtering implementation. */
+  public static boolean supportsTranslatedNameFilter(Schema schema, Filter filter) {
+    if (!"displayName".equals(filter.getPath())
+        || !(filter.getOperator() instanceof LikeOperator)) {
+      return false;
+    }
+    Property displayName = schema.getProperty("displayName");
+    Property name = schema.getProperty("name");
+    return displayName != null
+        && displayName.isSimple()
+        && name != null
+        && name.isPersisted()
+        && name.canBeTranslated()
+        && "NAME".equals(name.getTranslationKey())
+        && schema.hasPersistedProperty("translations");
+  }
+
+  private <Y> Expression<String> getDisplayName(CriteriaBuilder builder, Root<Y> root) {
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
+    if (locale == null) return root.get("name");
+    return builder.function(
+        JsonbFunctions.GET_DISPLAY_NAME,
+        String.class,
+        root.get("translations"),
+        root.get("name"),
+        builder.literal(displayNameTranslationPath(locale)),
+        builder.literal(locale.toString()));
+  }
+
+  private static String displayNameTranslationPath(Locale locale) {
+    // Locale validates every component as ASCII letters/digits. Only these validated components,
+    // never the request string, enter the regex. Keep canonical language-only locales on equality.
+    String language =
+        switch (locale.language()) {
+          case "id" -> "(id|in)";
+          case "he" -> "(he|iw)";
+          case "yi" -> "(yi|ji)";
+          default -> locale.language();
+        };
+    String localeMatch = "@.locale == $locale";
+    if (locale.region() != null || !language.equals(locale.language())) {
+      String separator = "(-|_#?)";
+      String pattern = language;
+      if (locale.region() != null) {
+        String region = locale.region();
+        String script = locale.script();
+        pattern +=
+            separator
+                + (script == null
+                    ? region
+                    : "(" + region + separator + script + "|" + script + separator + region + ")");
+        // String.split in Locale.of discards trailing empty parts, including repeated separators.
+        pattern += separator + "*";
+      }
+      localeMatch += " || @.locale like_regex \"^" + pattern + "$\"";
+    }
+    return "$[*] ? (@.property like_regex \"^name$\" flag \"i\" && ("
+        + localeMatch
+        + ") && @.value != null && @.value != \"\")";
+  }
+
   private <Y> Predicate buildFilter(
       CriteriaBuilder builder,
       Root<Y> root,
@@ -369,14 +519,12 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       CriteriaQuery<?> criteriaQuery) {
     if (filter == null || filter.getOperator() == null) return null;
     if (!filter.isVirtual()) {
-      String filterPath = filter.getPath();
-      // Map display properties to their base properties
-      PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
-      if (path == null && filterPath.startsWith("display")) {
-        filterPath = Property.resolveTranslationBasePropertyName(filterPath);
-        filter = new Filter(filterPath, filter.getOperator());
-        path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
+      Schema schema = schemaService.getSchema(query.getObjectType());
+      if (supportsTranslatedNameFilter(schema, filter)) {
+        return ((LikeOperator<?>) filter.getOperator())
+            .getLiteralPredicate(builder, getDisplayName(builder, root));
       }
+      PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
       if (path == null) {
         return null;
       }
