@@ -57,6 +57,7 @@ import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
+import org.hisp.dhis.webapi.filter.CrossOriginRequestFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
 import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
@@ -241,7 +242,8 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   @Bean
-  protected SecurityFilterChain filterChain(HttpSecurity http) {
+  protected SecurityFilterChain filterChain(
+      HttpSecurity http, CrossOriginRequestFilter crossOriginRequestFilter) {
     try {
       if (dhisConfig.isEnabled(ConfigurationKey.CSRF_ENABLED)) {
         http.csrf(
@@ -254,6 +256,8 @@ public class DhisWebApiWebSecurityConfig {
       }
 
       http.cors(Customizer.withDefaults());
+      // Rejects requests from foreign origins before CORS handling and authentication
+      http.addFilterBefore(crossOriginRequestFilter, CorsFilter.class);
 
       if (dhisConfig.isEnabled(ConfigurationKey.LOGIN_SAVED_REQUESTS_ENABLE)) {
         http.requestCache(rc -> rc.requestCache(requestCache));
@@ -473,9 +477,9 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   @Bean
-  public CorsFilter corsFilter(ConfigurationService configurationService) {
+  public CorsFilter corsFilter(DhisCorsProcessor corsProcessor) {
     CorsFilter corsFilter = new CorsFilter(new UrlBasedCorsConfigurationSource());
-    corsFilter.setCorsProcessor(new DhisCorsProcessor(configurationService));
+    corsFilter.setCorsProcessor(corsProcessor);
     return corsFilter;
   }
 

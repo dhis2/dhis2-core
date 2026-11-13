@@ -58,6 +58,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.KeyStoreUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.filter.CrossOriginRequestFilter;
 import org.hisp.dhis.webapi.security.config.InlineJwksClientMetadataConfig.ClientRegistrationConverter;
 import org.hisp.dhis.webapi.security.config.InlineJwksClientMetadataConfig.RegisteredClientConverter;
 import org.springframework.context.annotation.Bean;
@@ -89,6 +90,7 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.web.filter.CorsFilter;
 
 /**
  * Configuration class for the OAuth2 Authorization Server.
@@ -152,6 +154,7 @@ public class AuthorizationServerConfig {
    * @param http the {@link HttpSecurity} to configure
    * @param customClaimValidator the custom DHIS2 claim validator to include in JWT validation
    * @param userService checks that the subject of an Initial Access Token is an active user
+   * @param crossOriginRequestFilter rejects requests from foreign origins before authentication
    * @return a {@link SecurityFilterChain} configured for the authorization server
    * @throws Exception if an error occurs while configuring the security filter chain
    */
@@ -161,7 +164,8 @@ public class AuthorizationServerConfig {
       HttpSecurity http,
       CustomClaimValidator<Jwt> customClaimValidator,
       DhisConfigurationProvider dhisConfig,
-      UserService userService) {
+      UserService userService,
+      CrossOriginRequestFilter crossOriginRequestFilter) {
     OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
         new OAuth2AuthorizationServerConfigurer();
 
@@ -186,7 +190,9 @@ public class AuthorizationServerConfig {
               exceptions ->
                   exceptions.defaultAuthenticationEntryPointFor(
                       new LoginUrlAuthenticationEntryPoint("/login/"),
-                      new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
+                      new MediaTypeRequestMatcher(MediaType.TEXT_HTML)))
+          // Same position as in the main API chain, before client and user authentication
+          .addFilterBefore(crossOriginRequestFilter, CorsFilter.class);
 
       return http.build();
     } catch (Exception ex) {
