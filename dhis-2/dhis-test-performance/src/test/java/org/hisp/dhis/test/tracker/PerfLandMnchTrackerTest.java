@@ -82,24 +82,25 @@ import org.slf4j.LoggerFactory;
  * <p>Differences to {@link TrackerTest}, for the data this database holds:
  *
  * <ul>
- *   <li>Each iteration takes the next case of {@code perfland-mnch/cases.csv}: a data clerk of a
- *       facility of district QP1613 and the names she searches for. A clerk captures in her
- *       facility and searches in her district. The test logs in as the clerk of the case, dbgen's
- *       users, instead of replicating one. Each clerk has 3 cases, which differ in the names, the
- *       EPI and the child she opens: a run covers more than one point of the searches and the
- *       dashboard. The names of a clerk's cases match about as many children, so that the time of a
- *       request doesn't spread more than its band's. The cases alternate the bands, and the
- *       circular feeder gives baseline and candidate the same order.
- *   <li>The cases cover facilities by their number of EIR children (small, median, large, largest;
- *       large is in the middle of the first page's slowest plan, about 1,000 to 1,400), as the
- *       query plans differ between them. Each case's facility is away from where a request's plan
- *       changes, so that the sampling of ANALYZE before each run doesn't flip it. In smoke, a
- *       request whose plan depends on the facility is named after its band, such as "Get first page
- *       of TEs [small]", and has a p95 threshold per band: one p95 over all bands is about the
- *       slowest band's p80, so a faster band could get several times slower unnoticed. Load has
- *       about 9 iterations per band, too few for a p95 each: it names and asserts these requests
- *       over all bands, for what concurrency adds. The names are common ones of the clerk's
- *       children: how many records a name matches changes the time of a search, not its plan.
+ *   <li>Each iteration takes the next child of {@code perfland-mnch/children.csv}: a child of a
+ *       facility of district QP1613 and the data clerk of that facility. A clerk captures in her
+ *       facility and searches in her district. The test logs in as the child's clerk, dbgen's
+ *       users, instead of replicating one. She searches the child by name and EPI and opens it, as
+ *       clerks work on different children all day: 60 per clerk, picked at random with a fixed seed
+ *       by {@code perfland-mnch/children.sql}, so a smoke run opens none twice. The rows alternate
+ *       the clerks, and the circular feeder gives every run, baseline and candidate, the same
+ *       order.
+ *   <li>The clerks' facilities differ by their number of EIR children (small, median, large,
+ *       largest; large is in the middle of the first page's slowest plan, about 1,000 to 1,400), as
+ *       the query plans differ between them. Each facility's number of children is far from the
+ *       sizes at which a request switches to another plan, so the statistics that ANALYZE samples
+ *       before each run don't flip its plan. In smoke, a request whose plan depends on the facility
+ *       is named after its band, such as "Get first page of TEs [small]", and has a p95 threshold
+ *       per band: one p95 over all bands is about the slowest band's p80, so a faster band could
+ *       get several times slower unnoticed. Load has about 9 iterations per band, too few for a p95
+ *       each: it names and asserts these requests over all bands, for what concurrency adds. How
+ *       many records a name matches changes the time of a search, not its plan, so the names don't
+ *       get bands.
  *   <li>EIR needs two attributes to search outside the capture scope, so every name search filters
  *       on the given and the family name, where {@link TrackerTest} filters on the first name. The
  *       like search takes the first 3 letters of each name, as a user types them
@@ -107,10 +108,11 @@ import org.slf4j.LoggerFactory;
  *   <li>A child is linked to its mother by a Mother and child relationship when she is enrolled in
  *       ANC, so the relationships of a tracked entity are not always empty. Events have none.
  *   <li>Every EIR child has a Unique System Identifier (EPI), a unique attribute. The test also
- *       searches tracked entities and Birth events by the EPI of the case's child, which {@link
+ *       searches tracked entities and Birth events by the EPI of the child, which {@link
  *       TrackerTest} does not. The tracked entity search is Capture's.
- *   <li>The case's child is one of the first page of the clerk's facility, where {@link
- *       TrackerTest} opens the first of the page. Some have a mother, some don't.
+ *   <li>The test opens the first child of the working list's first page, as {@link TrackerTest}
+ *       does, and the child it searched by its EPI, which can be of any age: "Get searched tracked
+ *       entity" and the other requests of "Go to searched enrollment".
  *   <li>{@link TrackerTest}'s lists are those of Capture before v106.2.8 ({@code fields=*} and
  *       {@code :all}), which its CSV download still sends. They stay, as they read relationships
  *       and notes that Capture's lists no longer do, and fixes such as #26186 were measured with
@@ -120,17 +122,18 @@ import org.slf4j.LoggerFactory;
  *       entity, enrollment and event.
  * </ul>
  *
- * <p>The cases are bound to the records of the {@code perfland-mnch} dumps, which are the same for
- * every DHIS2 version. The eq pair and the like letters of a case match a child of the clerk's
- * facility among the first 5 matches in the district, so DHIS2 2.42, which drops what the clerk
- * does not own after paging, returns her too. {@code -Dcases} reads another file.
+ * <p>The children are bound to the records of the {@code perfland-mnch} dumps, which are the same
+ * for every DHIS2 version: re-generate them with {@code children.sql} when the dumps change. The eq
+ * pair and the like letters of a child match a child of the clerk's facility among the first 5
+ * matches in the district, the page of these searches, so DHIS2 2.42, which drops what the clerk
+ * does not own after paging, returns her too. {@code -Dchildren} reads another file.
  *
  * <p>The thresholds of requests without a band are {@link TrackerTest}'s, calibrated on Sierra
  * Leone. The banded ones, the searches by EPI and the Capture and Android ones have none yet.
  *
  * <p>The UIDs of the program, stage and attributes are constants, as {@link TrackerTest}'s
- * attributes: the cases' values belong to them. Profiles and their parameters are those of {@link
- * TrackerTest}.
+ * attributes: the values of {@code children.csv} belong to them. Profiles and their parameters are
+ * those of {@link TrackerTest}.
  */
 public class PerfLandMnchTrackerTest extends Simulation {
   private static final Logger logger = LoggerFactory.getLogger(PerfLandMnchTrackerTest.class);
@@ -187,7 +190,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
   private final Profile profile;
   private final String instance;
-  private final FeederBuilder<String> cases;
+  private final FeederBuilder<String> children;
   private final int concurrentUsers;
   private final int repeat;
   private final int durationSec;
@@ -197,15 +200,15 @@ public class PerfLandMnchTrackerTest extends Simulation {
   public PerfLandMnchTrackerTest() {
     this.profile = Profile.fromString(System.getProperty("profile", "smoke"));
     this.instance = System.getProperty("instance", "http://localhost:8080");
-    // Circular: every iteration takes the next case, so each band gets the same share of a run.
-    this.cases = csv(System.getProperty("cases", "perfland-mnch/cases.csv")).circular();
+    // Circular: every iteration takes the next child, so each band gets the same share of a run.
+    this.children = csv(System.getProperty("children", "perfland-mnch/children.csv")).circular();
 
     record ProfileDefaults(
         int concurrentUsers, int repeat, int rampDurationSec, int durationSec, int steps) {}
     ProfileDefaults defaults =
         switch (this.profile) {
-          // 240 is a multiple of the 12 cases: 60 iterations per facility band, the fewest whose
-          // max is a 95% upper bound of the p95 (59).
+          // 240 children: 60 iterations per facility band instead of 30. A band's p95 then sits
+          // below its 3 slowest samples instead of its 2 slowest, so one slow sample moves it less.
           case SMOKE -> new ProfileDefaults(1, 240, 1, 1, 1);
           case LOAD -> new ProfileDefaults(4, 1, 15, 180, 1);
           case CAPACITY -> new ProfileDefaults(8, 1, 10, 30, 4);
@@ -266,7 +269,8 @@ public class PerfLandMnchTrackerTest extends Simulation {
     String searchTEByName =
         "/api/tracker/trackedEntities?"
             + nameFilters("like", "#{givenLike}", "#{familyLike}")
-            + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
+            // Capture 107.9.1's fields
+            + "&fields=attributes,enrollments,trackedEntity,orgUnit,inactive&program="
             + PROGRAM
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
@@ -326,22 +330,6 @@ public class PerfLandMnchTrackerTest extends Simulation {
             + PROGRAM
             + "&trackedEntities=#{trackedEntityUids}&fields=trackedEntity,createdAt,attributes[attribute,value],programOwners[orgUnit],enrollments[enrollment,status,orgUnit,enrolledAt]";
 
-    String singleTrackedEntityUrl =
-        "/api/tracker/trackedEntities/#{trackedEntity}?program="
-            + PROGRAM
-            + "&fields=programOwners[orgUnit],enrollments";
-    String singleEnrollmentUrl =
-        "/api/tracker/enrollments/#{enrollmentUid}?fields=enrollment,trackedEntity,program,status,orgUnit,enrolledAt,occurredAt,followUp,deleted,createdBy,updatedBy,updatedAt,geometry";
-
-    String relationshipForTrackedEntityUrl =
-        "/api/tracker/relationships?trackedEntity=#{trackedEntity}&paging=false&fields=relationship,relationshipType,createdAt,from[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]],to[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]]";
-
-    String relationshipForEventUrl =
-        "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
-
-    String eventUrl =
-        "/api/tracker/events/#{eventUid}?fields=event,relationships[relationship,relationshipType,relationshipName,bidirectional,from[event[event,dataValues,occurredAt,scheduledAt,status,orgUnit,programStage,program]],to[event[event,dataValues,*,occurredAt,scheduledAt,status,orgUnit,programStage,program]]]";
-
     // Capture's working lists of a facility, since v106.2.8.
     String captureTEsUrl =
         "/api/tracker/trackedEntities?order=createdAt:desc&page=1&pageSize=15&orgUnits="
@@ -367,11 +355,6 @@ public class PerfLandMnchTrackerTest extends Simulation {
             + "&pageSize=15&trackedEntities=#{captureTrackedEntityUids}"
             + "&fields=trackedEntity,createdAt,attributes[attribute,value],programOwners[orgUnit],"
             + "enrollments[enrollment]";
-    // The heaviest of the requests Capture sends for its enrollment dashboard.
-    String captureTrackedEntityUrl =
-        "/api/tracker/trackedEntities/#{trackedEntity}?program="
-            + PROGRAM
-            + "&fields=enrollments[*,!attributes],attributes,inactive,programOwners[program,orgUnit]";
 
     // A page of the android-sdk's first sync of a facility: TrackerExporterNetworkHandlerImpl
     // with NewTrackedEntityInstanceFields.allFields.
@@ -441,43 +424,38 @@ public class PerfLandMnchTrackerTest extends Simulation {
             Map.of(),
             "Get TEs with enrollment status",
             "Get EIR TEs");
-    Request getFirstTrackedEntity =
-        Request.of(
-            singleTrackedEntityUrl,
-            Map.of(Profile.SMOKE, 41, Profile.LOAD, 96),
-            "Get first tracked entity",
-            "Get EIR TEs",
-            "Go to single enrollment");
-    Request getFirstEnrollment =
-        Request.of(
-            singleEnrollmentUrl,
-            Map.of(Profile.SMOKE, 25, Profile.LOAD, 46),
-            "Get first enrollment",
-            "Get EIR TEs",
-            "Go to single enrollment");
-    Request getRelationshipsForTrackedEntity =
-        Request.of(
-            relationshipForTrackedEntityUrl,
-            Map.of(Profile.SMOKE, 25, Profile.LOAD, 25),
-            "Get relationships for first tracked entity",
-            "Get EIR TEs",
-            "Go to single enrollment");
-    Request getFirstEventFromEnrollment =
-        Request.of(
-            eventUrl,
-            Map.of(Profile.SMOKE, 41, Profile.LOAD, 107),
-            "Get first event from enrollment",
-            "Get EIR TEs",
+    // The user opens a child from the working list, the first of its first page as TrackerTest
+    // does, and the child she searched by its EPI, which can be of any age.
+    OpenRequests openListed =
+        OpenRequests.of(
+            "listed",
             "Go to single enrollment",
-            "Get one event");
-    Request getRelationshipsForEvent =
-        Request.of(
-            relationshipForEventUrl,
-            Map.of(Profile.SMOKE, 25, Profile.LOAD, 28),
-            "Get relationships for first event",
-            "Get EIR TEs",
-            "Go to single enrollment",
-            "Get one event");
+            List.of(
+                "Get first tracked entity",
+                "Get first tracked entity as Capture",
+                "Get first enrollment",
+                "Get relationships for first tracked entity",
+                "Get first event from enrollment",
+                "Get relationships for first event"),
+            List.of(
+                Map.of(Profile.SMOKE, 41, Profile.LOAD, 96),
+                Map.of(),
+                Map.of(Profile.SMOKE, 25, Profile.LOAD, 46),
+                Map.of(Profile.SMOKE, 25, Profile.LOAD, 25),
+                Map.of(Profile.SMOKE, 41, Profile.LOAD, 107),
+                Map.of(Profile.SMOKE, 25, Profile.LOAD, 28)));
+    OpenRequests openSearched =
+        OpenRequests.of(
+            "searched",
+            "Go to searched enrollment",
+            List.of(
+                "Get searched tracked entity",
+                "Get searched tracked entity as Capture",
+                "Get searched enrollment",
+                "Get relationships for searched tracked entity",
+                "Get first event from searched enrollment",
+                "Get relationships for first event of searched enrollment"),
+            List.of(Map.of(), Map.of(), Map.of(), Map.of(), Map.of(), Map.of()));
 
     Request searchTEsAsCapture =
         Request.banded(
@@ -505,13 +483,6 @@ public class PerfLandMnchTrackerTest extends Simulation {
     Request getTrackedEntitiesForEventsAsCapture =
         Request.of(
             captureTEsFromEventsUrl, Map.of(), "Get TEs from events as Capture", "Get EIR TEs");
-    Request getFirstTrackedEntityAsCapture =
-        Request.of(
-            captureTrackedEntityUrl,
-            Map.of(),
-            "Get first tracked entity as Capture",
-            "Get EIR TEs",
-            "Go to single enrollment");
     Request syncTEsAsAndroidClient =
         Request.banded(
             androidSyncTEsUrl, facility, Map.of(), "Sync TEs as Android client", "Get EIR TEs");
@@ -521,8 +492,8 @@ public class PerfLandMnchTrackerTest extends Simulation {
                 session
                     .remove("trackedEntityUids")
                     .remove("captureTrackedEntityUids")
-                    .remove("enrollmentUid")
-                    .remove("eventUid"))
+                    .removeAll(openListed.keys())
+                    .removeAll(openSearched.keys()))
             .exec(
                 group("Get EIR TEs")
                     .on(
@@ -562,8 +533,15 @@ public class PerfLandMnchTrackerTest extends Simulation {
                             .exec(
                                 searchTeByUniqueId
                                     .action()
-                                    .check(jsonPath("$.trackedEntities[*]").count().is(1)))
-                            .pause(1, 3) // user reads the result
+                                    .check(jsonPath("$.trackedEntities[*]").count().is(1))
+                                    .check(
+                                        jsonPath("$.trackedEntities[0].trackedEntity")
+                                            .isEL("#{trackedEntity}")
+                                            .saveAs("searched")))
+                            // Capture opens the dashboard of a unique match itself
+                            .doIf(session -> session.contains("searched"))
+                            .then(openSearched.chain())
+                            .pause(1, 3) // user goes back to the search
                             .exec(
                                 searchBirthEventsByUniqueId
                                     .action()
@@ -617,73 +595,16 @@ public class PerfLandMnchTrackerTest extends Simulation {
                                 getFirstPageOfTEs
                                     .action()
                                     .check(jsonPath("$.trackedEntities[*]").count().gte(1))
-                                    // the case's tracked entity is one of this page
                                     .check(
-                                        jsonPath(
-                                                "$.trackedEntities[?(@.trackedEntity == '#{trackedEntity}')]")
-                                            .exists()))
+                                        jsonPath("$.trackedEntities[0].trackedEntity")
+                                            .saveAs("listed")))
                             .exec(
                                 searchTEsAsCapture
                                     .action()
                                     .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
                             .pause(1, 3) // user reads TE list, picks one
-                            // User clicks on TE -- Capture loads TE + enrollment + relationships
-                            // together
-                            .exec(
-                                group("Go to single enrollment")
-                                    .on(
-                                        exec(getFirstTrackedEntity
-                                                .action()
-                                                .check(jsonPath("$.enrollments[*]").count().gte(1))
-                                                .check(
-                                                    jsonPath("$.enrollments[0].enrollment")
-                                                        .saveAs("enrollmentUid"))
-                                                .check(
-                                                    jsonPath("$.enrollments[0].events[*]")
-                                                        .count()
-                                                        .gte(1))
-                                                .check(
-                                                    jsonPath("$.enrollments[0].events[0].event")
-                                                        .saveAs("eventUid")))
-                                            .exec(
-                                                getFirstTrackedEntityAsCapture
-                                                    .action()
-                                                    .check(
-                                                        jsonPath("$.enrollments[*]")
-                                                            .count()
-                                                            .gte(1)))
-                                            .doIf(session -> session.contains("enrollmentUid"))
-                                            .then(
-                                                exec(getFirstEnrollment
-                                                        .action()
-                                                        .check(jsonPath("$.enrollment").exists()))
-                                                    // A child is linked to its mother when she is
-                                                    // enrolled in ANC, so it has none or one.
-                                                    .exec(
-                                                        getRelationshipsForTrackedEntity
-                                                            .action()
-                                                            .check(
-                                                                jsonPath("$.relationships")
-                                                                    .exists()))
-                                                    .pause(1, 3) // user reads enrollment details
-                                                    // User clicks on event within enrollment
-                                                    .doIf(session -> session.contains("eventUid"))
-                                                    .then(
-                                                        group("Get one event")
-                                                            .on(
-                                                                exec(getFirstEventFromEnrollment
-                                                                        .action()
-                                                                        .check(
-                                                                            jsonPath("$.event")
-                                                                                .exists()))
-                                                                    .exec(
-                                                                        getRelationshipsForEvent
-                                                                            .action()
-                                                                            .check(
-                                                                                jsonPath(
-                                                                                        "$.relationships[*]")
-                                                                                    .count()
-                                                                                    .is(0))))))))
+                            .doIf(session -> session.contains("listed"))
+                            .then(openListed.chain())
                             .pause(1, 3) // user goes back to list
                             // User opens filtered TE list (enrollment status)
                             .exec(
@@ -697,34 +618,33 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
     ScenarioBuilder scenarioBuilder =
         scenario("EIR export")
-            .exec(loopForProfile(feed(this.cases).exec(loginAsCaseUser()).exec(exportRequests)));
+            .exec(loopForProfile(feed(this.children).exec(loginAsClerk()).exec(exportRequests)));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
-        List.of(
-            notFoundTeByNameWithLikeOperator,
-            notFoundTeByNameWithEqOperator,
-            searchTeByNameWithLikeOperator,
-            searchTeByNameWithEqOperator,
-            searchTEsAsAndroidClient,
-            searchTeByUniqueId,
-            searchBirthEventsByUniqueId,
-            searchBirthEventsByStage,
-            getTrackedEntitiesForEvents,
-            getFirstPageOfTEs,
-            getTEsWithEnrollmentStatus,
-            getFirstTrackedEntity,
-            getFirstEnrollment,
-            getRelationshipsForTrackedEntity,
-            getFirstEventFromEnrollment,
-            getRelationshipsForEvent,
-            searchTEsAsCapture,
-            searchActiveTEsAsCapture,
-            searchBirthEventsAsCapture,
-            searchBirthEventsByUniqueIdAsCapture,
-            getTrackedEntitiesForEventsAsCapture,
-            getFirstTrackedEntityAsCapture,
-            syncTEsAsAndroidClient));
+        Stream.of(
+                List.of(
+                    notFoundTeByNameWithLikeOperator,
+                    notFoundTeByNameWithEqOperator,
+                    searchTeByNameWithLikeOperator,
+                    searchTeByNameWithEqOperator,
+                    searchTEsAsAndroidClient,
+                    searchTeByUniqueId,
+                    searchBirthEventsByUniqueId,
+                    searchBirthEventsByStage,
+                    getTrackedEntitiesForEvents,
+                    getFirstPageOfTEs,
+                    getTEsWithEnrollmentStatus,
+                    searchTEsAsCapture,
+                    searchActiveTEsAsCapture,
+                    searchBirthEventsAsCapture,
+                    searchBirthEventsByUniqueIdAsCapture,
+                    getTrackedEntitiesForEventsAsCapture,
+                    syncTEsAsAndroidClient),
+                openListed.requests(),
+                openSearched.requests())
+            .flatMap(List::stream)
+            .toList());
   }
 
   /** Filters on the given and the family name: EIR needs two attributes to search. */
@@ -750,10 +670,11 @@ public class PerfLandMnchTrackerTest extends Simulation {
   }
 
   /**
-   * Logs in as the clerk of the case fed last, unless the session is already hers: with one case
-   * per clerk, every iteration logs in, except when a csv of {@code -Dcases} repeats a clerk.
+   * Logs in as the clerk of the child fed last, unless the session is already hers: the rows
+   * alternate the clerks, so every iteration logs in, except when a csv of {@code -Dchildren}
+   * repeats a clerk in consecutive rows.
    */
-  private ChainBuilder loginAsCaseUser() {
+  private ChainBuilder loginAsClerk() {
     return doIf(session -> !session.getString("username").equals(session.getString("loggedIn")))
         .then(
             exec(flushCookieJar())
@@ -821,7 +742,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
     }
   }
 
-  /** The column of a case a request's plan depends on, and its values. */
+  /** The column of {@code children.csv} a request's plan depends on, and its values. */
   private enum Band {
     NONE(null),
     FACILITY("facilityBand", "small", "median", "large", "largest");
@@ -888,6 +809,136 @@ public class PerfLandMnchTrackerTest extends Simulation {
                 parts[groups.length] = nameOf(value);
                 return Stream.of(details(parts).responseTime().percentile(95).lte(threshold));
               });
+    }
+  }
+
+  /**
+   * The requests Capture sends when a user opens a child: the tracked entity, its enrollment and
+   * relationships, then the enrollment's first event and the event's relationships. The session
+   * holds the tracked entity's UID under {@code key}, {@link #chain()} saves the enrollment's and
+   * the event's under {@code key + "Enrollment"} and {@code key + "Event"}.
+   */
+  private record OpenRequests(
+      String key,
+      String groupName,
+      Request trackedEntity,
+      Request trackedEntityAsCapture,
+      Request enrollment,
+      Request relationshipsForTrackedEntity,
+      Request event,
+      Request relationshipsForEvent) {
+
+    /**
+     * {@code names} and {@code p95Thresholds} follow the order of the requests: the tracked entity,
+     * the tracked entity as Capture, the enrollment, the tracked entity's relationships, the event
+     * and the event's relationships.
+     */
+    static OpenRequests of(
+        String key, String group, List<String> names, List<Map<Profile, Integer>> p95Thresholds) {
+      String trackedEntityUrl = "/api/tracker/trackedEntities/#{" + key + "}?program=" + PROGRAM;
+      String event = "#{" + key + "Event}";
+      String[] groups = {"Get EIR TEs", group};
+      String[] eventGroups = {"Get EIR TEs", group, "Get one event"};
+      return new OpenRequests(
+          key,
+          group,
+          Request.of(
+              trackedEntityUrl + "&fields=programOwners[orgUnit],enrollments",
+              p95Thresholds.get(0),
+              names.get(0),
+              groups),
+          // The heaviest of the requests Capture sends for its enrollment dashboard.
+          Request.of(
+              trackedEntityUrl
+                  + "&fields=enrollments[*,!attributes],attributes,inactive,programOwners[program,orgUnit]",
+              p95Thresholds.get(1),
+              names.get(1),
+              groups),
+          Request.of(
+              "/api/tracker/enrollments/#{"
+                  + key
+                  + "Enrollment}?fields=enrollment,trackedEntity,program,status,orgUnit,enrolledAt,occurredAt,followUp,deleted,createdBy,updatedBy,updatedAt,geometry",
+              p95Thresholds.get(2),
+              names.get(2),
+              groups),
+          Request.of(
+              "/api/tracker/relationships?trackedEntity=#{"
+                  + key
+                  + "}&paging=false&fields=relationship,relationshipType,createdAt,from[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]],to[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]]",
+              p95Thresholds.get(3),
+              names.get(3),
+              groups),
+          Request.of(
+              "/api/tracker/events/"
+                  + event
+                  + "?fields=event,relationships[relationship,relationshipType,relationshipName,bidirectional,from[event[event,dataValues,occurredAt,scheduledAt,status,orgUnit,programStage,program]],to[event[event,dataValues,*,occurredAt,scheduledAt,status,orgUnit,programStage,program]]]",
+              p95Thresholds.get(4),
+              names.get(4),
+              eventGroups),
+          Request.of(
+              "/api/tracker/relationships?event="
+                  + event
+                  + "&fields=from,to,relationshipType,relationship,createdAt",
+              p95Thresholds.get(5),
+              names.get(5),
+              eventGroups));
+    }
+
+    /** The session keys of the opened child, to remove at the start of an iteration. */
+    String[] keys() {
+      return new String[] {key, key + "Enrollment", key + "Event"};
+    }
+
+    List<Request> requests() {
+      return List.of(
+          trackedEntity,
+          trackedEntityAsCapture,
+          enrollment,
+          relationshipsForTrackedEntity,
+          event,
+          relationshipsForEvent);
+    }
+
+    /** Capture loads the tracked entity, its enrollment and relationships together. */
+    ChainBuilder chain() {
+      String enrollmentKey = key + "Enrollment";
+      String eventKey = key + "Event";
+      return exec(
+          group(groupName)
+              .on(
+                  exec(trackedEntity
+                          .action()
+                          .check(jsonPath("$.enrollments[*]").count().gte(1))
+                          .check(jsonPath("$.enrollments[0].enrollment").saveAs(enrollmentKey))
+                          .check(jsonPath("$.enrollments[0].events[*]").count().gte(1))
+                          .check(jsonPath("$.enrollments[0].events[0].event").saveAs(eventKey)))
+                      .exec(
+                          trackedEntityAsCapture
+                              .action()
+                              .check(jsonPath("$.enrollments[*]").count().gte(1)))
+                      .doIf(session -> session.contains(enrollmentKey))
+                      .then(
+                          exec(enrollment.action().check(jsonPath("$.enrollment").exists()))
+                              // A child is linked to its mother when she is enrolled in ANC, so it
+                              // has none or one.
+                              .exec(
+                                  relationshipsForTrackedEntity
+                                      .action()
+                                      .check(jsonPath("$.relationships").exists()))
+                              .pause(1, 3) // user reads enrollment details
+                              // User clicks on event within enrollment
+                              .doIf(session -> session.contains(eventKey))
+                              .then(
+                                  group("Get one event")
+                                      .on(
+                                          exec(event.action().check(jsonPath("$.event").exists()))
+                                              .exec(
+                                                  relationshipsForEvent
+                                                      .action()
+                                                      .check(
+                                                          jsonPath("$.relationships[*]")
+                                                              .count()
+                                                              .is(0))))))));
     }
   }
 
