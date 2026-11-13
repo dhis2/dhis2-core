@@ -134,9 +134,12 @@ class DataEntryImportCSVTest {
 
   @Test
   void testUnterminatedQuote() {
-    assertThrowsExactly(
-        IllegalArgumentException.class,
-        () -> read("dataElement,period,orgUnit,value\nde123456789,202501,ou123456789,\"5\n"));
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class,
+            () -> read("dataElement,period,orgUnit,value\nde123456789,202501,ou123456789,\"5\n"));
+    assertEquals(
+        "CSV input error at line 2 column 4: Quoted value is not terminated", ex.getMessage());
   }
 
   @Test
@@ -279,7 +282,7 @@ class DataEntryImportCSVTest {
     String max = "x".repeat(maxLen);
     List<DataEntryValue.Input> values =
         read("dataElement,period,orgUnit,comment\nde123456789,202501,ou123456789," + max + "\n");
-    assertEquals(maxLen, values.get(0).comment().length());
+    assertEquals(max, values.get(0).comment());
   }
 
   @Test
@@ -324,8 +327,8 @@ class DataEntryImportCSVTest {
                 + max
                 + "\n");
     DataEntryValue.Input v0 = values.get(0);
-    assertEquals(maxLen, v0.value().length());
-    assertEquals(maxLen, v0.comment().length());
+    assertEquals(max, v0.value());
+    assertEquals(max, v0.comment());
   }
 
   @Test
@@ -340,7 +343,7 @@ class DataEntryImportCSVTest {
                 + "de123456789,202501,ou123456789,"
                 + max
                 + ",ignored\n");
-    assertEquals(maxLen, values.get(0).value().length());
+    assertEquals(max, values.get(0).value());
     assertEquals("de123456789", values.get(0).dataElement());
   }
 
