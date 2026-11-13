@@ -87,14 +87,15 @@ import org.slf4j.LoggerFactory;
  *       facility and searches in her district. The test logs in as the clerk of the case, dbgen's
  *       users, instead of replicating one.
  *   <li>The cases cover facilities by their number of EIR children (small, median, large, largest;
- *       large is just above 1,000, where the first page's plan changes to its slowest), as the
- *       query plans differ between them. In smoke, a request whose plan depends on the facility is
- *       named after its band, such as "Get first page of TEs [small]", and has a p95 threshold per
- *       band: one p95 over all bands is about the slowest band's p80, so a faster band could get
- *       several times slower unnoticed. Load has about 9 iterations per band, too few for a p95
- *       each: it names and asserts these requests over all bands, for what concurrency adds. The
- *       names are common ones of the clerk's children: how many records a name matches changes the
- *       time of a search, not its plan.
+ *       large is in the middle of the first page's slowest plan, about 1,000 to 1,400), as the
+ *       query plans differ between them. Each case's facility is away from where a request's plan
+ *       changes, so that the sampling of ANALYZE before each run doesn't flip it. In smoke, a
+ *       request whose plan depends on the facility is named after its band, such as "Get first page
+ *       of TEs [small]", and has a p95 threshold per band: one p95 over all bands is about the
+ *       slowest band's p80, so a faster band could get several times slower unnoticed. Load has
+ *       about 9 iterations per band, too few for a p95 each: it names and asserts these requests
+ *       over all bands, for what concurrency adds. The names are common ones of the clerk's
+ *       children: how many records a name matches changes the time of a search, not its plan.
  *   <li>EIR needs two attributes to search outside the capture scope, so every name search filters
  *       on the given and the family name, where {@link TrackerTest} filters on the first name. The
  *       like search takes the first 3 letters of each name, as a user types them
