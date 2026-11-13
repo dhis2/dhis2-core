@@ -104,7 +104,14 @@ import org.slf4j.LoggerFactory;
  *       ANC, so the relationships of a tracked entity are not always empty. Events have none.
  *   <li>Every EIR child has a Unique System Identifier (EPI), a unique attribute. The test also
  *       searches tracked entities and Birth events by the EPI of the newest child of the clerk's
- *       facility, which {@link TrackerTest} does not.
+ *       facility, which {@link TrackerTest} does not. The tracked entity search is Capture's.
+ *   <li>{@link TrackerTest}'s lists are those of Capture before v106.2.8 ({@code fields=*} and
+ *       {@code :all}), which its CSV download still sends. They stay, as they read relationships
+ *       and notes that Capture's lists no longer do, and fixes such as #26186 were measured with
+ *       them. Next to them the test sends what Capture 107.9.1 and the android-sdk 1.15.0 send,
+ *       named "... as Capture" and "Sync TEs as Android client": the working lists, the dashboard's
+ *       tracked entity, and a page of a first sync, which reads the relationships of every tracked
+ *       entity, enrollment and event.
  * </ul>
  *
  * <p>The cases are bound to the records of the {@code perfland-mnch} dumps, which are the same for
@@ -113,7 +120,7 @@ import org.slf4j.LoggerFactory;
  * does not own after paging, returns her too. {@code -Dcases} reads another file.
  *
  * <p>The thresholds of requests without a band are {@link TrackerTest}'s, calibrated on Sierra
- * Leone. The banded ones and the searches by EPI have none yet.
+ * Leone. The banded ones, the searches by EPI and the Capture and Android ones have none yet.
  *
  * <p>The UIDs of the program, stage and attributes are constants, as {@link TrackerTest}'s
  * attributes: the cases' values belong to them. Profiles and their parameters are those of {@link
@@ -131,6 +138,46 @@ public class PerfLandMnchTrackerTest extends Simulation {
   private static final String UNIQUE_ID = "KSr2yTdu1AI"; // Unique System Identifier (EPI)
   // Of every dbgen user. Not a property: run-simulation.sh passes the admin's as -Dpassword.
   private static final String PASSWORD = "Perf-Test-2026!";
+
+  // Capture 107.9.1's LISTING_FIELDS of its working lists.
+  private static final String CAPTURE_TE_LIST_FIELDS =
+      "trackedEntity,createdAt,inactive,attributes[attribute,value],programOwners[orgUnit,program]";
+  private static final String CAPTURE_EVENT_LIST_FIELDS =
+      "event,status,program,enrollment,trackedEntity,occurredAt,scheduledAt,orgUnit,"
+          + "assignedUser[uid,username,firstName,surname],dataValues[dataElement,value]";
+
+  // The android-sdk 1.15.0's NewTrackedEntityInstanceFields.allFields, expanded.
+  private static final String ANDROID_RELATIONSHIP_FIELDS =
+      "relationship,relationshipName,relationshipType,createdAt,updatedAt,"
+          + "from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],"
+          + "to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
+  private static final String ANDROID_NOTE_FIELDS = "notes[note,value,storedAt,storedBy]";
+  private static final String ANDROID_EVENT_FIELDS =
+      "event,enrollment,createdAt,updatedAt,createdAtClient,updatedAtClient,status,geometry,"
+          + "program,programStage,orgUnit,occurredAt,completedAt,scheduledAt,deleted,"
+          + "attributeOptionCombo,assignedUser,completedBy,"
+          + ANDROID_NOTE_FIELDS
+          + ",relationships["
+          + ANDROID_RELATIONSHIP_FIELDS
+          + "],dataValues[dataElement,createdBy,value,createdAt,updatedAt,providedElsewhere]";
+  private static final String ANDROID_ENROLLMENT_FIELDS =
+      "enrollment,createdAt,updatedAt,createdAtClient,updatedAtClient,orgUnit,program,enrolledAt,"
+          + "occurredAt,completedAt,followUp,status,deleted,trackedEntity,geometry,"
+          + "attributeOptionCombo,events["
+          + ANDROID_EVENT_FIELDS
+          + "],"
+          + ANDROID_NOTE_FIELDS
+          + ",relationships["
+          + ANDROID_RELATIONSHIP_FIELDS
+          + "]";
+  private static final String ANDROID_TE_ALL_FIELDS =
+      "trackedEntity,createdAt,updatedAt,createdAtClient,updatedAtClient,orgUnit,"
+          + "trackedEntityType,geometry,deleted,attributes[attribute,value,createdAt,updatedAt],"
+          + "relationships["
+          + ANDROID_RELATIONSHIP_FIELDS
+          + "],enrollments["
+          + ANDROID_ENROLLMENT_FIELDS
+          + "],programOwners";
 
   private final Profile profile;
   private final String instance;
@@ -239,12 +286,13 @@ public class PerfLandMnchTrackerTest extends Simulation {
             + "trackedEntityType,geometry,deleted,attributes[attribute,value,createdAt,updatedAt],"
             + "programOwners";
 
+    // Capture's search by a unique attribute, without fields.
     String searchTEByUniqueId =
         "/api/tracker/trackedEntities?filter="
             + UNIQUE_ID
-            + ":eq:#{epi}&fields=attributes,enrollments,trackedEntity,orgUnit&program="
+            + ":eq:#{epi}&program="
             + PROGRAM
-            + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
+            + "&orgUnitMode=ACCESSIBLE";
 
     // Events filtered by a tracked entity attribute, as #26109 measured them.
     String searchBirthEventsByUniqueIdUrl =
@@ -286,6 +334,45 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
     String eventUrl =
         "/api/tracker/events/#{eventUid}?fields=event,relationships[relationship,relationshipType,relationshipName,bidirectional,from[event[event,dataValues,occurredAt,scheduledAt,status,orgUnit,programStage,program]],to[event[event,dataValues,*,occurredAt,scheduledAt,status,orgUnit,programStage,program]]]";
+
+    // Capture's working lists of a facility, since v106.2.8.
+    String captureTEsUrl =
+        "/api/tracker/trackedEntities?order=createdAt:desc&page=1&pageSize=15&orgUnits="
+            + "#{orgUnit}"
+            + "&orgUnitMode=SELECTED&program="
+            + PROGRAM
+            + "&fields="
+            + CAPTURE_TE_LIST_FIELDS;
+    String captureActiveTEsUrl = captureTEsUrl + "&enrollmentStatus=ACTIVE";
+    String captureBirthEventsUrl =
+        "/api/tracker/events?enrollmentStatus=ACTIVE&order=createdAt:desc&page=1&pageSize=15"
+            + "&orgUnit=#{orgUnit}&orgUnitMode=SELECTED&program="
+            + PROGRAM
+            + "&programStage="
+            + BIRTH_STAGE
+            + "&fields="
+            + CAPTURE_EVENT_LIST_FIELDS;
+    String captureBirthEventsByUniqueIdUrl =
+        captureBirthEventsUrl + "&filterAttributes=" + UNIQUE_ID + ":eq:#{epi}";
+    String captureTEsFromEventsUrl =
+        "/api/tracker/trackedEntities?program="
+            + PROGRAM
+            + "&pageSize=15&trackedEntities=#{captureTrackedEntityUids}"
+            + "&fields=trackedEntity,createdAt,attributes[attribute,value],programOwners[orgUnit],"
+            + "enrollments[enrollment]";
+    // The heaviest of the requests Capture sends for its enrollment dashboard.
+    String captureTrackedEntityUrl =
+        "/api/tracker/trackedEntities/#{trackedEntityUid}?program="
+            + PROGRAM
+            + "&fields=enrollments[*,!attributes],attributes,inactive,programOwners[program,orgUnit]";
+
+    // A page of the android-sdk's first sync of a facility: TrackerExporterNetworkHandlerImpl
+    // with NewTrackedEntityInstanceFields.allFields.
+    String androidSyncTEsUrl =
+        "/api/tracker/trackedEntities?orgUnits=#{orgUnit}&orgUnitMode=SELECTED&program="
+            + PROGRAM
+            + "&order=createdAt:desc&paging=true&page=1&pageSize=50&includeDeleted=true&fields="
+            + ANDROID_TE_ALL_FIELDS;
 
     // Request names and the p95 thresholds of requests without a band are TrackerTest's, so runs
     // of both compare side by side. The banded ones are to calibrate on this database.
@@ -385,10 +472,48 @@ public class PerfLandMnchTrackerTest extends Simulation {
             "Go to single enrollment",
             "Get one event");
 
+    Request searchTEsAsCapture =
+        Request.banded(
+            captureTEsUrl, facility, Map.of(), "Get first page of TEs as Capture", "Get EIR TEs");
+    Request searchActiveTEsAsCapture =
+        Request.banded(
+            captureActiveTEsUrl,
+            facility,
+            Map.of(),
+            "Get TEs with enrollment status as Capture",
+            "Get EIR TEs");
+    Request searchBirthEventsAsCapture =
+        Request.banded(
+            captureBirthEventsUrl,
+            facility,
+            Map.of(),
+            "Search Birth events as Capture",
+            "Get EIR TEs");
+    Request searchBirthEventsByUniqueIdAsCapture =
+        Request.of(
+            captureBirthEventsByUniqueIdUrl,
+            Map.of(),
+            "Search Birth events by unique identifier as Capture",
+            "Get EIR TEs");
+    Request getTrackedEntitiesForEventsAsCapture =
+        Request.of(
+            captureTEsFromEventsUrl, Map.of(), "Get TEs from events as Capture", "Get EIR TEs");
+    Request getFirstTrackedEntityAsCapture =
+        Request.of(
+            captureTrackedEntityUrl,
+            Map.of(),
+            "Get first tracked entity as Capture",
+            "Get EIR TEs",
+            "Go to single enrollment");
+    Request syncTEsAsAndroidClient =
+        Request.banded(
+            androidSyncTEsUrl, facility, Map.of(), "Sync TEs as Android client", "Get EIR TEs");
+
     var exportRequests =
         exec(session ->
                 session
                     .remove("trackedEntityUids")
+                    .remove("captureTrackedEntityUids")
                     .remove("trackedEntityUid")
                     .remove("enrollmentUid")
                     .remove("eventUid"))
@@ -422,6 +547,11 @@ public class PerfLandMnchTrackerTest extends Simulation {
                                     .action()
                                     .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
                             .pause(1, 3) // user reads results
+                            // Android client downloads the first page of its facility
+                            .exec(
+                                syncTEsAsAndroidClient
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
                             // User searches by the child's EPI, then lists its Birth event by it
                             .exec(
                                 searchTeByUniqueId
@@ -430,6 +560,10 @@ public class PerfLandMnchTrackerTest extends Simulation {
                             .pause(1, 3) // user reads the result
                             .exec(
                                 searchBirthEventsByUniqueId
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().is(1)))
+                            .exec(
+                                searchBirthEventsByUniqueIdAsCapture
                                     .action()
                                     .check(jsonPath("$.events[*]").count().is(1)))
                             .pause(1, 3) // user reads results
@@ -453,6 +587,24 @@ public class PerfLandMnchTrackerTest extends Simulation {
                                     getTrackedEntitiesForEvents
                                         .action()
                                         .check(jsonPath("$.trackedEntities[*]").count().gte(1))))
+                            .exec(
+                                searchBirthEventsAsCapture
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().gte(1))
+                                    .check(
+                                        jsonPath("$.events[*].trackedEntity")
+                                            .findAll()
+                                            .transform(
+                                                list ->
+                                                    String.join(
+                                                        ",", list.stream().distinct().toList()))
+                                            .saveAs("captureTrackedEntityUids")))
+                            .doIf(session -> session.contains("captureTrackedEntityUids"))
+                            .then(
+                                exec(
+                                    getTrackedEntitiesForEventsAsCapture
+                                        .action()
+                                        .check(jsonPath("$.trackedEntities[*]").count().gte(1))))
                             .pause(1, 3) // user reads event list
                             // User opens TE working list
                             .exec(
@@ -462,6 +614,10 @@ public class PerfLandMnchTrackerTest extends Simulation {
                                     .check(
                                         jsonPath("$.trackedEntities[0].trackedEntity")
                                             .saveAs("trackedEntityUid")))
+                            .exec(
+                                searchTEsAsCapture
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
                             .pause(1, 3) // user reads TE list, picks one
                             // User clicks on TE -- Capture loads TE + enrollment + relationships
                             // together
@@ -482,6 +638,13 @@ public class PerfLandMnchTrackerTest extends Simulation {
                                                 .check(
                                                     jsonPath("$.enrollments[0].events[0].event")
                                                         .saveAs("eventUid")))
+                                            .exec(
+                                                getFirstTrackedEntityAsCapture
+                                                    .action()
+                                                    .check(
+                                                        jsonPath("$.enrollments[*]")
+                                                            .count()
+                                                            .gte(1)))
                                             .doIf(session -> session.contains("enrollmentUid"))
                                             .then(
                                                 exec(getFirstEnrollment
@@ -519,6 +682,10 @@ public class PerfLandMnchTrackerTest extends Simulation {
                             .exec(
                                 getTEsWithEnrollmentStatus
                                     .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                            .exec(
+                                searchActiveTEsAsCapture
+                                    .action()
                                     .check(jsonPath("$.trackedEntities[*]").count().gte(1)))));
 
     ScenarioBuilder scenarioBuilder =
@@ -543,7 +710,14 @@ public class PerfLandMnchTrackerTest extends Simulation {
             getFirstEnrollment,
             getRelationshipsForTrackedEntity,
             getFirstEventFromEnrollment,
-            getRelationshipsForEvent));
+            getRelationshipsForEvent,
+            searchTEsAsCapture,
+            searchActiveTEsAsCapture,
+            searchBirthEventsAsCapture,
+            searchBirthEventsByUniqueIdAsCapture,
+            getTrackedEntitiesForEventsAsCapture,
+            getFirstTrackedEntityAsCapture,
+            syncTEsAsAndroidClient));
   }
 
   /** Filters on the given and the family name: EIR needs two attributes to search. */
