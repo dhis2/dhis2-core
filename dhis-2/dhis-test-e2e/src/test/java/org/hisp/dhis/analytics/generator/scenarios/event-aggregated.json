@@ -699,6 +699,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "enrollmentStatusCompletedOnEventsAggregate",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&dimension=ou:ImspTQPwCqd&dimension=pe:LAST_10_YEARS&enrollmentStatus=COMPLETED&displayProperty=NAME&totalPages=false&relativePeriodDate=2025-01-01",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
