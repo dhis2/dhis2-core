@@ -547,6 +547,38 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testCollectionNameLikeQueryWithPagingAndCount() {
+    Query<?> query = Query.of(DataElement.class);
+    query.add(Filters.like("dataElementGroups.name", "GroupB", MatchMode.END));
+    assertEquals(2, runCount(query));
+
+    List<? extends IdentifiableObject> objects = runQuery(query);
+    assertEquals(2, objects.size());
+    assertTrue(collectionContainsUid(objects, "deabcdefghE"));
+    assertTrue(collectionContainsUid(objects, "deabcdefghF"));
+
+    query.setFirstResult(1);
+    query.setMaxResults(1);
+    assertEquals(1, runQuery(query).size());
+  }
+
+  @Test
+  void testCollectionNameIlikeQuery() {
+    Query<?> query = Query.of(DataElement.class);
+    query.add(Filters.ilike("dataElementGroups.name", "elementgroupa", MatchMode.ANYWHERE));
+    assertEquals(4, runCount(query));
+    assertEquals(4, runQuery(query).size());
+  }
+
+  @Test
+  void testCollectionNameLikeQueryNoMatch() {
+    Query<?> query = Query.of(DataElement.class);
+    query.add(Filters.like("dataElementGroups.name", "NoSuchGroup", MatchMode.ANYWHERE));
+    assertEquals(0, runCount(query));
+    assertEquals(0, runQuery(query).size());
+  }
+
+  @Test
   void testCollectionIdNotInQuery() {
     Query<?> query = Query.of(DataElement.class);
     query.add(Filters.notIn("dataElementGroups.id", List.of("abcdefghijA")));

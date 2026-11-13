@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.query.operators.EqualOperator;
 import org.hisp.dhis.query.operators.InOperator;
+import org.hisp.dhis.query.operators.LikeOperator;
 import org.hisp.dhis.query.operators.MandatoryOperator;
 import org.hisp.dhis.query.operators.Operator;
 
@@ -119,6 +120,23 @@ public final class Filter {
   public boolean supportsDbPredicate() {
     if (isVirtual() || isAttribute()) return false;
     Class<?> type = operator.getClass();
-    return type == EqualOperator.class || type == InOperator.class;
+    return type == EqualOperator.class || type == InOperator.class || type == LikeOperator.class;
+  }
+
+  /**
+   * @return true when this filter supports a DB predicate and uses an operator that only matches on
+   *     identity (equality or membership), as opposed to pattern matching
+   */
+  public boolean isIdentityMatch() {
+    return supportsDbPredicate() && !isLike();
+  }
+
+  /**
+   * @return true when the operator is exactly {@link LikeOperator} (like or ilike). An exact class
+   *     check, not {@code instanceof}, so a future negated subclass cannot be mistaken for it, as
+   *     happened with {@code NotEqualOperator} and {@code NotInOperator}.
+   */
+  public boolean isLike() {
+    return operator.getClass() == LikeOperator.class;
   }
 }
