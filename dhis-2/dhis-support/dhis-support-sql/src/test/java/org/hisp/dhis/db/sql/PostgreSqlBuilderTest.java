@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -500,6 +500,17 @@ class PostgreSqlBuilderTest {
         and t.table_name = 'immunization';""";
 
     assertEquals(expected, sqlBuilder.tableExists("immunization"));
+  }
+
+  @Test
+  void testTablesExist() {
+    String expected =
+        """
+        select t.table_name from information_schema.tables t \
+        where t.table_schema = 'public' \
+        and t.table_name in ('immunization', 'vaccination');""";
+
+    assertEquals(expected, sqlBuilder.tablesExist(List.of("immunization", "vaccination")));
   }
 
   @Test
