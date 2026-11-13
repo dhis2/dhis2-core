@@ -783,8 +783,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                   e -> {
                     DateRange operational = ouOpSpan.get(e.getKey().getValue());
                     if (operational == null) return false; // null => no issue with the timeframe
-                    Period pe = e.getValue();
-                    return !operational.includes(pe.getStartDate());
+                    // valid if the OU is open at any time within the period
+                    return !overlaps(operational, e.getValue(), 0);
                   })
               .distinct()
               .toList();
@@ -924,17 +924,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                   e -> {
                     DateRange span = entrySpanByAoc.get(e.getKey().getValue());
                     if (span == null) return false;
-                    Period pe = e.getValue();
-                    Date start = pe.getStartDate();
-                    Date end = pe.getEndDate();
-                    if (span.includes(start) && span.includes(end)) return false;
-                    if (openPeriodsAfterCoEndDate == 0) return true;
-                    // instead of moving range forward we move period backwards
-                    // and check against the unchanged span
-                    PeriodType type = pe.getPeriodType();
-                    end = type.getRewindedDate(end, openPeriodsAfterCoEndDate);
-                    start = type.getRewindedDate(start, openPeriodsAfterCoEndDate);
-                    return !span.includes(start) || !span.includes(end);
+                    // valid if the AOC is valid at any time within the period
+                    return !overlaps(span, e.getValue(), openPeriodsAfterCoEndDate);
                   })
               .toList();
       if (!peNotInAocRange.isEmpty()) {
@@ -950,6 +941,27 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
         throw new ConflictException(ErrorCode.E8032, aoc, aocPeriods);
       }
     }
+  }
+
+  /**
+   * Is the span valid at any time within the period? Only a span ending before the period starts or
+   * starting after the period's last day does not overlap. Missing span dates are open-ended. A
+   * span that starts after it ends (e.g. category options without a common day) is never valid.
+   *
+   * @param periodsAfterEnd the span's end is extended by this many periods of the period's type
+   */
+  private static boolean overlaps(DateRange span, Period period, int periodsAfterEnd) {
+    Date spanStart = span.getStartDate();
+    Date spanEnd = span.getEndDate();
+    if (spanStart != null && spanEnd != null && spanStart.after(spanEnd)) return false;
+    // instead of moving the span's end forward the period's start is moved back: rewinding by a
+    // negative count is not supported by all calendars (e.g. Ethiopian, Nepali, Persian)
+    Date periodStart =
+        periodsAfterEnd > 0
+            ? period.getPeriodType().getRewindedDate(period.getStartDate(), periodsAfterEnd)
+            : period.getStartDate();
+    return (spanStart == null || !spanStart.after(period.getEndDate()))
+        && (spanEnd == null || !spanEnd.before(periodStart));
   }
 
   private DateRange timeframeOf(Collection<Period> isoPeriods) {
