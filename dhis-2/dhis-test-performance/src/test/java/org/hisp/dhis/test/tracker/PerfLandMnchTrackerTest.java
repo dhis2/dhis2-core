@@ -83,9 +83,12 @@ import org.slf4j.LoggerFactory;
  *
  * <ul>
  *   <li>Each iteration takes the next case of {@code perfland-mnch/cases.csv}: a data clerk of a
- *       facility of district QP1613 and the names she searches for. A clerk captures in her
- *       facility and searches in her district. The test logs in as the clerk of the case, dbgen's
- *       users, instead of replicating one.
+ *       facility of district QP1613 and a child of her facility. A clerk captures in her facility
+ *       and searches in her district. The test logs in as the clerk of the case, dbgen's users,
+ *       instead of replicating one. She searches the child by name and EPI and opens it, as clerks
+ *       work on different children all day: 60 per clerk, picked at random with a fixed seed by
+ *       {@code perfland-mnch/cases.sql}, so a smoke run opens none twice. The cases alternate the
+ *       clerks, and the circular feeder gives every run, baseline and candidate, the same order.
  *   <li>The cases cover facilities by their number of EIR children (small, median, large, largest;
  *       large is in the middle of the first page's slowest plan, about 1,000 to 1,400), as the
  *       query plans differ between them. Each case's facility is away from where a request's plan
@@ -94,8 +97,8 @@ import org.slf4j.LoggerFactory;
  *       of TEs [small]", and has a p95 threshold per band: one p95 over all bands is about the
  *       slowest band's p80, so a faster band could get several times slower unnoticed. Load has
  *       about 9 iterations per band, too few for a p95 each: it names and asserts these requests
- *       over all bands, for what concurrency adds. The names are common ones of the clerk's
- *       children: how many records a name matches changes the time of a search, not its plan.
+ *       over all bands, for what concurrency adds. How many records a name matches changes the time
+ *       of a search, not its plan, so the names don't get bands.
  *   <li>EIR needs two attributes to search outside the capture scope, so every name search filters
  *       on the given and the family name, where {@link TrackerTest} filters on the first name. The
  *       like search takes the first 3 letters of each name, as a user types them
@@ -103,8 +106,10 @@ import org.slf4j.LoggerFactory;
  *   <li>A child is linked to its mother by a Mother and child relationship when she is enrolled in
  *       ANC, so the relationships of a tracked entity are not always empty. Events have none.
  *   <li>Every EIR child has a Unique System Identifier (EPI), a unique attribute. The test also
- *       searches tracked entities and Birth events by the EPI of the newest child of the clerk's
- *       facility, which {@link TrackerTest} does not. The tracked entity search is Capture's.
+ *       searches tracked entities and Birth events by the EPI of the case's child, which {@link
+ *       TrackerTest} does not. The tracked entity search is Capture's.
+ *   <li>The test opens the case's child, where {@link TrackerTest} opens the first of the first
+ *       page.
  *   <li>{@link TrackerTest}'s lists are those of Capture before v106.2.8 ({@code fields=*} and
  *       {@code :all}), which its CSV download still sends. They stay, as they read relationships
  *       and notes that Capture's lists no longer do, and fixes such as #26186 were measured with
@@ -115,9 +120,10 @@ import org.slf4j.LoggerFactory;
  * </ul>
  *
  * <p>The cases are bound to the records of the {@code perfland-mnch} dumps, which are the same for
- * every DHIS2 version. The eq pair and the like letters of a case match a child of the clerk's
- * facility among the first 5 matches in the district, so DHIS2 2.42, which drops what the clerk
- * does not own after paging, returns her too. {@code -Dcases} reads another file.
+ * every DHIS2 version: re-generate them with {@code cases.sql} when the dumps change. The eq pair
+ * and the like letters of a case match a child of the clerk's facility among the first 5 matches in
+ * the district, so DHIS2 2.42, which drops what the clerk does not own after paging, returns her
+ * too. {@code -Dcases} reads another file.
  *
  * <p>The thresholds of requests without a band are {@link TrackerTest}'s, calibrated on Sierra
  * Leone. The banded ones, the searches by EPI and the Capture and Android ones have none yet.
@@ -198,8 +204,9 @@ public class PerfLandMnchTrackerTest extends Simulation {
         int concurrentUsers, int repeat, int rampDurationSec, int durationSec, int steps) {}
     ProfileDefaults defaults =
         switch (this.profile) {
-          // 120 is a multiple of the 4 cases: 30 iterations per facility band.
-          case SMOKE -> new ProfileDefaults(1, 120, 1, 1, 1);
+          // 240 cases: 60 iterations per facility band, the fewest whose max is a 95% upper bound
+          // of the p95 (59).
+          case SMOKE -> new ProfileDefaults(1, 240, 1, 1, 1);
           case LOAD -> new ProfileDefaults(4, 1, 15, 180, 1);
           case CAPACITY -> new ProfileDefaults(8, 1, 10, 30, 4);
         };
@@ -320,14 +327,14 @@ public class PerfLandMnchTrackerTest extends Simulation {
             + "&trackedEntities=#{trackedEntityUids}&fields=trackedEntity,createdAt,attributes[attribute,value],programOwners[orgUnit],enrollments[enrollment,status,orgUnit,enrolledAt]";
 
     String singleTrackedEntityUrl =
-        "/api/tracker/trackedEntities/#{trackedEntityUid}?program="
+        "/api/tracker/trackedEntities/#{trackedEntity}?program="
             + PROGRAM
             + "&fields=programOwners[orgUnit],enrollments";
     String singleEnrollmentUrl =
         "/api/tracker/enrollments/#{enrollmentUid}?fields=enrollment,trackedEntity,program,status,orgUnit,enrolledAt,occurredAt,followUp,deleted,createdBy,updatedBy,updatedAt,geometry";
 
     String relationshipForTrackedEntityUrl =
-        "/api/tracker/relationships?trackedEntity=#{trackedEntityUid}&paging=false&fields=relationship,relationshipType,createdAt,from[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]],to[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]]";
+        "/api/tracker/relationships?trackedEntity=#{trackedEntity}&paging=false&fields=relationship,relationshipType,createdAt,from[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]],to[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]]";
 
     String relationshipForEventUrl =
         "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
@@ -362,7 +369,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
             + "enrollments[enrollment]";
     // The heaviest of the requests Capture sends for its enrollment dashboard.
     String captureTrackedEntityUrl =
-        "/api/tracker/trackedEntities/#{trackedEntityUid}?program="
+        "/api/tracker/trackedEntities/#{trackedEntity}?program="
             + PROGRAM
             + "&fields=enrollments[*,!attributes],attributes,inactive,programOwners[program,orgUnit]";
 
@@ -376,7 +383,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
     // Request names and the p95 thresholds of requests without a band are TrackerTest's, so runs
     // of both compare side by side. The banded ones are to calibrate on this database.
-    // Bands only in smoke: 30 iterations per band (1 user, 120 iterations), against about 9 in
+    // Bands only in smoke: 60 iterations per band (1 user, 240 iterations), against about 9 in
     // load, too few for a p95 per band.
     Band facility = this.profile == Profile.SMOKE ? Band.FACILITY : Band.NONE;
     Request notFoundTeByNameWithLikeOperator =
@@ -514,7 +521,6 @@ public class PerfLandMnchTrackerTest extends Simulation {
                 session
                     .remove("trackedEntityUids")
                     .remove("captureTrackedEntityUids")
-                    .remove("trackedEntityUid")
                     .remove("enrollmentUid")
                     .remove("eventUid"))
             .exec(
@@ -610,10 +616,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
                             .exec(
                                 getFirstPageOfTEs
                                     .action()
-                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1))
-                                    .check(
-                                        jsonPath("$.trackedEntities[0].trackedEntity")
-                                            .saveAs("trackedEntityUid")))
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
                             .exec(
                                 searchTEsAsCapture
                                     .action()
@@ -621,8 +624,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
                             .pause(1, 3) // user reads TE list, picks one
                             // User clicks on TE -- Capture loads TE + enrollment + relationships
                             // together
-                            .doIf(session -> session.contains("trackedEntityUid"))
-                            .then(
+                            .exec(
                                 group("Go to single enrollment")
                                     .on(
                                         exec(getFirstTrackedEntity
