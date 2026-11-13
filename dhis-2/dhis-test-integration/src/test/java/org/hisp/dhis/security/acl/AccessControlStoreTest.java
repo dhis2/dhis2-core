@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,8 +50,13 @@ import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -59,6 +65,22 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Tests {@link AccessControlStore#getDataReadableAttributeOptionCombos}: the attribute option
  * combos a user may read data of, resolved up front for data value and tracker exports.
+ *
+ * <p>The rules, each pinned by the tests below:
+ *
+ * <ul>
+ *   <li>a superuser is not restricted
+ *   <li>the default combo is always readable, whatever the sharing of the default option
+ *   <li>only option combos of the default or an {@code ATTRIBUTE} category combo are AOCs
+ *   <li>an AOC is readable when the user may read data of <em>every</em> one of its options; an AOC
+ *       without options is readable, as in {@link AclService#canDataRead}
+ *   <li>data read of an option is granted by its public access, the user's own entry, or the entry
+ *       of a group the user is a member of; entries of other users and groups do not count, and an
+ *       entry that does not grant data read does not take away what another entry grants
+ *   <li>only the data read flag counts: metadata read or write and data write do not grant it
+ *   <li>a missing public access grants it
+ *   <li>{@code limitTo} restricts the result to the given combos; null or empty means all
+ * </ul>
  */
 @Transactional
 class AccessControlStoreTest extends PostgresIntegrationTestBase {
@@ -70,6 +92,7 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
 
   private CategoryOption coOpen;
   private CategoryOption coClosed;
+  private Category attrCategory;
   private CategoryOptionCombo aocOpen;
   private CategoryOptionCombo aocClosed;
   private CategoryOptionCombo cocDisaggOpen;
@@ -78,49 +101,43 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
   @BeforeEach
   void setUp() {
     // attribute combo with one readable and one restricted option
-    coOpen = createCategoryOption('O');
-    readable(coOpen);
-    coClosed = createCategoryOption('C');
-    restrict(coClosed);
-    categoryService.addCategoryOption(coOpen, new SystemUser());
-    categoryService.addCategoryOption(coClosed, new SystemUser());
-    Category attrCategory = createCategory('A', coOpen, coClosed);
-    attrCategory.setDataDimensionType(DataDimensionType.ATTRIBUTE);
-    categoryService.addCategory(attrCategory);
-    CategoryCombo attrCombo = createCategoryCombo('A', attrCategory);
-    attrCombo.setDataDimensionType(DataDimensionType.ATTRIBUTE);
-    categoryService.addCategoryCombo(attrCombo);
-    aocOpen = createCategoryOptionCombo(attrCombo, coOpen);
-    aocClosed = createCategoryOptionCombo(attrCombo, coClosed);
-    categoryService.addCategoryOptionCombo(aocOpen);
-    categoryService.addCategoryOptionCombo(aocClosed);
+    coOpen = readableOption('O');
+    coClosed = restrictedOption('C');
+    attrCategory = attributeCategory('A', coOpen, coClosed);
+    CategoryCombo attrCombo = attributeCombo('A', attrCategory);
+    aocOpen = optionCombo(attrCombo, coOpen);
+    aocClosed = optionCombo(attrCombo, coClosed);
 
     // disaggregation combo whose only option is readable: never an attribute option combo
-    CategoryOption coDisaggOpen = createCategoryOption('D');
-    readable(coDisaggOpen);
-    categoryService.addCategoryOption(coDisaggOpen, new SystemUser());
+    CategoryOption coDisaggOpen = readableOption('D');
     Category disaggCategory = createCategory('D', coDisaggOpen);
     categoryService.addCategory(disaggCategory);
     CategoryCombo disaggCombo = createCategoryCombo('D', disaggCategory);
     categoryService.addCategoryCombo(disaggCombo);
-    cocDisaggOpen = createCategoryOptionCombo(disaggCombo, coDisaggOpen);
-    categoryService.addCategoryOptionCombo(cocDisaggOpen);
+    cocDisaggOpen = optionCombo(disaggCombo, coDisaggOpen);
 
     user = makeUser("A");
     userService.addUser(user);
   }
+
+  // superuser
 
   @Test
   void superuserIsNotRestricted() {
     UserDetails superuser = UserDetails.fromUser(makeUser("S", List.of("ALL")));
 
     assertTrue(store.getDataReadableAttributeOptionCombos(superuser, null).isUnrestricted());
+    assertTrue(
+        store
+            .getDataReadableAttributeOptionCombos(superuser, List.of(UID.of(aocClosed)))
+            .isUnrestricted());
   }
+
+  // which option combos are AOCs
 
   @Test
   void defaultAndReadableAttributeOptionCombosOnly() {
-    assertEquals(
-        Set.of(defaultCoc().getId(), aocOpen.getId()), readable(UserDetails.fromUser(user), null));
+    assertReadable(aocOpen);
   }
 
   @Test
@@ -129,8 +146,96 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
     restrict(defaultOption);
     categoryService.updateCategoryOption(defaultOption, new SystemUser());
 
+    assertReadable(aocOpen);
+  }
+
+  @Test
+  void disaggregationOptionComboIsNeverReadableAsAnAttributeOptionCombo() {
+    UserDetails details = UserDetails.fromUser(user);
+
+    assertEquals(Set.of(), readable(details, List.of(UID.of(cocDisaggOpen))));
+  }
+
+  @Test
+  void attributeOptionComboWithoutOptionsIsReadable() {
+    CategoryCombo combo = attributeCombo('E', attributeCategory('E', readableOption('E')));
+    CategoryOptionCombo aocWithoutOptions = optionCombo(combo);
+
+    assertReadable(aocOpen, aocWithoutOptions);
+  }
+
+  // every option of an AOC must be readable
+
+  @Test
+  void attributeOptionComboIsReadableOnlyWhenEveryOptionIsReadable() {
+    CategoryOption coOpen2 = readableOption('P');
+    CategoryOption coClosed2 = restrictedOption('Q');
+    CategoryCombo combo =
+        attributeCombo('M', attrCategory, attributeCategory('B', coOpen2, coClosed2));
+    CategoryOptionCombo openOpen = optionCombo(combo, coOpen, coOpen2);
+    CategoryOptionCombo openClosed = optionCombo(combo, coOpen, coClosed2);
+    optionCombo(combo, coClosed, coOpen2);
+    optionCombo(combo, coClosed, coClosed2);
+
+    assertReadable(aocOpen, openOpen);
+
+    grantUser(coClosed2, AccessStringHelper.DATA_READ);
+
+    assertReadable(aocOpen, openOpen, openClosed);
+  }
+
+  // public access
+
+  @ParameterizedTest
+  @CsvSource({
+    "--------, false",
+    "r-------, false",
+    "rw------, false",
+    "---w----, false",
+    "rw-w----, false",
+    "--r-----, true",
+    "r-r-----, true",
+    "rwr-----, true",
+    "rwrw----, true"
+  })
+  void publicAccessGrantsDataReadOnlyWithTheDataReadFlag(String access, boolean readable) {
+    coClosed.getSharing().setPublicAccess(access);
+    categoryService.updateCategoryOption(coClosed, new SystemUser());
+
+    assertReadableIf(readable);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "{\"owner\": \"ownerOther1\", \"users\": {}, \"userGroups\": {}}",
+        "{\"owner\": \"ownerOther1\", \"public\": null, \"users\": {}, \"userGroups\": {}}"
+      })
+  void missingPublicAccessGrantsDataRead(String sharing) {
+    UserDetails details = UserDetails.fromUser(user);
+    setSharing(coClosed, sharing);
+
     assertEquals(
-        Set.of(defaultCoc().getId(), aocOpen.getId()), readable(UserDetails.fromUser(user), null));
+        Set.of(defaultCoc().getId(), aocOpen.getId(), aocClosed.getId()), readable(details, null));
+  }
+
+  // the user's own entry
+
+  @ParameterizedTest
+  @CsvSource({
+    "--------, false",
+    "r-------, false",
+    "rw------, false",
+    "---w----, false",
+    "rw-w----, false",
+    "--r-----, true",
+    "rwr-----, true",
+    "rwrw----, true"
+  })
+  void userAccessGrantsDataReadOnlyWithTheDataReadFlag(String access, boolean readable) {
+    grantUser(coClosed, access);
+
+    assertReadableIf(readable);
   }
 
   @Test
@@ -138,9 +243,36 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
     enableDataSharing(user, coClosed, AccessStringHelper.DATA_READ);
     categoryService.updateCategoryOption(coClosed, new SystemUser());
 
-    assertEquals(
-        Set.of(defaultCoc().getId(), aocOpen.getId(), aocClosed.getId()),
-        readable(UserDetails.fromUser(user), null));
+    assertReadable(aocOpen, aocClosed);
+  }
+
+  @Test
+  void accessOfAnotherUserDoesNotMakeAComboReadable() {
+    User other = makeUser("B");
+    userService.addUser(other);
+    grantUser(coClosed, other, AccessStringHelper.DATA_READ);
+
+    assertReadable(aocOpen);
+  }
+
+  // user group entries
+
+  @ParameterizedTest
+  @CsvSource({
+    "--------, false",
+    "r-------, false",
+    "rw------, false",
+    "---w----, false",
+    "rw-w----, false",
+    "--r-----, true",
+    "rwr-----, true",
+    "rwrw----, true"
+  })
+  void groupAccessGrantsDataReadOnlyWithTheDataReadFlag(String access, boolean readable) {
+    UserGroup group = groupOf('G', user);
+    grantGroup(coClosed, group, access);
+
+    assertReadableIf(readable);
   }
 
   @Test
@@ -152,10 +284,65 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
     enableDataSharingWithUserGroup(group, coClosed, AccessStringHelper.DATA_READ);
     categoryService.updateCategoryOption(coClosed, new SystemUser());
 
-    assertEquals(
-        Set.of(defaultCoc().getId(), aocOpen.getId(), aocClosed.getId()),
-        readable(UserDetails.fromUser(user), null));
+    assertReadable(aocOpen, aocClosed);
   }
+
+  @Test
+  void accessOfAGroupTheUserIsNotInDoesNotMakeAComboReadable() {
+    groupOf('G', user);
+    UserGroup otherGroup = createUserGroup('H', Set.of());
+    manager.save(otherGroup);
+    grantGroup(coClosed, otherGroup, AccessStringHelper.DATA_READ);
+
+    assertReadable(aocOpen);
+  }
+
+  @Test
+  void groupAccessDoesNotMakeAComboReadableForAUserWithoutGroups() {
+    UserGroup otherGroup = createUserGroup('H', Set.of());
+    manager.save(otherGroup);
+    grantGroup(coClosed, otherGroup, AccessStringHelper.DATA_READ);
+
+    assertReadable(aocOpen);
+  }
+
+  @Test
+  void anyOfTheUsersGroupsCanGrantDataRead() {
+    UserGroup first = groupOf('G', user);
+    UserGroup second = groupOf('H', user);
+    coClosed.getSharing().addUserGroupAccess(new UserGroupAccess(first, AccessStringHelper.READ));
+    coClosed
+        .getSharing()
+        .addUserGroupAccess(new UserGroupAccess(second, AccessStringHelper.DATA_READ));
+    categoryService.updateCategoryOption(coClosed, new SystemUser());
+
+    assertReadable(aocOpen, aocClosed);
+  }
+
+  // grants add up
+
+  @Test
+  void anEntryWithoutDataReadDoesNotTakeAwayWhatAnotherEntryGrants() {
+    UserGroup group = groupOf('G', user);
+    coClosed.getSharing().addUserAccess(new UserAccess(user, AccessStringHelper.READ));
+    coClosed
+        .getSharing()
+        .addUserGroupAccess(new UserGroupAccess(group, AccessStringHelper.DATA_READ));
+    categoryService.updateCategoryOption(coClosed, new SystemUser());
+
+    assertReadable(aocOpen, aocClosed);
+  }
+
+  @Test
+  void publicDataReadIsNotTakenAwayByAUserEntryWithoutDataRead() {
+    coClosed.getSharing().setPublicAccess(AccessStringHelper.CATEGORY_OPTION_DEFAULT);
+    coClosed.getSharing().addUserAccess(new UserAccess(user, AccessStringHelper.READ));
+    categoryService.updateCategoryOption(coClosed, new SystemUser());
+
+    assertReadable(aocOpen, aocClosed);
+  }
+
+  // limitTo
 
   @Test
   void limitedToTheGivenOptionCombos() {
@@ -165,6 +352,36 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
     assertEquals(Set.of(), readable(details, List.of(UID.of(aocClosed))));
     assertEquals(Set.of(), readable(details, List.of(UID.of(cocDisaggOpen))));
   }
+
+  @Test
+  void limitedToSeveralOptionCombos() {
+    UserDetails details = UserDetails.fromUser(user);
+
+    assertEquals(
+        Set.of(defaultCoc().getId(), aocOpen.getId()),
+        readable(
+            details,
+            List.of(
+                UID.of(defaultCoc()), UID.of(aocOpen), UID.of(aocClosed), UID.of(cocDisaggOpen))));
+  }
+
+  @Test
+  void limitedToNoOptionCombosChecksAllOfThem() {
+    UserDetails details = UserDetails.fromUser(user);
+
+    assertEquals(readable(details, null), readable(details, List.of()));
+  }
+
+  @Test
+  void limitedToAnUnknownOptionComboReadsNone() {
+    DataReadableAocs readable =
+        store.getDataReadableAttributeOptionCombos(
+            UserDetails.fromUser(user), List.of(UID.generate()));
+
+    assertTrue(readable.isNone());
+  }
+
+  // both APIs
 
   @Test
   void sameLookupOnAJdbcTemplate() {
@@ -179,6 +396,22 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
         ids(store.getDataReadableAttributeOptionCombos(jdbc, details, List.of(UID.of(aocOpen)))));
   }
 
+  /** Asserts the user may read data of the default combo and exactly the given AOCs. */
+  private void assertReadable(CategoryOptionCombo... aocs) {
+    Set<Long> expected = new HashSet<>();
+    expected.add(defaultCoc().getId());
+    Arrays.stream(aocs).map(CategoryOptionCombo::getId).forEach(expected::add);
+    assertEquals(expected, readable(UserDetails.fromUser(user), null));
+  }
+
+  private void assertReadableIf(boolean closedIsReadable) {
+    if (closedIsReadable) {
+      assertReadable(aocOpen, aocClosed);
+    } else {
+      assertReadable(aocOpen);
+    }
+  }
+
   private Set<Long> readable(UserDetails user, List<UID> limitTo) {
     return ids(store.getDataReadableAttributeOptionCombos(user, limitTo));
   }
@@ -191,8 +424,72 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
     return categoryService.getDefaultCategoryOptionCombo();
   }
 
-  private static void readable(CategoryOption option) {
+  private CategoryOption readableOption(char id) {
+    CategoryOption option = createCategoryOption(id);
     option.getSharing().setPublicAccess(AccessStringHelper.CATEGORY_OPTION_DEFAULT);
+    categoryService.addCategoryOption(option, new SystemUser());
+    return option;
+  }
+
+  private CategoryOption restrictedOption(char id) {
+    CategoryOption option = createCategoryOption(id);
+    restrict(option);
+    categoryService.addCategoryOption(option, new SystemUser());
+    return option;
+  }
+
+  private Category attributeCategory(char id, CategoryOption... options) {
+    Category category = createCategory(id, options);
+    category.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    categoryService.addCategory(category);
+    return category;
+  }
+
+  private CategoryCombo attributeCombo(char id, Category... categories) {
+    CategoryCombo combo = createCategoryCombo(id, categories);
+    combo.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    categoryService.addCategoryCombo(combo);
+    return combo;
+  }
+
+  private CategoryOptionCombo optionCombo(CategoryCombo combo, CategoryOption... options) {
+    CategoryOptionCombo coc = createCategoryOptionCombo(combo, options);
+    categoryService.addCategoryOptionCombo(coc);
+    return coc;
+  }
+
+  private UserGroup groupOf(char id, User member) {
+    UserGroup group = createUserGroup(id, Set.of(member));
+    manager.save(group);
+    member.getGroups().add(group);
+    userService.updateUser(member);
+    return group;
+  }
+
+  private void grantUser(CategoryOption option, String access) {
+    grantUser(option, user, access);
+  }
+
+  private void grantUser(CategoryOption option, User grantee, String access) {
+    option.getSharing().addUserAccess(new UserAccess(grantee, access));
+    categoryService.updateCategoryOption(option, new SystemUser());
+  }
+
+  private void grantGroup(CategoryOption option, UserGroup group, String access) {
+    option.getSharing().addUserGroupAccess(new UserGroupAccess(group, access));
+    categoryService.updateCategoryOption(option, new SystemUser());
+  }
+
+  /** Stores the sharing JSON as is, as a migration may have left it. */
+  private void setSharing(CategoryOption option, String sharing) {
+    entityManager.flush();
+    entityManager
+        .createNativeQuery(
+            "update categoryoption set sharing = cast(:sharing as jsonb) where uid = :uid")
+        .setParameter("sharing", sharing)
+        .setParameter("uid", option.getUid())
+        .executeUpdate();
+    entityManager.clear();
   }
 
   private static void restrict(CategoryOption option) {
