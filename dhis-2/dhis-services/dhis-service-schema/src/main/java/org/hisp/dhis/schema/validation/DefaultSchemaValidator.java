@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -242,7 +243,12 @@ public class DefaultSchemaValidator implements SchemaValidator {
     }
 
     Collection<?> value = (Collection<?>) propertyObject;
-    int size = value.size();
+    return validateCollectionSize(property, klass, value.size());
+  }
+
+  @Override
+  @NonTransactional
+  public List<ErrorReport> validateCollectionSize(Property property, Class<?> klass, int size) {
     if ((property.getMin() != null && size < property.getMin())
         || (property.getMax() != null && size > property.getMax())) {
       return singletonList(createNameMinMaxReport(ErrorCode.E4007, klass, property, size));
