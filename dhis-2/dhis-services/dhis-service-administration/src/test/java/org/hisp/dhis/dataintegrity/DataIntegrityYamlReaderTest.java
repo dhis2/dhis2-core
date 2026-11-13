@@ -93,7 +93,7 @@ class DataIntegrityYamlReaderTest {
 
     List<DataIntegrityCheck> checks = new ArrayList<>();
     readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
-    assertEquals(99, checks.size());
+    assertEquals(102, checks.size());
 
     // Names should be unique
     List<String> allNames = checks.stream().map(DataIntegrityCheck::getName).toList();
@@ -152,6 +152,25 @@ class DataIntegrityYamlReaderTest {
     List<DataIntegrityCheck> checks = new ArrayList<>();
     readYaml(checks, "test-data-integrity-checks.yaml", "test-data-integrity-checks", CLASS_PATH);
     assertEquals(1, checks.size());
+  }
+
+  @Test
+  void testCheckSqlIsRunAsWritten() {
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readYaml(
+        checks,
+        "test-data-integrity-checks-sql-as-written.yaml",
+        "test-data-integrity-checks",
+        CLASS_PATH);
+    assertEquals(1, checks.size());
+
+    // Literal columns, casts and || '%' (e.g. a LIKE prefix match) must reach the database as is
+    String sql =
+        checks.get(0).getRunDetailsCheck().apply(checks.get(0)).getIssues().get(0).getComment();
+    assertEquals(
+        "select 'test' as label, uid, name, 'note' as description, path::varchar as comment"
+            + " from organisationunit ou where path LIKE ou.uid || '%'",
+        sql);
   }
 
   @Test

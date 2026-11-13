@@ -1,0 +1,125 @@
+# Copyright (c) 2004-2026, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: relationships_not_deleted_of_deleted_tracker_data
+description: Relationships that are not deleted but link to a deleted tracked entity, enrollment or event
+section: Tracker data
+section_order: 3
+summary_sql: >-
+    WITH deleted_items AS (
+        SELECT ri.relationshipitemid
+        FROM relationshipitem ri
+        INNER JOIN trackedentity te ON te.trackedentityid = ri.trackedentityid
+        WHERE te.deleted
+        UNION
+        SELECT ri.relationshipitemid
+        FROM relationshipitem ri
+        INNER JOIN enrollment en ON en.enrollmentid = ri.enrollmentid
+        LEFT JOIN trackedentity te ON te.trackedentityid = en.trackedentityid
+        WHERE en.deleted OR te.deleted
+        UNION
+        SELECT ri.relationshipitemid
+        FROM relationshipitem ri
+        INNER JOIN event ev ON ev.eventid = ri.eventid
+        LEFT JOIN enrollment en ON en.enrollmentid = ev.enrollmentid
+        LEFT JOIN trackedentity te ON te.trackedentityid = en.trackedentityid
+        WHERE ev.deleted OR en.deleted OR te.deleted
+    ),
+    orphans AS (
+        SELECT r.uid, r.relationshiptypeid
+        FROM relationship r
+        WHERE r.deleted = false
+        AND (r.from_relationshipitemid IN (SELECT relationshipitemid FROM deleted_items)
+            OR r.to_relationshipitemid IN (SELECT relationshipitemid FROM deleted_items))
+    )
+    SELECT COUNT(*) AS value,
+    COALESCE(100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM relationship WHERE deleted = false), 0), 0) AS percent
+    FROM orphans;
+details_sql: >-
+    WITH deleted_items AS (
+        SELECT ri.relationshipitemid
+        FROM relationshipitem ri
+        INNER JOIN trackedentity te ON te.trackedentityid = ri.trackedentityid
+        WHERE te.deleted
+        UNION
+        SELECT ri.relationshipitemid
+        FROM relationshipitem ri
+        INNER JOIN enrollment en ON en.enrollmentid = ri.enrollmentid
+        LEFT JOIN trackedentity te ON te.trackedentityid = en.trackedentityid
+        WHERE en.deleted OR te.deleted
+        UNION
+        SELECT ri.relationshipitemid
+        FROM relationshipitem ri
+        INNER JOIN event ev ON ev.eventid = ri.eventid
+        LEFT JOIN enrollment en ON en.enrollmentid = ev.enrollmentid
+        LEFT JOIN trackedentity te ON te.trackedentityid = en.trackedentityid
+        WHERE ev.deleted OR en.deleted OR te.deleted
+    ),
+    orphans AS (
+        SELECT r.uid, r.relationshiptypeid
+        FROM relationship r
+        WHERE r.deleted = false
+        AND (r.from_relationshipitemid IN (SELECT relationshipitemid FROM deleted_items)
+            OR r.to_relationshipitemid IN (SELECT relationshipitemid FROM deleted_items))
+    )
+    SELECT rt.uid, rt.name,
+    COUNT(*) || ' relationship(s)' AS comment,
+    array_agg(CAST(o.uid AS text) ORDER BY o.uid) AS refs
+    FROM orphans o
+    INNER JOIN relationshiptype rt ON rt.relationshiptypeid = o.relationshiptypeid
+    GROUP BY rt.uid, rt.name
+    ORDER BY rt.name;
+details_id_type: relationshipTypes
+severity: SEVERE
+introduction: >
+    When a tracked entity, enrollment or event is deleted, all relationships linking to it must be
+    deleted as well.
+    Bugs in earlier versions left relationships that are not deleted linking to deleted tracker
+    data, either directly or through enrollments and events that are themselves not deleted but
+    belong to a deleted enrollment or tracked entity (see the data integrity checks
+    enrollments_not_deleted_of_deleted_tracked_entities and
+    tracker_events_not_deleted_of_deleted_enrollments_or_tracked_entities).
+    These relationships point to data that cannot be opened in the apps.
+    The details list the affected relationship types, how many relationships each has in this
+    state, and the relationships as references.
+recommendation: |
+    Delete the listed relationships so that they match the deleted tracker data they link to. If the
+    data integrity checks enrollments_not_deleted_of_deleted_tracked_entities or
+    tracker_events_not_deleted_of_deleted_enrollments_or_tracked_entities report issues, fix those
+    first, as deleting an enrollment or event also deletes its relationships. Delete the remaining
+    relationships through the tracker API.
+
+    ```
+    POST /api/tracker?importStrategy=DELETE&async=false
+
+    {
+      "relationships": [
+        { "relationship": "<relationship UID>" }
+      ]
+    }
+    ```
+is_slow: TRUE

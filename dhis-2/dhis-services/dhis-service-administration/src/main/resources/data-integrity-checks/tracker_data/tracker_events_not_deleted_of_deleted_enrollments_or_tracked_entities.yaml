@@ -1,0 +1,79 @@
+# Copyright (c) 2004-2026, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: tracker_events_not_deleted_of_deleted_enrollments_or_tracked_entities
+description: Tracker events that are not deleted but belong to a deleted enrollment or tracked entity
+section: Tracker data
+section_order: 2
+summary_sql: >-
+    SELECT COUNT(*) AS value,
+    COALESCE(100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM event e INNER JOIN enrollment e_en ON e_en.enrollmentid = e.enrollmentid WHERE e.deleted = false AND e_en.trackedentityid IS NOT NULL), 0), 0) AS percent
+    FROM event ev
+    INNER JOIN enrollment en ON en.enrollmentid = ev.enrollmentid
+    INNER JOIN trackedentity te ON te.trackedentityid = en.trackedentityid
+    WHERE ev.deleted = false
+    AND (en.deleted = true OR te.deleted = true);
+details_sql: >-
+    SELECT p.uid, p.name,
+    COUNT(*) || ' event(s)' AS comment,
+    array_agg(CAST(ev.uid AS text) ORDER BY ev.uid) AS refs
+    FROM event ev
+    INNER JOIN enrollment en ON en.enrollmentid = ev.enrollmentid
+    INNER JOIN trackedentity te ON te.trackedentityid = en.trackedentityid
+    INNER JOIN program p ON p.programid = en.programid
+    WHERE ev.deleted = false
+    AND (en.deleted = true OR te.deleted = true)
+    GROUP BY p.uid, p.name
+    ORDER BY p.name;
+details_id_type: programs
+severity: SEVERE
+introduction: >
+    When an enrollment or a tracked entity is deleted, all events of the enrollment must be deleted
+    as well. Bugs in earlier versions allowed events to be created or updated in an enrollment that
+    was already deleted, or that belongs to a deleted tracked entity, leaving events that are not
+    deleted under a deleted parent.
+    These events are not included in analytics and cannot be opened in the apps, but can still
+    show up in program stage working lists. They can only be deleted through the tracker API.
+    The details list the affected programs, how many events each has in this state, and the events
+    as references.
+recommendation: |
+    Delete the listed events so that they match their deleted enrollment or tracked entity. If the
+    data integrity check enrollments_not_deleted_of_deleted_tracked_entities reports issues, fix
+    those first, as deleting an enrollment also deletes its events. Delete the events through the
+    tracker API, which allows deleting an event of a deleted enrollment or tracked entity and also
+    deletes the relationships, notifications and change logs of the event.
+
+    ```
+    POST /api/tracker?importStrategy=DELETE&async=false
+
+    {
+      "events": [
+        { "event": "<event UID>" }
+      ]
+    }
+    ```
+is_slow: TRUE

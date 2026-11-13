@@ -36,22 +36,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails;
 import org.junit.jupiter.api.Test;
 
 /**
- * Integrity check to identify users who have a data view organisation unit, but who cannot access
- * data which they have possibly entered at a higher level of the hierarchy. {@see
+ * Integrity check to identify users who have a data view organisation unit which does not have
+ * access to their data entry organisation units. {@see
  * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/users/users_capture_ou_not_in_data_view_ou.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
+class DataIntegrityUsersCaptureOrgunitNotInDataViewTest
     extends AbstractDataIntegrityIntegrationTest {
 
-  private static final String CHECK_NAME = "users_capture_ou_not_in_tei_search_ou";
+  private static final String CHECK_NAME = "users_capture_ou_not_in_data_view_ou";
 
   private static final String DETAILS_ID_TYPE = "users";
 
@@ -90,7 +91,7 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
             "/users",
             "{ 'username': 'bobbytables' , 'password': 'District123+', 'firstName': 'Bobby', 'surname': 'Tables', 'organisationUnits' : [{'id' : '"
                 + orgunitAUid
-                + "'}], 'teiSearchOrganisationUnits' : [{'id' : '"
+                + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
                 + orgunitAUid
                 + "'}], 'userRoles' : [{'id' : '"
                 + userRoleUid
@@ -103,7 +104,7 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
                 "/users",
                 "{ 'username': 'janedoe' , 'password': 'District123+', 'firstName': 'Jane', 'surname': 'Doe', 'organisationUnits' : [{'id' : '"
                     + orgunitAUid
-                    + "'}], 'teiSearchOrganisationUnits' : [{'id' : '"
+                    + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
                     + orgunitBUid
                     + "'}], 'userRoles' : [{'id' : '"
                     + userRoleUid
@@ -119,8 +120,9 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
                 + userRoleUid
                 + "'}]}"));
 
-    // Note that there are already one user which exist due to the overall test setup, thus, 4
-    // users in total. Only userB should be flagged.
+    JsonArray users = GET("/users").content().getArray("users");
+    assertEquals(4, users.size());
+    // 1 user out of 4, thus 25% of users have data integrity issues
     assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, 25, userBUid, "janedoe", null, true);
 
     JsonDataIntegrityDetails details = getDetails(CHECK_NAME);
@@ -134,5 +136,114 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
             .collect(toUnmodifiableSet());
 
     assertTrue(detailsRefs.contains("Fish District"));
+  }
+
+  @Test
+  void testDataCaptureUnitsAllWithinHierarchy() {
+
+    orgunitAUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
+
+    userRoleUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/userRoles", "{ 'name': 'Test role', 'authorities': ['F_DATAVALUE_ADD'] }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/users",
+            "{ 'username': 'bobbytables' , 'password': 'District123+', 'firstName': 'Bobby', 'surname': 'Tables', 'organisationUnits' : [{'id' : '"
+                + orgunitAUid
+                + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
+                + orgunitAUid
+                + "'}], 'userRoles' : [{'id' : '"
+                + userRoleUid
+                + "'}]}"));
+
+    // No user has a capture org unit outside the hierarchy: the summary must still report zero
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, true);
+  }
+
+  @Test
+  void testOnlyCaptureUnitsOutsideHierarchyAreFlagged() {
+    String provinceUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish Province', 'shortName': 'Fish Province', 'openingDate' : '2022-01-01'}"));
+    String districtUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01', "
+                    + "'parent': {'id' : '"
+                    + provinceUid
+                    + "'}}"));
+    String clinicUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish Clinic', 'shortName': 'Fish Clinic', 'openingDate' : '2022-01-01', "
+                    + "'parent': {'id' : '"
+                    + districtUid
+                    + "'}}"));
+    String otherDistrictUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}"));
+
+    String roleUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/userRoles", "{ 'name': 'Test role', 'authorities': ['F_DATAVALUE_ADD'] }"));
+
+    // capture two levels below the hierarchy unit: should not be flagged
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/users",
+            "{ 'username': 'bobbytables', 'password': 'District123+', 'firstName': 'First', 'surname': 'Last', "
+                + "'organisationUnits' : [{'id' : '"
+                + clinicUid
+                + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
+                + provinceUid
+                + "'}], 'userRoles' : [{'id' : '"
+                + roleUid
+                + "'}]}"));
+
+    // capture completely outside the hierarchy unit: should be flagged
+    String userOutsideUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/users",
+                "{ 'username': 'janedoe', 'password': 'District123+', 'firstName': 'First', 'surname': 'Last', "
+                    + "'organisationUnits' : [{'id' : '"
+                    + otherDistrictUid
+                    + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
+                    + provinceUid
+                    + "'}], 'userRoles' : [{'id' : '"
+                    + roleUid
+                    + "'}]}"));
+
+    postDetails(CHECK_NAME);
+    Set<String> flagged =
+        getDetails(CHECK_NAME).getIssues().stream()
+            .map(issue -> issue.getId())
+            .collect(toUnmodifiableSet());
+    assertEquals(Set.of(userOutsideUid), flagged);
+
+    postSummary(CHECK_NAME);
+    assertEquals(1, getSummary(CHECK_NAME).getCount());
   }
 }
