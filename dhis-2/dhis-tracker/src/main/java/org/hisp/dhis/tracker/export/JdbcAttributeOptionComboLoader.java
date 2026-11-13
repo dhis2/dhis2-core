@@ -44,42 +44,21 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
- * JdbcAttributeOptionCombos holds the SQL the tracker export stores share for attribute option
- * combos (AOCs).
+ * Loads the attribute option combos (AOCs) of tracker export rows. Access to AOCs is not decided
+ * here: the export stores filter on the AOCs {@link AccessControlStore} resolves.
  *
- * <p>The AOCs a user may read data of are resolved up front with {@link
- * AccessControlStore#getDataReadableAttributeOptionComboIds}, the same lookup the data value export
- * uses, and bound as one array parameter named {@link #READABLE_AOCS}. The export query filters on
- * them with {@link #readableCondition(String)}, a hash semi join PostgreSQL estimates like no
- * filter at all. Joining a subquery that groups all category option combos instead gives the
- * planner a result size it cannot estimate, which inflates the row estimate of the whole export
- * query and can flip it to a plan that reads millions of rows (DHIS2-22400).
- *
- * <p>The export query does not join {@code categoryoptioncombo} either. PostgreSQL would merge that
- * join with the filter on the readable AOCs and estimate the matches from the number of all
- * category option combos, an underestimate that grows with it. The AOC UID, only needed in SQL to
- * order by it, comes from {@link #uidSubquery(String)} instead, and the AOCs are loaded with {@link
- * #fetchAttributeOptionCombos} after the export query, once per distinct AOC.
+ * <p>The export query does not join {@code categoryoptioncombo}. PostgreSQL would merge that join
+ * with the filter on the readable AOCs and estimate the matches from the number of all category
+ * option combos, an underestimate that grows with it (DHIS2-22400). The AOC UID, only needed in SQL
+ * to order by it, comes from {@link #uidSubquery(String)} instead, and the AOCs are loaded with
+ * {@link #fetchAttributeOptionCombos} after the export query, once per distinct AOC.
  */
-public class JdbcAttributeOptionCombos {
-  /** Name of the array parameter holding the internal ids of the readable AOCs. */
-  public static final String READABLE_AOCS = "dataReadableAocs";
-
+public class JdbcAttributeOptionComboLoader {
   /** The order field for the AOC UID, selected as {@code coc_uid}. */
   public static final String ORDER_BY_UID = "attributeOptionCombo.uid";
 
-  private JdbcAttributeOptionCombos() {
+  private JdbcAttributeOptionComboLoader() {
     throw new IllegalStateException("Utility class");
-  }
-
-  /**
-   * @param aocColumn qualified AOC id column to filter, e.g. {@code ev.attributeoptioncomboid}
-   * @return a condition limiting the column to the AOC ids bound as {@link #READABLE_AOCS}
-   */
-  @Nonnull
-  public static String readableCondition(@Nonnull String aocColumn) {
-    return " exists (select 1 from unnest(cast(:%s as bigint[])) data_readable_aoc(id) where data_readable_aoc.id = %s) "
-        .formatted(READABLE_AOCS, aocColumn);
   }
 
   /**

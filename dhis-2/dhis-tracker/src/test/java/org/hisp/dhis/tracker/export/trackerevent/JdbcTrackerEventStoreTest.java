@@ -45,6 +45,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.security.acl.AccessControlStore;
+import org.hisp.dhis.security.acl.DataReadableAocs;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
@@ -83,8 +84,9 @@ class JdbcTrackerEventStoreTest extends TrackerTestBase {
   void setUp() {
     injectSecurityContextNoSettings(user);
     // a non-superuser who may read one attribute option combo, so the readable AOC filter is added
-    when(accessControlStore.getDataReadableAttributeOptionComboIds(any(), any()))
-        .thenReturn(new long[] {1L});
+    when(accessControlStore.getDataReadableAttributeOptionCombos(
+            any(NamedParameterJdbcTemplate.class), any(), any()))
+        .thenReturn(new DataReadableAocs(new long[] {1L}));
   }
 
   @AfterEach

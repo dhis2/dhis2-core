@@ -72,6 +72,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessControlStore;
+import org.hisp.dhis.security.acl.DataReadableAocs;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
@@ -79,7 +80,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.Geometries;
-import org.hisp.dhis.tracker.export.JdbcAttributeOptionCombos;
+import org.hisp.dhis.tracker.export.JdbcAttributeOptionComboLoader;
 import org.hisp.dhis.tracker.export.JdbcNotes;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
@@ -133,7 +134,7 @@ class JdbcTrackerEventStore {
           entry("lastUpdated", "ev_lastupdated"),
           entry("lastUpdatedAtClient", "ev_lastupdatedatclient"),
           entry("completedBy", "ev_completedby"),
-          entry(JdbcAttributeOptionCombos.ORDER_BY_UID, "coc_uid"),
+          entry(JdbcAttributeOptionComboLoader.ORDER_BY_UID, "coc_uid"),
           entry("completedDate", "ev_completeddate"),
           entry("deleted", "ev_deleted"),
           entry("assignedUser", "user_assigned_username"),
@@ -331,7 +332,8 @@ class JdbcTrackerEventStore {
             }
           }
 
-          JdbcAttributeOptionCombos.fetchAttributeOptionCombos(jdbcTemplate, attributeOptionCombos);
+          JdbcAttributeOptionComboLoader.fetchAttributeOptionCombos(
+              jdbcTemplate, attributeOptionCombos);
 
           return events;
         });
@@ -344,12 +346,14 @@ class JdbcTrackerEventStore {
    * @return false when the user may read no attribute option combo, so no event at all
    */
   private boolean addReadableAocs(MapSqlParameterSource sqlParams, UserDetails user) {
-    long[] readable = accessControlStore.getDataReadableAttributeOptionComboIds(user, null);
-    if (readable == null) {
+    // on the export template, so the lookup is bounded by the export deadline
+    DataReadableAocs readable =
+        accessControlStore.getDataReadableAttributeOptionCombos(jdbcTemplate, user, null);
+    if (readable.isUnrestricted()) {
       return true;
     }
-    sqlParams.addValue(JdbcAttributeOptionCombos.READABLE_AOCS, readable);
-    return readable.length > 0;
+    sqlParams.addValue("readableAocs", readable.ids());
+    return !readable.isNone();
   }
 
   private EventDataValue parseEventDataValue(
@@ -714,8 +718,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             au.firstName as user_assigned_first_name, au.surName as user_assigned_surname,
             au.username as user_assigned_username,
             ev.attributeoptioncomboid as coc_id,\s""");
-    if (JdbcAttributeOptionCombos.isOrderedByUid(params.getOrder())) {
-      sql.append(JdbcAttributeOptionCombos.uidSubquery("ev.attributeoptioncomboid"))
+    if (JdbcAttributeOptionComboLoader.isOrderedByUid(params.getOrder())) {
+      sql.append(JdbcAttributeOptionComboLoader.uidSubquery("ev.attributeoptioncomboid"))
           .append(" as coc_uid, ");
     }
     addOrderFieldsToSelect(sql, params.getOrder());
@@ -1009,9 +1013,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ev.attributeoptioncomboid = ")
           .append(":attributeoptioncomboid ");
     }
-    if (sqlParams.hasValue(JdbcAttributeOptionCombos.READABLE_AOCS)) {
+    if (sqlParams.hasValue("readableAocs")) {
       sql.append(hlp.whereAnd())
-          .append(JdbcAttributeOptionCombos.readableCondition("ev.attributeoptioncomboid"));
+          .append(
+              " exists (select 1 from unnest(cast(:readableAocs as bigint[])) a(id) where a.id = ev.attributeoptioncomboid) ");
     }
   }
 
