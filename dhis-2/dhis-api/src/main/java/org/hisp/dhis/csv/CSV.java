@@ -127,14 +127,6 @@ import org.intellij.lang.annotations.Language;
  * <h2>Extensions</h2>
  *
  * <ul>
- *   <li><b>Backslash delimiter escape</b> ({@code \"}): inside a quoted field a backslash makes the
- *       parser skip the following character, so {@code \"} does not close the field. Unlike {@code
- *       ""} this is <em>not</em> unescaped: both the backslash and the escaped character are
- *       preserved so a downstream parser (for example a JSON parser reading an embedded JSON
- *       document) can interpret them in its own syntax. JSON structural quotes are still doubled
- *       ({@code ""}) per RFC 4180; only the embedded {@code \"} / {@code \\} / {@code \n} escapes
- *       rely on the backslash mechanism. See the notes on {@code skipQuotes} for the full
- *       JSON-in-CSV example.
  *   <li><b>Required columns</b>: a record component is required when its type is primitive or it is
  *       annotated {@link Nonnull} or {@link OpenApi.Required}. A missing required column is
  *       reported before any data rows are read.
@@ -698,45 +690,6 @@ public final class CSV {
     /**
      * Scans a quoted value starting immediately after its opening quote.
      *
-     * <p>Two independent escape mechanisms are recognized:
-     *
-     * <ul>
-     *   <li><b>Twin quotes</b> ({@code ""}) — RFC 4180 style. The first quote ends a possible run,
-     *       the second makes it a literal quote. {@link #value(int, int)} unescapes these to a
-     *       single {@code "}; the {@link #twinQuotes} field is set as a side effect so {@code
-     *       value} knows whether unescaping is needed.
-     *   <li><b>Backslash escape</b> ({@code \"}) — a backslash consumes the character that follows
-     *       it so an embedded {@code "} does not end the quoted value. Unlike twin quotes this is
-     *       <em>not</em> unescaped: both the backslash and the escaped character are preserved in
-     *       the parsed value. It is a <em>delimiter</em> escape, not a value escape — its only job
-     *       is to keep the cell intact; interpretation of the escape sequence is left to a
-     *       downstream consumer.
-     * </ul>
-     *
-     * <p>The two mechanisms operate at different levels and compose. When a JSON document is
-     * embedded as a CSV value, the JSON document's own structural quotes are doubled, while the
-     * JSON string escapes ({@code \"}, {@code \\}, {@code \n}, ...) are passed through untouched so
-     * the JSON parser sees them exactly as written:
-     *
-     * <pre>{@code
-     * JSON:  {"msg":"say \"hi\""}
-     * CSV:   "{""msg"":""say \"hi\"""}"
-     * }</pre>
-     *
-     * <p>The CSV scanner consumes each {@code \"} pair before the twin-quote unescaping runs, so
-     * the {@code ""} in the CSV come only from the JSON document's structural quotes and the {@code
-     * \"} inside its string value arrive at the JSON parser unchanged.
-     *
-     * <p>Because a backslash always consumes the next character, a value that must be quoted cannot
-     * end in an odd number of backslashes: {@code "a\"} is unterminated, and {@code "a\\"} parses
-     * as {@code a\\} (both backslashes preserved), not {@code a\}. A value needing a trailing
-     * backslash can be left unquoted, which is always safe when it contains no comma, line break,
-     * leading/trailing whitespace or leading quote.
-     *
-     * <p>If the buffer runs out mid-value the method returns {@code -1}; the caller refills and
-     * retries from the start of the value. If end-of-input is reached without a closing quote it
-     * throws via {@link #error(String)} at the parser's current line and column.
-     *
      * @param p buffer position immediately after the opening quote
      * @return the position after the closing quote, or -1 if the buffer was exhausted before the
      *     closing quote could be found
@@ -754,8 +707,6 @@ public final class CSV {
           } else {
             return p; // closing quote, either mid-buffer or at true EOI
           }
-        } else if (c == '\\') {
-          p++;
         }
       }
       if (eoi) throw error("Quoted value is not terminated");

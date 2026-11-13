@@ -391,19 +391,6 @@ class DataEntryImportCSVTest {
   }
 
   @Test
-  void testBackslashEscapedQuoteKeepsBackslash() {
-    // \" only prevents the quote from terminating the value; the backslash
-    // stays in the parsed value (unlike "" which unescapes to ")
-    List<DataEntryValue.Input> values =
-        read(
-            """
-                dataElement,period,orgUnit,comment
-                de123456789,202501,ou123456789,"a\\"b"
-                """);
-    assertEquals("a\\\"b", values.get(0).comment()); // a\"b, 4 chars
-  }
-
-  @Test
   void testBackslashEscapesForOtherCharsPreservedVerbatim() {
     // No unescaping at all: \\ stays as \\, \n stays as the two chars \ and n
     List<DataEntryValue.Input> values =
@@ -413,48 +400,6 @@ class DataEntryImportCSVTest {
                 de123456789,202501,ou123456789,"a\\\\b\\nc"
                 """);
     assertEquals("a\\\\b\\nc", values.get(0).comment());
-  }
-
-  @Test
-  void testTwinQuotesAndBackslashEscapesTogether() {
-    // "" unescapes to " ; \" stays as \" ; both in the same value
-    List<DataEntryValue.Input> values =
-        read(
-            """
-                dataElement,period,orgUnit,comment
-                de123456789,202501,ou123456789,"a""b\\"c"
-                """);
-    assertEquals("a\"b\\\"c", values.get(0).comment());
-  }
-
-  @Test
-  void testBackslashBeforeClosingQuoteDoesNotTerminate() {
-    // the closing " is escaped by \, so the quoted value never closes
-    IllegalArgumentException ex =
-        assertThrowsExactly(
-            IllegalArgumentException.class,
-            () ->
-                read(
-                    """
-                        dataElement,period,orgUnit,comment
-                        de123456789,202501,ou123456789,"a\\"
-                        """));
-    assertEquals(
-        "CSV input error at line 2 column 4: Quoted value is not terminated", ex.getMessage());
-  }
-
-  @Test
-  void testBackslashEscapedJsonValueRoundTrips() {
-    // structural JSON quotes doubled (RFC 4180), JSON string escapes passed through
-    String csvValue = "\"{\"\"msg\"\":\"\"say \\\"hi\\\"\"\"}\"";
-    String json = "{\"msg\":\"say \\\"hi\\\"\"}";
-    List<DataEntryValue.Input> values =
-        read(
-            "dataElement,period,orgUnit,comment\n"
-                + "de123456789,202501,ou123456789,"
-                + csvValue
-                + "\n");
-    assertEquals(json, values.get(0).comment());
   }
 
   // ----------------------------------------------------------------
@@ -675,6 +620,54 @@ class DataEntryImportCSVTest {
     assertEquals(1, rows.size());
     assertEquals(2041, rows.get(0).a().length());
     assertEquals("y", rows.get(0).b());
+  }
+
+  /**
+   * RFC 4180 has no backslash escaping: a backslash inside a quoted value has no special meaning
+   * and a value may end in one. Before the backslash-escape feature was removed, the closing quote
+   * following the trailing backslash was consumed as escaped, and the whole file failed with
+   * "Quoted value is not terminated" (S2).
+   */
+  @Test
+  void testQuotedValueEndingInBackslash() {
+    // Value:  C:\data, dir\
+    // CSV:    "C:\data, dir\"
+    List<DataEntryValue.Input> values =
+        read(
+            """
+                dataElement,period,orgUnit,value,comment
+                de123456789,202501,ou123456789,5,"C:\\data, dir\\"
+                """);
+    assertEquals(1, values.size());
+    assertEquals("C:\\data, dir\\", values.get(0).comment());
+    assertEquals("5", values.get(0).value());
+  }
+
+  @Test
+  void testQuotedValueIsSingleTrailingBackslash() {
+    // Value: C:\   CSV: "C:\"
+    List<DataEntryValue.Input> values =
+        read(
+            """
+                dataElement,period,orgUnit,value,comment
+                de123456789,202501,ou123456789,5,"C:\\"
+                """);
+    assertEquals(1, values.size());
+    assertEquals("C:\\", values.get(0).comment());
+  }
+
+  @Test
+  void testBackslashDoesNotInterfereWithDoubledQuotes() {
+    // Value:  say \"hi\"
+    // CSV:    "say \""hi\"""   (the "" pairs are RFC 4180 doubled quotes)
+    List<DataEntryValue.Input> values =
+        read(
+            """
+                dataElement,period,orgUnit,value,comment
+                de123456789,202501,ou123456789,5,"say \\""hi\\""\"
+                """);
+    assertEquals(1, values.size());
+    assertEquals("say \\\"hi\\\"", values.get(0).comment());
   }
 
   private static List<DataEntryValue.Input> read(@Language("csv") String csv) {
