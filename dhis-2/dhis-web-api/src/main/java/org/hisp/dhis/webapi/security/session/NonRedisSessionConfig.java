@@ -69,6 +69,11 @@ public class NonRedisSessionConfig {
   }
 
   @Bean
+  public HttpBasicSessions httpBasicSessions() {
+    return new InMemoryHttpBasicSessions();
+  }
+
+  @Bean
   public HttpSessionEventPublisher httpSessionEventPublisher() {
     return new HttpSessionEventPublisher();
   }

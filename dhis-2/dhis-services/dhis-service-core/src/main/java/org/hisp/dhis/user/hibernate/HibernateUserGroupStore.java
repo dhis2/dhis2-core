@@ -31,7 +31,6 @@ package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -40,6 +39,7 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupMembershipChangeCollector;
 import org.hisp.dhis.user.UserGroupStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -48,12 +48,17 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.user.UserGroupStore")
 public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<UserGroup>
     implements UserGroupStore {
+
+  private final UserGroupMembershipChangeCollector membershipChangeCollector;
+
   public HibernateUserGroupStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      AclService aclService) {
+      AclService aclService,
+      UserGroupMembershipChangeCollector membershipChangeCollector) {
     super(entityManager, jdbcTemplate, publisher, UserGroup.class, aclService, true);
+    this.membershipChangeCollector = membershipChangeCollector;
   }
 
   @Override
@@ -62,12 +67,13 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
     if (userGroupIds.isEmpty()) {
       return Set.of();
     }
-    String placeholders = String.join(",", Collections.nCopies(userGroupIds.size(), "?"));
-    String sql =
-        "select managedgroupid from usergroupmanaged where managedbygroupid in ("
-            + placeholders
-            + ")";
-    return new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, userGroupIds.toArray()));
+    return new HashSet<>(
+        getSession()
+            .createQuery(
+                "select managed.id from UserGroup g join g.managedGroups managed where g.id in (:userGroupIds)",
+                Long.class)
+            .setParameterList("userGroupIds", userGroupIds)
+            .list());
   }
 
   @Override
@@ -86,13 +92,17 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
         """;
     boolean changed = jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
     if (changed) {
-      evictUserGroupsCollectionCache(userUid);
+      membershipChanged(userUid);
       updateLastUpdated(userGroupUid, lastUpdatedByUid);
     }
     return changed;
   }
 
-  private void evictUserGroupsCollectionCache(@Nonnull UID userUid) {
+  /**
+   * Evicts the cached user groups of the user and reports the membership change, since writing the
+   * membership via SQL bypasses Hibernate.
+   */
+  private void membershipChanged(@Nonnull UID userUid) {
     Long userId =
         jdbcTemplate.queryForObject(
             "SELECT userinfoid FROM userinfo WHERE uid = ?", Long.class, userUid.getValue());
@@ -101,6 +111,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
           .getSessionFactory()
           .getCache()
           .evictCollectionData(User.class.getName() + ".groups", userId);
+      membershipChangeCollector.membershipsChanged(Set.of(userId));
     }
   }
 
@@ -141,7 +152,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
         """;
     boolean changed = jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
     if (changed) {
-      evictUserGroupsCollectionCache(userUid);
+      membershipChanged(userUid);
       updateLastUpdated(userGroupUid, lastUpdatedByUid);
     }
     return changed;
