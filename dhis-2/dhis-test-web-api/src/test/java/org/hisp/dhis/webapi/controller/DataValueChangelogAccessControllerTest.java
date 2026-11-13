@@ -260,6 +260,22 @@ class DataValueChangelogAccessControllerTest extends PostgresControllerIntegrati
   }
 
   @Test
+  @DisplayName("Data write sharing without data read does not grant data read")
+  void testChangelog_dataWriteWithoutDataRead() {
+    setSharing("dataset", metadataOnlyDs, "{'public':'rw-w----'}");
+    setSharing("categoryoption", optionNoDataRead, "{'public':'rw-w----'}");
+    setSharing("categoryoption", restrictedOption, "{'public':'rw-w----'}");
+
+    switchToNewUser(createAndAddUser("reader", manager.get(OrganisationUnit.class, ou)));
+    Set<String> visible = getChangelogValues("");
+    assertTrue(visible.contains("11"), visible.toString());
+    assertTrue(Set.of("11", "12").containsAll(visible), visible.toString());
+    assertContextForbidden(metadataOnlyDe, ou, coc, null);
+    assertContextForbidden(restrictedCocDe, ou, restrictedCoc, null);
+    assertContextForbidden(restrictedAocDe, ou, coc, restrictedOption);
+  }
+
+  @Test
   @DisplayName("Owning the category option of an attribute option combo does not grant data read")
   void testDataValue_ownerOfAttributeCategoryOption() {
     User reader = createAndAddUser("reader", manager.get(OrganisationUnit.class, ou));

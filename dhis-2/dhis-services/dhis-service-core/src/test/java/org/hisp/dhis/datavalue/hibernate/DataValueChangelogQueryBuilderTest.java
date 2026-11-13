@@ -32,6 +32,7 @@ package org.hisp.dhis.datavalue.hibernate;
 import static org.hisp.dhis.common.input.InputUtils.decodeInput;
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataValueChangelogStore.createAccess;
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataValueChangelogStore.createEntriesQuery;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -42,6 +43,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
 import org.hisp.dhis.datavalue.DataValueChangelogType;
+import org.hisp.dhis.security.acl.DataReadableAocs;
 import org.hisp.dhis.sql.AbstractQueryBuilderTest;
 import org.hisp.dhis.sql.SQL;
 import org.hisp.dhis.user.UserDetails;
@@ -68,7 +70,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE dva.audittype = ANY(:types)
       ORDER BY dva.created DESC""",
         Set.of("types"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -82,7 +84,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE dva.audittype = :types
       ORDER BY dva.created DESC""",
         Set.of("types"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -96,7 +98,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM datavalueaudit dva
       WHERE dva.audittype = ANY(:types)""",
         Set.of("types"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -109,7 +111,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM datavalueaudit dva
       WHERE dva.audittype = :types""",
         Set.of("types"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -124,7 +126,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE de.uid = ANY(:de)
       ORDER BY dva.created DESC""",
         Set.of("de"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -139,7 +141,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE de.uid = :de
       ORDER BY dva.created DESC""",
         Set.of("de"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -154,7 +156,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE ou.uid = ANY(:ou)
       ORDER BY dva.created DESC""",
         Set.of("ou"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -169,7 +171,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE ou.uid = :ou
       ORDER BY dva.created DESC""",
         Set.of("ou"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -185,7 +187,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE ds.uid = ANY(:ds)
       ORDER BY dva.created DESC""",
         Set.of("ds"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -201,7 +203,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE ds.uid = :ds
       ORDER BY dva.created DESC""",
         Set.of("ds"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -216,7 +218,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE pe.iso = ANY(:pe)
       ORDER BY dva.created DESC""",
         Set.of("pe"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -231,7 +233,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE pe.iso = :pe
       ORDER BY dva.created DESC""",
         Set.of("pe"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -245,7 +247,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE dva.categoryoptioncomboid = (SELECT coc.categoryoptioncomboid FROM categoryoptioncombo coc WHERE coc.uid = :coc)
       ORDER BY dva.created DESC""",
         Set.of("coc"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -259,7 +261,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE dva.attributeoptioncomboid = (SELECT aoc.categoryoptioncomboid FROM categoryoptioncombo aoc WHERE aoc.uid = :aoc)
       ORDER BY dva.created DESC""",
         Set.of("aoc"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -280,7 +282,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
         AND pe.iso = :pe
       ORDER BY dva.created DESC""",
         Set.of("types", "ds", "pe"),
-        createEntriesQuery(params, null, null, true, createSpyQuery()));
+        createEntriesQuery(params, null, DataReadableAocs.unrestricted(), true, createSpyQuery()));
   }
 
   @Test
@@ -295,7 +297,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
     createEntriesQuery(
             params,
             createAccess(user, true, null, false),
-            new long[] {987654321L},
+            new DataReadableAocs(new long[] {987654321L}),
             true,
             SQL.spy(sql::set, (name, param) -> {}))
         .count();
@@ -303,6 +305,31 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
     assertFalse(sql.get().contains("987654321"), sql.get());
     assertFalse(sql.get().contains("cocUid12345"), sql.get());
     assertFalse(sql.get().contains("aocUid12345"), sql.get());
+  }
+
+  @Test
+  void testAocFilterIsTheSameOnEveryPostgresVersion() {
+    for (boolean postgres14 : new boolean[] {true, false}) {
+      AtomicReference<String> sql = new AtomicReference<>();
+      Set<String> bound = new HashSet<>();
+      createEntriesQuery(
+              decodeInput(DataValueChangelogQueryParams.class, "pe=2021"),
+              null,
+              new DataReadableAocs(new long[] {11L}),
+              postgres14,
+              SQL.spy(sql::set, (name, param) -> bound.add(name)))
+          .count();
+
+      assertTrue(
+          sql.get()
+              .contains(
+                  "AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dva.attributeoptioncomboid)"),
+          sql.get());
+      assertFalse(
+          sql.get().contains("attributeoptioncomboid IN (SELECT unnest"),
+          "no second AOC filter form: " + sql.get());
+      assertEquals(Set.of("pe", "aocAllowed"), bound, "postgres14=" + postgres14);
+    }
   }
 
   @Test
@@ -316,7 +343,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
     createEntriesQuery(
             decodeInput(DataValueChangelogQueryParams.class, "pe=2021"),
             createAccess(user, false, new long[] {11L, 12L}, false),
-            new long[] {987654321L},
+            new DataReadableAocs(new long[] {987654321L}),
             true,
             SQL.spy(sql::set, (name, param) -> bound.add(name)))
         .count();
