@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
+import static org.hisp.dhis.user.UserConstants.LOGIN_MAX_FAILED_ATTEMPTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -39,12 +40,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
@@ -61,6 +66,9 @@ import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -222,6 +230,105 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
     assertEquals("Unauthorized", response.getHttpStatus());
     assertEquals(401, response.getHttpStatusCode());
     assertEquals("ERROR", response.getStatus());
+  }
+
+  /**
+   * Username templates with whitespace at the edges, written as JSON string content: trailing,
+   * leading, both, tab and non-breaking space.
+   */
+  static Stream<String> edgeWhitespaceJsonTemplates() {
+    return Stream.of("%s ", " %s", " %s ", "\\t%s\\t", "\\u00a0%s\\u00a0");
+  }
+
+  /** The same templates as {@link #edgeWhitespaceJsonTemplates()}, as raw characters. */
+  static Stream<String> edgeWhitespaceTemplates() {
+    return Stream.of("%s ", " %s", " %s ", "\t%s\t", "\u00a0%s\u00a0");
+  }
+
+  @ParameterizedTest
+  @MethodSource("edgeWhitespaceJsonTemplates")
+  void testLoginIgnoresEdgeWhitespaceInUsername(String template) {
+    JsonLoginResponse response =
+        POST("/auth/login", loginBody(template.formatted("admin"), "district"))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+  }
+
+  @Test
+  void testLoginKeepsInnerWhitespaceInUsername() {
+    createUserWithAuth("inner space", "ALL");
+
+    JsonLoginResponse response =
+        POST("/auth/login", loginBody(" inner space ", "district"))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    assertEquals(
+        HttpStatus.UNAUTHORIZED, POST("/auth/login", loginBody("innerspace", "district")).status());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"district ", " district", "\\tdistrict", "\\u00a0district"})
+  void testLoginDoesNotTrimPassword(String password) {
+    assertEquals(
+        HttpStatus.UNAUTHORIZED, POST("/auth/login", loginBody("admin", password)).status());
+  }
+
+  @Test
+  void testFailedLoginsWithEdgeWhitespaceCountForTheSameUser() {
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
+    createUserWithAuth("lockme", "ALL");
+
+    edgeWhitespaceJsonTemplates()
+        .limit(LOGIN_MAX_FAILED_ATTEMPTS)
+        .forEach(
+            template ->
+                assertEquals(
+                    HttpStatus.UNAUTHORIZED,
+                    POST("/auth/login", loginBody(template.formatted("lockme"), "wrong"))
+                        .status()));
+
+    JsonLoginResponse response =
+        POST("/auth/login", loginBody("lockme", "district"))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("ACCOUNT_LOCKED", response.getLoginStatus());
+  }
+
+  @ParameterizedTest
+  @MethodSource("edgeWhitespaceTemplates")
+  void testBasicAuthIgnoresEdgeWhitespaceInUsername(String template) throws Exception {
+    clearSecurityContext();
+
+    mvc.perform(
+            get("/api/me")
+                .header("Authorization", basicAuth(template.formatted("admin"), "district")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value("admin"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"district ", " district", "\tdistrict", "\u00a0district"})
+  void testBasicAuthDoesNotTrimPassword(String password) throws Exception {
+    clearSecurityContext();
+
+    mvc.perform(get("/api/me").header("Authorization", basicAuth("admin", password)))
+        .andExpect(status().isUnauthorized());
+  }
+
+  /** Builds a login body; the arguments are JSON string content and may contain escapes. */
+  private static String loginBody(String username, String password) {
+    return "{\"username\":\"%s\",\"password\":\"%s\"}".formatted(username, password);
+  }
+
+  private static String basicAuth(String username, String password) {
+    byte[] credentials = (username + ":" + password).getBytes(StandardCharsets.UTF_8);
+    return "Basic " + Base64.getEncoder().encodeToString(credentials);
   }
 
   @Test
