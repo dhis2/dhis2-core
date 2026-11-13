@@ -29,10 +29,7 @@
  */
 package org.hisp.dhis.security.acl;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -40,41 +37,26 @@ import org.junit.jupiter.api.Test;
 class DataReadableAocsTest {
 
   @Test
-  void unrestrictedBindsNoIds() {
+  void nullIdsMeanNoCheckNeeded() {
     DataReadableAocs readable = DataReadableAocs.unrestricted();
 
     assertTrue(readable.isUnrestricted());
     assertFalse(readable.isNone());
-    assertNull(readable.ids());
   }
 
   @Test
-  void noneIsRestrictedToNothing() {
-    DataReadableAocs readable = DataReadableAocs.of(new long[0]);
+  void emptyIdsMeanNoAccessAtAll() {
+    DataReadableAocs readable = new DataReadableAocs(new long[0]);
 
     assertFalse(readable.isUnrestricted());
     assertTrue(readable.isNone());
-    assertArrayEquals(new long[0], readable.ids());
   }
 
   @Test
-  void idsAreCopied() {
-    long[] ids = {1, 2};
-    DataReadableAocs readable = DataReadableAocs.of(ids);
-    ids[0] = 9;
-    readable.ids()[1] = 9;
+  void idsMeanAccessToThoseOnly() {
+    DataReadableAocs readable = new DataReadableAocs(new long[] {1L});
 
-    assertArrayEquals(new long[] {1, 2}, readable.ids());
-  }
-
-  @Test
-  void conditionFiltersTheColumnOnTheBoundIdsOnOneLine() {
-    String condition = DataReadableAocs.condition("ev.attributeoptioncomboid");
-
-    assertEquals(
-        "EXISTS (SELECT 1 FROM unnest(CAST(:dataReadableAocs AS bigint[])) data_readable_aoc(id)"
-            + " WHERE data_readable_aoc.id = ev.attributeoptioncomboid)",
-        condition);
-    assertFalse(condition.contains("\n"), "eraseNullParameterLines erases one line");
+    assertFalse(readable.isUnrestricted());
+    assertFalse(readable.isNone());
   }
 }

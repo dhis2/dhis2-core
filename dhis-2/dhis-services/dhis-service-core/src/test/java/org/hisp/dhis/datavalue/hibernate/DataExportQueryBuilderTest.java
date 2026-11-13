@@ -475,10 +475,10 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
-          AND EXISTS (SELECT 1 FROM unnest(CAST(:dataReadableAocs AS bigint[])) data_readable_aoc(id) WHERE data_readable_aoc.id = dv.attributeoptioncomboid)""",
-        Set.of("oug", "capture", "deleted", "dataReadableAocs"),
+          AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)""",
+        Set.of("oug", "capture", "deleted", "aocAllowed"),
         createExportQuery(
-            params, createSpyQuery(), currentUser, DataReadableAocs.of(new long[] {11L})));
+            params, createSpyQuery(), currentUser, new DataReadableAocs(new long[] {11L})));
   }
 
   @Test
@@ -599,11 +599,11 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE EXISTS (SELECT 1 FROM unnest(CAST(:dataReadableAocs AS bigint[])) data_readable_aoc(id) WHERE data_readable_aoc.id = dv.attributeoptioncomboid)""",
-        Set.of("dataReadableAocs"),
+        WHERE EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)""",
+        Set.of("aocAllowed"),
         createExportQuery(
-            params, createSpyQuery(), user, DataReadableAocs.of(new long[] {11L, 12L})));
-    assertArrayEquals(new long[] {11L, 12L}, (long[]) paramValue("dataReadableAocs"));
+            params, createSpyQuery(), user, new DataReadableAocs(new long[] {11L, 12L})));
+    assertArrayEquals(new long[] {11L, 12L}, (long[]) paramValue("aocAllowed"));
   }
 
   @Test
@@ -617,7 +617,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         DataReadableAocs.unrestricted())
         .stream();
     String sql = captured.get();
-    assertFalse(sql.contains("dataReadableAocs"), "no list must mean no AOC filter: " + sql);
+    assertFalse(sql.contains("aocAllowed"), "no list must mean no AOC filter: " + sql);
     assertFalse(sql.contains("aoc_access"), "CTE must be gone: " + sql);
   }
 
@@ -627,7 +627,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
     DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
     UserDetails user = UserDetails.empty().build();
     SQL.QueryAPI api = createSpyQuery();
-    DataReadableAocs none = DataReadableAocs.of(new long[0]);
+    DataReadableAocs none = new DataReadableAocs(new long[0]);
     assertThrows(IllegalArgumentException.class, () -> createExportQuery(params, api, user, none));
   }
 
@@ -643,11 +643,10 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         params,
         SQL.spy(captured::set, (n, p) -> {}),
         UserDetails.empty().build(),
-        DataReadableAocs.of(new long[] {11L}))
+        new DataReadableAocs(new long[] {11L}))
         .stream();
     String sql = captured.get();
     assertTrue(sql.contains("aoc.uid = :aoc"), "explicit AOC filter expected: " + sql);
-    assertTrue(
-        sql.contains(":dataReadableAocs"), "allowed list must stay for explicit AOCs: " + sql);
+    assertTrue(sql.contains(":aocAllowed"), "allowed list must stay for explicit AOCs: " + sql);
   }
 }
