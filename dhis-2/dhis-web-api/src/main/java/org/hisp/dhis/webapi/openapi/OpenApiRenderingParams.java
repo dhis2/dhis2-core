@@ -30,7 +30,6 @@
 package org.hisp.dhis.webapi.openapi;
 
 import lombok.Data;
-import org.hisp.dhis.common.Maturity.Alpha;
 import org.hisp.dhis.common.Maturity.Beta;
 import org.hisp.dhis.common.Maturity.Stable;
 import org.hisp.dhis.common.OpenApi;
@@ -38,7 +37,6 @@ import org.hisp.dhis.common.OpenApi;
 @Data
 @OpenApi.Shared
 public class OpenApiRenderingParams {
-  @Alpha boolean sortEndpointsByMethod = true; // make this a sortEndpointsBy=method,path,id thing?
 
   @Stable
   @OpenApi.Description("Include the JSON source in the operations and schemas (for debug purposes)")
@@ -51,6 +49,8 @@ public class OpenApiRenderingParams {
     directly where the type is used""")
   int inlineEnumsLimit = 0;
 
+  @OpenApi.Ignore String contextPath = "";
+
   /**
    * @return part of the overall cache key added to reflect the rendering parameters for the HTML
    *     document cache
@@ -60,7 +60,6 @@ public class OpenApiRenderingParams {
     String key = "";
     if (source) key += "-s";
     if (inlineEnumsLimit != 0) key += "-e" + inlineEnumsLimit;
-    if (sortEndpointsByMethod) key += "-s";
     return key;
   }
 }
