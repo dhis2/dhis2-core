@@ -576,7 +576,7 @@ public enum ErrorCode {
   E7153(
       "Query would compute `{0}` indicator values, more than the max of `{1}`. Remove dimensions or dimension items, or move dimensions to filters"),
   E7154(
-      "Analytics tables are out of date. Ask your administrator to run a full analytics tables update."),
+      "Invalid reference. Analytics tables may be outdated (full export might be required), or the column is invalid. Ask your administrator"),
   /* Analytics outliers */
 
   E7180(

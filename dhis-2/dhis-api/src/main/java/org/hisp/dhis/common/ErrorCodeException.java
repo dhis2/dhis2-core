@@ -39,11 +39,13 @@ import org.hisp.dhis.feedback.ErrorMessage;
  */
 public class ErrorCodeException extends RuntimeException {
   private final ErrorCode errorCode;
+  private final String devMessage;
 
   /** Deprecated, use {@link ErrorCode} or {@ErrorMessage} constructors instead. */
   public ErrorCodeException(String message) {
     super(message);
     this.errorCode = null;
+    this.devMessage = null;
   }
 
   /**
@@ -53,6 +55,18 @@ public class ErrorCodeException extends RuntimeException {
    */
   public ErrorCodeException(ErrorCode errorCode) {
     super(errorCode.getMessage());
+    this.errorCode = errorCode;
+    this.devMessage = null;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param errorCode the {@link ErrorCode}.
+   */
+  public ErrorCodeException(ErrorCode errorCode, String devMessage) {
+    super(errorCode.getMessage());
+    this.devMessage = devMessage;
     this.errorCode = errorCode;
   }
 
@@ -64,6 +78,7 @@ public class ErrorCodeException extends RuntimeException {
   public ErrorCodeException(ErrorMessage errorMessage) {
     super(errorMessage.getMessage());
     this.errorCode = errorMessage.getErrorCode();
+    this.devMessage = null;
   }
 
   /**
@@ -83,5 +98,14 @@ public class ErrorCodeException extends RuntimeException {
    */
   public ErrorCode getErrorCode() {
     return errorCode;
+  }
+
+  /**
+   * Returns the devMessage of the exception.
+   *
+   * @return the devMessage of the exception.
+   */
+  public String getDevMessage() {
+    return devMessage;
   }
 }

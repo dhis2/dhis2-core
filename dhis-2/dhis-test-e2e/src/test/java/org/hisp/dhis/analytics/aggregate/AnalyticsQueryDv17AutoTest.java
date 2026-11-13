@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.aggregate;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
@@ -217,17 +218,18 @@ public class AnalyticsQueryDv17AutoTest extends AnalyticsApiTest {
     ApiResponse response = actions.get(params);
 
     // Then
-    assertOutOfDateColumnResponse(
+    assertErrorResponse(
         response,
-        "Analytics tables are out of date. Ask your administrator to run a full analytics tables update.");
+        "Invalid reference. Analytics tables may be outdated (full export might be required), or the column is invalid. Ask your administrator");
   }
 
-  private void assertOutOfDateColumnResponse(ApiResponse response, String expectedMessage) {
+  private void assertErrorResponse(ApiResponse response, String expectedMessage) {
     response
         .validate()
         .statusCode(409)
         .body("status", equalTo("ERROR"))
         .body("message", equalTo(expectedMessage))
-        .body("errorCode", equalTo("E7154"));
+        .body("errorCode", equalTo("E7154"))
+        .body("devMessage", containsString("Check the server logs"));
   }
 }

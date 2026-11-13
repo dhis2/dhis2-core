@@ -489,7 +489,7 @@ public class CrudControllerAdvice {
   @ExceptionHandler(QueryRuntimeException.class)
   @ResponseBody
   public WebMessage queryRuntimeExceptionHandler(QueryRuntimeException ex) {
-    return conflict(ex.getMessage(), ex.getErrorCode());
+    return conflict(ex.getMessage(), ex.getErrorCode(), ex.getDevMessage());
   }
 
   @ExceptionHandler(DeleteNotAllowedException.class)
