@@ -71,7 +71,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Geometries;
-import org.hisp.dhis.tracker.export.JdbcAttributeOptionComboLoader;
+import org.hisp.dhis.tracker.export.JdbcAttributeOptionComboUid;
 import org.hisp.dhis.tracker.export.JdbcNotes;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
@@ -200,7 +200,7 @@ class JdbcEnrollmentStore {
           """);
     }
 
-    sql.append(JdbcAttributeOptionComboLoader.uidSubquery("e.attributeoptioncomboid"))
+    sql.append(JdbcAttributeOptionComboUid.uidSubquery("e.attributeoptioncomboid"))
         .append(" as coc_uid ");
 
     if (params.isIncludeNotes()) {
