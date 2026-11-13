@@ -775,9 +775,9 @@ public final class CSV {
 
     private String value(int from, int to) {
       int f = skipIndent(from);
-      if (f >= to || f < len && isValueSeparator(buffer[f])) return null;
       int t = to;
       while (t > f && isIndent(buffer[t - 1])) t--;
+      if (f >= t || (f < len && isValueSeparator(buffer[f]))) return null;
       if (buffer[f] == '"' && buffer[t - 1] == '"') {
         String str = new String(buffer, f + 1, t - f - 2);
         return twinQuotes ? str.replace("\"\"", "\"") : str;
