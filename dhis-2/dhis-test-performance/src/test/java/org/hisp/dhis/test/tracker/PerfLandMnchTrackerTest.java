@@ -67,13 +67,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Experimental copy of {@link TrackerTest} for the synthetic Perf Land MNCH database (DHIS2-21406),
- * with the WHO Antenatal Care Registry (ANC) and Electronic Immunization Registry (EIR) packages.
+ * Tracker exports of the WHO Electronic Immunization Registry (EIR) on the synthetic Perf Land MNCH
+ * database (DHIS2-21406), as data clerks of district QP1613 send them: they search children by name
+ * and by their unique identifier, list them (first page, enrollment status, Birth events), and open
+ * one with its enrollment, event and relationships. The database also holds the WHO Antenatal Care
+ * Registry (ANC), which the test reads only as the mother at the other end of a child's
+ * relationship.
  *
- * <p>It runs the export scenario of {@link TrackerTest}'s tracker program (Child Programme) against
- * EIR, the program of the same shape: a child with a non-repeatable birth stage. The event program
- * scenario and the imports are left out; the database has no single-event program, and import
- * payloads for ANC and EIR do not exist yet.
+ * <p>The requests are those of {@link TrackerTest}'s export scenario for its tracker program (Child
+ * Programme), which has the shape of EIR: a child with a non-repeatable birth stage. The event
+ * program scenario and the imports are left out; the database has no single-event program, and
+ * import payloads for ANC and EIR do not exist yet.
  *
  * <p>Differences to {@link TrackerTest}, for the data this database holds:
  *
@@ -133,92 +137,6 @@ public class PerfLandMnchTrackerTest extends Simulation {
   private final int rampDurationSec;
   private final int steps;
 
-  private enum Profile {
-    SMOKE,
-    LOAD,
-    CAPACITY;
-
-    static Profile fromString(String profile) {
-      try {
-        return valueOf(profile.toUpperCase());
-      } catch (IllegalArgumentException e) {
-        throw new IllegalArgumentException(
-            "Unknown profile: " + profile + ". Valid options: smoke, load, capacity");
-      }
-    }
-  }
-
-  /** The column of a case a request's plan depends on, and its values. */
-  private enum Band {
-    NONE(null),
-    FACILITY("facilityBand", "small", "median", "large", "largest");
-
-    private final String column;
-    private final List<String> values;
-
-    Band(String column, String... values) {
-      this.column = column;
-      this.values = List.of(values);
-    }
-  }
-
-  /**
-   * A request, named {@code name [band]} if it has a band. {@code p95Thresholds} maps a band's
-   * value, or {@code ""} for {@link Band#NONE}, to the p95 thresholds of each profile. A missing
-   * threshold asserts nothing.
-   */
-  private record Request(
-      String url,
-      Band band,
-      Map<String, Map<Profile, Integer>> p95Thresholds,
-      String name,
-      String... groups) {
-    static Request of(
-        String url, Map<Profile, Integer> p95Thresholds, String name, String... groups) {
-      return new Request(url, Band.NONE, Map.of("", p95Thresholds), name, groups);
-    }
-
-    static Request banded(
-        String url,
-        Band band,
-        Map<String, Map<Profile, Integer>> p95Thresholds,
-        String name,
-        String... groups) {
-      return new Request(url, band, p95Thresholds, name, groups);
-    }
-
-    private String name(Session session) {
-      return band == Band.NONE ? name : nameOf(session.getString(band.column));
-    }
-
-    private String nameOf(String value) {
-      return band == Band.NONE ? name : name + " [" + value + "]";
-    }
-
-    HttpRequestActionBuilder action() {
-      return http(this::name)
-          .get(url)
-          .header("X-Request-ID", session -> nextRequestId(name(session)));
-    }
-
-    Stream<Assertion> assertions(Profile profile) {
-      List<String> values = band == Band.NONE ? List.of("") : band.values;
-      return values.stream()
-          .flatMap(
-              value -> {
-                Integer threshold = p95Thresholds.getOrDefault(value, Map.of()).get(profile);
-                if (threshold == null) {
-                  return Stream.empty();
-                }
-                String[] parts = Arrays.copyOf(groups, groups.length + 1);
-                parts[groups.length] = nameOf(value);
-                return Stream.of(details(parts).responseTime().percentile(95).lte(threshold));
-              });
-    }
-  }
-
-  private record ScenarioWithRequests(ScenarioBuilder scenario, List<Request> requests) {}
-
   public PerfLandMnchTrackerTest() {
     this.profile = Profile.fromString(System.getProperty("profile", "smoke"));
     this.instance = System.getProperty("instance", "http://localhost:8080");
@@ -261,34 +179,6 @@ public class PerfLandMnchTrackerTest extends Simulation {
     if (this.profile == Profile.SMOKE || Boolean.getBoolean("disablePauses")) {
       setUp.disablePauses();
     }
-  }
-
-  /**
-   * Logs in as the clerk of the case fed last, unless the session is already hers: with one case
-   * per clerk, every iteration logs in, except when a csv of {@code -Dcases} repeats a clerk.
-   */
-  private ChainBuilder loginAsCaseUser() {
-    return doIf(session -> !session.getString("username").equals(session.getString("loggedIn")))
-        .then(
-            exec(flushCookieJar())
-                .exec(
-                    http("Login")
-                        .post("/api/auth/login")
-                        .header("Content-Type", "application/json")
-                        .header("X-Request-ID", session -> nextRequestId("Login"))
-                        .body(
-                            StringBody(
-                                "{\"username\":\"#{username}\",\"password\":\"%s\"}"
-                                    .formatted(PASSWORD)))
-                        .check(status().is(200)))
-                .exitHereIfFailed()
-                .exec(session -> session.set("loggedIn", session.getString("username"))));
-  }
-
-  /** Filters on the given and the family name: EIR needs two attributes to search. */
-  private String nameFilters(String operator, String given, String family) {
-    return "&filter=%s:%s:%s&filter=%s:%s:%s"
-        .formatted(GIVEN_NAME, operator, given, FAMILY_NAME, operator, family);
   }
 
   private ScenarioWithRequests trackerProgramScenario() {
@@ -650,6 +540,50 @@ public class PerfLandMnchTrackerTest extends Simulation {
             getRelationshipsForEvent));
   }
 
+  /** Filters on the given and the family name: EIR needs two attributes to search. */
+  private String nameFilters(String operator, String given, String family) {
+    return "&filter=%s:%s:%s&filter=%s:%s:%s"
+        .formatted(GIVEN_NAME, operator, given, FAMILY_NAME, operator, family);
+  }
+
+  private ChainBuilder loopForProfile(ChainBuilder chain) {
+    if (this.profile == Profile.SMOKE) {
+      return exec(repeat(this.repeat).on(chain));
+    }
+    return exec(during(Duration.ofSeconds(injectionDurationSec())).on(chain));
+  }
+
+  private long injectionDurationSec() {
+    return switch (this.profile) {
+      case SMOKE -> throw new IllegalArgumentException("SMOKE profile uses repeat, not during");
+      case LOAD -> this.rampDurationSec + this.durationSec;
+      case CAPACITY ->
+          (long) this.steps * this.durationSec + (long) (this.steps - 1) * this.rampDurationSec;
+    };
+  }
+
+  /**
+   * Logs in as the clerk of the case fed last, unless the session is already hers: with one case
+   * per clerk, every iteration logs in, except when a csv of {@code -Dcases} repeats a clerk.
+   */
+  private ChainBuilder loginAsCaseUser() {
+    return doIf(session -> !session.getString("username").equals(session.getString("loggedIn")))
+        .then(
+            exec(flushCookieJar())
+                .exec(
+                    http("Login")
+                        .post("/api/auth/login")
+                        .header("Content-Type", "application/json")
+                        .header("X-Request-ID", session -> nextRequestId("Login"))
+                        .body(
+                            StringBody(
+                                "{\"username\":\"#{username}\",\"password\":\"%s\"}"
+                                    .formatted(PASSWORD)))
+                        .check(status().is(200)))
+                .exitHereIfFailed()
+                .exec(session -> session.set("loggedIn", session.getString("username"))));
+  }
+
   /** The closed injection profiles of TrackerTest. */
   private List<ClosedInjectionStep> buildClosedInjectionProfile() {
     return switch (this.profile) {
@@ -671,22 +605,6 @@ public class PerfLandMnchTrackerTest extends Simulation {
     };
   }
 
-  private long injectionDurationSec() {
-    return switch (this.profile) {
-      case SMOKE -> throw new IllegalArgumentException("SMOKE profile uses repeat, not during");
-      case LOAD -> this.rampDurationSec + this.durationSec;
-      case CAPACITY ->
-          (long) this.steps * this.durationSec + (long) (this.steps - 1) * this.rampDurationSec;
-    };
-  }
-
-  private ChainBuilder loopForProfile(ChainBuilder chain) {
-    if (this.profile == Profile.SMOKE) {
-      return exec(repeat(this.repeat).on(chain));
-    }
-    return exec(during(Duration.ofSeconds(injectionDurationSec())).on(chain));
-  }
-
   private List<Assertion> getAssertions(Profile profile, ScenarioWithRequests scenario) {
     return Stream.concat(
             Stream.of(forAll().successfulRequests().percent().gte(100d)),
@@ -700,4 +618,90 @@ public class PerfLandMnchTrackerTest extends Simulation {
     logger.debug("X-Request-ID: {} -> {}", id, name);
     return id;
   }
+
+  private enum Profile {
+    SMOKE,
+    LOAD,
+    CAPACITY;
+
+    static Profile fromString(String profile) {
+      try {
+        return valueOf(profile.toUpperCase());
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException(
+            "Unknown profile: " + profile + ". Valid options: smoke, load, capacity");
+      }
+    }
+  }
+
+  /** The column of a case a request's plan depends on, and its values. */
+  private enum Band {
+    NONE(null),
+    FACILITY("facilityBand", "small", "median", "large", "largest");
+
+    private final String column;
+    private final List<String> values;
+
+    Band(String column, String... values) {
+      this.column = column;
+      this.values = List.of(values);
+    }
+  }
+
+  /**
+   * A request, named {@code name [band]} if it has a band. {@code p95Thresholds} maps a band's
+   * value, or {@code ""} for {@link Band#NONE}, to the p95 thresholds of each profile. A missing
+   * threshold asserts nothing.
+   */
+  private record Request(
+      String url,
+      Band band,
+      Map<String, Map<Profile, Integer>> p95Thresholds,
+      String name,
+      String... groups) {
+    static Request of(
+        String url, Map<Profile, Integer> p95Thresholds, String name, String... groups) {
+      return new Request(url, Band.NONE, Map.of("", p95Thresholds), name, groups);
+    }
+
+    static Request banded(
+        String url,
+        Band band,
+        Map<String, Map<Profile, Integer>> p95Thresholds,
+        String name,
+        String... groups) {
+      return new Request(url, band, p95Thresholds, name, groups);
+    }
+
+    private String name(Session session) {
+      return band == Band.NONE ? name : nameOf(session.getString(band.column));
+    }
+
+    private String nameOf(String value) {
+      return band == Band.NONE ? name : name + " [" + value + "]";
+    }
+
+    HttpRequestActionBuilder action() {
+      return http(this::name)
+          .get(url)
+          .header("X-Request-ID", session -> nextRequestId(name(session)));
+    }
+
+    Stream<Assertion> assertions(Profile profile) {
+      List<String> values = band == Band.NONE ? List.of("") : band.values;
+      return values.stream()
+          .flatMap(
+              value -> {
+                Integer threshold = p95Thresholds.getOrDefault(value, Map.of()).get(profile);
+                if (threshold == null) {
+                  return Stream.empty();
+                }
+                String[] parts = Arrays.copyOf(groups, groups.length + 1);
+                parts[groups.length] = nameOf(value);
+                return Stream.of(details(parts).responseTime().percentile(95).lte(threshold));
+              });
+    }
+  }
+
+  private record ScenarioWithRequests(ScenarioBuilder scenario, List<Request> requests) {}
 }
