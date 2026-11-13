@@ -39,6 +39,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
@@ -94,8 +95,15 @@ class JdbcTemplateQueryAPI {
       RowMapper<T> mapper =
           of == Object[].class
               ? (RowMapper<T>) new ObjectArrayRowMapper()
-              : new BeanPropertyRowMapper<>(of);
+              : isSingleColumnType(of)
+                  ? (RowMapper<T>) new SingleColumnRowMapper<>(of)
+                  : new BeanPropertyRowMapper<>(of);
       return stream(mapper);
+    }
+
+    /** Types read from the only column of a row, as the Hibernate query API does. */
+    private static boolean isSingleColumnType(Class<?> of) {
+      return of == String.class || of == Boolean.class || Number.class.isAssignableFrom(of);
     }
 
     @Override

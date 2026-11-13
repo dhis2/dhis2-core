@@ -34,6 +34,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
  * Database lookups of what a user may access, organised by access question rather than by table, so
@@ -48,14 +49,30 @@ public interface AccessControlStore {
   /**
    * The attribute option combos (AOCs) the user may read data of: the default combo (no sharing
    * guards on default), and the option combos of {@code ATTRIBUTE} category combos for which the
-   * user can read data of every category option.
+   * user can read data of every category option. Runs on the caller's Hibernate session.
    *
    * @param user the user to check access for
    * @param limitTo checks only these option combos; null or empty checks all of them
-   * @return internal ids of the readable AOCs; null when the user is not restricted (superuser), so
-   *     no AOC filter applies; empty when the user may read no AOC at all, so no data is readable
+   * @return the readable AOCs, {@link DataReadableAocs#unrestricted()} for a superuser
    */
-  @CheckForNull
-  long[] getDataReadableAttributeOptionComboIds(
+  @Nonnull
+  DataReadableAocs getDataReadableAttributeOptionCombos(
       @Nonnull UserDetails user, @CheckForNull Collection<UID> limitTo);
+
+  /**
+   * The same lookup as {@link #getDataReadableAttributeOptionCombos(UserDetails, Collection)}, run
+   * on the given JDBC template instead of the Hibernate session, so that it gets the statement
+   * settings of the template. Tracker exports pass their export template, which bounds the lookup
+   * by the export deadline like the export query.
+   *
+   * @param jdbcTemplate runs the lookup
+   * @param user the user to check access for
+   * @param limitTo checks only these option combos; null or empty checks all of them
+   * @return the readable AOCs, {@link DataReadableAocs#unrestricted()} for a superuser
+   */
+  @Nonnull
+  DataReadableAocs getDataReadableAttributeOptionCombos(
+      @Nonnull NamedParameterJdbcTemplate jdbcTemplate,
+      @Nonnull UserDetails user,
+      @CheckForNull Collection<UID> limitTo);
 }

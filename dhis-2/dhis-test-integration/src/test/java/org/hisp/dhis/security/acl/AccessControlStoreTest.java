@@ -30,7 +30,7 @@
 package org.hisp.dhis.security.acl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
@@ -52,10 +52,12 @@ import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tests {@link AccessControlStore#getDataReadableAttributeOptionComboIds}: the attribute option
+ * Tests {@link AccessControlStore#getDataReadableAttributeOptionCombos}: the attribute option
  * combos a user may read data of, resolved up front for data value and tracker exports.
  */
 @Transactional
@@ -64,6 +66,7 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
   @Autowired private AccessControlStore store;
   @Autowired private CategoryService categoryService;
   @Autowired private IdentifiableObjectManager manager;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private CategoryOption coOpen;
   private CategoryOption coClosed;
@@ -111,7 +114,7 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
   void superuserIsNotRestricted() {
     UserDetails superuser = UserDetails.fromUser(makeUser("S", List.of("ALL")));
 
-    assertNull(store.getDataReadableAttributeOptionComboIds(superuser, null));
+    assertTrue(store.getDataReadableAttributeOptionCombos(superuser, null).isUnrestricted());
   }
 
   @Test
@@ -163,9 +166,25 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
     assertEquals(Set.of(), readable(details, List.of(UID.of(cocDisaggOpen))));
   }
 
+  @Test
+  void sameLookupOnAJdbcTemplate() {
+    UserDetails details = UserDetails.fromUser(user);
+    NamedParameterJdbcTemplate jdbc = new NamedParameterJdbcTemplate(jdbcTemplate);
+
+    assertEquals(
+        readable(details, null),
+        ids(store.getDataReadableAttributeOptionCombos(jdbc, details, null)));
+    assertEquals(
+        Set.of(aocOpen.getId()),
+        ids(store.getDataReadableAttributeOptionCombos(jdbc, details, List.of(UID.of(aocOpen)))));
+  }
+
   private Set<Long> readable(UserDetails user, List<UID> limitTo) {
-    long[] ids = store.getDataReadableAttributeOptionComboIds(user, limitTo);
-    return Arrays.stream(ids).boxed().collect(Collectors.toSet());
+    return ids(store.getDataReadableAttributeOptionCombos(user, limitTo));
+  }
+
+  private static Set<Long> ids(DataReadableAocs readable) {
+    return Arrays.stream(readable.ids()).boxed().collect(Collectors.toSet());
   }
 
   private CategoryOptionCombo defaultCoc() {

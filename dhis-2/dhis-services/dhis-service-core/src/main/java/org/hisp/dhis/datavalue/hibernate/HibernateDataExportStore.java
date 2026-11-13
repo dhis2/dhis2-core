@@ -56,6 +56,7 @@ import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AccessControlStore;
+import org.hisp.dhis.security.acl.DataReadableAocs;
 import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
@@ -137,27 +138,27 @@ public class HibernateDataExportStore implements DataExportStore {
     // list instead of guessing the size of a sharing-filtered set of all category option combos;
     // superusers are not restricted (they must be able to find invalid data), for everyone else
     // this also applies to explicit AOCs, as a second line behind the service's E2011 check
-    long[] aocAllowed =
-        accessControlStore.getDataReadableAttributeOptionComboIds(
+    DataReadableAocs dataReadableAocs =
+        accessControlStore.getDataReadableAttributeOptionCombos(
             currentUser, params.getAttributeOptionCombos());
-    if (aocAllowed != null && aocAllowed.length == 0) return Stream.empty();
+    if (dataReadableAocs.isNone()) return Stream.empty();
     // the export itself goes through plain JDBC: no per-column Hibernate type handling per row,
     // and the JdbcTemplate's fetch size lets the driver stream rows instead of buffering them all
     SQL.QueryAPI exportApi = NativeSQL.of(new NamedParameterJdbcTemplate(jdbcTemplate));
-    return createExportQuery(params, exportApi, currentUser, aocAllowed).stream()
+    return createExportQuery(params, exportApi, currentUser, dataReadableAocs).stream()
         .map(DataExportValue::of);
   }
 
   /**
-   * @param aocAllowed internal ids of the AOCs the values are limited to, null for no limit; must
-   *     not be empty (an empty list would erase the filter)
+   * @param dataReadableAocs the AOCs the values are limited to; must not be none (an empty list
+   *     would erase the filter)
    */
   static QueryBuilder createExportQuery(
       DataExportParams params,
       SQL.QueryAPI api,
       UserDetails currentUser,
-      @CheckForNull long[] aocAllowed) {
-    if (aocAllowed != null && aocAllowed.length == 0)
+      @Nonnull DataReadableAocs dataReadableAocs) {
+    if (dataReadableAocs.isNone())
       throw new IllegalArgumentException("AOC limit must not be empty");
     boolean isSuper = currentUser.isSuper();
     String sql =
@@ -240,7 +241,9 @@ public class HibernateDataExportStore implements DataExportStore {
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
         AND ou.hierarchylevel = :level
-        AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)""";
+        AND ${dataReadableAocs}"""
+            .replace(
+                "${dataReadableAocs}", DataReadableAocs.condition("dv.attributeoptioncomboid"));
 
     Date lastUpdated = params.getLastUpdated();
     if (lastUpdated == null && params.getLastUpdatedDuration() != null)
@@ -272,7 +275,7 @@ public class HibernateDataExportStore implements DataExportStore {
         .setParameter("aoc", params.getAttributeOptionCombos())
         .setParameter("lastUpdated", lastUpdated)
         .setParameter("deleted", params.isIncludeDeleted() ? null : false)
-        .setParameter("aocAllowed", aocAllowed)
+        .setParameter(DataReadableAocs.PARAMETER, dataReadableAocs.ids())
         .eraseNullParameterLines()
         // keep params below even when null
         .eraseJoinLine("de_ids", !params.hasDataElementFilters())
