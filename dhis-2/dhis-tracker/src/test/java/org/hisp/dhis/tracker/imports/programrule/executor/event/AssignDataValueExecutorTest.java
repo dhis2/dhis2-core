@@ -315,6 +315,79 @@ class AssignDataValueExecutorTest extends TrackerTestBase {
     assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
   }
 
+  @Test
+  void shouldNotOverwriteDataValueWhenAssignedValueIsEquivalent() {
+    dataElementA.setValueType(ValueType.NUMBER);
+    when(settings.getRuleEngineAssignOverwrite()).thenReturn(true);
+    Event eventWithDataValueSetSameValue = getEventWithDataValueSetSameValue();
+    bundle.setEvents(List.of(eventWithDataValueSetSameValue));
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            settingsProvider,
+            RULE_UID,
+            "24",
+            DATA_ELEMENT_UID,
+            eventWithDataValueSetSameValue.getDataValues());
+
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, eventWithDataValueSetSameValue);
+
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_UID, DATA_ELEMENT_UID);
+
+    assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
+  }
+
+  @Test
+  void shouldNotFailWhenAssignedValueIsInScientificNotationAndEquivalentToDataValue() {
+    dataElementA.setValueType(ValueType.NUMBER);
+    Event event =
+        TrackerEvent.builder()
+            .event(EVENT_UID)
+            .status(EventStatus.ACTIVE)
+            .dataValues(
+                Set.of(
+                    DataValue.builder()
+                        .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID.getValue()))
+                        .value("53093393.25")
+                        .build()))
+            .build();
+    bundle.setEvents(List.of(event));
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            settingsProvider, RULE_UID, "5.309339325E7", DATA_ELEMENT_UID, event.getDataValues());
+
+    Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, event);
+
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_UID, DATA_ELEMENT_UID);
+
+    assertDataValueWasAssignedAndWarningIsPresent("53093393.25", dataValue, warning);
+  }
+
+  @Test
+  void shouldAssignPlainNumberWhenAssignedValueIsInScientificNotationAndDataValueIsEmpty() {
+    dataElementA.setValueType(ValueType.NUMBER);
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    Event eventWithDataValueNOTSet = getEventWithDataValueNOTSet();
+    bundle.setEvents(List.of(eventWithDataValueNOTSet));
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            settingsProvider,
+            RULE_UID,
+            "5.309339325E7",
+            DATA_ELEMENT_UID,
+            eventWithDataValueNOTSet.getDataValues());
+
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, eventWithDataValueNOTSet);
+
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, SECOND_EVENT_UID, DATA_ELEMENT_UID);
+
+    assertDataValueWasAssignedAndWarningIsPresent("53093393.25", dataValue, warning);
+  }
+
   private Optional<DataValue> findDataValueByUid(
       TrackerBundle bundle, UID eventUid, UID dataValueUid) {
     Event event = bundle.findEventByUid(eventUid).get();

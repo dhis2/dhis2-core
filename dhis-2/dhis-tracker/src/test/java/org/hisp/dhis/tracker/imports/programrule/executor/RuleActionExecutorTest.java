@@ -30,13 +30,18 @@
 package org.hisp.dhis.tracker.imports.programrule.executor;
 
 import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor.isEqual;
+import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor.toPlainNumber;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.stream.Stream;
 import org.hisp.dhis.common.ValueType;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class RuleActionExecutorTest {
@@ -88,5 +93,37 @@ class RuleActionExecutorTest {
   void shouldTestIsEqualIsComparingCorrectlyDifferentTypeValues(
       String value1, String value2, ValueType valueType) {
     assertFalse(isEqual(value1, value2, valueType));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "5.309339325E7, NUMBER, 53093393.25",
+    "1.0000023214453E9, NUMBER, 1000002321.4453",
+    "1.0E7, INTEGER, 10000000",
+    "-2.5e8, NUMBER, -250000000",
+    "1.5E-7, NUMBER, 0.00000015"
+  })
+  void shouldConvertToPlainNumberWhenNumericValueIsInScientificNotation(
+      String value, ValueType valueType, String expected) {
+    assertEquals(expected, toPlainNumber(value, valueType));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "53093393.25, NUMBER",
+    "10.0, NUMBER",
+    "32, INTEGER",
+    "5.309339325E7, TEXT",
+    "E7, NUMBER",
+    "first_dose, NUMBER"
+  })
+  void shouldNotChangeValueWhenItIsNotANumericValueInScientificNotation(
+      String value, ValueType valueType) {
+    assertEquals(value, toPlainNumber(value, valueType));
+  }
+
+  @Test
+  void shouldReturnNullWhenValueIsNull() {
+    assertNull(toPlainNumber(null, ValueType.NUMBER));
   }
 }
