@@ -65,12 +65,13 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessControlStore;
+import org.hisp.dhis.security.acl.DataReadableAocs;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Geometries;
-import org.hisp.dhis.tracker.export.JdbcAttributeOptionCombos;
+import org.hisp.dhis.tracker.export.JdbcAttributeOptionComboLoader;
 import org.hisp.dhis.tracker.export.JdbcNotes;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
@@ -199,7 +200,7 @@ class JdbcEnrollmentStore {
           """);
     }
 
-    sql.append(JdbcAttributeOptionCombos.uidSubquery("e.attributeoptioncomboid"))
+    sql.append(JdbcAttributeOptionComboLoader.uidSubquery("e.attributeoptioncomboid"))
         .append(" as coc_uid ");
 
     if (params.isIncludeNotes()) {
@@ -278,13 +279,15 @@ class JdbcEnrollmentStore {
    * @return false when the user may read no attribute option combo, so no enrollment at all
    */
   private boolean addReadableAocs(MapSqlParameterSource sqlParams) {
-    long[] readable =
-        accessControlStore.getDataReadableAttributeOptionComboIds(getCurrentUserDetails(), null);
-    if (readable == null) {
+    // on the export template, so the lookup is bounded by the export deadline
+    DataReadableAocs readable =
+        accessControlStore.getDataReadableAttributeOptionCombos(
+            jdbcTemplate, getCurrentUserDetails(), null);
+    if (readable.isUnrestricted()) {
       return true;
     }
-    sqlParams.addValue(JdbcAttributeOptionCombos.READABLE_AOCS, readable);
-    return readable.length > 0;
+    sqlParams.addValue("readableAocs", readable.ids());
+    return !readable.isNone();
   }
 
   private void addLeftJoinOnNotes(StringBuilder sql, EnrollmentQueryParams params) {
@@ -446,9 +449,10 @@ class JdbcEnrollmentStore {
           .append(":attributeoptioncomboid")
           .append(" ");
     }
-    if (sqlParams.hasValue(JdbcAttributeOptionCombos.READABLE_AOCS)) {
+    if (sqlParams.hasValue("readableAocs")) {
       sql.append(hlp.whereAnd())
-          .append(JdbcAttributeOptionCombos.readableCondition("e.attributeoptioncomboid"));
+          .append(
+              " exists (select 1 from unnest(cast(:readableAocs as bigint[])) a(id) where a.id = e.attributeoptioncomboid) ");
     }
   }
 
