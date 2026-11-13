@@ -46,6 +46,7 @@ checks:
   - programs/programs_custom_data_entry_form_empty.yaml
   - programs/program_stages_no_programs.yaml
   - programs/programs_inconsistent_tracked_entity_type.yaml
+  - programs/programs_non_attribute_category_combo.yaml
   - program_indicators/program_indicators_without_expression.yaml
   - program_rules/program_rules_no_action.yaml
   - program_rules/program_rules_without_condition.yaml
