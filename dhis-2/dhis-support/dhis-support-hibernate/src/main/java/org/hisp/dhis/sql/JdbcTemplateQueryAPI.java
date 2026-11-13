@@ -99,6 +99,10 @@ class JdbcTemplateQueryAPI {
       if (of == Object[].class) {
         return (RowMapper<T>) new ObjectArrayRowMapper();
       }
+      if (of == Number.class) {
+        // SingleColumnRowMapper reads Number with getDouble; keep the column's own type
+        return (rs, rowNum) -> (T) rs.getObject(1);
+      }
       if (isSingleColumnType(of)) {
         return new SingleColumnRowMapper<>(of);
       }
