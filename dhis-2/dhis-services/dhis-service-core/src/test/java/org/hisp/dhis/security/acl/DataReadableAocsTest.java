@@ -1,0 +1,80 @@
+/*
+ * Copyright (c) 2004-2026, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.security.acl;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+
+class ReadableAocsTest {
+
+  @Test
+  void unrestrictedBindsNoIds() {
+    DataReadableAocs readable = DataReadableAocs.unrestricted();
+
+    assertTrue(readable.isUnrestricted());
+    assertFalse(readable.isNone());
+    assertNull(readable.ids());
+  }
+
+  @Test
+  void noneIsRestrictedToNothing() {
+    DataReadableAocs readable = DataReadableAocs.of(new long[0]);
+
+    assertFalse(readable.isUnrestricted());
+    assertTrue(readable.isNone());
+    assertArrayEquals(new long[0], readable.ids());
+  }
+
+  @Test
+  void idsAreCopied() {
+    long[] ids = {1, 2};
+    DataReadableAocs readable = DataReadableAocs.of(ids);
+    ids[0] = 9;
+    readable.ids()[1] = 9;
+
+    assertArrayEquals(new long[] {1, 2}, readable.ids());
+  }
+
+  @Test
+  void conditionFiltersTheColumnOnTheBoundIdsOnOneLine() {
+    String condition = DataReadableAocs.condition("ev.attributeoptioncomboid");
+
+    assertEquals(
+        "EXISTS (SELECT 1 FROM unnest(CAST(:dataReadableAocs AS bigint[])) data_readable_aoc(id)"
+            + " WHERE data_readable_aoc.id = ev.attributeoptioncomboid)",
+        condition);
+    assertFalse(condition.contains("\n"), "eraseNullParameterLines erases one line");
+  }
+}

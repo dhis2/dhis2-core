@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.security.acl.DataReadableAocs;
 import org.hisp.dhis.sql.AbstractQueryBuilderTest;
 import org.hisp.dhis.sql.SQL;
 import org.hisp.dhis.user.SystemUser;
@@ -53,7 +54,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for the SQL generation as performed by {@link
- * HibernateDataExportStore#createExportQuery(DataExportParams, SQL.QueryAPI, UserDetails, long[])}
+ * HibernateDataExportStore#createExportQuery(DataExportParams, SQL.QueryAPI, UserDetails,
+ * DataReadableAocs)}
  *
  * @author Jan Bernitt
  */
@@ -86,7 +88,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE 1=1""",
         Set.of(),
-        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
+        createExportQuery(
+            params, createSpyQuery(), new SystemUser(), DataReadableAocs.unrestricted()));
   }
 
   @Test
@@ -116,7 +119,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted""",
         Set.of("deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
+        createExportQuery(
+            params, createSpyQuery(), new SystemUser(), DataReadableAocs.unrestricted()));
   }
 
   @Test
@@ -153,7 +157,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted""",
         Set.of("pe", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
+        createExportQuery(
+            params, createSpyQuery(), new SystemUser(), DataReadableAocs.unrestricted()));
   }
 
   @Test
@@ -194,7 +199,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted""",
         Set.of("de", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
+        createExportQuery(
+            params, createSpyQuery(), new SystemUser(), DataReadableAocs.unrestricted()));
   }
 
   @Test
@@ -235,7 +241,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted""",
         Set.of("deg", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
+        createExportQuery(
+            params, createSpyQuery(), new SystemUser(), DataReadableAocs.unrestricted()));
   }
 
   @Test
@@ -276,7 +283,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted""",
         Set.of("ou", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
+        createExportQuery(
+            params, createSpyQuery(), new SystemUser(), DataReadableAocs.unrestricted()));
   }
 
   @Test
@@ -329,7 +337,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted""",
         Set.of("ou", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
+        createExportQuery(
+            params, createSpyQuery(), new SystemUser(), DataReadableAocs.unrestricted()));
   }
 
   @Test
@@ -370,7 +379,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted""",
         Set.of("ougSuper", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
+        createExportQuery(
+            params, createSpyQuery(), new SystemUser(), DataReadableAocs.unrestricted()));
   }
 
   @Test
@@ -423,7 +433,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted""",
         Set.of("ougSuper", "deleted"),
-        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
+        createExportQuery(
+            params, createSpyQuery(), new SystemUser(), DataReadableAocs.unrestricted()));
   }
 
   @Test
@@ -464,9 +475,10 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
-          AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)""",
-        Set.of("oug", "capture", "deleted", "aocAllowed"),
-        createExportQuery(params, createSpyQuery(), currentUser, new long[] {11L}));
+          AND EXISTS (SELECT 1 FROM unnest(CAST(:dataReadableAocs AS bigint[])) data_readable_aoc(id) WHERE data_readable_aoc.id = dv.attributeoptioncomboid)""",
+        Set.of("oug", "capture", "deleted", "dataReadableAocs"),
+        createExportQuery(
+            params, createSpyQuery(), currentUser, DataReadableAocs.of(new long[] {11L})));
   }
 
   @Test
@@ -503,7 +515,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.lastupdated >= :lastUpdated
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("lastUpdated"),
-        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
+        createExportQuery(
+            params, createSpyQuery(), new SystemUser(), DataReadableAocs.unrestricted()));
     // pin the actual bound value: the WHERE clause must be backed by the exact filter date,
     // not merely a same-named parameter with an unrelated (or null) value
     assertEquals(lastUpdated, paramValue("lastUpdated"));
@@ -544,7 +557,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE dv.lastupdated >= :lastUpdated
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("lastUpdated"),
-        createExportQuery(params, createSpyQuery(), new SystemUser(), null));
+        createExportQuery(
+            params, createSpyQuery(), new SystemUser(), DataReadableAocs.unrestricted()));
     long after = System.currentTimeMillis();
     // pin that lastUpdatedDuration is actually converted into a real cutoff date
     // (now - duration), not left null/ignored, which would silently erase the WHERE line
@@ -585,20 +599,25 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)""",
-        Set.of("aocAllowed"),
-        createExportQuery(params, createSpyQuery(), user, new long[] {11L, 12L}));
-    assertArrayEquals(new long[] {11L, 12L}, (long[]) paramValue("aocAllowed"));
+        WHERE EXISTS (SELECT 1 FROM unnest(CAST(:dataReadableAocs AS bigint[])) data_readable_aoc(id) WHERE data_readable_aoc.id = dv.attributeoptioncomboid)""",
+        Set.of("dataReadableAocs"),
+        createExportQuery(
+            params, createSpyQuery(), user, DataReadableAocs.of(new long[] {11L, 12L})));
+    assertArrayEquals(new long[] {11L, 12L}, (long[]) paramValue("dataReadableAocs"));
   }
 
   @Test
   void testAocAccess_noList_noAocFilter() {
     DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
     AtomicReference<String> captured = new AtomicReference<>();
-    createExportQuery(params, SQL.spy(captured::set, (n, p) -> {}), new SystemUser(), null)
+    createExportQuery(
+        params,
+        SQL.spy(captured::set, (n, p) -> {}),
+        new SystemUser(),
+        DataReadableAocs.unrestricted())
         .stream();
     String sql = captured.get();
-    assertFalse(sql.contains("aocAllowed"), "no list must mean no AOC filter: " + sql);
+    assertFalse(sql.contains("dataReadableAocs"), "no list must mean no AOC filter: " + sql);
     assertFalse(sql.contains("aoc_access"), "CTE must be gone: " + sql);
   }
 
@@ -608,7 +627,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
     DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
     UserDetails user = UserDetails.empty().build();
     SQL.QueryAPI api = createSpyQuery();
-    long[] none = new long[0];
+    DataReadableAocs none = DataReadableAocs.of(new long[0]);
     assertThrows(IllegalArgumentException.class, () -> createExportQuery(params, api, user, none));
   }
 
@@ -621,10 +640,14 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
             .build();
     AtomicReference<String> captured = new AtomicReference<>();
     createExportQuery(
-        params, SQL.spy(captured::set, (n, p) -> {}), UserDetails.empty().build(), new long[] {11L})
+        params,
+        SQL.spy(captured::set, (n, p) -> {}),
+        UserDetails.empty().build(),
+        DataReadableAocs.of(new long[] {11L}))
         .stream();
     String sql = captured.get();
     assertTrue(sql.contains("aoc.uid = :aoc"), "explicit AOC filter expected: " + sql);
-    assertTrue(sql.contains(":aocAllowed"), "allowed list must stay for explicit AOCs: " + sql);
+    assertTrue(
+        sql.contains(":dataReadableAocs"), "allowed list must stay for explicit AOCs: " + sql);
   }
 }

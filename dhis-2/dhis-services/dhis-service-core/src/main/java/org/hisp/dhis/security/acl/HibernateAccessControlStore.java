@@ -43,6 +43,7 @@ import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -56,15 +57,31 @@ public class HibernateAccessControlStore implements AccessControlStore {
   private final EntityManager entityManager;
 
   @Override
-  @CheckForNull
-  public long[] getDataReadableAttributeOptionComboIds(
+  @Nonnull
+  public DataReadableAocs getDataReadableAttributeOptionCombos(
       @Nonnull UserDetails user, @CheckForNull Collection<UID> limitTo) {
-    if (user.isSuper()) return null;
+    return getDataReadableAttributeOptionCombos(NativeSQL.of(getSession()), user, limitTo);
+  }
+
+  @Override
+  @Nonnull
+  public DataReadableAocs getDataReadableAttributeOptionCombos(
+      @Nonnull NamedParameterJdbcTemplate jdbcTemplate,
+      @Nonnull UserDetails user,
+      @CheckForNull Collection<UID> limitTo) {
+    return getDataReadableAttributeOptionCombos(NativeSQL.of(jdbcTemplate), user, limitTo);
+  }
+
+  /** The one lookup both public methods run, on the API they pass. */
+  @Nonnull
+  private static DataReadableAocs getDataReadableAttributeOptionCombos(
+      SQL.QueryAPI api, UserDetails user, @CheckForNull Collection<UID> limitTo) {
+    if (user.isSuper()) return DataReadableAocs.unrestricted();
     // a single bigint column comes back as a plain number per row, not as an Object[] row
-    return createDataReadableAocQuery(NativeSQL.of(getSession()), user, limitTo).stream(
-            Number.class)
-        .mapToLong(Number::longValue)
-        .toArray();
+    return DataReadableAocs.of(
+        createDataReadableAocQuery(api, user, limitTo).stream(Number.class)
+            .mapToLong(Number::longValue)
+            .toArray());
   }
 
   static QueryBuilder createDataReadableAocQuery(
