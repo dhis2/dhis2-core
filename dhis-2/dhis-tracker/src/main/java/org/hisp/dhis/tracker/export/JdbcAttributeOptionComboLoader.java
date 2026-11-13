@@ -99,10 +99,12 @@ public class JdbcAttributeOptionComboLoader {
         left join categoryoptioncombos_categoryoptions cocco
           on cocco.categoryoptioncomboid = coc.categoryoptioncomboid
         left join categoryoption co on co.categoryoptionid = cocco.categoryoptionid
-        where coc.categoryoptioncomboid in (:ids)""";
+        where coc.categoryoptioncomboid = any(cast(:ids as bigint[]))""";
     jdbcTemplate.query(
         sql,
-        new MapSqlParameterSource("ids", combos.keySet()),
+        // one array parameter: a list would bind one parameter per id, at most 65,535
+        new MapSqlParameterSource(
+            "ids", combos.keySet().stream().mapToLong(Long::longValue).toArray()),
         (RowCallbackHandler)
             rs -> {
               CategoryOptionCombo coc = combos.get(rs.getLong("coc_id"));
