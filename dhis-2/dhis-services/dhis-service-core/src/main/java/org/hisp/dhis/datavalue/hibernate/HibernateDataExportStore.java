@@ -241,9 +241,7 @@ public class HibernateDataExportStore implements DataExportStore {
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
         AND ou.hierarchylevel = :level
-        AND ${dataReadableAocs}"""
-            .replace(
-                "${dataReadableAocs}", DataReadableAocs.condition("dv.attributeoptioncomboid"));
+        AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)""";
 
     Date lastUpdated = params.getLastUpdated();
     if (lastUpdated == null && params.getLastUpdatedDuration() != null)
@@ -275,7 +273,7 @@ public class HibernateDataExportStore implements DataExportStore {
         .setParameter("aoc", params.getAttributeOptionCombos())
         .setParameter("lastUpdated", lastUpdated)
         .setParameter("deleted", params.isIncludeDeleted() ? null : false)
-        .setParameter(DataReadableAocs.PARAMETER, dataReadableAocs.ids())
+        .setParameter("aocAllowed", dataReadableAocs.ids())
         .eraseNullParameterLines()
         // keep params below even when null
         .eraseJoinLine("de_ids", !params.hasDataElementFilters())

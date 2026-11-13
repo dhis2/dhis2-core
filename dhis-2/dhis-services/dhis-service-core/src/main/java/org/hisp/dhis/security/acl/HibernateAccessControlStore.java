@@ -78,7 +78,7 @@ public class HibernateAccessControlStore implements AccessControlStore {
       SQL.QueryAPI api, UserDetails user, @CheckForNull Collection<UID> limitTo) {
     if (user.isSuper()) return DataReadableAocs.unrestricted();
     // a single bigint column comes back as a plain number per row, not as an Object[] row
-    return DataReadableAocs.of(
+    return new DataReadableAocs(
         createDataReadableAocQuery(api, user, limitTo).stream(Number.class)
             .mapToLong(Number::longValue)
             .toArray());

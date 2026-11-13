@@ -29,62 +29,23 @@
  */
 package org.hisp.dhis.security.acl;
 
-import java.util.Arrays;
 import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 
 /**
  * The attribute option combos (AOCs) a user may read data of, as resolved by {@link
- * AccessControlStore}, and the one way data queries filter on them.
+ * AccessControlStore}: the internal ids a data query filters on.
  *
- * <p>A query filters with {@link #condition(String)} and binds {@link #ids()} as {@link
- * #PARAMETER}. When the user is not restricted, {@link #ids()} is null: queries built with {@code
- * QueryBuilder#eraseNullParameterLines} then drop the condition line, other queries leave it out
- * ({@link #isUnrestricted()}). When the user may read no AOC at all ({@link #isNone()}), there is
- * no data to query.
+ * @param ids internal ids of the readable AOCs; null when no check is needed (superuser); empty
+ *     when the user may read the data of no AOC at all
  */
-public final class DataReadableAocs {
+public record DataReadableAocs(@CheckForNull long[] ids) {
 
-  /** Name of the array parameter holding the internal ids of the readable AOCs. */
-  public static final String PARAMETER = "dataReadableAocs";
-
-  private static final DataReadableAocs UNRESTRICTED = new DataReadableAocs(null);
-
-  @CheckForNull private final long[] ids;
-
-  private DataReadableAocs(@CheckForNull long[] ids) {
-    this.ids = ids;
-  }
-
-  /** A user who may read the data of all AOCs, a superuser. */
-  @Nonnull
+  /** No check needed: the user may read the data of all AOCs. */
   public static DataReadableAocs unrestricted() {
-    return UNRESTRICTED;
+    return new DataReadableAocs(null);
   }
 
-  /**
-   * @param ids internal ids of the AOCs the user may read data of, empty when none
-   */
-  @Nonnull
-  public static DataReadableAocs of(@Nonnull long[] ids) {
-    return new DataReadableAocs(ids.clone());
-  }
-
-  /**
-   * A condition on one line limiting the AOC column to the AOCs bound as {@link #PARAMETER}: a hash
-   * semi join over the bound array, which PostgreSQL estimates like no filter at all. Joining a
-   * sharing-filtered set of category option combos instead gives the planner a result size it
-   * cannot estimate (DHIS2-22400).
-   *
-   * @param aocColumn qualified AOC id column, e.g. {@code dv.attributeoptioncomboid}
-   */
-  @Nonnull
-  public static String condition(@Nonnull String aocColumn) {
-    return "EXISTS (SELECT 1 FROM unnest(CAST(:%s AS bigint[])) data_readable_aoc(id) WHERE data_readable_aoc.id = %s)"
-        .formatted(PARAMETER, aocColumn);
-  }
-
-  /** True when the user may read the data of all AOCs: queries do not filter on AOCs. */
+  /** True when no check is needed: queries do not filter on AOCs. */
   public boolean isUnrestricted() {
     return ids == null;
   }
@@ -92,20 +53,5 @@ public final class DataReadableAocs {
   /** True when the user may read the data of no AOC: there is no data to query. */
   public boolean isNone() {
     return ids != null && ids.length == 0;
-  }
-
-  /**
-   * @return internal ids of the readable AOCs to bind as {@link #PARAMETER}, null when unrestricted
-   */
-  @CheckForNull
-  public long[] ids() {
-    return ids == null ? null : ids.clone();
-  }
-
-  @Override
-  public String toString() {
-    return ids == null
-        ? "DataReadableAocs[unrestricted]"
-        : "DataReadableAocs" + Arrays.toString(ids);
   }
 }
