@@ -37,6 +37,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hisp.dhis.cache.ETagObserved;
 
 /**
  * @author Nguyen Hong Duc
@@ -47,6 +48,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
+@ETagObserved
 public class UserSetting implements Serializable {
 
   @Nonnull private User user;

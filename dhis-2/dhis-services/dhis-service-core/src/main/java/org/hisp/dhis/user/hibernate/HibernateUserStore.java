@@ -75,6 +75,7 @@ import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.config.sqlobserver.DmlSqlParser;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryUtils;
@@ -673,8 +674,11 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   @Override
   public void updateLastLogin(@Nonnull User user, @Nonnull Date lastLogin) {
+    // the dml-skip marker keeps a login from bumping the User ETag version
     jdbcTemplate.update(
-        "UPDATE userinfo SET lastlogin = ? WHERE userinfoid = ?", lastLogin, user.getId());
+        DmlSqlParser.DML_SKIP_MARKER + " UPDATE userinfo SET lastlogin = ? WHERE userinfoid = ?",
+        lastLogin,
+        user.getId());
     // lastLogin is update="false", so this is not a change Hibernate writes, but an update of this
     // instance puts its in-memory state into the second-level cache after the commit
     user.setLastLogin(lastLogin);

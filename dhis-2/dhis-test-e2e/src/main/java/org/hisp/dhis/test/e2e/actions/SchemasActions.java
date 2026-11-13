@@ -54,6 +54,13 @@ public class SchemasActions extends RestApiActions {
     return get(resource).extractObject("", Schema.class);
   }
 
+  public List<Schema> getMetadataSchemas() {
+    return get().extractList("schemas", Schema.class).stream()
+        .filter(Schema::isMetadata)
+        .filter(schema -> schema.getRelativeApiEndpoint() != null)
+        .collect(Collectors.toList());
+  }
+
   public ApiResponse validateObjectAgainstSchema(String resource, Object obj) {
     return post(resource, obj);
   }

@@ -85,10 +85,13 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
     HttpStatus httpStatus = HttpUtils.resolve(body.getHttpStatusCode());
     if (httpStatus != null) {
       response.setStatusCode(httpStatus);
+      // Don't cache errors
       if (httpStatus.is4xxClientError() || httpStatus.is5xxServerError()) {
         HttpHeaders headers = response.getHeaders();
         if (!headers.containsHeader("Cache-Control")) {
-          headers.add("Cache-Control", CacheControl.noCache().cachePrivate().getHeaderValue());
+          headers.add(
+              "Cache-Control",
+              CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue());
         }
       }
     }

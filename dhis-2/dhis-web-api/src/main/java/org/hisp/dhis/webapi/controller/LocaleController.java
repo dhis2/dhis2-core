@@ -123,7 +123,8 @@ public class LocaleController {
   public @ResponseBody I18nLocale getObject(
       @PathVariable("uid") String uid, HttpServletResponse response) throws NotFoundException {
     response.setHeader(
-        ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
+        ContextUtils.HEADER_CACHE_CONTROL,
+        CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue());
     I18nLocale locale = localeService.getI18nLocaleByUid(uid);
 
     if (locale == null) {

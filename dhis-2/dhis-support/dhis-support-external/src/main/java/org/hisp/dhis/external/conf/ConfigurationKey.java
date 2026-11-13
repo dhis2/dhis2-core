@@ -611,6 +611,9 @@ public enum ConfigurationKey {
   /** CPU monitoring. (default: off) */
   MONITORING_CPU_ENABLED("monitoring.cpu.enabled", Constants.OFF, false),
 
+  /** DML/ETag cache monitoring. (default: off) */
+  MONITORING_CACHE_ETAG_ENABLED("monitoring.cache.etag.enabled", Constants.OFF, false),
+
   /**
    * JMX monitoring: expose selected statistics (user statistics) and HikariCP connection pool
    * MBeans, for monitoring tools that consume JMX rather than Prometheus, such as Glowroot.
@@ -859,6 +862,34 @@ public enum ConfigurationKey {
   MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false),
 
   CACHE_EHCACHE_CONFIG_FILE("cache.ehcache.config.file", "classpath:ehcache.xml", false),
+
+  /**
+   * Enable conditional ETag caching for API responses and the SQL DML observer that drives
+   * real-time cache invalidation. ETags are validated before heavy controller work using
+   * process-local in-memory version counters. (default: on)
+   *
+   * <p><strong>Not supported on multi-node topologies.</strong> Forced off at startup (even if this
+   * key is {@code on}) when either DHIS2 clustering ({@code cluster.members} + {@code
+   * cluster.hostname}) or Redis cache invalidation ({@code redis.cache.invalidation.enabled}) is
+   * enabled. Plain {@code redis.enabled} alone does not force it off. See {@link
+   * ETagCacheActivation}. Multi-node version propagation is not implemented yet.
+   */
+  CACHE_API_ETAG_ENABLED("cache.api.etag.enabled", Constants.ON, false),
+
+  /**
+   * TTL window in minutes for conditional ETag caching. This is the maximum time a cached response
+   * can be considered valid without checking for data changes. Acts as a safety net to ensure
+   * periodic refresh even if a DML event is missed. (default: 10)
+   */
+  CACHE_API_ETAG_TTL_MINUTES("cache.api.etag.ttl.minutes", "10", false),
+
+  /**
+   * Duration in seconds for the stale-while-revalidate Cache-Control directive. When above 0, the
+   * browser can show a stale cached response at once while it revalidates in the background, so a
+   * user can see a list from before their own save once. 0 forces synchronous revalidation; a
+   * matching ETag still costs only a 304. (default: 0)
+   */
+  CACHE_API_ETAG_STALE_SECONDS("cache.api.etag.stale.seconds", "0", false),
 
   // Enable saved requests, this will save the URL the user tries to access before they are logged
   // in, and redirect to that URL after they are logged in.

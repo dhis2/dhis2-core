@@ -1,0 +1,21 @@
+{
+  "programs": [
+    {
+      "id": "CchPrgPRL01",
+      "name": "Cache Program for PR",
+      "shortName": "Cache PR Prog",
+      "programType": "WITHOUT_REGISTRATION",
+      "organisationUnits": [
+        { "id": "DiszpKrYNg8" }
+      ]
+    }
+  ],
+  "programRules": [
+    {
+      "id": "CchPRu00001",
+      "name": "Cache Test Program Rule",
+      "program": { "id": "CchPrgPRL01" },
+      "condition": "true"
+    }
+  ]
+}

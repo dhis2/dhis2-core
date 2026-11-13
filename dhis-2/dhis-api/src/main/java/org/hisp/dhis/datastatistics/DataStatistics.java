@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hisp.dhis.cache.ETagObserved;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
 /**
@@ -46,6 +47,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 @Setter
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@ETagObserved
 public class DataStatistics extends BaseIdentifiableObject {
 
   /** The total number of map views. */

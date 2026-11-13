@@ -1,0 +1,31 @@
+{
+  "dataElements": [
+    {
+      "id": "CchDE000001",
+      "name": "Cache Test DataElement for ADE",
+      "shortName": "Cache ADE DE",
+      "aggregationType": "SUM",
+      "valueType": "INTEGER",
+      "domainType": "AGGREGATE"
+    }
+  ],
+  "aggregateDataExchanges": [
+    {
+      "id": "CchADE00001",
+      "name": "Cache Test ADE",
+      "source": {
+        "requests": [
+          {
+            "name": "Cache request",
+            "dx": ["CchDE000001"],
+            "pe": ["202301"],
+            "ou": ["DiszpKrYNg8"]
+          }
+        ]
+      },
+      "target": {
+        "type": "INTERNAL"
+      }
+    }
+  ]
+}

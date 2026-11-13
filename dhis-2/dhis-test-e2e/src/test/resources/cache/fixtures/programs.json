@@ -1,0 +1,13 @@
+{
+  "programs": [
+    {
+      "id": "CchPrgEVNT1",
+      "name": "Cache Test Event Program",
+      "shortName": "Cache EVT Prog",
+      "programType": "WITHOUT_REGISTRATION",
+      "organisationUnits": [
+        { "id": "DiszpKrYNg8" }
+      ]
+    }
+  ]
+}

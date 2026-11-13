@@ -23,6 +23,66 @@ mvn test \
     -Dtest.track_called_endpoints=true
 ```
 
+### Cache Suite
+
+The cache suite verifies the automatic API conditional `ETag` behavior end-to-end. The server under
+test must run with:
+
+```properties
+cache.api.etag.enabled=on
+```
+
+The e2e docker `dhis.conf` already sets that flag. The suite is tagged `cache` and is **excluded
+from the default e2e profile** (same pattern as analytics). CI runs it as the
+**Run cache e2e tests** step of the `api-test` job in `.github/workflows/run-api-tests.yml`
+(same image build as the default e2e suite; `docker-compose.e2e-cache.yml` activates `-Pcache`).
+
+Run only the cache-tagged suite against a live instance:
+
+```sh
+mvn -Pcache test \
+    -Dinstance.url=http://localhost:8080/api \
+    -Dtest.cleanup=true \
+    -Duser.default.username=admin \
+    -Duser.default.password=district \
+    -Dtest.track_called_endpoints=true
+```
+
+Or via docker compose (same path CI uses; requires `DHIS2_IMAGE` pointing at a built core image):
+
+```sh
+DHIS2_IMAGE=dhis2/core-dev:local docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.e2e.yml \
+  -f docker-compose.e2e-cache.yml \
+  up --remove-orphans --exit-code-from test
+```
+
+For fast ad hoc debugging against a running local server, use the smoke script:
+
+```sh
+./scripts/etag-cache-smoke.sh \
+    --base-url http://localhost:8080/api \
+    --username admin \
+    --password district
+```
+
+To replay harvested `coverage.csv` URLs and classify them as cached, uncached, or suspect:
+
+```sh
+./scripts/etag-cache-smoke.sh \
+    --base-url http://localhost:8080/api \
+    --username admin \
+    --password district \
+    --coverage coverage.csv
+```
+
+The default smoke manifest lives at `src/test/resources/cache/cache-routes.csv`. Its classes:
+`cached` (smart ETag, `Vary`, 304 on match), `shallow` (no smart ETag; `ETagFilter`'s body-hash
+ETag `"0<md5>"` and 304 on match), `uncached` (no smart headers; a body-hash ETag is allowed) and
+`suspect` (reported only). Add curated metadata fixtures under `src/test/resources/cache/fixtures/`
+when schema-driven object generation is not stable enough for exhaustive invalidation coverage.
+
 ### Real eSignet OIDC login (opt-in)
 
 From the repository root:
