@@ -390,6 +390,12 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
+  @Nonnull
+  public List<App> getAllApps(@CheckForNull String contextPath) {
+    return getAppsList(getAppsStream(), -1, contextPath);
+  }
+
+  @Override
   public App getApp(String appName) {
     // Checks for app.getUrlFriendlyName which is the key of appCache
     Optional<App> appOptional = appCache.getIfPresent(appName);

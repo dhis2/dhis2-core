@@ -30,25 +30,109 @@
 package org.hisp.dhis.security.utils;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class CspConstants {
   private CspConstants() {}
 
-  public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
+  public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
+  public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
 
-  public static final Pattern P_1 = Pattern.compile("^.+/dataValues/files$");
+  /**
+   * Directives applied to every emitted policy. Each one is a policy-level directive that does NOT
+   * fall back to {@code default-src} per the CSP spec, so it has to be declared explicitly:
+   *
+   * <ul>
+   *   <li>{@code base-uri 'self'} — locks down {@code <base href>} rewriting.
+   *   <li>{@code form-action 'self'} — prevents off-origin form submission (incl. via the {@code
+   *       formaction} button attribute); also a partial CSRF defense layer.
+   *   <li>{@code object-src 'none'} — kills the legacy plugin attack surface (Flash / Java applet /
+   *       PDF plugin) — DHIS2 doesn't use any of these.
+   * </ul>
+   *
+   * <p>{@code upgrade-insecure-requests} is appended at runtime by {@link
+   * org.hisp.dhis.webapi.security.csp.CspPolicyService} based on {@link
+   * org.hisp.dhis.external.conf.ConfigurationKey#CSP_UPGRADE_INSECURE_ENABLED} (default ON), only
+   * when {@code server.https} is enabled.
+   */
+  private static final String COMMON_HARDENING =
+      "base-uri 'self'; form-action 'self'; object-src 'none';";
 
-  public static final Pattern P_2 =
-      Pattern.compile(
-          "^.+messageConversations/[a-zA-Z\\d]+/[a-zA-Z\\d]+/attachments/[a-zA-Z\\d]+$");
+  /**
+   * Strict default CSP policy applied to all endpoints. This policy only allows resources from the
+   * same origin.
+   */
+  public static final String DEFAULT_CSP_POLICY =
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; " + COMMON_HARDENING;
 
-  public static final Pattern P_3 = Pattern.compile("^.+fileResources/[a-zA-Z\\d]+/data$");
+  /**
+   * CSP policy for endpoints serving user-uploaded content. This policy disables all unsafe sources
+   * to prevent injection attacks on potentially untrusted content.
+   */
+  public static final String USER_UPLOADED_CONTENT_CSP_POLICY =
+      "default-src 'none'; " + COMMON_HARDENING;
 
-  public static final Pattern P_4 = Pattern.compile("^.+audits/files/[a-zA-Z\\d]+$");
+  /** Content-Security-Policy-Report-Only header name, used by report-only drafts and exemptions. */
+  public static final String CONTENT_SECURITY_POLICY_REPORT_ONLY_HEADER_NAME =
+      "Content-Security-Policy-Report-Only";
 
-  public static final List<Pattern> EXTERNAL_STATIC_CONTENT_URL_PATTERNS =
-      List.of(P_1, P_2, P_2, P_4);
+  /**
+   * Baseline policy of every app served from the app host. It holds no third-party origin besides
+   * the App Hub icon host: origins a single app needs (for example the Maps basemap tile servers)
+   * come from the per-app base overrides and the administrator overrides of that app and its
+   * entrypoint, so they never widen the policy of other apps. App images include generated chart
+   * exports and App Hub icons, never uploaded documents.
+   */
+  public static final String APP_HOST_CSP_POLICY =
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; child-src 'self' blob:;"
+          + " img-src 'self' data: blob: https://apps.dhis2.org; connect-src 'self'; "
+          + COMMON_HARDENING;
 
-  public static final Pattern LOGIN_PATTERN = Pattern.compile("^.+/dhis-web-commons/security/.+$");
+  /**
+   * Directives an administrator may extend per app and entrypoint. {@code form-action} only takes
+   * bare origins (for example an identity provider), never a keyword or wildcard.
+   */
+  public static final List<String> OVERRIDABLE_DIRECTIVES =
+      List.of(
+          "connect-src",
+          "img-src",
+          "frame-src",
+          "child-src",
+          "font-src",
+          "style-src",
+          "media-src",
+          "worker-src",
+          "script-src",
+          "form-action");
+
+  /** Directives no override can touch: they are always taken from the baseline and footer. */
+  public static final List<String> LOCKED_DIRECTIVES =
+      List.of(
+          "default-src",
+          "object-src",
+          "base-uri",
+          "frame-ancestors",
+          "upgrade-insecure-requests",
+          "report-uri",
+          "report-to");
+
+  /**
+   * CSP policy for the rendered OpenAPI HTML documentation pages, scoped to the OpenAPI HTML
+   * endpoints only via {@link org.hisp.dhis.webapi.security.csp.CspOpenApiDocs @CspOpenApiDocs}. It
+   * allows exactly what {@code OpenApiRenderer} emits:
+   *
+   * <ul>
+   *   <li>{@code script-src 'self' 'unsafe-inline'} for the inline script and {@code onclick}
+   *       handlers of the interactive page.
+   *   <li>{@code img-src 'self' data:} for the logo and the source links, drawn as {@code data:}
+   *       PNG backgrounds.
+   *   <li>{@code https://fonts.googleapis.com} in {@code style-src} and {@code font-src
+   *       https://fonts.gstatic.com} for the Google Fonts stylesheet the page imports and the font
+   *       files that stylesheet loads.
+   * </ul>
+   */
+  public static final String OPENAPI_DOCS_CSP_POLICY =
+      "default-src 'self'; script-src 'self' 'unsafe-inline';"
+          + " style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;"
+          + " font-src https://fonts.gstatic.com; img-src 'self' data:; "
+          + COMMON_HARDENING;
 }
