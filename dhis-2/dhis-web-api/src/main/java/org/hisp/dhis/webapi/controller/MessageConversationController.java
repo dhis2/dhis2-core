@@ -83,6 +83,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.webapi.security.CrossOriginGetGuard;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
@@ -173,6 +174,7 @@ public class MessageConversationController
     boolean markRead = "true".equals(request.getParameter("markRead"));
 
     if (markRead) {
+      CrossOriginGetGuard.check(request);
       messageConversation.markRead(UID.of(currentUser.getUid()));
       manager.update(messageConversation);
     }
