@@ -649,7 +649,7 @@ public final class CSV {
           if (keepLen == buffer.length) {
             // grow
             if (buffer.length >= maxValueLength) throw error("Value longer than " + maxValueLength);
-            char[] b2 = new char[Math.min(DEFAULT_MAX_VALUE_LENGTH, buffer.length * 2)];
+            char[] b2 = new char[Math.min(maxValueLength, buffer.length * 2)];
             System.arraycopy(buffer, pos, b2, 0, keepLen);
             buffer = b2;
           } else {
