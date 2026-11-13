@@ -545,4 +545,26 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
     query.setMaxResults(2);
     assertEquals(2, runQuery(query).size());
   }
+
+  @Test
+  void testCollectionIdNotInQuery() {
+    Query<?> query = Query.of(DataElement.class);
+    query.add(Filters.notIn("dataElementGroups.id", List.of("abcdefghijA")));
+
+    List<? extends IdentifiableObject> objects = runQuery(query);
+    assertEquals(2, objects.size());
+    assertTrue(collectionContainsUid(objects, "deabcdefghE"));
+    assertTrue(collectionContainsUid(objects, "deabcdefghF"));
+  }
+
+  @Test
+  void testCollectionIdNotEqQuery() {
+    Query<?> query = Query.of(DataElement.class);
+    query.add(Filters.ne("dataElementGroups.id", "abcdefghijA"));
+
+    List<? extends IdentifiableObject> objects = runQuery(query);
+    assertEquals(2, objects.size());
+    assertTrue(collectionContainsUid(objects, "deabcdefghE"));
+    assertTrue(collectionContainsUid(objects, "deabcdefghF"));
+  }
 }

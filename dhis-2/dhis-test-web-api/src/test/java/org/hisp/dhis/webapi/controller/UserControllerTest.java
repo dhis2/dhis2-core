@@ -1508,4 +1508,32 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(uids.contains(bob.getUid()), "bob (in orgB) should be returned");
     assertFalse(uids.contains(alice.getUid()), "alice (in orgA only) should not be returned");
   }
+
+  @Test
+  @DisplayName("GET /users?filter=organisationUnits.id:!in:[uid] excludes users in that org unit")
+  void testGetUsersFilterByOrgUnitNotIn() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    List<String> uids =
+        GET("/users?fields=id&filter=organisationUnits.id:!in:[" + orgB.getUid() + "]")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class)
+            .stream()
+            .map(JsonUser::getId)
+            .toList();
+
+    assertTrue(uids.contains(alice.getUid()), "alice (in orgA) should be returned");
+    assertFalse(uids.contains(bob.getUid()), "bob (in orgB) should not be returned");
+  }
 }

@@ -48,6 +48,12 @@ class FilterTest {
   }
 
   @Test
+  void doesNotSupportDbPredicateForNegatedOperators() {
+    assertFalse(Filters.ne("members.id", "abc123").supportsDbPredicate());
+    assertFalse(Filters.notIn("members.id", of("a", "b")).supportsDbPredicate());
+  }
+
+  @Test
   void doesNotSupportDbPredicateForNonEligibleOperator() {
     assertFalse(Filters.gt("members.id", 1).supportsDbPredicate());
   }
