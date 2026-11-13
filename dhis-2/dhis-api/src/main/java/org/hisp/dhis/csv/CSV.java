@@ -247,11 +247,15 @@ public final class CSV {
   }
 
   public static CsvConfig of(InputStream csv) {
-    return new Config(new InputStreamReader(csv, StandardCharsets.UTF_8), DEFAULT_MAX_VALUE_LENGTH);
+    return of(new InputStreamReader(csv, StandardCharsets.UTF_8));
   }
 
   public static CsvConfig of(@Language("csv") String csv) {
-    return new Config(new StringReader(csv), DEFAULT_MAX_VALUE_LENGTH);
+    return of(new StringReader(csv));
+  }
+
+  static CsvConfig of(java.io.Reader csv) {
+    return new Config(csv, DEFAULT_MAX_VALUE_LENGTH);
   }
 
   private static final Map<Class<?>, Function<String, ?>> DESERIALIZERS = new ConcurrentHashMap<>();
@@ -591,8 +595,8 @@ public final class CSV {
       try {
         int tailLen = buffer.length - keepLen;
         int readLen = csv.read(buffer, keepLen, tailLen);
-        eoi = readLen < tailLen;
-        len = readLen + keepLen;
+        eoi = readLen == -1;
+        len = eoi ? keepLen : keepLen + readLen;
       } catch (IOException ex) {
         throw new UncheckedIOException(ex);
       }

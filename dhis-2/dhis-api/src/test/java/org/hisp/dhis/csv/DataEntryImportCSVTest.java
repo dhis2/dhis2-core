@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.List;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.intellij.lang.annotations.Language;
@@ -609,6 +611,51 @@ class DataEntryImportCSVTest {
     List<DataEntryValue.Input> values =
         read("dataElement,period,orgUnit,value\n" + "de123456789,202501,ou123456789,\"abc\"");
     assertEquals("abc", values.get(0).value());
+  }
+
+  @Test
+  void testCompleteRowAtExactBufferBoundary() {
+    // Buffer in CSV.Reader is 2048 chars. A 2048-char CSV with no trailing
+    // newline forces a second read() after the initial fill; StringReader
+    // returns -1, which the current fillBufferTail mishandles (len ends up
+    // keepLen - 1, dropping the last char).
+    record Row(String v) {}
+
+    StringBuilder csv = new StringBuilder("v\n");
+    while (csv.length() < 2046) csv.append("X\n"); // 2 chars per row
+    csv.append("XY"); // last row, no trailing \n
+    assertEquals(2048, csv.length());
+
+    List<Row> rows = CSV.of(csv.toString()).as(Row.class).list();
+    assertEquals(1023, rows.size());
+    assertEquals("XY", rows.get(1022).v());
+  }
+
+  @Test
+  void testShortReadsFromChunkedReader() {
+    record Row(String v) {}
+
+    StringBuilder csv = new StringBuilder("v\n");
+    for (int i = 0; i < 1000; i++) csv.append("X\n");
+    String text = csv.toString();
+
+    java.io.Reader chunked =
+        new java.io.Reader() {
+          private final StringReader delegate = new StringReader(text);
+
+          @Override
+          public int read(char[] cbuf, int off, int len) throws IOException {
+            return delegate.read(cbuf, off, Math.min(100, len));
+          }
+
+          @Override
+          public void close() throws IOException {
+            delegate.close();
+          }
+        };
+
+    List<Row> rows = CSV.of(chunked).as(Row.class).list();
+    assertEquals(1000, rows.size());
   }
 
   private static List<DataEntryValue.Input> read(@Language("csv") String csv) {
