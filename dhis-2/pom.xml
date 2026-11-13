@@ -223,7 +223,7 @@
          when junit:junit is on the test classpath, which breaks the unit/integration test profiles -->
     <maven-surefire-plugin.version>3.6.1</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
-    <maven-exec-plugin.version>3.6.4</maven-exec-plugin.version>
+    <maven-exec-plugin.version>3.7.0</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.6.1</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
