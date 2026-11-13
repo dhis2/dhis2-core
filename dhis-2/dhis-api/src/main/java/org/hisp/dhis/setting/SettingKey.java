@@ -117,6 +117,12 @@ public enum SettingKey {
    * unlimited records.
    */
   ANALYTICS_MAX_LIMIT("keyAnalyticsMaxLimit", 100000, Integer.class),
+  /**
+   * Max number of indicator values (indicators times dimension item permutations) an analytics
+   * query may compute, 0 means unlimited.
+   */
+  ANALYTICS_MAX_INDICATOR_PERMUTATIONS(
+      "keyAnalyticsMaxIndicatorPermutations", 1000000, Integer.class),
   MAX_DATA_QUALITY_LIMIT("keyDataQualityMaxLimit", 500, Integer.class),
   INCLUDE_ZERO_VALUES_IN_ANALYTICS("keyIncludeZeroValuesInAnalytics", Boolean.FALSE, Boolean.class),
   SQL_VIEW_MAX_LIMIT("keySqlViewMaxLimit", -1, Integer.class),
