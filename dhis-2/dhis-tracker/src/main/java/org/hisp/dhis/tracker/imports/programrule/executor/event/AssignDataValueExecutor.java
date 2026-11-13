@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.imports.programrule.executor.event;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning;
 import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor.isEqual;
+import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor.toPlainNumber;
 
 import java.util.Optional;
 import java.util.Set;
@@ -79,44 +80,43 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    Boolean canOverwrite = settingsProvider.getCurrentSettings().getRuleEngineAssignOverwrite();
-
     DataElement dataElement = bundle.getPreheat().getDataElement(dataElementUid.getValue());
 
-    DataValue payloadDataValue =
-        dataValues.stream()
-            .filter(dv -> dv.getDataElement().isEqualTo(dataElement))
-            .findAny()
-            .orElse(null);
+    Optional<DataValue> payloadDataValue =
+        dataValues.stream().filter(dv -> dv.getDataElement().isEqualTo(dataElement)).findAny();
 
-    if (payloadDataValue == null
-        || Boolean.TRUE.equals(canOverwrite)
-        || isEqual(value, payloadDataValue.getValue(), dataElement.getValueType())) {
-      addOrOverwriteDataValue(event, bundle, dataElement, payloadDataValue);
-      return Optional.of(
-          warning(
-              ruleUid,
-              ValidationCode.E1308,
-              dataElementUid.getValue(),
-              event.getEvent().getValue()));
+    if (payloadDataValue.isPresent()
+        && isEqual(value, payloadDataValue.get().getValue(), dataElement.getValueType())) {
+      return valueAssigned(event);
     }
-    return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid.getValue(), value));
-  }
 
-  private void addOrOverwriteDataValue(
-      Event event, TrackerBundle bundle, DataElement dataElement, DataValue payloadDataValue) {
-    if (payloadDataValue != null) {
-      payloadDataValue.setValue(value);
+    if (payloadDataValue.isPresent() && !canOverwrite()) {
+      return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid.getValue(), value));
+    }
+
+    String assignedValue = toPlainNumber(value, dataElement.getValueType());
+    if (payloadDataValue.isPresent()) {
+      payloadDataValue.get().setValue(assignedValue);
     } else {
-      event
-          .getDataValues()
-          .add(
-              createDataValue(
-                  bundle.getPreheat().getIdSchemes().toMetadataIdentifier(dataElement), value));
+      event.getDataValues().add(createDataValue(bundle, dataElement, assignedValue));
     }
+    return valueAssigned(event);
   }
 
-  private DataValue createDataValue(MetadataIdentifier dataElement, String newValue) {
-    return DataValue.builder().dataElement(dataElement).value(newValue).build();
+  private boolean canOverwrite() {
+    return settingsProvider.getCurrentSettings().getRuleEngineAssignOverwrite();
+  }
+
+  private Optional<ProgramRuleIssue> valueAssigned(Event event) {
+    return Optional.of(
+        warning(
+            ruleUid, ValidationCode.E1308, dataElementUid.getValue(), event.getEvent().getValue()));
+  }
+
+  private DataValue createDataValue(
+      TrackerBundle bundle, DataElement dataElement, String assignedValue) {
+    MetadataIdentifier dataElementId =
+        bundle.getPreheat().getIdSchemes().toMetadataIdentifier(dataElement);
+    return DataValue.builder().dataElement(dataElementId).value(assignedValue).build();
   }
 }

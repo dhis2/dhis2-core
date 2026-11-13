@@ -29,8 +29,10 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.executor;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -74,6 +76,28 @@ public interface RuleActionExecutor<T> {
           && MathUtils.isEqual(Double.parseDouble(value1), Double.parseDouble(value2));
     }
     return false;
+  }
+
+  /**
+   * Converts a numeric value in scientific notation (e.g. {@code 5.309339325E7}) to plain decimal
+   * notation (e.g. {@code 53093393.25}). The rule engine formats large numbers in scientific
+   * notation, which numeric value type validation rejects. Values of non-numeric value types,
+   * values not in scientific notation and values that are not numbers are returned unchanged.
+   *
+   * @param value the value.
+   * @param valueType the value type.
+   * @return the value in plain decimal notation if it is a number in scientific notation.
+   */
+  static String toPlainNumber(String value, ValueType valueType) {
+    if (!valueType.isNumeric() || !StringUtils.containsAny(value, 'e', 'E')) {
+      return value;
+    }
+
+    try {
+      return new BigDecimal(value).toPlainString();
+    } catch (NumberFormatException e) {
+      return value;
+    }
   }
 
   /**
