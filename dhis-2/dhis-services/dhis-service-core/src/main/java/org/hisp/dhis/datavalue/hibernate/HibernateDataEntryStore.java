@@ -704,11 +704,14 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       Stream<UID> optionCombos, String accessPattern) {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return List.of();
-    // only data read sharing grants data read, ownership does not (DHIS2-22479)
+    // only data read sharing grants data read, ownership does not, and sharing on the default
+    // option combo is ignored, as in the AccessControlStore lookup (DHIS2-22479)
+    boolean read = LIKE_READ_DATA.equals(accessPattern);
     String accessSql =
-        LIKE_READ_DATA.equals(accessPattern)
+        read
             ? createDataReadCheck("co.sharing", user)
             : generateSQlQueryForSharingCheck("co.sharing", user, accessPattern);
+    String notDefault = read ? "\n      AND coc.name <> 'default'" : "";
     @Language("SQL")
     String sql =
         """
@@ -716,12 +719,12 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       FROM categoryoptioncombo coc
       JOIN categoryoptioncombos_categoryoptions aoc_co ON coc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
       JOIN categoryoption co ON aoc_co.categoryoptionid = co.categoryoptionid
-      WHERE coc.uid IN (:coc)
+      WHERE coc.uid IN (:coc)%s
       AND NOT (%s)""";
     // ignore nulls (default COC) assuming that it does not have special user restrictions
     String[] coc =
         optionCombos.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
-    return listAsStrings(sql.formatted(accessSql), q -> q.setParameterList("coc", coc));
+    return listAsStrings(sql.formatted(notDefault, accessSql), q -> q.setParameterList("coc", coc));
   }
 
   @Override

@@ -334,6 +334,23 @@ class DataValueChangelogAccessControllerTest extends PostgresControllerIntegrati
   }
 
   @Test
+  @DisplayName("GET /api/dataValues ignores sharing on the default option combo")
+  void testDataValue_defaultCategoryOptionWithoutDataRead() {
+    String defaultOption =
+        jdbcTemplate.queryForObject(
+            "SELECT uid FROM categoryoption WHERE name = 'default'", String.class);
+    setSharing("categoryoption", defaultOption, "{'public':'rw------','users':{},'userGroups':{}}");
+
+    switchToNewUser(createAndAddUser("reader", manager.get(OrganisationUnit.class, ou)));
+    assertEquals(
+        "12",
+        GET("/dataValues?de={de}&pe={pe}&ou={ou}&co={co}", readableDe, PE, ou, coc)
+            .content(HttpStatus.OK)
+            .getString(0)
+            .string());
+  }
+
+  @Test
   @DisplayName("Sharing migrated with JSON null entries works for user group members")
   void testChangelog_groupMemberWithMigratedSharing() {
     User reader = createAndAddUser("reader", manager.get(OrganisationUnit.class, ou));

@@ -208,7 +208,7 @@ public interface DataEntryStore {
    * Checks if the current user has data read access to the provided AOC/COCs.
    *
    * <p>This sharing checked is those of all CO connected to the AOC/COC. The AOC/COC is only usable
-   * if all connected CO allow reading.
+   * if all connected CO allow reading. Sharing on the default option combo is ignored.
    *
    * @param optionCombos AOC or COC UIDs to include in the check
    * @return the provided IDs that the current user does not have data read access to. Meaning in a
