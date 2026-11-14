@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.time.Duration.ofMillis;
+import static java.time.Duration.ofSeconds;
+import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
@@ -49,7 +52,9 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonJobConfiguration;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.DisplayName;
@@ -80,9 +85,131 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
+  void testPostJsonDataValueSet_ValueAsObject() {
+    JsonWebMessage msg =
+        POST("/dataValueSets?dryRun=true", "{\"dataValues\":[{\"value\":{}}]}")
+            .content(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class);
+    assertEquals(ErrorCode.E8036, msg.getErrorCode());
+  }
+
+  @Test
+  void testPostJsonDataValueSet_Malformed() {
+    JsonWebMessage msg =
+        POST("/dataValueSets?dryRun=true", "{\"dataValues\":[{\"value\":\"1\"}")
+            .content(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class);
+    assertEquals(ErrorCode.E8036, msg.getErrorCode());
+  }
+
+  @Test
+  void testPostDxf2DataValueSet_Truncated() {
+    JsonWebMessage msg =
+        POST(
+                "/dataValueSets?dryRun=true",
+                Body("<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"><dataValue"),
+                ContentType(APPLICATION_XML))
+            .content(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class);
+    assertEquals(ErrorCode.E8007, msg.getErrorCode());
+  }
+
+  @Test
+  void testPostCsvDataValueSet_UnterminatedQuote() {
+    String csv = "dataElement,period,orgUnit,value\nM62VHgYT2n0,202501,DiszpKrYNg8,\"5\n";
+    JsonWebMessage msg =
+        POST("/dataValueSets?dryRun=true", Body(csv), ContentType("application/csv"))
+            .content(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class);
+    assertEquals(ErrorCode.E8037, msg.getErrorCode());
+  }
+
+  @Test
+  void testPostCsvDataValueSet_NoHeader() {
+    String csv = "M62VHgYT2n0,202501,DiszpKrYNg8,,,5";
+    JsonWebMessage msg =
+        POST(
+                "/dataValueSets?dryRun=true&firstRowIsHeader=false",
+                Body(csv),
+                ContentType("application/csv"))
+            .content(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class);
+    assertEquals(ErrorCode.E8037, msg.getErrorCode());
+  }
+
+  @Test
   void testPostJsonDataValueSet_Async() {
     JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/dataValueSets?async=true", "{}"));
     assertStartsWith("Initiated DATAVALUE_IMPORT", msg.getMessage());
+  }
+
+  /*
+   * Async imports: malformed input is only detected when the job runs. The job summary must
+   * report the actual problem, not a generic "Non-null post-condition failed" (DHIS2-22466).
+   */
+
+  @Test
+  void testPostJsonDataValueSet_AsyncValueAsObject() {
+    String summary =
+        runAsyncImport("{\"dataValues\":[{\"value\":{}}]}", MediaType.APPLICATION_JSON_VALUE);
+    assertStartsWith(
+        "JSON input error: Property `.dataValues.0.value` must be a string, number or boolean",
+        summary);
+  }
+
+  @Test
+  void testPostJsonDataValueSet_AsyncTruncated() {
+    String summary =
+        runAsyncImport("{\"dataValues\":[{\"value\":\"1\"}", MediaType.APPLICATION_JSON_VALUE);
+    assertStartsWith("JSON input error: ", summary);
+  }
+
+  @Test
+  void testPostDxf2DataValueSet_AsyncTruncated() {
+    String summary =
+        runAsyncImport(
+            "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"><dataValue",
+            MediaType.APPLICATION_XML_VALUE);
+    assertStartsWith("XML file error : ", summary);
+  }
+
+  @Test
+  void testPostCsvDataValueSet_AsyncUnterminatedQuote() {
+    String summary =
+        runAsyncImport(
+            "dataElement,period,orgUnit,value\nM62VHgYT2n0,202501,DiszpKrYNg8,\"5\n",
+            "application/csv");
+    assertStartsWith("CSV input error: ", summary);
+  }
+
+  /**
+   * Runs an async dry-run import and waits for the job to finish.
+   *
+   * @return the description of the job's import summary, which must have status ERROR
+   */
+  private String runAsyncImport(String body, String contentType) {
+    String jobId =
+        POST("/dataValueSets?async=true&dryRun=true", Body(body), ContentType(contentType))
+            .content(HttpStatus.OK)
+            .getString("response.id")
+            .string();
+    await()
+        .atMost(ofSeconds(10))
+        .pollInSameThread()
+        .pollInterval(ofMillis(50))
+        .until(
+            () -> {
+              JobStatus status =
+                  GET("/jobConfigurations/{id}/gist?fields=id,jobStatus", jobId)
+                      .content()
+                      .as(JsonJobConfiguration.class)
+                      .getJobStatus();
+              return status == JobStatus.COMPLETED || status == JobStatus.DISABLED;
+            });
+    JsonObject summary =
+        GET("/system/taskSummaries/DATAVALUE_IMPORT/{id}", jobId).content(HttpStatus.OK);
+    assertEquals("ERROR", summary.getString("status").string());
+    return summary.getString("description").string();
   }
 
   @Test
