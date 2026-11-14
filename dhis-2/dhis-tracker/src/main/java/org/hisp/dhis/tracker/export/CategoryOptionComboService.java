@@ -29,9 +29,15 @@
  */
 package org.hisp.dhis.tracker.export;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import javax.annotation.Nonnull;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
@@ -181,5 +187,34 @@ public class CategoryOptionComboService {
     }
 
     return attrOptCombo;
+  }
+
+  /**
+   * Replaces the attribute option combo of each item, which the export stores set to a placeholder
+   * carrying only the id, by the option combo itself. Each distinct option combo is loaded once; a
+   * page of tracker data usually has one or a few, most often only the default.
+   *
+   * <p>Access to the option combos is not decided here: the export stores only return items of
+   * attribute option combos the user may read data of.
+   */
+  public <T> void loadAttributeOptionCombos(
+      @Nonnull Collection<T> items,
+      @Nonnull Function<T, CategoryOptionCombo> getter,
+      @Nonnull BiConsumer<T, CategoryOptionCombo> setter) {
+    Map<Long, CategoryOptionCombo> loaded = new HashMap<>();
+    for (T item : items) {
+      CategoryOptionCombo placeholder = getter.apply(item);
+      if (placeholder == null) continue;
+      CategoryOptionCombo aoc =
+          loaded.computeIfAbsent(placeholder.getId(), this::getAttributeOptionComboWithOptions);
+      if (aoc != null) setter.accept(item, aoc);
+    }
+  }
+
+  private CategoryOptionCombo getAttributeOptionComboWithOptions(long id) {
+    CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(id);
+    // the items are mapped to the response after the transaction ends
+    if (aoc != null) Hibernate.initialize(aoc.getCategoryOptions());
+    return aoc;
   }
 }

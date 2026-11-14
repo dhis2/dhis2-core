@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,8 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.security.acl.AccessControlStore;
+import org.hisp.dhis.security.acl.DataReadableAocs;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
@@ -70,13 +73,20 @@ class JdbcTrackerEventStoreTest extends TrackerTestBase {
 
   private final NamedParameterJdbcTemplate jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
 
-  private final JdbcTrackerEventStore store = new JdbcTrackerEventStore(jdbcTemplate);
+  private final AccessControlStore accessControlStore = mock(AccessControlStore.class);
+
+  private final JdbcTrackerEventStore store =
+      new JdbcTrackerEventStore(jdbcTemplate, accessControlStore);
 
   private final UserDetails user = UserDetails.fromUser(new User());
 
   @BeforeEach
   void setUp() {
     injectSecurityContextNoSettings(user);
+    // a non-superuser who may read one attribute option combo, so the readable AOC filter is added
+    when(accessControlStore.getDataReadableAttributeOptionCombos(
+            any(NamedParameterJdbcTemplate.class), any(), any()))
+        .thenReturn(new DataReadableAocs(new long[] {1L}));
   }
 
   @AfterEach

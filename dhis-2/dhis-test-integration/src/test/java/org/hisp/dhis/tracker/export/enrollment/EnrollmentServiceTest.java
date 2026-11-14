@@ -63,6 +63,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
@@ -915,11 +916,14 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     categoryOption.getSharing().setPublicAccess(sharingAccess);
     manager.save(categoryOption, false);
 
+    // an attribute option combo is an option combo of an ATTRIBUTE category combo
     Category category = createCategory('A');
+    category.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     category.setCategoryOptions(List.of(categoryOption));
     manager.save(category, false);
 
     CategoryCombo categoryCombo = createCategoryCombo('A');
+    categoryCombo.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     categoryCombo.setCategories(List.of(category));
     manager.save(categoryCombo, false);
 

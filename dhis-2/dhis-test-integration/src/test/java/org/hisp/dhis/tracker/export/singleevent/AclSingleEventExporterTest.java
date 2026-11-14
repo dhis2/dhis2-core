@@ -388,10 +388,11 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEventsNonSuperUserIsOwnerOrHasUserAccess()
+  void shouldReturnOnlyEventsNonSuperUserHasDataReadAccessToAndNotThoseItOwns()
       throws ForbiddenException, BadRequestException {
-    // given events have a COC which has a CO which the
-    // user owns yMj2MnmNI8L and has user read access to OUUdG3sdOqb
+    // given the COC of lumVtWwwy0O has a CO the user has user data read access to (OUUdG3sdOqb)
+    // and the COC of cadc5eGj0j7 has a CO the user owns (yMj2MnmNI8L) without data read access:
+    // ownership does not grant data read
     injectSecurityContextUser(userService.getUser("o1HMTIzBGo7"));
 
     SingleEventOperationParams params =
@@ -403,7 +404,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
 
     List<SingleEvent> events = singleEventService.findEvents(params);
 
-    assertContainsOnly(List.of("lumVtWwwy0O", "cadc5eGj0j7"), uids(events));
+    assertContainsOnly(List.of("lumVtWwwy0O"), uids(events));
     List<Executable> executables =
         events.stream()
             .map(

@@ -63,6 +63,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -88,6 +89,8 @@ class DefaultSingleEventService implements SingleEventService {
   private final RelationshipService relationshipService;
 
   private final AclService aclService;
+
+  private final CategoryOptionComboService categoryOptionComboService;
 
   @Override
   @Transactional(readOnly = true)
@@ -222,6 +225,8 @@ class DefaultSingleEventService implements SingleEventService {
       throws BadRequestException, ForbiddenException {
     SingleEventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     List<SingleEvent> events = eventStore.getEvents(queryParams);
+    categoryOptionComboService.loadAttributeOptionCombos(
+        events, SingleEvent::getAttributeOptionCombo, SingleEvent::setAttributeOptionCombo);
     filterReadableDataValues(events, queryParams.getIdSchemeParams());
     if (operationParams.getFields().isIncludesRelationships()) {
       for (SingleEvent event : events) {
@@ -252,6 +257,10 @@ class DefaultSingleEventService implements SingleEventService {
       throws BadRequestException, ForbiddenException {
     SingleEventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     Page<SingleEvent> events = eventStore.getEvents(queryParams, pageParams);
+    categoryOptionComboService.loadAttributeOptionCombos(
+        events.getItems(),
+        SingleEvent::getAttributeOptionCombo,
+        SingleEvent::setAttributeOptionCombo);
     filterReadableDataValues(events.getItems(), queryParams.getIdSchemeParams());
     if (operationParams.getFields().isIncludesRelationships()) {
       for (SingleEvent event : events.getItems()) {
