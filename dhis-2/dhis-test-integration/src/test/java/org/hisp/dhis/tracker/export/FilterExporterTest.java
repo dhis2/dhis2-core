@@ -33,6 +33,8 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
@@ -55,6 +57,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
@@ -62,6 +66,7 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -487,6 +492,39 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
     List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), events);
+  }
+
+  @Test
+  void shouldCountOnlyMatchingEventsWhenFilteringByAttribute()
+      throws ForbiddenException, BadRequestException {
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "V66aa7a2122");
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.EQ, "170")))
+            .build();
+
+    Page<TrackerEvent> page = trackerEventService.findEvents(params, PageParams.of(1, 1, true));
+
+    assertEquals(1L, page.getTotal());
+  }
+
+  @Test
+  void shouldCountOnlyMatchingEventsWhenFilteringByNullAttribute()
+      throws ForbiddenException, BadRequestException {
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "notUpdated0");
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.NULL)))
+            .build();
+    List<String> events = getTrackerEvents(params);
+    assertFalse(events.isEmpty(), "test data must have events without the attribute");
+    assertFalse(events.contains("D9PbzJY8bJM"), "event with the attribute must be filtered out");
+
+    Page<TrackerEvent> page = trackerEventService.findEvents(params, PageParams.of(1, 1, true));
+
+    assertEquals((long) events.size(), page.getTotal());
   }
 
   @Test

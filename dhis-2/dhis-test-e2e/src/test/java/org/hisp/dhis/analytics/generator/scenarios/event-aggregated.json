@@ -685,6 +685,27 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "enrollmentOccurredDateParam",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&dimension=ou:ImspTQPwCqd&enrollmentOccurredDate=2022-01-01_2022-01-02&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "incidentDateAndEnrollmentOccurredDateParams",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&dimension=ou:ImspTQPwCqd&incidentDate=2022-01-01_2022-01-01&enrollmentOccurredDate=2022-01-02_2022-01-02&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentStatusCompletedOnEventsAggregate",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&dimension=ou:ImspTQPwCqd&dimension=pe:LAST_10_YEARS&enrollmentStatus=COMPLETED&displayProperty=NAME&totalPages=false&relativePeriodDate=2025-01-01",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
