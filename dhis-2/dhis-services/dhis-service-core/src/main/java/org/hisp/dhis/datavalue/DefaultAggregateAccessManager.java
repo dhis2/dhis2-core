@@ -85,21 +85,6 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canRead(@Nonnull UserDetails currentUser, DataSet dataSet) {
-    List<String> errors = new ArrayList<>();
-
-    if (currentUser.isSuper()) {
-      return errors;
-    }
-
-    if (!aclService.canDataRead(currentUser, dataSet)) {
-      errors.add("User does not have read access for DataSet: " + dataSet.getUid());
-    }
-
-    return errors;
-  }
-
-  @Override
   public List<String> canWrite(@Nonnull UserDetails userDetails, CategoryOptionCombo optionCombo) {
     if (userDetails.isSuper()) {
       return emptyList();
@@ -122,26 +107,6 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
     String cacheKey = CurrentUserUtil.getCurrentUserDetails().getUid() + "-" + optionCombo.getUid();
 
     return canDataWriteCocCache.get(cacheKey, key -> canWrite(currentUser, optionCombo));
-  }
-
-  @Override
-  public List<String> canRead(@Nonnull UserDetails currentUser, CategoryOptionCombo optionCombo) {
-    List<String> errors = new ArrayList<>();
-
-    if (currentUser.isSuper()) {
-      return errors;
-    }
-
-    Set<CategoryOption> options = optionCombo.getCategoryOptions();
-
-    options.forEach(
-        attrOption -> {
-          if (!aclService.canDataRead(currentUser, attrOption)) {
-            errors.add("User has no data read access for CategoryOption: " + attrOption.getUid());
-          }
-        });
-
-    return errors;
   }
 
   @Override
