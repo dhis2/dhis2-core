@@ -129,6 +129,12 @@ public interface AclService {
   /**
    * Can user read data this object.
    *
+   * <p>Only data read sharing grants data read: the public access, the user's own entry or the
+   * entry of one of the user's groups must allow data read. Data write does not imply data read,
+   * and neither does ownership. A category option combo is readable when it is the default, has no
+   * options, or the user may read data of every one of its options. The SQL check of {@code
+   * HibernateAccessControlStore} applies the same rule.
+   *
    * @param userDetails to check against
    * @param object Object to check
    * @return Result of test

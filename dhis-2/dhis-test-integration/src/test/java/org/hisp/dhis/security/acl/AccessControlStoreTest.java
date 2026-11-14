@@ -382,7 +382,7 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
     enableDataSharing(user, coClosed, AccessStringHelper.DATA_WRITE);
     categoryService.updateCategoryOption(coClosed, new SystemUser());
 
-    assertReadable(aocOpen);
+    assertReadableIf(false);
   }
 
   // sharing as a migration or import may have left it
@@ -491,7 +491,15 @@ class AccessControlStoreTest extends PostgresIntegrationTestBase {
     assertEquals(expected, readable(UserDetails.fromUser(user), null));
   }
 
+  /**
+   * Asserts the lookup returns the restricted combo exactly when it should, and that {@link
+   * AclService#canDataRead} decides the same.
+   */
   private void assertReadableIf(boolean closedIsReadable) {
+    assertEquals(
+        closedIsReadable,
+        aclService.canDataRead(UserDetails.fromUser(user), aocClosed),
+        "AclService#canDataRead");
     if (closedIsReadable) {
       assertReadable(aocOpen, aocClosed);
     } else {
