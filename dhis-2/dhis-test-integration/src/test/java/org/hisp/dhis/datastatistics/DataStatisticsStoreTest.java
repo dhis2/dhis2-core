@@ -29,16 +29,32 @@
  */
 package org.hisp.dhis.datastatistics;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import org.hibernate.Hibernate;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.id.enhanced.NoopOptimizer;
+import org.hibernate.id.enhanced.SequenceStyleGenerator;
+import org.hibernate.persister.entity.AbstractEntityPersister;
+import org.hibernate.type.LongType;
+import org.hibernate.type.ManyToOneType;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -50,6 +66,50 @@ class DataStatisticsStoreTest extends PostgresIntegrationTestBase {
   @Autowired private DataStatisticsStore dataStatisticsStore;
 
   @Autowired private DbmsManager dbmsManager;
+
+  @Autowired private EntityManagerFactory entityManagerFactory;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
+
+  /** The count properties with their columns and getters. */
+  private static final List<CountColumn> COUNT_COLUMNS =
+      List.of(
+          new CountColumn("mapViews", "mapviews", DataStatistics::getMapViews),
+          new CountColumn(
+              "visualizationViews", "visualizationviews", DataStatistics::getVisualizationViews),
+          new CountColumn(
+              "eventReportViews", "eventreportviews", DataStatistics::getEventReportViews),
+          new CountColumn("eventChartViews", "eventchartviews", DataStatistics::getEventChartViews),
+          new CountColumn(
+              "eventVisualizationViews",
+              "eventvisualizationviews",
+              DataStatistics::getEventVisualizationViews),
+          new CountColumn("dashboardViews", "dashboardviews", DataStatistics::getDashboardViews),
+          new CountColumn(
+              "passiveDashboardViews",
+              "passivedashboardviews",
+              DataStatistics::getPassiveDashboardViews),
+          new CountColumn(
+              "dataSetReportViews", "datasetreportviews", DataStatistics::getDataSetReportViews),
+          new CountColumn("totalViews", "totalviews", DataStatistics::getTotalViews),
+          new CountColumn("savedMaps", "maps", DataStatistics::getSavedMaps),
+          new CountColumn(
+              "savedVisualizations", "visualizations", DataStatistics::getSavedVisualizations),
+          new CountColumn(
+              "savedEventReports", "eventreports", DataStatistics::getSavedEventReports),
+          new CountColumn("savedEventCharts", "eventcharts", DataStatistics::getSavedEventCharts),
+          new CountColumn(
+              "savedEventVisualizations",
+              "eventvisualizations",
+              DataStatistics::getSavedEventVisualizations),
+          new CountColumn("savedDashboards", "dashboards", DataStatistics::getSavedDashboards),
+          new CountColumn("savedIndicators", "indicators", DataStatistics::getSavedIndicators),
+          new CountColumn("savedDataValues", "datavalues", DataStatistics::getSavedDataValues),
+          new CountColumn("activeUsers", "active_users", DataStatistics::getActiveUsers),
+          new CountColumn("users", "users", DataStatistics::getUsers));
+
+  private record CountColumn(
+      String property, String column, Function<DataStatistics, Long> getter) {}
 
   private DataStatistics ds1;
 
@@ -205,5 +265,143 @@ class DataStatisticsStoreTest extends PostgresIntegrationTestBase {
     assertEquals(45L, as.getSavedDataValues());
     assertEquals(3L, as.getActiveUsers());
     assertEquals(19L, as.getUsers());
+  }
+
+  @Test
+  void shouldMapDataStatisticsToItsTableColumnsAndSequence() {
+    AbstractEntityPersister persister = persister();
+
+    assertEquals("datastatistics", persister.getTableName());
+    assertArrayEquals(new String[] {"statisticsid"}, persister.getIdentifierColumnNames());
+    SequenceStyleGenerator generator =
+        assertInstanceOf(SequenceStyleGenerator.class, persister.getIdentifierGenerator());
+    assertEquals(
+        "hibernate_sequence",
+        generator.getDatabaseStructure().getPhysicalName().getObjectName().getText());
+    assertEquals(1, generator.getDatabaseStructure().getIncrementSize());
+    assertInstanceOf(NoopOptimizer.class, generator.getOptimizer());
+
+    Map<String, String> columns = new LinkedHashMap<>();
+    COUNT_COLUMNS.forEach(count -> columns.put(count.property(), count.column()));
+    columns.put("uid", "uid");
+    columns.put("code", "code");
+    columns.put("created", "created");
+    columns.put("lastUpdated", "lastupdated");
+    columns.put("lastUpdatedBy", "lastupdatedby");
+    assertEquals(columns.size(), persister.getPropertyNames().length);
+    columns.forEach(
+        (property, column) ->
+            assertEquals(
+                column,
+                persister.getPropertyColumnNames(property)[0].toLowerCase(),
+                property + " column"));
+  }
+
+  @Test
+  void shouldMapDataStatisticsNullabilityTypesLazinessAndNoCache() {
+    AbstractEntityPersister persister = persister();
+
+    for (String property : List.of("uid", "created", "lastUpdated")) {
+      assertFalse(isNullable(persister, property), property + " is mapped nullable");
+    }
+    assertTrue(isNullable(persister, "code"), "code is mapped not-null");
+    assertTrue(isNullable(persister, "lastUpdatedBy"), "lastUpdatedBy is mapped not-null");
+    for (CountColumn count : COUNT_COLUMNS) {
+      assertTrue(isNullable(persister, count.property()), count.property() + " is mapped not-null");
+      assertInstanceOf(
+          LongType.class, persister.getPropertyType(count.property()), count.property());
+    }
+    assertFalse(
+        persister.getPropertyUpdateability()[persister.getPropertyIndex("created")],
+        "created is updateable");
+    assertFalse(((ManyToOneType) persister.getPropertyType("lastUpdatedBy")).isEager(null));
+    assertFalse(persister.canReadFromCache());
+  }
+
+  @Test
+  void shouldWriteAndReadEveryDataStatisticsColumn() {
+    DataStatistics statistics =
+        new DataStatistics(
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113,
+            114,
+            115,
+            116,
+            3_000_000_000L,
+            118,
+            119);
+    statistics.setCode("STATS_A");
+    statistics.setCreated(date);
+    dataStatisticsStore.save(statistics);
+    dbmsManager.flushSession();
+
+    Map<String, Object> row =
+        jdbcTemplate.queryForMap(
+            "select * from datastatistics where statisticsid = ?", statistics.getId());
+    assertEquals(statistics.getUid(), row.get("uid"));
+    assertEquals("STATS_A", row.get("code"));
+    assertEquals(date.getTime(), ((Date) row.get("created")).getTime());
+    assertEquals(statistics.getLastUpdated().getTime(), ((Date) row.get("lastupdated")).getTime());
+    assertEquals(getAdminUser().getId(), ((Number) row.get("lastupdatedby")).longValue());
+    Map<String, Long> expected = countsOf(statistics);
+    COUNT_COLUMNS.forEach(
+        count ->
+            assertEquals(
+                expected.get(count.property()),
+                ((Number) row.get(count.column())).longValue(),
+                count.column()));
+
+    dbmsManager.clearSession();
+    DataStatistics loaded = dataStatisticsStore.get(statistics.getId());
+    assertEquals(statistics.getUid(), loaded.getUid());
+    assertEquals("STATS_A", loaded.getCode());
+    assertEquals(date.getTime(), loaded.getCreated().getTime());
+    assertEquals(statistics.getLastUpdated().getTime(), loaded.getLastUpdated().getTime());
+    assertEquals(getAdminUser().getUid(), loaded.getLastUpdatedBy().getUid());
+    assertEquals(expected, countsOf(loaded));
+  }
+
+  @Test
+  void shouldEqualProxyWithSameUidAndCode() {
+    ds2.setCode("STATS_B");
+    dataStatisticsStore.save(ds2);
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
+
+    DataStatistics proxy = entityManager.getReference(DataStatistics.class, ds2.getId());
+
+    assertFalse(Hibernate.isInitialized(proxy));
+    assertEquals(ds2, proxy);
+    assertEquals(proxy, ds2);
+    assertEquals(ds2.hashCode(), proxy.hashCode());
+  }
+
+  private static Map<String, Long> countsOf(DataStatistics statistics) {
+    Map<String, Long> counts = new LinkedHashMap<>();
+    COUNT_COLUMNS.forEach(count -> counts.put(count.property(), count.getter().apply(statistics)));
+    return counts;
+  }
+
+  private AbstractEntityPersister persister() {
+    return (AbstractEntityPersister)
+        entityManagerFactory
+            .unwrap(SessionFactoryImplementor.class)
+            .getMetamodel()
+            .entityPersister(DataStatistics.class);
+  }
+
+  private static boolean isNullable(AbstractEntityPersister persister, String property) {
+    return persister.getPropertyNullability()[persister.getPropertyIndex(property)];
   }
 }
