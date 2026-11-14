@@ -704,7 +704,8 @@ public class DefaultAclService implements AclService {
   }
 
   /**
-   * If the given user allowed to access the given object using the permissions given.
+   * If the given user allowed to access the given object using the permissions given. A user or
+   * user group entry without a value (JSON {@code null}) grants nothing.
    *
    * @param userDetails to check against
    * @param object Object to check against
@@ -724,7 +725,8 @@ public class DefaultAclService implements AclService {
       for (UserGroupAccess userGroupAccess : sharing.getUserGroups().values()) {
         // Check if user is allowed to read this object through group
         // access
-        if (AccessStringHelper.isEnabled(userGroupAccess.getAccess(), permission)
+        if (userGroupAccess != null
+            && AccessStringHelper.isEnabled(userGroupAccess.getAccess(), permission)
             && hasUserGroupAccess(userDetails.getUserGroupIds(), userGroupAccess.getId())) {
           return true;
         }
@@ -736,7 +738,8 @@ public class DefaultAclService implements AclService {
         // Check if user is allowed to read to this object through user
         // access
 
-        if (AccessStringHelper.isEnabled(userAccess.getAccess(), permission)
+        if (userAccess != null
+            && AccessStringHelper.isEnabled(userAccess.getAccess(), permission)
             && userDetails.getUid().equals(userAccess.getId())) {
           return true;
         }
