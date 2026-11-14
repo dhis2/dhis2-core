@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -850,6 +850,26 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportSummary summary = importCsv(readFile("dxf2/datavalueset/dataValueSetB.csv"));
 
     assertImported(12, 0, summary);
+  }
+
+  /**
+   * The 2.42 CSV export header has a {@code lastupdated} column. A blank {@code
+   * categoryoptioncombo} (default) must not turn the unmapped {@code lastupdated} column into a
+   * category option, which rejected the entire file (DHIS2-22466).
+   */
+  @Test
+  void testImportDataValuesCsv_Header242Export() {
+    String csv =
+        """
+        dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value,storedby,lastupdated,comment,followup,deleted
+        f7n9E0hX8qk,201201,DiszpKrYNg8,%s,,10001,john,2012-01-01T10:00:00.000,,false,
+        f7n9E0hX8qk,201202,DiszpKrYNg8,,,10002,john,2012-01-01T10:00:00.000,,false,
+        """
+            .formatted(ocDef.getUid());
+    ImportSummary summary =
+        importCsv(new ByteArrayInputStream(csv.getBytes(StandardCharsets.UTF_8)));
+
+    assertImported(2, 0, summary);
   }
 
   @Test
