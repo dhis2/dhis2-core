@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,14 @@
  */
 package org.hisp.dhis.gist;
 
+import java.lang.reflect.Method;
+import java.util.regex.Pattern;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist.Include;
@@ -46,6 +49,8 @@ import org.hisp.dhis.security.acl.Access;
  * @author Jan Bernitt
  */
 final class GistLogic {
+
+  private static final Pattern SHORT_NUMBER = Pattern.compile("\\d{1,5}");
 
   static boolean isIncludedField(Property p, GistAutoType all) {
     Include included = p.getGistPreferences().getIncluded();
@@ -121,6 +126,29 @@ final class GistLogic {
         || p.getKlass() == Boolean.class;
   }
 
+  /**
+   * Identifiers (UID, code) are case-sensitive, and so is an organisation unit's path (a sequence
+   * of UIDs). Case-insensitive matching on them would match objects with a different identifier and
+   * keep the database from using an index on the column.
+   */
+  static boolean isIdentifierProperty(Property p) {
+    if (p.getKlass() != String.class) return false;
+    if (p.getPropertyType() == PropertyType.IDENTIFIER) return true;
+    Method getter = p.getGetterMethod();
+    return "path".equals(p.getName())
+        && getter != null
+        && getter.getDeclaringClass() == OrganisationUnit.class;
+  }
+
+  /**
+   * @param property the filtered property, null for attribute filters
+   * @return true, if the filter value should be compared ignoring case
+   */
+  static boolean isCaseInsensitiveFilter(Filter filter, Property property) {
+    return filter.getOperator().isCaseInsensitive()
+        && (property == null || !isIdentifierProperty(property));
+  }
+
   static boolean isCollectionSizeFilter(Filter filter, Property property) {
     return property.isRelation() && filter.getOperator().isEmptinessCompare()
         || (filter.getOperator().isNumericCompare() && property.isCollection());
@@ -138,7 +166,7 @@ final class GistLogic {
         && (op.isEmptinessCompare()
             || (op.isOrderCompare()
                 && filter.getValue().length == 1
-                && filter.getValue()[0].matches("[0-9]{1,5}")));
+                && SHORT_NUMBER.matcher(filter.getValue()[0]).matches()));
   }
 
   static Transform effectiveTransform(Property property, Transform fallback, Transform target) {

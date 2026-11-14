@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
 import static org.hisp.dhis.gist.GistLogic.isAttributeFlagProperty;
 import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
+import static org.hisp.dhis.gist.GistLogic.isCaseInsensitiveFilter;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
 import static org.hisp.dhis.gist.GistLogic.isJsonCollectionFilter;
@@ -855,6 +856,7 @@ final class GistBuilder {
       return createAccessFilterHQL(index, filter, field);
     }
     String template = "${property}";
+    boolean caseInsensitive = operator.isCaseInsensitive();
     if (filter.isAttribute()) {
       template =
           "jsonb_extract_path_text(${property}, '" + filter.getPropertyPath() + "', 'value')";
@@ -862,18 +864,19 @@ final class GistBuilder {
       Property property = context.resolveMandatory(filter.getPropertyPath());
       if (property.getPropertyType() == PropertyType.PASSWORD)
         throw new IllegalQueryException("Filter not allowed: " + filter);
+      caseInsensitive = isCaseInsensitiveFilter(filter, property);
       if (isStringLengthFilter(filter, property)) {
         template = "length(${property})";
       } else if (isCollectionSizeFilter(filter, property)) {
         template = "size(${property})";
       } else if (isJsonCollectionFilter(filter, property)) {
         return createJsonCollectionFilterHQL(filter, field);
-      } else if (operator.isCaseInsensitive()) {
+      } else if (caseInsensitive) {
         template = "lower(${property})";
       }
     }
     String param = ":f_" + index;
-    if (operator.isCaseInsensitive()) param = "lower(" + param + ")";
+    if (caseInsensitive) param = "lower(" + param + ")";
     if (operator.isMultiValue()) param = "(" + param + ")";
     Map<String, String> variables =
         Map.ofEntries(
@@ -1039,25 +1042,36 @@ final class GistBuilder {
     for (Filter filter : query.getFilters()) {
       Comparison operator = filter.getOperator();
       if (!operator.isUnary() && !operator.isAccessCompare()) {
+        PropertyPath path = filter.getPropertyPath();
+        boolean attributeValuesAttribute = isAttributeValuesAttributePropertyPath(path);
+        Property property =
+            filter.isAttribute() || attributeValuesAttribute
+                ? null
+                : context.resolveMandatory(path);
         Object value =
-            filter.isAttribute() || isAttributeValuesAttributePropertyPath(filter.getPropertyPath())
+            property == null
                 ? filter.getValue()[0]
-                : getParameterValue(
-                    context.resolveMandatory(filter.getPropertyPath()), filter, argumentParser);
+                : getParameterValue(property, filter, argumentParser);
+        // must match the property createFilterHQL uses to decide on lower() for the column
+        Property caseProperty =
+            attributeValuesAttribute
+                ? context.resolveMandatory(PropertyPath.of(path.property()))
+                : property;
         dest.accept(
             "f_" + i,
             operator.isStringCompare()
-                ? completeLikeExpression(operator, stringParameterValue(operator, value))
+                ? completeLikeExpression(
+                    operator,
+                    stringParameterValue(isCaseInsensitiveFilter(filter, caseProperty), value))
                 : value);
       }
       i++;
     }
   }
 
-  private String stringParameterValue(Comparison operator, Object value) {
-    return value == null
-        ? null
-        : operator.isCaseInsensitive() ? value.toString().toLowerCase() : (String) value;
+  private static String stringParameterValue(boolean caseInsensitive, Object value) {
+    if (value == null) return null;
+    return caseInsensitive ? value.toString().toLowerCase() : (String) value;
   }
 
   private Object getParameterValue(
