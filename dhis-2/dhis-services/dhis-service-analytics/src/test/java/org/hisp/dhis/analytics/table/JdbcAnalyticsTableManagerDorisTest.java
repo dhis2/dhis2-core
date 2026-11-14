@@ -35,10 +35,17 @@ import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +56,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.AnalyticsValueType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -125,9 +133,7 @@ class JdbcAnalyticsTableManagerDorisTest {
             .startTime(new DateTime(2020, 1, 1, 0, 0).toDate())
             .build();
 
-    when(jdbcTemplate.queryForList(
-            org.mockito.Mockito.anyString(), org.mockito.Mockito.eq(Integer.class)))
-        .thenReturn(List.of(2020));
+    when(jdbcTemplate.queryForList(anyString(), eq(Integer.class))).thenReturn(List.of(2020));
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
@@ -176,7 +182,7 @@ class JdbcAnalyticsTableManagerDorisTest {
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.DATA_VALUE))
         .thenReturn(lastLatestPartitionUpdate);
     when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.UNLOGGED);
-    when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString())).thenReturn(queryResp);
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(queryResp);
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
@@ -217,7 +223,7 @@ class JdbcAnalyticsTableManagerDorisTest {
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.DATA_VALUE))
         .thenReturn(lastDataValueUpdate);
     when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.UNLOGGED);
-    when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString())).thenReturn(queryResp);
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(queryResp);
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
@@ -245,7 +251,7 @@ class JdbcAnalyticsTableManagerDorisTest {
         .thenReturn(lastFullTableUpdate);
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.DATA_VALUE))
         .thenReturn(lastLatestPartitionUpdate);
-    when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString())).thenReturn(queryResp);
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(queryResp);
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
@@ -256,7 +262,7 @@ class JdbcAnalyticsTableManagerDorisTest {
     subject.removeUpdatedData(tables);
 
     org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
-    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.times(5)).execute(sql.capture());
+    verify(jdbcTemplate, times(5)).execute(sql.capture());
     List<String> statements = sql.getAllValues();
 
     String drop1 = statements.get(0);
@@ -333,7 +339,7 @@ class JdbcAnalyticsTableManagerDorisTest {
     subject.swapTable(params, table);
 
     org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
-    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.times(2)).execute(sql.capture());
+    verify(jdbcTemplate, times(2)).execute(sql.capture());
 
     List<String> statements = sql.getAllValues();
     assertTrue(
@@ -384,8 +390,7 @@ class JdbcAnalyticsTableManagerDorisTest {
     subject.swapTable(params, table);
 
     org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
-    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.atLeastOnce())
-        .execute(sql.capture());
+    verify(jdbcTemplate, atLeastOnce()).execute(sql.capture());
 
     List<String> statements = sql.getAllValues();
     assertTrue(
@@ -406,8 +411,7 @@ class JdbcAnalyticsTableManagerDorisTest {
 
     assertTrue(subject.isReadyForContinuousUpdate(List.of(table)));
 
-    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.never())
-        .queryForList(sqlBuilder.showCreateTable(table.getMainName()));
+    verify(jdbcTemplate, never()).queryForList(sqlBuilder.showCreateTable(table.getMainName()));
   }
 
   @Test
@@ -446,14 +450,174 @@ class JdbcAnalyticsTableManagerDorisTest {
     assertFalse(subject.isReadyForContinuousUpdate(List.of(table)));
   }
 
+  @Test
+  void testGetColumnsOfMainTableLeavesOutColumnAddedSinceMainTableWasCreated() {
+    // e.g. an organisation unit group set added since the last full update: merging a latest
+    // partition with the new column into the main table would fail after the delete step.
+    List<AnalyticsTableColumn> columns = columns("dx", "LlpAwYmLgJj");
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists("analytics")))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of("dx", "value"));
+
+    assertEquals(List.of("dx"), names(subject.getColumnsOfMainTable("analytics", columns)));
+  }
+
+  @Test
+  void testGetColumnsOfMainTableRetainsFactColumnMissingFromMainTable() {
+    // The populate statement always writes the fact columns, so leaving one out would make the
+    // insert column list and the select list disagree.
+    List<AnalyticsTableColumn> columns = List.of(column("dx"), factColumn("value"));
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists("analytics")))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of("dx"));
+
+    assertEquals(columns, subject.getColumnsOfMainTable("analytics", columns));
+  }
+
+  @Test
+  void testIsReadyForContinuousUpdateWhenMainTableLacksFactColumn() {
+    AnalyticsTable table =
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE,
+            List.of(column("dx"), factColumn("value")),
+            List.of(),
+            Logged.UNLOGGED);
+
+    mockUniqueKeyMainTable();
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of("dx"));
+
+    assertFalse(subject.isReadyForContinuousUpdate(List.of(table)));
+  }
+
+  @Test
+  void testIsReadyForContinuousUpdateWhenMainTableHasAllColumns() {
+    AnalyticsTable table =
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE,
+            List.of(column("dx"), factColumn("value")),
+            List.of(),
+            Logged.UNLOGGED);
+
+    mockUniqueKeyMainTable();
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of("DX", "value", "year"));
+
+    assertTrue(subject.isReadyForContinuousUpdate(List.of(table)));
+  }
+
+  @Test
+  void testGetColumnsOfMainTableIgnoresColumnNameCase() {
+    List<AnalyticsTableColumn> columns = columns("dx", "LlpAwYmLgJj");
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists("analytics")))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of("DX", "llpawymlgjj"));
+
+    assertEquals(columns, subject.getColumnsOfMainTable("analytics", columns));
+  }
+
+  @Test
+  void testGetColumnsOfMainTableRetainsAllColumnsWhenMainTableDoesNotExistYet() {
+    List<AnalyticsTableColumn> columns = columns("dx", "LlpAwYmLgJj");
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists("analytics"))).thenReturn(List.of());
+
+    assertEquals(columns, subject.getColumnsOfMainTable("analytics", columns));
+
+    verify(jdbcTemplate, never()).queryForList(sqlBuilder.tableColumns("analytics"), String.class);
+  }
+
+  @Test
+  void testGetColumnsOfMainTableRetainsAllColumnsWhenNoColumnsFound() {
+    List<AnalyticsTableColumn> columns = columns("dx", "LlpAwYmLgJj");
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists("analytics")))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of());
+
+    assertEquals(columns, subject.getColumnsOfMainTable("analytics", columns));
+  }
+
+  @Test
+  void testGetLatestAnalyticsTableLeavesOutColumnsMissingFromMainTable() {
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.DATA_VALUE))
+        .thenReturn(lastFullTableUpdate);
+    when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.UNLOGGED);
+    // updated data found, and the main table exists
+    when(jdbcTemplate.queryForList(anyString()))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableColumns("analytics"), String.class))
+        .thenReturn(List.of("dx", "co", "value"));
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertEquals(1, tables.size());
+    // dimensions missing from the main table are left out, fact columns are always retained
+    assertEquals(
+        List.of("dx", "co", "approvallevel", "daysxvalue", "daysno", "value", "textvalue"),
+        names(tables.get(0).getAnalyticsTableColumns()));
+  }
+
+  private List<AnalyticsTableColumn> columns(String... columnNames) {
+    return Arrays.stream(columnNames)
+        .map(
+            name ->
+                AnalyticsTableColumn.builder()
+                    .name(name)
+                    .dataType(TEXT)
+                    .selectExpression(name)
+                    .build())
+        .toList();
+  }
+
+  private AnalyticsTableColumn column(String name) {
+    return columns(name).get(0);
+  }
+
+  private AnalyticsTableColumn factColumn(String name) {
+    return AnalyticsTableColumn.builder()
+        .name(name)
+        .dataType(TEXT)
+        .valueType(AnalyticsValueType.FACT)
+        .selectExpression(name)
+        .build();
+  }
+
+  private void mockUniqueKeyMainTable() {
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists("analytics")))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.showCreateTable("analytics")))
+        .thenReturn(
+            List.of(
+                Map.of(
+                    "Table", "analytics",
+                    "Create Table",
+                        "CREATE TABLE `analytics` (...) UNIQUE KEY (`id`,`year`) ...")));
+  }
+
+  private List<String> names(List<AnalyticsTableColumn> columns) {
+    return columns.stream().map(AnalyticsTableColumn::getName).toList();
+  }
+
   private AnalyticsTable dataValueTableFixture() {
-    List<AnalyticsTableColumn> columns =
-        List.of(
-            AnalyticsTableColumn.builder()
-                .name("dx")
-                .dataType(TEXT)
-                .selectExpression("dx")
-                .build());
-    return new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
+    return new AnalyticsTable(
+        AnalyticsTableType.DATA_VALUE, columns("dx"), List.of(), Logged.UNLOGGED);
   }
 }

@@ -129,6 +129,13 @@ class ClickHouseSqlBuilderTest {
     assertFalse(sqlBuilder.supportsVacuum());
   }
 
+  @Test
+  void testRequiresTableMetadataRefresh() {
+    assertFalse(sqlBuilder.requiresTableMetadataRefresh());
+    assertThrows(
+        UnsupportedOperationException.class, () -> sqlBuilder.refreshTable("immunization"));
+  }
+
   // Utilities
 
   @Test
