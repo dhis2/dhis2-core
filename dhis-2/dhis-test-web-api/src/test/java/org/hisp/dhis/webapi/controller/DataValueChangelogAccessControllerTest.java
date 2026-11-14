@@ -33,12 +33,14 @@ import static java.lang.String.format;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -258,6 +260,30 @@ class DataValueChangelogAccessControllerTest extends PostgresControllerIntegrati
   }
 
   @Test
+  @DisplayName("Owning the category option of an attribute option combo does not grant data read")
+  void testDataValue_ownerOfAttributeCategoryOption() {
+    User reader = createAndAddUser("reader", manager.get(OrganisationUnit.class, ou));
+    setSharingAsStored(
+        "categoryoption",
+        restrictedOption,
+        format("{'owner':'%s','public':'rw------','users':{},'userGroups':{}}", reader.getUid()));
+
+    switchToNewUser(reader);
+    assertFalse(getChangelogValues("").contains("51"));
+    assertEquals(
+        ErrorCode.E2011,
+        GET(
+                "/dataValues?de={de}&pe={pe}&ou={ou}&cc={cc}&cp={cp}",
+                restrictedAocDe,
+                PE,
+                ou,
+                attributeCombo,
+                restrictedOption)
+            .error(HttpStatus.CONFLICT)
+            .getErrorCode());
+  }
+
+  @Test
   @DisplayName("A stored public access string \"null\" does not grant data read, as AclService")
   void testChangelog_publicAccessStringNull() {
     setSharing("dataset", metadataOnlyDs, "{'public':'null','users':{},'userGroups':{}}");
@@ -305,6 +331,23 @@ class DataValueChangelogAccessControllerTest extends PostgresControllerIntegrati
             PE,
             ou,
             coc));
+  }
+
+  @Test
+  @DisplayName("GET /api/dataValues ignores sharing on the default option combo")
+  void testDataValue_defaultCategoryOptionWithoutDataRead() {
+    String defaultOption =
+        jdbcTemplate.queryForObject(
+            "SELECT uid FROM categoryoption WHERE name = 'default'", String.class);
+    setSharing("categoryoption", defaultOption, "{'public':'rw------','users':{},'userGroups':{}}");
+
+    switchToNewUser(createAndAddUser("reader", manager.get(OrganisationUnit.class, ou)));
+    assertEquals(
+        "12",
+        GET("/dataValues?de={de}&pe={pe}&ou={ou}&co={co}", readableDe, PE, ou, coc)
+            .content(HttpStatus.OK)
+            .getString(0)
+            .string());
   }
 
   @Test
