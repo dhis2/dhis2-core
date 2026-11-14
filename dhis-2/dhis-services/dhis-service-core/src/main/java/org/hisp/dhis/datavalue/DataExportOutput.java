@@ -40,6 +40,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.csv.CsvBuilder;
 import org.hisp.dhis.dxf2.adx.AdxPeriod;
 import org.hisp.dhis.jsontree.Appender;
+import org.hisp.dhis.jsontree.IoAppender;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.staxwax.factory.XMLFactory;
@@ -160,7 +161,7 @@ final class DataExportOutput {
   };
 
   static void toCsv(DataExportGroup.Output group, OutputStream csv) {
-    try (Appender out = Appender.ofUTF8(csv)) {
+    try (IoAppender out = Appender.ofUTF8(csv)) {
       String groupOrgUnit = group.orgUnit();
       String groupPeriod = group.period();
       String groupAoc = group.attributeOptionCombo();

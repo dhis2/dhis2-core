@@ -70,7 +70,7 @@ public final class UID implements Serializable {
     this.value = value;
   }
 
-  public static boolean isValid(String value) {
+  public static boolean isValid(CharSequence value) {
     return CodeGenerator.isValidUid(value);
   }
 

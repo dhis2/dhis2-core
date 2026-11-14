@@ -41,6 +41,7 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.jsontree.Text;
 import org.intellij.lang.annotations.Language;
 
 /**
@@ -134,6 +135,11 @@ public final class SQL {
    */
   public static QueryBuilder of(@Language("sql") String sql, @Nonnull QueryAPI api) {
     return new QueryBuilder(sql, api);
+  }
+
+  public static DirectiveQueryBuilder ofDirective(
+      @Language("sql") String sql, @Nonnull QueryAPI api) {
+    return new DirectiveQueryBuilder(Text.of(sql), api);
   }
 
   /** Facade for specific implementations of query APIs, such as hibernate or JDBC. */
@@ -283,6 +289,16 @@ public final class SQL {
     }
 
     /**
+     * DB must have returned a long equivalent value or a {@link ClassCastException} will occur.
+     *
+     * @param index zero based column index
+     * @return long value or null, if the DB returned null
+     */
+    default Double getDouble(int index) {
+      return (Double) getObject(index);
+    }
+
+    /**
      * DB must have returned a {@link Date} equivalent value (timestamp) or a {@link
      * ClassCastException} will occur.
      *
@@ -322,6 +338,36 @@ public final class SQL {
      */
     default Long[] getLongArray(int index) {
       return (Long[]) getArray(index);
+    }
+
+    /**
+     * DB must have returned a number equivalent value or a {@link ClassCastException} may occur.
+     *
+     * @param index zero based column index
+     * @return column value as int or 0 if it was SQL null
+     */
+    default int getIntValue(int index) {
+      return ((Number) getObject(index)).intValue();
+    }
+
+    /**
+     * DB must have returned a number equivalent value or a {@link ClassCastException} may occur.
+     *
+     * @param index zero based column index
+     * @return column value as long or 0L if it was SQL null
+     */
+    default long getLongValue(int index) {
+      return ((Number) getObject(index)).longValue();
+    }
+
+    /**
+     * DB must have returned a number equivalent value or a {@link ClassCastException} may occur.
+     *
+     * @param index zero based column index
+     * @return column value as double or 0d if it was SQL null
+     */
+    default double getDoubleValue(int index) {
+      return ((Number) getObject(index)).doubleValue();
     }
   }
 
