@@ -67,6 +67,8 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  *
@@ -602,6 +604,8 @@ public interface JobProgress {
     }
     AtomicInteger success = new AtomicInteger();
     AtomicInteger failed = new AtomicInteger();
+    // the security context is thread bound, the pool threads must run the items as the caller
+    SecurityContext callerContext = SecurityContextHolder.getContext();
 
     Callable<Boolean> task =
         () ->
@@ -612,6 +616,8 @@ public interface JobProgress {
                         return false;
                       }
                       startingWorkItem(description.apply(item));
+                      SecurityContext threadContext = SecurityContextHolder.getContext();
+                      SecurityContextHolder.setContext(callerContext);
                       try {
                         work.accept(item);
                         completedWorkItem(null);
@@ -621,6 +627,8 @@ public interface JobProgress {
                         failedWorkItem(ex);
                         failed.incrementAndGet();
                         return false;
+                      } finally {
+                        SecurityContextHolder.setContext(threadContext);
                       }
                     })
                 .reduce(Boolean::logicalAnd)

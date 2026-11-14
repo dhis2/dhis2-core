@@ -36,6 +36,7 @@ import static java.util.stream.Collectors.toList;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -59,6 +60,10 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Tests the utility methods of the {@link JobProgress} interface.
@@ -250,6 +255,27 @@ class JobProgressTest {
     verify(progress, never()).failedWorkItem(any(Exception.class));
     verify(progress, never()).failedStage(anyString());
     verify(progress, never()).failedStage(any(Exception.class));
+  }
+
+  @Test
+  void testRunStageInParallel_RunsItemsInCallerSecurityContext() {
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(new TestingAuthenticationToken("caller", null, "ALL"));
+    SecurityContextHolder.setContext(context);
+    try {
+      List<Authentication> seen = new CopyOnWriteArrayList<>();
+      JobProgress progress = newMockJobProgress();
+      progress.runStageInParallel(
+          2,
+          List.of(1, 2, 3, 4),
+          String::valueOf,
+          item -> seen.add(SecurityContextHolder.getContext().getAuthentication()));
+      assertEquals(4, seen.size());
+      seen.forEach(auth -> assertSame(context.getAuthentication(), auth));
+      assertSame(context, SecurityContextHolder.getContext());
+    } finally {
+      SecurityContextHolder.clearContext();
+    }
   }
 
   @Test
