@@ -431,7 +431,8 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   }
 
   @JsonProperty("resources")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
+  @OpenApi.Property(BaseIdentifiableObject[].class)
   @JacksonXmlElementWrapper(localName = "resources", namespace = DXF_2_0)
   @JacksonXmlProperty(localName = "resource", namespace = DXF_2_0)
   public List<Document> getResources() {
