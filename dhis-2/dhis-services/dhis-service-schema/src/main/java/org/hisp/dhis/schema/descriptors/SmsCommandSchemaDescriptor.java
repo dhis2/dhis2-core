@@ -50,7 +50,7 @@ public class SmsCommandSchemaDescriptor implements SchemaDescriptor {
   public Schema getSchema() {
     Schema schema = new Schema(SMSCommand.class, SINGULAR, PLURAL);
     schema.setRelativeApiEndpoint(API_ENDPOINT);
-    schema.setOrder(1509);
+    schema.setOrder(1521);
 
     schema.add(new Authority(AuthorityType.CREATE, List.of(F_MOBILE_SENDSMS.toString())));
     schema.add(new Authority(AuthorityType.DELETE, List.of(F_MOBILE_SENDSMS.toString())));
