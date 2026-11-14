@@ -135,7 +135,7 @@ public class HibernateAccessControlStore implements AccessControlStore {
                 uid,
                 grantsDataRead("(%s->'users'->'%s'->>'access')".formatted(sharing, uid)));
     Set<String> groups = user.getUserGroupIds();
-    if (groups != null && !groups.isEmpty()) {
+    if (!groups.isEmpty()) {
       // CASE, not AND, guarantees jsonb_each only sees an object (migrated sharing has JSON null)
       check +=
           (" OR EXISTS (SELECT 1 FROM jsonb_each(CASE WHEN jsonb_typeof(%1$s->'userGroups') ="
