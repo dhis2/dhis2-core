@@ -30,6 +30,8 @@
 package org.hisp.dhis.period;
 
 import com.google.common.collect.Lists;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -39,6 +41,8 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 /**
  * @author Lars Helge Overland
  */
+@Entity
+@DiscriminatorValue("BiMonthly")
 public class BiMonthlyPeriodType extends CalendarPeriodType {
   private static final String ISO_FORMAT = "yyyyMMB";
 

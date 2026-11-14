@@ -29,10 +29,14 @@
  */
 package org.hisp.dhis.period;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import java.util.Calendar;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
+@Entity
+@DiscriminatorValue("FinancialAug")
 public class FinancialAugustPeriodType extends FinancialPeriodType {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 1599667482719470930L;
