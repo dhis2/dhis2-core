@@ -33,6 +33,7 @@ import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_NO_DATA_SHA
 import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_OPTION_DEFAULT;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1098;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
@@ -58,6 +59,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -836,5 +838,83 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
     assertHasErrors(
         2, trackerAccessManager.canUpdate(fromUser(user), trackerEvent, orgUnitA, newAoc));
+  }
+
+  // An AOC is readable only when the user may read data of every one of its options, the same rule
+  // as the AOC lookup that tracker exports filter on. The default AOC is always readable.
+
+  @Test
+  void shouldReadSingleEventWhenUserCanReadDataOfEveryAocOption() {
+    singleEvent.setAttributeOptionCombo(twoOptionAoc(DATA_READ_ONLY, DATA_READ_ONLY));
+    manager.update(singleEvent);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertNoErrorMessages(trackerAccessManager.canRead(fromUser(user), singleEvent));
+  }
+
+  @Test
+  void shouldNotReadSingleEventWhenAnAocOptionGrantsOnlyDataWrite() {
+    singleEvent.setAttributeOptionCombo(twoOptionAoc(DATA_READ_ONLY, DATA_WRITE_ONLY));
+    manager.update(singleEvent);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertOnlyErrorMessages(trackerAccessManager.canRead(fromUser(user), singleEvent), E1098);
+  }
+
+  @Test
+  void shouldNotReadTrackerEventWhenAnAocOptionGrantsOnlyDataWrite() {
+    trackerEvent.setAttributeOptionCombo(twoOptionAoc(DATA_READ_ONLY, DATA_WRITE_ONLY));
+    manager.update(trackerEvent);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertOnlyErrorMessages(trackerAccessManager.canRead(fromUser(user), trackerEvent), E1098);
+  }
+
+  @Test
+  void shouldReadSingleEventWithDefaultAocWhenTheDefaultOptionIsRestricted() {
+    CategoryOptionCombo defaultAoc = categoryService.getDefaultCategoryOptionCombo();
+    CategoryOption defaultOption = defaultAoc.getCategoryOptions().iterator().next();
+    defaultOption.getSharing().setPublicAccess(CATEGORY_NO_DATA_SHARING_DEFAULT);
+    manager.update(defaultOption);
+    singleEvent.setAttributeOptionCombo(defaultAoc);
+    manager.update(singleEvent);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertNoErrorMessages(trackerAccessManager.canRead(fromUser(user), singleEvent));
+  }
+
+  private static final String DATA_READ_ONLY = "r-r-----";
+
+  private static final String DATA_WRITE_ONLY = "r--w----";
+
+  /** An AOC of a combo of two categories, with options of the given public access. */
+  private CategoryOptionCombo twoOptionAoc(String access1, String access2) {
+    CategoryOption option1 = createCategoryOption('X');
+    categoryService.addCategoryOption(option1);
+    option1.getSharing().setPublicAccess(access1);
+    categoryService.updateCategoryOption(option1);
+    CategoryOption option2 = createCategoryOption('Y');
+    categoryService.addCategoryOption(option2);
+    option2.getSharing().setPublicAccess(access2);
+    categoryService.updateCategoryOption(option2);
+    Category category1 = createCategory('X', option1);
+    category1.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    categoryService.addCategory(category1);
+    Category category2 = createCategory('Y', option2);
+    category2.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    categoryService.addCategory(category2);
+    CategoryCombo combo = createCategoryCombo('X', category1, category2);
+    combo.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    categoryService.addCategoryCombo(combo);
+    CategoryOptionCombo aoc = createCategoryOptionCombo(combo, option1, option2);
+    categoryService.addCategoryOptionCombo(aoc);
+    return aoc;
+  }
+
+  private void assertOnlyErrorMessages(List<ErrorMessage> errors, ValidationCode validationCode) {
+    assertFalse(errors.isEmpty(), "error not found since there are no errors");
+    assertTrue(
+        errors.stream().allMatch(err -> err.validationCode().equals(validationCode)),
+        String.format("want only '%s', got %s", validationCode.getMessage(), errors));
   }
 }
