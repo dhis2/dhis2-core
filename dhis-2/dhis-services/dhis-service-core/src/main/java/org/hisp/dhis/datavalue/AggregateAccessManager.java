@@ -50,15 +50,6 @@ public interface AggregateAccessManager {
   List<String> canWrite(UserDetails userDetails, DataSet dataSet);
 
   /**
-   * Check if given User has DATA_READ access for given DataSet
-   *
-   * @param userDetails to check permission for
-   * @param dataSet a {@link DataValue} object
-   * @return List of errors
-   */
-  List<String> canRead(UserDetails userDetails, DataSet dataSet);
-
-  /**
    * Check if given User has DATA_WRITE access for given CategoryOptionCombo
    *
    * @param userDetails to check permission for
@@ -75,15 +66,6 @@ public interface AggregateAccessManager {
    * @return List of errors
    */
   List<String> canWriteCached(UserDetails userDetails, CategoryOptionCombo categoryOptionCombo);
-
-  /**
-   * Check if given User has DATA_READ access for given CategoryOptionCombo
-   *
-   * @param userDetails to check permission for
-   * @param categoryOption a {@link CategoryOptionCombo} object
-   * @return List of errors
-   */
-  List<String> canRead(UserDetails userDetails, CategoryOptionCombo categoryOption);
 
   /**
    * Check if given User has DATA_WRITE access for give DataElementOperand

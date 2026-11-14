@@ -119,10 +119,10 @@ public class HibernateAccessControlStore implements AccessControlStore {
    * (JSON {@code null}, a string) grants nothing. The condition is never null and never fails, for
    * sharing of any shape: user or user group entries missing, JSON {@code null} or not an object.
    *
-   * <p>Only data read grants data read. Ownership does not, unlike in {@code
-   * JpaQueryUtils.generateSQlQueryForSharingCheck}. Data write does not either, unlike in {@code
-   * AclService.canDataRead}: sharing can only grant data write without data read through the API,
-   * and such sharing does not give access to the data.
+   * <p>Only data read grants data read, as in {@code AclService.canDataRead}. Ownership does not,
+   * unlike in {@code JpaQueryUtils.generateSQlQueryForSharingCheck}. Data write does not either:
+   * sharing can only grant data write without data read through the API, and such sharing does not
+   * give access to the data.
    */
   public static String createDataReadCheck(String sharing, UserDetails user) {
     String uid = user.getUid();

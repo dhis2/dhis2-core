@@ -564,10 +564,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
    * The user may read data of an AOC when {@link AclService#canDataRead} allows it for the combo as
    * a whole, the same rule as the AOC lookup that tracker exports filter on: the default AOC is
    * always readable, any other only when the user may read data of every one of its options.
-   * Checking each option on its own would differ from that rule.
+   * Checking each option on its own would differ from that rule for the default AOC.
    *
-   * <p>The error names the options the user may not read data of, or, when each option on its own
-   * may be read, every option of the AOC.
+   * <p>The error names the options the user may not read data of. Should the combo be denied while
+   * each option on its own may be read, it names every option, so that the read is never allowed.
    */
   private void checkDataReadAccessToCategoryOptionCombo(
       List<ErrorMessage> errors, UserDetails user, CategoryOptionCombo categoryOptionCombo) {

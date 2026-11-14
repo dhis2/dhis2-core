@@ -33,6 +33,7 @@ import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_NO_DATA_SHA
 import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_OPTION_DEFAULT;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1096;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1098;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
@@ -52,6 +53,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -854,20 +856,35 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldNotReadSingleEventWhenAnAocOptionGrantsOnlyDataWrite() {
-    singleEvent.setAttributeOptionCombo(twoOptionAoc(DATA_READ_ONLY, DATA_WRITE_ONLY));
+    CategoryOptionCombo aoc = twoOptionAoc(DATA_READ_ONLY, DATA_WRITE_ONLY);
+    singleEvent.setAttributeOptionCombo(aoc);
     manager.update(singleEvent);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
 
-    assertOnlyErrorMessages(trackerAccessManager.canRead(fromUser(user), singleEvent), E1098);
+    assertOptionsNotReadable(
+        trackerAccessManager.canRead(fromUser(user), singleEvent), user, writeOnlyOptions(aoc));
   }
 
   @Test
   void shouldNotReadTrackerEventWhenAnAocOptionGrantsOnlyDataWrite() {
-    trackerEvent.setAttributeOptionCombo(twoOptionAoc(DATA_READ_ONLY, DATA_WRITE_ONLY));
+    CategoryOptionCombo aoc = twoOptionAoc(DATA_READ_ONLY, DATA_WRITE_ONLY);
+    trackerEvent.setAttributeOptionCombo(aoc);
     manager.update(trackerEvent);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
 
-    assertOnlyErrorMessages(trackerAccessManager.canRead(fromUser(user), trackerEvent), E1098);
+    assertOptionsNotReadable(
+        trackerAccessManager.canRead(fromUser(user), trackerEvent), user, writeOnlyOptions(aoc));
+  }
+
+  @Test
+  void shouldNotReadSingleEventWhenEveryAocOptionGrantsOnlyDataWrite() {
+    CategoryOptionCombo aoc = twoOptionAoc(DATA_WRITE_ONLY, DATA_WRITE_ONLY);
+    singleEvent.setAttributeOptionCombo(aoc);
+    manager.update(singleEvent);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertOptionsNotReadable(
+        trackerAccessManager.canRead(fromUser(user), singleEvent), user, writeOnlyOptions(aoc));
   }
 
   @Test
@@ -881,6 +898,29 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
 
     assertNoErrorMessages(trackerAccessManager.canRead(fromUser(user), singleEvent));
+  }
+
+  // Capturing a tracker event needs data read on its program as well as data write on its stage.
+  // Data write sharing on the program does not stand in for that data read.
+
+  @Test
+  void shouldCreateTrackerEventWhenProgramGrantsDataRead() {
+    Program program = trackerEvent.getProgramStage().getProgram();
+    program.getSharing().setPublicAccess("r-r-----");
+    manager.update(program);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertNoErrorMessages(trackerAccessManager.canCreate(fromUser(user), trackerEvent));
+  }
+
+  @Test
+  void shouldNotCreateTrackerEventWhenProgramGrantsOnlyDataWrite() {
+    Program program = trackerEvent.getProgramStage().getProgram();
+    program.getSharing().setPublicAccess("r--w----");
+    manager.update(program);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertHasErrorMessage(trackerAccessManager.canCreate(fromUser(user), trackerEvent), E1096);
   }
 
   private static final String DATA_READ_ONLY = "r-r-----";
@@ -911,10 +951,23 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     return aoc;
   }
 
-  private void assertOnlyErrorMessages(List<ErrorMessage> errors, ValidationCode validationCode) {
-    assertFalse(errors.isEmpty(), "error not found since there are no errors");
-    assertTrue(
-        errors.stream().allMatch(err -> err.validationCode().equals(validationCode)),
-        String.format("want only '%s', got %s", validationCode.getMessage(), errors));
+  private static Set<String> writeOnlyOptions(CategoryOptionCombo aoc) {
+    return aoc.getCategoryOptions().stream()
+        .filter(option -> DATA_WRITE_ONLY.equals(option.getSharing().getPublicAccess()))
+        .map(CategoryOption::getUid)
+        .collect(Collectors.toSet());
+  }
+
+  /** Asserts the errors are exactly one E1098 for each of the given options. */
+  private static void assertOptionsNotReadable(
+      List<ErrorMessage> errors, User user, Set<String> options) {
+    assertFalse(options.isEmpty(), "the fixture has no options to expect errors for");
+    assertEquals(
+        options.stream()
+            .map(option -> new ErrorMessage(E1098, user.getUid(), List.of(user.getUid(), option)))
+            .collect(Collectors.toSet()),
+        Set.copyOf(errors),
+        "errors");
+    assertEquals(options.size(), errors.size(), "number of errors");
   }
 }
