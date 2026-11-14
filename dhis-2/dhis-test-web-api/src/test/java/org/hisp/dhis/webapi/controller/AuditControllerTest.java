@@ -33,19 +33,26 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import jakarta.persistence.EntityManagerFactory;
+import java.sql.Timestamp;
 import java.util.Set;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.audit.TrackedEntityAudit;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditStore;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackerEvent;
@@ -62,6 +69,10 @@ class AuditControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private CategoryService categoryService;
+
+  @Autowired private TrackedEntityAuditStore trackedEntityAuditStore;
+
+  @Autowired private EntityManagerFactory entityManagerFactory;
 
   private CategoryOptionCombo coc;
 
@@ -158,6 +169,34 @@ class AuditControllerTest extends H2ControllerIntegrationTestBase {
             "/audits/trackedEntity?tei={te}&trackedEntities={te}",
             te1.getUid() + ";" + te2.getUid(),
             te1.getUid() + "," + te2.getUid()));
+  }
+
+  @Test
+  void shouldGetTrackedEntityAuditWithItsProperties() {
+    trackedEntityAuditStore.addTrackedEntityAudit(
+        new TrackedEntityAudit(
+            te1.getUid(),
+            "audit comment",
+            Timestamp.valueOf("2022-03-01 10:15:30.123"),
+            "auditUser",
+            AuditOperationType.UPDATE));
+    startNewRequestSession();
+    entityManagerFactory.getCache().evictAll();
+
+    JsonObject audit =
+        GET("/audits/trackedEntity?trackedEntities={te}", te1.getUid())
+            .content(HttpStatus.OK)
+            .getArray("trackedEntityAudits")
+            .getObject(0);
+
+    assertEquals(
+        Set.of("trackedEntity", "created", "comment", "auditType", "accessedBy"),
+        Set.copyOf(audit.names()));
+    assertEquals(te1.getUid(), audit.getString("trackedEntity").string());
+    assertEquals("2022-03-01T10:15:30.123", audit.getString("created").string());
+    assertEquals("audit comment", audit.getString("comment").string());
+    assertEquals("UPDATE", audit.getString("auditType").string());
+    assertEquals("auditUser", audit.getString("accessedBy").string());
   }
 
   private TrackedEntityType trackedEntityTypeAccessible() {
