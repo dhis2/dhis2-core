@@ -187,7 +187,7 @@ public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimens
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DXF_2_0)
   @Property(value = REFERENCE, required = FALSE)
   public Option getOption() {
