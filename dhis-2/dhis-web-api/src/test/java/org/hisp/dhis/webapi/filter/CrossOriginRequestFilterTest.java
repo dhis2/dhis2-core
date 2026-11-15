@@ -213,6 +213,25 @@ class CrossOriginRequestFilterTest {
     assertNotNull(chain.getRequest(), "TLS-terminating proxy setting X-Forwarded-Proto must pass");
   }
 
+  @ParameterizedTest(name = "[{index}] {2}")
+  @MethodSource("loggedValues")
+  void sanitizeForLogKeepsClientValueOnOneShortLine(String value, String expected, String reason) {
+    assertEquals(expected, CrossOriginRequestFilter.sanitizeForLog(value), reason);
+  }
+
+  static Stream<Arguments> loggedValues() {
+    String max = "a".repeat(200);
+    return Stream.of(
+        Arguments.of("https://app.example.org", "https://app.example.org", "plain value"),
+        Arguments.of(
+            "https://evil.example\r\nWARN forged line",
+            "https://evil.example__WARN forged line",
+            "CR and LF"),
+        Arguments.of("a\u0000b\tc\u007Fd\u0085e", "a_b_c_d_e", "C0 and C1 controls, DEL, TAB"),
+        Arguments.of(max, max, "200 characters are kept"),
+        Arguments.of(max + "b", max + "...", "longer values are truncated"));
+  }
+
   @ParameterizedTest
   @ValueSource(strings = {"true", "TRUE", "on", "ON"})
   void logOnlyModeLetsCrossSiteRequestWithoutOriginThrough(String logOnly)

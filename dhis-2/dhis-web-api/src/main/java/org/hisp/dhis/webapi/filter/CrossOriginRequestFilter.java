@@ -42,6 +42,7 @@ import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -120,6 +121,12 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
 
   /** {@code Sec-Fetch-Site} values of requests the user or this server's own pages initiated. */
   private static final Set<String> TRUSTED_FETCH_SITES = Set.of(SAME_ORIGIN, "none");
+
+  /** Longest client-supplied value written to the log, so a client cannot flood it. */
+  private static final int MAX_LOGGED_VALUE_LENGTH = 200;
+
+  /** C0 and C1 control characters, among them CR, LF and NEL, which could start a new log line. */
+  private static final Pattern CONTROL_CHARACTERS = Pattern.compile("\\p{Cc}");
 
   private enum Verdict {
     ALLOWED,
@@ -279,16 +286,28 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
             + " that the proxy forwards the original Host header and X-Forwarded-Proto.",
         rejected ? "Rejected" : "Would reject (log-only mode)",
         verdict.reason(),
-        request.getMethod(),
-        request.getRequestURI(),
+        sanitizeForLog(request.getMethod()),
+        sanitizeForLog(request.getRequestURI()),
         headerForLog(request, HttpHeaders.ORIGIN),
         headerForLog(request, SEC_FETCH_SITE),
-        allowedOriginMatcher.getSelfOrigin(request));
+        sanitizeForLog(allowedOriginMatcher.getSelfOrigin(request)));
   }
 
   /** Absent headers are logged as {@code (absent)}, so they differ from {@code Origin: null}. */
   private static String headerForLog(HttpServletRequest request, String name) {
     String value = request.getHeader(name);
-    return value == null ? "(absent)" : value;
+    return value == null ? "(absent)" : sanitizeForLog(value);
+  }
+
+  /**
+   * Makes a client-supplied value safe for one log line. Any client can trigger the warning without
+   * authentication, so control characters (including CR and LF) are replaced, which keeps a client
+   * from forging log lines, and long values are truncated.
+   */
+  static String sanitizeForLog(String value) {
+    String clean = CONTROL_CHARACTERS.matcher(value).replaceAll("_");
+    return clean.length() > MAX_LOGGED_VALUE_LENGTH
+        ? clean.substring(0, MAX_LOGGED_VALUE_LENGTH) + "..."
+        : clean;
   }
 }
