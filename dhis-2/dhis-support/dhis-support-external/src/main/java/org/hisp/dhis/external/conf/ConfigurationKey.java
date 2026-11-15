@@ -802,15 +802,22 @@ public enum ConfigurationKey {
   CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true),
 
   /**
-   * Reject browser requests from web origins that are neither this server nor on the CORS
-   * allowlist, based on the Origin and Sec-Fetch-Site request headers. (default: on)
+   * Reject state-changing browser requests that carry no Origin header but whose Sec-Fetch-Site
+   * header says they come from another site. (default: on)
+   *
+   * <p>Setting it to off does not switch off the origin check: requests whose Origin is neither
+   * this server nor on the CORS allowlist are rejected in every mode, as they were before this
+   * setting existed.
    */
   CROSS_ORIGIN_PROTECTION_ENABLED(
       "http.security.cross_origin_protection.enabled", Constants.ON, false),
 
   /**
-   * Only log requests the cross-origin protection would reject, and let them through. Use it to
-   * diagnose reverse proxy setups before enforcing. (default: off)
+   * Only log, and let through, the requests that the Sec-Fetch-Site rule of {@link
+   * #CROSS_ORIGIN_PROTECTION_ENABLED} would reject. (default: off)
+   *
+   * <p>It does not apply to the origin check: requests whose Origin is neither this server nor on
+   * the CORS allowlist are rejected in every mode, as they were before this setting existed.
    */
   CROSS_ORIGIN_PROTECTION_LOG_ONLY(
       "http.security.cross_origin_protection.log_only", Constants.OFF, false),

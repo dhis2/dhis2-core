@@ -34,7 +34,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CROSS_ORIGIN_PROTECTI
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -50,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -100,9 +100,25 @@ class CrossOriginRequestFilterTest {
     }
   }
 
+  /** The three configurations: values of the enabled and log-only settings. */
+  private enum Mode {
+    ENFORCE("on", "off"),
+    LOG_ONLY("on", "on"),
+    DISABLED("off", "off");
+
+    private final String enabled;
+
+    private final String logOnly;
+
+    Mode(String enabled, String logOnly) {
+      this.enabled = enabled;
+      this.logOnly = logOnly;
+    }
+  }
+
   /**
-   * All combinations of Origin header, method and {@code Sec-Fetch-Site} header ({@code null} means
-   * absent), with the expected outcome derived from the documented rules.
+   * All combinations of mode, Origin header, method and {@code Sec-Fetch-Site} header ({@code null}
+   * means absent), with the expected outcome derived from the documented rules.
    */
   static Stream<Arguments> ruleMatrix() {
     List<String> methods = new ArrayList<>(UNSAFE_METHODS);
@@ -110,36 +126,50 @@ class CrossOriginRequestFilterTest {
     List<String> fetchSites = Arrays.asList(null, "same-origin", "none", "same-site", "cross-site");
 
     List<Arguments> arguments = new ArrayList<>();
-    for (OriginHeader origin : OriginHeader.values()) {
-      for (String method : methods) {
-        for (String fetchSite : fetchSites) {
-          arguments.add(
-              Arguments.of(origin, method, fetchSite, isAllowedByRules(origin, method, fetchSite)));
+    for (Mode mode : Mode.values()) {
+      for (OriginHeader origin : OriginHeader.values()) {
+        for (String method : methods) {
+          for (String fetchSite : fetchSites) {
+            arguments.add(
+                Arguments.of(
+                    mode,
+                    origin,
+                    method,
+                    fetchSite,
+                    isAllowedByRules(mode, origin, method, fetchSite)));
+          }
         }
       }
     }
     return arguments.stream();
   }
 
-  private static boolean isAllowedByRules(OriginHeader origin, String method, String fetchSite) {
+  /**
+   * The origin rules apply in every mode, so the settings can never make the server weaker than the
+   * origin check of the CORS filter it replaces. Only the {@code Sec-Fetch-Site} rule for requests
+   * without an origin depends on the mode.
+   */
+  private static boolean isAllowedByRules(
+      Mode mode, OriginHeader origin, String method, String fetchSite) {
     return switch (origin) {
       case SELF, ALLOWLISTED -> true;
       case FOREIGN -> false;
       case NULL -> "same-origin".equals(fetchSite);
       case ABSENT ->
-          !UNSAFE_METHODS.contains(method)
+          mode != Mode.ENFORCE
+              || !UNSAFE_METHODS.contains(method)
               || fetchSite == null
               || fetchSite.equals("same-origin")
               || fetchSite.equals("none");
     };
   }
 
-  @ParameterizedTest(name = "Origin {0}, {1}, Sec-Fetch-Site {2} -> allowed {3}")
+  @ParameterizedTest(name = "{0}: Origin {1}, {2}, Sec-Fetch-Site {3} -> allowed {4}")
   @MethodSource("ruleMatrix")
   void appliesOriginAndFetchMetadataRules(
-      OriginHeader origin, String method, String fetchSite, boolean expectedAllowed)
+      Mode mode, OriginHeader origin, String method, String fetchSite, boolean expectedAllowed)
       throws ServletException, IOException {
-    CrossOriginRequestFilter filter = filter("on", "off");
+    CrossOriginRequestFilter filter = filter(mode.enabled, mode.logOnly);
     MockHttpServletRequest request = request(method, origin.value, fetchSite);
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain chain = new MockFilterChain();
@@ -185,32 +215,35 @@ class CrossOriginRequestFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"true", "TRUE", "on", "ON"})
-  void logOnlyModeLetsRejectedRequestThrough(String logOnly) throws ServletException, IOException {
+  void logOnlyModeLetsCrossSiteRequestWithoutOriginThrough(String logOnly)
+      throws ServletException, IOException {
     CrossOriginRequestFilter filter = filter("on", logOnly);
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain chain = new MockFilterChain();
 
-    filter.doFilter(request("POST", FOREIGN_ORIGIN, "cross-site"), response, chain);
+    filter.doFilter(request("POST", null, "cross-site"), response, chain);
 
     assertNotNull(chain.getRequest(), "log-only mode must not block the request");
     assertEquals(200, response.getStatus());
   }
 
-  @ParameterizedTest(name = "Origin null, Sec-Fetch-Site {0}")
-  @MethodSource("nullOriginFetchSites")
-  void logOnlyModeLetsNullOriginThrough(String fetchSite) throws ServletException, IOException {
-    CrossOriginRequestFilter filter = filter("on", "on");
+  @ParameterizedTest(name = "enabled {0}, log-only {1}")
+  @MethodSource("relaxedSettings")
+  void relaxedSettingsStillRejectForeignOrigin(String enabled, String logOnly)
+      throws ServletException, IOException {
+    CrossOriginRequestFilter filter = filter(enabled, logOnly);
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain chain = new MockFilterChain();
 
-    filter.doFilter(request("POST", "null", fetchSite), response, chain);
+    filter.doFilter(request("GET", FOREIGN_ORIGIN, "cross-site"), response, chain);
 
-    assertNotNull(chain.getRequest(), "log-only mode must not block the request");
-    assertEquals(200, response.getStatus());
+    assertNull(chain.getRequest(), "the origin check must never be weaker than the CORS filter's");
+    assertEquals(403, response.getStatus());
   }
 
-  static Stream<String> nullOriginFetchSites() {
-    return Stream.of(null, "same-origin", "none", "same-site", "cross-site");
+  static Stream<Arguments> relaxedSettings() {
+    return Stream.of(
+        Arguments.of("on", "on"), Arguments.of("off", "off"), Arguments.of("off", "on"));
   }
 
   @ParameterizedTest(name = "Origin {0}, Sec-Fetch-Site same-origin -> allowed {1}")
@@ -242,7 +275,7 @@ class CrossOriginRequestFilterTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain chain = new MockFilterChain();
 
-    filter.doFilter(request("POST", FOREIGN_ORIGIN, "cross-site"), response, chain);
+    filter.doFilter(request("POST", null, "cross-site"), response, chain);
 
     assertNull(chain.getRequest());
     assertEquals(403, response.getStatus());
@@ -255,7 +288,7 @@ class CrossOriginRequestFilterTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain chain = new MockFilterChain();
 
-    filter.doFilter(request("POST", FOREIGN_ORIGIN, "cross-site"), response, chain);
+    filter.doFilter(request("POST", null, "cross-site"), response, chain);
 
     assertNull(chain.getRequest());
     assertEquals(403, response.getStatus());
@@ -263,40 +296,41 @@ class CrossOriginRequestFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"false", "FALSE", "off", "OFF"})
-  void disabledFilterLetsEveryRequestThrough(String enabled) throws ServletException, IOException {
+  void disabledFilterSkipsFetchSiteRule(String enabled) throws ServletException, IOException {
     CrossOriginRequestFilter filter = filter(enabled, "off");
     MockFilterChain chain = new MockFilterChain();
 
-    filter.doFilter(
-        request("POST", FOREIGN_ORIGIN, "cross-site"), new MockHttpServletResponse(), chain);
+    filter.doFilter(request("POST", null, "cross-site"), new MockHttpServletResponse(), chain);
 
     assertNotNull(chain.getRequest());
   }
 
-  @ParameterizedTest(name = "log-only {0}: Origin {2}, Sec-Fetch-Site {3} -> {1}, {4}")
+  @ParameterizedTest(name = "{0}: Origin {1}, Sec-Fetch-Site {2} -> {3}, {4}")
   @MethodSource("rejections")
   void rejectionIncrementsCounterForModeAndReason(
-      String logOnly, String mode, String origin, String fetchSite, String reason)
+      Mode mode, String origin, String fetchSite, String expectedMode, String reason)
       throws ServletException, IOException {
     SimpleMeterRegistry registry = new SimpleMeterRegistry();
-    CrossOriginRequestFilter filter = filter("on", logOnly, registry);
+    CrossOriginRequestFilter filter = filter(mode.enabled, mode.logOnly, registry);
 
     filter.doFilter(
         request("POST", origin, fetchSite), new MockHttpServletResponse(), new MockFilterChain());
 
-    assertEquals(1.0, rejectedCount(registry, mode, reason));
+    assertEquals(1.0, rejectedCount(registry, expectedMode, reason));
     assertEquals(1.0, totalRejectedCount(registry), "exactly one series must be incremented");
   }
 
   static Stream<Arguments> rejections() {
     List<Arguments> arguments = new ArrayList<>();
-    for (String[] mode : new String[][] {{"off", "enforce"}, {"on", "log_only"}}) {
+    for (Mode mode : Mode.values()) {
       arguments.add(
-          Arguments.of(mode[0], mode[1], FOREIGN_ORIGIN, "cross-site", "origin_not_allowed"));
-      arguments.add(Arguments.of(mode[0], mode[1], "null", null, "origin_not_allowed"));
-      arguments.add(
-          Arguments.of(mode[0], mode[1], null, "cross-site", "cross_site_without_origin"));
+          Arguments.of(mode, FOREIGN_ORIGIN, "cross-site", "enforce", "origin_not_allowed"));
+      arguments.add(Arguments.of(mode, "null", null, "enforce", "origin_not_allowed"));
     }
+    arguments.add(
+        Arguments.of(Mode.ENFORCE, null, "cross-site", "enforce", "cross_site_without_origin"));
+    arguments.add(
+        Arguments.of(Mode.LOG_ONLY, null, "cross-site", "log_only", "cross_site_without_origin"));
     return arguments.stream();
   }
 
@@ -322,40 +356,39 @@ class CrossOriginRequestFilterTest {
         Arguments.of(null, "GET", "cross-site"));
   }
 
-  @ParameterizedTest(name = "log-only {0} -> mode {1}")
-  @MethodSource("modes")
-  void countersAreRegisteredAtZeroWithOnlyModeAndReasonTags(String logOnly, String mode) {
+  @ParameterizedTest(name = "{0} -> {1}")
+  @MethodSource("registeredSeries")
+  void countersAreRegisteredAtZeroWithOnlyModeAndReasonTags(
+      Mode mode, Map<String, String> expectedModeByReason) {
     SimpleMeterRegistry registry = new SimpleMeterRegistry();
 
-    filter("on", logOnly, registry);
+    filter(mode.enabled, mode.logOnly, registry);
 
     Collection<Counter> counters =
         registry.find(CrossOriginRequestFilter.REJECTED_COUNTER).counters();
-    assertEquals(2, counters.size());
     for (Counter counter : counters) {
       assertEquals(0.0, counter.count());
-      assertEquals(mode, counter.getId().getTag("mode"));
       assertEquals(
           Set.of("mode", "reason"),
           counter.getId().getTags().stream().map(Tag::getKey).collect(Collectors.toSet()),
           "tags must stay low-cardinality: never origin, path or user");
     }
     assertEquals(
-        Set.of("origin_not_allowed", "cross_site_without_origin"),
-        counters.stream().map(c -> c.getId().getTag("reason")).collect(Collectors.toSet()));
+        expectedModeByReason,
+        counters.stream()
+            .collect(
+                Collectors.toMap(c -> c.getId().getTag("reason"), c -> c.getId().getTag("mode"))));
   }
 
-  static Stream<Arguments> modes() {
-    return Stream.of(Arguments.of("off", "enforce"), Arguments.of("on", "log_only"));
-  }
-
-  @Test
-  void disabledFilterRegistersNoCounter() {
-    SimpleMeterRegistry registry = new SimpleMeterRegistry();
-
-    filter("off", "off", registry);
-
-    assertTrue(registry.find(CrossOriginRequestFilter.REJECTED_COUNTER).counters().isEmpty());
+  static Stream<Arguments> registeredSeries() {
+    return Stream.of(
+        Arguments.of(
+            Mode.ENFORCE,
+            Map.of("origin_not_allowed", "enforce", "cross_site_without_origin", "enforce")),
+        Arguments.of(
+            Mode.LOG_ONLY,
+            Map.of("origin_not_allowed", "enforce", "cross_site_without_origin", "log_only")),
+        Arguments.of(Mode.DISABLED, Map.of("origin_not_allowed", "enforce")));
   }
 
   private static double rejectedCount(MeterRegistry registry, String mode, String reason) {

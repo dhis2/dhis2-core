@@ -59,7 +59,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * Rejects browser requests that come from a web origin other than this server or an origin on the
  * CORS allowlist, with HTTP 403 and a {@code WebMessage} body. It runs in the Spring Security
  * filter chains before the CORS filter and before any authentication filter, so a rejected request
- * is never authenticated or executed.
+ * is never authenticated or executed. {@link LoginConfigCorsFilter} also runs it in front of the
+ * security-ignored {@code loginConfig} endpoint.
  *
  * <p>Rules, evaluated per request:
  *
@@ -80,14 +81,17 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * </ol>
  *
  * <p>Configured in {@code dhis.conf} by {@link ConfigurationKey#CROSS_ORIGIN_PROTECTION_ENABLED}
- * and {@link ConfigurationKey#CROSS_ORIGIN_PROTECTION_LOG_ONLY}. In log-only mode requests that
- * would be rejected are logged and let through.
+ * and {@link ConfigurationKey#CROSS_ORIGIN_PROTECTION_LOG_ONLY}. The two settings only relax rule
+ * 3: in log-only mode requests that rule 3 would reject are logged and let through, and with the
+ * protection disabled rule 3 is not evaluated. Rules 1 and 2 apply in every mode, because the CORS
+ * filter rejected requests from origins that are not allowed before this filter existed, and these
+ * settings must never make the server weaker than that.
  *
  * <p>Each rejected request, and in log-only mode each request that would be rejected, increments
  * the counter {@value #REJECTED_COUNTER} on the {@code /api/metrics} endpoint. Its tags are {@code
- * mode} ({@code enforce} or {@code log_only}) and {@code reason} ({@code origin_not_allowed} or
- * {@code cross_site_without_origin}). The origin, path and user are only logged, never used as
- * tags, so the number of series stays fixed.
+ * mode} ({@code enforce} for a rejected request, {@code log_only} for a request that was only
+ * logged) and {@code reason} ({@code origin_not_allowed} or {@code cross_site_without_origin}). The
+ * origin, path and user are only logged, never used as tags, so the number of series stays fixed.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -132,8 +136,10 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
 
   private final RenderService renderService;
 
+  /** Whether rule 3, the {@code Sec-Fetch-Site} rule for requests without an origin, is used. */
   private final boolean enabled;
 
+  /** Whether rule 3 only logs instead of rejecting. */
   private final boolean logOnly;
 
   /** One counter per rejection verdict, empty when no meter registry is available. */
@@ -162,26 +168,27 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
 
   /**
    * Registers the counters up front, so they are exported with value 0 before the first rejection.
-   * The mode is fixed at startup, so each instance registers only the series of its own mode.
+   * The configuration is fixed at startup, so each instance registers only the series it can
+   * produce: {@code origin_not_allowed} always, {@code cross_site_without_origin} only when the
+   * protection is enabled.
    */
   private Map<Verdict, Counter> registerRejectionCounters(@CheckForNull MeterRegistry registry) {
     Map<Verdict, Counter> counters = new EnumMap<>(Verdict.class);
 
-    if (registry == null || !enabled) {
+    if (registry == null) {
       return counters;
     }
 
-    String mode = logOnly ? MODE_LOG_ONLY : MODE_ENFORCE;
-
     for (Verdict verdict : Verdict.values()) {
-      if (verdict != Verdict.ALLOWED) {
+      if (verdict == Verdict.ORIGIN_NOT_ALLOWED
+          || (verdict == Verdict.CROSS_SITE_WITHOUT_ORIGIN && enabled)) {
         counters.put(
             verdict,
             Counter.builder(REJECTED_COUNTER)
                 .description(
                     "Requests the cross-origin protection rejected, or in log-only mode would"
                         + " have rejected")
-                .tag(TAG_MODE, mode)
+                .tag(TAG_MODE, rejects(verdict) ? MODE_ENFORCE : MODE_LOG_ONLY)
                 .tag(TAG_REASON, verdict.reason())
                 .register(registry));
       }
@@ -190,9 +197,16 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
     return counters;
   }
 
-  @Override
-  protected boolean shouldNotFilter(HttpServletRequest request) {
-    return !enabled;
+  /**
+   * @return true if a request with this verdict is answered with 403, false if it continues down
+   *     the filter chain
+   */
+  private boolean rejects(Verdict verdict) {
+    return switch (verdict) {
+      case ALLOWED -> false;
+      case ORIGIN_NOT_ALLOWED -> true;
+      case CROSS_SITE_WITHOUT_ORIGIN -> !logOnly;
+    };
   }
 
   @Override
@@ -206,10 +220,11 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
       return;
     }
 
-    logRejection(request, verdict);
+    boolean reject = rejects(verdict);
+    logRejection(request, verdict, reject);
     countRejection(verdict);
 
-    if (logOnly) {
+    if (!reject) {
       filterChain.doFilter(request, response);
       return;
     }
@@ -230,7 +245,8 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
           : Verdict.ORIGIN_NOT_ALLOWED;
     }
 
-    if (fetchSite == null
+    if (!enabled
+        || fetchSite == null
         || SAFE_METHODS.contains(request.getMethod())
         || TRUSTED_FETCH_SITES.contains(fetchSite.toLowerCase(Locale.ROOT))) {
       return Verdict.ALLOWED;
@@ -256,12 +272,12 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
     }
   }
 
-  private void logRejection(HttpServletRequest request, Verdict verdict) {
+  private void logRejection(HttpServletRequest request, Verdict verdict, boolean rejected) {
     log.warn(
         "{} cross-origin request: reason={}, method={}, path={}, origin={}, sec-fetch-site={},"
             + " self-origin={}. If this was a same-origin request behind a reverse proxy, check"
             + " that the proxy forwards the original Host header and X-Forwarded-Proto.",
-        logOnly ? "Would reject (log-only mode)" : "Rejected",
+        rejected ? "Rejected" : "Would reject (log-only mode)",
         verdict.reason(),
         request.getMethod(),
         request.getRequestURI(),
