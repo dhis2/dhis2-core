@@ -51,10 +51,11 @@ import org.hisp.dhis.feedback.ForbiddenException;
  *
  * <p>Browsers never send {@code Origin} on navigations or on resource loads such as images and
  * scripts, so such requests coming from another site fail the guard. A CORS-mode fetch carries
- * {@code Origin}; the CORS filter has already checked that origin against the server origin and the
- * CORS allowlist before the request gets here, so cross-origin fetches from allowlisted apps pass.
- * Clients that send no Fetch Metadata headers (Android apps, scripts, browsers on plain-HTTP
- * deployments) pass as well.
+ * {@code Origin}, and the guard trusts it: an earlier origin check in the Spring Security filter
+ * chain runs before the logout filter and before any controller, and stops requests whose origin is
+ * neither the server origin nor on the CORS allowlist. Cross-origin fetches from allowlisted apps
+ * therefore pass. Clients that send no Fetch Metadata headers (Android apps, scripts, browsers on
+ * plain-HTTP deployments) pass as well.
  *
  * <p>Use {@link RejectCrossOriginGet} on handler methods, or call {@link #check} for side effects
  * that depend on request parameters.
