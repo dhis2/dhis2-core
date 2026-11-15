@@ -180,6 +180,13 @@ class CorsAllowlistEntryTest {
           https://*.example.org      | http://app.example.org           | false
           https://*.example.org      | https://app.example.org:8443     | false
           https://*.example.org:8443 | https://app.example.org:8443     | true
+          https://*.example.org      | https://my-app.dev.example.org   | true
+          https://*.example.org      | https://evil.com/.example.org    | false
+          https://*.example.org      | https://.example.org             | false
+          https://*.example.org      | https://a..example.org           | false
+          https://*.example.org      | https://evil.com:443?.example.org | false
+          https://*.example.org      | https://user@evil.com#.example.org | false
+          https://*.example.org:8443 | https://evil.com/.example.org:8443 | false
           """)
   void shouldMatchOnlyTheOriginsTheEntryDescribes(String entry, String origin, boolean expected) {
     assertEquals(expected, CorsAllowlistEntry.parse(entry).matches(origin));

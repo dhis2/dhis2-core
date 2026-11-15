@@ -39,7 +39,6 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.commons.util.TextUtils;
 
 /**
  * A validated and normalised entry of the CORS allowlist.
@@ -54,8 +53,10 @@ import org.hisp.dhis.commons.util.TextUtils;
  * <p>The only wildcard allowed is {@code *} as the complete leftmost host label, for example {@code
  * https://*.example.org}, which trusts every subdomain of {@code example.org}. The part after the
  * wildcard must have at least two labels and must not be a public suffix ({@code *.org}, {@code
- * *.co.uk} and {@code *.github.io} are rejected). Wildcard entries keep the matching semantics of
- * {@link TextUtils#createRegexFromGlob(String)}; all other entries match by exact comparison.
+ * *.co.uk} and {@code *.github.io} are rejected). The wildcard stands for one or more host labels:
+ * {@code https://*.example.org} matches {@code https://app.example.org} and {@code
+ * https://a.b.example.org}, but not {@code https://example.org} or a value that puts anything other
+ * than a host name in place of the wildcard. All other entries match by exact comparison.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -70,6 +71,10 @@ public final class CorsAllowlistEntry {
   private static final Pattern HOST_LABEL =
       Pattern.compile("[a-z0-9_](?:[a-z0-9_-]{0,61}[a-z0-9_])?");
 
+  /** One or more host labels separated by dots: what the wildcard of an entry stands for. */
+  private static final String SUBDOMAIN_LABELS =
+      "(?:" + HOST_LABEL.pattern() + ")(?:\\.(?:" + HOST_LABEL.pattern() + "))*";
+
   private static final Pattern PORT = Pattern.compile("\\d{1,5}");
 
   private static final Pattern DIGITS = Pattern.compile("\\d+");
@@ -82,7 +87,20 @@ public final class CorsAllowlistEntry {
 
   private CorsAllowlistEntry(String origin, boolean wildcard) {
     this.origin = origin;
-    this.wildcardPattern = wildcard ? Pattern.compile(TextUtils.createRegexFromGlob(origin)) : null;
+    this.wildcardPattern = wildcard ? subdomainPattern(origin) : null;
+  }
+
+  /**
+   * @param origin a normalised wildcard origin such as {@code https://*.example.org:8443}
+   * @return a pattern in which the wildcard matches one or more host labels and the rest of the
+   *     origin matches literally
+   */
+  private static Pattern subdomainPattern(String origin) {
+    int wildcard = origin.indexOf(WILDCARD_LABEL);
+    return Pattern.compile(
+        Pattern.quote(origin.substring(0, wildcard))
+            + SUBDOMAIN_LABELS
+            + Pattern.quote(origin.substring(wildcard + WILDCARD_LABEL.length())));
   }
 
   /**
