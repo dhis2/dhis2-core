@@ -30,9 +30,6 @@
 package org.hisp.dhis.webapi.filter;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletRequestWrapper;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -91,8 +88,7 @@ public class AllowedOriginMatcher {
    */
   public String getSelfOrigin(HttpServletRequest request) {
     UriComponentsBuilder uriBuilder =
-        ServletUriComponentsBuilder.fromContextPath(new HttpServletRequestEncodingWrapper(request))
-            .replacePath("");
+        ServletUriComponentsBuilder.fromContextPath(request).replacePath("");
 
     String forwardedProto = request.getHeader(X_FORWARDED_PROTO);
 
@@ -101,26 +97,5 @@ public class AllowedOriginMatcher {
     }
 
     return uriBuilder.build().toString();
-  }
-
-  /**
-   * Simple HttpServletRequestWrapper implementation that makes sure that the query string is
-   * properly encoded.
-   */
-  private static class HttpServletRequestEncodingWrapper extends HttpServletRequestWrapper {
-    HttpServletRequestEncodingWrapper(HttpServletRequest request) {
-      super(request);
-    }
-
-    @Override
-    public String getQueryString() {
-      String queryString = super.getQueryString();
-
-      if (!StringUtils.isEmpty(queryString)) {
-        return URLEncoder.encode(queryString, StandardCharsets.UTF_8);
-      }
-
-      return queryString;
-    }
   }
 }
