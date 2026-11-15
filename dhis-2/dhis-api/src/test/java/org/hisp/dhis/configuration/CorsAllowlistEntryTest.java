@@ -148,6 +148,15 @@ class CorsAllowlistEntryTest {
   }
 
   @ParameterizedTest
+  @ValueSource(strings = {"https://straße.de", "https://ｅxample.org", "https://example。org"})
+  void shouldExplainThatTheHostNeedsALossyIdnMapping(String entry) {
+    IllegalArgumentException ex =
+        assertThrows(IllegalArgumentException.class, () -> CorsAllowlistEntry.parse(entry));
+
+    assertEquals("the host requires a lossy IDN mapping", ex.getMessage());
+  }
+
+  @ParameterizedTest
   @CsvSource(
       delimiter = '|',
       textBlock =

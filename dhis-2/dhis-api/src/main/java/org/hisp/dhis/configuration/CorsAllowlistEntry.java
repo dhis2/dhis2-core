@@ -254,24 +254,26 @@ public final class CorsAllowlistEntry {
     if (host.isEmpty()) {
       throw invalid("the host is missing");
     }
+    String lower = host.toLowerCase(Locale.ROOT);
+    String ascii;
     try {
-      String lower = host.toLowerCase(Locale.ROOT);
-      String ascii = IDN.toASCII(lower, IDN.ALLOW_UNASSIGNED).toLowerCase(Locale.ROOT);
-      // Decode only explicit Punycode labels in the input. Other Unicode characters must
-      // survive the round trip, rather than being mapped to a different trusted host.
-      String[] labels = lower.split("\\.", -1);
-      for (int i = 0; i < labels.length; i++) {
-        if (labels[i].startsWith("xn--")) {
-          labels[i] = IDN.toUnicode(labels[i], IDN.ALLOW_UNASSIGNED);
-        }
-      }
-      if (!IDN.toUnicode(ascii, IDN.ALLOW_UNASSIGNED).equals(String.join(".", labels))) {
-        throw invalid("the host requires a lossy IDN mapping");
-      }
-      return ascii;
+      ascii = IDN.toASCII(lower, IDN.ALLOW_UNASSIGNED).toLowerCase(Locale.ROOT);
     } catch (IllegalArgumentException ex) {
       throw invalid("the host is not a valid domain name");
     }
+    // Decode only explicit Punycode labels in the input. Other Unicode characters must
+    // survive the round trip, rather than being mapped to a different trusted host.
+    // IDN.toUnicode never throws; it returns invalid input unchanged.
+    String[] labels = lower.split("\\.", -1);
+    for (int i = 0; i < labels.length; i++) {
+      if (labels[i].startsWith("xn--")) {
+        labels[i] = IDN.toUnicode(labels[i], IDN.ALLOW_UNASSIGNED);
+      }
+    }
+    if (!IDN.toUnicode(ascii, IDN.ALLOW_UNASSIGNED).equals(String.join(".", labels))) {
+      throw invalid("the host requires a lossy IDN mapping");
+    }
+    return ascii;
   }
 
   private static void validateHost(String host, boolean wildcard) {
