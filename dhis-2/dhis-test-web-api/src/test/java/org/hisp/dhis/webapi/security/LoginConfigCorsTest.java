@@ -40,7 +40,6 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Set;
 import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.filter.LoginConfigCorsFilter;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,7 +76,7 @@ class LoginConfigCorsTest extends H2ControllerIntegrationTestBase {
   @Autowired private MeterRegistry meterRegistry;
 
   @BeforeEach
-  void setUpCors() throws ConflictException {
+  void setUpCors() {
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
             .addFilter(loginConfigCorsFilter, "/api/*")
