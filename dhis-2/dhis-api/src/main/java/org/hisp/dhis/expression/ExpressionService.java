@@ -36,6 +36,7 @@ import java.util.Set;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
@@ -241,7 +242,7 @@ public interface ExpressionService {
    * @return a map of organisation unit UID to a map of group UID to member count.
    */
   Map<String, Map<String, Integer>> getOrgUnitGroupMemberCounts(
-      Set<String> orgUnitGroupIds, int level, Collection<OrganisationUnit> roots);
+      Set<UID> orgUnitGroupIds, int level, Collection<OrganisationUnit> roots);
 
   /**
    * Returns UIDs of Data Elements and associated Option Combos (if any) found in the Data Element

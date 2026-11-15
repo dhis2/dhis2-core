@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import org.hibernate.FlushMode;
 import org.hibernate.query.NativeQuery;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -110,7 +111,7 @@ public class HibernateOrganisationUnitGroupStore
 
   @Override
   public Map<String, Map<String, Integer>> getOrganisationUnitGroupMemberCountsAtLevel(
-      Set<String> uids, int level, Set<String> rootUids) {
+      Set<UID> uids, int level, Set<UID> rootUids) {
     Map<String, Map<String, Integer>> counts = new HashMap<>();
 
     if (uids == null || uids.isEmpty()) {
@@ -142,12 +143,12 @@ public class HibernateOrganisationUnitGroupStore
             .createNativeQuery(sql)
             .setHibernateFlushMode(FlushMode.MANUAL)
             .setParameter("level", level)
-            .setParameterList("uids", uids);
+            .setParameterList("uids", UID.toValueSet(uids));
 
     if (restrictToRoots) {
       // One comma-joined parameter: a list parameter would expand to "(?, ?)", which inside
       // array[...] makes a single row value rather than an array of UIDs.
-      query.setParameter("rootUids", String.join(",", rootUids));
+      query.setParameter("rootUids", String.join(",", UID.toValueSet(rootUids)));
     }
 
     for (Object result : query.list()) {

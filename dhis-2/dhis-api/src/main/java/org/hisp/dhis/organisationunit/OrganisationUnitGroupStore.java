@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Lars Helge Overland
@@ -68,5 +69,5 @@ public interface OrganisationUnitGroupStore
    *     group.
    */
   Map<String, Map<String, Integer>> getOrganisationUnitGroupMemberCountsAtLevel(
-      Set<String> uids, int level, Set<String> rootUids);
+      Set<UID> uids, int level, Set<UID> rootUids);
 }

@@ -78,6 +78,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
@@ -550,15 +551,15 @@ public class DefaultExpressionService implements ExpressionService {
   @Override
   @Transactional(readOnly = true)
   public Map<String, Map<String, Integer>> getOrgUnitGroupMemberCounts(
-      Set<String> orgUnitGroupIds, int level, Collection<OrganisationUnit> roots) {
+      Set<UID> orgUnitGroupIds, int level, Collection<OrganisationUnit> roots) {
     if (orgUnitGroupIds == null || orgUnitGroupIds.isEmpty()) {
       return new HashMap<>();
     }
 
-    Set<String> rootUids =
+    Set<UID> rootUids =
         roots == null
             ? Set.of()
-            : roots.stream().map(OrganisationUnit::getUid).collect(Collectors.toSet());
+            : roots.stream().map(OrganisationUnit::getUID).collect(Collectors.toSet());
 
     return organisationUnitGroupStore.getOrganisationUnitGroupMemberCountsAtLevel(
         orgUnitGroupIds, level, rootUids);

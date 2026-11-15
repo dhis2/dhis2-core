@@ -65,6 +65,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -290,7 +291,7 @@ public class DefaultPredictionService implements PredictionService {
           baseExParams.toBuilder()
               .orgUnitGroupMemberCounts(
                   expressionService.getOrgUnitGroupMemberCounts(
-                      exInfo.getOrgUnitGroupCountIds(),
+                      UID.of(exInfo.getOrgUnitGroupCountIds()),
                       orgUnitLevel.getLevel(),
                       currentUserOrgUnits))
               .build();

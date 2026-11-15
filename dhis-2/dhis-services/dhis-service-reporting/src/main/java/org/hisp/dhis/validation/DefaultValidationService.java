@@ -53,6 +53,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -395,7 +396,8 @@ public class DefaultValidationService implements ValidationService {
 
     return baseExParams.toBuilder()
         .orgUnitGroupMemberCounts(
-            getOrgUnitGroupMemberCounts(expressionInfo.getOrgUnitGroupCountIds(), orgUnits, root))
+            getOrgUnitGroupMemberCounts(
+                UID.of(expressionInfo.getOrgUnitGroupCountIds()), orgUnits, root))
         .build();
   }
 
@@ -404,7 +406,7 @@ public class DefaultValidationService implements ValidationService {
    * restricted to the subtree of the analysis root org unit (if any).
    */
   private Map<String, Map<String, Integer>> getOrgUnitGroupMemberCounts(
-      Set<String> orgUnitGroupIds, List<OrganisationUnit> orgUnits, OrganisationUnit root) {
+      Set<UID> orgUnitGroupIds, List<OrganisationUnit> orgUnits, OrganisationUnit root) {
     Map<String, Map<String, Integer>> counts = new HashMap<>();
 
     if (orgUnitGroupIds.isEmpty()) {
