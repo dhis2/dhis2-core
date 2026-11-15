@@ -34,16 +34,24 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CROSS_ORIGIN_PROTECTI
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -265,7 +273,112 @@ class CrossOriginRequestFilterTest {
     assertNotNull(chain.getRequest());
   }
 
+  @ParameterizedTest(name = "log-only {0}: Origin {2}, Sec-Fetch-Site {3} -> {1}, {4}")
+  @MethodSource("rejections")
+  void rejectionIncrementsCounterForModeAndReason(
+      String logOnly, String mode, String origin, String fetchSite, String reason)
+      throws ServletException, IOException {
+    SimpleMeterRegistry registry = new SimpleMeterRegistry();
+    CrossOriginRequestFilter filter = filter("on", logOnly, registry);
+
+    filter.doFilter(
+        request("POST", origin, fetchSite), new MockHttpServletResponse(), new MockFilterChain());
+
+    assertEquals(1.0, rejectedCount(registry, mode, reason));
+    assertEquals(1.0, totalRejectedCount(registry), "exactly one series must be incremented");
+  }
+
+  static Stream<Arguments> rejections() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (String[] mode : new String[][] {{"off", "enforce"}, {"on", "log_only"}}) {
+      arguments.add(
+          Arguments.of(mode[0], mode[1], FOREIGN_ORIGIN, "cross-site", "origin_not_allowed"));
+      arguments.add(Arguments.of(mode[0], mode[1], "null", null, "origin_not_allowed"));
+      arguments.add(
+          Arguments.of(mode[0], mode[1], null, "cross-site", "cross_site_without_origin"));
+    }
+    return arguments.stream();
+  }
+
+  @ParameterizedTest(name = "Origin {0}, {1}, Sec-Fetch-Site {2}")
+  @MethodSource("allowedRequests")
+  void allowedRequestDoesNotIncrementCounter(String origin, String method, String fetchSite)
+      throws ServletException, IOException {
+    SimpleMeterRegistry registry = new SimpleMeterRegistry();
+    CrossOriginRequestFilter filter = filter("on", "off", registry);
+
+    filter.doFilter(
+        request(method, origin, fetchSite), new MockHttpServletResponse(), new MockFilterChain());
+
+    assertEquals(0.0, totalRejectedCount(registry));
+  }
+
+  static Stream<Arguments> allowedRequests() {
+    return Stream.of(
+        Arguments.of(SELF_ORIGIN, "POST", "same-origin"),
+        Arguments.of(ALLOWLISTED_ORIGIN, "POST", "cross-site"),
+        Arguments.of("null", "POST", "same-origin"),
+        Arguments.of(null, "POST", null),
+        Arguments.of(null, "GET", "cross-site"));
+  }
+
+  @ParameterizedTest(name = "log-only {0} -> mode {1}")
+  @MethodSource("modes")
+  void countersAreRegisteredAtZeroWithOnlyModeAndReasonTags(String logOnly, String mode) {
+    SimpleMeterRegistry registry = new SimpleMeterRegistry();
+
+    filter("on", logOnly, registry);
+
+    Collection<Counter> counters =
+        registry.find(CrossOriginRequestFilter.REJECTED_COUNTER).counters();
+    assertEquals(2, counters.size());
+    for (Counter counter : counters) {
+      assertEquals(0.0, counter.count());
+      assertEquals(mode, counter.getId().getTag("mode"));
+      assertEquals(
+          Set.of("mode", "reason"),
+          counter.getId().getTags().stream().map(Tag::getKey).collect(Collectors.toSet()),
+          "tags must stay low-cardinality: never origin, path or user");
+    }
+    assertEquals(
+        Set.of("origin_not_allowed", "cross_site_without_origin"),
+        counters.stream().map(c -> c.getId().getTag("reason")).collect(Collectors.toSet()));
+  }
+
+  static Stream<Arguments> modes() {
+    return Stream.of(Arguments.of("off", "enforce"), Arguments.of("on", "log_only"));
+  }
+
+  @Test
+  void disabledFilterRegistersNoCounter() {
+    SimpleMeterRegistry registry = new SimpleMeterRegistry();
+
+    filter("off", "off", registry);
+
+    assertTrue(registry.find(CrossOriginRequestFilter.REJECTED_COUNTER).counters().isEmpty());
+  }
+
+  private static double rejectedCount(MeterRegistry registry, String mode, String reason) {
+    return registry
+        .get(CrossOriginRequestFilter.REJECTED_COUNTER)
+        .tag("mode", mode)
+        .tag("reason", reason)
+        .counter()
+        .count();
+  }
+
+  private static double totalRejectedCount(MeterRegistry registry) {
+    return registry.find(CrossOriginRequestFilter.REJECTED_COUNTER).counters().stream()
+        .mapToDouble(Counter::count)
+        .sum();
+  }
+
   private static CrossOriginRequestFilter filter(String enabled, String logOnly) {
+    return filter(enabled, logOnly, null);
+  }
+
+  private static CrossOriginRequestFilter filter(
+      String enabled, String logOnly, MeterRegistry registry) {
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
     when(config.isEnabled(any())).thenCallRealMethod();
     when(config.getProperty(CROSS_ORIGIN_PROTECTION_ENABLED)).thenReturn(enabled);
@@ -281,7 +394,7 @@ class CrossOriginRequestFilterTest {
             mock(SchemaService.class));
 
     return new CrossOriginRequestFilter(
-        config, new AllowedOriginMatcher(configurationService), renderService);
+        config, new AllowedOriginMatcher(configurationService), renderService, registry);
   }
 
   private static MockHttpServletRequest request(String method, String origin, String fetchSite) {

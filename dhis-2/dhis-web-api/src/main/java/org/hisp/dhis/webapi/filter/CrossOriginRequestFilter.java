@@ -31,12 +31,16 @@ package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.EnumMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +48,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.render.RenderService;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -77,6 +83,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * and {@link ConfigurationKey#CROSS_ORIGIN_PROTECTION_LOG_ONLY}. In log-only mode requests that
  * would be rejected are logged and let through.
  *
+ * <p>Each rejected request, and in log-only mode each request that would be rejected, increments
+ * the counter {@value #REJECTED_COUNTER} on the {@code /api/metrics} endpoint. Its tags are {@code
+ * mode} ({@code enforce} or {@code log_only}) and {@code reason} ({@code origin_not_allowed} or
+ * {@code cross_site_without_origin}). The origin, path and user are only logged, never used as
+ * tags, so the number of series stays fixed.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
@@ -84,6 +96,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class CrossOriginRequestFilter extends OncePerRequestFilter {
 
   static final String REJECTED_MESSAGE = "Cross-origin request rejected: origin is not allowed";
+
+  static final String REJECTED_COUNTER = "dhis2_cross_origin_rejected_requests_total";
+
+  static final String TAG_MODE = "mode";
+
+  static final String TAG_REASON = "reason";
+
+  static final String MODE_ENFORCE = "enforce";
+
+  static final String MODE_LOG_ONLY = "log_only";
 
   static final String SEC_FETCH_SITE = "Sec-Fetch-Site";
 
@@ -98,7 +120,12 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
   private enum Verdict {
     ALLOWED,
     ORIGIN_NOT_ALLOWED,
-    CROSS_SITE_WITHOUT_ORIGIN
+    CROSS_SITE_WITHOUT_ORIGIN;
+
+    /** The reason as written to the log and to the {@code reason} tag of the counter. */
+    String reason() {
+      return name().toLowerCase(Locale.ROOT);
+    }
   }
 
   private final AllowedOriginMatcher allowedOriginMatcher;
@@ -109,14 +136,58 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
 
   private final boolean logOnly;
 
+  /** One counter per rejection verdict, empty when no meter registry is available. */
+  private final Map<Verdict, Counter> rejectionCounters;
+
+  @Autowired
   public CrossOriginRequestFilter(
       DhisConfigurationProvider config,
       AllowedOriginMatcher allowedOriginMatcher,
-      RenderService renderService) {
+      RenderService renderService,
+      ObjectProvider<MeterRegistry> meterRegistryProvider) {
+    this(config, allowedOriginMatcher, renderService, meterRegistryProvider.getIfAvailable());
+  }
+
+  CrossOriginRequestFilter(
+      DhisConfigurationProvider config,
+      AllowedOriginMatcher allowedOriginMatcher,
+      RenderService renderService,
+      @CheckForNull MeterRegistry meterRegistry) {
     this.allowedOriginMatcher = allowedOriginMatcher;
     this.renderService = renderService;
     this.enabled = config.isEnabled(ConfigurationKey.CROSS_ORIGIN_PROTECTION_ENABLED);
     this.logOnly = config.isEnabled(ConfigurationKey.CROSS_ORIGIN_PROTECTION_LOG_ONLY);
+    this.rejectionCounters = registerRejectionCounters(meterRegistry);
+  }
+
+  /**
+   * Registers the counters up front, so they are exported with value 0 before the first rejection.
+   * The mode is fixed at startup, so each instance registers only the series of its own mode.
+   */
+  private Map<Verdict, Counter> registerRejectionCounters(@CheckForNull MeterRegistry registry) {
+    Map<Verdict, Counter> counters = new EnumMap<>(Verdict.class);
+
+    if (registry == null || !enabled) {
+      return counters;
+    }
+
+    String mode = logOnly ? MODE_LOG_ONLY : MODE_ENFORCE;
+
+    for (Verdict verdict : Verdict.values()) {
+      if (verdict != Verdict.ALLOWED) {
+        counters.put(
+            verdict,
+            Counter.builder(REJECTED_COUNTER)
+                .description(
+                    "Requests the cross-origin protection rejected, or in log-only mode would"
+                        + " have rejected")
+                .tag(TAG_MODE, mode)
+                .tag(TAG_REASON, verdict.reason())
+                .register(registry));
+      }
+    }
+
+    return counters;
   }
 
   @Override
@@ -136,6 +207,7 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
     }
 
     logRejection(request, verdict);
+    countRejection(verdict);
 
     if (logOnly) {
       filterChain.doFilter(request, response);
@@ -176,13 +248,21 @@ public class CrossOriginRequestFilter extends OncePerRequestFilter {
         && SAME_ORIGIN.equalsIgnoreCase(fetchSite);
   }
 
+  private void countRejection(Verdict verdict) {
+    Counter counter = rejectionCounters.get(verdict);
+
+    if (counter != null) {
+      counter.increment();
+    }
+  }
+
   private void logRejection(HttpServletRequest request, Verdict verdict) {
     log.warn(
         "{} cross-origin request: reason={}, method={}, path={}, origin={}, sec-fetch-site={},"
             + " self-origin={}. If this was a same-origin request behind a reverse proxy, check"
             + " that the proxy forwards the original Host header and X-Forwarded-Proto.",
         logOnly ? "Would reject (log-only mode)" : "Rejected",
-        verdict.name().toLowerCase(Locale.ROOT),
+        verdict.reason(),
         request.getMethod(),
         request.getRequestURI(),
         headerForLog(request, HttpHeaders.ORIGIN),
