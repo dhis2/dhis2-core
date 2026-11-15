@@ -264,14 +264,20 @@ class JobProgressTest {
     SecurityContextHolder.setContext(context);
     try {
       List<Authentication> seen = new CopyOnWriteArrayList<>();
+      List<Authentication> seenInDescription = new CopyOnWriteArrayList<>();
       JobProgress progress = newMockJobProgress();
       progress.runStageInParallel(
           2,
           List.of(1, 2, 3, 4),
-          String::valueOf,
+          item -> {
+            seenInDescription.add(SecurityContextHolder.getContext().getAuthentication());
+            return String.valueOf(item);
+          },
           item -> seen.add(SecurityContextHolder.getContext().getAuthentication()));
       assertEquals(4, seen.size());
       seen.forEach(auth -> assertSame(context.getAuthentication(), auth));
+      assertEquals(4, seenInDescription.size());
+      seenInDescription.forEach(auth -> assertSame(context.getAuthentication(), auth));
       assertSame(context, SecurityContextHolder.getContext());
     } finally {
       SecurityContextHolder.clearContext();

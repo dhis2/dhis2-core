@@ -587,6 +587,10 @@ public interface JobProgress {
    *
    * <p>If cancellation is requested work items might be skipped entirely.
    *
+   * <p>Each item is processed in the caller's security context: the {@code description} and {@code
+   * work} functions and the progress tracking for the item run with the caller's {@link
+   * SecurityContext}, even though they run on pool threads.
+   *
    * @param parallelism number of items that at maximum should be processed in parallel
    * @param items work item inputs to be processed in parallel
    * @param description function to extract a description for a work item, may return {@code null}
@@ -612,13 +616,13 @@ public interface JobProgress {
             items.parallelStream()
                 .map(
                     item -> {
-                      if (isSkipCurrentStage()) {
-                        return false;
-                      }
-                      startingWorkItem(description.apply(item));
                       SecurityContext threadContext = SecurityContextHolder.getContext();
                       SecurityContextHolder.setContext(callerContext);
                       try {
+                        if (isSkipCurrentStage()) {
+                          return false;
+                        }
+                        startingWorkItem(description.apply(item));
                         work.accept(item);
                         completedWorkItem(null);
                         success.incrementAndGet();
