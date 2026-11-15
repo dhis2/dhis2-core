@@ -140,4 +140,25 @@ class ConfigurationServiceTest extends PostgresIntegrationTestBase {
     assertTrue(configurationService.isCorsWhitelisted("https://trusted.example"));
     assertFalse(configurationService.isCorsWhitelisted("https://other.example"));
   }
+
+  @Test
+  void testBlankEntriesClearCachedAllowlist() throws ConflictException {
+    configurationService.setCorsWhitelist(Set.of("https://trusted.example"));
+    assertTrue(configurationService.isCorsWhitelisted("https://trusted.example"));
+    configurationService.setCorsWhitelist(Set.of("", "  "));
+    assertEquals(Set.of(), configurationService.getCorsWhitelist());
+    assertEquals(List.of(), configurationService.getCorsAllowlistOrigins());
+    assertFalse(configurationService.isCorsWhitelisted("https://trusted.example"));
+  }
+
+  @Test
+  void testNormalisedUnicodeAndIpv6Entries() throws ConflictException {
+    configurationService.setCorsWhitelist(
+        Set.of("", "  ", "https://bücher.example", "http://[0:0:0:0:0:0:0:1]:3000"));
+    assertEquals(
+        Set.of("https://xn--bcher-kva.example", "http://[::1]:3000"),
+        configurationService.getCorsWhitelist());
+    assertTrue(configurationService.isCorsWhitelisted("http://[::1]:3000"));
+    assertTrue(configurationService.isCorsWhitelisted("https://xn--bcher-kva.example"));
+  }
 }

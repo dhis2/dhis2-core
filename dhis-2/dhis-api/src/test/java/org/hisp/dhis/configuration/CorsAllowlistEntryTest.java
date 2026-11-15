@@ -61,7 +61,15 @@ class CorsAllowlistEntryTest {
           http://127.0.0.1:8080              | http://127.0.0.1:8080              | false
           http://[::1]:3000                  | http://[::1]:3000                  | false
           http://[2001:DB8::1]               | http://[2001:db8::1]               | false
+          http://[0:0:0:0:0:0:0:1]:3000       | http://[::1]:3000                  | false
+          https://[2001:0DB8:0:0:1:0:0:1]    | https://[2001:db8::1:0:0:1]        | false
+          https://[2001:db8:0:1:0:0:0:1]     | https://[2001:db8:0:1::1]          | false
+          https://[2001:db8:0:1:2:3:4:5]     | https://[2001:db8:0:1:2:3:4:5]     | false
+          https://[0:0:0:0:0:0:0:0]          | https://[::]                      | false
+          https://[::ffff:192.0.2.1]         | https://[::ffff:c000:201]          | false
           https://bücher.example             | https://xn--bcher-kva.example      | false
+          https://xn--bcher-kva.example      | https://xn--bcher-kva.example      | false
+          https://bücher.xn--bcher-kva       | https://xn--bcher-kva.xn--bcher-kva | false
           https://my_host.internal           | https://my_host.internal           | false
           https://*.example.org              | https://*.example.org              | true
           HTTPS://*.Example.org:8443/        | https://*.example.org:8443         | true
@@ -79,6 +87,14 @@ class CorsAllowlistEntryTest {
   @ValueSource(
       strings = {
         " ",
+        "https://straße.de",
+        "https://［a］ https：",
+        "https://ｅxample.org",
+        "https://example。org",
+        "https://[1:2:3]",
+        "https://[1::2::3]",
+        "https://[12345::1]",
+        "https://[127.0.0.1]",
         "null",
         "NULL",
         "*",
@@ -139,6 +155,8 @@ class CorsAllowlistEntryTest {
           https://example.org        | https://example.org:8443         | false
           https://example.org:443    | https://example.org              | true
           http://localhost:3000/     | http://localhost:3000            | true
+          http://[0:0:0:0:0:0:0:1]:3000 | http://[::1]:3000              | true
+          https://bücher.example     | https://xn--bcher-kva.example    | true
           https://*.example.org      | https://app.example.org          | true
           https://*.example.org      | https://a.b.example.org          | true
           https://*.example.org      | https://example.org              | false

@@ -39,6 +39,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -51,6 +52,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -122,9 +124,29 @@ class DefaultConfigurationServiceTest {
         saved.getValue().getCorsWhitelist());
   }
 
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = {" ", "  ", "\t\n"})
+  void blankEntriesClearAllowlist(String blank) throws ConflictException {
+    Configuration configuration = givenStoredAllowlist(TRUSTED);
+    service.setCorsWhitelist(new HashSet<>(Arrays.asList("", blank)));
+    assertEquals(Set.of(), configuration.getCorsWhitelist());
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = {" ", "  ", "\t\n"})
+  void blankEntriesAreIgnoredOnSaveAndLoad(String blank) throws ConflictException {
+    Configuration configuration = givenStoredAllowlist("", blank, TRUSTED);
+    assertEquals(List.of(TRUSTED), service.getCorsAllowlistOrigins());
+    assertTrue(service.isCorsWhitelisted(TRUSTED));
+    service.setCorsWhitelist(new HashSet<>(Arrays.asList("", blank, TRUSTED)));
+    assertEquals(Set.of(TRUSTED), configuration.getCorsWhitelist());
+  }
+
   private Configuration givenStoredAllowlist(String... entries) {
     Configuration configuration = new Configuration();
-    configuration.setCorsWhitelist(new HashSet<>(List.of(entries)));
+    configuration.setCorsWhitelist(new HashSet<>(Arrays.asList(entries)));
     when(configurationStore.getAll()).thenReturn(List.of(configuration));
     return configuration;
   }

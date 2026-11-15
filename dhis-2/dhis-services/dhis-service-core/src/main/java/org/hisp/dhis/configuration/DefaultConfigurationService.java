@@ -119,6 +119,9 @@ public class DefaultConfigurationService implements ConfigurationService {
     }
     Set<String> origins = new LinkedHashSet<>();
     for (String value : corsWhitelist) {
+      if (value == null || value.isBlank()) {
+        continue;
+      }
       CorsAllowlistEntry entry;
       try {
         entry = CorsAllowlistEntry.parse(value);
@@ -154,7 +157,9 @@ public class DefaultConfigurationService implements ConfigurationService {
   }
 
   private CorsAllowlist loadCorsAllowlist() {
-    Set<String> stored = Set.copyOf(getConfiguration().getCorsWhitelist());
+    Set<String> stored = new LinkedHashSet<>(getConfiguration().getCorsWhitelist());
+    stored.removeIf(value -> value == null || value.isBlank());
+    stored = Set.copyOf(stored);
     List<CorsAllowlistEntry> entries = new ArrayList<>(stored.size());
     for (String value : stored) {
       try {

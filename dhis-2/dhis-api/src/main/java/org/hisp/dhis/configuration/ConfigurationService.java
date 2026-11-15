@@ -55,9 +55,9 @@ public interface ConfigurationService {
   Configuration getConfiguration();
 
   /**
-   * Returns the CORS allowlist as stored, including entries that are not valid {@link
-   * CorsAllowlistEntry allowlist entries}. The result is cached for fast read access; the cache is
-   * invalidated by {@link #setCorsWhitelist(Set)}.
+   * Returns the CORS allowlist as stored, excluding null and blank entries but including other
+   * entries that are not valid {@link CorsAllowlistEntry allowlist entries}. The result is cached
+   * for fast read access; the cache is invalidated by {@link #setCorsWhitelist(Set)}.
    *
    * @return the stored allowlist (never {@code null}).
    */
@@ -76,7 +76,8 @@ public interface ConfigurationService {
   /**
    * Validates and replaces the CORS allowlist and invalidates the read cache populated by {@link
    * #getCorsWhitelist()}. Entries are stored in their normalised form, see {@link
-   * CorsAllowlistEntry}.
+   * CorsAllowlistEntry}. Null, empty and whitespace-only entries are ignored, so an allowlist
+   * containing only blank entries clears the list.
    *
    * @param corsWhitelist the new allowlist (may be empty, must not be {@code null}).
    * @throws ConflictException if an entry is not a valid {@link CorsAllowlistEntry}; nothing is

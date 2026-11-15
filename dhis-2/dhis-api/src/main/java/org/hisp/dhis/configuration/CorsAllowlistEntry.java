@@ -29,8 +29,11 @@
  */
 package org.hisp.dhis.configuration;
 
+import com.google.common.net.InetAddresses;
 import com.google.common.net.InternetDomainName;
 import java.net.IDN;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -67,8 +70,6 @@ public final class CorsAllowlistEntry {
   private static final Pattern HOST_LABEL =
       Pattern.compile("[a-z0-9_](?:[a-z0-9_-]{0,61}[a-z0-9_])?");
 
-  private static final Pattern IPV6_LITERAL = Pattern.compile("\\[[0-9a-f:.]+]");
-
   private static final Pattern PORT = Pattern.compile("\\d{1,5}");
 
   private static final Pattern DIGITS = Pattern.compile("\\d+");
@@ -104,7 +105,6 @@ public final class CorsAllowlistEntry {
     String port = authority.port();
 
     boolean wildcard = host.startsWith(WILDCARD_LABEL + ".");
-    validateHost(wildcard ? host.substring(2) : host, wildcard);
 
     StringBuilder origin = new StringBuilder(scheme).append(SCHEME_SEPARATOR).append(host);
     if (port != null && !isDefaultPort(scheme, port)) {
@@ -190,8 +190,24 @@ public final class CorsAllowlistEntry {
     int ipv6End = authority.indexOf(']');
     String host = ipv6End < 0 ? authority : authority.substring(0, ipv6End + 1);
     String port = portAfter(authority.substring(host.length()));
-    host = host.toLowerCase(Locale.ROOT);
-    if (!IPV6_LITERAL.matcher(host).matches()) {
+    if (!host.contains(":")) {
+      throw invalid("the IPv6 address is malformed");
+    }
+    try {
+      InetAddress address = InetAddresses.forUriString(host);
+      if (address instanceof Inet4Address) {
+        // Preserve IPv4-mapped IPv6 literals as IPv6, as browsers do.
+        byte[] bytes = address.getAddress();
+        host =
+            "[::ffff:"
+                + Integer.toHexString((bytes[0] & 255) << 8 | (bytes[1] & 255))
+                + ":"
+                + Integer.toHexString((bytes[2] & 255) << 8 | (bytes[3] & 255))
+                + "]";
+      } else {
+        host = InetAddresses.toUriString(address);
+      }
+    } catch (IllegalArgumentException ex) {
       throw invalid("the IPv6 address is malformed");
     }
     return new HostAndPort(host, port);
@@ -199,11 +215,11 @@ public final class CorsAllowlistEntry {
 
   private static HostAndPort parseHostAuthority(String authority) {
     int portStart = authority.lastIndexOf(':');
-    if (portStart < 0) {
-      return new HostAndPort(toAsciiHost(authority), null);
-    }
-    String port = portAfter(authority.substring(portStart));
-    return new HostAndPort(toAsciiHost(authority.substring(0, portStart)), port);
+    String port = portStart < 0 ? null : portAfter(authority.substring(portStart));
+    String host = toAsciiHost(portStart < 0 ? authority : authority.substring(0, portStart));
+    boolean wildcard = host.startsWith(WILDCARD_LABEL + ".");
+    validateHost(wildcard ? host.substring(2) : host, wildcard);
+    return new HostAndPort(host, port);
   }
 
   @CheckForNull
@@ -230,7 +246,20 @@ public final class CorsAllowlistEntry {
       throw invalid("the host is missing");
     }
     try {
-      return IDN.toASCII(host, IDN.ALLOW_UNASSIGNED).toLowerCase(Locale.ROOT);
+      String lower = host.toLowerCase(Locale.ROOT);
+      String ascii = IDN.toASCII(lower, IDN.ALLOW_UNASSIGNED).toLowerCase(Locale.ROOT);
+      // Decode only explicit Punycode labels in the input. Other Unicode characters must
+      // survive the round trip, rather than being mapped to a different trusted host.
+      String[] labels = lower.split("\\.", -1);
+      for (int i = 0; i < labels.length; i++) {
+        if (labels[i].startsWith("xn--")) {
+          labels[i] = IDN.toUnicode(labels[i], IDN.ALLOW_UNASSIGNED);
+        }
+      }
+      if (!IDN.toUnicode(ascii, IDN.ALLOW_UNASSIGNED).equals(String.join(".", labels))) {
+        throw invalid("the host requires a lossy IDN mapping");
+      }
+      return ascii;
     } catch (IllegalArgumentException ex) {
       throw invalid("the host is not a valid domain name");
     }
@@ -240,9 +269,6 @@ public final class CorsAllowlistEntry {
     if (host.contains(WILDCARD_LABEL)) {
       throw invalid(
           "a wildcard is only allowed as the leftmost part of the host, as in https://*.example.org");
-    }
-    if (host.startsWith("[")) {
-      return; // IPv6 literal, validated by the caller
     }
     String[] labels = host.split("\\.", -1);
     for (String label : labels) {

@@ -38,6 +38,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,5 +81,37 @@ class ConfigurationCorsAllowlistControllerTest extends H2ControllerIntegrationTe
     assertEquals(
         List.of("https://kept.example.org"),
         GET("/configuration/corsAllowlist").content(HttpStatus.OK).stringValues());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"['']", "['', '  ']", "[null, '', '  ']"})
+  void shouldClearAllowlistWithBlankEntries(String body) {
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        POST("/configuration/corsAllowlist", "['https://kept.example.org']"));
+    assertStatus(HttpStatus.NO_CONTENT, POST("/configuration/corsAllowlist", body));
+    assertEquals(
+        List.of(), GET("/configuration/corsAllowlist").content(HttpStatus.OK).stringValues());
+  }
+
+  @Test
+  void shouldIgnoreBlankEntriesAlongsideValidEntries() {
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        POST(
+            "/configuration/corsAllowlist",
+            "[null, '', '  ', 'https://bücher.example', 'http://[0:0:0:0:0:0:0:1]:3000']"));
+    assertEquals(
+        List.of("http://[::1]:3000", "https://xn--bcher-kva.example"),
+        GET("/configuration/corsAllowlist").content(HttpStatus.OK).stringValues().stream()
+            .sorted()
+            .toList());
+  }
+
+  @Test
+  void shouldRejectWriteWithoutSystemSettingsAuthority() {
+    switchToNewUser("noSystemSettings");
+    assertStatus(
+        HttpStatus.FORBIDDEN, POST("/configuration/corsAllowlist", "['https://example.org']"));
   }
 }
