@@ -54,6 +54,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -102,6 +103,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupStore;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
@@ -543,6 +545,23 @@ public class DefaultExpressionService implements ExpressionService {
         .dataSetMap(getUidMap(DataSet.class, info.getOrgUnitDataSetIds()))
         .programMap(getUidMap(Program.class, info.getOrgUnitProgramIds()))
         .build();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, Map<String, Integer>> getOrgUnitGroupMemberCounts(
+      Set<String> orgUnitGroupIds, int level, Collection<OrganisationUnit> roots) {
+    if (orgUnitGroupIds == null || orgUnitGroupIds.isEmpty()) {
+      return new HashMap<>();
+    }
+
+    Set<String> rootUids =
+        roots == null
+            ? Set.of()
+            : roots.stream().map(OrganisationUnit::getUid).collect(Collectors.toSet());
+
+    return organisationUnitGroupStore.getOrganisationUnitGroupMemberCountsAtLevel(
+        orgUnitGroupIds, level, rootUids);
   }
 
   @Override

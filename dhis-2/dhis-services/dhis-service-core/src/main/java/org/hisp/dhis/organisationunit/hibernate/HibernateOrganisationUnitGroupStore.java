@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hibernate.FlushMode;
+import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -101,6 +103,58 @@ public class HibernateOrganisationUnitGroupStore
 
     for (Object[] row : rows) {
       counts.put((String) row[0], ((Number) row[1]).intValue());
+    }
+
+    return counts;
+  }
+
+  @Override
+  public Map<String, Map<String, Integer>> getOrganisationUnitGroupMemberCountsAtLevel(
+      Set<String> uids, int level, Set<String> rootUids) {
+    Map<String, Map<String, Integer>> counts = new HashMap<>();
+
+    if (uids == null || uids.isEmpty()) {
+      return counts;
+    }
+
+    boolean restrictToRoots = rootUids != null && !rootUids.isEmpty();
+
+    // patharray[level] is the UID of the member's ancestor (or the member itself) at that level.
+    String sql =
+        """
+        select m.patharray[:level], g.uid, count(*)
+        from orgunitgroup g
+        join orgunitgroupmembers gm on gm.orgunitgroupid = g.orgunitgroupid
+        join organisationunit m on m.organisationunitid = gm.organisationunitid
+        where g.uid in (:uids)
+        and m.hierarchylevel >= :level
+        """
+            + (restrictToRoots
+                ? "and m.patharray && cast(string_to_array(:rootUids, ',') as varchar[])\n"
+                : "")
+            + "group by 1, 2";
+
+    // Flush mode MANUAL: the callers (predictors, validation) do not change group membership,
+    // and an auto-flush before this native query would dirty-check every entity in the session
+    // (e.g. the hundreds of thousands of org units a school-level prediction run has loaded).
+    NativeQuery<?> query =
+        getSession()
+            .createNativeQuery(sql)
+            .setHibernateFlushMode(FlushMode.MANUAL)
+            .setParameter("level", level)
+            .setParameterList("uids", uids);
+
+    if (restrictToRoots) {
+      // One comma-joined parameter: a list parameter would expand to "(?, ?)", which inside
+      // array[...] makes a single row value rather than an array of UIDs.
+      query.setParameter("rootUids", String.join(",", rootUids));
+    }
+
+    for (Object result : query.list()) {
+      Object[] row = (Object[]) result;
+      counts
+          .computeIfAbsent((String) row[0], k -> new HashMap<>())
+          .put((String) row[1], ((Number) row[2]).intValue());
     }
 
     return counts;

@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -261,12 +262,15 @@ public class DefaultValidationService implements ValidationService {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Map<PeriodType, PeriodTypeExtended> periodTypeXMap = getExtendedPeriods(parameters);
 
+    List<OrganisationUnit> orgUnits = getOrganisationUnits(parameters);
+
     ExpressionParams baseExParams =
-        getExpressionInfo(periodTypeXMap, parameters.getValidationRules());
+        getExpressionInfo(
+            periodTypeXMap, parameters.getValidationRules(), orgUnits, parameters.getOrgUnit());
 
     ValidationRunContext.Builder builder =
         ValidationRunContext.newBuilder()
-            .withOrgUnits(getOrganisationUnits(parameters))
+            .withOrgUnits(orgUnits)
             .withPeriodTypeXs(new ArrayList<>(periodTypeXMap.values()))
             .withSendNotifications(parameters.isSendNotifications())
             .withPersistResults(parameters.isPersistResults())
@@ -365,7 +369,10 @@ public class DefaultValidationService implements ValidationService {
   }
 
   private ExpressionParams getExpressionInfo(
-      Map<PeriodType, PeriodTypeExtended> periodTypeXMap, Collection<ValidationRule> rules) {
+      Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
+      Collection<ValidationRule> rules,
+      List<OrganisationUnit> orgUnits,
+      OrganisationUnit root) {
     SetMap<PeriodTypeExtended, DimensionalItemId> periodItemIds = new SetMap<>();
 
     Set<DimensionalItemId> allItemIds = new HashSet<>();
@@ -386,7 +393,33 @@ public class DefaultValidationService implements ValidationService {
 
     saveObjectsInPeriodTypeX(periodItemIds, baseExParams.getItemMap());
 
-    return baseExParams;
+    return baseExParams.toBuilder()
+        .orgUnitGroupMemberCounts(
+            getOrgUnitGroupMemberCounts(expressionInfo.getOrgUnitGroupCountIds(), orgUnits, root))
+        .build();
+  }
+
+  /**
+   * Gets the OUG{} counts for the org units to validate: one query per hierarchy level among them,
+   * restricted to the subtree of the analysis root org unit (if any).
+   */
+  private Map<String, Map<String, Integer>> getOrgUnitGroupMemberCounts(
+      Set<String> orgUnitGroupIds, List<OrganisationUnit> orgUnits, OrganisationUnit root) {
+    Map<String, Map<String, Integer>> counts = new HashMap<>();
+
+    if (orgUnitGroupIds.isEmpty()) {
+      return counts;
+    }
+
+    Set<OrganisationUnit> roots = root == null ? Set.of() : Set.of(root);
+    Set<Integer> levels =
+        orgUnits.stream().map(OrganisationUnit::getLevel).collect(Collectors.toSet());
+
+    for (int level : levels) {
+      counts.putAll(expressionService.getOrgUnitGroupMemberCounts(orgUnitGroupIds, level, roots));
+    }
+
+    return counts;
   }
 
   private Set<DimensionalItemId> addToExpressionInfo(ExpressionInfo exInfo, Expression expr) {

@@ -39,6 +39,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 
@@ -226,6 +227,21 @@ public interface ExpressionService {
    * @return the expression parameters with metadata pre-filled.
    */
   ExpressionParams getBaseExpressionParams(ExpressionInfo info);
+
+  /**
+   * Returns the counts used to evaluate OUG{} (organisation unit group member count) items for
+   * organisation units at the given hierarchy level: for each such organisation unit, the number of
+   * members of each of the given groups in its subtree, the organisation unit itself included. Pass
+   * the result to {@link ExpressionParams#getOrgUnitGroupMemberCounts()}.
+   *
+   * @param orgUnitGroupIds the UIDs of the organisation unit groups, see {@link
+   *     ExpressionInfo#getOrgUnitGroupCountIds()}.
+   * @param level the hierarchy level of the organisation units the expression is evaluated for.
+   * @param roots if not empty, only count members in the subtrees of these organisation units.
+   * @return a map of organisation unit UID to a map of group UID to member count.
+   */
+  Map<String, Map<String, Integer>> getOrgUnitGroupMemberCounts(
+      Set<String> orgUnitGroupIds, int level, Collection<OrganisationUnit> roots);
 
   /**
    * Returns UIDs of Data Elements and associated Option Combos (if any) found in the Data Element

@@ -286,6 +286,15 @@ public class DefaultPredictionService implements PredictionService {
           organisationUnitService.getOrganisationUnitsAtOrgUnitLevels(
               Lists.newArrayList(orgUnitLevel), currentUserOrgUnits);
 
+      ExpressionParams levelExParams =
+          baseExParams.toBuilder()
+              .orgUnitGroupMemberCounts(
+                  expressionService.getOrgUnitGroupMemberCounts(
+                      exInfo.getOrgUnitGroupCountIds(),
+                      orgUnitLevel.getLevel(),
+                      currentUserOrgUnits))
+              .build();
+
       consolidator.init(
           orgUnitLevel.getLevel(),
           orgUnits,
@@ -312,7 +321,7 @@ public class DefaultPredictionService implements PredictionService {
           samplePeriods.removeAll(
               getSkippedPeriods(
                   allSamplePeriods,
-                  baseExParams,
+                  levelExParams,
                   c.getPeriodValueMap(),
                   skipTest,
                   data.getOrgUnit()));
@@ -329,7 +338,7 @@ public class DefaultPredictionService implements PredictionService {
 
           Object value =
               expressionService.getExpressionValue(
-                  baseExParams.toBuilder()
+                  levelExParams.toBuilder()
                       .expression(predictor.getGenerator().getExpression())
                       .parseType(PREDICTOR_EXPRESSION)
                       .dataType(expressionDataType)

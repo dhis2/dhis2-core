@@ -54,4 +54,19 @@ public interface OrganisationUnitGroupStore
    * @return a map of organisation unit group UID to member count. Non-existent groups are omitted.
    */
   Map<String, Integer> getOrganisationUnitGroupMemberCounts(Set<String> uids);
+
+  /**
+   * Returns, for each organisation unit at the given hierarchy level, the number of members of each
+   * of the given groups in its subtree. The subtree of an organisation unit includes the
+   * organisation unit itself.
+   *
+   * @param uids the UIDs of the organisation unit groups to count members for.
+   * @param level the hierarchy level of the organisation units to count members for.
+   * @param rootUids if not empty, only count members in the subtrees of these organisation units.
+   * @return a map of organisation unit UID to a map of organisation unit group UID to member count.
+   *     Organisation units without members of a group in their subtree have no entry for that
+   *     group.
+   */
+  Map<String, Map<String, Integer>> getOrganisationUnitGroupMemberCountsAtLevel(
+      Set<String> uids, int level, Set<String> rootUids);
 }
