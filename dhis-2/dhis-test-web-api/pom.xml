@@ -156,6 +156,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.google.zxing</groupId>
       <artifactId>core</artifactId>
       <scope>test</scope>
