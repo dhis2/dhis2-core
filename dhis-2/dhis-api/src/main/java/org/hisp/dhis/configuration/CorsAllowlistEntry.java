@@ -74,6 +74,8 @@ public final class CorsAllowlistEntry {
 
   private static final Pattern DIGITS = Pattern.compile("\\d+");
 
+  private static final Pattern IPV6_LITERAL = Pattern.compile("\\[[0-9a-fA-F:.]+]");
+
   private final String origin;
 
   @CheckForNull private final Pattern wildcardPattern;
@@ -190,7 +192,14 @@ public final class CorsAllowlistEntry {
     int ipv6End = authority.indexOf(']');
     String host = ipv6End < 0 ? authority : authority.substring(0, ipv6End + 1);
     String port = portAfter(authority.substring(host.length()));
-    if (!host.contains(":")) {
+    // A zone identifier names a network interface of this host, so whether it parses depends on
+    // the machine. Browsers do not send one in an Origin header.
+    if (host.indexOf('%') >= 0) {
+      throw invalid("an IPv6 address must not contain a zone identifier");
+    }
+    // Only ASCII hex digits, colons and dots, so the parser cannot map other digits such as
+    // fullwidth ones to ASCII.
+    if (!IPV6_LITERAL.matcher(host).matches() || !host.contains(":")) {
       throw invalid("the IPv6 address is malformed");
     }
     try {
