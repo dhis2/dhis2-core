@@ -130,18 +130,40 @@ class LogoutTest extends AuthenticationApiTestBase {
     assertTrue(
         response.getContentAsString().contains(CrossOriginGetGuard.MESSAGE),
         response.getContentAsString());
+    assertTrue(
+        response.getContentAsString().contains("\"errorCode\":\"E1008\""),
+        response.getContentAsString());
     assertFalse(session.isInvalid());
     assertTrue(response.getHeaders("Set-Cookie").isEmpty());
   }
 
-  @Test
-  void testLogoutWithGetWithoutSessionIsNotRejected() throws Exception {
-    MockHttpServletResponse response =
-        mvc.perform(get(LOGOUT_URL).header("Sec-Fetch-Site", "cross-site"))
-            .andReturn()
-            .getResponse();
+  /**
+   * With {@code SameSite=Strict} a cross-site GET logout arrives without the session cookie. It
+   * still redirects, so a session expired by the concurrent session control can reach the login
+   * page, but it must not delete the cookies: that would log the user out of the session the
+   * browser kept.
+   */
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("logoutWithoutSessionHeaders")
+  void testLogoutWithoutSessionDoesNotClearCookies(String name, List<String> headers)
+      throws Exception {
+    MockHttpServletRequestBuilder request = get(LOGOUT_URL);
+    for (int i = 0; i < headers.size(); i += 2) {
+      request.header(headers.get(i), headers.get(i + 1));
+    }
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
 
     assertEquals(302, response.getStatus());
+    assertTrue(
+        response.getHeaders("Set-Cookie").isEmpty(), response.getHeaders("Set-Cookie")::toString);
+  }
+
+  static Stream<Arguments> logoutWithoutSessionHeaders() {
+    return Stream.of(
+        Arguments.of(
+            "cross-site navigation",
+            List.of("Sec-Fetch-Site", "cross-site", "Sec-Fetch-Mode", "navigate")),
+        Arguments.of("same-origin navigation", List.of("Sec-Fetch-Site", "same-origin")));
   }
 
   private MockHttpServletResponse perform(

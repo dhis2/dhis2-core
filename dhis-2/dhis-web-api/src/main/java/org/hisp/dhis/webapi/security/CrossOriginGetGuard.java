@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 
 /**
@@ -70,10 +71,10 @@ public final class CrossOriginGetGuard {
 
   public static final String ORIGIN = "Origin";
 
-  public static final String MESSAGE =
-      "Request rejected: this endpoint changes server state and does not accept GET requests from"
-          + " cross-origin navigations or resource loads. Send the request from the same origin,"
-          + " or use POST where the endpoint supports it.";
+  /** Error code of the rejection, distinct from the generic permission error {@code E1006}. */
+  public static final ErrorCode ERROR_CODE = ErrorCode.E1008;
+
+  public static final String MESSAGE = ERROR_CODE.getMessage();
 
   private static final int MAX_LOGGED_VALUE_LENGTH = 200;
 
@@ -108,7 +109,7 @@ public final class CrossOriginGetGuard {
   public static void check(@Nonnull HttpServletRequest request) throws ForbiddenException {
     if (!isAllowed(request)) {
       logRejected(request);
-      throw new ForbiddenException(MESSAGE);
+      throw new ForbiddenException(ERROR_CODE);
     }
   }
 

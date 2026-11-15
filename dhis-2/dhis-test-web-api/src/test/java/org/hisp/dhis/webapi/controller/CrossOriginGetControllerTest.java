@@ -263,7 +263,7 @@ class CrossOriginGetControllerTest extends H2ControllerIntegrationTestBase {
   private static void assertRejected(HttpResponse response) {
     JsonWebMessage message = response.content(HttpStatus.FORBIDDEN).as(JsonWebMessage.class);
     assertEquals(CrossOriginGetGuard.MESSAGE, message.getMessage());
-    assertEquals(ErrorCode.E1006, message.getErrorCode());
+    assertEquals(ErrorCode.E1008, message.getErrorCode());
   }
 
   /** Combines a path placeholder value with request headers into one argument list. */

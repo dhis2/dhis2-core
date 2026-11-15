@@ -40,7 +40,6 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.security.CrossOriginGetGuard;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
@@ -57,7 +56,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * session is rejected with 403 when the browser sent it as a cross-origin navigation or resource
  * load, and logs a deprecation warning otherwise. A GET logout without an authenticated session has
  * no session to end and passes unchanged; this keeps the redirect to the logout URL working after
- * the session was expired by the concurrent session control.
+ * the session was expired by the concurrent session control. Such a request can still come from
+ * another site, for example when {@code SameSite=Strict} kept the browser from sending the session
+ * cookie, so {@link org.hisp.dhis.webapi.security.SessionCookieClearingLogoutHandler} sends no
+ * cookie deletions for it.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -83,7 +85,7 @@ public class GetLogoutGuardFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         jsonMapper.writeValue(
             response.getOutputStream(),
-            forbidden(CrossOriginGetGuard.MESSAGE).setErrorCode(ErrorCode.E1006));
+            forbidden(CrossOriginGetGuard.MESSAGE).setErrorCode(CrossOriginGetGuard.ERROR_CODE));
         return;
       }
       log.warn(

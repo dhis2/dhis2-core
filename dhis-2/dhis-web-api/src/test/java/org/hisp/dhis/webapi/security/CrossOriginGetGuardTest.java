@@ -91,7 +91,7 @@ class CrossOriginGetGuardTest {
 
     ForbiddenException ex =
         assertThrows(ForbiddenException.class, () -> CrossOriginGetGuard.check(request));
-    assertEquals(ErrorCode.E1006, ex.getCode());
+    assertEquals(ErrorCode.E1008, ex.getCode());
     assertEquals(CrossOriginGetGuard.MESSAGE, ex.getMessage());
   }
 

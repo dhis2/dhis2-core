@@ -32,9 +32,12 @@ package org.hisp.dhis.webapi.security;
 import jakarta.servlet.SessionCookieConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import javax.annotation.CheckForNull;
 import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.AuthenticationTrustResolver;
+import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.util.StringUtils;
@@ -48,6 +51,10 @@ import org.springframework.util.StringUtils;
  * writes them without {@code SameSite}, which browsers may treat differently from the cookie that
  * was set.
  *
+ * <p>Only the logout of an authenticated session clears the cookies. A logout request without one
+ * has no session to end. It may be a cross-site GET that arrived without the session cookie because
+ * of {@code SameSite=Strict}, and deleting the cookies would then log the user out.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class SessionCookieClearingLogoutHandler implements LogoutHandler {
@@ -55,9 +62,18 @@ public class SessionCookieClearingLogoutHandler implements LogoutHandler {
 
   private static final String SAME_SITE = "SameSite";
 
+  private static final AuthenticationTrustResolver TRUST_RESOLVER =
+      new AuthenticationTrustResolverImpl();
+
   @Override
   public void logout(
-      HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+      HttpServletRequest request,
+      HttpServletResponse response,
+      @CheckForNull Authentication authentication) {
+    if (!TRUST_RESOLVER.isAuthenticated(authentication)) {
+      // no session to end; a GET logout from another site must not delete the user's cookies
+      return;
+    }
     SessionCookieConfig config = request.getServletContext().getSessionCookieConfig();
     response.addHeader(HttpHeaders.SET_COOKIE, expiredSessionCookie(request, config).toString());
     response.addHeader(
