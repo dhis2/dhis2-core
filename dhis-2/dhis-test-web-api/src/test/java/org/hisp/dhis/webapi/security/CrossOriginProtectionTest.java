@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase;
@@ -70,7 +71,7 @@ class CrossOriginProtectionTest extends AuthenticationApiTestBase {
   @Autowired private ConfigurationService configurationService;
 
   @BeforeEach
-  void setUpAllowlist() {
+  void setUpAllowlist() throws ConflictException {
     configurationService.setCorsWhitelist(Set.of(ALLOWLISTED_ORIGIN));
   }
 
