@@ -806,8 +806,9 @@ public enum ConfigurationKey {
    * header says they come from another site. (default: on)
    *
    * <p>Setting it to off does not switch off the origin check: requests whose Origin is neither
-   * this server nor on the CORS allowlist are rejected in every mode, as they were before this
-   * setting existed.
+   * this server nor on the CORS allowlist are rejected in every mode. The API already rejected them
+   * before this setting existed. The OAuth2 authorization server endpoints (enabled by {@link
+   * #OAUTH2_SERVER_ENABLED}) had no CORS filter, so the rejection is new there.
    */
   CROSS_ORIGIN_PROTECTION_ENABLED(
       "http.security.cross_origin_protection.enabled", Constants.ON, false),
@@ -817,7 +818,9 @@ public enum ConfigurationKey {
    * #CROSS_ORIGIN_PROTECTION_ENABLED} would reject. (default: off)
    *
    * <p>It does not apply to the origin check: requests whose Origin is neither this server nor on
-   * the CORS allowlist are rejected in every mode, as they were before this setting existed.
+   * the CORS allowlist are rejected in every mode. The API already rejected them before this
+   * setting existed. The OAuth2 authorization server endpoints (enabled by {@link
+   * #OAUTH2_SERVER_ENABLED}) had no CORS filter, so the rejection is new there.
    */
   CROSS_ORIGIN_PROTECTION_LOG_ONLY(
       "http.security.cross_origin_protection.log_only", Constants.OFF, false),
