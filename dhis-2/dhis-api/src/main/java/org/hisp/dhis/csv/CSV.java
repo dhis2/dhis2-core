@@ -67,7 +67,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.intellij.lang.annotations.Language;
@@ -543,14 +542,13 @@ public final class CSV {
     return elems;
   }
 
-  @RequiredArgsConstructor
   private static final class Reader<T extends Record> implements CsvReader<T> {
 
     final java.io.Reader csv;
     final Components<T> as;
-    final int maxValueLength;
+    final int maxValueBufferLength;
 
-    char[] buffer = new char[2048];
+    char[] buffer;
     boolean eoi;
     boolean twinQuotes;
     int len = 0;
@@ -558,6 +556,13 @@ public final class CSV {
     // track lines and columns
     int line = 1;
     int col = 1;
+
+    Reader(java.io.Reader csv, Components<T> as, int maxValueBufferLength) {
+      this.csv = csv;
+      this.as = as;
+      this.maxValueBufferLength = maxValueBufferLength;
+      this.buffer = new char[Math.min(2048, maxValueBufferLength)];
+    }
 
     @Nonnull
     @Override
@@ -649,8 +654,9 @@ public final class CSV {
           int keepLen = len - pos;
           if (keepLen == buffer.length) {
             // grow
-            if (buffer.length >= maxValueLength) throw error("Value longer than " + maxValueLength);
-            char[] b2 = new char[Math.min(maxValueLength, buffer.length * 2)];
+            if (buffer.length >= maxValueBufferLength)
+              throw error("Value longer than " + maxValueBufferLength);
+            char[] b2 = new char[Math.min(maxValueBufferLength, buffer.length * 2)];
             System.arraycopy(buffer, pos, b2, 0, keepLen);
             buffer = b2;
           } else {
