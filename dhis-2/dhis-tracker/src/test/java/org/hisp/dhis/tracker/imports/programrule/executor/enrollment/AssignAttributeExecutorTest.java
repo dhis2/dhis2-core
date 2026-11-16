@@ -332,6 +332,39 @@ class AssignAttributeExecutorTest extends TrackerTestBase {
   }
 
   @Test
+  void shouldOverwriteAttributeWhenAssignedValueIsCloseButNotEqualAndOverwriteIsTrue() {
+    when(settings.getRuleEngineAssignOverwrite()).thenReturn(true);
+    Enrollment enrollment = getEnrollmentWithAttributeValue("0.005");
+    bundle.setEnrollments(List.of(enrollment));
+
+    AssignAttributeExecutor executor =
+        new AssignAttributeExecutor(
+            settingsProvider, RULE_UID, "0", ATTRIBUTE_UID, enrollment.getAttributes());
+
+    Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, enrollment);
+
+    Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_UID);
+
+    assertAttributeWasAssignedAndWarningIsPresent("0", attribute, warning);
+  }
+
+  @Test
+  void shouldFailWhenAssignedValueIsCloseButNotEqualToAttributeAndOverwriteIsFalse() {
+    Enrollment enrollment = getEnrollmentWithAttributeValue("0.005");
+    bundle.setEnrollments(List.of(enrollment));
+
+    AssignAttributeExecutor executor =
+        new AssignAttributeExecutor(
+            settingsProvider, RULE_UID, "0", ATTRIBUTE_UID, enrollment.getAttributes());
+
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, enrollment);
+
+    Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_UID);
+
+    assertAttributeWasNotAssignedAndErrorIsPresent("0.005", attribute, error);
+  }
+
+  @Test
   void shouldAssignPlainNumberWhenAssignedValueIsInScientificNotationAndAttributeIsEmpty() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     Enrollment enrollmentWithAttributeNOTSet = getEnrollmentWithAttributeNOTSet();
@@ -413,6 +446,20 @@ class AssignAttributeExecutorTest extends TrackerTestBase {
         .enrollment(FIRST_ENROLLMENT_ID)
         .status(EnrollmentStatus.ACTIVE)
         .attributes(getAttributes(idSchemes))
+        .build();
+  }
+
+  private Enrollment getEnrollmentWithAttributeValue(String value) {
+    return Enrollment.builder()
+        .enrollment(FIRST_ENROLLMENT_ID)
+        .trackedEntity(UID.generate())
+        .status(EnrollmentStatus.ACTIVE)
+        .attributes(
+            List.of(
+                Attribute.builder()
+                    .attribute(MetadataIdentifier.ofUid(ATTRIBUTE_UID.getValue()))
+                    .value(value)
+                    .build()))
         .build();
   }
 

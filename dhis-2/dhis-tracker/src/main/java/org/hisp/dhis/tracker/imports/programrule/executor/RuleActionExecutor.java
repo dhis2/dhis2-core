@@ -33,11 +33,9 @@ import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.AssignAttributeExecutor;
@@ -58,7 +56,7 @@ public interface RuleActionExecutor<T> {
 
   /**
    * Tests whether the given values are equal. If the given value type is numeric, the values are
-   * converted to doubles before being checked for equality.
+   * compared by numeric value without tolerance.
    *
    * @param value1 the first value.
    * @param value2 the second value.
@@ -70,10 +68,12 @@ public interface RuleActionExecutor<T> {
       return true;
     }
 
-    if (valueType.isNumeric()) {
-      return NumberUtils.isParsable(value1)
-          && NumberUtils.isParsable(value2)
-          && MathUtils.isEqual(Double.parseDouble(value1), Double.parseDouble(value2));
+    if (valueType.isNumeric() && value1 != null && value2 != null) {
+      try {
+        return new BigDecimal(value1).compareTo(new BigDecimal(value2)) == 0;
+      } catch (NumberFormatException e) {
+        return false;
+      }
     }
     return false;
   }

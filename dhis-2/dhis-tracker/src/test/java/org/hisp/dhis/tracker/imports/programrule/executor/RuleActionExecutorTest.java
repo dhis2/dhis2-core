@@ -62,7 +62,9 @@ class RuleActionExecutorTest {
         Arguments.of("true", "false", ValueType.BOOLEAN),
         Arguments.of("26.4", "26.5", ValueType.TEXT),
         Arguments.of("24.8", "24.9", ValueType.NUMBER),
-        Arguments.of("32", "33", ValueType.INTEGER));
+        Arguments.of("32", "33", ValueType.INTEGER),
+        Arguments.of("0.005", "0", ValueType.NUMBER),
+        Arguments.of("24.001", "24", ValueType.NUMBER));
   }
 
   private static Stream<Arguments> valuesOfDifferentTypes() {
@@ -79,6 +81,18 @@ class RuleActionExecutorTest {
   @MethodSource("equalValues")
   void shouldCheckValuesAreEqual(String value, ValueType valueType) {
     assertTrue(isEqual(value, value, valueType));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "24, 24.0, NUMBER",
+    "24.00, 24, NUMBER",
+    "5.309339325E7, 53093393.25, NUMBER",
+    "1.0E7, 10000000, INTEGER"
+  })
+  void shouldCheckNumericValuesWithDifferentRepresentationAreEqual(
+      String value1, String value2, ValueType valueType) {
+    assertTrue(isEqual(value1, value2, valueType));
   }
 
   @ParameterizedTest

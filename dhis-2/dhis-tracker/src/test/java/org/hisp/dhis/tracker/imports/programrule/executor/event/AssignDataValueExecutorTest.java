@@ -366,6 +366,41 @@ class AssignDataValueExecutorTest extends TrackerTestBase {
   }
 
   @Test
+  void shouldOverwriteDataValueWhenAssignedValueIsCloseButNotEqualAndOverwriteIsTrue() {
+    dataElementA.setValueType(ValueType.NUMBER);
+    when(settings.getRuleEngineAssignOverwrite()).thenReturn(true);
+    Event event = getEventWithDataValue("0.005");
+    bundle.setEvents(List.of(event));
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            settingsProvider, RULE_UID, "0", DATA_ELEMENT_UID, event.getDataValues());
+
+    Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, event);
+
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_UID, DATA_ELEMENT_UID);
+
+    assertDataValueWasAssignedAndWarningIsPresent("0", dataValue, warning);
+  }
+
+  @Test
+  void shouldFailWhenAssignedValueIsCloseButNotEqualToDataValueAndOverwriteIsFalse() {
+    dataElementA.setValueType(ValueType.NUMBER);
+    Event event = getEventWithDataValue("0.005");
+    bundle.setEvents(List.of(event));
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            settingsProvider, RULE_UID, "0", DATA_ELEMENT_UID, event.getDataValues());
+
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, event);
+
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_UID, DATA_ELEMENT_UID);
+
+    assertDataValueWasNotAssignedAndErrorIsPresent("0.005", dataValue, error);
+  }
+
+  @Test
   void shouldAssignPlainNumberWhenAssignedValueIsInScientificNotationAndDataValueIsEmpty() {
     dataElementA.setValueType(ValueType.NUMBER);
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
@@ -438,6 +473,19 @@ class AssignDataValueExecutorTest extends TrackerTestBase {
         .event(EVENT_UID)
         .status(EventStatus.ACTIVE)
         .dataValues(getDataValues(idSchemes))
+        .build();
+  }
+
+  private Event getEventWithDataValue(String value) {
+    return TrackerEvent.builder()
+        .event(EVENT_UID)
+        .status(EventStatus.ACTIVE)
+        .dataValues(
+            Set.of(
+                DataValue.builder()
+                    .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID.getValue()))
+                    .value(value)
+                    .build()))
         .build();
   }
 
