@@ -40,9 +40,6 @@ import org.hibernate.cache.internal.DisabledCaching;
 import org.hibernate.service.spi.ServiceRegistryImplementor;
 import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.cache.QueryCacheManager;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -61,12 +58,6 @@ class CacheInvalidationListenerTest {
 
   @Mock protected QueryCacheManager queryCacheManager;
 
-  @Mock protected IdentifiableObjectManager idObjectManager;
-
-  @Mock protected TrackedEntityAttributeService trackedEntityAttributeService;
-
-  @Mock protected PeriodService periodService;
-
   @Mock protected DisabledCaching disabledCaching;
 
   private CacheInvalidationListener cacheInvalidationListener;
@@ -81,13 +72,7 @@ class CacheInvalidationListenerTest {
 
     cacheInvalidationListener =
         new CacheInvalidationListener(
-            sessionFactory,
-            paginationCacheManager,
-            queryCacheManager,
-            idObjectManager,
-            trackedEntityAttributeService,
-            periodService,
-            "SERVER_A");
+            sessionFactory, paginationCacheManager, queryCacheManager, "SERVER_A");
 
     lenient().when(sessionFactory.getCache()).thenReturn(disabledCaching);
   }
