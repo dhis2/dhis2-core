@@ -76,6 +76,8 @@ class CorsAllowlistEntryTest {
           https://*.example.org              | https://*.example.org              | true
           HTTPS://*.Example.org:8443/        | https://*.example.org:8443         | true
           https://*.local.tld                | https://*.local.tld                | true
+          https://*.example.github.io        | https://*.example.github.io        | true
+          https://*.city.kawasaki.jp         | https://*.city.kawasaki.jp         | true
           """)
   void shouldAcceptAndNormaliseValidEntry(String entry, String origin, boolean wildcard) {
     CorsAllowlistEntry parsed = CorsAllowlistEntry.parse(entry);
@@ -115,6 +117,9 @@ class CorsAllowlistEntryTest {
         "https://*.co.uk",
         "https://*.github.io",
         "https://*.10.0.0",
+        "https://*.sch.uk",
+        "https://*.kawasaki.jp",
+        "http://*.compute.amazonaws.com",
         "https://*.*.example.org",
         "https://**.example.org",
         "https://ex*ample.org",
@@ -216,6 +221,15 @@ class CorsAllowlistEntryTest {
 
     assertEquals(253, host.length());
     assertTrue(CorsAllowlistEntry.parse("https://*.example.org:65535").matches(origin));
+  }
+
+  @Test
+  void shouldAcceptWildcardEntryWithLongestValidHost() {
+    String label = "a".repeat(63);
+    String domain = String.join(".", label, label, label, "a".repeat(47), "example.org");
+
+    assertEquals(253, ("*." + domain).length());
+    assertTrue(CorsAllowlistEntry.parse("https://*." + domain).isSubdomainWildcard());
   }
 
   @Test

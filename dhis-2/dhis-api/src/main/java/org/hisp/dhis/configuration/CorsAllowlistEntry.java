@@ -52,11 +52,15 @@ import javax.annotation.Nonnull;
  *
  * <p>The only wildcard allowed is {@code *} as the complete leftmost host label, for example {@code
  * https://*.example.org}, which trusts every subdomain of {@code example.org}. The part after the
- * wildcard must have at least two labels and must not be a public suffix ({@code *.org}, {@code
- * *.co.uk} and {@code *.github.io} are rejected). The wildcard stands for one or more host labels:
- * {@code https://*.example.org} matches {@code https://app.example.org} and {@code
- * https://a.b.example.org}, but not {@code https://example.org} or a value that puts anything other
- * than a host name in place of the wildcard. All other entries match by exact comparison.
+ * wildcard must have at least two labels, must not be a public suffix ({@code *.org}, {@code
+ * *.co.uk} and {@code *.github.io} are rejected) and must not be the parent of a wildcard rule of
+ * the public suffix list, which makes its subdomains public suffixes ({@code *.sch.uk} and {@code
+ * *.kawasaki.jp} are rejected; {@code *.city.kawasaki.jp} is accepted, because the list excludes
+ * {@code city.kawasaki.jp} from the rule {@code *.kawasaki.jp}). The wildcard stands for one or
+ * more host labels: {@code https://*.example.org} matches {@code https://app.example.org} and
+ * {@code https://a.b.example.org}, but not {@code https://example.org} or a value that puts
+ * anything other than a host name in place of the wildcard. All other entries match by exact
+ * comparison.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -78,6 +82,13 @@ public final class CorsAllowlistEntry {
    */
   private static final int MAX_ORIGIN_LENGTH =
       "https".length() + SCHEME_SEPARATOR.length() + MAX_HOST_LENGTH + ":65535".length();
+
+  /**
+   * A label no rule of the public suffix list can name, because the list contains only host names
+   * and a host name cannot contain {@code _}. Prefixed to a domain, it tells whether the domain is
+   * the parent of a wildcard rule of the list, without matching an exception rule.
+   */
+  private static final String PUBLIC_SUFFIX_PROBE_LABEL = "x_x";
 
   private static final Pattern HOST_LABEL =
       Pattern.compile("[a-z0-9_](?:[a-z0-9_-]{0,61}[a-z0-9_])?");
@@ -330,13 +341,25 @@ public final class CorsAllowlistEntry {
     }
     boolean publicSuffix;
     try {
-      publicSuffix = InternetDomainName.from(domain).isPublicSuffix();
+      publicSuffix =
+          InternetDomainName.from(domain).isPublicSuffix() || isParentOfWildcardRule(domain);
     } catch (IllegalArgumentException ex) {
       throw invalid("the host is not a valid domain name");
     }
     if (publicSuffix) {
-      throw invalid("a wildcard entry must not cover a public suffix such as *.co.uk");
+      throw invalid("a wildcard entry must not cover a public suffix such as *.co.uk or *.sch.uk");
     }
+  }
+
+  /**
+   * @return true if a wildcard rule of the public suffix list, such as {@code *.sch.uk}, makes the
+   *     subdomains of the given domain public suffixes
+   */
+  private static boolean isParentOfWildcardRule(String domain) {
+    String probe = PUBLIC_SUFFIX_PROBE_LABEL + "." + domain;
+    // The rules of the list are far shorter than the longest host name, so a domain too long for
+    // the probe is not the parent of a wildcard rule.
+    return probe.length() <= MAX_HOST_LENGTH && InternetDomainName.from(probe).isPublicSuffix();
   }
 
   private static boolean isDefaultPort(String scheme, String port) {
