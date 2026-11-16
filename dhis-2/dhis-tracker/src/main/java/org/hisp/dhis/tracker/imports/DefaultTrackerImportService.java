@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,7 @@ import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -67,6 +68,8 @@ public class DefaultTrackerImportService implements TrackerImportService {
 
   @Nonnull private final NotificationDispatcher notificationDispatcher;
 
+  @Nonnull private final UserService userService;
+
   private PersistenceReport commit(TrackerImportParams params, TrackerBundle trackerBundle)
       throws ForbiddenException, NotFoundException {
     if (TrackerImportStrategy.DELETE == params.getImportStrategy()) {
@@ -76,6 +79,18 @@ public class DefaultTrackerImportService implements TrackerImportService {
     }
   }
 
+  /**
+   * The current user details are a snapshot taken at authentication time and stored in the session.
+   * Reload them so that changes made since then, like being added to a user group that grants
+   * access to a category option, are taken into account when validating access. Users that do not
+   * exist in the database, like the system user of a job, are used as is.
+   */
+  private UserDetails getUpToDateCurrentUser() {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails reloaded = userService.createUserDetailsSafe(currentUser.getUid());
+    return reloaded != null ? reloaded : currentUser;
+  }
+
   @Nonnull
   @Override
   @IndirectTransactional
@@ -83,7 +98,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
       @Nonnull TrackerImportParams params,
       @Nonnull TrackerObjects trackerObjects,
       @Nonnull JobProgress jobProgress) {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUser = getUpToDateCurrentUser();
     jobProgress.startingStage("Running PreHeat");
     TrackerBundle trackerBundle =
         jobProgress.nonNullStagePostCondition(
