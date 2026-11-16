@@ -38,9 +38,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationCo
 
 /**
  * HTTP Basic converter that resolves the username with {@link
- * Usernames#resolveTypedUsername(String, UserService)} before the token is authenticated: an exact
- * username match is kept, otherwise whitespace at the edges of the username is stripped. The
- * password is passed on unchanged.
+ * UserService#resolveTypedUsername(String)} before the token is authenticated: an exact username
+ * match is kept, otherwise whitespace at the edges of the username is stripped. The password is
+ * passed on unchanged.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -61,8 +61,14 @@ public class UsernameNormalizingBasicAuthenticationConverter extends BasicAuthen
     if (token == null) {
       return null;
     }
-    String username = Usernames.resolveTypedUsername(token.getName(), userService);
-    if (username.equals(token.getName())) {
+    String typed = token.getName();
+    // This converter runs on every request with Basic credentials. Only a username with edge
+    // whitespace needs resolving, so the common case opens no transaction.
+    if (typed.equals(Usernames.stripEdgeWhitespace(typed))) {
+      return token;
+    }
+    String username = userService.resolveTypedUsername(typed);
+    if (username.equals(typed)) {
       return token;
     }
     UsernamePasswordAuthenticationToken normalized =

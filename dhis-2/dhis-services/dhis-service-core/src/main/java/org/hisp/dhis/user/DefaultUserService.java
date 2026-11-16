@@ -294,6 +294,16 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
+  public String resolveTypedUsername(String username) {
+    String stripped = Usernames.stripEdgeWhitespace(username);
+    if (Objects.equals(stripped, username) || userStore.getUserByUsername(username) != null) {
+      return username;
+    }
+    return stripped;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public User getUserByIdentifier(String id) {
     User user = null;
 

@@ -45,7 +45,6 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.Usernames;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -146,7 +145,7 @@ public class AuthenticationController {
 
     // Resolve once, before the token is built, so every later step (user lookup, LDAP bind,
     // failed-login count) sees the same username. An exact match wins over the stripped username.
-    String username = Usernames.resolveTypedUsername(loginRequest.getUsername(), userService);
+    String username = userService.resolveTypedUsername(loginRequest.getUsername());
 
     try {
       validateRequest(username);

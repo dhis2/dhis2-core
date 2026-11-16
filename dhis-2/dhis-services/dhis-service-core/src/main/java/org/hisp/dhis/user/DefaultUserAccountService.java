@@ -229,8 +229,7 @@ public class DefaultUserAccountService implements UserAccountService {
       throw new BadRequestException("Username, old password and new password are required");
     }
 
-    User user =
-        userService.getUserByUsername(Usernames.resolveTypedUsername(username, userService));
+    User user = userService.getUserByUsername(userService.resolveTypedUsername(username));
     if (user == null) {
       // Generic message on purpose: do not reveal whether the username exists. Spend one password
       // verification (result deliberately ignored) so this path takes as long as the known-user

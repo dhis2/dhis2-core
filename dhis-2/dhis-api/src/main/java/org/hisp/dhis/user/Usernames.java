@@ -29,9 +29,7 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.Objects;
 import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -55,7 +53,7 @@ public final class Usernames {
    *
    * <p>Stored usernames can still start or end with whitespace: rows from before the username
    * syntax check (2.38) and paths that skip the check. Login paths therefore call {@link
-   * #resolveTypedUsername(String, UserService)}, which prefers an exact username match over this
+   * UserService#resolveTypedUsername(String)}, which prefers an exact username match over this
    * stripped form.
    *
    * @param username the username as received, may be null
@@ -75,30 +73,6 @@ public final class Usernames {
       end--;
     }
     return username.substring(start, end);
-  }
-
-  /**
-   * Resolves a username as typed by a person on a login or account recovery path to the username to
-   * authenticate or look up.
-   *
-   * <p>The username is used as typed when it has no whitespace at its edges, or when a user with
-   * exactly that username exists. The second case keeps login working for users whose stored
-   * username starts or ends with whitespace. Otherwise the username is returned without edge
-   * whitespace, see {@link #stripEdgeWhitespace(String)}. Only a username with edge whitespace
-   * costs a user lookup.
-   *
-   * @param username the username as received, may be null
-   * @param userService tells whether a user with exactly the typed username exists
-   * @return the username to use, or null if the input is null
-   */
-  @CheckForNull
-  public static String resolveTypedUsername(
-      @CheckForNull String username, @Nonnull UserService userService) {
-    String stripped = stripEdgeWhitespace(username);
-    if (Objects.equals(stripped, username) || userService.getUserByUsername(username) != null) {
-      return username;
-    }
-    return stripped;
   }
 
   private static boolean isWhitespace(char c) {

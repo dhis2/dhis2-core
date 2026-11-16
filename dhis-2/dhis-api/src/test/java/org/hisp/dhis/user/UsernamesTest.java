@@ -31,9 +31,6 @@ package org.hisp.dhis.user;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -90,39 +87,5 @@ class UsernamesTest {
   @Test
   void testNullStaysNull() {
     assertNull(Usernames.stripEdgeWhitespace(null));
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"admin", "ad min", ""})
-  void testResolveKeepsUsernameWithoutEdgeWhitespaceWithoutLookup(String username) {
-    UserService userService = mock(UserService.class);
-
-    assertEquals(username, Usernames.resolveTypedUsername(username, userService));
-    verifyNoInteractions(userService);
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"admin ", " admin", "\u00a0admin"})
-  void testResolvePrefersExactUsername(String username) {
-    UserService userService = mock(UserService.class);
-    when(userService.getUserByUsername(username)).thenReturn(new User());
-
-    assertEquals(username, Usernames.resolveTypedUsername(username, userService));
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"admin ", " admin", "\u00a0admin"})
-  void testResolveStripsWhenNoExactUsername(String username) {
-    UserService userService = mock(UserService.class);
-
-    assertEquals("admin", Usernames.resolveTypedUsername(username, userService));
-  }
-
-  @Test
-  void testResolveNullStaysNullWithoutLookup() {
-    UserService userService = mock(UserService.class);
-
-    assertNull(Usernames.resolveTypedUsername(null, userService));
-    verifyNoInteractions(userService);
   }
 }
