@@ -41,6 +41,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,6 +53,7 @@ import static org.mockito.Mockito.when;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -67,6 +69,7 @@ import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -285,6 +288,20 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertThat(sql.getValue(), startsWith("select count(1) "));
     assertThat(sql.getValue(), containsString("from analytics_enrollment_"));
+  }
+
+  @Test
+  void verifyEnrollmentCountAppendsItemFilterToExistingWhereClause() {
+    EventQueryParams params =
+        createRequestParamsWithFilter(null, ValueType.TEXT, QueryOperator.EQ, "Female");
+
+    subject.getEnrollmentCount(params);
+
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    assertEquals(1, StringUtils.countMatches(sql.getValue(), "where "), sql.getValue());
+    assertThat(
+        sql.getValue(), containsString("and ax.\"" + dataElementA.getUid() + "\" = 'Female'"));
   }
 
   @Test

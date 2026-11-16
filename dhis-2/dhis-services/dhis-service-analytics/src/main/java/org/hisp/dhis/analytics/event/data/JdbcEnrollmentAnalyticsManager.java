@@ -341,8 +341,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     sql += getFromClause(params);
     sql += programIndicatorCte.map(ProgramIndicatorCteSql::joinClause).orElse("");
 
-    sql += getWhereClause(params);
-    sql += addFiltersToWhereClause(params);
+    String whereClause = getWhereClause(params);
+    sql += whereClause;
+    sql += getAdditionalQueryItemWhereClause(params, whereClause);
 
     if (programIndicatorCte.isPresent()) {
       sql = programIndicatorCte.get().withClause() + sql;
@@ -366,10 +367,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     return count;
-  }
-
-  private String addFiltersToWhereClause(EventQueryParams params) {
-    return getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
   }
 
   /**
