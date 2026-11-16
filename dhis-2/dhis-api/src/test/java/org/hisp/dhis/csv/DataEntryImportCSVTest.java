@@ -645,10 +645,9 @@ class DataEntryImportCSVTest {
     assertEquals("say \\\"hi\\\"", values.get(0).comment());
   }
 
-  // ---------------------------------------------------------------- S1
+  // ----------------------------------------------------------------
   // Header validation: every header cell must be non-null, non-empty,
-  // unique (case-insensitively, matching columnToComponentIndexMapping),
-  // and a syntactically valid Java identifier.
+  // unique (case-insensitively, matching columnToComponentIndexMapping)
 
   @Test
   void testEmptyHeaderNameAtStartRejected() {
