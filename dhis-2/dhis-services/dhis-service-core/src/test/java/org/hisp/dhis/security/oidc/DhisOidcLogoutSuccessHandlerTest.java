@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.security.jwt.DhisJwtAuthenticationToken;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.UserDetails;
@@ -66,7 +65,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-import org.springframework.security.oauth2.jwt.Jwt;
 
 /**
  * Unit tests for {@link DhisOidcLogoutSuccessHandler} verifying that the redirect_uri parameter is
@@ -196,7 +194,7 @@ class DhisOidcLogoutSuccessHandlerTest {
 
   private static Stream<Arguments> notLoggedIn() {
     return Stream.of(
-        Arguments.of("no authentication", null),
+        Arguments.of("no session user (null authentication)", null),
         Arguments.of(
             "anonymous authentication",
             new AnonymousAuthenticationToken(
@@ -217,30 +215,20 @@ class DhisOidcLogoutSuccessHandlerTest {
   }
 
   /**
-   * Logged-in users whose DHIS2 username is {@code alice}. For an OIDC login the principal's own
-   * name is the IdP subject, and for a JWT bearer token the authentication name is the mapping
-   * claim value, so neither may be taken as the DHIS2 username.
+   * Session users whose DHIS2 username is {@code alice}. For an OIDC login the principal's own name
+   * is the IdP subject, so it may not be taken as the DHIS2 username.
    */
   private static Stream<Arguments> loggedIn() {
     UserDetails alice = UserDetails.empty().username("alice").build();
     Map<String, Object> claims = Map.of(IdTokenClaimNames.SUB, "idp-subject-123");
     DhisOidcUser oidcUser = new DhisOidcUser(alice, claims, IdTokenClaimNames.SUB, null);
-    Jwt jwt =
-        Jwt.withTokenValue("token")
-            .header("alg", "RS256")
-            .subject("idp-subject-123")
-            .claim("email", "alice@example.org")
-            .build();
     return Stream.of(
         Arguments.of(
             "form login",
             UsernamePasswordAuthenticationToken.authenticated(alice, null, List.of())),
         Arguments.of(
             "OIDC login",
-            new OAuth2AuthenticationToken(oidcUser, oidcUser.getAuthorities(), "idp")),
-        Arguments.of(
-            "JWT bearer token",
-            new DhisJwtAuthenticationToken(jwt, List.of(), "alice@example.org", alice)));
+            new OAuth2AuthenticationToken(oidcUser, oidcUser.getAuthorities(), "idp")));
   }
 
   @ParameterizedTest(name = "{0}")

@@ -64,24 +64,28 @@ import org.springframework.stereotype.Component;
  * <p>Pick logic in {@link #init()}:
  *
  * <ul>
- *   <li>When {@code oidc.oauth2.login.enabled=on} and the selected provider exposes an {@code
+ *   <li>When {@code oidc.oauth2.login.enabled=on}, the handler is a Spring {@link
+ *       OidcClientInitiatedLogoutSuccessHandler}. When the selected provider exposes an {@code
  *       end_session_endpoint} ({@code oidc.provider.<id>.end_session_endpoint}) with {@code
- *       enable_logout=on}, the handler becomes a Spring {@link
- *       OidcClientInitiatedLogoutSuccessHandler} that redirects the browser to the IdP's
- *       RP-initiated logout endpoint using {@code oidc.logout.redirect_url} as the post-logout
- *       redirect URI.
- *   <li>When the linked-accounts feature is enabled ({@code linked_accounts.enabled=on}), or when
- *       OIDC login is disabled, logout falls back to a {@link SimpleUrlLogoutSuccessHandler}
- *       targeting {@code oidc.logout.redirect_url} (or {@code /} when unset).
+ *       enable_logout=on}, it redirects the browser to the IdP's RP-initiated logout endpoint using
+ *       {@code oidc.logout.redirect_url} as the post-logout redirect URI; otherwise it redirects to
+ *       {@code oidc.logout.redirect_url} (or {@code /} when unset).
+ *   <li>When OIDC login is disabled, logout falls back to a {@link SimpleUrlLogoutSuccessHandler}
+ *       targeting {@code /}.
  * </ul>
  *
  * <p>In addition, {@link #onLogoutSuccess} supports a {@code redirect_uri} query parameter used by
  * the Android Capture app's deep-link logout flow (e.g. {@code dhis2oauth://oauth}). The value is
  * accepted only if it matches the configured device-enrollment redirect allowlist, to prevent
- * open-redirect abuse. When the linked-accounts feature is active and a {@code switch} parameter is
- * present, the handler switches the active linked account of the logged-in user via {@code
+ * open-redirect abuse.
+ *
+ * <p>When OIDC login and the linked-accounts feature ({@code linked_accounts.enabled=on}) are both
+ * enabled, {@link #onLogoutSuccess} does not use the handler above. With a {@code switch}
+ * parameter, it switches the active linked account of the logged-in user via {@code
  * UserService.setActiveLinkedAccounts} and redirects to {@code linked_accounts.relogin_url};
- * otherwise it redirects to {@code linked_accounts.logout_url}.
+ * otherwise it redirects to {@code linked_accounts.logout_url}. The switch needs a session login:
+ * the logout filter runs before the bearer token filters, so a request authenticated only by a
+ * bearer token reaches this handler without a user and switches no account.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -112,16 +116,11 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
   private void setOidcLogoutUrl() {
     String logoutUri = config.getPropertyOrDefault(OIDC_LOGOUT_REDIRECT_URL, "/");
 
-    if (config.isEnabled(LINKED_ACCOUNTS_ENABLED)) {
-      this.handler = new SimpleUrlLogoutSuccessHandler();
-      this.handler.setDefaultTargetUrl(logoutUri);
-    } else {
-      OidcClientInitiatedLogoutSuccessHandler oidcHandler =
-          new OidcClientInitiatedLogoutSuccessHandler(dhisOidcProviderRepository);
-      oidcHandler.setPostLogoutRedirectUri(logoutUri);
-      this.handler = oidcHandler;
-      this.handler.setDefaultTargetUrl(logoutUri);
-    }
+    OidcClientInitiatedLogoutSuccessHandler oidcHandler =
+        new OidcClientInitiatedLogoutSuccessHandler(dhisOidcProviderRepository);
+    oidcHandler.setPostLogoutRedirectUri(logoutUri);
+    this.handler = oidcHandler;
+    this.handler.setDefaultTargetUrl(logoutUri);
   }
 
   @Override
@@ -175,9 +174,9 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
   }
 
   /**
-   * Returns the DHIS2 username of the logged-in user who is logging out, or null when the request
-   * has no logged-in user. The username comes from the principal, as {@link
-   * Authentication#getName()} is the mapping claim value for a JWT bearer token.
+   * Returns the DHIS2 username of the session user who is logging out, or null when the request has
+   * no logged-in user. The username comes from the principal, as {@link Authentication#getName()}
+   * is the IdP subject for an OIDC login.
    */
   @CheckForNull
   private String getLoggedInUsername(@CheckForNull Authentication authentication) {
