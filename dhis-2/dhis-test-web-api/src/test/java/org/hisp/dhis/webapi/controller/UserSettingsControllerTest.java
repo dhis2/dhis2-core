@@ -69,6 +69,7 @@ class UserSettingsControllerTest extends H2ControllerIntegrationTestBase {
 
   @AfterEach
   void resetSettings() {
+    switchToAdminUser();
     DELETE("/userSettings/keyUiLocale");
     DELETE("/systemSettings/keyUiLocale");
     DELETE("/systemSettings/keyAnalysisDisplayProperty");
@@ -148,6 +149,73 @@ class UserSettingsControllerTest extends H2ControllerIntegrationTestBase {
     // an explicit value equal to the default is still reported as set
     assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?value=en"));
     assertEquals("en", GET("/userSettings/keyUiLocale?useFallback=false").content("text/plain"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "/userSettings?user=admin",
+        "/userSettings?user=admin&useFallback=false",
+        "/userSettings/keyUiLocale?user=admin",
+        "/userSettings/keyUiLocale?user=admin&useFallback=false"
+      })
+  void testGetSettingsOfOtherUser_Forbidden(String url) {
+    switchToNewUser("guest");
+    assertEquals(HttpStatus.FORBIDDEN, GET(url).status());
+  }
+
+  @Test
+  void testChangeSettingsOfOtherUser_Forbidden() {
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?value=de"));
+
+    switchToNewUser("guest");
+    assertEquals(
+        HttpStatus.FORBIDDEN, POST("/userSettings/keyUiLocale?user=admin&value=fr").status());
+    assertEquals(HttpStatus.FORBIDDEN, DELETE("/userSettings/keyUiLocale?user=admin").status());
+
+    switchToAdminUser();
+    assertEquals("de", GET("/userSettings/keyUiLocale?useFallback=false").content("text/plain"));
+  }
+
+  @Test
+  void testSettingsOfOwnUserByUsername() {
+    switchToNewUser("guest");
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?user=guest&value=de"));
+
+    assertEquals("de", GET("/userSettings?user=guest").content().getString("keyUiLocale").string());
+    assertEquals(
+        "de",
+        GET("/userSettings?user=guest&useFallback=false")
+            .content()
+            .getString("keyUiLocale")
+            .string());
+    assertEquals(
+        "de", GET("/userSettings/keyUiLocale?user=guest&useFallback=false").content("text/plain"));
+  }
+
+  @Test
+  void testSettingsOfOtherUser_Authorized() {
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?value=de"));
+
+    switchToNewUser("useradmin", "F_USER_ADD");
+    assertEquals(
+        "de",
+        GET("/userSettings?user=admin&useFallback=false")
+            .content()
+            .getString("keyUiLocale")
+            .string());
+    assertEquals("de", GET("/userSettings/keyUiLocale?user=admin").content("text/plain"));
+
+    assertStatus(HttpStatus.OK, POST("/userSettings/keyUiLocale?user=admin&value=fr"));
+    assertEquals(
+        "fr", GET("/userSettings/keyUiLocale?user=admin&useFallback=false").content("text/plain"));
+  }
+
+  @Test
+  void testSettingsOfUnknownUser_NotFound() {
+    assertEquals(HttpStatus.NOT_FOUND, GET("/userSettings?user=nobody").status());
+    assertEquals(
+        HttpStatus.NOT_FOUND, POST("/userSettings/keyUiLocale?user=nobody&value=fr").status());
   }
 
   @Test
