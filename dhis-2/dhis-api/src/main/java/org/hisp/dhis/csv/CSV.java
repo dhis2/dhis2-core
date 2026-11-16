@@ -144,9 +144,11 @@ import org.intellij.lang.annotations.Language;
  *   <li>a quote appearing inside an unquoted field ({@code ab"cd,ef}),
  *   <li>a non-whitespace, non-delimiter character after a closing quote ({@code "abc"def}),
  *   <li>an unterminated quoted value,
- *   <li>a value longer than {@link CsvConfig#maxValueBufferLength(int)},
+ *   <li>a value longer than {@link CsvConfig#maxValueLength(int)},
  *   <li>a record with more fields than the header, and
  *   <li>a missing required column.
+ *   <li>a empty header name
+ *   <li>a non-unique header name (ignoring case)
  * </ul>
  *
  * @author Jan Bernitt
