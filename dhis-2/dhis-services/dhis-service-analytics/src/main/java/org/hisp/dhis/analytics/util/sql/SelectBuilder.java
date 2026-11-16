@@ -268,10 +268,6 @@ public class SelectBuilder {
     return addColumnInternal(expression, expr -> Column.withPrefix(expr, tablePrefix));
   }
 
-  public List<String> getColumnNames() {
-    return columns.stream().map(Column::expression).toList();
-  }
-
   /**
    * Adds a column with an alias.
    *

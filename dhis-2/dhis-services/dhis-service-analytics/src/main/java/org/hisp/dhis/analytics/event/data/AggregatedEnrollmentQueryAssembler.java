@@ -68,7 +68,7 @@ import org.springframework.stereotype.Component;
 /**
  * Assembles SELECT-clause columns for enrollment analytics queries — both the aggregated path
  * (count + org unit + period + header columns) and the standard list path (enrollment standard
- * columns with optional shadow-CTE alias rewriting).
+ * columns).
  */
 @Component
 public class AggregatedEnrollmentQueryAssembler {

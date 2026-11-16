@@ -2541,12 +2541,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   /**
    * Registers the CTE of each program indicator used as a filter with a condition, so the condition
    * is evaluated against the indicator value of each enrollment. A program indicator that is also a
-   * dimension already has its CTE.
+   * dimension already has its CTE. A program indicator with a relationship type gets no CTE: the
+   * CTE is keyed by enrollment and cannot follow the relationship.
    */
   private void addProgramIndicatorFilterCtes(EventQueryParams params, CteContext cteContext) {
     params.getItemFilters().stream()
         .filter(QueryItem::isProgramIndicator)
         .filter(QueryItem::hasFilter)
+        .filter(item -> !item.hasRelationshipType())
         .filter(item -> !cteContext.containsCte(CteUtils.computeKey(item)))
         .forEach(item -> handleProgramIndicatorCte(item, cteContext, params));
   }

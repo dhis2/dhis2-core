@@ -2270,6 +2270,37 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyEnrollmentQueryScopesRelationshipProgramIndicatorFilterToTheRelationshipType() {
+    ProgramIndicator pi =
+        createProgramIndicator(
+            'X', AnalyticsType.EVENT, programA, stageDataElementExpression(), null);
+    stubPiExpressionSql(pi, "\"" + dataElementA.getUid() + "\"");
+    RelationshipType relationshipType = createRelationshipType();
+    QueryItem item =
+        new QueryItem(
+            pi,
+            pi.getProgram(),
+            null,
+            ValueType.NUMBER,
+            AggregationType.AVERAGE,
+            null,
+            relationshipType);
+    item.addFilter(new QueryFilter(QueryOperator.GT, "3000"));
+
+    subject.getEnrollments(
+        createRequestParamsBuilder().addItemFilter(item).build(), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    // The program indicator CTE is keyed by enrollment and carries no relationship type.
+    assertThat(cteDefinitionCount(generatedSql, pi.getUid()), is(0));
+    assertThat(generatedSql, not(containsString("join " + pi.getUid())));
+    String outerWhere = generatedSql.substring(generatedSql.lastIndexOf(" where "));
+    assertThat(outerWhere, containsString("rty.relationshiptypeid = " + relationshipType.getId()));
+    assertThat(outerWhere, containsString("> '3000'"));
+  }
+
+  @Test
   void verifyAggregatedEventDataResolvesPsdePlaceholderInPiExpression() {
     ProgramIndicator pi =
         createEnrollmentProgramIndicator(
