@@ -323,6 +323,34 @@
       }
     },
     {
+      "name": "enrollmentsWithTotalPagesAndAttributeFilter",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&dimension=cejWyOfXge6:EQ:Female&outputType=ENROLLMENT&headers=ouname,enrollmentdate&desc=enrollmentdate&totalPages=true&pageSize=6&page=1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentsWithTotalPagesAndEnrollmentDateFilter",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&dimension=ENROLLMENT_DATE:GT:2023-01-01&outputType=ENROLLMENT&desc=enrollmentdate&totalPages=true&pageSize=6&page=1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentsWithTotalPagesAndStageDataElementFilter",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&dimension=A03MvHHogjR.UXz7xuGCEhU:GT:3000&stage=A03MvHHogjR&outputType=ENROLLMENT&headers=ouname,enrollmentdate&desc=enrollmentdate&totalPages=true&pageSize=6&page=1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentsWithTotalPagesAndRepeatableStageDataElementFilter",
+      "query": "/api/analytics/enrollments/query/ur1Edk5Oe2n.json?dimension=ou:ImspTQPwCqd&dimension=jdRD35YwbRH.zocHNQIQBIN:EQ:POS&outputType=ENROLLMENT&headers=ouname,enrollmentdate&desc=enrollmentdate&totalPages=true&pageSize=10&page=1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "incidentDateFilterForEnrollments",
       "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&filter=INCIDENT_DATE:GT:2022-12-15&desc=lastupdated",
       "version": {
@@ -334,6 +362,13 @@
       "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=INCIDENT_DATE:GT:2022-12-15&desc=lastupdated",
       "version": {
         "min": 43
+      }
+    },
+    {
+      "name": "enrollmentStatusCompletedOnEnrollmentsQuery",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:LAST_10_YEARS&enrollmentStatus=COMPLETED&headers=pi,ouname,enrollmentdate,programstatus&totalPages=true&pageSize=100&page=1&relativePeriodDate=2025-01-01",
+      "version": {
+        "min": 44
       }
     }
   ]

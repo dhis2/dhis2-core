@@ -29,12 +29,17 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
+
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 
@@ -71,7 +76,7 @@ public enum AnalyticsDateFilter {
   INCIDENT_DATE(
       TimeField.INCIDENT_DATE,
       // Events
-      EventsAnalyticsQueryCriteria::getIncidentDate,
+      AnalyticsDateFilter::getEventIncidentDates,
       // Enrollments
       EnrollmentAnalyticsQueryCriteria::getIncidentDate,
       // TEs
@@ -106,6 +111,18 @@ public enum AnalyticsDateFilter {
     return Arrays.stream(values())
         .filter(analyticsDateFilter -> analyticsDateFilter.name().equalsIgnoreCase(dateField))
         .findFirst();
+  }
+
+  /**
+   * Events accept both the deprecated {@code incidentDate} and its replacement {@code
+   * enrollmentOccurredDate}; values from both are combined.
+   */
+  private static String getEventIncidentDates(EventsAnalyticsQueryCriteria criteria) {
+    String dates =
+        Stream.of(criteria.getIncidentDate(), criteria.getEnrollmentOccurredDate())
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.joining(OPTION_SEP));
+    return dates.isEmpty() ? null : dates;
   }
 
   public boolean appliesToEnrollments() {
