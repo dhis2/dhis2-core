@@ -123,6 +123,12 @@ class CrossOriginGetControllerTest extends H2ControllerIntegrationTestBase {
         "OK", 200, "OK", "Apps reloaded", POST("/maintenance/appReload").content(HttpStatus.OK));
   }
 
+  @Test
+  void testAppReloadWithPostWithoutAuthority() {
+    switchToNewUser("guest");
+    assertMissingAuthority("F_PERFORM_MAINTENANCE", POST("/maintenance/appReload"));
+  }
+
   @ParameterizedTest(name = "{0}")
   @MethodSource("rejectedHeaders")
   void testAppReloadWithGetRejected(String name, Header[] headers) {
@@ -271,6 +277,12 @@ class CrossOriginGetControllerTest extends H2ControllerIntegrationTestBase {
     JsonWebMessage error =
         POST("/metadata/sync").content(HttpStatus.BAD_REQUEST).as(JsonWebMessage.class);
     assertTrue(error.getMessage().contains("versionName"), error.getMessage());
+  }
+
+  @Test
+  void testMetadataSyncWithPostWithoutAuthority() {
+    switchToNewUser("guest");
+    assertMissingAuthority("F_METADATA_MANAGE", POST("/metadata/sync"));
   }
 
   private static void assertRejected(HttpResponse response) {
