@@ -75,6 +75,7 @@ import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.configuration.ServerBaseUrlValidator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
@@ -84,6 +85,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.i18n.I18n;
@@ -148,6 +150,8 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   private final DataIntegrityStore dataIntegrityStore;
 
   private final SchemaService schemaService;
+
+  private final DhisConfigurationProvider dhisConfigurationProvider;
 
   private Cache<DataIntegritySummary> summaryCache;
 
@@ -367,9 +371,36 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     return issues;
   }
 
+  /**
+   * Reports a single issue when {@code server.base.url} is missing or invalid in {@code dhis.conf}.
+   * The same problem is logged as a warning at startup, but admins without log access only see it
+   * here.
+   */
+  List<DataIntegrityIssue> getServerBaseUrlIssues() {
+    return ServerBaseUrlValidator.validate(dhisConfigurationProvider.getServerBaseUrl())
+        .map(problem -> List.of(new DataIntegrityIssue(null, "server.base.url", problem, null)))
+        .orElse(List.of());
+  }
+
   private void registerNonDatabaseIntegrityCheck(
       DataIntegrityCheckType type,
       Class<? extends IdentifiableObject> issueIdType,
+      Supplier<List<DataIntegrityIssue>> check) {
+    registerNonDatabaseIntegrityCheck(
+        type, issueIdType, true, DataIntegritySeverity.WARNING, check);
+  }
+
+  /**
+   * @param isSlow whether the check is expensive; slow checks are excluded when running checks
+   *     without naming them explicitly
+   * @param severity set in code rather than read from i18n, because translated i18n values would
+   *     not parse as a {@link DataIntegritySeverity}
+   */
+  private void registerNonDatabaseIntegrityCheck(
+      DataIntegrityCheckType type,
+      Class<? extends IdentifiableObject> issueIdType,
+      boolean isSlow,
+      DataIntegritySeverity severity,
       Supplier<List<DataIntegrityIssue>> check) {
     String name = type.getName();
     I18n i18n = i18nManager.getI18n(DataIntegrityService.class);
@@ -385,11 +416,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
           DataIntegrityCheck.builder()
               .name(name)
               .displayName(info.apply("name", name.replace('_', ' ')))
-              .isSlow(true)
+              .isSlow(isSlow)
               .isProgrammatic(true)
-              .severity(
-                  DataIntegritySeverity.valueOf(
-                      info.apply("severity", DataIntegritySeverity.WARNING.name()).toUpperCase()))
+              .severity(severity)
               .section(info.apply("section", "Other"))
               .description(info.apply("description", null))
               .introduction(info.apply("introduction", null))
@@ -480,6 +509,12 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE_ID,
         ProgramRule.class,
         this::getProgramRuleActionsWithNoProgramStageId);
+    registerNonDatabaseIntegrityCheck(
+        DataIntegrityCheckType.SERVER_BASE_URL_NOT_CONFIGURED,
+        null,
+        false,
+        DataIntegritySeverity.SEVERE,
+        this::getServerBaseUrlIssues);
   }
 
   Set<String> addSQLChecksToFlattedReport() {
@@ -769,12 +804,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         String pattern =
             name.toLowerCase()
                 .replace('-', '_') // make uniform
-                .replaceAll("[^*_a-z0-9]+", "") // sanitise against regex attacks
-                .replace("*", ".*"); // expand regex wildcard match
+                .replaceAll("[^*_a-z0-9]+", "");
         for (DataIntegrityCheck check : checksByName.values()) {
-          if (check
-              .getName()
-              .matches(pattern)) { // NOSONAR javasecurity:S2631 - pattern sanitised above
+          if (matchesWildcard(check.getName(), pattern)) {
             expanded.add(check.getName());
           }
         }
@@ -789,6 +821,36 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
             .collect(toUnmodifiableSet()));
 
     return expanded;
+  }
+
+  /**
+   * Matches {@code text} against {@code pattern}, where {@code *} matches any sequence of
+   * characters (including none) and every other character matches itself. The whole text must
+   * match. Runs in O(text length x pattern length).
+   */
+  static boolean matchesWildcard(String text, String pattern) {
+    int t = 0;
+    int p = 0;
+    int star = -1;
+    int starMatchEnd = 0;
+    while (t < text.length()) {
+      if (p < pattern.length() && pattern.charAt(p) == '*') {
+        star = p++;
+        starMatchEnd = t;
+      } else if (p < pattern.length() && pattern.charAt(p) == text.charAt(t)) {
+        p++;
+        t++;
+      } else if (star >= 0) {
+        p = star + 1;
+        t = ++starMatchEnd;
+      } else {
+        return false;
+      }
+    }
+    while (p < pattern.length() && pattern.charAt(p) == '*') {
+      p++;
+    }
+    return p == pattern.length();
   }
 
   private Set<String> getDefaultChecks(boolean restricted) {

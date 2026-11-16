@@ -40,12 +40,15 @@ import static org.hisp.dhis.common.DimensionConstants.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
+import static org.hisp.dhis.feedback.ErrorCode.E7154;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SQL_SYNTAX_ERROR;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING;
+import static org.hisp.dhis.util.SqlExceptionUtils.columnDoesNotExist;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
+import static org.hisp.dhis.util.SqlExceptionUtils.unionColumnsDontMatch;
 import static org.springframework.util.Assert.isTrue;
 
 import com.google.common.collect.Lists;
@@ -1166,7 +1169,8 @@ public final class AnalyticsUtils {
    * @return true if the rows contains a valid period ISO string at the given index.
    */
   public static boolean hasPeriod(List<Object> row, int periodIndex) {
-    return periodIndex < row.size()
+    return periodIndex >= 0
+        && periodIndex < row.size()
         && row.get(periodIndex) instanceof String
         && Period.ofNullable((String) row.get(periodIndex)) != null;
   }
@@ -1239,6 +1243,11 @@ public final class AnalyticsUtils {
         // rethrow as BadSqlGrammarException for consistent handling
         throw new BadSqlGrammarException("", "", sqlexception);
       }
+      if ((ex.getCause() instanceof SQLException sqlexception)
+          && (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception))) {
+        log.error(E7154.getMessage(), ex);
+        throw new QueryRuntimeException(E7154);
+      }
       log.error(E7132.getMessage(), ex);
       throw new QueryRuntimeException(E7132);
     } catch (DataAccessResourceFailureException ex) {
@@ -1262,8 +1271,13 @@ public final class AnalyticsUtils {
         throw ex;
       }
       if (!isMultipleQueries) {
-        log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
-        throw ex;
+        if (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception)) {
+          log.error(E7154.getMessage(), ex);
+          throw new QueryRuntimeException(E7154);
+        } else {
+          log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
+          throw ex;
+        }
       }
       log.info(ERR_MSG_SILENT_FALLBACK, ex);
     } else {

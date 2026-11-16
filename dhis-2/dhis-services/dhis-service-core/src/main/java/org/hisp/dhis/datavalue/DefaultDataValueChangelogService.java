@@ -29,10 +29,16 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.input.PagedParams;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +49,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 public class DefaultDataValueChangelogService implements DataValueChangelogService {
+
+  /**
+   * The most entries a user who is not a superuser reads with one request: unpaged, or up to the
+   * end of a page. The access checked statement reads all entries before the page.
+   */
+  static final int MAX_ENTRIES = 10_000;
 
   private final DataValueChangelogStore dataValueChangelogStore;
 
@@ -66,19 +78,61 @@ public class DefaultDataValueChangelogService implements DataValueChangelogServi
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValueChangelogEntry> getChangelogEntries(@Nonnull DataValueQueryParams params) {
-    return dataValueChangelogStore.getEntries(params);
+  public List<DataValueChangelogEntry> getChangelogEntries(@Nonnull DataValueQueryParams params)
+      throws ForbiddenException {
+    // the store only returns entries the user may read, so only no entries need the check
+    List<DataValueChangelogEntry> entries = dataValueChangelogStore.getEntries(params);
+    if (entries.isEmpty() && !dataValueChangelogStore.isReadable(params))
+      throw new ForbiddenException(ErrorCode.E2050, params.getDe(), params.getPe(), params.getOu());
+    return entries;
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params) {
-    return dataValueChangelogStore.getEntries(params);
+  public List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params)
+      throws ConflictException {
+    validateDataSetAccess(params);
+    PagedParams paged = params.paged();
+    if (getCurrentUserDetails().isSuper()) return dataValueChangelogStore.getEntries(params);
+    if (paged.isPaged()) {
+      if (paged.offset() + paged.pageSize() > MAX_ENTRIES)
+        throw new ConflictException(ErrorCode.E2052, MAX_ENTRIES);
+      return dataValueChangelogStore.getEntries(params);
+    }
+    // the unpaged read is bounded: the store reads one more entry than the page, which tells
+    // there are more than allowed
+    List<DataValueChangelog> entries =
+        dataValueChangelogStore.getEntries(withPage(params, MAX_ENTRIES));
+    if (entries.size() > MAX_ENTRIES) throw new ConflictException(ErrorCode.E2051, MAX_ENTRIES);
+    return entries;
+  }
+
+  private static DataValueChangelogQueryParams withPage(
+      DataValueChangelogQueryParams params, int pageSize) {
+    return new DataValueChangelogQueryParams(
+        params.fields(),
+        params.ds(),
+        params.de(),
+        params.pe(),
+        params.ou(),
+        params.co(),
+        params.cc(),
+        params.type(),
+        params.totalPages(),
+        new PagedParams(null, true, 1, pageSize));
   }
 
   @Override
   @Transactional(readOnly = true)
-  public int countEntries(DataValueChangelogQueryParams params) {
+  public int countEntries(DataValueChangelogQueryParams params) throws ConflictException {
+    validateDataSetAccess(params);
     return dataValueChangelogStore.countEntries(params);
+  }
+
+  private void validateDataSetAccess(DataValueChangelogQueryParams params)
+      throws ConflictException {
+    if (params.ds() == null || params.ds().isEmpty()) return;
+    List<String> noAccess = dataValueChangelogStore.getDataSetsNoDataReadAccess(params.ds());
+    if (!noAccess.isEmpty()) throw new ConflictException(ErrorCode.E2010, noAccess);
   }
 }

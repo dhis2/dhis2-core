@@ -30,82 +30,42 @@ description: Users which have a data capture organisation unit which is not with
 section: Users
 section_order: 2
 summary_sql: >-
-  WITH user_data_orgunits AS (
-      SELECT userinfoid, array_agg(path) AS data_orgunits_paths
-      FROM organisationunit
-      JOIN usermembership ON organisationunit.organisationunitid = usermembership.organisationunitid
-      WHERE path IS NOT NULL
-      GROUP BY userinfoid
-  ),
-  user_view_orgunits AS (
-      SELECT userinfoid, array_agg(path) AS view_orgunit_paths
-      FROM organisationunit
-      JOIN userteisearchorgunits ON organisationunit.organisationunitid = userteisearchorgunits.organisationunitid
-      WHERE path IS NOT NULL
-      GROUP BY userinfoid
-  ),
-  usercount as (
-      SELECT COUNT(*) as usercount FROM userinfo
+  WITH flagged AS (
+  SELECT um.userinfoid, ou.name
+  FROM usermembership um
+  JOIN organisationunit ou ON ou.organisationunitid = um.organisationunitid
+  WHERE EXISTS (SELECT 1 FROM userteisearchorgunits h WHERE h.userinfoid = um.userinfoid)
+  AND NOT EXISTS (
+  SELECT 1
+  FROM userteisearchorgunits h
+  JOIN organisationunit hou ON hou.organisationunitid = h.organisationunitid
+  WHERE h.userinfoid = um.userinfoid
+  AND hou.uid = ANY(ou.patharray)
   )
-  SELECT COUNT(ui.uid) as value, 
-  100.0 * COUNT(ui.uid) / NULLIF(usercount.usercount, 0) as percent
-  FROM userinfo ui
-  INNER JOIN (
-  SELECT u.userinfoid, ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL) AS invalid_data_orgunits
-  FROM user_data_orgunits u
-  INNER JOIN user_view_orgunits v ON u.userinfoid = v.userinfoid
-  LEFT JOIN LATERAL (
-      SELECT path AS dop
-      FROM unnest(u.data_orgunits_paths) AS path
-      WHERE NOT EXISTS (
-          SELECT 1
-          FROM unnest(COALESCE(v.view_orgunit_paths, '{}')) AS view_path
-          WHERE path LIKE view_path || '%'
-      )
-  ) invalid_paths ON true
-  GROUP BY u.userinfoid
-  HAVING array_length(ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL), 1) > 0
-  ) x on x.userinfoid = ui.userinfoid
-  INNER JOIN organisationunit ou on ou.path = any(x.invalid_data_orgunits)
-  JOIN usercount on true
-  GROUP BY usercount.usercount;
+  )
+  SELECT COUNT(DISTINCT userinfoid) as count,
+  100.0 * COUNT(DISTINCT userinfoid) / NULLIF((SELECT COUNT(*) FROM userinfo), 0) as percent
+  FROM flagged;
 details_sql: >-
-  WITH user_data_orgunits AS (
-      SELECT userinfoid, array_agg(path) AS data_orgunits_paths
-      FROM organisationunit 
-      JOIN usermembership ON organisationunit.organisationunitid = usermembership.organisationunitid
-      WHERE organisationunit.path IS NOT NULL
-      GROUP BY userinfoid
-  ),
-  user_view_orgunits AS (
-      SELECT userinfoid, array_agg(path) AS view_orgunit_paths
-      FROM organisationunit
-      JOIN userteisearchorgunits ON organisationunit.organisationunitid = userteisearchorgunits.organisationunitid
-      WHERE path IS NOT NULL
-      GROUP BY userinfoid
+  WITH flagged AS (
+  SELECT um.userinfoid, ou.name
+  FROM usermembership um
+  JOIN organisationunit ou ON ou.organisationunitid = um.organisationunitid
+  WHERE EXISTS (SELECT 1 FROM userteisearchorgunits h WHERE h.userinfoid = um.userinfoid)
+  AND NOT EXISTS (
+  SELECT 1
+  FROM userteisearchorgunits h
+  JOIN organisationunit hou ON hou.organisationunitid = h.organisationunitid
+  WHERE h.userinfoid = um.userinfoid
+  AND hou.uid = ANY(ou.patharray)
   )
-  SELECT ui.uid, 
+  )
+  SELECT ui.uid,
   ui.username as name,
   NULL as comment,
-  array_agg(ou.name) as refs
-  FROM userinfo ui
-  INNER JOIN (
-  SELECT u.userinfoid, ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL) AS invalid_data_orgunits
-  FROM user_data_orgunits u
-  INNER JOIN user_view_orgunits v ON u.userinfoid = v.userinfoid
-  LEFT JOIN LATERAL (
-      SELECT path AS dop
-      FROM unnest(u.data_orgunits_paths) AS path
-      WHERE NOT EXISTS (
-          SELECT 1
-          FROM unnest(COALESCE(v.view_orgunit_paths, '{}')) AS view_path
-          WHERE path LIKE view_path || '%'
-      )
-  ) invalid_paths ON true
-  GROUP BY u.userinfoid
-  HAVING array_length(ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL), 1) > 0
-  ) x on x.userinfoid = ui.userinfoid
-  INNER JOIN organisationunit ou on ou.path = any(x.invalid_data_orgunits)
+  array_agg(f.name ORDER BY f.name) as refs
+  FROM flagged f
+  JOIN userinfo ui ON ui.userinfoid = f.userinfoid
   GROUP BY ui.uid, ui.username;
 details_id_type: users
 severity: WARNING

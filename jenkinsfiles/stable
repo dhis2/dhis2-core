@@ -53,7 +53,7 @@ pipeline {
                 echo 'Building DHIS2 ...'
                 script {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn --threads 4 --batch-mode --no-transfer-progress clean install --file dhis-2/pom.xml --update-snapshots'
+                        sh 'mvn --threads 4 --batch-mode --no-transfer-progress clean install --file dhis-2/pom.xml --update-snapshots --activate-profiles embedded'
                     }
                 }
             }
@@ -280,8 +280,8 @@ pipeline {
 
                             dir('scripts/instances') {
                                 description = "DHIS 2 stable branch ${env.GIT_BRANCH}"
-                                sh "./findByName.sh play ${instanceName} | jq --exit-status 'has(\"id\")' && ./restart.sh \$(./findByName.sh play ${instanceName} | jq '.instances[] | select(.stackName==\"dhis2-v2\") | .id') || ./deploy-dhis2.sh play ${instanceName} ${description}"
-                                timeout(5) {
+                                sh "./findByName.sh play ${instanceName} | jq --exit-status 'has(\"id\")' && ./restart.sh \$(./findByName.sh play ${instanceName} | jq '.instances[] | select(.stackName==\"dhis2-v2\") | .id') dhis2 || ./deploy-dhis2.sh play ${instanceName} ${description}"
+                                timeout(15) {
                                     waitFor.statusOk("${env.INSTANCE_URL}/${instanceName}")
                                 }
                             }

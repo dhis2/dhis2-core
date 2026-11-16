@@ -33,7 +33,7 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Objects;
 import javax.annotation.CheckForNull;
-import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForDataStats;
 import org.hisp.dhis.system.SystemService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,16 +45,18 @@ import org.springframework.stereotype.Component;
  *
  * <p>Version, revision and build time are fixed for the lifetime of the JVM (baked in at build
  * time, read once from {@code build.properties}), so unlike {@link
- * org.hisp.dhis.webapi.security.session.SessionMetrics} this reads {@link
- * SystemService#getSystemInfo()} once at registration time rather than wiring a live function.
+ * org.hisp.dhis.webapi.security.session.SessionMetrics} this reads them once at registration time
+ * rather than wiring a live function. It uses {@link SystemService#getSystemInfoForDataStats()},
+ * which returns them from memory; {@link SystemService#getSystemInfo()} would open a transaction
+ * and query the database for fields this metric does not use.
  *
  * <p>Follows the standard Prometheus "info" pattern (e.g. {@code prometheus_build_info}): the gauge
  * value is always {@code 1} and the actual data is carried entirely in labels, since
  * version/revision/build-time are categorical, not numeric.
  *
  * <p>No-ops when no {@link MeterRegistry} is available in the application context, or when {@link
- * SystemService#getSystemInfo()} returns {@code null} (queried before {@code SystemService} has
- * finished its own startup initialization).
+ * SystemService#getSystemInfoForDataStats()} returns {@code null} (queried before {@code
+ * SystemService} has finished its own startup initialization).
  *
  * <p><b>Naming note:</b> the meter is registered with the dotted name {@code dhis2.version.info},
  * not the underscored {@code dhis2_version_info} it ends up exposed as. The Prometheus client
@@ -81,19 +83,19 @@ public class VersionMetrics {
       return;
     }
 
-    SystemInfo systemInfo = systemService.getSystemInfo();
+    SystemInfoForDataStats systemInfo = systemService.getSystemInfoForDataStats();
     if (systemInfo == null) {
       return;
     }
 
     String buildTime =
-        systemInfo.getBuildTime() == null ? "" : systemInfo.getBuildTime().toInstant().toString();
+        systemInfo.buildTime() == null ? "" : systemInfo.buildTime().toInstant().toString();
 
     Gauge.builder(VERSION_INFO, () -> 1)
         .description(
             "DHIS2 build version, revision and build time, exposed as labels; value is always 1")
-        .tag("version", Objects.requireNonNullElse(systemInfo.getVersion(), ""))
-        .tag("revision", Objects.requireNonNullElse(systemInfo.getRevision(), ""))
+        .tag("version", Objects.requireNonNullElse(systemInfo.version(), ""))
+        .tag("revision", Objects.requireNonNullElse(systemInfo.revision(), ""))
         .tag("build_time", buildTime)
         .register(registry);
   }

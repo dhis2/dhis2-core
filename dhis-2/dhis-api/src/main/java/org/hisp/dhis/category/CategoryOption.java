@@ -134,6 +134,7 @@ public class CategoryOption extends BaseMetadataObject
   @Column(name = "shortname", nullable = false, unique = true, length = 50)
   private String shortName;
 
+  @Type(type = "text")
   @Column(name = "description", columnDefinition = "text")
   private String description;
 

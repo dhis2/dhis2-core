@@ -952,7 +952,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected String getAdditionalQueryItemWhereClause(
       EventQueryParams params, String existingWhereClause) {
 
-    String queryItemFilterClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+    Set<QueryItem> exclude =
+        params.hasFirstOrLastStagePeriod()
+            ? Set.of(params.getFirstOrLastStagePeriod().dateItem())
+            : Set.of();
+    String queryItemFilterClause =
+        getQueryItemsAndFiltersWhereClause(params, exclude, new SqlHelper());
 
     if (StringUtils.isBlank(queryItemFilterClause)) {
       return StringUtils.EMPTY;
@@ -2298,7 +2303,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return true if the aggregation type is NONE on both the param value's aggregation type
    */
   private boolean hasNoAggregationType(EventQueryParams params) {
-    if (params.getValue() == null) {
+    if (params.getValue() == null || params.getValue().getDimensionalObject() == null) {
       return false;
     }
 
@@ -2309,7 +2314,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     // No override exists, so check the value's aggregation type
-    return params.getValue().getAggregationType() == AggregationType.NONE;
+    return params.getValue().getDimensionalObject().getAggregationType() == AggregationType.NONE;
   }
 
   /**
@@ -2356,16 +2361,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // Retain the columns of the main SELECT statement as a hint for the shadow CTEs
     List<String> selectColumns = sb.getColumnNames();
 
-    // 3.3: Append the "FROM" clause (the main enrollment analytics table)
-    addFromClause(sb, params);
-
-    addOrgUnitJoin(sb, params);
-
-    // 3.4: Append LEFT JOINs for each relevant CTE definition
-    addCteJoins(sb, cteContext);
-
-    // 3.5: Collect and append WHERE conditions (including filters from CTE)
-    addWhereClause(sb, params, cteContext);
+    // 3.3 - 3.5: Append FROM, the org unit and CTE joins, and the WHERE conditions
+    addFromJoinsAndWhereClause(sb, params, cteContext);
 
     // 3.6: Append ORDER BY and paging
     addSortingAndPaging(cteContext, sb, params, maxLimit);
@@ -2376,6 +2373,48 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     return sb.build();
+  }
+
+  /**
+   * Builds the SQL query counting the rows that {@link #buildAnalyticsQuery(EventQueryParams, int)}
+   * returns. It shares the CTEs, joins and WHERE conditions of the row query, so stage item filters
+   * are applied through the same CTEs on every analytics database, and leaves out the select
+   * columns, sorting, paging and the paged shadow CTEs.
+   *
+   * @param params the {@link EventQueryParams} to drive the query generation.
+   * @return a complete SQL count query string.
+   */
+  String buildAnalyticsCountQuery(EventQueryParams params) {
+    CteContext cteContext = getCteDefinitions(params);
+
+    if (cteContext.isEnrollmentAnalytics()) {
+      generateFilterCTEs(params, cteContext);
+    }
+
+    SelectBuilder sb = new SelectBuilder();
+    addCteClause(sb, cteContext);
+    sb.addColumn("count(1)");
+    addFromJoinsAndWhereClause(sb, params, cteContext);
+
+    return sb.build();
+  }
+
+  /**
+   * Appends the FROM clause, the org unit and CTE joins, and the WHERE conditions (including the
+   * filters applied through CTEs).
+   */
+  private void addFromJoinsAndWhereClause(
+      SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
+    // The "FROM" clause (the main enrollment analytics table)
+    addFromClause(sb, params);
+
+    addOrgUnitJoin(sb, params);
+
+    // LEFT JOINs for each relevant CTE definition
+    addCteJoins(sb, cteContext);
+
+    // WHERE conditions (including filters from CTE)
+    addWhereClause(sb, params, cteContext);
   }
 
   /**

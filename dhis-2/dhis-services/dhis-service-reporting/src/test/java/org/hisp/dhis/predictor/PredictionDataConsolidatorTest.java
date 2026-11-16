@@ -264,24 +264,33 @@ class PredictionDataConsolidatorTest extends TestBase {
     levelOneOrgUnits = Lists.newArrayList(orgUnitA, orgUnitB, orgUnitC, orgUnitD);
 
     // DataValue values:
-    foundValueA = new FoundDimensionItemValue(orgUnitB, periodA, aocC, dataElementA, 25.0);
-    foundValueB = new FoundDimensionItemValue(orgUnitC, periodA, aocC, dataElementB, 18.0);
-    foundValueC = new FoundDimensionItemValue(orgUnitB, periodB, aocC, dataElementOperandA, 10.0);
-    foundValueD = new FoundDimensionItemValue(orgUnitB, periodB, aocD, dataElementOperandX, 30.0);
-    foundValueE = new FoundDimensionItemValue(orgUnitB, periodC, aocC, dataElementOperandX, 50.0);
+    foundValueA = new FoundDimensionItemValue(orgUnitB, periodA, null, aocC, dataElementA, 25.0);
+    foundValueB = new FoundDimensionItemValue(orgUnitC, periodA, null, aocC, dataElementB, 18.0);
+    foundValueC =
+        new FoundDimensionItemValue(orgUnitB, periodB, cocA, aocC, dataElementOperandA, 10.0);
+    foundValueD =
+        new FoundDimensionItemValue(orgUnitB, periodB, cocA, aocD, dataElementOperandX, 30.0);
+    foundValueE =
+        new FoundDimensionItemValue(orgUnitB, periodC, cocA, aocC, dataElementOperandX, 50.0);
 
     // Analytics values with attribute option combo:
-    foundValueF = new FoundDimensionItemValue(orgUnitB, periodA, aocC, programIndicatorA, 10.0);
-    foundValueG = new FoundDimensionItemValue(orgUnitB, periodB, aocC, programIndicatorB, 10.0);
+    foundValueF =
+        new FoundDimensionItemValue(orgUnitB, periodA, null, aocC, programIndicatorA, 10.0);
+    foundValueG =
+        new FoundDimensionItemValue(orgUnitB, periodB, null, aocC, programIndicatorB, 10.0);
     foundValueH =
-        new FoundDimensionItemValue(orgUnitB, periodA, aocD, trackedEntityAttributeA, 10.0);
-    foundValueI = new FoundDimensionItemValue(orgUnitD, periodA, aocC, programIndicatorA, 10.0);
+        new FoundDimensionItemValue(orgUnitB, periodA, null, aocD, trackedEntityAttributeA, 10.0);
+    foundValueI =
+        new FoundDimensionItemValue(orgUnitD, periodA, null, aocC, programIndicatorA, 10.0);
 
     // Analytics values without attribute option combo:
     CategoryOptionCombo noAoc = null;
-    foundValueJ = new FoundDimensionItemValue(orgUnitD, periodA, noAoc, programAttributeA, 100.0);
-    foundValueK = new FoundDimensionItemValue(orgUnitD, periodA, noAoc, programAttributeB, 200.0);
-    foundValueL = new FoundDimensionItemValue(orgUnitD, periodB, noAoc, programAttributeA, 300.0);
+    foundValueJ =
+        new FoundDimensionItemValue(orgUnitD, periodA, null, noAoc, programAttributeA, 100.0);
+    foundValueK =
+        new FoundDimensionItemValue(orgUnitD, periodA, null, noAoc, programAttributeB, 200.0);
+    foundValueL =
+        new FoundDimensionItemValue(orgUnitD, periodB, null, noAoc, programAttributeA, 300.0);
 
     // old predictor data values:
     dataValueX =

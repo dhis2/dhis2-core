@@ -34,6 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -41,7 +44,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import java.util.Date;
-import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForDataStats;
 import org.hisp.dhis.system.SystemService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,13 +58,15 @@ class VersionMetricsTest {
     SystemService systemService = mock(SystemService.class);
 
     assertDoesNotThrow(() -> new VersionMetrics(systemService, (MeterRegistry) null));
+
+    verifyNoInteractions(systemService);
   }
 
   @Test
   @DisplayName("Registration is a no-op when system info is not yet available")
   void nullSystemInfo_noOp() {
     SystemService systemService = mock(SystemService.class);
-    when(systemService.getSystemInfo()).thenReturn(null);
+    when(systemService.getSystemInfoForDataStats()).thenReturn(null);
     SimpleMeterRegistry registry = new SimpleMeterRegistry();
 
     assertDoesNotThrow(() -> new VersionMetrics(systemService, registry));
@@ -74,16 +79,13 @@ class VersionMetricsTest {
   void versionInfoGauge_exposesLabels() {
     SystemService systemService = mock(SystemService.class);
     Date buildTime = new Date(0);
-    when(systemService.getSystemInfo())
-        .thenReturn(
-            SystemInfo.builder()
-                .version("2.42.0")
-                .revision("abcdef1")
-                .buildTime(buildTime)
-                .build());
+    when(systemService.getSystemInfoForDataStats())
+        .thenReturn(dataStats("2.42.0", "abcdef1", buildTime));
     SimpleMeterRegistry registry = new SimpleMeterRegistry();
 
     new VersionMetrics(systemService, registry);
+
+    verify(systemService, never()).getSystemInfo();
 
     assertEquals(
         1.0,
@@ -104,13 +106,8 @@ class VersionMetricsTest {
   @DisplayName("Metric name survives Prometheus's naming sanitization unchanged")
   void meterName_survivesScrape() {
     SystemService systemService = mock(SystemService.class);
-    when(systemService.getSystemInfo())
-        .thenReturn(
-            SystemInfo.builder()
-                .version("2.42.0")
-                .revision("abcdef1")
-                .buildTime(new Date(0))
-                .build());
+    when(systemService.getSystemInfoForDataStats())
+        .thenReturn(dataStats("2.42.0", "abcdef1", new Date(0)));
     PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
 
     new VersionMetrics(systemService, registry);
@@ -119,5 +116,9 @@ class VersionMetricsTest {
     assertTrue(scrape.contains("dhis2_version_info"), scrape);
     assertTrue(scrape.contains("2.42.0"), scrape);
     assertTrue(scrape.contains("abcdef1"), scrape);
+  }
+
+  private static SystemInfoForDataStats dataStats(String version, String revision, Date buildTime) {
+    return new SystemInfoForDataStats(version, revision, buildTime, "systemId", new Date());
   }
 }

@@ -69,9 +69,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.JpaPredicateSupplier;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.operators.DescendantOfOperator;
+import org.hisp.dhis.query.operators.MandatoryOperator;
 import org.hisp.dhis.query.operators.MatchMode;
+import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitQuery;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitService;
@@ -238,8 +241,8 @@ public class OrganisationUnitController
     OrganisationUnit parent = getEntity(uid);
     List<Filter> children =
         List.of(
-            in("level", List.of(parent.getLevel(), parent.getLevel() + 1)),
-            like("path", uid.getValue(), MatchMode.ANYWHERE));
+            mandatory(in("level", List.of(parent.getLevel(), parent.getLevel() + 1))),
+            mandatory(like("path", uid.getValue(), MatchMode.ANYWHERE)));
     return getObjectListWith(params, request, response, currentUser, children);
   }
 
@@ -267,7 +270,8 @@ public class OrganisationUnitController
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     OrganisationUnit parent = getEntity(uid);
-    List<Filter> childrenWithLevel = List.of(like("path", parent.getStoredPath(), MatchMode.START));
+    List<Filter> childrenWithLevel =
+        List.of(mandatory(like("path", parent.getStoredPath(), MatchMode.START)));
     params.setParentLevel(parent.getLevel());
     params.setLevel(level);
     return getObjectListWith(params, request, response, currentUser, childrenWithLevel);
@@ -294,7 +298,7 @@ public class OrganisationUnitController
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, ConflictException {
-    Filter descendants = like("path", uid, MatchMode.ANYWHERE);
+    Filter descendants = mandatory(like("path", uid, MatchMode.ANYWHERE));
     return getObjectListWith(params, request, response, currentUser, List.of(descendants));
   }
 
@@ -324,7 +328,7 @@ public class OrganisationUnitController
     List<String> ancestorPaths = new ArrayList<>();
     for (int i = 1; i < ancestorsIds.size(); i++)
       ancestorPaths.add(String.join("/", ancestorsIds.subList(0, i + 1)));
-    Filter ancestors = in("path", ancestorPaths);
+    Filter ancestors = mandatory(in("path", ancestorPaths));
     params.addOrder("level:asc");
     return getObjectListWith(params, request, response, currentUser, List.of(ancestors));
   }
@@ -342,12 +346,12 @@ public class OrganisationUnitController
     // when parent is root => no matches by adding an impossible in filter
     if (parent.getLevel() == 1)
       return getObjectListWith(
-          params, request, response, currentUser, List.of(in("id", List.<String>of())));
+          params, request, response, currentUser, List.of(mandatory(in("id", List.<String>of()))));
     List<String> ancestorsIds = List.of(parent.getStoredPath().split("/"));
     List<String> parentPaths = new ArrayList<>();
     for (int i = 1; i < ancestorsIds.size() - 1; i++)
       parentPaths.add(String.join("/", ancestorsIds.subList(0, i + 1)));
-    Filter parents = in("path", parentPaths);
+    Filter parents = mandatory(in("path", parentPaths));
     params.addOrder("level:asc");
     return getObjectListWith(params, request, response, currentUser, List.of(parents));
   }
@@ -366,9 +370,10 @@ public class OrganisationUnitController
     Integer level = params.getLevel();
     if (level != null)
       specialFilters.add(
-          parentLevel != null ? eq("level", parentLevel + max(0, level)) : eq("level", level));
+          mandatory(
+              parentLevel != null ? eq("level", parentLevel + max(0, level)) : eq("level", level)));
     Integer maxLevel = params.getMaxLevel();
-    if (maxLevel != null) specialFilters.add(le("level", maxLevel));
+    if (maxLevel != null) specialFilters.add(mandatory(le("level", maxLevel)));
     Set<String> parents = null;
     if (params.isWithinUserHierarchy()) parents = getCurrentUserDetails().getUserOrgUnitIds();
     if (params.isWithinDataViewUserHierarchy()) {
@@ -400,12 +405,12 @@ public class OrganisationUnitController
                   organisationUnitService.getOrganisationUnitPathsByUid(UID.of(parents)))));
     }
     if (params.isUserOnly())
-      specialFilters.add(in("id", getCurrentUserDetails().getUserOrgUnitIds()));
+      specialFilters.add(mandatory(in("id", getCurrentUserDetails().getUserOrgUnitIds())));
     if (params.isUserDataViewFallback()) {
       Set<String> ouIds = getCurrentUserDetails().getUserDataOrgUnitIds();
-      specialFilters.add(ouIds.isEmpty() ? eq("level", 1) : in("id", ouIds));
+      specialFilters.add(mandatory(ouIds.isEmpty() ? eq("level", 1) : in("id", ouIds)));
     } else if (params.isUserDataViewOnly())
-      specialFilters.add(in("id", getCurrentUserDetails().getUserDataOrgUnitIds()));
+      specialFilters.add(mandatory(in("id", getCurrentUserDetails().getUserDataOrgUnitIds())));
 
     return specialFilters;
   }
@@ -413,17 +418,22 @@ public class OrganisationUnitController
   @Override
   protected void modifyGetObjectList(
       GetOrganisationUnitObjectListParams params, Query<OrganisationUnit> query) {
-    // Hierarchy scope is mandatory, even when the caller combines search filters with OR.
+    // Limitations are mandatory, even when the caller combines search filters with OR.
     query
         .getFilters()
         .removeIf(
             filter -> {
-              if (filter.getOperator() instanceof DescendantOfOperator descendants) {
-                query.addPredicateSupplier(descendants);
+              if (filter.getOperator() instanceof JpaPredicateSupplier limitation) {
+                query.addPredicateSupplier(limitation);
                 return true;
               }
               return false;
             });
+  }
+
+  private Filter mandatory(Filter filter) {
+    PropertyPath path = schemaService.getPropertyPath(OrganisationUnit.class, filter.getPath());
+    return new Filter(filter.getPath(), MandatoryOperator.of(filter.getOperator(), path));
   }
 
   @Override

@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
@@ -40,6 +41,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,6 +53,7 @@ import static org.mockito.Mockito.when;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -66,6 +69,7 @@ import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -274,6 +278,47 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     assertThat(sql.getValue(), containsString("order by \"created\" desc nulls last"));
+  }
+
+  @Test
+  void verifyEnrollmentCountCountsRowsOfEnrollmentTable() {
+    subject.getEnrollmentCount(createRequestParams());
+
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    assertThat(sql.getValue(), startsWith("select count(1) "));
+    assertThat(sql.getValue(), containsString("from analytics_enrollment_"));
+  }
+
+  @Test
+  void verifyEnrollmentCountAppendsItemFilterToExistingWhereClause() {
+    EventQueryParams params =
+        createRequestParamsWithFilter(null, ValueType.TEXT, QueryOperator.EQ, "Female");
+
+    subject.getEnrollmentCount(params);
+
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    assertEquals(1, StringUtils.countMatches(sql.getValue(), "where "), sql.getValue());
+    assertThat(
+        sql.getValue(), containsString("and ax.\"" + dataElementA.getUid() + "\" = 'Female'"));
+  }
+
+  @Test
+  void verifyEnrollmentCountOfStageDataElementFilterJoinsStageCteInsteadOfCorrelatedSubquery() {
+    EventQueryParams params =
+        createRequestParamsWithFilter(programStage, ValueType.INTEGER, QueryOperator.GT, "3000");
+
+    subject.getEnrollmentCount(params);
+
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    String countSql = sql.getValue();
+    assertThat(countSql, not(containsString("limit 1")));
+    assertThat(countSql, startsWith("with "));
+    assertThat(countSql, containsString("select count(1) "));
+    assertThat(countSql, containsString("inner join"));
+    assertThat(countSql, containsString(".enrollment = ax.enrollment and "));
   }
 
   @Test

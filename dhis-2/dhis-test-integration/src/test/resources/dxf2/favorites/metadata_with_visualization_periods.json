@@ -758,7 +758,6 @@
       "userGroupAccesses": [ ],
       "code": "Superuser",
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
         "F_DATAELEMENTGROUP_PUBLIC_ADD",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",

@@ -26,6 +26,22 @@ Performance tests run on a single shared [self-hosted
 runner](https://github.com/dhis2/dhis2-core/actions/runners?tab=self-hosted) with exclusive access.
 Iterate locally; use CI only to publish numbers for PRs or release notes.
 
+### Runner
+
+The GitHub runner is a dedicated server: Intel Xeon E3-1275 v6 @ 3.80GHz (4 cores, 8 threads),
+64 GB of memory, mirrored NVMe drives. DHIS2 and Postgres get 4 CPUs and 16 GB each. Gatling
+shares the cores with them.
+
+Settings that keep baseline and candidate comparable:
+
+* The CPU runs at a fixed 3.8 GHz: `performance` governor, turbo off.
+* One job at a time. Setup (image build, database copy) happens before the measured part.
+* Maintenance (RAID check, upgrades, reboots) runs from 19:00 to 00:59 UTC, outside the nightly
+  run at 01:00 UTC and the hours when compares typically run.
+
+Each run records the host's CPU governor and turbo setting in `run-simulation.env`. On CI, a run
+warns when the CPU clock is not fixed.
+
 ## Results
 
 Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
@@ -63,6 +79,10 @@ side automatically (same behavior as `gstat --combine` for non-compare output, b
 `compare` since a row per request needs a single value per side). Pass `--exclude warmup` to drop
 warmup runs.
 
+Look at a request's sample count before its percentiles. A percentile from few samples moves a lot
+between two runs of the same image, so a large difference on such a request is not a regression on
+its own.
+
 `gstat` percentiles are computed over the full sample, not Gatling's `index.html` t-digest, so they
 may differ slightly from the numbers shown in Gatling's HTML report. If exact parity with Gatling's
 UI matters, use `index.html` as the source of truth.
@@ -71,6 +91,38 @@ Since Gatling 3.12, test results are written in binary format. The `run-simulati
 automatically converts `simulation.log` to `simulation.csv` if
 [glog](https://github.com/dhis2/gatling/releases) is installed like in CI.
 
+## Databases
+
+Performance tests only support databases hosted in S3 (see `run-simulation.sh` for details):
+
+* `sierra-leone`: the Sierra Leone demo database, managed by hand, see the
+  [operations handbook](https://github.com/dhis2/operations-handbook#database-management).
+* `hmis`: managed by hand, and rarely updated.
+* `platform-perf` (`DB_DIR=dev`): managed by hand, made with
+  [db-populator](https://github.com/david-mackessy/db-populator) by a script that wasn't recorded.
+
+### Database Images
+
+`DB_DIR`, `DB_TYPE` and `DB_VERSION` name a dump in S3,
+`https://s3.eu-west-1.amazonaws.com/databases.dhis2.org/[<dir>/]<type>/<version>/dhis2-db-<type>.sql.gz`.
+The harness restores it into an image, `localhost/dhis2-postgres:16-3.5-<type>-<version>`, once,
+and every run starts a fresh container from that image. Its labels `org.dhis2.db.url` and
+`org.dhis2.db.etag` name the dump it holds (`docker image inspect <image>`).
+
+Dumps in S3 are overwritten in place. Before each run, the harness compares the dump's ETag in S3
+with the image's label `org.dhis2.db.etag`, and rebuilds the image when they differ. On CI it then
+removes the replaced image and the build cache. If S3 can't be reached, it runs on the cached
+image with a warning.
+
+`run-simulation.env` records which dump a run used: `DB_URL`, `DB_ETAG`, `DB_S3_VERSION_ID`
+(S3 keeps overwritten versions) and `DB_IMAGE_ID`. If results look off:
+
+* Compare `DB_ETAG` of the runs: a different ETag is a different dump.
+* A dump older than `DHIS2_IMAGE`, such as Sierra Leone's `dev` behind master, is migrated by
+  DHIS2 when it starts. A new migration can change the schema or the data, and with them the
+  results, even when the code under test didn't change. See the latest migrations during a run
+  with `docker compose exec db psql --command 'select version, installed_on from
+  flyway_schema_history order by installed_rank desc limit 5'`.
 
 ## Platform Tests
 
@@ -360,28 +412,6 @@ Point to any JSON file using an absolute path:
 ```sh
 MVN_ARGS="-Dscenario=/path/to/my-scenarios.json -Dversion=42 -Dbaseline=42"
 ```
-
-## Databases
-
-Performance tests only support databases hosted in S3 (see `run-simulation.sh` for details). See the
-[operations handbook](https://github.com/dhis2/operations-handbook?tab=readme-ov-file#modifying-the-demo-dbs)
-for modifying them.
-
-### Database Image Caching on CI
-
-Database images are cached on the CI server to avoid restoring dumps on every run. The S3 dumps are
-mutable, so cached images (e.g., `localhost/dhis2-postgres:16-3.5-sierra-leone-dev`) can become
-stale when the source dump is updated.
-
-To refresh a cached image, a `#team-devops` member must run on the CI server:
-
-```sh
-# Remove the specific cached image (adjust tag as needed)
-docker rmi localhost/dhis2-postgres:16-3.5-sierra-leone-dev
-docker builder prune -a
-```
-
-Use `-a` to remove all cache layers, not just unused ones.
 
 ## Recording Traffic
 

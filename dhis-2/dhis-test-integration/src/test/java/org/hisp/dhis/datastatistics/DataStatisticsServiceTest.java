@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -113,12 +114,13 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
     // Be sure we have at least three
     assertTrue(eventIds.size() >= 3);
 
-    Instant base = Instant.now().atZone(ZONE).toInstant();
+    ZonedDateTime base = ZonedDateTime.now(ZONE);
 
-    // Boundaries
-    Instant sevenDaysAgo = base.minus(7, ChronoUnit.DAYS);
-    Instant oneDayAgo = base.minus(1, ChronoUnit.DAYS);
-    Instant oneHourAgo = base.minus(1, ChronoUnit.HOURS);
+    // Boundaries, computed like the service does: calendar days in the server zone, so a day
+    // across a DST change is 23 or 25 hours, not 24
+    Instant sevenDaysAgo = base.minusDays(7).toInstant();
+    Instant oneDayAgo = base.minusDays(1).toInstant();
+    Instant oneHourAgo = base.minusHours(1).toInstant();
 
     // Avoid edge cases by subtracting extra minutes
     Instant olderThanHour = oneHourAgo.minus(5, ChronoUnit.MINUTES);

@@ -35,7 +35,6 @@ import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
@@ -48,7 +47,7 @@ import org.springframework.security.core.GrantedAuthority;
 public class UserDetailsImpl implements UserDetails {
 
   private final String uid;
-  @Setter private Long id;
+  private final Long id;
   private final String code;
   @EqualsAndHashCode.Include private final String username;
   private final String firstName;

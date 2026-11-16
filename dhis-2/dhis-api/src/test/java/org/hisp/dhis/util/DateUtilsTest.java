@@ -62,10 +62,12 @@ import java.util.TimeZone;
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 
 /**
  * @author Lars Helge Overland
  */
+@ResourceLock("dateutils-tz")
 class DateUtilsTest {
   private static final String NULL_STRING = null;
   private static final Date NULL_DATE = null;

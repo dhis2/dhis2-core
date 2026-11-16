@@ -115,6 +115,16 @@ class EventStatusFilterHandlerTest {
   }
 
   @Test
+  void applyFilters_withMultipleStatuses_recordsStatusesAsDimensionValues() {
+    QueryItem queryItem = createEventStatusQueryItem();
+    String[] filterParts = {"EVENT_STATUS", "active;COMPLETED"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_STATUS:active;COMPLETED", null);
+
+    assertThat(queryItem.getDimensionValues(), is(List.of("ACTIVE", "COMPLETED")));
+  }
+
+  @Test
   void applyFilters_withAllValidStatuses_addsINFilterWithAllStatuses() {
     QueryItem queryItem = createEventStatusQueryItem();
     String[] filterParts = {"EVENT_STATUS", "ACTIVE;COMPLETED;SCHEDULE"};

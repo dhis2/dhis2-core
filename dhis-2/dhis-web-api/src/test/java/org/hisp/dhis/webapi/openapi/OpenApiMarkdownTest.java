@@ -29,9 +29,14 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.markdownToHTML;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.ByteArrayOutputStream;
+import java.util.Set;
+import org.hisp.dhis.jsontree.Appender;
+import org.hisp.dhis.jsontree.TextBuilder;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
@@ -355,6 +360,68 @@ class OpenApiMarkdownTest {
           lets see how it goes
         ```
         """);
+  }
+
+  @Test
+  void testAppenderOutput_MatchesStringOutput() {
+    // Non-trivial markdown that exercises every span type and block element
+    String markdown =
+        """
+      ## Title
+
+      Paragraph with **bold**, _italic_, `code`, and a [link](https://example.com).
+
+      * item one
+      * item two
+
+      > a quote
+      """;
+    TextBuilder out = new TextBuilder();
+    OpenApiMarkdown.markdownToHTML(markdown, Set.of(), out);
+    @Language("html")
+    String expected =
+        """
+        <h2>Title</h2>
+
+
+        <p>Paragraph with <strong>bold</strong>, <em>italic</em>, <code>code</code>, and a <a target="_blank" href="https://example.com">link</a>.</p>
+
+        <ul>
+          <li>item one</li>
+          <li>item two</li>
+        </ul>
+
+
+        <blockquote>a quote</blockquote>
+              """;
+    assertEquals(expected, out.toString());
+  }
+
+  @Test
+  void testAppenderOutput_BlankAndNull() {
+    TextBuilder out = new TextBuilder();
+    OpenApiMarkdown.markdownToHTML("", Set.of(), out);
+    OpenApiMarkdown.markdownToHTML("   ", Set.of(), out);
+    OpenApiMarkdown.markdownToHTML(null, Set.of(), out);
+    assertEquals("", out.toString());
+  }
+
+  @Test
+  void testAppenderOutput_Utf8() {
+    // Verifies non-ASCII content reaches the Appender through appendEncoded rather than being
+    // dropped or mangled — € is U+20AC (3 bytes), 😀 is U+1F600 (4 bytes)
+    TextBuilder out = new TextBuilder();
+    OpenApiMarkdown.markdownToHTML("Hello € and 😀", Set.of(), out);
+    assertEquals("<p>Hello € and 😀</p>", out.toString());
+  }
+
+  @Test
+  void testAppenderOutput_Utf8Stream() {
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    try (Appender out = Appender.ofUTF8(bytes)) {
+      OpenApiMarkdown.markdownToHTML("Hello € and 😀", Set.of(), out);
+    }
+    assertEquals("<p>Hello € and 😀</p>", bytes.toString(UTF_8));
   }
 
   private static void assertRenders(

@@ -226,9 +226,4 @@ public class SystemUser implements UserDetails {
   public boolean hasAnyRestrictions(Collection<String> restrictions) {
     return false;
   }
-
-  @Override
-  public void setId(Long id) {
-    // do nothing
-  }
 }

@@ -42,26 +42,11 @@ import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
  */
 public interface TrackedEntityAttributeValueService {
   /**
-   * Adds an {@link TrackedEntityAttribute}
+   * Deletes all the {@link TrackedEntityAttributeValue}s of {@code trackedEntity}.
    *
-   * @param attributeValue The to TrackedEntityAttribute add.
+   * @param trackedEntity the tracked entity whose values to delete
    */
-  void addTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue);
-
-  /**
-   * Deletes a {@link TrackedEntityAttribute}.
-   *
-   * @param attributeValue the TrackedEntityAttribute to delete.
-   */
-  void deleteTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue);
-
-  /**
-   * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntity}
-   *
-   * @param instance TrackedEntityAttributeValue
-   * @return TrackedEntityAttributeValue list
-   */
-  List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(TrackedEntity instance);
+  void deleteTrackedEntityAttributeValues(TrackedEntity trackedEntity);
 
   /**
    * Finds the stored values of a unique attribute that match any of the given values, in any org

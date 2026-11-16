@@ -34,6 +34,7 @@ import static org.hisp.dhis.period.RelativePeriodEnum.LAST_14_DAYS;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_3_MONTHS;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_7_DAYS;
 import static org.hisp.dhis.period.RelativePeriodEnum.THIS_BIWEEK;
+import static org.hisp.dhis.period.RelativePeriodEnum.THIS_MONTH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,6 +44,7 @@ import java.util.List;
 import org.hisp.dhis.period.RelativePeriods;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /** Unit tests for {@link Report}. */
@@ -127,5 +129,23 @@ class ReportTest {
     assertFalse(reloaded.getRelatives().isThisMonth());
     assertEquals(weeksThisYear, reloaded.getRelatives().isWeeksThisYear());
     assertEquals(!weeksThisYear, reloaded.getRelatives().isEmpty());
+  }
+
+  @Test
+  void testHasRelativePeriodsWhenLoadedFromRawPeriods() {
+    // Only rawPeriods is persisted, so a report loaded from the database has no relatives set.
+    Report report = new Report();
+    report.setRawPeriods(List.of(THIS_MONTH.name()));
+
+    assertTrue(report.hasRelativePeriods());
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  void testHasRelativePeriodsWhenRawPeriodsIsNullOrEmpty(List<String> rawPeriods) {
+    Report report = new Report();
+    report.setRawPeriods(rawPeriods);
+
+    assertFalse(report.hasRelativePeriods());
   }
 }

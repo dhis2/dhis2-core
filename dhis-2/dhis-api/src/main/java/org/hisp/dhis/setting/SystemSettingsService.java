@@ -75,4 +75,14 @@ public interface SystemSettingsService extends SystemSettingsProvider {
    * @param keys of the system setting to delete
    */
   void deleteAll(@Nonnull Set<String> keys);
+
+  /**
+   * Observe changes for specific keys. Should be registered at bootstrapping (e.g using {@code
+   * PostConstruct}).
+   *
+   * @since 2.44
+   * @param keys the keys the observer wants to observe
+   * @param observer the observer to notify when one of the settings for a key changes
+   */
+  void registerObserver(@Nonnull Set<String> keys, @Nonnull SystemSettingsObserver observer);
 }

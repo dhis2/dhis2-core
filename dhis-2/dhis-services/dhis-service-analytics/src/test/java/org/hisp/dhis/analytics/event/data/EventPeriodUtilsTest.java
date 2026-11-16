@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,6 +41,7 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodDimension;
@@ -99,6 +102,47 @@ class EventPeriodUtilsTest {
     EventQueryParams params = paramsWithPeriods(defaultPeriod);
 
     assertTrue(EventPeriodUtils.hasAllDefaultPeriod(params));
+  }
+
+  @Test
+  @DisplayName("hasAllDefaultPeriod returns false when a period filter has a non-default dateField")
+  void hasAllDefaultPeriod_defaultDimensionWithDateFieldFilter_returnsFalse() {
+    PeriodDimension filterPeriod = PeriodDimension.of("2016");
+    filterPeriod.setDateField(TimeField.LAST_UPDATED.name());
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(paramsWithPeriods(PeriodDimension.of("2022")))
+            .addFilter(periodFilter(filterPeriod))
+            .build();
+
+    assertFalse(EventPeriodUtils.hasAllDefaultPeriod(params));
+  }
+
+  @Test
+  @DisplayName("hasAllDefaultPeriod returns false when only a period filter has a dateField")
+  void hasAllDefaultPeriod_noDimensionWithDateFieldFilter_returnsFalse() {
+    PeriodDimension filterPeriod = PeriodDimension.of("2017");
+    filterPeriod.setDateField(TimeField.LAST_UPDATED.name());
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().addFilter(periodFilter(filterPeriod)).build();
+
+    assertFalse(EventPeriodUtils.hasAllDefaultPeriod(params));
+  }
+
+  @Test
+  @DisplayName("hasAllDefaultPeriod returns true when dimension and filter periods are default")
+  void hasAllDefaultPeriod_defaultDimensionAndDefaultFilter_returnsTrue() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(paramsWithPeriods(PeriodDimension.of("2022")))
+            .addFilter(periodFilter(PeriodDimension.of("2016")))
+            .build();
+
+    assertTrue(EventPeriodUtils.hasAllDefaultPeriod(params));
+  }
+
+  private static BaseDimensionalObject periodFilter(PeriodDimension... periods) {
+    return new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(periods));
   }
 
   @Test

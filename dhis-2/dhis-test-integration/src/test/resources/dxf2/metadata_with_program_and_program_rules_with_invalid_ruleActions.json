@@ -1195,7 +1195,6 @@
       "id": "yrB6vc5Ip3r",
       "description": "Superuser",
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
         "F_USER_VIEW",
         "F_GENERATE_MIN_MAX_VALUES",
@@ -1319,7 +1318,6 @@
         "M_dhis-web-mapping",
         "F_DATAELEMENT_PRIVATE_ADD",
         "F_VALIDATIONCRITERIA_ADD",
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "F_PROGRAM_PUBLIC_ADD",
         "F_CATEGORY_OPTION_GROUP_SET_PRIVATE_ADD",
         "F_CATEGORY_OPTION_GROUP_SET_DELETE",

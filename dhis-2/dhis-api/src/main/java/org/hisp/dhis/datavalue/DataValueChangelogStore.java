@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.GenericStore;
@@ -63,16 +64,17 @@ public interface DataValueChangelogStore extends GenericStore<DataValueChangelog
   void deleteByOptionCombo(@Nonnull UID categoryOptionCombo);
 
   /**
-   * Returns data value audits for the given query.
+   * Returns data value audits for the given query that the current user may read.
    *
    * @param params the {@link DataValueChangelogQueryParams}.
-   * @return a list of {@link DataValueChangelog}.
+   * @return a list of {@link DataValueChangelog}; paged, one more than the page size when there is
+   *     a next page
    */
   List<DataValueChangelog> getEntries(DataValueChangelogQueryParams params);
 
   /**
-   * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
-   * AOC are unspecified in the parameters the default is used.
+   * Gets all audit entries for a single value (all dimensions are fully specified) that the current
+   * user may read. If COC and/or AOC are unspecified in the parameters the default is used.
    *
    * @param params the key to the value
    * @return the audit events for the value stored most recent to oldest
@@ -80,8 +82,17 @@ public interface DataValueChangelogStore extends GenericStore<DataValueChangelog
   List<DataValueChangelogEntry> getEntries(@Nonnull DataValueQueryParams params);
 
   /**
-   * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
-   * AOC are unspecified in the parameters the default is used.
+   * Whether the current user may read the data of a single value (all dimensions are fully
+   * specified). If COC and/or AOC are unspecified in the parameters the default is used.
+   *
+   * @param params the key to the value
+   * @return true, if the current user may read the data of the value
+   */
+  boolean isReadable(@Nonnull DataValueQueryParams params);
+
+  /**
+   * Gets all audit entries for a single value (all dimensions are fully specified) that the current
+   * user may read. If COC and/or AOC are unspecified in the parameters the default is used.
    *
    * @param key the key to the value
    * @return the audit events for the value stored most recent to oldest
@@ -89,7 +100,16 @@ public interface DataValueChangelogStore extends GenericStore<DataValueChangelog
   List<DataValueChangelogEntry> getEntries(@Nonnull DataValueKey key);
 
   /**
-   * Counts data value audits for the given query.
+   * Lookup of the data sets the current user may not read data of, decided like the data read check
+   * applied by {@link #getEntries(DataValueChangelogQueryParams)}.
+   *
+   * @param dataSets the data sets to check
+   * @return UIDs of the given data sets the current user may not read data of
+   */
+  List<String> getDataSetsNoDataReadAccess(@Nonnull Collection<UID> dataSets);
+
+  /**
+   * Counts data value audits for the given query that the current user may read.
    *
    * @param params the {@link DataValueChangelogQueryParams}.
    * @return a list of {@link DataValueChangelog}.
