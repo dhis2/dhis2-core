@@ -57,11 +57,13 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -238,6 +240,26 @@ public class ValidationUtils {
   public static boolean eventExist(TrackerBundle bundle, String eventUid) {
     return bundle.getPreheat().getEvent(eventUid) != null
         || bundle.findEventByUid(eventUid).isPresent();
+  }
+
+  /** A soft deleted {@link Enrollment} or {@link TrackedEntity}. */
+  public record DeletedEntity(@Nonnull TrackerType type, @Nonnull String uid) {}
+
+  /**
+   * Finds the given enrollment if it is soft deleted, otherwise its tracked entity if that is soft
+   * deleted. Tracker data under a soft deleted enrollment or tracked entity must not be created,
+   * updated or linked to by a relationship.
+   */
+  public static Optional<DeletedEntity> findDeletedEnrollmentOrTrackedEntity(
+      @Nonnull Enrollment enrollment) {
+    if (enrollment.isDeleted()) {
+      return Optional.of(new DeletedEntity(TrackerType.ENROLLMENT, enrollment.getUid()));
+    }
+    TrackedEntity trackedEntity = enrollment.getTrackedEntity();
+    if (trackedEntity != null && trackedEntity.isDeleted()) {
+      return Optional.of(new DeletedEntity(TrackerType.TRACKED_ENTITY, trackedEntity.getUid()));
+    }
+    return Optional.empty();
   }
 
   public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet(

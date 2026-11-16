@@ -35,8 +35,10 @@ import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPD
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
 import static org.hisp.dhis.tracker.imports.validation.Users.*;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1302;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -50,18 +52,29 @@ import java.util.Map;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.DataValue;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
@@ -83,6 +96,8 @@ class EventImportValidationTest extends TrackerTest {
   @Autowired private EventService programStageServiceInstance;
 
   @Autowired private TrackerImportService trackerImportService;
+
+  @Autowired private ProgramStageDataElementService programStageDataElementService;
 
   @Autowired private UserService _userService;
 
@@ -132,6 +147,41 @@ class EventImportValidationTest extends TrackerTest {
             fromJson("tracker/validations/events-with_valid_option_value.json"));
 
     assertNoErrors(importReport);
+  }
+
+  @Test
+  void shouldImportEventWhenUsernameDataValueIsAnExistingUserOtherThanTheImporter()
+      throws IOException {
+    DataElement usernameDataElement = addUsernameDataElementToProgramStage("Qmqxq907VNz");
+    TrackerObjects trackerObjects =
+        fromJson("tracker/validations/events-with_valid_option_value.json");
+    trackerObjects
+        .getEvents()
+        .get(0)
+        .getDataValues()
+        .add(usernameDataValue(usernameDataElement, "nils"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects);
+
+    assertNoErrors(importReport);
+  }
+
+  @Test
+  void shouldFailEventImportWhenUsernameDataValueIsNotAnExistingUser() throws IOException {
+    DataElement usernameDataElement = addUsernameDataElementToProgramStage("Qmqxq907VNz");
+    TrackerObjects trackerObjects =
+        fromJson("tracker/validations/events-with_valid_option_value.json");
+    trackerObjects
+        .getEvents()
+        .get(0)
+        .getDataValues()
+        .add(usernameDataValue(usernameDataElement, "nonExistingUsername"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects);
+
+    assertHasOnlyErrors(importReport, E1302);
   }
 
   @Test
@@ -415,6 +465,133 @@ class EventImportValidationTest extends TrackerTest {
   }
 
   @Test
+  void shouldFailWhenCreatingEventInDeletedEnrollment() throws IOException {
+    manager.flush();
+    manager.clear();
+    TrackerImportParams deleteParams = new TrackerImportParams();
+    deleteParams.setImportStrategy(DELETE);
+    assertNoErrors(
+        trackerImportService.importTracker(
+            deleteParams,
+            TrackerObjects.builder()
+                .enrollments(
+                    List.of(
+                        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+                            .enrollment("MNWZ6hnuhSw")
+                            .build()))
+                .build()));
+    flushAndClear();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            new TrackerImportParams(), fromJson("tracker/validations/events-with-notes-data.json"));
+
+    assertHasOnlyErrors(importReport, ValidationCode.E1132);
+    assertNull(manager.get(Event.class, "uLxFbxfYDQE"));
+  }
+
+  @Test
+  void shouldFailWhenCreatingEventInEnrollmentOfDeletedTrackedEntity() throws IOException {
+    // soft delete only the tracked entity, leaving its enrollment not deleted like older versions
+    // allowed
+    softDeleteOnly(manager.get(TrackedEntity.class, "Kj6vYde4LHh"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            new TrackerImportParams(), fromJson("tracker/validations/events-with-notes-data.json"));
+
+    assertHasOnlyErrors(importReport, ValidationCode.E1132);
+    assertTrue(
+        importReport.getValidationReport().getErrors().stream()
+            .allMatch(e -> e.getMessage().contains("trackedEntity: `Kj6vYde4LHh` is deleted")));
+    assertNull(manager.get(Event.class, "uLxFbxfYDQE"));
+  }
+
+  @Test
+  void shouldFailWithAccessErrorWhenUserWithoutAccessCreatesEventInDeletedEnrollment()
+      throws IOException {
+    softDeleteOnly(manager.get(Enrollment.class, "MNWZ6hnuhSw"));
+    TrackerImportParams params = new TrackerImportParams();
+    params.setUserId(USER_5);
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, fromJson("tracker/validations/events-with-notes-data.json"));
+
+    // the user gets the access errors, not an error revealing the deleted enrollment
+    assertHasOnlyErrors(importReport, ValidationCode.E1000, ValidationCode.E1102);
+    assertNull(manager.get(Event.class, "uLxFbxfYDQE"));
+  }
+
+  @Test
+  void shouldDeleteEventLeftNotDeletedInDeletedEnrollment() throws IOException {
+    createEvent("tracker/validations/events-with-notes-data.json");
+    // soft delete only the enrollment, leaving its event not deleted like older versions allowed
+    softDeleteOnly(manager.get(Enrollment.class, "MNWZ6hnuhSw"));
+
+    ImportReport importReport = deleteEvent("uLxFbxfYDQE");
+
+    assertNoErrors(importReport);
+    assertEquals(1, importReport.getStats().getDeleted());
+  }
+
+  private ImportReport deleteEvent(String uid) {
+    TrackerImportParams params = new TrackerImportParams();
+    params.setImportStrategy(DELETE);
+    return trackerImportService.importTracker(
+        params,
+        TrackerObjects.builder()
+            .events(
+                List.of(org.hisp.dhis.tracker.imports.domain.Event.builder().event(uid).build()))
+            .build());
+  }
+
+  @Test
+  void shouldDeleteEventLeftNotDeletedInEnrollmentOfDeletedTrackedEntity() throws IOException {
+    createEvent("tracker/validations/events-with-notes-data.json");
+    // soft delete only the tracked entity, leaving its enrollment and event not deleted like older
+    // versions allowed
+    softDeleteOnly(manager.get(TrackedEntity.class, "Kj6vYde4LHh"));
+
+    ImportReport importReport = deleteEvent("uLxFbxfYDQE");
+
+    assertNoErrors(importReport);
+    assertEquals(1, importReport.getStats().getDeleted());
+    flushAndClear();
+    // soft deleted events are not returned
+    assertNull(manager.get(Event.class, "uLxFbxfYDQE"));
+  }
+
+  private DataElement addUsernameDataElementToProgramStage(String programStageUid) {
+    DataElement dataElement = createDataElement('U');
+    dataElement.setValueType(ValueType.USERNAME);
+    dataElement.setDomainType(DataElementDomain.TRACKER);
+    manager.save(dataElement);
+
+    ProgramStage programStage = manager.get(ProgramStage.class, programStageUid);
+    ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
+    programStageDataElement.setDataElement(dataElement);
+    programStageDataElement.setProgramStage(programStage);
+    programStageDataElementService.addProgramStageDataElement(programStageDataElement);
+    programStage.getProgramStageDataElements().add(programStageDataElement);
+    manager.update(programStage);
+    manager.flush();
+    return dataElement;
+  }
+
+  private static DataValue usernameDataValue(DataElement dataElement, String username) {
+    return DataValue.builder()
+        .dataElement(MetadataIdentifier.ofUid(dataElement.getUid()))
+        .value(username)
+        .build();
+  }
+
+  private void flushAndClear() {
+    manager.flush();
+    manager.clear();
+  }
+
+  @Test
   void testEventDeleteOk() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/events-with-registration.json");
     TrackerImportParams params = new TrackerImportParams();
@@ -529,5 +706,16 @@ class EventImportValidationTest extends TrackerTest {
         importReport.getPersistenceReport().getTypeReportMap();
     String newEvent = typeReportMap.get(TrackerType.EVENT).getEntityReport().get(0).getUid();
     return programStageServiceInstance.getEvent(newEvent);
+  }
+
+  /**
+   * Soft deletes only the given object, without cascading the soft delete to its children like
+   * {@code manager.delete} does, to reproduce data left behind by older versions.
+   */
+  private void softDeleteOnly(SoftDeletableObject object) {
+    object.setDeleted(true);
+    manager.update(object);
+    manager.flush();
+    manager.clear();
   }
 }
