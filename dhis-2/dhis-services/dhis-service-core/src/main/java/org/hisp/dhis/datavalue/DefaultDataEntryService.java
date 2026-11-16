@@ -249,8 +249,13 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
               store.getDataElementCocIdMapping(
                   ds, categoryOptions, dataElements, dataElementIds.stream());
         }
-        Set<String> key = categoriesByDe.get(deVal).stream().map(co::get).collect(toSet());
-        cocUID = cocByOptionsByDe.get(deVal).get(key);
+        // both mappings only contain the data elements of the data set
+        List<String> deCategories = categoriesByDe.get(deVal);
+        if (deCategories == null)
+          throw new BadRequestException(ErrorCode.E8020, ds, List.of(deVal));
+        Set<String> key = deCategories.stream().map(co::get).collect(toSet());
+        Map<Set<String>, String> cocByOptions = cocByOptionsByDe.get(deVal);
+        cocUID = cocByOptions == null ? null : cocByOptions.get(key);
         if (cocUID == null) throw new BadRequestException(ErrorCode.E8108, i, co);
       } else {
         cocUID = cocVal == null ? null : cocOf.apply(cocVal);
