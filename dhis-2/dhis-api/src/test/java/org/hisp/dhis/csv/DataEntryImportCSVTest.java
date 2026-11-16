@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.intellij.lang.annotations.Language;
@@ -723,32 +724,45 @@ class DataEntryImportCSVTest {
   }
 
   @Test
-  void testHeaderNameStartingWithDigitRejected() {
+  void testHeaderNameStartingWithDigitNotRejected() {
     record Row(String a, String b, String c) {}
-    IllegalArgumentException ex =
-        assertThrowsExactly(
-            IllegalArgumentException.class, () -> CSV.of("a,1b,c\n1,2,3\n").as(Row.class).list());
-    assertEquals("CSV input error at line 1 column 2: Invalid header name: 1b", ex.getMessage());
+    assertEquals(List.of(new Row("1", null, "3")), CSV.of("a,1b,c\n1,2,3\n").as(Row.class).list());
   }
 
   @Test
-  void testHeaderNameWithHyphenRejected() {
+  void testHeaderNameWithHyphenNotRejected() {
     record Row(String a, String b, String c) {}
-    IllegalArgumentException ex =
-        assertThrowsExactly(
-            IllegalArgumentException.class, () -> CSV.of("a,b-c,d\n1,2,3\n").as(Row.class).list());
-    assertEquals("CSV input error at line 1 column 2: Invalid header name: b-c", ex.getMessage());
+    assertEquals(
+        List.of(new Row("1", null, null)), CSV.of("a,b-c,d\n1,2,3\n").as(Row.class).list());
   }
 
   @Test
-  void testHeaderNameWithInternalSpaceRejected() {
-    // Internal space is not trimmed (only leading/trailing are) and is not
-    // a valid Java identifier character.
+  void testHeaderNameWithInternalSpaceNotRejected() {
     record Row(String a, String b, String c) {}
-    IllegalArgumentException ex =
-        assertThrowsExactly(
-            IllegalArgumentException.class, () -> CSV.of("a,b c,d\n1,2,3\n").as(Row.class).list());
-    assertEquals("CSV input error at line 1 column 2: Invalid header name: b c", ex.getMessage());
+    assertEquals(
+        List.of(new Row("1", null, null)), CSV.of("a,b c,d\n1,2,3\n").as(Row.class).list());
+  }
+
+  /**
+   * Header names that are not Java identifiers — category names/codes with spaces, hyphens or a
+   * leading digit — must still parse and must be delivered verbatim as keys of the {@code @CSV.Any}
+   * map ({@code categoryOptions}) so that {@code DefaultDataEntryService} can look the category up
+   * by name or code.
+   */
+  @Test
+  void testAnyColumnWithNonJavaIdentifierHeaderNames() {
+    List<DataEntryValue.Input> values =
+        read(
+            """
+                dataElement,period,orgUnit,value,Age group,AGE-GROUP,1st-cat,extra free text
+                de123456789,202501,ou123456789,1,>15,x,y,z
+                """);
+    assertEquals(1, values.size());
+    Map<String, String> co = values.get(0).categoryOptions();
+    assertEquals(">15", co.get("Age group"));
+    assertEquals("x", co.get("AGE-GROUP"));
+    assertEquals("y", co.get("1st-cat"));
+    assertEquals("z", co.get("extra free text"));
   }
 
   @Test
@@ -840,7 +854,9 @@ class DataEntryImportCSVTest {
             () ->
                 read(
                     "dataElement,period,orgUnit,value\n"
-                        + "de123456789,202501,ou123456789,\"" + huge + "\"\n"));
+                        + "de123456789,202501,ou123456789,\""
+                        + huge
+                        + "\"\n"));
     assertEquals(
         "CSV input error at line 2 column 4: Value longer than %d"
             .formatted(CSV.DEFAULT_MAX_VALUE_LENGTH),
@@ -853,8 +869,7 @@ class DataEntryImportCSVTest {
     String max = "x".repeat(maxLen);
     List<DataEntryValue.Input> values =
         read(
-            "dataElement,period,orgUnit,comment\nde123456789,202501,ou123456789,\""
-                + max + "\"\n");
+            "dataElement,period,orgUnit,comment\nde123456789,202501,ou123456789,\"" + max + "\"\n");
     assertEquals(maxLen, values.get(0).comment().length());
   }
 

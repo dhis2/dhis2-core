@@ -220,8 +220,8 @@ public final class CSV {
      * <p>The reader allocates enough buffer to hold the worst-case on-disk encoding of a value of
      * this length (a quoted value of all {@code "} costs {@code 2N} bytes for the quotes alone,
      * plus the outer quotes and a delimiter: {@code 2N + 3}). Any value whose decoded length is
-     * within this limit therefore parses; longer values are rejected with a message identifying
-     * the line and column.
+     * within this limit therefore parses; longer values are rejected with a message identifying the
+     * line and column.
      *
      * @param maxLength the maximum decoded length of a single value, must be {@code >= 1}
      * @return a new updated configuration for chaining
@@ -544,6 +544,7 @@ public final class CSV {
     final java.io.Reader csv;
     final Components<T> as;
     final int maxValueLength;
+
     /** Worst-case on-disk size of a value whose decoded length is {@link #maxValueLength}. */
     final int bufferCap;
 
@@ -593,8 +594,9 @@ public final class CSV {
         int readLen = csv.read(buffer, keepLen, buffer.length - keepLen);
         if (readLen == 0)
           throw new UncheckedIOException(
-              new IOException("Reader.read returned 0 for a positive length; "
-                  + "the Reader violates the blocking contract"));
+              new IOException(
+                  "Reader.read returned 0 for a positive length; "
+                      + "the Reader violates the blocking contract"));
         eoi = readLen == -1;
         len = eoi ? keepLen : keepLen + readLen;
       } catch (IOException ex) {
@@ -623,7 +625,6 @@ public final class CSV {
 
     private void checkHeader(String header, List<String> headers) {
       if (header == null || header.isEmpty()) throw error("Empty header name");
-      if (!isJavaName(header)) throw error("Invalid header name: " + header);
       if (headers.stream().anyMatch(header::equalsIgnoreCase))
         throw error("Duplicate header name: " + header);
     }
@@ -773,13 +774,6 @@ public final class CSV {
       return new IllegalArgumentException(
           "CSV input error at line %d column %d: %s".formatted(line, col, msg));
     }
-  }
-
-  private static boolean isJavaName(CharSequence property) {
-    if (property.isEmpty()) return false;
-    for (int i = 0; i < property.length(); i++)
-      if (!Character.isJavaIdentifierPart(property.charAt(i))) return false;
-    return Character.isJavaIdentifierStart(property.charAt(0));
   }
 
   private static boolean isValueSeparator(char c) {
