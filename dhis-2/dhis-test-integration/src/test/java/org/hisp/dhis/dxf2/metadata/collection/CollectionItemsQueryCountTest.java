@@ -41,6 +41,7 @@ import org.hibernate.Hibernate;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.event.CollectionMembershipChangedEvent;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -75,18 +76,18 @@ class CollectionItemsQueryCountTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private ApplicationEvents events;
 
-  private String group;
-  private final List<String> units = new ArrayList<>();
+  private UID group;
+  private final List<UID> units = new ArrayList<>();
 
   @BeforeEach
   void setUp() {
     OrganisationUnitGroup owner = createOrganisationUnitGroup('A');
     manager.save(owner);
-    group = owner.getUid();
+    group = UID.of(owner);
     for (int i = 0; i < UNITS; i++) {
       OrganisationUnit unit = createOrganisationUnit((char) ('A' + i));
       manager.save(unit);
-      units.add(unit.getUid());
+      units.add(UID.of(unit));
     }
   }
 
@@ -109,21 +110,20 @@ class CollectionItemsQueryCountTest extends PostgresIntegrationTestBase {
     assertEquals(Map.of(MEMBERS_ROLE, 1L, GROUPS_ROLE, (long) UNITS), invalidations);
   }
 
-  private long countJoinTableStatements(List<String> additions, List<String> deletions)
-      throws Exception {
+  private long countJoinTableStatements(List<UID> additions, List<UID> deletions) throws Exception {
     QueryCountDataSourceProxy.clearCapturedSql();
     merge(additions, deletions);
     return QueryCountDataSourceProxy.countCapturedSqlMatching(JOIN_TABLE);
   }
 
-  private TypeReport merge(List<String> additions, List<String> deletions) throws Exception {
+  private TypeReport merge(List<UID> additions, List<UID> deletions) throws Exception {
     clearSession();
     OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
     IdentifiableObjects items = new IdentifiableObjects();
     items.setAdditions(
-        additions.stream().map(uid -> new BaseIdentifiableObject(uid, "", "")).toList());
+        additions.stream().map(uid -> new BaseIdentifiableObject(uid.getValue(), "", "")).toList());
     items.setDeletions(
-        deletions.stream().map(uid -> new BaseIdentifiableObject(uid, "", "")).toList());
+        deletions.stream().map(uid -> new BaseIdentifiableObject(uid.getValue(), "", "")).toList());
 
     TypeReport report = collectionService.mergeCollectionItems(owner, "organisationUnits", items);
 

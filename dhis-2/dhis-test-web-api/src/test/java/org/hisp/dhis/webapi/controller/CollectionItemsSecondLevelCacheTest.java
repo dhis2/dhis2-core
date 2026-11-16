@@ -57,6 +57,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.event.CollectionMembershipChangedEvent;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
@@ -100,14 +101,15 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
 
   @Test
   void mergeUnloadedGroupMembersPreservesCountsAndBothCachedSides() {
-    String a = organisationUnit("Delta A");
-    String b = organisationUnit("Delta B");
-    String c = organisationUnit("Delta C");
-    String absent = organisationUnit("Delta absent");
-    String group =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST("/organisationUnitGroups/", "{'name':'Delta group','shortName':'Delta'}"));
+    UID a = organisationUnit("Delta A");
+    UID b = organisationUnit("Delta B");
+    UID c = organisationUnit("Delta C");
+    UID absent = organisationUnit("Delta absent");
+    UID group =
+        UID.of(
+            assertStatus(
+                HttpStatus.CREATED,
+                POST("/organisationUnitGroups/", "{'name':'Delta group','shortName':'Delta'}")));
     transaction(
         () -> {
           OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
@@ -129,8 +131,8 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
                   merge(
                       owner,
                       "organisationUnits",
-                      List.of(b, c, "Unknown0001"),
-                      List.of(a, absent, "Unknown0002"));
+                      List.of(b, c, UID.of("Unknown0001")),
+                      List.of(a, absent, UID.of("Unknown0002")));
               assertFalse(Hibernate.isInitialized(owner.getMembers()));
               assertEquals(lastUpdated, owner.getLastUpdated());
               assertEquals(lastUpdatedBy, owner.getLastUpdatedBy());
@@ -154,13 +156,14 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
 
   @Test
   void dataSetSourcesUseTheSameMechanismAndKeepLoadedInverseConsistent() {
-    String ou = organisationUnit("Delta dataset OU");
-    String ds =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/dataSets/",
-                "{'name':'Delta dataset','shortName':'DeltaDS','periodType':'Monthly'}"));
+    UID ou = organisationUnit("Delta dataset OU");
+    UID ds =
+        UID.of(
+            assertStatus(
+                HttpStatus.CREATED,
+                POST(
+                    "/dataSets/",
+                    "{'name':'Delta dataset','shortName':'DeltaDS','periodType':'Monthly'}")));
     transaction(
         () -> {
           manager.get(DataSet.class, ds).getSources().size();
@@ -188,11 +191,14 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
 
   @Test
   void initializedOwnerUsesInMemoryPathAndRollbackDoesNotPublishMembership() {
-    String ou = organisationUnit("Delta rollback OU");
-    String group =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST("/organisationUnitGroups/", "{'name':'Delta rollback','shortName':'DeltaRB'}"));
+    UID ou = organisationUnit("Delta rollback OU");
+    UID group =
+        UID.of(
+            assertStatus(
+                HttpStatus.CREATED,
+                POST(
+                    "/organisationUnitGroups/",
+                    "{'name':'Delta rollback','shortName':'DeltaRB'}")));
     transaction(
         () -> {
           OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
@@ -259,12 +265,14 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
    */
   @Test
   void boundedUnloadedCollectionIsValidatedByCountAndRejectionRollsBack() {
-    String member = organisationUnit("Delta bounded A");
-    String rejected = organisationUnit("Delta bounded B");
-    String group =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST("/organisationUnitGroups/", "{'name':'Delta bounded','shortName':'DeltaBD'}"));
+    UID member = organisationUnit("Delta bounded A");
+    UID rejected = organisationUnit("Delta bounded B");
+    UID group =
+        UID.of(
+            assertStatus(
+                HttpStatus.CREATED,
+                POST(
+                    "/organisationUnitGroups/", "{'name':'Delta bounded','shortName':'DeltaBD'}")));
     transaction(
         () -> {
           OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
@@ -306,12 +314,15 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
    */
   @Test
   void concurrentAdditionIsIgnoredAndTheMergeAppliesItsDeletion() throws Exception {
-    String removed = organisationUnit("Delta removed");
-    String contested = organisationUnit("Delta contested");
-    String group =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST("/organisationUnitGroups/", "{'name':'Delta conflict','shortName':'DeltaCF'}"));
+    UID removed = organisationUnit("Delta removed");
+    UID contested = organisationUnit("Delta contested");
+    UID group =
+        UID.of(
+            assertStatus(
+                HttpStatus.CREATED,
+                POST(
+                    "/organisationUnitGroups/",
+                    "{'name':'Delta conflict','shortName':'DeltaCF'}")));
     long groupId =
         transaction(
             () -> {
@@ -381,21 +392,22 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
     }
   }
 
-  private String organisationUnit(String name) {
-    return assertStatus(
-        HttpStatus.CREATED,
-        POST(
-            "/organisationUnits/",
-            "{'name':'" + name + "','shortName':'" + name + "','openingDate':'2020-01-01'}"));
+  private UID organisationUnit(String name) {
+    return UID.of(
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'" + name + "','shortName':'" + name + "','openingDate':'2020-01-01'}")));
   }
 
-  private void warmGroupAndInverseCaches(String group, String... items) {
+  private void warmGroupAndInverseCaches(UID group, UID... items) {
     long id =
         transaction(
             () -> {
               OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
               owner.getMembers().size();
-              for (String item : items) {
+              for (UID item : items) {
                 manager.get(OrganisationUnit.class, item).getGroups().size();
               }
               return owner.getId();
@@ -406,7 +418,7 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
             .containsCollection(OrganisationUnitGroup.class.getName() + ".members", id));
   }
 
-  private void assertGroupMembers(String group, String... expected) {
+  private void assertGroupMembers(UID group, UID... expected) {
     transaction(
         () -> {
           assertEquals(
@@ -416,12 +428,12 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
         });
   }
 
-  private static Set<String> uids(java.util.Collection<? extends IdentifiableObject> items) {
-    return items.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet());
+  private static Set<UID> uids(java.util.Collection<? extends IdentifiableObject> items) {
+    return UID.of(items.stream());
   }
 
   private TypeReport merge(
-      IdentifiableObject owner, String property, List<String> additions, List<String> deletions) {
+      IdentifiableObject owner, String property, List<UID> additions, List<UID> deletions) {
     try {
       return collectionService.mergeCollectionItems(owner, property, items(additions, deletions));
     } catch (FeedbackException ex) {
@@ -429,12 +441,12 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
     }
   }
 
-  private static IdentifiableObjects items(List<String> additions, List<String> deletions) {
+  private static IdentifiableObjects items(List<UID> additions, List<UID> deletions) {
     IdentifiableObjects items = new IdentifiableObjects();
     items.setAdditions(
-        additions.stream().map(uid -> new BaseIdentifiableObject(uid, "", "")).toList());
+        additions.stream().map(uid -> new BaseIdentifiableObject(uid.getValue(), "", "")).toList());
     items.setDeletions(
-        deletions.stream().map(uid -> new BaseIdentifiableObject(uid, "", "")).toList());
+        deletions.stream().map(uid -> new BaseIdentifiableObject(uid.getValue(), "", "")).toList());
     return items;
   }
 
