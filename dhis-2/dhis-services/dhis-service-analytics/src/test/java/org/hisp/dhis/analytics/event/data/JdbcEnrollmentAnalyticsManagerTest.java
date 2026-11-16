@@ -42,7 +42,6 @@ import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
-import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
@@ -71,7 +70,6 @@ class JdbcEnrollmentAnalyticsManagerTest {
   @Mock private DhisConfigurationProvider config;
   @Mock private AnalyticsSqlBuilder sqlBuilder;
   @Mock private OrganisationUnitResolver organisationUnitResolver;
-  @Mock private ColumnMapper columnMapper;
 
   @InjectMocks private JdbcEnrollmentAnalyticsManager jdbcEnrollmentAnalyticsManager;
 

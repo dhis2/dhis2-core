@@ -169,11 +169,10 @@ class AggregatedEnrollmentQueryAssemblerTest {
   }
 
   @Test
-  void addStandardColumnsWithoutShadowCteEmitsAxAlias() {
+  void addStandardColumnsPrefixesPlainColumnsWithAx() {
     SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
-    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
 
-    assembler.addStandardColumns(sb, cteContext, List.of("enrollment", "trackedentity"));
+    assembler.addStandardColumns(sb, List.of("enrollment", "trackedentity"));
 
     String sql = sb.build();
     assertThat(sql, containsString("ax.enrollment"));
@@ -181,57 +180,16 @@ class AggregatedEnrollmentQueryAssemblerTest {
   }
 
   @Test
-  void addStandardColumnsFormulaColumnInPlainPathIsAddedVerbatim() {
+  void addStandardColumnsAddsFormulaColumnVerbatim() {
     SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
-    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
     String formula = "ST_AsGeoJSON(enrollmentgeometry)";
 
-    assembler.addStandardColumns(sb, cteContext, List.of(formula));
+    assembler.addStandardColumns(sb, List.of(formula));
 
     String sql = sb.build();
-    // Formula columns are emitted verbatim (no ax. prefix) in the plain path.
+    // Formula columns are emitted verbatim (no ax. prefix).
     assertThat(sql, containsString(formula));
     assertThat(sql, not(containsString("ax." + formula)));
-  }
-
-  @Test
-  void addStandardColumnsWithShadowCtePrefixesPlainColumnsWithAx() {
-    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
-    CteContext cteContext = shadowCteContext();
-
-    assembler.addStandardColumns(sb, cteContext, List.of("enrollment", "trackedentity"));
-
-    String sql = sb.build();
-    assertThat(sql, containsString("ax.enrollment"));
-    assertThat(sql, containsString("ax.trackedentity"));
-  }
-
-  @Test
-  void addStandardColumnsWithShadowCteRewritesGeometryFormulaToAlias() {
-    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
-    CteContext cteContext = shadowCteContext();
-    String formula = "ST_AsGeoJSON(enrollmentgeometry)";
-
-    assembler.addStandardColumns(sb, cteContext, List.of(formula));
-
-    String sql = sb.build();
-    // Shadow path swaps the formula for the registered alias and ax-prefixes it.
-    assertThat(sql, containsString("ax.enrollmentgeometry_geojson"));
-    assertThat(sql, not(containsString(formula)));
-  }
-
-  @Test
-  void addStandardColumnsWithShadowCteRewritesUnknownFormulaToStableDefaultAlias() {
-    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
-    CteContext cteContext = shadowCteContext();
-    String formula = "coalesce(enrollmentdate, created)";
-
-    assembler.addStandardColumns(sb, cteContext, List.of(formula));
-
-    String sql = sb.build();
-    String expectedAlias = "formula_" + (formula.hashCode() & Integer.MAX_VALUE);
-    assertThat(sql, containsString("ax." + expectedAlias));
-    assertThat(sql, not(containsString(formula)));
   }
 
   @Test
@@ -636,12 +594,6 @@ class AggregatedEnrollmentQueryAssemblerTest {
     when(otherDef.isProgramIndicator()).thenReturn(false);
 
     assertTrue(assembler.collectCteDefinitions(cteContext).isEmpty());
-  }
-
-  private static CteContext shadowCteContext() {
-    CteContext context = new CteContext(EndpointItem.ENROLLMENT);
-    context.addShadowCte("top_enrollments", "select 1", CteDefinition.CteType.TOP_ENROLLMENTS);
-    return context;
   }
 
   private static PeriodDimension month(String isoPeriod) {
