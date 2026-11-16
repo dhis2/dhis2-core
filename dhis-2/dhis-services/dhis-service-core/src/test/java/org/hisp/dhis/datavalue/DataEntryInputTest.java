@@ -44,6 +44,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.IdProperty;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -318,7 +319,19 @@ class DataEntryInputTest {
    */
 
   @ParameterizedTest
-  @ValueSource(strings = {"5", "0", "-12", "3.14", "-0.5", "1e3", "1.5E-2", "12345678901234567890"})
+  @ValueSource(
+      strings = {
+        "5",
+        "0",
+        "-0",
+        "-12",
+        "3.14",
+        "1.10",
+        "-0.5",
+        "1e3",
+        "1.5E-2",
+        "12345678901234567890"
+      })
   void testFromJson_ValueAsNumber(String number) {
     assertEquals(number, valueOf("\"value\": " + number).value());
   }
@@ -489,12 +502,66 @@ class DataEntryInputTest {
     assertFalse(valueOf("\"followup\": \"false\"").followUp());
     // the documented name wins when both are present
     assertTrue(valueOf("\"followUp\": true, \"followup\": false").followUp());
+    // ...unless it is null, which counts as absent
+    assertTrue(valueOf("\"followUp\": null, \"followup\": true").followUp());
   }
 
   @Test
   void testFromJson_DeletionScopeNullEntry() {
     assertJsonError("{\"deletion\": {\"orgUnits\": [null]}}");
     assertJsonError("{\"deletion\": {\"periods\": [\"2024\", null]}}");
+  }
+
+  /** Windows PowerShell 5 ({@code Out-File -Encoding utf8}) writes a UTF-8 byte order mark */
+  @Test
+  void testFromJson_ByteOrderMark() {
+    assertEquals(
+        "1", fromJson("\uFEFF{\"dataValues\": [{\"value\": \"1\"}]}").values().get(0).value());
+  }
+
+  @Test
+  void testFromJson_NullIsAbsent() {
+    DataEntryGroup.Input input =
+        fromJson(
+            """
+        {"deletion": null, "attributeOptionCombo": null, "dataValues": null}""");
+    assertNull(input.deletion());
+    assertNull(input.attributeOptionCombo());
+    assertNull(input.attributeOptions());
+    assertEquals(List.of(), input.values());
+
+    DataEntryValue.Input dv = valueOf("\"categoryOptionCombo\": null");
+    assertNull(dv.categoryOptionCombo());
+    assertNull(dv.categoryOptions());
+  }
+
+  @Test
+  void testFromJson_AttributeOptionsAsObject() {
+    DataEntryGroup.Input input =
+        fromJson(
+            "{\"attributeOptionCombo\": {\"c1234567890\": \"co123456789\"}, \"dataValues\": []}");
+    assertNull(input.attributeOptionCombo());
+    assertEquals(Map.of("c1234567890", "co123456789"), input.attributeOptions());
+  }
+
+  @Test
+  void testFromJson_IdSchemeAttribute() {
+    DataEntryGroup.Input input =
+        fromJson(
+            """
+        {"idScheme": "attribute:uh6H2ff562G", "orgUnitIdScheme": "CODE", "dataValues": []}""");
+    IdProperty attribute = IdProperty.of(UID.of("uh6H2ff562G"));
+    assertEquals(attribute, input.ids().dataElements());
+    assertEquals(attribute, input.ids().dataSets());
+    assertEquals(IdProperty.CODE, input.ids().orgUnits());
+  }
+
+  @Test
+  void testFromJson_Escapes() {
+    DataEntryValue.Input dv =
+        valueOf("\"value\": \"a\\\"b\\\\c\\u00e9\\ud83d\\ude00\", \"comment\": \"line1\\nline2\"");
+    assertEquals("a\"b\\c\u00e9\ud83d\ude00", dv.value());
+    assertEquals("line1\nline2", dv.comment());
   }
 
   /*
@@ -506,6 +573,58 @@ class DataEntryInputTest {
   void testFromJson_ValueAsObjectOrArray(String value) {
     assertJsonError(
         "{\"dataValues\": [{\"dataElement\": \"de123456789\", \"value\": %s}]}".formatted(value));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"nonsense", "5", "ATTRIBUTE:abc"})
+  void testFromJson_IdSchemeInvalid(String scheme) {
+    assertJsonError("{\"idScheme\": \"%s\", \"dataValues\": []}".formatted(scheme));
+    assertJsonError("{\"dataElementIdScheme\": \"%s\", \"dataValues\": []}".formatted(scheme));
+  }
+
+  @Test
+  void testFromJson_IdSchemeNotAString() {
+    assertJsonError("{\"idScheme\": {}, \"dataValues\": []}");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"1.0", "2", "\" true \"", "\"yes\"", "{}", "[]"})
+  void testFromJson_BooleanInvalid(String bool) {
+    assertJsonError("{\"dataValues\": [{\"followUp\": %s}]}".formatted(bool));
+    assertJsonError("{\"dataValues\": [{\"deleted\": %s}]}".formatted(bool));
+    assertJsonError("{\"dryRun\": %s, \"dataValues\": []}".formatted(bool));
+  }
+
+  @Test
+  void testFromJson_DataValueNull() {
+    assertJsonError("{\"dataValues\": [null]}");
+  }
+
+  @Test
+  void testFromJson_CategoryOptionsInvalid() {
+    assertJsonError("{\"dataValues\": [{\"categoryOptionCombo\": [\"x\"]}]}");
+    assertJsonError("{\"dataValues\": [{\"categoryOptionCombo\": {\"c1234567890\": {}}}]}");
+    assertJsonError("{\"attributeOptionCombo\": [\"x\"], \"dataValues\": []}");
+  }
+
+  @Test
+  void testFromJson_DeletionScopeInvalid() {
+    assertJsonError("{\"deletion\": [], \"dataValues\": []}");
+    assertJsonError("{\"deletion\": {\"orgUnits\": \"ou123456789\"}, \"dataValues\": []}");
+    assertJsonError("{\"deletion\": {\"periods\": {}}, \"dataValues\": []}");
+    assertJsonError("{\"deletion\": {\"elements\": [\"x\"]}, \"dataValues\": []}");
+    assertJsonError("{\"deletion\": {\"elements\": {}}, \"dataValues\": []}");
+  }
+
+  @Test
+  void testFromJson_NotUtf8() {
+    byte[] latin1 =
+        "{\"dataValues\": [{\"value\": \"\u00e9\"}]}".getBytes(StandardCharsets.ISO_8859_1);
+    BadRequestException ex =
+        assertThrows(
+            BadRequestException.class,
+            () -> DataEntryInput.fromJson(new ByteArrayInputStream(latin1), new ImportOptions()));
+    assertEquals(ErrorCode.E8036, ex.getCode());
   }
 
   @Test
@@ -631,6 +750,25 @@ class DataEntryInputTest {
             </dataValueSet>"""),
             new ImportOptions());
     assertEquals("5", groups.get(0).values().get(0).value());
+  }
+
+  /** DXF2 XML and JSON read the same ID scheme properties */
+  @Test
+  void testFromXml_Dxf2IdSchemes() throws Exception {
+    List<DataEntryGroup.Input> groups =
+        DataEntryInput.fromXml(
+            toStream(
+                """
+            <dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" idScheme="CODE"
+              dataElementIdScheme="ATTRIBUTE:uh6H2ff562G" orgUnitIdScheme="name">
+              <dataValue dataElement="DE1" period="202501" orgUnit="OU1" value="5"/>
+            </dataValueSet>"""),
+            new ImportOptions());
+    DataEntryGroup.Ids ids = groups.get(0).ids();
+    assertEquals(IdProperty.of(UID.of("uh6H2ff562G")), ids.dataElements());
+    assertEquals(IdProperty.NAME, ids.orgUnits());
+    assertEquals(IdProperty.CODE, ids.dataSets());
+    assertEquals(IdProperty.CODE, ids.categoryOptionCombos());
   }
 
   @ParameterizedTest

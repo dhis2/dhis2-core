@@ -43,6 +43,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.xml.stream.XMLStreamConstants;
@@ -135,23 +137,7 @@ public final class DataEntryInput {
     String dryRun = dvs.getAttributeValue("dryRun");
     if (dryRun != null) options.setDryRun(parseBoolean(dryRun));
 
-    // ID schemes
-    String scheme = dvs.getAttributeValue("idScheme");
-    if (scheme != null) schemes.setIdScheme(scheme);
-    scheme = dvs.getAttributeValue("dataSetIdScheme");
-    if (scheme != null) schemes.setDataSetIdScheme(scheme);
-    scheme = dvs.getAttributeValue("dataElementIdScheme");
-    if (scheme != null) schemes.setDataElementIdScheme(scheme);
-    scheme = dvs.getAttributeValue("orgUnitIdScheme");
-    if (scheme != null) schemes.setOrgUnitIdScheme(scheme);
-    scheme = dvs.getAttributeValue("categoryOptionComboIdScheme");
-    if (scheme != null) schemes.setCategoryOptionComboIdScheme(scheme);
-    scheme = dvs.getAttributeValue("attributeOptionComboIdScheme");
-    if (scheme != null) schemes.setAttributeOptionComboIdScheme(scheme);
-    scheme = dvs.getAttributeValue("categoryIdScheme");
-    if (scheme != null) schemes.setCategoryIdScheme(scheme);
-    scheme = dvs.getAttributeValue("categoryOptionIdScheme");
-    if (scheme != null) schemes.setCategoryOptionIdScheme(scheme);
+    setIdSchemes(schemes, dvs::getAttributeValue);
 
     // values...
     List<DataEntryValue.Input> values = new ArrayList<>();
@@ -281,7 +267,7 @@ public final class DataEntryInput {
     Map<String, String> aocMap = textMap(aoc);
     Boolean dryRun = bool(dvs.get("dryRun"));
     if (dryRun != null) options.setDryRun(dryRun);
-    setIdSchemes(dvs, schemes);
+    setIdSchemes(schemes, name -> text(dvs.get(name)));
     DataEntryGroup.Input.Scope deletion = deletionScope(dvs.get("deletion"));
 
     // values...
@@ -310,23 +296,27 @@ public final class DataEntryInput {
             ids, ds, completionDate, null, ou, pe, aocId, aocMap, deletion, values));
   }
 
-  private static void setIdSchemes(@Nonnull JsonObject dvs, @Nonnull IdSchemes schemes) {
-    String scheme = text(dvs.get("idScheme"));
-    if (scheme != null) schemes.setIdScheme(scheme);
-    scheme = text(dvs.get("dataSetIdScheme"));
-    if (scheme != null) schemes.setDataSetIdScheme(scheme);
-    scheme = text(dvs.get("dataElementIdScheme"));
-    if (scheme != null) schemes.setDataElementIdScheme(scheme);
-    scheme = text(dvs.get("orgUnitIdScheme"));
-    if (scheme != null) schemes.setOrgUnitIdScheme(scheme);
-    scheme = text(dvs.get("categoryOptionComboIdScheme"));
-    if (scheme != null) schemes.setCategoryOptionComboIdScheme(scheme);
-    scheme = text(dvs.get("attributeOptionComboIdScheme"));
-    if (scheme != null) schemes.setAttributeOptionComboIdScheme(scheme);
-    scheme = text(dvs.get("categoryIdScheme"));
-    if (scheme != null) schemes.setCategoryIdScheme(scheme);
-    scheme = text(dvs.get("categoryOptionIdScheme"));
-    if (scheme != null) schemes.setCategoryOptionIdScheme(scheme);
+  /**
+   * Sets the ID schemes given in the input, the same property names for all formats.
+   *
+   * @param property returns the value of the named property, null if absent
+   */
+  private static void setIdSchemes(
+      @Nonnull IdSchemes schemes, @Nonnull UnaryOperator<String> property) {
+    setIfPresent(property.apply("idScheme"), schemes::setIdScheme);
+    setIfPresent(property.apply("dataSetIdScheme"), schemes::setDataSetIdScheme);
+    setIfPresent(property.apply("dataElementIdScheme"), schemes::setDataElementIdScheme);
+    setIfPresent(property.apply("orgUnitIdScheme"), schemes::setOrgUnitIdScheme);
+    setIfPresent(
+        property.apply("categoryOptionComboIdScheme"), schemes::setCategoryOptionComboIdScheme);
+    setIfPresent(
+        property.apply("attributeOptionComboIdScheme"), schemes::setAttributeOptionComboIdScheme);
+    setIfPresent(property.apply("categoryIdScheme"), schemes::setCategoryIdScheme);
+    setIfPresent(property.apply("categoryOptionIdScheme"), schemes::setCategoryOptionIdScheme);
+  }
+
+  private static void setIfPresent(@CheckForNull String value, @Nonnull Consumer<String> setter) {
+    if (value != null) setter.accept(value);
   }
 
   @CheckForNull
