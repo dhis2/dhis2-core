@@ -41,6 +41,7 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_6;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1132;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1302;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -58,11 +59,17 @@ import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
@@ -73,6 +80,8 @@ import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.DataValue;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
@@ -104,6 +113,8 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   @Autowired private TrackerEventService trackerEventService;
 
   @Autowired private TrackerImportService trackerImportService;
+
+  @Autowired private ProgramStageDataElementService programStageDataElementService;
 
   private User importUser;
 
@@ -160,6 +171,41 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
             params, testSetup.fromJson("tracker/validations/events-with_valid_option_value.json"));
 
     assertNoErrors(importReport);
+  }
+
+  @Test
+  void shouldImportEventWhenUsernameDataValueIsAnExistingUserOtherThanTheImporter()
+      throws IOException {
+    DataElement usernameDataElement = addUsernameDataElementToProgramStage("Qmqxq907VNz");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/events-with_valid_option_value.json");
+    trackerObjects
+        .getEvents()
+        .get(0)
+        .getDataValues()
+        .add(usernameDataValue(usernameDataElement, "nils"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects);
+
+    assertNoErrors(importReport);
+  }
+
+  @Test
+  void shouldFailEventImportWhenUsernameDataValueIsNotAnExistingUser() throws IOException {
+    DataElement usernameDataElement = addUsernameDataElementToProgramStage("Qmqxq907VNz");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/events-with_valid_option_value.json");
+    trackerObjects
+        .getEvents()
+        .get(0)
+        .getDataValues()
+        .add(usernameDataValue(usernameDataElement, "nonExistingUsername"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects);
+
+    assertHasOnlyErrors(importReport, E1302);
   }
 
   @Test
@@ -566,6 +612,30 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     assertEquals(1, importReport.getStats().getDeleted());
     clearSession();
     assertTrue(manager.get(TrackerEvent.class, "uLxFbxfYDQE").isDeleted());
+  }
+
+  private DataElement addUsernameDataElementToProgramStage(String programStageUid) {
+    DataElement dataElement = createDataElement('U');
+    dataElement.setValueType(ValueType.USERNAME);
+    dataElement.setDomainType(DataElementDomain.TRACKER);
+    manager.save(dataElement);
+
+    ProgramStage programStage = manager.get(ProgramStage.class, programStageUid);
+    ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
+    programStageDataElement.setDataElement(dataElement);
+    programStageDataElement.setProgramStage(programStage);
+    programStageDataElementService.addProgramStageDataElement(programStageDataElement);
+    programStage.getProgramStageDataElements().add(programStageDataElement);
+    manager.update(programStage);
+    manager.flush();
+    return dataElement;
+  }
+
+  private static DataValue usernameDataValue(DataElement dataElement, String username) {
+    return DataValue.builder()
+        .dataElement(MetadataIdentifier.ofUid(dataElement.getUid()))
+        .value(username)
+        .build();
   }
 
   private void deleteTrackerObjects(TrackerObjects trackerObjects) {
