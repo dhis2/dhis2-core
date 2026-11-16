@@ -81,8 +81,18 @@ public class DeflatedDataValueParams {
 
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
+  /**
+   * If true, the {@link #organisationUnits} are roots: data stored on them or on any organisation
+   * unit below them is returned. If false, only data stored on them is returned.
+   */
+  private boolean organisationUnitSubtrees;
+
   private Integer orgUnitLevel;
 
+  /**
+   * If true, data from organisation units at or below {@link #orgUnitLevel} is returned; if false,
+   * only from organisation units at that level.
+   */
   private boolean includeDescendants;
 
   private boolean orderByOrgUnitPath;
@@ -178,8 +188,8 @@ public class DeflatedDataValueParams {
     return organisationUnits != null && !organisationUnits.isEmpty();
   }
 
-  public boolean isIncludeDescendantsForOrganisationUnits() {
-    return includeDescendants && hasOrganisationUnits();
+  public boolean hasOrganisationUnitSubtrees() {
+    return organisationUnitSubtrees && hasOrganisationUnits();
   }
 
   public boolean hasOrgUnitLevel() {
@@ -219,7 +229,10 @@ public class DeflatedDataValueParams {
   }
 
   public boolean needsOrgUnitDetails() {
-    return isOrderByOrgUnitPath() || hasOrgUnitLevel() || isIncludeDescendants();
+    return isOrderByOrgUnitPath()
+        || hasOrgUnitLevel()
+        || isIncludeDescendants()
+        || hasOrganisationUnitSubtrees();
   }
 
   @Override
@@ -235,6 +248,7 @@ public class DeflatedDataValueParams {
         .add("end date", endDate)
         .add("included date", includedDate)
         .add("org units", organisationUnits)
+        .add("org unit subtrees", organisationUnitSubtrees)
         .add("org unit level", orgUnitLevel)
         .add("descendants", includeDescendants)
         .add("order by org unit path", orderByOrgUnitPath)
