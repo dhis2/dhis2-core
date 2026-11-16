@@ -568,7 +568,6 @@ public final class CSV {
     @Override
     public Iterator<T> iterator() {
       String[] headers = readHeaderRow();
-      if (headers == null) throw new IllegalArgumentException("No header line provided.");
       Function<String[], T> newRecord = as.from(headers);
       return new Iterator<>() {
         final String[] row = new String[headers.length];
@@ -591,8 +590,11 @@ public final class CSV {
 
     private void fillBufferTail(int keepLen) {
       try {
-        int tailLen = buffer.length - keepLen;
-        int readLen = csv.read(buffer, keepLen, tailLen);
+        int readLen = csv.read(buffer, keepLen, buffer.length - keepLen);
+        if (readLen == 0)
+          throw new UncheckedIOException(
+              new IOException("Reader.read returned 0 for a positive length; "
+                  + "the Reader violates the blocking contract"));
         eoi = readLen == -1;
         len = eoi ? keepLen : keepLen + readLen;
       } catch (IOException ex) {
