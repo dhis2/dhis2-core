@@ -712,6 +712,7 @@ public final class CSV {
      *     could find it
      */
     private int skipValue(int p) {
+      int lines0 = line;
       boolean nonIndent = false;
       while (p < len) {
         char c = buffer[p];
@@ -721,7 +722,10 @@ public final class CSV {
           p = skipQuotes(p + 1);
           if (p != -1) {
             p = skipIndent(p);
-            if (p == len && !eoi) return -1; // refill to see what follows
+            if (p == len && !eoi) {
+              line = lines0;
+              return -1;
+            }
             if (p < len && !isValueSeparator(buffer[p]))
               throw error("Unexpected character after closing quote");
           }

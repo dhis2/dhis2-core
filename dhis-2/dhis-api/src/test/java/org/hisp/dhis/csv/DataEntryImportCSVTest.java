@@ -939,6 +939,19 @@ class DataEntryImportCSVTest {
     assertEquals("CSV input error at line 2 column 3: Additional columns found", ex.getMessage());
   }
 
+  @Test
+  void testUnterminatedQuoteAcrossRefillReportsOpeningLine() {
+    record Row(String a) {}
+    // maxValueLength small so the buffer refills mid-quote
+    String csv = "a\n\"" + "x".repeat(20); // opening quote on line 2, no close
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class,
+            () -> CSV.of(csv).maxValueLength(15).as(Row.class).list());
+    assertEquals(
+        "CSV input error at line 2 column 1: Quoted value is not terminated", ex.getMessage());
+  }
+
   private static List<DataEntryValue.Input> read(@Language("csv") String csv) {
     return CSV.of(csv).as(DataEntryValue.Input.class).list();
   }
