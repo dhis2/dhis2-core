@@ -68,6 +68,17 @@ public final class CorsAllowlistEntry {
 
   private static final List<String> SCHEMES = List.of("http", "https");
 
+  /** The longest host name the DNS allows, in its ASCII form and without a trailing dot. */
+  private static final int MAX_HOST_LENGTH = 253;
+
+  /**
+   * The longest origin a valid entry can match: {@code https://}, a host of {@link
+   * #MAX_HOST_LENGTH} characters and a five digit port. IPv6 literals are shorter. Longer request
+   * origins are rejected before matching, so the wildcard pattern never runs on unbounded input.
+   */
+  private static final int MAX_ORIGIN_LENGTH =
+      "https".length() + SCHEME_SEPARATOR.length() + MAX_HOST_LENGTH + ":65535".length();
+
   private static final Pattern HOST_LABEL =
       Pattern.compile("[a-z0-9_](?:[a-z0-9_-]{0,61}[a-z0-9_])?");
 
@@ -153,7 +164,7 @@ public final class CorsAllowlistEntry {
    * @return true if the given origin is trusted by this entry.
    */
   public boolean matches(@CheckForNull String requestOrigin) {
-    if (requestOrigin == null) {
+    if (requestOrigin == null || requestOrigin.length() > MAX_ORIGIN_LENGTH) {
       return false;
     }
     return wildcardPattern == null
@@ -244,6 +255,9 @@ public final class CorsAllowlistEntry {
     int portStart = authority.lastIndexOf(':');
     String port = portStart < 0 ? null : portAfter(authority.substring(portStart));
     String host = toAsciiHost(portStart < 0 ? authority : authority.substring(0, portStart));
+    if (host.length() > MAX_HOST_LENGTH) {
+      throw invalid("the host is longer than " + MAX_HOST_LENGTH + " characters");
+    }
     boolean wildcard = host.startsWith(WILDCARD_LABEL + ".");
     validateHost(wildcard ? host.substring(2) : host, wildcard);
     return new HostAndPort(host, port);

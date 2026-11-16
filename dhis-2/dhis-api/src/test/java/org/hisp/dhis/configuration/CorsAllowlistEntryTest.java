@@ -32,7 +32,9 @@ package org.hisp.dhis.configuration;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -196,5 +198,34 @@ class CorsAllowlistEntryTest {
   @ValueSource(strings = {"https://example.org", "https://*.example.org"})
   void shouldNotMatchMissingOrigin(String entry) {
     assertFalse(CorsAllowlistEntry.parse(entry).matches(null));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"https://example.org", "https://*.example.org"})
+  void shouldNotMatchOriginLongerThanAnyValidOrigin(String entry) {
+    String origin = "https://" + "a.".repeat(50_000) + "example.org";
+
+    assertFalse(CorsAllowlistEntry.parse(entry).matches(origin));
+  }
+
+  @Test
+  void shouldMatchOriginWithLongestValidHostAndPort() {
+    String label = "a".repeat(63);
+    String host = String.join(".", label, label, label, "a".repeat(49), "example.org");
+    String origin = "https://" + host + ":65535";
+
+    assertEquals(253, host.length());
+    assertTrue(CorsAllowlistEntry.parse("https://*.example.org:65535").matches(origin));
+  }
+
+  @Test
+  void shouldRejectHostLongerThan253Characters() {
+    String label = "a".repeat(63);
+    String host = String.join(".", label, label, label, "a".repeat(50), "example.org");
+
+    assertEquals(254, host.length());
+    assertThrows(IllegalArgumentException.class, () -> CorsAllowlistEntry.parse("https://" + host));
+    assertThrows(
+        IllegalArgumentException.class, () -> CorsAllowlistEntry.parse("https://*." + host));
   }
 }
