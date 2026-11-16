@@ -148,6 +148,9 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
   private static final AtomicLong REQUEST_COUNTER = new AtomicLong();
 
+  // The screen of a working list.
+  private static final String WORKING_LIST = "Working list";
+
   private static final TrackerProgram EIR =
       new TrackerProgram(
           "SSLpOM0r1U7", // Electronic Immunization Registry
@@ -167,39 +170,33 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   25,
                   28,
                   "Birth event working list",
+                  WORKING_LIST,
                   "Tracked entities of events, enrollment details"),
               p95(29, 151, AndroidClient.JOURNEY, "Search, like"),
               p95(
                   41,
                   96,
                   TrackedEntityWorkingList.JOURNEY,
-                  EnrollmentDashboard.DASHBOARD,
+                  OpenTrackedEntity.DASHBOARD,
                   "Tracked entity, enrollments with events"),
               p95(
                   25,
                   46,
                   TrackedEntityWorkingList.JOURNEY,
-                  EnrollmentDashboard.DASHBOARD,
+                  OpenTrackedEntity.DASHBOARD,
                   "Enrollment"),
               p95(
                   25,
                   25,
                   TrackedEntityWorkingList.JOURNEY,
-                  EnrollmentDashboard.DASHBOARD,
+                  OpenTrackedEntity.DASHBOARD,
                   "Relationships of tracked entity"),
-              p95(
-                  41,
-                  107,
-                  TrackedEntityWorkingList.JOURNEY,
-                  EnrollmentDashboard.DASHBOARD,
-                  EnrollmentDashboard.EVENT_PAGE,
-                  "Event"),
+              p95(41, 107, TrackedEntityWorkingList.JOURNEY, OpenTrackedEntity.EVENT_PAGE, "Event"),
               p95(
                   25,
                   28,
                   TrackedEntityWorkingList.JOURNEY,
-                  EnrollmentDashboard.DASHBOARD,
-                  EnrollmentDashboard.EVENT_PAGE,
+                  OpenTrackedEntity.EVENT_PAGE,
                   "Relationships of event")));
 
   // Of every dbgen user. Not a property: run-simulation.sh passes the admin's as -Dpassword.
@@ -554,7 +551,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
       Request like,
       Request eq,
       Request uniqueId,
-      EnrollmentDashboard dashboard)
+      OpenTrackedEntity open)
       implements Journey {
     static final String JOURNEY = "Search and open";
     static final String SEARCH = "Search";
@@ -592,7 +589,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
               "Unique ID",
               JOURNEY,
               SEARCH),
-          EnrollmentDashboard.of(program, "searched", JOURNEY));
+          OpenTrackedEntity.of(program, "searched", JOURNEY));
     }
 
     private static String searchUrl(
@@ -609,13 +606,13 @@ public class PerfLandMnchTrackerTest extends Simulation {
     @Override
     public List<Request> requests() {
       return Stream.concat(
-              Stream.of(noMatchLike, noMatchEq, like, eq, uniqueId), dashboard.requests().stream())
+              Stream.of(noMatchLike, noMatchEq, like, eq, uniqueId), open.requests().stream())
           .toList();
     }
 
     @Override
     public List<String> keys() {
-      return dashboard.keys();
+      return open.keys();
     }
 
     @Override
@@ -649,9 +646,9 @@ public class PerfLandMnchTrackerTest extends Simulation {
                                       .check(
                                           jsonPath("$.trackedEntities[0].trackedEntity")
                                               .isEL("#{trackedEntity}")
-                                              .saveAs(dashboard.key()))))
-                      .doIf(session -> session.contains(dashboard.key()))
-                      .then(dashboard.chain())));
+                                              .saveAs(open.key()))))
+                      .doIf(session -> session.contains(open.key()))
+                      .then(open.chain())));
     }
   }
 
@@ -668,6 +665,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
       Request eventsByUniqueIdAllFields,
       Request eventsByUniqueId)
       implements Journey {
+    private static final String BY_UNIQUE_ID = "Working list, by unique ID";
     private static final String ALL_FIELDS_TRACKED_ENTITIES = "allFieldsEventTrackedEntities";
     private static final String TRACKED_ENTITIES = "eventTrackedEntities";
 
@@ -692,7 +690,8 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   + program.stage()
                   + "&fields=*",
               "Events, all fields",
-              journey),
+              journey,
+              WORKING_LIST),
           // The enrollments' status, org unit and enrollment date, where Capture's reads their UID
           program.request(
               "/api/tracker/trackedEntities?pageSize=15&program="
@@ -702,8 +701,9 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   + "}&fields=trackedEntity,createdAt,attributes[attribute,value],"
                   + "programOwners[orgUnit],enrollments[enrollment,status,orgUnit,enrolledAt]",
               "Tracked entities of events, enrollment details",
-              journey),
-          program.request(facility, eventsUrl, "Events", journey),
+              journey,
+              WORKING_LIST),
+          program.request(facility, eventsUrl, "Events", journey, WORKING_LIST),
           program.request(
               "/api/tracker/trackedEntities?program="
                   + program.uid()
@@ -712,7 +712,8 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   + "}&fields=trackedEntity,createdAt,attributes[attribute,value],"
                   + "programOwners[orgUnit],enrollments[enrollment]",
               "Tracked entities of events",
-              journey),
+              journey,
+              WORKING_LIST),
           // In the user's search scope, not her facility, as #26109 measured it
           program.request(
               "/api/tracker/events?program="
@@ -723,11 +724,13 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   + program.uniqueId()
                   + ":eq:#{epi}&fields=*",
               "Events by unique ID, search scope, all fields",
-              journey),
+              journey,
+              BY_UNIQUE_ID),
           program.request(
               eventsUrl + "&filterAttributes=" + program.uniqueId() + ":eq:#{epi}",
               "Events by unique ID",
-              journey));
+              journey,
+              BY_UNIQUE_ID));
     }
 
     @Override
@@ -751,34 +754,40 @@ public class PerfLandMnchTrackerTest extends Simulation {
       return exec(
           group(journey)
               .on(
-                  exec(eventsAllFields
-                          .action()
-                          .check(jsonPath("$.events[*]").count().gte(1))
-                          .check(saveTrackedEntities(ALL_FIELDS_TRACKED_ENTITIES)))
-                      .doIf(session -> session.contains(ALL_FIELDS_TRACKED_ENTITIES))
-                      .then(
-                          exec(
-                              trackedEntitiesWithEnrollmentDetails
+                  group(WORKING_LIST)
+                      .on(
+                          exec(eventsAllFields
                                   .action()
-                                  .check(jsonPath("$.trackedEntities[*]").count().gte(1))))
-                      .exec(
-                          events
-                              .action()
-                              .check(jsonPath("$.events[*]").count().gte(1))
-                              .check(saveTrackedEntities(TRACKED_ENTITIES)))
-                      .doIf(session -> session.contains(TRACKED_ENTITIES))
-                      .then(
-                          exec(
-                              trackedEntities
-                                  .action()
-                                  .check(jsonPath("$.trackedEntities[*]").count().gte(1))))
+                                  .check(jsonPath("$.events[*]").count().gte(1))
+                                  .check(saveTrackedEntities(ALL_FIELDS_TRACKED_ENTITIES)))
+                              .doIf(session -> session.contains(ALL_FIELDS_TRACKED_ENTITIES))
+                              .then(
+                                  exec(
+                                      trackedEntitiesWithEnrollmentDetails
+                                          .action()
+                                          .check(jsonPath("$.trackedEntities[*]").count().gte(1))))
+                              .exec(
+                                  events
+                                      .action()
+                                      .check(jsonPath("$.events[*]").count().gte(1))
+                                      .check(saveTrackedEntities(TRACKED_ENTITIES)))
+                              .doIf(session -> session.contains(TRACKED_ENTITIES))
+                              .then(
+                                  exec(
+                                      trackedEntities
+                                          .action()
+                                          .check(jsonPath("$.trackedEntities[*]").count().gte(1)))))
                       .pause(1, 3) // user reads the list, filters it by the child's EPI
                       .exec(
-                          eventsByUniqueIdAllFields
-                              .action()
-                              .check(jsonPath("$.events[*]").count().is(1)))
-                      .exec(
-                          eventsByUniqueId.action().check(jsonPath("$.events[*]").count().is(1)))));
+                          group(BY_UNIQUE_ID)
+                              .on(
+                                  exec(eventsByUniqueIdAllFields
+                                          .action()
+                                          .check(jsonPath("$.events[*]").count().is(1)))
+                                      .exec(
+                                          eventsByUniqueId
+                                              .action()
+                                              .check(jsonPath("$.events[*]").count().is(1)))))));
     }
 
     /** Saves the distinct tracked entities of the page's events under {@code key}. */
@@ -798,11 +807,12 @@ public class PerfLandMnchTrackerTest extends Simulation {
   private record TrackedEntityWorkingList(
       Request firstPageAllFields,
       Request firstPage,
-      EnrollmentDashboard dashboard,
+      OpenTrackedEntity open,
       Request activeAllFields,
       Request active)
       implements Journey {
     static final String JOURNEY = "Tracked entity working list";
+    static final String ACTIVE = "Working list, active";
 
     static TrackedEntityWorkingList of(TrackerProgram program, Band facility) {
       String firstPageUrl =
@@ -819,9 +829,10 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   + program.uid()
                   + "&fields=:all,!relationships,programOwners[orgUnit,program]",
               "First page, all fields",
-              JOURNEY),
-          program.request(facility, firstPageUrl, "First page", JOURNEY),
-          EnrollmentDashboard.of(program, "listed", JOURNEY),
+              JOURNEY,
+              WORKING_LIST),
+          program.request(facility, firstPageUrl, "First page", JOURNEY, WORKING_LIST),
+          OpenTrackedEntity.of(program, "listed", JOURNEY),
           program.request(
               facility,
               "/api/tracker/trackedEntities?order=createdAt:desc&page=1&pageSize=15"
@@ -831,21 +842,23 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   + "&enrollmentStatus=ACTIVE"
                   + "&fields=:all,!relationships,programOwners[orgUnit,program]",
               "Active, names from A, search scope, all fields",
-              JOURNEY),
-          program.request(facility, firstPageUrl + "&enrollmentStatus=ACTIVE", "Active", JOURNEY));
+              JOURNEY,
+              ACTIVE),
+          program.request(
+              facility, firstPageUrl + "&enrollmentStatus=ACTIVE", "Active", JOURNEY, ACTIVE));
     }
 
     @Override
     public List<Request> requests() {
       return Stream.concat(
               Stream.of(firstPageAllFields, firstPage, activeAllFields, active),
-              dashboard.requests().stream())
+              open.requests().stream())
           .toList();
     }
 
     @Override
     public List<String> keys() {
-      return dashboard.keys();
+      return open.keys();
     }
 
     @Override
@@ -853,24 +866,35 @@ public class PerfLandMnchTrackerTest extends Simulation {
       return exec(
           group(JOURNEY)
               .on(
-                  exec(firstPageAllFields
-                          .action()
-                          .check(jsonPath("$.trackedEntities[*]").count().gte(1))
-                          .check(
-                              jsonPath("$.trackedEntities[0].trackedEntity")
-                                  .saveAs(dashboard.key())))
-                      .exec(
-                          firstPage.action().check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                  group(WORKING_LIST)
+                      .on(
+                          exec(firstPageAllFields
+                                  .action()
+                                  .check(jsonPath("$.trackedEntities[*]").count().gte(1))
+                                  .check(
+                                      jsonPath("$.trackedEntities[0].trackedEntity")
+                                          .saveAs(open.key())))
+                              .exec(
+                                  firstPage
+                                      .action()
+                                      .check(jsonPath("$.trackedEntities[*]").count().gte(1))))
                       .pause(1, 3) // user reads the list, opens the first child
-                      .doIf(session -> session.contains(dashboard.key()))
-                      .then(dashboard.chain())
+                      .doIf(session -> session.contains(open.key()))
+                      .then(open.chain())
                       .pause(1, 3) // user goes back to the list, filters it by enrollment status
                       .exec(
-                          activeAllFields
-                              .action()
-                              .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
-                      .exec(
-                          active.action().check(jsonPath("$.trackedEntities[*]").count().gte(1)))));
+                          group(ACTIVE)
+                              .on(
+                                  exec(activeAllFields
+                                          .action()
+                                          .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                                      .exec(
+                                          active
+                                              .action()
+                                              .check(
+                                                  jsonPath("$.trackedEntities[*]")
+                                                      .count()
+                                                      .gte(1)))))));
     }
   }
 
@@ -924,12 +948,22 @@ public class PerfLandMnchTrackerTest extends Simulation {
   }
 
   /**
-   * The enrollment dashboard of a child and the event page of its enrollment's first event: the
-   * tracked entity, its enrollment and relationships, then the event and its relationships. The
-   * session holds the tracked entity's UID under {@code key}, {@link #chain()} saves the
-   * enrollment's and the event's under {@code key + "Enrollment"} and {@code key + "Event"}.
+   * The screens of opening a child: its enrollment dashboard (the tracked entity, its enrollment
+   * and relationships), then the event page of the enrollment's first event (the event and its
+   * relationships). The session holds the tracked entity's UID under {@code key}, {@link #chain()}
+   * saves the enrollment's and the event's under {@code key + "Enrollment"} and {@code key +
+   * "Event"}.
+   *
+   * <p>Capture sends a screen's requests concurrently, in waves: a request waits for the response
+   * that holds the UIDs it needs. Recorded with Chrome's resource timings (Capture of {@code
+   * dhis2/core-dev:latest}, 2 children): the dashboard reads the tracked entity's enrollments
+   * first, then sends its other requests in waves of 1 to 3 that varied between the 2 openings, the
+   * relationships last. The event page reads the event first, then sends the event's relationships,
+   * the tracked entity, the enrollment and the event's relationship items together. The test sends
+   * the first request of a screen, then the others concurrently as its {@code resources}: Gatling
+   * fetches them once the first completes.
    */
-  private record EnrollmentDashboard(
+  private record OpenTrackedEntity(
       String key,
       Request trackedEntityWithEvents,
       Request trackedEntity,
@@ -940,11 +974,11 @@ public class PerfLandMnchTrackerTest extends Simulation {
     static final String DASHBOARD = "Enrollment dashboard";
     static final String EVENT_PAGE = "Event page";
 
-    static EnrollmentDashboard of(TrackerProgram program, String key, String journey) {
+    static OpenTrackedEntity of(TrackerProgram program, String key, String journey) {
       String trackedEntityUrl =
           "/api/tracker/trackedEntities/#{" + key + "}?program=" + program.uid();
       String event = "#{" + key + "Event}";
-      return new EnrollmentDashboard(
+      return new OpenTrackedEntity(
           key,
           // Every enrollment field and its events, as #26186 measured it
           program.request(
@@ -979,7 +1013,6 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   + "?fields=event,relationships[relationship,relationshipType,relationshipName,bidirectional,from[event[event,dataValues,occurredAt,scheduledAt,status,orgUnit,programStage,program]],to[event[event,dataValues,*,occurredAt,scheduledAt,status,orgUnit,programStage,program]]]",
               "Event",
               journey,
-              DASHBOARD,
               EVENT_PAGE),
           program.request(
               "/api/tracker/relationships?event="
@@ -987,7 +1020,6 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   + "&fields=from,to,relationshipType,relationship,createdAt",
               "Relationships of event",
               journey,
-              DASHBOARD,
               EVENT_PAGE));
     }
 
@@ -1006,44 +1038,41 @@ public class PerfLandMnchTrackerTest extends Simulation {
           relationshipsForEvent);
     }
 
-    /** Capture loads the tracked entity, its enrollment and relationships together. */
     ChainBuilder chain() {
       String enrollmentKey = key + "Enrollment";
       String eventKey = key + "Event";
-      return exec(
-          group(DASHBOARD)
+      return exec(group(DASHBOARD)
               .on(
                   exec(trackedEntityWithEvents
                           .action()
                           .check(jsonPath("$.enrollments[*]").count().gte(1))
                           .check(jsonPath("$.enrollments[0].enrollment").saveAs(enrollmentKey))
                           .check(jsonPath("$.enrollments[0].events[*]").count().gte(1))
-                          .check(jsonPath("$.enrollments[0].events[0].event").saveAs(eventKey)))
+                          .check(jsonPath("$.enrollments[0].events[0].event").saveAs(eventKey))
+                          .resources(
+                              trackedEntity
+                                  .action()
+                                  .check(jsonPath("$.enrollments[*]").count().gte(1)),
+                              enrollment.action().check(jsonPath("$.enrollment").exists())))
+                      // A child is linked to its mother when she is enrolled in ANC, so it has
+                      // none or one.
                       .exec(
-                          trackedEntity.action().check(jsonPath("$.enrollments[*]").count().gte(1)))
-                      .doIf(session -> session.contains(enrollmentKey))
-                      .then(
-                          exec(enrollment.action().check(jsonPath("$.enrollment").exists()))
-                              // A child is linked to its mother when she is enrolled in ANC, so it
-                              // has none or one.
-                              .exec(
-                                  relationshipsForTrackedEntity
+                          relationshipsForTrackedEntity
+                              .action()
+                              .check(jsonPath("$.relationships").exists()))))
+          .pause(1, 3) // user reads enrollment details, opens the event
+          .doIf(session -> session.contains(eventKey))
+          .then(
+              group(EVENT_PAGE)
+                  .on(
+                      exec(
+                          event
+                              .action()
+                              .check(jsonPath("$.event").exists())
+                              .resources(
+                                  relationshipsForEvent
                                       .action()
-                                      .check(jsonPath("$.relationships").exists()))
-                              .pause(1, 3) // user reads enrollment details
-                              // User clicks on event within enrollment
-                              .doIf(session -> session.contains(eventKey))
-                              .then(
-                                  group(EVENT_PAGE)
-                                      .on(
-                                          exec(event.action().check(jsonPath("$.event").exists()))
-                                              .exec(
-                                                  relationshipsForEvent
-                                                      .action()
-                                                      .check(
-                                                          jsonPath("$.relationships[*]")
-                                                              .count()
-                                                              .is(0))))))));
+                                      .check(jsonPath("$.relationships[*]").count().is(0))))));
     }
   }
 
