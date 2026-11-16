@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.security;
 
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -72,8 +71,7 @@ class CrossOriginProtectionTest extends AuthenticationApiTestBase {
 
   @BeforeEach
   void setUpAllowlist() {
-    // setCorsWhitelist may declare a checked exception for invalid entries; this entry is valid
-    assertDoesNotThrow(() -> configurationService.setCorsWhitelist(Set.of(ALLOWLISTED_ORIGIN)));
+    configurationService.setCorsWhitelist(Set.of(ALLOWLISTED_ORIGIN));
   }
 
   @ParameterizedTest
