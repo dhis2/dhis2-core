@@ -114,7 +114,8 @@ public interface UserAccountService {
 
   /**
    * Whether this account should recover an expired password via email token rather than the
-   * old-password self-service path. True only when account recovery is enabled and {@link
+   * old-password self-service path. True only when account recovery is enabled, {@code
+   * server.base.url} is configured, the user's email is verified and {@link
    * UserService#validateRestore(User)} succeeds (valid email, not external auth, email sender
    * configured including SMTP password). When true, login should return {@code
    * PASSWORD_EXPIRED_EMAIL_RECOVERY} and the expired-password self-service update must reject the

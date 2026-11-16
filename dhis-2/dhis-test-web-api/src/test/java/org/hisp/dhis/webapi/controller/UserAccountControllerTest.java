@@ -231,8 +231,10 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     String oldPassword = "Str0ng_old_1!";
     String newPassword = "Str0ng_new_1!";
     User user = createExpiredUser("expiredemail", oldPassword);
-    // createUserWithAuth sets email username@dhis2.org; enable recovery + email settings so
-    // validateRestore succeeds (FakeMessageSender is always configured in tests).
+    // createUserWithAuth sets email username@dhis2.org; verify it and enable recovery + email
+    // settings so validateRestore succeeds (FakeMessageSender is always configured in tests).
+    user.setVerifiedEmail(user.getEmail());
+    userService.updateUser(user);
     settingsService.put("keyAccountRecovery", true);
     settingsService.put("keyEmailHostName", "mail.example.com");
     settingsService.put("keyEmailUsername", "noreply");
@@ -255,14 +257,27 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     assertFalse(userService.userNonExpired(updated));
   }
 
-  @Test
-  @DisplayName("Expired user without email can still change password when recovery is enabled")
-  void testUpdatePasswordExpiredNoEmailOk() {
+  static Stream<Arguments> expiredOldPasswordPathCases() {
+    return Stream.of(
+        arguments("no email", null, false, "http://localhost:8080"),
+        arguments("unverified email", "expiredold@dhis2.org", false, "http://localhost:8080"),
+        arguments("server base URL unset", "expiredold@dhis2.org", true, ""));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("expiredOldPasswordPathCases")
+  @DisplayName("Expired user keeps auth/updatePassword when email recovery cannot complete")
+  void testUpdatePasswordExpiredOldPasswordPathOk(
+      String description, String email, boolean emailVerified, String serverBaseUrl) {
     String oldPassword = "Str0ng_old_1!";
     String newPassword = "Str0ng_new_1!";
-    User user = createExpiredUser("expirednoem", oldPassword);
-    user.setEmail(null);
+    User user = createExpiredUser("expiredold", oldPassword);
+    user.setEmail(email);
+    user.setVerifiedEmail(emailVerified ? email : null);
     userService.updateUser(user);
+    configurationProvider
+        .getProperties()
+        .put(ConfigurationKey.SERVER_BASE_URL.getKey(), serverBaseUrl);
     settingsService.put("keyAccountRecovery", true);
     settingsService.put("keyEmailHostName", "mail.example.com");
     settingsService.put("keyEmailUsername", "noreply");

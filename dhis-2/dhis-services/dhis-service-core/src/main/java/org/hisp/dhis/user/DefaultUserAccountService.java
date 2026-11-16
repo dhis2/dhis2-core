@@ -278,7 +278,15 @@ public class DefaultUserAccountService implements UserAccountService {
     if (user == null) {
       return false;
     }
+    // Mirror the preconditions of forgotPassword, so the reset mail can be sent and used.
     if (!settingsProvider.getCurrentSettings().getAccountRecoveryEnabled()) {
+      return false;
+    }
+    if (StringUtils.isEmpty(configProvider.getServerBaseUrl())) {
+      return false;
+    }
+    // Only a verified address is trusted to receive the reset token.
+    if (!user.isEmailVerified()) {
       return false;
     }
     // validateRestore: valid email, not external auth, and email sender configured

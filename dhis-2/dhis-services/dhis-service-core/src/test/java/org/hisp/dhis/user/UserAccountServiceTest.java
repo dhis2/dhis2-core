@@ -230,17 +230,25 @@ class UserAccountServiceTest {
         .thenReturn(SystemSettings.of(Map.of("keyAccountRecovery", "false")));
   }
 
+  /** A user whose verified email address would let a reset mail be sent and used. */
+  private User emailRecoverableUser() {
+    User user = expiredPasswordUser();
+    user.setEmail("mia@dhis2.org");
+    user.setVerifiedEmail("mia@dhis2.org");
+    return user;
+  }
+
   private void stubEmailRecoveryAvailable(User user) {
     when(settingsService.getCurrentSettings())
         .thenReturn(SystemSettings.of(Map.of("keyAccountRecovery", "true")));
+    when(configProvider.getServerBaseUrl()).thenReturn("https://dhis2.example.org");
     when(userService.validateRestore(user)).thenReturn(null);
   }
 
   @Test
   @DisplayName("updateExpiredPassword rejects when email recovery is available for the account")
   void updateExpiredPasswordEmailRecoveryRequiredTest() {
-    User user = expiredPasswordUser();
-    user.setEmail("mia@dhis2.org");
+    User user = emailRecoverableUser();
     when(userService.getUserByUsername("mia")).thenReturn(user);
     when(userService.isRecoveryLocked("mia")).thenReturn(false);
     when(passwordManager.matches("Old_pw1!", "encoded-old")).thenReturn(true);
@@ -261,8 +269,7 @@ class UserAccountServiceTest {
   @DisplayName(
       "canUseEmailPasswordRecovery is true only when recovery is enabled and restore validates")
   void canUseEmailPasswordRecoveryTest() {
-    User user = expiredPasswordUser();
-    user.setEmail("mia@dhis2.org");
+    User user = emailRecoverableUser();
 
     when(settingsService.getCurrentSettings())
         .thenReturn(SystemSettings.of(Map.of("keyAccountRecovery", "false")));
@@ -270,6 +277,7 @@ class UserAccountServiceTest {
 
     when(settingsService.getCurrentSettings())
         .thenReturn(SystemSettings.of(Map.of("keyAccountRecovery", "true")));
+    when(configProvider.getServerBaseUrl()).thenReturn("https://dhis2.example.org");
     when(userService.validateRestore(user)).thenReturn(ErrorCode.E6203);
     assertFalse(userAccountService.canUseEmailPasswordRecovery(user));
 
@@ -277,6 +285,32 @@ class UserAccountServiceTest {
     assertTrue(userAccountService.canUseEmailPasswordRecovery(user));
 
     assertFalse(userAccountService.canUseEmailPasswordRecovery(null));
+  }
+
+  @Test
+  @DisplayName("canUseEmailPasswordRecovery is false when server.base.url is not configured")
+  void canUseEmailPasswordRecoveryNoServerBaseUrlTest() {
+    User user = emailRecoverableUser();
+    when(settingsService.getCurrentSettings())
+        .thenReturn(SystemSettings.of(Map.of("keyAccountRecovery", "true")));
+    when(configProvider.getServerBaseUrl()).thenReturn(null);
+
+    assertFalse(userAccountService.canUseEmailPasswordRecovery(user));
+    verify(userService, never()).validateRestore(any(User.class));
+  }
+
+  @Test
+  @DisplayName("canUseEmailPasswordRecovery is false when the current email is not verified")
+  void canUseEmailPasswordRecoveryUnverifiedEmailTest() {
+    User user = emailRecoverableUser();
+    // The address was changed after the old one was verified.
+    user.setEmail("mia.new@dhis2.org");
+    when(settingsService.getCurrentSettings())
+        .thenReturn(SystemSettings.of(Map.of("keyAccountRecovery", "true")));
+    when(configProvider.getServerBaseUrl()).thenReturn("https://dhis2.example.org");
+
+    assertFalse(userAccountService.canUseEmailPasswordRecovery(user));
+    verify(userService, never()).validateRestore(any(User.class));
   }
 
   @Test
