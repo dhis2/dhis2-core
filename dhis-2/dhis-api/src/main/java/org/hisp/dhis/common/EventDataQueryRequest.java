@@ -37,7 +37,15 @@ import static org.hisp.dhis.common.CustomDateHelper.getCustomDateFilters;
 import static org.hisp.dhis.common.CustomDateHelper.getDimensionsWithRefactoredPeDimension;
 import static org.hisp.dhis.common.CustomDateHelper.isPeDimension;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_FREE_RANGE_SEPARATOR;
+import static org.hisp.dhis.common.DimensionConstants.STATIC_DATE_DIMENSIONS;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.feedback.ErrorCode.E7139;
+import static org.hisp.dhis.feedback.ErrorCode.E7270;
+import static org.hisp.dhis.util.DateUtils.safeParseDate;
 import static org.hisp.dhis.util.OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria;
 
 import java.util.Arrays;
@@ -310,6 +318,10 @@ public class EventDataQueryRequest {
         criteria.setDimension(new HashSet<>());
       }
 
+      if (criteria.isAggregateEndpoint()) {
+        rejectDateRangeDimensions(criteria.getDimension());
+      }
+
       Set<String> dimensions;
 
       if (criteria.isQueryEndpoint() || (criteria.isAggregateEndpoint())) {
@@ -366,6 +378,45 @@ public class EventDataQueryRequest {
       return Arrays.stream(DIMENSION_OR_SEPARATOR.split(dimension)).collect(Collectors.toSet());
     }
 
+    /**
+     * Rejects a time dimension holding a date range, such as {@code
+     * ENROLLMENT_DATE:2026-11-01_2026-12-31}. Aggregate queries group rows by each dimension, and a
+     * date range is meant to restrict rows, which is what a filter does. Runs on the dimensions as
+     * given in the request, before date request params such as {@code incidentDate} are merged into
+     * the period dimension, so a range given through those params is still accepted.
+     *
+     * @param dimensions the dimensions as given in the request.
+     * @throws IllegalQueryException if a time dimension holds a date range.
+     */
+    private static void rejectDateRangeDimensions(Set<String> dimensions) {
+      for (Set<String> group : getGrouped(dimensions)) {
+        for (String dimension : group) {
+          if (isTimeDimension(getDimensionFromParam(dimension))
+              && getDimensionItemsFromParam(dimension).stream()
+                  .anyMatch(ExtendedEventDataQueryRequestBuilder::isDateRange)) {
+            throw new IllegalQueryException(new ErrorMessage(E7270, dimension));
+          }
+        }
+      }
+    }
+
+    private static boolean isTimeDimension(String dimensionId) {
+      return PERIOD_DIM_ID.equals(dimensionId) || STATIC_DATE_DIMENSIONS.contains(dimensionId);
+    }
+
+    /**
+     * Checks whether the given period item is a date range in {@code YYYY-MM-DD_YYYY-MM-DD} or
+     * {@code YYYYMMDD_YYYYMMDD} format, optionally followed by a date field, such as {@code
+     * 2026-11-01_2026-12-31:ENROLLMENT_DATE}. A range of a single day counts as a range.
+     */
+    private static boolean isDateRange(String item) {
+      String[] dates = substringBefore(item, DIMENSION_NAME_SEP).split(PERIOD_FREE_RANGE_SEPARATOR);
+
+      return dates.length == 2
+          && safeParseDate(dates[0]) != null
+          && safeParseDate(dates[1]) != null;
+    }
+
     public EventDataQueryRequestBuilder fromCriteria(EnrollmentAnalyticsQueryCriteria criteria) {
       EventDataQueryRequestBuilder builder =
           // Enrollment requests always resolve items against the enrollment analytics table.
@@ -412,6 +463,10 @@ public class EventDataQueryRequest {
 
       if (criteria.getDimension() == null) {
         criteria.setDimension(new HashSet<>());
+      }
+
+      if (criteria.isAggregateEndpoint()) {
+        rejectDateRangeDimensions(criteria.getDimension());
       }
 
       Set<String> dimensions;
