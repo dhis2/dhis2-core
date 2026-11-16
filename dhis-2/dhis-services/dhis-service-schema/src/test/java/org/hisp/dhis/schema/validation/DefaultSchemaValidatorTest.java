@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import java.util.stream.IntStream;
 import lombok.Builder;
 import lombok.Setter;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -58,6 +59,8 @@ import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * This is a unit test for the {@link DefaultSchemaValidator}.
@@ -346,20 +349,19 @@ class DefaultSchemaValidatorTest {
     assertNoError(SimpleFields.builder().string("valid").list(asList(1, 2, 3)).build());
   }
 
-  @Test
-  void testScalarCollectionSizeHasTheSameValidationAsMaterializedCollection() {
-    for (List<Integer> values :
-        List.of(List.<Integer>of(), List.of(1, 2, 3), List.of(1, 2, 3, 4, 5))) {
-      var property = schema.getProperty("list");
-      List<ErrorReport> materialized =
-          validator.validateProperty(property, SimpleFields.builder().list(values).build());
-      List<ErrorReport> scalar =
-          validator.validateCollectionSize(property, SimpleFields.class, values.size());
-      assertEquals(materialized.size(), scalar.size());
-      if (!scalar.isEmpty()) {
-        assertEquals(materialized.get(0).getErrorCode(), scalar.get(0).getErrorCode());
-        assertEquals(materialized.get(0).getMessage(), scalar.get(0).getMessage());
-      }
+  /** The property allows 2 to 4 items: sizes below, inside and above that range. */
+  @ParameterizedTest
+  @ValueSource(ints = {0, 3, 5})
+  void testScalarCollectionSizeHasTheSameValidationAsMaterializedCollection(int size) {
+    List<Integer> values = IntStream.rangeClosed(1, size).boxed().toList();
+    var property = schema.getProperty("list");
+    List<ErrorReport> materialized =
+        validator.validateProperty(property, SimpleFields.builder().list(values).build());
+    List<ErrorReport> scalar = validator.validateCollectionSize(property, SimpleFields.class, size);
+    assertEquals(materialized.size(), scalar.size());
+    if (!scalar.isEmpty()) {
+      assertEquals(materialized.get(0).getErrorCode(), scalar.get(0).getErrorCode());
+      assertEquals(materialized.get(0).getMessage(), scalar.get(0).getMessage());
     }
   }
 
