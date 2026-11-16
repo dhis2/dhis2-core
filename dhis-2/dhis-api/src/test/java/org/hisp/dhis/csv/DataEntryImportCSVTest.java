@@ -367,7 +367,7 @@ class DataEntryImportCSVTest {
 
   @Test
   void testBackslashEscapesForOtherCharsPreservedVerbatim() {
-    // No unescaping at all: \\ stays as \\, \n stays as the two chars \ and n
+    // No un-escaping at all: \\ stays as \\, \n stays as the two chars \ and n
     List<DataEntryValue.Input> values =
         read(
             """
@@ -384,9 +384,6 @@ class DataEntryImportCSVTest {
 
   @Test
   void testQuoteInsideUnquotedValueRejected() {
-    // currently: throws "Quoted value is not terminated" because skipQuotes
-    // scans the rest of the file looking for a closing quote that never
-    // comes. After fix: quote is caught at the point it is seen.
     IllegalArgumentException ex =
         assertThrowsExactly(
             IllegalArgumentException.class,
@@ -402,9 +399,6 @@ class DataEntryImportCSVTest {
 
   @Test
   void testQuoteInsideUnquotedValueWithMatchingQuoteRejected() {
-    // currently: silently parses value as the literal string  ab"cd"
-    // (6 chars including both quotes) with no error. After fix: throws
-    // before the mid-field quote is consumed.
     IllegalArgumentException ex =
         assertThrowsExactly(
             IllegalArgumentException.class,
@@ -420,8 +414,6 @@ class DataEntryImportCSVTest {
 
   @Test
   void testQuoteInsideUnquotedHeaderRejected() {
-    // currently: throws "Quoted value is not terminated" while scanning
-    // forward from the stray quote. After fix: errors at the header cell.
     IllegalArgumentException ex =
         assertThrowsExactly(
             IllegalArgumentException.class,
@@ -438,13 +430,9 @@ class DataEntryImportCSVTest {
   // ----------------------------------------------------------------
   // After a quoted field's closing quote, only whitespace may precede the
   // delimiter (comma or line break). Any other character is a malformed
-  // field: the writer either forgot a delimiter or emitted stray bytes.
 
   @Test
   void testContentAfterClosingQuoteRejected() {
-    // currently: silently splits into two fields ["abc", "def"] and
-    // shifts the remaining columns. After fix: throws at the offending
-    // character.
     IllegalArgumentException ex =
         assertThrowsExactly(
             IllegalArgumentException.class,
@@ -461,9 +449,6 @@ class DataEntryImportCSVTest {
 
   @Test
   void testContentAfterClosingQuoteInHeaderRejected() {
-    // currently: header parses as ["data", "Element", "period", ...],
-    // mangling the column names. After fix: throws during header read,
-    // before any data rows are examined.
     IllegalArgumentException ex =
         assertThrowsExactly(
             IllegalArgumentException.class,
@@ -500,9 +485,7 @@ class DataEntryImportCSVTest {
 
   @Test
   void testWhitespaceAfterClosingQuoteStillAllowed() {
-    // whitespace between closing quote and comma is tolerated (Javadoc:
-    // "Space and tab between the closing quote and the delimiter or line
-    // end are tolerated").
+    // whitespace between closing quote and comma is tolerated
     List<DataEntryValue.Input> values =
         read(
             """
@@ -536,9 +519,7 @@ class DataEntryImportCSVTest {
   @Test
   void testCompleteRowAtExactBufferBoundary() {
     // Buffer in CSV.Reader is 2048 chars. A 2048-char CSV with no trailing
-    // newline forces a second read() after the initial fill; StringReader
-    // returns -1, which the current fillBufferTail mishandles (len ends up
-    // keepLen - 1, dropping the last char).
+    // newline forces a second read() after the initial fill;
     record Row(String v) {}
 
     StringBuilder csv = new StringBuilder("v\n");
@@ -556,12 +537,7 @@ class DataEntryImportCSVTest {
     record Row(String a, String b) {}
 
     // Close quote at index 2047, whitespace fills to the end of the buffer,
-    // then the separator + y arrive in the refill. Exercises the
-    // skipIndent(p) == len && !eoi path in skipValue.
-    // Prefix "a,b\n" = 4 chars, close quote at 2047 → 2042 x's.
-    // Whitespace "     " (5) brings us to 2053... no, that's past the buffer.
-    // Adjust: close quote earlier, so whitespace ends exactly at 2047.
-    // "a,b\n" + `"` + 2041 x's + `"` + 1 space = 2048.
+    // then the separator + y arrive in the refill.
     String csv = "a,b\n\"" + "x".repeat(2041) + "\" ,y\r\n";
 
     List<Row> rows = CSV.of(csv).as(Row.class).list();
@@ -570,12 +546,6 @@ class DataEntryImportCSVTest {
     assertEquals("y", rows.get(0).b());
   }
 
-  /**
-   * RFC 4180 has no backslash escaping: a backslash inside a quoted value has no special meaning
-   * and a value may end in one. Before the backslash-escape feature was removed, the closing quote
-   * following the trailing backslash was consumed as escaped, and the whole file failed with
-   * "Quoted value is not terminated" (S2).
-   */
   @Test
   void testQuotedValueEndingInBackslash() {
     // Value:  C:\data, dir\
@@ -686,8 +656,6 @@ class DataEntryImportCSVTest {
   void testDuplicateHeaderNameCaseInsensitiveRejected() {
     // b and B both resolve to component "b" via the lowercase lookup in
     // columnToComponentIndexMapping, so they must be rejected as duplicates.
-    // Message reports the second occurrence as written ("B"); switch to "b"
-    // if the implementation normalises to lowercase before reporting.
     record Row(String a, String b, String c) {}
     IllegalArgumentException ex =
         assertThrowsExactly(
@@ -770,7 +738,7 @@ class DataEntryImportCSVTest {
     record Row(String v) {}
     Iterator<Row> it = CSV.of("v\n1\n2\n").as(Row.class).iterator();
     // Contract: next() returns the next element without requiring hasNext()
-    // first. Currently throws NoSuchElementException ("next == null").
+    // first.
     assertEquals("1", it.next().v());
     assertEquals("2", it.next().v());
     assertThrowsExactly(NoSuchElementException.class, it::next);
@@ -784,8 +752,6 @@ class DataEntryImportCSVTest {
     assertTrue(it.hasNext());
     assertTrue(it.hasNext());
     // Multiple hasNext() calls must not consume a row; next() returns "1".
-    // Currently the third call hits EOI and returns false, and next() would
-    // return "2" because the pending slot was overwritten.
     assertEquals("1", it.next().v());
     assertEquals("2", it.next().v());
     assertFalse(it.hasNext());
@@ -798,8 +764,7 @@ class DataEntryImportCSVTest {
     assertTrue(it.hasNext());
     assertEquals("1", it.next().v());
     // Second next() without an intervening hasNext() must throw, not
-    // return "1" again. Currently `next` is still `true`, so the second
-    // call returns "1" a second time and the whole file is duplicated.
+    // return "1" again.
     assertThrowsExactly(NoSuchElementException.class, it::next);
     assertFalse(it.hasNext());
     assertThrowsExactly(NoSuchElementException.class, it::next);
@@ -888,7 +853,7 @@ class DataEntryImportCSVTest {
     assertEquals("3", rN.c());
   }
 
-  /** S4: first read ends right after the header comma ({@code a,}). */
+  /** first read ends right after the header comma ({@code a,}). */
   @Test
   void testShortReadEndingAfterHeaderComma() {
     record Row(String a, String b, String c) {}
@@ -914,7 +879,7 @@ class DataEntryImportCSVTest {
     assertEquals("3", rows.get(0).c());
   }
 
-  /** S4: an extra column arrives in the refill right after the last comma. */
+  /** extra column arrives in the refill right after the last comma. */
   @Test
   void testShortReadEndingAfterDataComma() {
     record Row(String a, String b) {}

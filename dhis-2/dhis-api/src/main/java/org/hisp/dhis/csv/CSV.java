@@ -164,6 +164,8 @@ public final class CSV {
    */
   static final int DEFAULT_MAX_VALUE_LENGTH = 50000;
 
+  static final int INITIAL_BUFFER_SIZE = 2048;
+
   /**
    * Can be put on a {@link Map} component that will receive all colum values in the input that are
    * not mapped otherwise
@@ -562,7 +564,7 @@ public final class CSV {
       this.as = as;
       this.maxValueLength = maxValueLength;
       this.bufferCap = Math.addExact(Math.multiplyExact(maxValueLength, 2), 3);
-      this.buffer = new char[Math.min(2048, bufferCap)];
+      this.buffer = new char[Math.min(INITIAL_BUFFER_SIZE, bufferCap)];
     }
 
     @Nonnull
