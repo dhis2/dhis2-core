@@ -105,7 +105,9 @@ public class RedisSpringSessionConfig {
   public UserDetailsChangeTracker userDetailsChangeTracker(
       @Qualifier("stringRedisTemplate") StringRedisTemplate stringRedisTemplate) {
     return new RedisUserDetailsChangeTracker(
-        stringRedisTemplate, UserDetailsRefreshSettings.changeTokenTimeToLive(config));
+        stringRedisTemplate,
+        UserDetailsRefreshSettings.changeTokenTimeToLive(
+            config.getProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT)));
   }
 
   @Bean

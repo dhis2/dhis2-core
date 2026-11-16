@@ -38,6 +38,7 @@ import java.util.function.LongSupplier;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.condition.RedisDisabledCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
@@ -63,7 +64,10 @@ public class InMemoryUserDetailsChangeTracker implements UserDetailsChangeTracke
 
   @Autowired
   public InMemoryUserDetailsChangeTracker(DhisConfigurationProvider config) {
-    this(UserDetailsRefreshSettings.changeTokenTimeToLive(config), System::currentTimeMillis);
+    this(
+        UserDetailsRefreshSettings.changeTokenTimeToLive(
+            config.getProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT)),
+        System::currentTimeMillis);
   }
 
   InMemoryUserDetailsChangeTracker(Duration timeToLive, LongSupplier clock) {

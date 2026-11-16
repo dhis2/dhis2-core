@@ -44,6 +44,7 @@ import java.util.concurrent.locks.Lock;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.DhisAuthenticationToken;
 import org.hisp.dhis.security.DhisAuthenticationToken.LoginMethod;
@@ -135,7 +136,11 @@ public class UserDetailsSessionRefresher {
       UserDetailsChangeTracker userDetailsChangeTracker,
       UserService userService,
       DhisConfigurationProvider config) {
-    this(userDetailsChangeTracker, userService, UserDetailsRefreshSettings.refreshInterval(config));
+    this(
+        userDetailsChangeTracker,
+        userService,
+        UserDetailsRefreshSettings.refreshInterval(
+            config.getProperty(ConfigurationKey.SYSTEM_SESSION_USER_DETAILS_REFRESH_INTERVAL)));
     log.info(
         describeSettings(userDetailsChangeTracker.getChangeTokenTimeToLive(), refreshInterval));
   }

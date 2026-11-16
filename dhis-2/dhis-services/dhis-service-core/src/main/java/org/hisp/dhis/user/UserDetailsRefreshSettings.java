@@ -36,12 +36,11 @@ import java.time.Duration;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
 /**
- * Reads the configuration of the refresh of session principals, see {@link
+ * Parses the configuration of the refresh of session principals, see {@link
  * UserDetailsChangeTracker}, and logs a warning for every value that switches a part of it off or
- * that cannot be used.
+ * that cannot be used. Callers pass the raw values of {@code dhis.conf}.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -56,19 +55,18 @@ public final class UserDetailsRefreshSettings {
    * expiry. Change tokens must live at least as long as the sessions that check them, and such a
    * timeout does not expire sessions in time, or not at all.
    *
-   * @param config the configuration
+   * @param sessionTimeout the value of {@code system.session.timeout}
    * @return the time to live of a change token, zero for no expiry
    */
   @Nonnull
-  public static Duration changeTokenTimeToLive(@Nonnull DhisConfigurationProvider config) {
-    String value = config.getProperty(SYSTEM_SESSION_TIMEOUT);
-    Integer seconds = parseSeconds(value);
+  public static Duration changeTokenTimeToLive(@CheckForNull String sessionTimeout) {
+    Integer seconds = parseSeconds(sessionTimeout);
     if (seconds == null || seconds <= 0) {
       log.warn(
           "{} is '{}', not a positive number of seconds: changes of users are remembered for the"
               + " session refresh without expiry",
           SYSTEM_SESSION_TIMEOUT.getKey(),
-          value);
+          sessionTimeout);
       return Duration.ZERO;
     }
     return Duration.ofSeconds(seconds);
@@ -79,19 +77,18 @@ public final class UserDetailsRefreshSettings {
    * Zero turns that timed rebuild off. A value that is not a number of seconds of zero or more
    * gives the default interval.
    *
-   * @param config the configuration
+   * @param refreshInterval the value of {@code system.session.user_details_refresh_interval}
    * @return the refresh interval, zero when the timed rebuild is off
    */
   @Nonnull
-  public static Duration refreshInterval(@Nonnull DhisConfigurationProvider config) {
-    String value = config.getProperty(SYSTEM_SESSION_USER_DETAILS_REFRESH_INTERVAL);
-    Integer seconds = parseSeconds(value);
+  public static Duration refreshInterval(@CheckForNull String refreshInterval) {
+    Integer seconds = parseSeconds(refreshInterval);
     if (seconds == null || seconds < 0) {
       String defaultValue = SYSTEM_SESSION_USER_DETAILS_REFRESH_INTERVAL.getDefaultValue();
       log.warn(
           "{} is '{}', not a number of seconds of 0 or more: using the default of {} seconds",
           SYSTEM_SESSION_USER_DETAILS_REFRESH_INTERVAL.getKey(),
-          value,
+          refreshInterval,
           defaultValue);
       return Duration.ofSeconds(Integer.parseInt(defaultValue));
     }
