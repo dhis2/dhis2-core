@@ -917,6 +917,22 @@ class DataEntryImportCSVTest {
         "CSV input error at line 2 column 1: Quoted value is not terminated", ex.getMessage());
   }
 
+  @Test
+  void testLineRestoredAfterRefillRescan() {
+    record Row(String a) {}
+
+    // maxValueLength=15 → bufferCap = 2*15+3 = 33, initial buffer = 33.
+    String csv = "a\n\"abc\ndef\"" + " ".repeat(22) + "xyz\n";
+
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class,
+            () -> CSV.of(csv).maxValueLength(15).as(Row.class).list());
+    assertEquals(
+        "CSV input error at line 3 column 1: Unexpected character after closing quote",
+        ex.getMessage());
+  }
+
   private static List<DataEntryValue.Input> read(@Language("csv") String csv) {
     return CSV.of(csv).as(DataEntryValue.Input.class).list();
   }
