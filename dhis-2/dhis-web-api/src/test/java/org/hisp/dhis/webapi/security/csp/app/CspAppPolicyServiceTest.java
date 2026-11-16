@@ -164,7 +164,7 @@ class CspAppPolicyServiceTest {
   @Test
   void reportsBaseOverride_allowsInlineScriptsOnTheReportsAppEntrypointOnly() {
     assertEquals(
-        Set.of("'self'", "'unsafe-inline'"),
+        Set.of("'self'", "'unsafe-inline'", "'unsafe-eval'"),
         sources(compose("reports", "app", null).contentSecurityPolicy(), "script-src"));
     for (String ep : List.of("plugin", "worker", "*")) {
       assertTrue(
@@ -174,20 +174,21 @@ class CspAppPolicyServiceTest {
       for (String ep : CspEntrypoints.KEYS) {
         String policy = compose(app, ep, null).contentSecurityPolicy();
         assertFalse(sources(policy, "script-src").contains("'unsafe-inline'"), policy);
+        assertFalse(sources(policy, "script-src").contains("'unsafe-eval'"), policy);
       }
     }
     assertEquals(
-        List.of("app script-src 'unsafe-inline'"), CspBaseOverrides.unsafeTokens("reports", true));
+        List.of("app script-src 'unsafe-inline'", "app script-src 'unsafe-eval'"),
+        CspBaseOverrides.unsafeTokens("reports", true));
 
     EntrypointOverride disabled =
         new EntrypointOverride(
             null, new SourceChanges(Map.of(), List.of("script-src 'unsafe-inline'")), null);
-    assertTrue(
+    assertEquals(
+        Set.of("'self'", "'unsafe-eval'"),
         sources(
-                compose("reports", "app", override(Map.of("app", disabled)))
-                    .contentSecurityPolicy(),
-                "script-src")
-            .isEmpty());
+            compose("reports", "app", override(Map.of("app", disabled))).contentSecurityPolicy(),
+            "script-src"));
   }
 
   @Test

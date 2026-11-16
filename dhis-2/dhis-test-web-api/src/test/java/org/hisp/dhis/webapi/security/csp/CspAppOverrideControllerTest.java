@@ -221,7 +221,7 @@ class CspAppOverrideControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void reportsInlineScripts_areShippedForTheReportsAppEntrypointOnly() {
     assertEquals(
-        List.of("'self'", "'unsafe-inline'"),
+        List.of("'self'", "'unsafe-inline'", "'unsafe-eval'"),
         sources(header("/apps/reports/index.html", CSP), "script-src"));
     assertTrue(sources(header("/apps/reports/service-worker.js", CSP), "script-src").isEmpty());
     for (String path :
@@ -230,12 +230,14 @@ class CspAppOverrideControllerTest extends H2ControllerIntegrationTestBase {
             "/apps/maps/plugin.html",
             "/apps/other-app/index.html",
             "/apps/other-app/plugin.html")) {
-      assertFalse(sources(header(path, CSP), "script-src").contains("'unsafe-inline'"), path);
+      List<String> scriptSrc = sources(header(path, CSP), "script-src");
+      assertFalse(scriptSrc.contains("'unsafe-inline'"), path);
+      assertFalse(scriptSrc.contains("'unsafe-eval'"), path);
     }
     assertTrue(sources(header("/apps/other-app/index.html", CSP), "script-src").isEmpty());
 
     assertEquals(
-        List.of("app script-src 'unsafe-inline'"),
+        List.of("app script-src 'unsafe-inline'", "app script-src 'unsafe-eval'"),
         GET("/security/csp/apps/reports")
             .content(HttpStatus.OK)
             .getArray("baseUnsafeTokens")
