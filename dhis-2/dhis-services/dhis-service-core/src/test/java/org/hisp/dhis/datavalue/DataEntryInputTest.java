@@ -433,16 +433,16 @@ class DataEntryInputTest {
   @ValueSource(strings = {"true", "\"true\"", "\"TRUE\"", "1"})
   void testFromJson_BooleansTrue(String bool) {
     DataEntryValue.Input dv = valueOf("\"followUp\": " + bool + ", \"deleted\": " + bool);
-    assertEquals(true, dv.followUp());
-    assertEquals(true, dv.deleted());
+    assertTrue(dv.followUp());
+    assertTrue(dv.deleted());
   }
 
   @ParameterizedTest
   @ValueSource(strings = {"false", "\"false\"", "\"FALSE\"", "0"})
   void testFromJson_BooleansFalse(String bool) {
     DataEntryValue.Input dv = valueOf("\"followUp\": " + bool + ", \"deleted\": " + bool);
-    assertEquals(false, dv.followUp());
-    assertEquals(false, dv.deleted());
+    assertFalse(dv.followUp());
+    assertFalse(dv.deleted());
   }
 
   @Test
@@ -485,10 +485,10 @@ class DataEntryInputTest {
   @Test
   void testFromJson_FollowupLowerCase() {
     // 2.42 and the 2.43 JSON export use "followup"
-    assertEquals(true, valueOf("\"followup\": true").followUp());
-    assertEquals(false, valueOf("\"followup\": \"false\"").followUp());
+    assertTrue(valueOf("\"followup\": true").followUp());
+    assertFalse(valueOf("\"followup\": \"false\"").followUp());
     // the documented name wins when both are present
-    assertEquals(true, valueOf("\"followUp\": true, \"followup\": false").followUp());
+    assertTrue(valueOf("\"followUp\": true, \"followup\": false").followUp());
   }
 
   @Test

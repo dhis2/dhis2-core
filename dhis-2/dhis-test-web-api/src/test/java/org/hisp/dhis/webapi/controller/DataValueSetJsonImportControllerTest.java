@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -76,7 +77,7 @@ class DataValueSetJsonImportControllerTest extends AbstractDataValueControllerTe
   @Test
   void testFollowupLowerCase() {
     importJson("\"period\": \"202204\", \"value\": 7, \"followup\": true");
-    assertEquals(true, getValue("202204").getBoolean("followup").booleanValue());
+    assertTrue(getValue("202204").getBoolean("followup").booleanValue());
   }
 
   /** 2.43 counts an upsert of a new value as updated */

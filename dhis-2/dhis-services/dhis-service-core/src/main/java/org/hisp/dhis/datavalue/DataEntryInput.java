@@ -281,43 +281,8 @@ public final class DataEntryInput {
     Map<String, String> aocMap = textMap(aoc);
     Boolean dryRun = bool(dvs.get("dryRun"));
     if (dryRun != null) options.setDryRun(dryRun);
-    // ID schemes
-    String scheme = text(dvs.get("idScheme"));
-    if (scheme != null) schemes.setIdScheme(scheme);
-    scheme = text(dvs.get("dataSetIdScheme"));
-    if (scheme != null) schemes.setDataSetIdScheme(scheme);
-    scheme = text(dvs.get("dataElementIdScheme"));
-    if (scheme != null) schemes.setDataElementIdScheme(scheme);
-    scheme = text(dvs.get("orgUnitIdScheme"));
-    if (scheme != null) schemes.setOrgUnitIdScheme(scheme);
-    scheme = text(dvs.get("categoryOptionComboIdScheme"));
-    if (scheme != null) schemes.setCategoryOptionComboIdScheme(scheme);
-    scheme = text(dvs.get("attributeOptionComboIdScheme"));
-    if (scheme != null) schemes.setAttributeOptionComboIdScheme(scheme);
-    scheme = text(dvs.get("categoryIdScheme"));
-    if (scheme != null) schemes.setCategoryIdScheme(scheme);
-    scheme = text(dvs.get("categoryOptionIdScheme"));
-    if (scheme != null) schemes.setCategoryOptionIdScheme(scheme);
-
-    // deletion scope
-    DataEntryGroup.Input.Scope deletion = null;
-    JsonValue del = dvs.get("deletion");
-    if (!del.isUndefined() && !del.isNull()) {
-      JsonObject scope = object(del);
-      deletion =
-          new DataEntryGroup.Input.Scope(
-              textList(scope.get("orgUnits")),
-              textList(scope.get("periods")),
-              elements(scope.get("elements")).stream()
-                  .map(DataEntryInput::object)
-                  .map(
-                      e ->
-                          new DataEntryGroup.Input.Scope.Element(
-                              requiredText(e.get("dataElement")),
-                              text(e.get("categoryOptionCombo")),
-                              text(e.get("attributeOptionCombo"))))
-                  .toList());
-    }
+    setIdSchemes(dvs, schemes);
+    DataEntryGroup.Input.Scope deletion = deletionScope(dvs.get("deletion"));
 
     // values...
     List<DataEntryValue.Input> values = new ArrayList<>();
@@ -343,6 +308,43 @@ public final class DataEntryInput {
     return List.of(
         new DataEntryGroup.Input(
             ids, ds, completionDate, null, ou, pe, aocId, aocMap, deletion, values));
+  }
+
+  private static void setIdSchemes(@Nonnull JsonObject dvs, @Nonnull IdSchemes schemes) {
+    String scheme = text(dvs.get("idScheme"));
+    if (scheme != null) schemes.setIdScheme(scheme);
+    scheme = text(dvs.get("dataSetIdScheme"));
+    if (scheme != null) schemes.setDataSetIdScheme(scheme);
+    scheme = text(dvs.get("dataElementIdScheme"));
+    if (scheme != null) schemes.setDataElementIdScheme(scheme);
+    scheme = text(dvs.get("orgUnitIdScheme"));
+    if (scheme != null) schemes.setOrgUnitIdScheme(scheme);
+    scheme = text(dvs.get("categoryOptionComboIdScheme"));
+    if (scheme != null) schemes.setCategoryOptionComboIdScheme(scheme);
+    scheme = text(dvs.get("attributeOptionComboIdScheme"));
+    if (scheme != null) schemes.setAttributeOptionComboIdScheme(scheme);
+    scheme = text(dvs.get("categoryIdScheme"));
+    if (scheme != null) schemes.setCategoryIdScheme(scheme);
+    scheme = text(dvs.get("categoryOptionIdScheme"));
+    if (scheme != null) schemes.setCategoryOptionIdScheme(scheme);
+  }
+
+  @CheckForNull
+  private static DataEntryGroup.Input.Scope deletionScope(@Nonnull JsonValue del) {
+    if (del.isUndefined() || del.isNull()) return null;
+    JsonObject scope = object(del);
+    return new DataEntryGroup.Input.Scope(
+        textList(scope.get("orgUnits")),
+        textList(scope.get("periods")),
+        elements(scope.get("elements")).stream()
+            .map(DataEntryInput::object)
+            .map(
+                e ->
+                    new DataEntryGroup.Input.Scope.Element(
+                        requiredText(e.get("dataElement")),
+                        text(e.get("categoryOptionCombo")),
+                        text(e.get("attributeOptionCombo"))))
+            .toList());
   }
 
   /**
