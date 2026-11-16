@@ -162,7 +162,7 @@ public final class CSV {
 
   /**
    * 50000 for no reason other than this is the longest any aggregate data value property allows.
-   * Can be adjusted using {@link CsvConfig#maxValueBufferLength(int)}.
+   * Can be adjusted using {@link CsvConfig#maxValueLength(int)}.
    */
   static final int DEFAULT_MAX_VALUE_LENGTH = 50000;
 
