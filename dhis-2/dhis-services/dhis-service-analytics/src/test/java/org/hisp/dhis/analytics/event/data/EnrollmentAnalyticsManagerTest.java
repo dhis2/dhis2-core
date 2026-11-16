@@ -305,6 +305,23 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyEnrollmentCountOfStageDataElementFilterJoinsStageCteInsteadOfCorrelatedSubquery() {
+    EventQueryParams params =
+        createRequestParamsWithFilter(programStage, ValueType.INTEGER, QueryOperator.GT, "3000");
+
+    subject.getEnrollmentCount(params);
+
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    String countSql = sql.getValue();
+    assertThat(countSql, not(containsString("limit 1")));
+    assertThat(countSql, startsWith("with "));
+    assertThat(countSql, containsString("select count(1) "));
+    assertThat(countSql, containsString("inner join"));
+    assertThat(countSql, containsString(".enrollment = ax.enrollment and "));
+  }
+
+  @Test
   void testBadGrammarExceptionNonMultipleQueries() {
     // Given
     mockEmptyRowSet();

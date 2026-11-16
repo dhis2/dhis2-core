@@ -335,19 +335,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   public long getEnrollmentCount(EventQueryParams params) {
-    Optional<ProgramIndicatorCteSql> programIndicatorCte = getProgramIndicatorCteSql(params);
-    String sql = "select count(1) ";
-
-    sql += getFromClause(params);
-    sql += programIndicatorCte.map(ProgramIndicatorCteSql::joinClause).orElse("");
-
-    String whereClause = getWhereClause(params);
-    sql += whereClause;
-    sql += getAdditionalQueryItemWhereClause(params, whereClause);
-
-    if (programIndicatorCte.isPresent()) {
-      sql = programIndicatorCte.get().withClause() + sql;
-    }
+    String sql = buildAnalyticsCountQuery(params);
 
     long count = 0;
 

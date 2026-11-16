@@ -344,6 +344,13 @@
       }
     },
     {
+      "name": "enrollmentsWithTotalPagesAndRepeatableStageDataElementFilter",
+      "query": "/api/analytics/enrollments/query/ur1Edk5Oe2n.json?dimension=ou:ImspTQPwCqd&dimension=jdRD35YwbRH.zocHNQIQBIN:EQ:POS&outputType=ENROLLMENT&headers=ouname,enrollmentdate&desc=enrollmentdate&totalPages=true&pageSize=10&page=1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "incidentDateFilterForEnrollments",
       "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&filter=INCIDENT_DATE:GT:2022-12-15&desc=lastupdated",
       "version": {
