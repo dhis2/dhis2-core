@@ -2151,9 +2151,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Test
   void verifyEnrollmentCountAppliesProgramIndicatorItemFilterThroughCte() {
-    ProgramIndicator pi =
-        createEnrollmentProgramIndicator(
-            "#{%s.%s}".formatted(programStage.getUid(), dataElementA.getUid()), null);
+    ProgramIndicator pi = createEnrollmentProgramIndicator(stageDataElementExpression(), null);
     stubPiExpressionSql(pi, psdePlaceholder(pi));
     EventQueryParams params = createRequestParams(pi, null);
     params.getItems().get(0).addFilter(new QueryFilter(QueryOperator.GT, "5"));
@@ -2193,9 +2191,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Test
   void verifyEnrollmentQueryAppliesEventProgramIndicatorFilterThroughCte() {
-    ProgramIndicator pi =
-        createProgramIndicator(
-            'X', AnalyticsType.EVENT, programA, stageDataElementExpression(), null);
+    ProgramIndicator pi = createEventProgramIndicator(stageDataElementExpression());
     String expressionSql = "\"" + dataElementA.getUid() + "\"";
     stubPiExpressionSql(pi, expressionSql);
     when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
@@ -2214,8 +2210,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(generatedSql, containsString(alias + ".value > 3000"));
     // A subquery in the outer where clause has no correlation with the enrollment, so it would
     // compare one population-wide value.
-    String outerWhere = generatedSql.substring(generatedSql.lastIndexOf(" where "));
-    assertThat(outerWhere, not(containsString("select")));
+    assertThat(outerWhere(generatedSql), not(containsString("select")));
   }
 
   @Test
@@ -2271,20 +2266,10 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Test
   void verifyEnrollmentQueryScopesRelationshipProgramIndicatorFilterToTheRelationshipType() {
-    ProgramIndicator pi =
-        createProgramIndicator(
-            'X', AnalyticsType.EVENT, programA, stageDataElementExpression(), null);
+    ProgramIndicator pi = createEventProgramIndicator(stageDataElementExpression());
     stubPiExpressionSql(pi, "\"" + dataElementA.getUid() + "\"");
     RelationshipType relationshipType = createRelationshipType();
-    QueryItem item =
-        new QueryItem(
-            pi,
-            pi.getProgram(),
-            null,
-            ValueType.NUMBER,
-            AggregationType.AVERAGE,
-            null,
-            relationshipType);
+    QueryItem item = programIndicatorItem(pi, AggregationType.AVERAGE, relationshipType);
     item.addFilter(new QueryFilter(QueryOperator.GT, "3000"));
 
     subject.getEnrollments(
@@ -2295,7 +2280,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     // The program indicator CTE is keyed by enrollment and carries no relationship type.
     assertThat(cteDefinitionCount(generatedSql, pi.getUid()), is(0));
     assertThat(generatedSql, not(containsString("join " + pi.getUid())));
-    String outerWhere = generatedSql.substring(generatedSql.lastIndexOf(" where "));
+    String outerWhere = outerWhere(generatedSql);
     assertThat(outerWhere, containsString("rty.relationshiptypeid = " + relationshipType.getId()));
     assertThat(outerWhere, containsString("> '3000'"));
   }
@@ -2404,9 +2389,23 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     return "#{%s.%s}".formatted(programStage.getUid(), dataElementA.getUid());
   }
 
+  private ProgramIndicator createEventProgramIndicator(String expression) {
+    return createProgramIndicator('X', AnalyticsType.EVENT, programA, expression, null);
+  }
+
   private QueryItem programIndicatorItem(ProgramIndicator pi) {
+    return programIndicatorItem(pi, pi.getAggregationType(), null);
+  }
+
+  private QueryItem programIndicatorItem(
+      ProgramIndicator pi, AggregationType aggregationType, RelationshipType relationshipType) {
     return new QueryItem(
-        pi, pi.getProgram(), null, ValueType.NUMBER, pi.getAggregationType(), null, null);
+        pi, pi.getProgram(), null, ValueType.NUMBER, aggregationType, null, relationshipType);
+  }
+
+  /** The where clause of the outer query, which follows every CTE and join. */
+  private String outerWhere(String sql) {
+    return sql.substring(sql.lastIndexOf(" where "));
   }
 
   /** Request params with the program indicator in filter= with the given condition. */

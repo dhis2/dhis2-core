@@ -169,30 +169,6 @@ class AggregatedEnrollmentQueryAssemblerTest {
   }
 
   @Test
-  void addStandardColumnsPrefixesPlainColumnsWithAx() {
-    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
-
-    assembler.addStandardColumns(sb, List.of("enrollment", "trackedentity"));
-
-    String sql = sb.build();
-    assertThat(sql, containsString("ax.enrollment"));
-    assertThat(sql, containsString("ax.trackedentity"));
-  }
-
-  @Test
-  void addStandardColumnsAddsFormulaColumnVerbatim() {
-    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
-    String formula = "ST_AsGeoJSON(enrollmentgeometry)";
-
-    assembler.addStandardColumns(sb, List.of(formula));
-
-    String sql = sb.build();
-    // Formula columns are emitted verbatim (no ax. prefix).
-    assertThat(sql, containsString(formula));
-    assertThat(sql, not(containsString("ax." + formula)));
-  }
-
-  @Test
   void addOrgUnitAggregateColumnsEmitsDefaultOuWhenNoLevelColumnsAndNotAggregateEnrollment() {
     SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
     EventQueryParams params = mock(EventQueryParams.class);

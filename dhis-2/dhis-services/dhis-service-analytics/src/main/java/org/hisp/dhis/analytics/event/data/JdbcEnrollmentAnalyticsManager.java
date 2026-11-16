@@ -1245,7 +1245,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
-    aggregatedAssembler.addStandardColumns(sb, getStandardColumns(params));
+    addAnalyticsTableColumns(sb, getStandardColumns(params));
 
     OrgUnitSqlCoordinator.querySelectColumns(
             TrackerOrgUnitDimension.REGISTRATION_OU, params, sqlBuilder)

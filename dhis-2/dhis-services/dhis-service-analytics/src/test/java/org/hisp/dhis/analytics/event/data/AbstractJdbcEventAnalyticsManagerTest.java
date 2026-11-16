@@ -1977,6 +1977,41 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             any(Date.class));
   }
 
+  @Test
+  void addAnalyticsTableColumnsPrefixesPlainColumnsWithAx() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+
+    eventSubject.addAnalyticsTableColumns(sb, List.of("enrollment", "trackedentity"));
+
+    String sql = sb.build();
+    assertThat(sql, containsString("ax.enrollment"));
+    assertThat(sql, containsString("ax.trackedentity"));
+  }
+
+  @Test
+  void addAnalyticsTableColumnsAddsFormulaColumnVerbatim() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+    String formula = "ST_AsGeoJSON(enrollmentgeometry)";
+
+    eventSubject.addAnalyticsTableColumns(sb, List.of(formula));
+
+    String sql = sb.build();
+    // Formula columns are emitted verbatim (no ax. prefix).
+    assertThat(sql, containsString(formula));
+    assertThat(sql, not(containsString("ax." + formula)));
+  }
+
+  @Test
+  void addAnalyticsTableColumnsAddsQualifiedColumnVerbatim() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+
+    eventSubject.addAnalyticsTableColumns(sb, List.of("ax.event"));
+
+    String sql = sb.build();
+    assertThat(sql, containsString("ax.event"));
+    assertThat(sql, not(containsString("ax.ax.event")));
+  }
+
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(
       List<String> coordinateFields) {
     DataElement deA = createDataElement('A', TEXT, AggregationType.NONE);

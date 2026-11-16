@@ -2829,7 +2829,22 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
   }
 
-  protected boolean columnIsInFormula(String col) {
+  /**
+   * Adds the columns to the select clause. Formula columns and columns already qualified with the
+   * analytics table alias are emitted verbatim, plain columns are prefixed with the alias.
+   */
+  void addAnalyticsTableColumns(SelectBuilder sb, List<String> columns) {
+    columns.forEach(
+        column -> {
+          if (columnIsInFormula(column) || column.startsWith(ANALYTICS_TBL_ALIAS + ".")) {
+            sb.addColumn(column);
+          } else {
+            sb.addColumn(column, ANALYTICS_TBL_ALIAS);
+          }
+        });
+  }
+
+  private boolean columnIsInFormula(String col) {
     return col.contains("(") && col.contains(")");
   }
 

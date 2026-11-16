@@ -66,16 +66,13 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.springframework.stereotype.Component;
 
 /**
- * Assembles SELECT-clause columns for enrollment analytics queries — both the aggregated path
- * (count + org unit + period + header columns) and the standard list path (enrollment standard
- * columns).
+ * Assembles SELECT-clause columns for aggregated enrollment analytics queries (count + org unit +
+ * period + header columns).
  */
 @Component
 public class AggregatedEnrollmentQueryAssembler {
 
   private static final AnalyticsType ANALYTICS_TYPE = AnalyticsType.ENROLLMENT;
-
-  private static final String AX_ALIAS = "ax";
 
   private static final String ENROLLMENT_AGGR_BASE_ALIAS = "eb";
 
@@ -147,21 +144,6 @@ public class AggregatedEnrollmentQueryAssembler {
     }
 
     return Optional.of(quote(params.getValue().getUid()));
-  }
-
-  /**
-   * Adds standard enrollment columns. Formula columns are emitted verbatim, plain columns are
-   * prefixed with the analytics table alias.
-   */
-  public void addStandardColumns(SelectBuilder sb, List<String> standardColumns) {
-    standardColumns.forEach(
-        column -> {
-          if (columnIsInFormula(column)) {
-            sb.addColumn(column);
-          } else {
-            sb.addColumn(column, AX_ALIAS);
-          }
-        });
   }
 
   /**
@@ -349,9 +331,5 @@ public class AggregatedEnrollmentQueryAssembler {
 
   private String quote(String relation) {
     return sqlBuilder.quote(relation);
-  }
-
-  private boolean columnIsInFormula(String col) {
-    return col.contains("(") && col.contains(")");
   }
 }
