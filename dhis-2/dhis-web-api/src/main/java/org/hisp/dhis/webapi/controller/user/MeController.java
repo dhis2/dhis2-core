@@ -174,14 +174,18 @@ public class MeController {
 
     // The user groups, user roles and authorities come from the user details, which read them with
     // SQL: User.getGroups() and User.getUserRoles() can be stale in the second-level cache of this
-    // node when another node of a cluster changed them. Only those the user can read are listed.
+    // node when another node of a cluster changed them. They are loaded without the sharing filter
+    // of the query, which takes the groups of the user from a cache of this node that only the node
+    // making a change clears: a group or role readable only through a group the user just joined
+    // would be left out. The read check against the user details lists only those the user can
+    // read.
     Set<UserGroup> filteredUserGroups =
-        manager.getByUid(UserGroup.class, userDetails.getUserGroupIds()).stream()
+        manager.getNoAcl(UserGroup.class, userDetails.getUserGroupIds()).stream()
             .filter(group -> aclService.canRead(userDetails, group))
             .collect(Collectors.toSet());
 
     Set<UserRole> filteredUserRoles =
-        manager.getByUid(UserRole.class, userDetails.getUserRoleIds()).stream()
+        manager.getNoAcl(UserRole.class, userDetails.getUserRoleIds()).stream()
             .filter(role -> aclService.canRead(userDetails, role))
             .collect(Collectors.toSet());
 
