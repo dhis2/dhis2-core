@@ -30,7 +30,6 @@
 package org.hisp.dhis.predictor;
 
 import static java.util.function.UnaryOperator.identity;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayDeque;
@@ -219,7 +218,7 @@ public class PredictionDataConsolidator {
 
   /** Gets a list of organisation units that are ready for analytics data. */
   private List<OrganisationUnit> getReadyOrgUnits() {
-    return readyPredictionData.stream().map(PredictionData::getOrgUnit).collect(toList());
+    return readyPredictionData.stream().map(PredictionData::getOrgUnit).toList();
   }
 
   /** Adds analytics values to the ready data. */
