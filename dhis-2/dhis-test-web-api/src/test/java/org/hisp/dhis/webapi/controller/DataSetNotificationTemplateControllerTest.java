@@ -42,6 +42,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -184,6 +185,33 @@ class DataSetNotificationTemplateControllerTest extends PostgresControllerIntegr
     assertEquals("Sujet", translated.getString("displaySubjectTemplate").string());
     assertEquals("Corps", translated.getString("displayMessageTemplate").string());
     assertEquals(3, getTemplate().getArray("translations").size());
+  }
+
+  @Test
+  void shouldReturnTranslationsAsArrayInGist() {
+    importMetadata(
+        """
+        {'dataSetNotificationTemplates':[{
+          'id':'%s','name':'Template A','subjectTemplate':'Subject','messageTemplate':'Message',
+          'dataSetNotificationTrigger':'DATA_SET_COMPLETION',
+          'notificationRecipient':'ORGANISATION_UNIT_CONTACT',
+          'translations':[{'locale':'fr','property':'NAME','value':'Modele A'}]
+        }]}
+        """
+            .formatted(TEMPLATE_UID));
+
+    JsonObject gist = getTemplateResponse("/gist?fields=id,translations").content(HttpStatus.OK);
+    JsonArray translations = gist.getArray("translations");
+    assertTrue(translations.isArray(), gist::toJson);
+    assertEquals(1, translations.size());
+    assertEquals("Modele A", translations.getObject(0).getString("value").string());
+
+    JsonObject list =
+        GET("/dataSetNotificationTemplates/gist?fields=id,translations").content(HttpStatus.OK);
+    JsonArray listTranslations =
+        list.getArray("dataSetNotificationTemplates").getObject(0).getArray("translations");
+    assertTrue(listTranslations.isArray(), list::toJson);
+    assertEquals("fr", listTranslations.getObject(0).getString("locale").string());
   }
 
   @Test
