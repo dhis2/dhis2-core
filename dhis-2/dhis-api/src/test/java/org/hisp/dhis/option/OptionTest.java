@@ -44,16 +44,49 @@ import org.junit.jupiter.api.Test;
 class OptionTest {
 
   @Test
-  void testEqualsAndHashCodeUseUidCodeNameAndDescription() {
+  void testEqualsAndHashCodeUseUidWhenPresent() {
     Option option = option("OptionUid01", "A", "Anna", "desc");
-    Option same = option("OptionUid01", "A", "Anna", "desc");
+    Option renamed = option("OptionUid01", "B", "Betta", "other");
+
+    assertEquals(option, renamed);
+    assertEquals(option.hashCode(), renamed.hashCode());
+    assertEquals("OptionUid01".hashCode(), option.hashCode());
+    assertNotEquals(option, option("OptionUid02", "A", "Anna", "desc"));
+  }
+
+  @Test
+  void testNotEqualWhenOnlyOneHasUid() {
+    Option option = option("OptionUid01", "A", "Anna", "desc");
+
+    assertNotEquals(option, option(null, "A", "Anna", "desc"));
+    assertNotEquals(option(null, "A", "Anna", "desc"), option);
+  }
+
+  @Test
+  void testEqualsWithoutUidUsesCodeNameAndDescription() {
+    Option option = option(null, "A", "Anna", "desc");
+    Option same = option(null, "A", "Anna", "desc");
 
     assertEquals(option, same);
     assertEquals(option.hashCode(), same.hashCode());
-    assertNotEquals(option, option("OptionUid02", "A", "Anna", "desc"));
-    assertNotEquals(option, option("OptionUid01", "B", "Anna", "desc"));
-    assertNotEquals(option, option("OptionUid01", "A", "Betta", "desc"));
-    assertNotEquals(option, option("OptionUid01", "A", "Anna", "other"));
+    assertNotEquals(option, option(null, "B", "Anna", "desc"));
+    assertNotEquals(option, option(null, "A", "Betta", "desc"));
+    assertNotEquals(option, option(null, "A", "Anna", "other"));
+  }
+
+  @Test
+  void testHashCodeFallsBackToCodeThenNameThenZero() {
+    assertEquals("A".hashCode(), option(null, "A", "Anna", null).hashCode());
+    assertEquals("Anna".hashCode(), option(null, null, "Anna", null).hashCode());
+    assertEquals(0, option(null, null, null, null).hashCode());
+  }
+
+  @Test
+  void testToStringListsIdentity() {
+    Option option = option("OptionUid01", "A", "Anna", "desc");
+    option.setId(42);
+
+    assertEquals("Option{id=42, uid=OptionUid01, code=A, name=Anna}", option.toString());
   }
 
   @Test
@@ -131,8 +164,10 @@ class OptionTest {
   }
 
   private static Option option(String uid, String code, String name, String description) {
-    Option option = new Option(name, code);
+    Option option = new Option();
     option.setUid(uid);
+    option.setCode(code);
+    option.setName(name);
     option.setDescription(description);
     return option;
   }
