@@ -937,7 +937,11 @@ class DataEntryImportCSVTest {
   @Test
   void testByteOrderMark() {
     List<DataEntryValue.Input> values =
-        read("\uFEFFdataElement,period,orgUnit,value\n" + "de123456789,202501,ou123456789,1\n");
+        read(
+            """
+        \uFEFFdataElement,period,orgUnit,value
+        de123456789,202501,ou123456789,1
+        """);
     assertEquals(1, values.size());
     assertEquals("de123456789", values.get(0).dataElement());
     assertNull(values.get(0).categoryOptions());
@@ -962,7 +966,7 @@ class DataEntryImportCSVTest {
     assertEquals("aoc23456789", dv.attributeOptionCombo());
     assertEquals("5", dv.value());
     assertEquals("note", dv.comment());
-    assertEquals(true, dv.followUp());
+    assertTrue(dv.followUp());
     assertNull(dv.deleted());
   }
 
