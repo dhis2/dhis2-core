@@ -39,8 +39,9 @@ show_usage() {
   echo "                        docker address pools)"
   echo "  POPULATE_SCRIPT       Script run once after the containers start, before any simulation run,"
   echo "                        to populate the database (default: not set)"
-  echo "                        e.g. scripts/populate-unique-attribute.sh, configured by POPULATE_* variables"
-  echo "                        (see the script header). POPULATE_* variables are saved in run-simulation.env"
+  echo "                        e.g. scripts/populate-unique-attribute.sh or scripts/populate-org-unit-search.sh,"
+  echo "                        configured by POPULATE_* variables (see the script header). It gets MVN_ARGS."
+  echo "                        POPULATE_* variables are saved in run-simulation.env"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo "  CAPTURE_DHIS2_LOGS    Capture DHIS2 application logs from the web container"
@@ -51,9 +52,6 @@ show_usage() {
   echo "  PROF_ARGS             Async-profiler arguments (enables profiling)"
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
-  echo "  FIXTURE_SETUP_CLASS  Optional Java main class run once before warmup using test classpath"
-  echo "                        Shares MVN_ARGS; after setup restarts only web, preserving the DB"
-  echo "  FIXTURE_SETUP_ARGS   Additional Maven arguments for fixture setup only (default: empty)"
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -128,8 +126,6 @@ CAPTURE_DHIS2_LOGS=${CAPTURE_DHIS2_LOGS:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 PROF_ARGS=${PROF_ARGS:=""}
 MVN_ARGS=${MVN_ARGS:-""}
-FIXTURE_SETUP_CLASS=${FIXTURE_SETUP_CLASS:-""}
-FIXTURE_SETUP_ARGS=${FIXTURE_SETUP_ARGS:-""}
 DHIS_CONF_FILE=${DHIS_CONF_FILE:-"dhis.conf"}
 COMPOSE_EXTRA_FILE=${COMPOSE_EXTRA_FILE:-""}
 # docker compose interpolates ${DHIS_CONF_FILE} in the volume mount
@@ -459,41 +455,6 @@ start_containers() {
   fi
 
   echo "All containers ready! (took $(($(date +%s) - start_time))s)"
-}
-
-# One-time fixture setup support: Morten Svanæs
-prepare_fixture() {
-  if [ -z "$FIXTURE_SETUP_CLASS" ]; then
-    return 0
-  fi
-
-  echo ""
-  echo "========================================"
-  echo "PHASE: Fixture Setup (excluded from timings)"
-  echo "========================================"
-  # Share the simulation's config/manifest/scale properties; setup-only arguments override them.
-  # Password is supplied through the existing private environment, not command arguments.
-  # shellcheck disable=SC2086
-  DHIS2_PASSWORD="$DHIS2_PASSWORD" mvn test-compile org.codehaus.mojo:exec-maven-plugin:3.5.0:java \
-    -Dusername="$DHIS2_USERNAME" \
-    -DbaseUrl=http://localhost:8080 \
-    $MVN_ARGS \
-    $FIXTURE_SETUP_ARGS \
-    -Dexec.classpathScope=test \
-    -Dexec.mainClass="$FIXTURE_SETUP_CLASS"
-
-  # Setup warms application caches. Restart only the application, preserving the seeded DB.
-  # Subsequent warmup and measured runs reuse this fixture and manifest without re-seeding.
-  local compose_args
-  compose_args=$(get_compose_args)
-  # shellcheck disable=SC2086
-  docker compose $compose_args restart web web-healthcheck
-  # shellcheck disable=SC2086
-  if ! docker compose $compose_args up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
-    echo "Error: Application failed to become ready after fixture setup"
-    dump_container_logs
-    exit 1
-  fi
 }
 
 save_profiler_data() {
@@ -871,14 +832,13 @@ generate_metadata() {
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
     echo "POPULATE_SCRIPT=$POPULATE_SCRIPT"
-    env | grep '^POPULATE_' | grep -v '^POPULATE_SCRIPT=' | sort || true
+    # Quoted like MVN_ARGS, as a value can hold several arguments (POPULATE_MVN_ARGS)
+    env | grep '^POPULATE_' | grep -v '^POPULATE_SCRIPT=' | sort | sed 's/^\([^=]*\)=\(.*\)$/\1="\2"/' || true
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
     echo "CAPTURE_DHIS2_LOGS=$CAPTURE_DHIS2_LOGS"
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
     echo "PROF_ARGS=\"$PROF_ARGS\""
     echo "MVN_ARGS=\"$MVN_ARGS\""
-    echo "FIXTURE_SETUP_CLASS=\"$FIXTURE_SETUP_CLASS\""
-    echo "FIXTURE_SETUP_ARGS=\"$FIXTURE_SETUP_ARGS\""
     echo ""
     echo "# Additional metadata"
     echo "GIT_BRANCH_PERFORMANCE_TESTS=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
@@ -1043,10 +1003,10 @@ if [ -n "$POPULATE_SCRIPT" ]; then
   echo "========================================"
   echo "PHASE: Database Population"
   echo "========================================"
-  DHIS2_USERNAME="$DHIS2_USERNAME" DHIS2_PASSWORD="$DHIS2_PASSWORD" "$POPULATE_SCRIPT"
+  DHIS2_USERNAME="$DHIS2_USERNAME" DHIS2_PASSWORD="$DHIS2_PASSWORD" MVN_ARGS="$MVN_ARGS" \
+    HEALTHCHECK_TIMEOUT="$HEALTHCHECK_TIMEOUT" "$POPULATE_SCRIPT"
 fi
 
-prepare_fixture
 prepare_database
 
 if [ "$WARMUP" -gt 0 ]; then

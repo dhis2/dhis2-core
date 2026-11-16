@@ -258,14 +258,15 @@ It has no dump, so the S3 ETag check is skipped: the image is rebuilt on every r
 build cache makes cheap, and `DB_URL`/`DB_ETAG` stay empty in `run-simulation.env`.
 The Sierra Leone, HMIS, Perf Land MNCH and platform-perf modes are unchanged.
 
-The optional `FIXTURE_SETUP_CLASS` / `FIXTURE_SETUP_ARGS` runner hook invokes a Java main
-class with the test classpath exactly once after application readiness, before analytics,
-profiling, warmup or measured requests. It forwards `MVN_ARGS` (the same config, scale,
-translation-density and manifest properties as the simulation), then setup-only arguments.
-It restarts only `web`/`web-healthcheck` and waits for readiness, keeping the database intact.
+`scripts/populate-org-unit-search.sh` seeds the fixture through the runner's existing
+`POPULATE_SCRIPT` hook, exactly once after application readiness, before analytics,
+profiling, warmup or measured requests. It runs `OrganisationUnitSearchFixture` with the test
+classpath and `MVN_ARGS` (the same config, scale, translation-density and manifest properties
+as the simulation), then the seed-only `POPULATE_MVN_ARGS`. It restarts only
+`web`/`web-healthcheck` and waits for readiness, keeping the database intact.
 Warmup and measurement reuse that fixture and manifest without resetting or re-seeding.
 A subsequent runner invocation starts a fresh container database and seeds deterministically
-again. With no setup class, the hook does nothing; normal Gatling execution remains read-only.
+again. Without `POPULATE_SCRIPT`, normal Gatling execution remains read-only.
 
 Provide the private config and synthetic password as above; for example:
 
@@ -273,8 +274,8 @@ Provide the private config and synthetic password as above; for example:
 DHIS2_IMAGE=your-candidate-image \
 SIMULATION_CLASS=org.hisp.dhis.test.platform.OrganisationUnitSearchPerformanceTest \
 DB_DIR= DB_TYPE=empty DB_VERSION=ou-search-v1 \
-FIXTURE_SETUP_CLASS=org.hisp.dhis.test.platform.OrganisationUnitSearchFixture \
-FIXTURE_SETUP_ARGS="-DouSearch.operation=seed -DouSearch.setup=CREATE_DISPOSABLE_FIXTURE" \
+POPULATE_SCRIPT=scripts/populate-org-unit-search.sh \
+POPULATE_MVN_ARGS=-DouSearch.setup=CREATE_DISPOSABLE_FIXTURE \
 WARMUP=0 REPORT_SUFFIX=application-cold HEALTHCHECK_TIMEOUT=900 \
 MVN_ARGS="-DconfigFile=/absolute/path/ou-search.properties -DbaseUrl=http://localhost:8080 -DouSearch.manifest=target/gatling/ou-search-manifest.json -Diterations=1" \
 ./run-simulation.sh
@@ -283,10 +284,10 @@ MVN_ARGS="-DconfigFile=/absolute/path/ou-search.properties -DbaseUrl=http://loca
 Use `WARMUP=1`, an appropriate iteration count, and a warm report suffix for warm comparison.
 With `WARMUP=0`, this is application-cold after seeding, not PostgreSQL/OS-cache cold.
 The runner marks warmup `gatling.failOnError=false`; still retain/review those KOs.
-Without `FIXTURE_SETUP_CLASS`, `DB_TYPE=empty` only provisions an empty database; it does
+Without the populate script, `DB_TYPE=empty` only provisions an empty database; it does
 not manufacture a manifest or make unrelated simulations fixture-aware. The explicit
-`ouSearch.setup` confirmation belongs in `FIXTURE_SETUP_ARGS` as shown; merely selecting
-the fixture's class without that confirmation cannot seed a target.
+`ouSearch.setup` confirmation belongs in `POPULATE_MVN_ARGS` as shown; merely selecting
+the populate script without that confirmation cannot seed a target.
 
 Existing comparison CI's `perf_tests_git_ref` selects the **same shared benchmark branch**
 for both Core PR images. Supply the command's environment settings to both `baseline_env`
@@ -297,7 +298,7 @@ semantic KOs rather than treating that workflow continuation as a correctness pa
 Keep the generated manifest with the report artifacts and compare its fixture parameters.
 The example places it under `target/gatling` so the existing CI artifact upload includes it.
 No workflow change is needed. Keep synthetic secrets in environment or private config,
-not `MVN_ARGS` or `FIXTURE_SETUP_ARGS`. The runner records its own `DHIS2_PASSWORD` in `run-simulation.env`;
+not `MVN_ARGS` or `POPULATE_MVN_ARGS`. The runner records its own `DHIS2_PASSWORD` in `run-simulation.env`;
 redact that existing metadata before publishing any report archive.
 
 ### UsersPerformanceTest
