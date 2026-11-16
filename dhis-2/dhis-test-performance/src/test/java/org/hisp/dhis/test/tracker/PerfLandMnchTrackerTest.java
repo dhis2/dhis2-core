@@ -33,14 +33,15 @@ import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.csv;
 import static io.gatling.javaapi.core.CoreDsl.details;
-import static io.gatling.javaapi.core.CoreDsl.doIf;
 import static io.gatling.javaapi.core.CoreDsl.during;
 import static io.gatling.javaapi.core.CoreDsl.exec;
 import static io.gatling.javaapi.core.CoreDsl.feed;
 import static io.gatling.javaapi.core.CoreDsl.forAll;
+import static io.gatling.javaapi.core.CoreDsl.foreach;
 import static io.gatling.javaapi.core.CoreDsl.group;
 import static io.gatling.javaapi.core.CoreDsl.incrementConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.jsonPath;
+import static io.gatling.javaapi.core.CoreDsl.listFeeder;
 import static io.gatling.javaapi.core.CoreDsl.rampConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.repeat;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
@@ -53,7 +54,6 @@ import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.ChainBuilder;
 import io.gatling.javaapi.core.CheckBuilder;
 import io.gatling.javaapi.core.ClosedInjectionStep;
-import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Session;
 import io.gatling.javaapi.core.Simulation;
@@ -61,9 +61,12 @@ import io.gatling.javaapi.http.HttpProtocolBuilder;
 import io.gatling.javaapi.http.HttpRequestActionBuilder;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,25 +93,29 @@ import org.slf4j.LoggerFactory;
  * <p>Differences to {@link TrackerTest}, for the data this database holds:
  *
  * <ul>
- *   <li>Each iteration takes the next child of {@code perfland-mnch/children.csv}: a child of a
- *       facility of district QP1613 and the data clerk of that facility. A clerk captures in her
- *       facility and searches in her district. The test logs in as the child's clerk, dbgen's
- *       users, instead of replicating one. She searches the child by name and EPI and opens it, as
- *       clerks work on different children all day: 60 per clerk, picked at random with a fixed seed
- *       by {@code perfland-mnch/children.sql}, so a smoke run opens none twice. The rows alternate
- *       the clerks, and the circular feeder gives every run, baseline and candidate, the same
- *       order.
- *   <li>The clerks' facilities differ by their number of EIR children (small, median, large,
- *       largest; large is in the middle of the first page's slowest plan, about 1,000 to 1,400), as
- *       the query plans differ between them. Each facility's number of children is far from the
- *       sizes at which a request switches to another plan, so the statistics that ANALYZE samples
- *       before each run don't flip its plan. In smoke, a request whose plan depends on the facility
- *       is named after its band, such as "First page [small]", and has a p95 threshold per band:
- *       one p95 over all bands is about the slowest band's p80, so a faster band could get several
- *       times slower unnoticed. Load has about 9 iterations per band, too few for a p95 each: it
- *       names and asserts these requests over all bands, for what concurrency adds. How many
- *       records a name matches changes the time of a search, not its plan, so the names don't get
- *       bands.
+ *   <li>A virtual user is a data clerk of district QP1613, one of dbgen's users of {@code
+ *       perfland-mnch/clerks.csv}, instead of a replica of one user. She logs in once, then works
+ *       on the children of {@code perfland-mnch/children.csv} that are hers, a child of her
+ *       facility each iteration, as clerks work on different children all day. A clerk captures in
+ *       her facility and searches in her district. She searches the child by name and EPI and opens
+ *       it. Her children are picked at random with a fixed seed by {@code
+ *       perfland-mnch/clerks.sql}, 60 each, and no two clerks share one, so every run, baseline and
+ *       candidate, works on the same children in the same order.
+ *   <li>Smoke has the first clerk of each band work, one after another, on {@code repeat} of her
+ *       children. Load and capacity have the first {@code concurrentUsers} clerks of {@code
+ *       clerks.csv} work at the same time, a virtual user each, until the injection ends: its rows
+ *       alternate the bands, so the clerks of a run spread over them. A clerk is never logged in
+ *       twice, as a person has one session.
+ *   <li>The clerks' facilities differ by their number of EIR children, as the query plans differ
+ *       between them: a clerk's band is the range her facility's falls into (small, median, large,
+ *       largest; large is the first page's slowest plan). Each range keeps away from the sizes at
+ *       which a request switches to another plan, so the statistics that ANALYZE samples before
+ *       each run don't flip it. In smoke, a request whose plan depends on the facility is named
+ *       after its band, such as "First page [small]", and has a p95 threshold per band: one p95
+ *       over all bands is about the slowest band's p80, so a faster band could get several times
+ *       slower unnoticed. Load names and asserts these requests over all bands, for what
+ *       concurrency adds. How many records a name matches changes the time of a search, not its
+ *       plan, so the names don't get bands.
  *   <li>EIR needs two attributes to search outside the capture scope, so every name search filters
  *       on the given and the family name, where {@link TrackerTest} filters on the first name. The
  *       like search takes the first 3 letters of each name, as a user types them
@@ -130,19 +137,20 @@ import org.slf4j.LoggerFactory;
  *       event.
  * </ul>
  *
- * <p>The children are bound to the records of the {@code perfland-mnch} dumps, which are the same
- * for every DHIS2 version: re-generate them with {@code children.sql} when the dumps change. The eq
- * pair and the like letters of a child match a child of the clerk's facility among the first 5
- * matches in the district, the page of these searches, so DHIS2 2.42, which drops what the clerk
- * does not own after paging, returns her too. {@code -Dchildren} reads another file.
+ * <p>The clerks and children are bound to the records of the {@code perfland-mnch} dumps, which are
+ * the same for every DHIS2 version: re-generate them with {@code clerks.sql} when the dumps change.
+ * The eq pair and the like letters of a child match a child of the clerk's facility among the first
+ * 5 matches in the district, the page of these searches, so DHIS2 2.42, which drops what the clerk
+ * does not own after paging, returns her too. {@code -Dclerks} and {@code -Dchildren} read other
+ * files.
  *
  * <p>The thresholds are those of the same requests in {@link TrackerTest}, calibrated on Sierra
  * Leone. The other requests have none yet.
  *
  * <p>The journeys are built for a {@link TrackerProgram}. The UIDs of the program, stage and
  * attributes are those of {@link #EIR}, as {@link TrackerTest}'s attributes are constants: the
- * values of {@code children.csv} belong to them. Profiles and their parameters are those of {@link
- * TrackerTest}.
+ * values of {@code children.csv} belong to them. The profiles' injections and parameters are those
+ * of {@link TrackerTest}, except who the virtual users are.
  */
 public class PerfLandMnchTrackerTest extends Simulation {
   private static final Logger logger = LoggerFactory.getLogger(PerfLandMnchTrackerTest.class);
@@ -203,6 +211,12 @@ public class PerfLandMnchTrackerTest extends Simulation {
   // Of every dbgen user. Not a property: run-simulation.sh passes the admin's as -Dpassword.
   private static final String PASSWORD = "Perf-Test-2026!";
 
+  // Session keys: a clerk of clerks.csv, her children of children.csv, the number of the
+  // iteration, which picks her child.
+  private static final String CLERK = "clerk";
+  private static final String CHILDREN = "children";
+  private static final String ITERATION = "iteration";
+
   // Capture 107.9.1's LISTING_FIELDS of its working lists.
   private static final String CAPTURE_TE_LIST_FIELDS =
       "trackedEntity,createdAt,inactive,attributes[attribute,value],programOwners[orgUnit,program]";
@@ -251,7 +265,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
   private final Profile profile;
   private final String instance;
-  private final FeederBuilder<String> children;
+  private final List<Map<String, Object>> clerks;
   private final int concurrentUsers;
   private final int repeat;
   private final int durationSec;
@@ -261,16 +275,18 @@ public class PerfLandMnchTrackerTest extends Simulation {
   public PerfLandMnchTrackerTest() {
     this.profile = Profile.fromString(System.getProperty("profile", "smoke"));
     this.instance = System.getProperty("instance", "http://localhost:8080");
-    // Circular: every iteration takes the next child, so each band gets the same share of a run.
-    this.children = csv(System.getProperty("children", "perfland-mnch/children.csv")).circular();
+    this.clerks =
+        clerks(
+            System.getProperty("clerks", "perfland-mnch/clerks.csv"),
+            System.getProperty("children", "perfland-mnch/children.csv"));
 
     record ProfileDefaults(
         int concurrentUsers, int repeat, int rampDurationSec, int durationSec, int steps) {}
     ProfileDefaults defaults =
         switch (this.profile) {
-          // 240 children: 60 iterations per facility band instead of 30. A band's p95 then sits
-          // below its 3 slowest samples instead of its 2 slowest, so one slow sample moves it less.
-          case SMOKE -> new ProfileDefaults(1, 240, 1, 1, 1);
+          // 60 children per clerk, one clerk per facility band: a band's p95 sits below its 3
+          // slowest samples, so one slow sample moves it less than with 30.
+          case SMOKE -> new ProfileDefaults(1, 60, 1, 1, 1);
           case LOAD -> new ProfileDefaults(4, 1, 15, 180, 1);
           case CAPACITY -> new ProfileDefaults(8, 1, 10, 30, 4);
         };
@@ -279,6 +295,11 @@ public class PerfLandMnchTrackerTest extends Simulation {
     this.rampDurationSec = Integer.getInteger("rampDurationSec", defaults.rampDurationSec());
     this.durationSec = Integer.getInteger("durationSec", defaults.durationSec());
     this.steps = Integer.getInteger("steps", defaults.steps());
+    if (this.profile != Profile.SMOKE && this.concurrentUsers > this.clerks.size()) {
+      throw new IllegalArgumentException(
+          "concurrentUsers %d exceeds the %d clerks: a clerk would be logged in twice"
+              .formatted(this.concurrentUsers, this.clerks.size()));
+    }
 
     ScenarioWithRequests trackerScenario = trackerProgramScenario(EIR);
 
@@ -304,8 +325,8 @@ public class PerfLandMnchTrackerTest extends Simulation {
   }
 
   private ScenarioWithRequests trackerProgramScenario(TrackerProgram program) {
-    // Bands only in smoke: 60 iterations per band (1 user, 240 iterations), against about 9 in
-    // load, too few for a p95 per band.
+    // Bands only in smoke, 60 iterations each. Load's clerks run about 8 iterations each, too
+    // few for a p95 per band unless a run has many clerks in each.
     Band facility = this.profile == Profile.SMOKE ? Band.FACILITY : Band.NONE;
     SearchAndOpen searchAndOpen = SearchAndOpen.of(program);
     EventWorkingList eventList = EventWorkingList.of(program, facility);
@@ -328,20 +349,72 @@ public class PerfLandMnchTrackerTest extends Simulation {
                             .pause(1, 3)
                             .exec(android.chain())));
 
-    ScenarioBuilder scenarioBuilder =
-        scenario("EIR export")
-            .exec(loopForProfile(feed(this.children).exec(loginAsClerk()).exec(iteration)));
+    ScenarioBuilder scenarioBuilder = scenario("EIR export").exec(clerksAtWork(iteration));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
         journeys.stream().flatMap(journey -> journey.requests().stream()).toList());
   }
 
-  private ChainBuilder loopForProfile(ChainBuilder chain) {
+  /**
+   * The clerks of the profile at work. A clerk logs in once, then runs {@code iteration} on her
+   * children, the next one each time. Smoke has the first clerk of each band work, one after
+   * another, on {@code repeat} of her children; load and capacity have the first {@code
+   * concurrentUsers} clerks work at the same time, a virtual user each, until the injection ends.
+   */
+  private ChainBuilder clerksAtWork(ChainBuilder iteration) {
+    ChainBuilder nextChild =
+        exec(session -> {
+              List<Map<String, Object>> children = session.getList(CHILDREN);
+              return session.setAll(children.get(session.getInt(ITERATION) % children.size()));
+            })
+            .exec(iteration);
+
     if (this.profile == Profile.SMOKE) {
-      return exec(repeat(this.repeat).on(chain));
+      List<Map<String, Object>> firstOfEachBand =
+          List.copyOf(
+              this.clerks.stream()
+                  .collect(
+                      Collectors.toMap(
+                          clerk -> clerk.get(Band.FACILITY.column),
+                          clerk -> clerk,
+                          (first, next) -> first,
+                          LinkedHashMap::new))
+                  .values());
+      return foreach(firstOfEachBand, CLERK)
+          .on(
+              exec(session -> session.setAll(session.getMap(CLERK)))
+                  .exec(login())
+                  .exec(repeat(this.repeat, ITERATION).on(nextChild)));
     }
-    return exec(during(Duration.ofSeconds(injectionDurationSec())).on(chain));
+
+    // Circular only for a virtual user that replaces one whose login failed.
+    return feed(listFeeder(this.clerks.subList(0, this.concurrentUsers)).circular())
+        .exec(login())
+        .exec(during(Duration.ofSeconds(injectionDurationSec()), ITERATION).on(nextChild));
+  }
+
+  /**
+   * The clerks of {@code clerksFile} in their order, each with her children of {@code childrenFile}
+   * in theirs, as a list under {@link #CHILDREN}.
+   */
+  private static List<Map<String, Object>> clerks(String clerksFile, String childrenFile) {
+    Map<Object, List<Map<String, Object>>> children =
+        csv(childrenFile).readRecords().stream()
+            .collect(Collectors.groupingBy(child -> child.get("username")));
+    return csv(clerksFile).readRecords().stream()
+        .map(
+            clerk -> {
+              List<Map<String, Object>> hers = children.get(clerk.get("username"));
+              if (hers == null) {
+                throw new IllegalArgumentException(
+                    "%s has no children in %s".formatted(clerk.get("username"), childrenFile));
+              }
+              Map<String, Object> withChildren = new HashMap<>(clerk);
+              withChildren.put(CHILDREN, hers);
+              return withChildren;
+            })
+        .toList();
   }
 
   private long injectionDurationSec() {
@@ -353,27 +426,19 @@ public class PerfLandMnchTrackerTest extends Simulation {
     };
   }
 
-  /**
-   * Logs in as the clerk of the child fed last, unless the session is already hers: the rows
-   * alternate the clerks, so every iteration logs in, except when a csv of {@code -Dchildren}
-   * repeats a clerk in consecutive rows.
-   */
-  private ChainBuilder loginAsClerk() {
-    return doIf(session -> !session.getString("username").equals(session.getString("loggedIn")))
-        .then(
-            exec(flushCookieJar())
-                .exec(
-                    http("Login")
-                        .post("/api/auth/login")
-                        .header("Content-Type", "application/json")
-                        .header("X-Request-ID", session -> nextRequestId("Login"))
-                        .body(
-                            StringBody(
-                                "{\"username\":\"#{username}\",\"password\":\"%s\"}"
-                                    .formatted(PASSWORD)))
-                        .check(status().is(200)))
-                .exitHereIfFailed()
-                .exec(session -> session.set("loggedIn", session.getString("username"))));
+  /** Logs in as the session's clerk, without the cookies of a clerk before her. */
+  private ChainBuilder login() {
+    return exec(flushCookieJar())
+        .exec(
+            http("Login")
+                .post("/api/auth/login")
+                .header("Content-Type", "application/json")
+                .header("X-Request-ID", session -> nextRequestId("Login"))
+                .body(
+                    StringBody(
+                        "{\"username\":\"#{username}\",\"password\":\"%s\"}".formatted(PASSWORD)))
+                .check(status().is(200)))
+        .exitHereIfFailed();
   }
 
   /** The closed injection profiles of TrackerTest. */
@@ -426,7 +491,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
     }
   }
 
-  /** The column of {@code children.csv} a request's plan depends on, and its values. */
+  /** The column of {@code clerks.csv} a request's plan depends on, and its values. */
   private enum Band {
     NONE(null),
     FACILITY("facilityBand", "small", "median", "large", "largest");
