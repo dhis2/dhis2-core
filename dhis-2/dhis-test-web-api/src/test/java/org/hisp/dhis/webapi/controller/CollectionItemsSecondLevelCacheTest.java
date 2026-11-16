@@ -307,10 +307,11 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
   }
 
   /**
-   * A concurrent transaction adds the same member first. Its row's foreign key holds a lock on the
-   * group's row, so the merge waits on its own lock of that row until the commit. The merge then
-   * reads the committed row: it counts the member as ignored, as a later request would, and still
-   * applies its deletion instead of violating the join table's key.
+   * A concurrent collection request adds the same member first: it locks the group's row as the
+   * collection item store does ({@code for no key update}) and inserts the row. The merge waits on
+   * its own lock of that row until the commit. It then reads the committed row: it counts the
+   * member as ignored, as a later request would, and still applies its deletion instead of
+   * violating the join table's key.
    */
   @Test
   void concurrentAdditionIsIgnoredAndTheMergeAppliesItsDeletion() throws Exception {
@@ -336,6 +337,12 @@ class CollectionItemsSecondLevelCacheTest extends PostgresControllerIntegrationT
     ExecutorService executor = Executors.newSingleThreadExecutor();
     try (Connection concurrent = dataSource.getConnection()) {
       concurrent.setAutoCommit(false);
+      try (PreparedStatement lock =
+          concurrent.prepareStatement(
+              "select 1 from orgunitgroup where orgunitgroupid = ? for no key update")) {
+        lock.setLong(1, groupId);
+        lock.executeQuery().close();
+      }
       try (PreparedStatement insert =
           concurrent.prepareStatement(
               "insert into orgunitgroupmembers (orgunitgroupid, organisationunitid) values (?, ?)")) {
