@@ -75,6 +75,19 @@
       <artifactId>spring-boot-starter-tomcat</artifactId>
       <version>${spring-boot-maven-plugin.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <!--
+          Exclude Spring Boot's default logging starter. It pulls in
+          logback-classic and log4j-to-slf4j, both of which conflict with the
+          log4j2 backend DHIS2 already wires in via log4j-slf4j-impl above.
+          Running the executable WAR (java -jar dhis.war) otherwise fails at
+          startup with "log4j-slf4j-impl cannot be present with log4j-to-slf4j".
+        -->
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
