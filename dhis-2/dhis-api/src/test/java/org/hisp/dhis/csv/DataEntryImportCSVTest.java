@@ -262,41 +262,6 @@ class DataEntryImportCSVTest {
   }
 
   @Test
-  void testQuotedValueTooLong() {
-    String huge = "x".repeat(CSV.DEFAULT_MAX_VALUE_LENGTH + 1);
-    IllegalArgumentException ex =
-        assertThrowsExactly(
-            IllegalArgumentException.class,
-            () ->
-                read("dataElement,period,orgUnit,value\nde123456789,202501,ou123456789,\"" + huge));
-    assertEquals(
-        "CSV input error at line 2 column 4: Value longer than %d"
-            .formatted(CSV.DEFAULT_MAX_VALUE_LENGTH),
-        ex.getMessage());
-  }
-
-  @Test
-  void testQuotedValueAtMaxLength() {
-    int maxLenInQuotes = CSV.DEFAULT_MAX_VALUE_LENGTH - 3;
-    String max = "x".repeat(maxLenInQuotes);
-    List<DataEntryValue.Input> values =
-        read(
-            "dataElement,period,orgUnit,comment\nde123456789,202501,ou123456789,\"" + max + "\"\n");
-    assertEquals(maxLenInQuotes, values.get(0).comment().length());
-  }
-
-  @Test
-  void testUnquotedValueAtMaxLength() {
-    // we need to be able to find the comma or end of line
-    // so 1 character is lost
-    int maxLen = CSV.DEFAULT_MAX_VALUE_LENGTH - 1;
-    String max = "x".repeat(maxLen);
-    List<DataEntryValue.Input> values =
-        read("dataElement,period,orgUnit,comment\nde123456789,202501,ou123456789," + max + "\n");
-    assertEquals(max, values.get(0).comment());
-  }
-
-  @Test
   void testUnquotedValuesAreTrimmed() {
     List<DataEntryValue.Input> values =
         read(
@@ -864,6 +829,42 @@ class DataEntryImportCSVTest {
     assertFalse(it.hasNext());
     assertFalse(it.hasNext());
     assertThrowsExactly(NoSuchElementException.class, it::next);
+  }
+
+  @Test
+  void testQuotedValueTooLong() {
+    String huge = "x".repeat(CSV.DEFAULT_MAX_VALUE_LENGTH + 1);
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class,
+            () ->
+                read(
+                    "dataElement,period,orgUnit,value\n"
+                        + "de123456789,202501,ou123456789,\"" + huge + "\"\n"));
+    assertEquals(
+        "CSV input error at line 2 column 4: Value longer than %d"
+            .formatted(CSV.DEFAULT_MAX_VALUE_LENGTH),
+        ex.getMessage());
+  }
+
+  @Test
+  void testQuotedValueAtMaxLength() {
+    int maxLen = CSV.DEFAULT_MAX_VALUE_LENGTH;
+    String max = "x".repeat(maxLen);
+    List<DataEntryValue.Input> values =
+        read(
+            "dataElement,period,orgUnit,comment\nde123456789,202501,ou123456789,\""
+                + max + "\"\n");
+    assertEquals(maxLen, values.get(0).comment().length());
+  }
+
+  @Test
+  void testUnquotedValueAtMaxLength() {
+    int maxLen = CSV.DEFAULT_MAX_VALUE_LENGTH;
+    String max = "x".repeat(maxLen);
+    List<DataEntryValue.Input> values =
+        read("dataElement,period,orgUnit,comment\nde123456789,202501,ou123456789," + max + "\n");
+    assertEquals(max, values.get(0).comment());
   }
 
   private static List<DataEntryValue.Input> read(@Language("csv") String csv) {

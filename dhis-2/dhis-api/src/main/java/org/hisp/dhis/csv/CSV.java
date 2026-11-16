@@ -214,25 +214,20 @@ public final class CSV {
   public interface CsvConfig {
 
     /**
-     * Note the maximum length of the value itself is somewhat shorter depending on situation. At
-     * the very least it is 1 character shorter to be able to find the comma or end of line after
-     * the value. When quoted the maximum is 2 characters shorter for the quotes. If escaped quoted
-     * are contained via pairs of quotes the actual value itself is shorter again as 2 characters
-     * fold to 1 for each pair.
+     * Sets the maximum length of a single CSV value <em>after</em> quoting and escaping have been
+     * removed — i.e. the length of the {@code String} a record component receives.
      *
-     * @param maxLength the maximum buffer size to hold a single value
+     * <p>The reader allocates enough buffer to hold the worst-case on-disk encoding of a value of
+     * this length (a quoted value of all {@code "} costs {@code 2N} bytes for the quotes alone,
+     * plus the outer quotes and a delimiter: {@code 2N + 3}). Any value whose decoded length is
+     * within this limit therefore parses; longer values are rejected with a message identifying
+     * the line and column.
+     *
+     * @param maxLength the maximum decoded length of a single value, must be {@code >= 1}
      * @return a new updated configuration for chaining
      */
-    CsvConfig maxValueBufferLength(int maxLength);
+    CsvConfig maxValueLength(int maxLength);
 
-    /**
-     * Terminal operation of the configuration builder that creates the reader with the current
-     * configuration
-     *
-     * @param type each row becomes an instance of this {@link Record} type
-     * @return a reader
-     * @param <T> row type
-     */
     @Nonnull
     <T extends Record> CsvReader<T> as(Class<T> type);
   }
@@ -509,7 +504,9 @@ public final class CSV {
   private record Config(java.io.Reader csv, int maxValueLength) implements CsvConfig {
 
     @Override
-    public CsvConfig maxValueBufferLength(int maxLength) {
+    public CsvConfig maxValueLength(int maxLength) {
+      if (maxLength < 1)
+        throw new IllegalArgumentException("maxValueLength must be >= 1, was " + maxLength);
       return new Config(csv, maxLength);
     }
 
@@ -546,7 +543,9 @@ public final class CSV {
 
     final java.io.Reader csv;
     final Components<T> as;
-    final int maxValueBufferLength;
+    final int maxValueLength;
+    /** Worst-case on-disk size of a value whose decoded length is {@link #maxValueLength}. */
+    final int bufferCap;
 
     char[] buffer;
     boolean eoi;
@@ -557,11 +556,12 @@ public final class CSV {
     int line = 1;
     int col = 1;
 
-    Reader(java.io.Reader csv, Components<T> as, int maxValueBufferLength) {
+    Reader(java.io.Reader csv, Components<T> as, int maxValueLength) {
       this.csv = csv;
       this.as = as;
-      this.maxValueBufferLength = maxValueBufferLength;
-      this.buffer = new char[Math.min(2048, maxValueBufferLength)];
+      this.maxValueLength = maxValueLength;
+      this.bufferCap = Math.addExact(Math.multiplyExact(maxValueLength, 2), 3);
+      this.buffer = new char[Math.min(2048, bufferCap)];
     }
 
     @Nonnull
@@ -655,10 +655,8 @@ public final class CSV {
         if (to == -1) {
           int keepLen = len - pos;
           if (keepLen == buffer.length) {
-            // grow
-            if (buffer.length >= maxValueBufferLength)
-              throw error("Value longer than " + maxValueBufferLength);
-            char[] b2 = new char[Math.min(maxValueBufferLength, buffer.length * 2)];
+            if (buffer.length >= bufferCap) throw error("Value longer than " + maxValueLength);
+            char[] b2 = new char[Math.min(bufferCap, buffer.length * 2)];
             System.arraycopy(buffer, pos, b2, 0, keepLen);
             buffer = b2;
           } else {
@@ -760,11 +758,15 @@ public final class CSV {
       int t = to;
       while (t > f && isIndent(buffer[t - 1])) t--;
       if (f >= t || (f < len && isValueSeparator(buffer[f]))) return null;
+      String str;
       if (buffer[f] == '"' && buffer[t - 1] == '"') {
-        String str = new String(buffer, f + 1, t - f - 2);
-        return twinQuotes ? str.replace("\"\"", "\"") : str;
+        str = new String(buffer, f + 1, t - f - 2);
+        if (twinQuotes) str = str.replace("\"\"", "\"");
+      } else {
+        str = new String(buffer, f, t - f);
       }
-      return new String(buffer, f, t - f);
+      if (str.length() > maxValueLength) throw error("Value longer than " + maxValueLength);
+      return str;
     }
 
     private IllegalArgumentException error(String msg) {
