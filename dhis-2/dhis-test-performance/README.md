@@ -73,13 +73,17 @@ automatically converts `simulation.log` to `simulation.csv` if
 
 ## Databases
 
-Performance tests only support databases hosted in S3 (see `run-simulation.sh` for details):
+Performance tests restore a database dump hosted in S3 (see `run-simulation.sh` for details), or
+start from an empty database:
 
 * `sierra-leone`: the Sierra Leone demo database, managed by hand, see the
   [operations handbook](https://github.com/dhis2/operations-handbook#database-management).
 * `hmis`: managed by hand, and rarely updated.
 * `platform-perf` (`DB_DIR=dev`): managed by hand, made with
   [db-populator](https://github.com/david-mackessy/db-populator) by a script that wasn't recorded.
+* `empty`: no dump. The harness builds an empty PostGIS database locally, and a populate script
+  such as `scripts/populate-org-unit-search.sh` fills it, see
+  [Existing runner / CI](#existing-runner--ci).
 
 ### Database Images
 
@@ -112,8 +116,10 @@ The `platform` package (`org.hisp.dhis.test.platform`) contains focused CRUD per
 
 Shared reproducible benchmark for translated filtering (Core #25128), hierarchy scoping
 (Core #25127), and Data Entry #593. Use the same benchmark branch, fixture manifest and database
-snapshot for every variant. The backend baseline is **`7b38c692f5c`** (January-merged master);
-compare it with translated-only, hierarchy-only, and both fixes. Do not substitute current master.
+snapshot for every variant. The hierarchy fix #25127 is on master since 2026-09-16, so until
+#25128 merges, current master is the hierarchy-only variant: compare it with master plus #25128.
+To repeat the original comparison of the baseline with translated-only, hierarchy-only and both
+fixes, use the backend baseline **`7b38c692f5c`** (master at #25125, before #25127).
 The existing Data Entry baseline already has a 200 ms debounce.
 
 #### Explicit setup (never part of Gatling)
