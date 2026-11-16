@@ -1250,13 +1250,14 @@ public final class AnalyticsUtils {
       if ((ex.getCause() instanceof SQLException sqlexception)
           && (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception))) {
         log.error(E7154.getMessage(), ex);
-        throw new QueryRuntimeException(E7154, format(DEV_MESSAGE, getExceptionMessage(ex)));
+        throw new QueryRuntimeException(E7154)
+            .setDevMessage(format(DEV_MESSAGE, getExceptionMessage(ex)));
       }
       log.error(E7132.getMessage(), ex);
-      throw new QueryRuntimeException(E7132, format(DEV_MESSAGE, getExceptionMessage(ex)));
+      throw new QueryRuntimeException(E7132);
     } catch (DataAccessResourceFailureException ex) {
       log.error(E7131.getMessage(), ex);
-      throw new QueryRuntimeException(E7131, format(DEV_MESSAGE, getExceptionMessage(ex)));
+      throw new QueryRuntimeException(E7131);
     }
 
     return Optional.empty();
@@ -1289,7 +1290,8 @@ public final class AnalyticsUtils {
       if (!isMultipleQueries) {
         if (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception)) {
           log.error(E7154.getMessage(), ex);
-          throw new QueryRuntimeException(E7154, format(DEV_MESSAGE, getExceptionMessage(ex)));
+          throw new QueryRuntimeException(E7154)
+              .setDevMessage(format(DEV_MESSAGE, getExceptionMessage(ex)));
         } else {
           log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
           throw ex;

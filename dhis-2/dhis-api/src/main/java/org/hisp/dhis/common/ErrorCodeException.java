@@ -39,7 +39,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
  */
 public class ErrorCodeException extends RuntimeException {
   private final ErrorCode errorCode;
-  private final String devMessage;
+  protected String devMessage;
 
   /** Deprecated, use {@link ErrorCode} or {@ErrorMessage} constructors instead. */
   public ErrorCodeException(String message) {

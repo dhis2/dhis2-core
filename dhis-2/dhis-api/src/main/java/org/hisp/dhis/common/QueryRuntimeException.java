@@ -68,10 +68,11 @@ public class QueryRuntimeException extends ErrorCodeException {
   /**
    * Constructor. Sets the message based on the error code and internal technical message/error.
    *
-   * @param errorCode the {@link ErrorCode}.
    * @param devMessage the internal technical message.
    */
-  public QueryRuntimeException(ErrorCode errorCode, String devMessage) {
-    super(errorCode, devMessage);
+  public QueryRuntimeException setDevMessage(String devMessage) {
+    super.devMessage = devMessage;
+
+    return this;
   }
 }
