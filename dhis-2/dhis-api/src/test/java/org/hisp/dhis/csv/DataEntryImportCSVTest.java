@@ -552,33 +552,6 @@ class DataEntryImportCSVTest {
   }
 
   @Test
-  void testShortReadsFromChunkedReader() {
-    record Row(String v) {}
-
-    StringBuilder csv = new StringBuilder("v\n");
-    for (int i = 0; i < 1000; i++) csv.append("X\n");
-    String text = csv.toString();
-
-    java.io.Reader chunked =
-        new java.io.Reader() {
-          private final StringReader delegate = new StringReader(text);
-
-          @Override
-          public int read(char[] cbuf, int off, int len) throws IOException {
-            return delegate.read(cbuf, off, Math.min(100, len));
-          }
-
-          @Override
-          public void close() throws IOException {
-            delegate.close();
-          }
-        };
-
-    List<Row> rows = CSV.of(chunked).as(Row.class).list();
-    assertEquals(1000, rows.size());
-  }
-
-  @Test
   void testBoundaryQuoteWithTrailingWhitespaceAtBufferEnd() {
     record Row(String a, String b) {}
 
@@ -879,6 +852,91 @@ class DataEntryImportCSVTest {
     List<DataEntryValue.Input> values =
         read("dataElement,period,orgUnit,comment\nde123456789,202501,ou123456789," + max + "\n");
     assertEquals(max, values.get(0).comment());
+  }
+
+  @Test
+  void testShortReadsFromChunkedReader() {
+    record Row(String a, String b, String c) {}
+
+    StringBuilder csv = new StringBuilder("a,b,c\n");
+    for (int i = 0; i < 1000; i++) csv.append("1,2,3\n");
+    String text = csv.toString();
+
+    java.io.Reader chunked =
+        new java.io.Reader() {
+          private final StringReader delegate = new StringReader(text);
+
+          @Override
+          public int read(char[] cbuf, int off, int len) throws IOException {
+            return delegate.read(cbuf, off, Math.min(100, len));
+          }
+
+          @Override
+          public void close() throws IOException {
+            delegate.close();
+          }
+        };
+
+    List<Row> rows = CSV.of(chunked).as(Row.class).list();
+    assertEquals(1000, rows.size());
+    Row r0 = rows.get(0);
+    assertEquals("1", r0.a());
+    assertEquals("2", r0.b());
+    assertEquals("3", r0.c());
+    Row rN = rows.get(999);
+    assertEquals("1", rN.a());
+    assertEquals("3", rN.c());
+  }
+
+  /** S4: first read ends right after the header comma ({@code a,}). */
+  @Test
+  void testShortReadEndingAfterHeaderComma() {
+    record Row(String a, String b, String c) {}
+    String text = "a,b,c\n1,2,3\n1,2,3\n";
+    java.io.Reader chunked =
+        new java.io.Reader() {
+          private final StringReader delegate = new StringReader(text);
+
+          @Override
+          public int read(char[] cbuf, int off, int len) throws IOException {
+            return delegate.read(cbuf, off, Math.min(2, len));
+          }
+
+          @Override
+          public void close() {
+            delegate.close();
+          }
+        };
+    List<Row> rows = CSV.of(chunked).as(Row.class).list();
+    assertEquals(2, rows.size());
+    assertEquals("1", rows.get(0).a());
+    assertEquals("2", rows.get(0).b());
+    assertEquals("3", rows.get(0).c());
+  }
+
+  /** S4: an extra column arrives in the refill right after the last comma. */
+  @Test
+  void testShortReadEndingAfterDataComma() {
+    record Row(String a, String b) {}
+    String text = "a,b\n1,2,3\n";
+    java.io.Reader chunked =
+        new java.io.Reader() {
+          private final StringReader delegate = new StringReader(text);
+
+          @Override
+          public int read(char[] cbuf, int off, int len) throws IOException {
+            return delegate.read(cbuf, off, Math.min(4, len));
+          }
+
+          @Override
+          public void close() {
+            delegate.close();
+          }
+        };
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class, () -> CSV.of(chunked).as(Row.class).list());
+    assertEquals("CSV input error at line 2 column 3: Additional columns found", ex.getMessage());
   }
 
   private static List<DataEntryValue.Input> read(@Language("csv") String csv) {

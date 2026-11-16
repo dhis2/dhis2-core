@@ -604,19 +604,37 @@ public final class CSV {
       }
     }
 
-    private String[] readHeaderRow() {
+    private int skipToHeaderRow() {
       fillBufferTail(0);
       int from = skipLineBreak(skipIndent(0));
+      // the leading blank lines/indent may fill the buffer; refill and redo
+      while (from >= len && !eoi) {
+        pos = 0;
+        fillBufferTail(0);
+        from = skipLineBreak(skipIndent(0));
+      }
+      return from;
+    }
+
+    private String[] readHeaderRow() {
+      int from = skipToHeaderRow();
       List<String> header = new ArrayList<>();
-      while (from < len && !isLineBreak(buffer[from])) {
+      while (true) {
+        // a fill that ends right after a comma must not look like end-of-row
+        from = refillConsumedBuffer(from);
+        if (from >= len || isLineBreak(buffer[from])) break;
         int to = skipValueGrowAndRefill(from);
         from = pos; // in case we did move/grow
         String value = value(from, to);
         checkHeader(value, header);
         header.add(value);
         from = skipIndent(to);
-        if (from < len && buffer[from] == ',') from++;
-        col++;
+        if (from < len && buffer[from] == ',') {
+          from++;
+          col++;
+        } else {
+          break; // end of header row (line break or EOF)
+        }
       }
       if (header.isEmpty()) throw error("No header row found");
       pos = skipLineBreak(from);
@@ -642,10 +660,21 @@ public final class CSV {
           if (from < len && buffer[from] == ',') from++;
           col++;
         }
+        // the last field may have ended exactly at the buffer boundary
+        from = refillConsumedBuffer(from);
         if (from < len && !isLineBreak(buffer[from])) throw error("Additional columns found");
         pos = skipLineBreak(from);
       } while (isEmpty(row));
       return true;
+    }
+
+    private int refillConsumedBuffer(int from) {
+      if (from >= len && !eoi) {
+        pos = 0;
+        fillBufferTail(0);
+        from = 0;
+      }
+      return from;
     }
 
     private int skipValueGrowAndRefill(int from) {
