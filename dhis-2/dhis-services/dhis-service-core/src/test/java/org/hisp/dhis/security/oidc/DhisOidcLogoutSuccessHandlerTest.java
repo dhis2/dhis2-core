@@ -29,6 +29,12 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_RELOGIN_URL;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_LOGOUT_REDIRECT_URL;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -36,21 +42,36 @@ import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.jwt.DhisJwtAuthenticationToken;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 /**
  * Unit tests for {@link DhisOidcLogoutSuccessHandler} verifying that the redirect_uri parameter is
- * validated against the device enrollment redirect allowlist from system settings.
+ * validated against the device enrollment redirect allowlist from system settings, and that a
+ * linked account switch applies only to the logged-in user.
  */
 @ExtendWith(MockitoExtension.class)
 class DhisOidcLogoutSuccessHandlerTest {
@@ -153,5 +174,85 @@ class DhisOidcLogoutSuccessHandlerTest {
     handler.onLogoutSuccess(request, response, authentication);
 
     verify(response, never()).sendRedirect("https://attacker.com/steal");
+  }
+
+  private DhisOidcLogoutSuccessHandler linkedAccountsHandler() {
+    when(config.isEnabled(OIDC_OAUTH2_LOGIN_ENABLED)).thenReturn(true);
+    when(config.isEnabled(LINKED_ACCOUNTS_ENABLED)).thenReturn(true);
+    when(config.getPropertyOrDefault(OIDC_LOGOUT_REDIRECT_URL, "/")).thenReturn("/");
+    lenient().when(config.getProperty(LINKED_ACCOUNTS_RELOGIN_URL)).thenReturn("/relogin");
+    DhisOidcLogoutSuccessHandler linkedHandler =
+        new DhisOidcLogoutSuccessHandler(
+            config, dhisOidcProviderRepository, userService, systemSettingsService);
+    linkedHandler.init();
+    return linkedHandler;
+  }
+
+  private void stubSwitchRequest(String current, String switchTo) {
+    when(request.getParameter("redirect_uri")).thenReturn(null);
+    when(request.getParameter("switch")).thenReturn(switchTo);
+    lenient().when(request.getParameter("current")).thenReturn(current);
+  }
+
+  private static Stream<Arguments> notLoggedIn() {
+    return Stream.of(
+        Arguments.of("no authentication", null),
+        Arguments.of(
+            "anonymous authentication",
+            new AnonymousAuthenticationToken(
+                "key", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"))));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("notLoggedIn")
+  @DisplayName("Linked account switch is ignored when the request has no logged-in user")
+  void testLinkedAccountSwitchWithoutLoggedInUser(String description, Authentication auth)
+      throws Exception {
+    DhisOidcLogoutSuccessHandler linkedHandler = linkedAccountsHandler();
+    stubSwitchRequest("alice", "bob");
+
+    linkedHandler.onLogoutSuccess(request, response, auth);
+
+    verify(userService, never()).setActiveLinkedAccounts(anyString(), anyString());
+  }
+
+  /**
+   * Logged-in users whose DHIS2 username is {@code alice}. For an OIDC login the principal's own
+   * name is the IdP subject, and for a JWT bearer token the authentication name is the mapping
+   * claim value, so neither may be taken as the DHIS2 username.
+   */
+  private static Stream<Arguments> loggedIn() {
+    UserDetails alice = UserDetails.empty().username("alice").build();
+    Map<String, Object> claims = Map.of(IdTokenClaimNames.SUB, "idp-subject-123");
+    DhisOidcUser oidcUser = new DhisOidcUser(alice, claims, IdTokenClaimNames.SUB, null);
+    Jwt jwt =
+        Jwt.withTokenValue("token")
+            .header("alg", "RS256")
+            .subject("idp-subject-123")
+            .claim("email", "alice@example.org")
+            .build();
+    return Stream.of(
+        Arguments.of(
+            "form login",
+            UsernamePasswordAuthenticationToken.authenticated(alice, null, List.of())),
+        Arguments.of(
+            "OIDC login",
+            new OAuth2AuthenticationToken(oidcUser, oidcUser.getAuthorities(), "idp")),
+        Arguments.of(
+            "JWT bearer token",
+            new DhisJwtAuthenticationToken(jwt, List.of(), "alice@example.org", alice)));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("loggedIn")
+  @DisplayName("Linked account switch applies to the logged-in user, not the current parameter")
+  void testLinkedAccountSwitchUsesLoggedInUser(String description, Authentication auth)
+      throws Exception {
+    DhisOidcLogoutSuccessHandler linkedHandler = linkedAccountsHandler();
+    stubSwitchRequest("mallory", "bob");
+
+    linkedHandler.onLogoutSuccess(request, response, auth);
+
+    verify(userService).setActiveLinkedAccounts("alice", "bob");
   }
 }

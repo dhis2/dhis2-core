@@ -42,12 +42,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Pattern;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.UserService;
+import org.springframework.security.authentication.AuthenticationTrustResolver;
+import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
@@ -75,7 +79,7 @@ import org.springframework.stereotype.Component;
  * the Android Capture app's deep-link logout flow (e.g. {@code dhis2oauth://oauth}). The value is
  * accepted only if it matches the configured device-enrollment redirect allowlist, to prevent
  * open-redirect abuse. When the linked-accounts feature is active and a {@code switch} parameter is
- * present, the handler switches active linked account via {@code
+ * present, the handler switches the active linked account of the logged-in user via {@code
  * UserService.setActiveLinkedAccounts} and redirects to {@code linked_accounts.relogin_url};
  * otherwise it redirects to {@code linked_accounts.logout_url}.
  *
@@ -89,6 +93,9 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
   private final DhisOidcProviderRepository dhisOidcProviderRepository;
   private final UserService userService;
   private final SystemSettingsProvider settingsProvider;
+
+  private final AuthenticationTrustResolver authenticationTrustResolver =
+      new AuthenticationTrustResolverImpl();
 
   private SimpleUrlLogoutSuccessHandler handler;
 
@@ -148,19 +155,39 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
       linkedAccountsLogoutUrl = "/";
     }
 
+    String targetUrl;
     if (isNullOrEmpty(usernameToSwitchTo)) {
       // No switch parameter present: redirect to linked_accounts.logout_url
-      this.handler.setDefaultTargetUrl(linkedAccountsLogoutUrl);
+      targetUrl = linkedAccountsLogoutUrl;
     } else {
-      // switch parameter present: switch accounts and then redirect to re-login URL
-      String currentUsername = request.getParameter("current");
-      if (!isNullOrEmpty(currentUsername)) {
-        userService.setActiveLinkedAccounts(currentUsername, usernameToSwitchTo);
+      // switch parameter present: switch the logged-in user's account, then redirect to re-login
+      String loggedInUsername = getLoggedInUsername(authentication);
+      if (loggedInUsername != null) {
+        userService.setActiveLinkedAccounts(loggedInUsername, usernameToSwitchTo);
       }
-      this.handler.setDefaultTargetUrl(config.getProperty(LINKED_ACCOUNTS_RELOGIN_URL));
+      targetUrl = config.getProperty(LINKED_ACCOUNTS_RELOGIN_URL);
     }
 
-    handler.onLogoutSuccess(request, response, authentication);
+    // A handler per request, as the target URL differs between concurrent logouts
+    SimpleUrlLogoutSuccessHandler targetUrlHandler = new SimpleUrlLogoutSuccessHandler();
+    targetUrlHandler.setDefaultTargetUrl(targetUrl);
+    targetUrlHandler.onLogoutSuccess(request, response, authentication);
+  }
+
+  /**
+   * Returns the DHIS2 username of the logged-in user who is logging out, or null when the request
+   * has no logged-in user. The username comes from the principal, as {@link
+   * Authentication#getName()} is the mapping claim value for a JWT bearer token.
+   */
+  @CheckForNull
+  private String getLoggedInUsername(@CheckForNull Authentication authentication) {
+    if (!authenticationTrustResolver.isAuthenticated(authentication)) {
+      return null;
+    }
+    if (authentication.getPrincipal() instanceof UserDetails userDetails) {
+      return userDetails.getUsername();
+    }
+    return null;
   }
 
   /**
