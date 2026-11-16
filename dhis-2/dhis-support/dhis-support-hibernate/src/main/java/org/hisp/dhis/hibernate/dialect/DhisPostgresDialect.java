@@ -84,11 +84,12 @@ public class DhisPostgresDialect extends PostgisPG95Dialect {
     registerFunction(
         JsonbFunctions.GET_TRANSLATED_VALUE,
         new StandardSQLFunction(JsonbFunctions.GET_TRANSLATED_VALUE, StandardBasicTypes.STRING));
-    // Unlike translated ordering, display-name filtering must skip empty values and match the
-    // getter's case-insensitive property key and conditional String.trim() fallback.
+    // Unlike jsonb_get_translated_value (still used by Gist), display-property filtering and
+    // ordering must skip empty values and match the getter's case-insensitive property key and
+    // conditional String.trim() fallback.
     registerFunction(
-        JsonbFunctions.GET_DISPLAY_NAME,
-        new StandardSQLFunction(JsonbFunctions.GET_DISPLAY_NAME, StandardBasicTypes.STRING) {
+        JsonbFunctions.GET_DISPLAY_VALUE,
+        new StandardSQLFunction(JsonbFunctions.GET_DISPLAY_VALUE, StandardBasicTypes.STRING) {
           @Override
           public String render(
               Type firstArgumentType, List arguments, SessionFactoryImplementor factory) {

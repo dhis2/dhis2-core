@@ -57,6 +57,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -92,6 +93,8 @@ import org.springframework.stereotype.Component;
 public class JpaCriteriaQueryEngine implements QueryEngine {
 
   private static final String FORCE_CUSTOM_PLAN = "force_custom_plan";
+
+  private static final Pattern TRANSLATION_KEY = Pattern.compile("\\w+");
 
   private final SchemaService schemaService;
   private final List<IdentifiableObjectStore<?>> hibernateGenericStores;
@@ -362,37 +365,25 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   /**
    * Creates an order predicate for translatable properties (displayName, displayDescription,
    * displayShortName, etc.). These properties are derived from the translations JSONB column based
-   * on the current user's locale.
+   * on the current user's locale, with the same expression as the displayName filter, so that the
+   * sort order matches the values in the response.
    *
    * @param builder the criteria builder
    * @param root the root entity
    * @param property the property to order by
    * @param order the order specification
    * @param <T> the entity type
-   * @return an order predicate that sorts by the translated value
+   * @return an order predicate that sorts by the display value
    */
   private <T extends IdentifiableObject>
       jakarta.persistence.criteria.Order getTranslatableOrderJsonBPredicate(
           CriteriaBuilder builder, Root<T> root, Property property, Order order) {
-
-    String translationKey = property.getTranslationKey();
-    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
-
-    Expression<String> translatedValue =
-        builder.function(
-            JsonbFunctions.GET_TRANSLATED_VALUE,
-            String.class,
-            root.get("translations"),
-            builder.literal(translationKey),
-            builder.literal(locale.toString()));
-
     String basePropertyName = Property.resolveTranslationBasePropertyName(property.getName());
-    Expression<String> baseValue = root.get(basePropertyName);
-
-    Expression<String> coalescedValue = builder.coalesce(translatedValue, baseValue);
+    Expression<String> displayValue =
+        getDisplayValue(builder, root, property.getTranslationKey(), basePropertyName);
 
     Expression<String> orderExpression =
-        order.isIgnoreCase() ? builder.lower(coalescedValue) : coalescedValue;
+        order.isIgnoreCase() ? builder.lower(displayValue) : displayValue;
 
     return order.isAscending() ? builder.asc(orderExpression) : builder.desc(orderExpression);
   }
@@ -468,18 +459,33 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   private <Y> Expression<String> getDisplayName(CriteriaBuilder builder, Root<Y> root) {
+    return getDisplayValue(builder, root, "NAME", "name");
+  }
+
+  /**
+   * Returns the SQL expression of a translatable display property (for example {@code
+   * displayName}), with the semantics of the Java getter: the first non-empty translation for the
+   * translation key and the current DB locale, else the base property.
+   */
+  private <Y> Expression<String> getDisplayValue(
+      CriteriaBuilder builder, Root<Y> root, String translationKey, String baseProperty) {
     Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
-    if (locale == null) return root.get("name");
+    if (locale == null) return root.get(baseProperty);
     return builder.function(
-        JsonbFunctions.GET_DISPLAY_NAME,
+        JsonbFunctions.GET_DISPLAY_VALUE,
         String.class,
         root.get("translations"),
-        root.get("name"),
-        builder.literal(displayNameTranslationPath(locale)),
+        root.get(baseProperty),
+        builder.literal(translationPath(translationKey, locale)),
         builder.literal(locale.toString()));
   }
 
-  private static String displayNameTranslationPath(Locale locale) {
+  private static String translationPath(String translationKey, Locale locale) {
+    // Translation keys come from @Translatable annotations; reject anything that is not a plain
+    // identifier before it enters the regex.
+    if (!TRANSLATION_KEY.matcher(translationKey).matches()) {
+      throw new IllegalArgumentException("Invalid translation key: " + translationKey);
+    }
     // Locale validates every component as ASCII letters/digits. Only these validated components,
     // never the request string, enter the regex. Keep canonical language-only locales on equality.
     String language =
@@ -506,7 +512,9 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       }
       localeMatch += " || @.locale like_regex \"^" + pattern + "$\"";
     }
-    return "$[*] ? (@.property like_regex \"^name$\" flag \"i\" && ("
+    return "$[*] ? (@.property like_regex \"^"
+        + translationKey
+        + "$\" flag \"i\" && ("
         + localeMatch
         + ") && @.value != null && @.value != \"\")";
   }

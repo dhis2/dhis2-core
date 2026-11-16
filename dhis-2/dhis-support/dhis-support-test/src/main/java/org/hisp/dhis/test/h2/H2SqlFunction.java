@@ -39,6 +39,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Locale;
@@ -52,6 +54,9 @@ import org.postgresql.util.PGobject;
  */
 @Slf4j
 public class H2SqlFunction {
+  private static final Pattern TRANSLATION_PATH_KEY =
+      Pattern.compile("@\\.property like_regex \"\\^(\\w+)\\$\"");
+
   public static void registerH2Functions(DataSource dataSource) throws SQLException {
     try (Connection connection = dataSource.getConnection()) {
       createAliasForFunction(connection, "jsonb_extract_path_text");
@@ -60,7 +65,7 @@ public class H2SqlFunction {
       createAliasForFunction(connection, "jsonb_has_user_id");
       createAliasForFunction(connection, "jsonb_check_user_access");
       createAliasForFunction(connection, "jsonb_get_translated_value");
-      createAliasForFunction(connection, "jsonb_get_display_name", "jsonbGetDisplayName");
+      createAliasForFunction(connection, "jsonb_get_display_value", "jsonbGetDisplayValue");
     } catch (SQLException exception) {
       log.info(
           "Failed to register custom H2Functions, probably already registered, ignoring this.",
@@ -225,14 +230,18 @@ public class H2SqlFunction {
     }
   }
 
-  // H2 binds the same four arguments as the PostgreSQL rendering. H2 has no JSONPath, so it matches
-  // the locale with the Java parser below and ignores the translation path.
-  @SuppressWarnings("java:S1172")
-  public static String jsonbGetDisplayName(
-      PGobject input, String name, String translationPath, String locale) {
-    if (locale == null || input == null || input.getValue() == null) return name;
+  // H2 binds the same four arguments as the PostgreSQL rendering. H2 has no JSONPath, so it reads
+  // only the translation key from the path and matches the locale with the Java parser below.
+  public static String jsonbGetDisplayValue(
+      PGobject input, String baseValue, String translationPath, String locale) {
+    if (locale == null || input == null || input.getValue() == null) return baseValue;
     JsonArray translations = new Gson().fromJson(input.getValue(), JsonArray.class);
-    if (translations == null || translations.isEmpty()) return name;
+    if (translations == null || translations.isEmpty()) return baseValue;
+    Matcher key = TRANSLATION_PATH_KEY.matcher(translationPath);
+    if (!key.find()) {
+      throw new IllegalArgumentException("No translation key in path: " + translationPath);
+    }
+    String translationKey = key.group(1);
     // H2 has no PostgreSQL JSONPath evaluator; compare with the same parser used on hydration.
     Locale effectiveLocale = Locale.of(locale);
     for (JsonElement element : translations) {
@@ -242,7 +251,7 @@ public class H2SqlFunction {
       JsonElement value = translation.get("value");
       if (property != null
           && !property.isJsonNull()
-          && "NAME".equalsIgnoreCase(property.getAsString())
+          && translationKey.equalsIgnoreCase(property.getAsString())
           && language != null
           && !language.isJsonNull()
           && effectiveLocale.equals(Locale.ofNullable(language.getAsString()))
@@ -252,6 +261,6 @@ public class H2SqlFunction {
         return value.getAsString();
       }
     }
-    return name == null ? null : name.trim();
+    return baseValue == null ? null : baseValue.trim();
   }
 }

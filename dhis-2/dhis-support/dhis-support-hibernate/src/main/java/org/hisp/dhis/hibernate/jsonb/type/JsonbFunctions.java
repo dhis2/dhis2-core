@@ -102,9 +102,10 @@ public class JsonbFunctions {
   public static final String GET_TRANSLATED_VALUE = "jsonb_get_translated_value";
 
   /**
-   * Hibernate expression for the display-name getter: translations, base name, a JSONPath matching
-   * accepted persisted locale representations, and the canonical effective locale. PostgreSQL
-   * expands the path inline without installing a function; H2 uses the locale with the Java parser.
+   * Hibernate expression for the display-property getters (displayName, displayShortName, ...):
+   * translations, base value, a JSONPath matching the translation key and the accepted persisted
+   * locale representations, and the canonical effective locale. PostgreSQL expands the path inline
+   * without installing a function; H2 uses the locale with the Java parser.
    */
-  public static final String GET_DISPLAY_NAME = "jsonb_get_display_name";
+  public static final String GET_DISPLAY_VALUE = "jsonb_get_display_value";
 }

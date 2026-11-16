@@ -31,7 +31,6 @@ package org.hisp.dhis.query;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -96,8 +95,9 @@ class DisplayNameQueryPlanTest extends PostgresIntegrationTestBase {
 
   @Test
   void displayNameListAndCountNeverRunOnAGenericPlan() {
-    // Prepared statements live as long as the pooled connection, so compare counters, not totals.
-    Map<String, long[]> before = planCounters();
+    // Prepared statements live as long as the pooled connection, and the ordering statements of
+    // other tests contain the same expression, so check only the statements that ran here.
+    Map<String, PreparedPlan> before = preparedPlans();
     // Distinct terms keep the list query out of the query cache, so every search reaches the DB.
     for (int i = 0; i < SEARCHES; i++) {
       Query<OrganisationUnit> query =
@@ -111,35 +111,38 @@ class DisplayNameQueryPlanTest extends PostgresIntegrationTestBase {
       assertEquals(1, queryService.count(query));
     }
 
-    Map<String, long[]> after = planCounters();
-    assertFalse(after.isEmpty(), "pgjdbc should have server-prepared the display-name statements");
-    after.forEach(
-        (statement, plans) -> {
-          long[] previous = before.getOrDefault(statement, new long[2]);
-          assertEquals(previous[0], plans[0], "generic plans of " + statement);
-          assertTrue(plans[1] > previous[1], "custom plans of " + statement);
-        });
+    Map<String, PreparedPlan> executed = executedSince(before);
+    assertFalse(
+        executed.isEmpty(), "pgjdbc should have server-prepared the display-name statements");
+    executed.forEach(
+        (statement, plan) ->
+            assertEquals(
+                before.containsKey(statement) ? before.get(statement).generic() : 0,
+                plan.generic(),
+                "generic plans of " + statement));
     assertEquals("force_generic_plan", planCacheMode(), "the session setting is restored");
   }
 
   @Test
   void genericDisplayNamePlanEvaluatesTheTranslationPathOncePerExecution() {
+    Map<String, PreparedPlan> before = preparedPlans();
     for (int i = 0; i < SEARCHES; i++) {
       queryService.count(
           Query.of(OrganisationUnit.class)
               .add(Filters.ilike("displayName", "traduit " + i, MatchMode.ANYWHERE)));
     }
-    List<Object[]> plans = displayNameStatementPlans();
-    assertFalse(plans.isEmpty(), "pgjdbc should have server-prepared the display-name statement");
+    Map<String, PreparedPlan> executed = executedSince(before);
+    assertFalse(
+        executed.isEmpty(), "pgjdbc should have server-prepared the display-name statement");
+    PreparedPlan count = executed.values().iterator().next();
 
     // Should the custom plan not be forced, the generic plan must still evaluate the bound JSONPath
     // and its variables once per execution (InitPlans), not once per row. The session prefers
     // generic plans, and a generic plan does not depend on the parameter values.
-    String nulls =
-        String.join(", ", Collections.nCopies(((Number) plans.get(0)[4]).intValue(), "null"));
+    String nulls = String.join(", ", Collections.nCopies(count.parameters(), "null"));
     List<?> plan =
         entityManager
-            .createNativeQuery("explain execute \"" + plans.get(0)[3] + "\"(" + nulls + ")")
+            .createNativeQuery("explain execute \"" + count.name() + "\"(" + nulls + ")")
             .getResultList();
     // PostgreSQL 17 also names an InitPlan where its value is used, so count only plan nodes.
     long initPlans =
@@ -150,24 +153,45 @@ class DisplayNameQueryPlanTest extends PostgresIntegrationTestBase {
     assertEquals(2, initPlans, String.valueOf(plan));
   }
 
-  private Map<String, long[]> planCounters() {
-    Map<String, long[]> counters = new HashMap<>();
-    for (Object[] plan : displayNameStatementPlans()) {
-      counters.put(
-          (String) plan[2],
-          new long[] {((Number) plan[0]).longValue(), ((Number) plan[1]).longValue()});
+  private record PreparedPlan(String name, int parameters, long generic, long custom) {
+    long executions() {
+      return generic + custom;
     }
-    return counters;
+  }
+
+  private Map<String, PreparedPlan> executedSince(Map<String, PreparedPlan> before) {
+    Map<String, PreparedPlan> executed = new HashMap<>();
+    preparedPlans()
+        .forEach(
+            (statement, plan) -> {
+              PreparedPlan previous = before.get(statement);
+              if (previous == null || previous.executions() < plan.executions()) {
+                executed.put(statement, plan);
+              }
+            });
+    return executed;
   }
 
   @SuppressWarnings("unchecked")
-  private List<Object[]> displayNameStatementPlans() {
-    return entityManager
-        .createNativeQuery(
-            "select generic_plans, custom_plans, statement, name,"
-                + " cardinality(parameter_types) from pg_prepared_statements"
-                + " where statement like '%jsonb_path_query_first%'")
-        .getResultList();
+  private Map<String, PreparedPlan> preparedPlans() {
+    List<Object[]> rows =
+        entityManager
+            .createNativeQuery(
+                "select statement, name, cardinality(parameter_types), generic_plans, custom_plans"
+                    + " from pg_prepared_statements"
+                    + " where statement like '%jsonb_path_query_first%'")
+            .getResultList();
+    Map<String, PreparedPlan> plans = new HashMap<>();
+    for (Object[] row : rows) {
+      plans.put(
+          (String) row[0],
+          new PreparedPlan(
+              (String) row[1],
+              ((Number) row[2]).intValue(),
+              ((Number) row[3]).longValue(),
+              ((Number) row[4]).longValue()));
+    }
+    return plans;
   }
 
   private void setPlanCacheMode(String mode) {
