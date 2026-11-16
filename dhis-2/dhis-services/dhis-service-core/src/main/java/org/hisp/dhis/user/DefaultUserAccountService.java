@@ -35,6 +35,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Objects;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -297,18 +299,29 @@ public class DefaultUserAccountService implements UserAccountService {
     userService.registerRecoveryAttempt(username);
   }
 
+  /**
+   * Looks up the input as typed first and falls back to the input without edge whitespace only when
+   * the typed input matches no user. Stored emails and usernames can start or end with whitespace,
+   * so an exact match wins over the stripped form.
+   */
   private User getUserByEmailOrUsername(String input) throws HiddenNotFoundException {
-    String emailOrUsername = Usernames.resolveTypedUsername(input, userService);
-    User user;
-    if (ValidationUtils.emailIsValid(emailOrUsername)) {
-      user = userService.getUserByEmail(emailOrUsername);
-    } else {
-      user = userService.getUserByUsername(emailOrUsername);
+    User user = findUserByEmailOrUsername(input);
+    String stripped = Usernames.stripEdgeWhitespace(input);
+    if (user == null && !Objects.equals(stripped, input)) {
+      user = findUserByEmailOrUsername(stripped);
     }
     if (user == null) {
-      throw new HiddenNotFoundException("User does not exist: " + emailOrUsername);
+      throw new HiddenNotFoundException("User does not exist: " + input);
     }
     return user;
+  }
+
+  @CheckForNull
+  private User findUserByEmailOrUsername(String emailOrUsername) {
+    if (ValidationUtils.emailIsValid(emailOrUsername)) {
+      return userService.getUserByEmail(emailOrUsername);
+    }
+    return userService.getUserByUsername(emailOrUsername);
   }
 
   private User validateRestoreLinkAndToken(UserInviteParams params) throws BadRequestException {

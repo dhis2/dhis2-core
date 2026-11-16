@@ -67,6 +67,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -265,6 +266,45 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     sendForgotPasswordRequest(template.formatted(user.getEmail()));
 
     assertMessageSendTo(user.getEmail());
+  }
+
+  /**
+   * Space characters a stored email can start with: the email validator accepts them, so user
+   * writes can store them, while the edge whitespace strip removes them.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = {"\u00a0", "\u2007", "\u3000"})
+  void testResetPasswordWithExactEmailStoredWithLeadingSpaceCharacter(String prefix) {
+    settingsService.put("keyAccountRecovery", true);
+    User user = switchToNewUser(uniqueUsername());
+    storeEmail(user, prefix + user.getEmail());
+    clearSecurityContext();
+
+    sendForgotPasswordRequest(user.getEmail());
+
+    assertMessageSendTo(user.getEmail());
+  }
+
+  @Test
+  void testResetPasswordPrefersExactEmailOverStrippedEmail() {
+    settingsService.put("keyAccountRecovery", true);
+    User plain = switchToNewUser(uniqueUsername());
+    User padded = switchToNewUser(uniqueUsername());
+    storeEmail(padded, "\u00a0" + plain.getEmail());
+    clearSecurityContext();
+
+    sendForgotPasswordRequest(padded.getEmail());
+    assertMessageSendTo(padded.getEmail());
+    assertTrue(emailMessageSender.getMessagesByEmail(plain.getEmail()).isEmpty());
+
+    sendForgotPasswordRequest(plain.getEmail() + " ");
+    assertMessageSendTo(plain.getEmail());
+  }
+
+  /** Stores {@code email} as the email of {@code user} without the email syntax check. */
+  private void storeEmail(User user, String email) {
+    user.setEmail(email);
+    userService.updateUser(user);
   }
 
   /**
