@@ -60,9 +60,6 @@ jobs:
           IMAGE_TAG: ${{ github.event.pull_request.number }}
           IMAGE_PULL_POLICY: Always
           DATABASE_ID: test-dbs-sierra-leone-dev-sql-gz
-          # Optional dhis.conf lines for new instances, from a repository variable that only
-          # maintainers can set, never from PR-controlled text. Unset means none.
-          CUSTOM_DHIS2_CONFIG: ${{ vars.DEPLOY_INSTANCE_CUSTOM_DHIS2_CONFIG }}
         run: |
           ./findByName.sh dev $INSTANCE_NAME | jq --exit-status 'has("id")' &&
           ./restart.sh $(./findByName.sh dev $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-v2") | .id') dhis2 ||
