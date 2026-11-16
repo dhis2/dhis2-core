@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.analytics.event.query;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
@@ -910,5 +912,153 @@ public class EventsQuery9AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 26, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 26, "programstatus", "ACTIVE");
     validateRowValueByName(response, actualHeaders, 26, "ou", "DiszpKrYNg8");
+  }
+
+  @Test
+  public void enrollmentStatusCompletedOnEventsQuery() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("headers=psi,ouname,eventdate,programstatus")
+            .add("stage=A03MvHHogjR")
+            .add("enrollmentStatus=COMPLETED")
+            .add("totalPages=true")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ou:ImspTQPwCqd,pe:LAST_10_YEARS")
+            .add("relativePeriodDate=2025-01-01");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        5,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"total\":5,\"pageSize\":100,\"pageCount\":1},\"items\":{\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2019\":{\"name\":\"2019\"},\"2018\":{\"name\":\"2018\"},\"programstatus\":{\"name\":\"Program status\"},\"COMPLETED\":{\"name\":\"Completed\"},\"2017\":{\"name\":\"2017\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"2016\":{\"name\":\"2016\"},\"2015\":{\"name\":\"2015\"},\"pe\":{},\"2024\":{\"name\":\"2024\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"programstatus\":[\"COMPLETED\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "psi", "Event", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "eventdate",
+        "Report date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "programstatus",
+        "Program status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results).
+
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "V9HVjkqcUcg", "ouname", "Ngelehun CHC", "programstatus", "COMPLETED"));
+
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "nN7gGLW5Akv", "ouname", "Ngelehun CHC", "programstatus", "COMPLETED"));
+
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "kNn9HkRjk1c", "ouname", "Ngelehun CHC", "programstatus", "COMPLETED"));
+
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "EsHa0edW6uY", "ouname", "Ngelehun CHC", "programstatus", "COMPLETED"));
+
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("psi", "Ni0yhZ7XhAP", "ouname", "Ngelehun CHC", "programstatus", "COMPLETED"));
+  }
+
+  private static final String PROGRAM = "IpHINAT79UW";
+
+  private final AnalyticsEventActions eventActions = new AnalyticsEventActions();
+
+  @Test
+  public void queryRejectsProgramStatusWithEnrollmentStatus() {
+    ApiResponse response = eventActions.query().get(PROGRAM, JSON, JSON, bothStatusParams());
+
+    validateBothStatusesRejected(response);
+  }
+
+  @Test
+  public void aggregateRejectsProgramStatusWithEnrollmentStatus() {
+    ApiResponse response = eventActions.aggregate().get(PROGRAM, JSON, JSON, bothStatusParams());
+
+    validateBothStatusesRejected(response);
+  }
+
+  private QueryParamsBuilder bothStatusParams() {
+    return new QueryParamsBuilder()
+        .add("stage=A03MvHHogjR")
+        .add("dimension=ou:ImspTQPwCqd,pe:LAST_10_YEARS")
+        .add("programStatus=COMPLETED")
+        .add("enrollmentStatus=COMPLETED")
+        .add("relativePeriodDate=2025-01-01");
+  }
+
+  private void validateBothStatusesRejected(ApiResponse response) {
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("errorCode", equalTo("E7139"))
+        .body(
+            "message",
+            equalTo("Parameters programStatus and enrollmentStatus cannot be used together"));
   }
 }
