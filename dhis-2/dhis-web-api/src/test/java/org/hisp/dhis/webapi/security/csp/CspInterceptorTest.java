@@ -97,7 +97,7 @@ class CspInterceptorTest {
   @CsvSource({"on,true", "off,false"})
   void generalPoliciesRetainOptionalEnablement(String setting, boolean enabled) throws Exception {
     MockMvc mvc = mvc(setting);
-    for (String path : List.of("/plain", "/app", "/openapi", "/missing")) {
+    for (String path : List.of("/plain", "/app", "/openapi", "/report", "/missing")) {
       MockHttpServletResponse response = mvc.perform(get(path)).andReturn().getResponse();
       assertEquals(path.equals("/missing") ? 404 : 200, response.getStatus());
       assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -106,7 +106,9 @@ class CspInterceptorTest {
         assertEquals(1, response.getHeaders("Content-Security-Policy").size());
         assertTrue(policy.contains("default-src 'self';"));
         assertEquals(
-            path.equals("/openapi"), policy.contains("script-src 'self' 'unsafe-inline';"));
+            path.equals("/openapi") || path.equals("/report"),
+            policy.contains("script-src 'self' 'unsafe-inline';"));
+        assertEquals(path.equals("/openapi"), policy.contains("fonts.googleapis.com"));
         assertEquals(path.equals("/app"), policy.contains("child-src 'self' blob:;"));
         assertNull(response.getHeader("X-Frame-Options"));
       } else {
@@ -148,6 +150,7 @@ class CspInterceptorTest {
     @CspUserUploadedContent
     @CspAppHost
     @CspOpenApiDocs
+    @CspHtmlReport
     @GetMapping("/upload")
     String upload() {
       return "upload";
@@ -157,6 +160,12 @@ class CspInterceptorTest {
     @GetMapping("/openapi")
     String openapi() {
       return "docs";
+    }
+
+    @CspHtmlReport
+    @GetMapping("/report")
+    String report() {
+      return "report";
     }
   }
 

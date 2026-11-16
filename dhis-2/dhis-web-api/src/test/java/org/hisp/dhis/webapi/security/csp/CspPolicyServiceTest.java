@@ -170,6 +170,18 @@ class CspPolicyServiceTest {
   }
 
   @Test
+  void constructHtmlReportPolicy_isDefaultPolicyPlusInlineScripts() {
+    String result = cspPolicyService.constructHtmlReportCspPolicy();
+
+    assertEquals(
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+            + " base-uri 'self'; form-action 'self'; object-src 'none';"
+            + " upgrade-insecure-requests; frame-ancestors 'self';",
+        result);
+    assertFalse(cspPolicyService.constructDefaultCspPolicy().contains("script-src"));
+  }
+
+  @Test
   void allEmittedPolicies_includeCommonHardeningDirectives() {
     // base-uri, form-action, object-src are policy-level directives that don't fall back to
     // default-src per the CSP spec, so every emitted policy must declare them explicitly.
@@ -179,6 +191,7 @@ class CspPolicyServiceTest {
       cspPolicyService.getUserUploadedContentSecurityHeaders().getFirst("Content-Security-Policy"),
       cspPolicyService.constructAppHostCspPolicy(),
       cspPolicyService.constructOpenApiDocsCspPolicy(),
+      cspPolicyService.constructHtmlReportCspPolicy(),
     };
     for (String policy : policies) {
       assertTrue(policy.contains("base-uri 'self'"), "missing base-uri 'self' in: " + policy);
@@ -214,6 +227,7 @@ class CspPolicyServiceTest {
           cspPolicyService.constructDefaultCspPolicy(),
           cspPolicyService.constructAppHostCspPolicy(),
           cspPolicyService.constructOpenApiDocsCspPolicy(),
+          cspPolicyService.constructHtmlReportCspPolicy(),
           cspPolicyService
               .getUserUploadedContentSecurityHeaders()
               .getFirst("Content-Security-Policy")

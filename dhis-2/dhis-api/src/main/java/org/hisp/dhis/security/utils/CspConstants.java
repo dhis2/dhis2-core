@@ -135,4 +135,16 @@ public class CspConstants {
           + " style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;"
           + " font-src https://fonts.gstatic.com; img-src 'self' data:; "
           + COMMON_HARDENING;
+
+  /**
+   * CSP policy for rendered HTML standard reports ({@code GET /api/reports/{uid}/data.html}),
+   * scoped to that endpoint only via {@link
+   * org.hisp.dhis.webapi.security.csp.CspHtmlReport @CspHtmlReport}. The rendered report starts
+   * with the inline script of {@code html-report.vm} that fills {@code dhis2.report.*}, followed by
+   * the HTML and scripts of the report design, so it adds {@code script-src 'self' 'unsafe-inline'}
+   * to {@link #DEFAULT_CSP_POLICY}.
+   */
+  public static final String HTML_REPORT_CSP_POLICY =
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+          + COMMON_HARDENING;
 }

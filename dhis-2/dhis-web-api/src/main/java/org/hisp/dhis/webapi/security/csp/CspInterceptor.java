@@ -110,6 +110,10 @@ public class CspInterceptor implements HandlerInterceptor {
       log.debug("Applying openapi-docs CSP policy for {}", method.getName());
       return cspPolicyService.getSecurityHeaders(cspPolicyService.constructOpenApiDocsCspPolicy());
     }
+    if (hasMarker(method, controllerClass, CspHtmlReport.class)) {
+      log.debug("Applying html-report CSP policy for {}", method.getName());
+      return cspPolicyService.getSecurityHeaders(cspPolicyService.constructHtmlReportCspPolicy());
+    }
     return null;
   }
 

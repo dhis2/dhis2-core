@@ -37,6 +37,7 @@ import static org.hisp.dhis.security.utils.CspConstants.CONTENT_SECURITY_POLICY_
 import static org.hisp.dhis.security.utils.CspConstants.CONTENT_SECURITY_POLICY_REPORT_ONLY_HEADER_NAME;
 import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.FRAME_ANCESTORS_DEFAULT_CSP;
+import static org.hisp.dhis.security.utils.CspConstants.HTML_REPORT_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.OPENAPI_DOCS_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.USER_UPLOADED_CONTENT_CSP_POLICY;
 
@@ -95,6 +96,10 @@ public class CspPolicyService {
 
   public String constructOpenApiDocsCspPolicy() {
     return appendFooter(OPENAPI_DOCS_CSP_POLICY, null);
+  }
+
+  public String constructHtmlReportCspPolicy() {
+    return appendFooter(HTML_REPORT_CSP_POLICY, null);
   }
 
   /**
