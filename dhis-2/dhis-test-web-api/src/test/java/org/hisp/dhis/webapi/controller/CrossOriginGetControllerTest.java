@@ -240,6 +240,19 @@ class CrossOriginGetControllerTest extends H2ControllerIntegrationTestBase {
     assertRejected(GET("/systemUpdates", (Object[]) headers));
   }
 
+  @Test
+  void testSystemUpdatesWithoutAuthority() {
+    switchToNewUser("guest");
+    assertMissingAuthority("F_PERFORM_MAINTENANCE", GET("/systemUpdates"));
+  }
+
+  @Test
+  void testSystemUpdatesWithAuthority() {
+    switchToNewUser("maintainer", "F_PERFORM_MAINTENANCE");
+    // passes the authority check; the response then depends on the build and release versions
+    assertNotEquals(HttpStatus.FORBIDDEN, GET("/systemUpdates?forceVersion=1.0.0").status());
+  }
+
   @ParameterizedTest(name = "{0}")
   @MethodSource("rejectedHeaders")
   void testMetadataSyncWithGetRejected(String name, Header[] headers) {
@@ -264,6 +277,12 @@ class CrossOriginGetControllerTest extends H2ControllerIntegrationTestBase {
     JsonWebMessage message = response.content(HttpStatus.FORBIDDEN).as(JsonWebMessage.class);
     assertEquals(CrossOriginGetGuard.MESSAGE, message.getMessage());
     assertEquals(ErrorCode.E1008, message.getErrorCode());
+  }
+
+  private static void assertMissingAuthority(String authority, HttpResponse response) {
+    assertEquals(
+        "Access is denied, requires one Authority from [" + authority + "]",
+        response.error(HttpStatus.FORBIDDEN).getMessage());
   }
 
   /** Combines a path placeholder value with request headers into one argument list. */

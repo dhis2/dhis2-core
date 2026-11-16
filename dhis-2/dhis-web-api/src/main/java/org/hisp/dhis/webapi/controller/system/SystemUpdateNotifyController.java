@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller.system;
 
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
+
 import com.vdurmont.semver4j.Semver;
 import java.util.Map;
 import org.hisp.dhis.common.OpenApi;
@@ -36,6 +38,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.SoftwareUpdateResponse;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.SystemUpdateNotificationService;
 import org.hisp.dhis.webapi.controller.Server;
 import org.hisp.dhis.webapi.security.RejectCrossOriginGet;
@@ -60,6 +63,7 @@ public class SystemUpdateNotifyController {
   @Autowired private SystemUpdateNotificationService service;
 
   @GetMapping
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @RejectCrossOriginGet
   @ResponseBody
   public WebMessage checkForSystemUpdates(
