@@ -38,7 +38,15 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
-          cache: maven
+      - name: Cache Maven repository
+        uses: actions/cache@v6
+        with:
+          # Same path and key as setup-java's `cache: maven` (the cache version hashes the literal
+          # path), so its caches are reused; restore-keys lets a pom change start from the newest
+          # older cache instead of an empty repo (GeoTools is only on repo.osgeo.org).
+          path: /home/runner/.m2/repository
+          key: setup-java-Linux-x64-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: setup-java-Linux-x64-maven-
       - name: Run unit tests
         run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test
         timeout-minutes: 30
@@ -69,7 +77,15 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
-          cache: maven
+      - name: Cache Maven repository
+        uses: actions/cache@v6
+        with:
+          # Same path and key as setup-java's `cache: maven` (the cache version hashes the literal
+          # path), so its caches are reused; restore-keys lets a pom change start from the newest
+          # older cache instead of an empty repo (GeoTools is only on repo.osgeo.org).
+          path: /home/runner/.m2/repository
+          key: setup-java-Linux-x64-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: setup-java-Linux-x64-maven-
       - name: Run dependency analysis
         run: mvn dependency:analyze --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml
         timeout-minutes: 10
@@ -104,7 +120,15 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
-          cache: maven
+      - name: Cache Maven repository
+        uses: actions/cache@v6
+        with:
+          # Same path and key as setup-java's `cache: maven` (the cache version hashes the literal
+          # path), so its caches are reused; restore-keys lets a pom change start from the newest
+          # older cache instead of an empty repo (GeoTools is only on repo.osgeo.org).
+          path: /home/runner/.m2/repository
+          key: setup-java-Linux-x64-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: setup-java-Linux-x64-maven-
       - name: Compute shard test includes
         env:
           SHARD_INDEX: ${{ matrix.shard }}
@@ -196,7 +220,15 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
-          cache: maven
+      - name: Cache Maven repository
+        uses: actions/cache@v6
+        with:
+          # Same path and key as setup-java's `cache: maven` (the cache version hashes the literal
+          # path), so its caches are reused; restore-keys lets a pom change start from the newest
+          # older cache instead of an empty repo (GeoTools is only on repo.osgeo.org).
+          path: /home/runner/.m2/repository
+          key: setup-java-Linux-x64-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: setup-java-Linux-x64-maven-
       - name: Run integration h2 tests
         run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-h2-test
         timeout-minutes: 30
