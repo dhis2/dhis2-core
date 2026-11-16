@@ -46,6 +46,7 @@ import static io.gatling.javaapi.core.CoreDsl.repeat;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.flushCookieJar;
 import static io.gatling.javaapi.http.HttpDsl.http;
+import static io.gatling.javaapi.http.HttpDsl.httpConcurrentRequests;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
 import io.gatling.javaapi.core.Assertion;
@@ -955,13 +956,13 @@ public class PerfLandMnchTrackerTest extends Simulation {
    * "Event"}.
    *
    * <p>Capture sends a screen's requests concurrently, in waves: a request waits for the response
-   * that holds the UIDs it needs. Recorded with Chrome's resource timings (Capture of {@code
-   * dhis2/core-dev:latest}, 2 children): the dashboard reads the tracked entity's enrollments
-   * first, then sends its other requests in waves of 1 to 3 that varied between the 2 openings, the
-   * relationships last. The event page reads the event first, then sends the event's relationships,
-   * the tracked entity, the enrollment and the event's relationship items together. The test sends
-   * the first request of a screen, then the others concurrently as its {@code resources}: Gatling
-   * fetches them once the first completes.
+   * that holds the UIDs it needs. Recorded with Chrome's resource timings (Capture 107.9.1, 2
+   * children): the dashboard reads the tracked entity's enrollments first, then sends its other
+   * requests in waves of 1 to 3 that varied between the 2 openings, the relationships last. The
+   * event page reads the event first, then sends the event's relationships, the tracked entity, the
+   * enrollment and the event's relationship items together. The test sends the tracked entity with
+   * its enrollments first, for the UIDs, then the dashboard's tracked entity and enrollment
+   * concurrently, then the relationships; and the event page's two requests concurrently.
    */
   private record OpenTrackedEntity(
       String key,
@@ -1048,8 +1049,9 @@ public class PerfLandMnchTrackerTest extends Simulation {
                           .check(jsonPath("$.enrollments[*]").count().gte(1))
                           .check(jsonPath("$.enrollments[0].enrollment").saveAs(enrollmentKey))
                           .check(jsonPath("$.enrollments[0].events[*]").count().gte(1))
-                          .check(jsonPath("$.enrollments[0].events[0].event").saveAs(eventKey))
-                          .resources(
+                          .check(jsonPath("$.enrollments[0].events[0].event").saveAs(eventKey)))
+                      .exec(
+                          httpConcurrentRequests(
                               trackedEntity
                                   .action()
                                   .check(jsonPath("$.enrollments[*]").count().gte(1)),
@@ -1066,13 +1068,11 @@ public class PerfLandMnchTrackerTest extends Simulation {
               group(EVENT_PAGE)
                   .on(
                       exec(
-                          event
-                              .action()
-                              .check(jsonPath("$.event").exists())
-                              .resources(
-                                  relationshipsForEvent
-                                      .action()
-                                      .check(jsonPath("$.relationships[*]").count().is(0))))));
+                          httpConcurrentRequests(
+                              event.action().check(jsonPath("$.event").exists()),
+                              relationshipsForEvent
+                                  .action()
+                                  .check(jsonPath("$.relationships[*]").count().is(0))))));
     }
   }
 
