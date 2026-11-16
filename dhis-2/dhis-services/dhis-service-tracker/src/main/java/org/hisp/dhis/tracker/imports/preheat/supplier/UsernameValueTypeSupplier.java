@@ -32,13 +32,16 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
+import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -58,12 +61,16 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier {
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    List<TrackedEntityAttribute> attributes = preheat.getAll(TrackedEntityAttribute.class);
-
     TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
     List<MetadataIdentifier> usernameAttributes =
-        attributes.stream()
+        preheat.getAll(TrackedEntityAttribute.class).stream()
             .filter(at -> at.getValueType() == ValueType.USERNAME)
+            .map(idSchemes::toMetadataIdentifier)
+            .toList();
+
+    List<MetadataIdentifier> usernameDataElements =
+        preheat.getAll(DataElement.class).stream()
+            .filter(de -> de.getValueType() == ValueType.USERNAME)
             .map(idSchemes::toMetadataIdentifier)
             .toList();
 
@@ -75,6 +82,9 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier {
     trackerObjects
         .getEnrollments()
         .forEach(en -> collectResourceIds(usernameAttributes, usernames, en.getAttributes()));
+    trackerObjects
+        .getEvents()
+        .forEach(ev -> collectResourceIds(usernameDataElements, usernames, ev.getDataValues()));
 
     List<User> users = userService.getUsersByUsernames(usernames);
 
@@ -90,6 +100,19 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier {
           if (usernameAttributes.contains(at.getAttribute())
               && !StringUtils.isEmpty(at.getValue())) {
             usernames.add(at.getValue());
+          }
+        });
+  }
+
+  private void collectResourceIds(
+      List<MetadataIdentifier> usernameDataElements,
+      List<String> usernames,
+      Set<DataValue> dataValues) {
+    dataValues.forEach(
+        dv -> {
+          if (usernameDataElements.contains(dv.getDataElement())
+              && !StringUtils.isEmpty(dv.getValue())) {
+            usernames.add(dv.getValue());
           }
         });
   }
