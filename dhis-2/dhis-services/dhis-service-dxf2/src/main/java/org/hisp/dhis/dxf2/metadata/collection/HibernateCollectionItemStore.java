@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.metadata.collection;
 
 import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.ParameterExpression;
@@ -52,6 +51,8 @@ import org.hibernate.cache.spi.access.CollectionDataAccess;
 import org.hibernate.cache.spi.access.SoftLock;
 import org.hibernate.collection.internal.PersistentSet;
 import org.hibernate.collection.spi.PersistentCollection;
+import org.hibernate.dialect.Dialect;
+import org.hibernate.dialect.PostgreSQL93Dialect;
 import org.hibernate.engine.spi.CollectionEntry;
 import org.hibernate.engine.spi.CollectionKey;
 import org.hibernate.engine.spi.SessionImplementor;
@@ -59,6 +60,7 @@ import org.hibernate.persister.collection.AbstractCollectionPersister;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.collection.QueryableCollection;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.persister.entity.Lockable;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.event.CollectionMembershipChangedEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -74,6 +76,13 @@ import org.springframework.stereotype.Repository;
  * waits for this transaction to end and then reads its committed rows, as a later request would.
  * Without the lock both would read the same membership: a second addition of an item would violate
  * the join table's key and a second removal would count a row that no longer exists.
+ *
+ * <p>On PostgreSQL the lock is {@code for no key update}, not {@code for update}. A foreign key
+ * check takes {@code for key share} on the referenced row, which conflicts only with {@code for
+ * update}. So rows that reference the owner, such as the enrollments of a program, are inserted
+ * without waiting for this lock, and this lock does not wait for their transactions. A writer that
+ * inserts the same membership row without this lock is not serialised with it either: the later
+ * insert fails on the join table's key, as it does on the in-memory path.
  *
  * <p>Extra-lazy sets still initialize on owning-side writes: Hibernate only queues inverse-side
  * operations. Do not mark the real wrapper dirty or replace its snapshot with the partial set.
@@ -128,8 +137,8 @@ class HibernateCollectionItemStore {
       Collection<? extends IdentifiableObject> items,
       boolean addition) {
     SessionImplementor session = session();
-    entityManager.lock(owner, LockModeType.PESSIMISTIC_WRITE);
     Serializable key = session.getIdentifier(owner);
+    lockOwner(persister, key, session);
     List<IdentifiableObject> changes = changes(persister, key, items, addition, session);
     if (changes.isEmpty()) {
       return 0;
@@ -149,6 +158,30 @@ class HibernateCollectionItemStore {
     writeRows(persister, key, changes, addition, session);
     invalidateQuerySpaces(persister, session);
     return changes.size();
+  }
+
+  /**
+   * Locks the owner's row until the end of the transaction. Databases without {@code for no key
+   * update} (H2 in tests) take {@code for update}.
+   */
+  private void lockOwner(
+      CollectionPersister persister, Serializable key, SessionImplementor session) {
+    Lockable owner = (Lockable) persister.getOwnerEntityPersister();
+    Dialect dialect = session.getJdbcServices().getDialect();
+    String lock =
+        dialect instanceof PostgreSQL93Dialect
+            ? " for no key update"
+            : dialect.getForUpdateString();
+    entityManager
+        .createNativeQuery(
+            "select 1 from "
+                + owner.getRootTableName()
+                + " where "
+                + owner.getRootTableIdentifierColumnNames()[0]
+                + " = :id"
+                + lock)
+        .setParameter("id", key)
+        .getSingleResult();
   }
 
   /** The items to add that are not members yet, or the items to remove that are members. */

@@ -34,12 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import javax.sql.DataSource;
 import org.hibernate.Hibernate;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -47,6 +50,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -61,6 +65,10 @@ import org.springframework.transaction.support.TransactionTemplate;
  * Two requests that change the same item of the same unloaded collection at once must both succeed,
  * like the same requests made one after the other: the second one counts the item as ignored.
  *
+ * <p>The lock that serialises them must not serialise other writers that only reference the owner:
+ * a foreign key check of a row that references the owner neither waits for a collection request nor
+ * makes one wait.
+ *
  * <p>Deliberately NOT {@code @Transactional}: each request runs in its own committed transaction on
  * its own thread, which is what creates the contention.
  *
@@ -68,13 +76,18 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 class CollectionItemsConcurrencyTest extends PostgresIntegrationTestBase {
   private static final String PROPERTY = "organisationUnits";
+  private static final String INSERT_GROUP_SET_MEMBER =
+      "insert into orgunitgroupsetmembers (orgunitgroupsetid, orgunitgroupid) values (?, ?)";
 
   @Autowired private CollectionService collectionService;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private TransactionTemplate transactionTemplate;
   @Autowired private JdbcTemplate jdbcTemplate;
+  @Autowired private DataSource dataSource;
 
   private String group;
+  private long groupId;
+  private long groupSetId;
   private String unit;
   private UserDetails admin;
 
@@ -83,6 +96,10 @@ class CollectionItemsConcurrencyTest extends PostgresIntegrationTestBase {
     OrganisationUnitGroup owner = createOrganisationUnitGroup('A');
     manager.save(owner);
     group = owner.getUid();
+    groupId = owner.getId();
+    OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet('A');
+    manager.save(groupSet);
+    groupSetId = groupSet.getId();
     OrganisationUnit item = createOrganisationUnit('A');
     manager.save(item);
     unit = item.getUid();
@@ -127,6 +144,82 @@ class CollectionItemsConcurrencyTest extends PostgresIntegrationTestBase {
     assertEquals(addition ? 1 : 0, members());
   }
 
+  /**
+   * The group set membership references the group as an enrollment references its program. It is
+   * inserted while a collection request holds the lock of the group and must not wait for it.
+   */
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void insertThatReferencesTheOwnerDoesNotWaitForACollectionRequest(boolean addition)
+      throws Exception {
+    CountDownLatch requestChanged = new CountDownLatch(1);
+    CountDownLatch requestMayCommit = new CountDownLatch(1);
+    ExecutorService pool = Executors.newFixedThreadPool(2);
+    try {
+      if (!addition) {
+        addMember(pool);
+      }
+      Future<TypeReport> request =
+          pool.submit(
+              () ->
+                  inTransaction(
+                      () -> {
+                        TypeReport report = change(addition);
+                        requestChanged.countDown();
+                        assertTrue(requestMayCommit.await(1, TimeUnit.MINUTES));
+                        return report;
+                      }));
+      assertTrue(requestChanged.await(1, TimeUnit.MINUTES), "request did not change the item");
+
+      Future<Integer> insert =
+          pool.submit(() -> jdbcTemplate.update(INSERT_GROUP_SET_MEMBER, groupSetId, groupId));
+      await().atMost(1, TimeUnit.MINUTES).until(() -> insert.isDone() || waitingForLock() > 0);
+      assertTrue(insert.isDone(), "the insert waits for the collection request");
+      requestMayCommit.countDown();
+
+      assertEquals(1, insert.get(1, TimeUnit.MINUTES));
+      assertEquals(1, changed(request.get(1, TimeUnit.MINUTES), addition));
+    } finally {
+      requestMayCommit.countDown();
+      awaitTermination(pool);
+    }
+    assertEquals(addition ? 1 : 0, members());
+  }
+
+  /**
+   * The reverse of {@link #insertThatReferencesTheOwnerDoesNotWaitForACollectionRequest}: a
+   * transaction that has inserted a row referencing the group, and is still open, does not make a
+   * collection request of the group wait.
+   */
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void collectionRequestDoesNotWaitForAnInsertThatReferencesTheOwner(boolean addition)
+      throws Exception {
+    ExecutorService pool = Executors.newSingleThreadExecutor();
+    try (Connection concurrent = dataSource.getConnection()) {
+      if (!addition) {
+        addMember(pool);
+      }
+      concurrent.setAutoCommit(false);
+      try (PreparedStatement insert = concurrent.prepareStatement(INSERT_GROUP_SET_MEMBER)) {
+        insert.setLong(1, groupSetId);
+        insert.setLong(2, groupId);
+        assertEquals(1, insert.executeUpdate());
+      }
+      Future<TypeReport> request = pool.submit(() -> inTransaction(() -> change(addition)));
+      try {
+        await().atMost(1, TimeUnit.MINUTES).until(() -> request.isDone() || waitingForLock() > 0);
+        assertTrue(request.isDone(), "the collection request waits for the insert");
+      } finally {
+        concurrent.commit();
+      }
+      assertEquals(1, changed(request.get(1, TimeUnit.MINUTES), addition));
+    } finally {
+      awaitTermination(pool);
+    }
+    assertEquals(addition ? 1 : 0, members());
+  }
+
   private <T> T inTransaction(TransactionalWork<T> work) {
     injectSecurityContextNoSettings(admin);
     return transactionTemplate.execute(
@@ -137,6 +230,21 @@ class CollectionItemsConcurrencyTest extends PostgresIntegrationTestBase {
             throw new IllegalStateException(ex);
           }
         });
+  }
+
+  /**
+   * Lets the tasks of a failed test end before the database is emptied: a blocked insert that
+   * commits after the cleanup would leave a row behind for the next test.
+   */
+  private static void awaitTermination(ExecutorService pool) throws InterruptedException {
+    pool.shutdown();
+    assertTrue(pool.awaitTermination(1, TimeUnit.MINUTES), "concurrent work did not end");
+  }
+
+  /** Commits the item as a member, on a thread of the pool, outside the test's session. */
+  private void addMember(ExecutorService pool) throws Exception {
+    Future<TypeReport> setup = pool.submit(() -> inTransaction(() -> change(true)));
+    assertEquals(1, setup.get(1, TimeUnit.MINUTES).getStats().updated());
   }
 
   private TypeReport change(boolean addition) throws Exception {
