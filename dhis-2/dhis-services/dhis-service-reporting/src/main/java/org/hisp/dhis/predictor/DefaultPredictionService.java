@@ -291,9 +291,7 @@ public class DefaultPredictionService implements PredictionService {
           baseExParams.toBuilder()
               .orgUnitGroupMemberCounts(
                   expressionService.getOrgUnitGroupMemberCounts(
-                      UID.of(exInfo.getOrgUnitGroupCountIds()),
-                      orgUnitLevel.getLevel(),
-                      currentUserOrgUnits))
+                      UID.of(exInfo.getOrgUnitGroupCountIds()), orgUnits, currentUserOrgUnits))
               .build();
 
       consolidator.init(

@@ -43,7 +43,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -396,32 +395,11 @@ public class DefaultValidationService implements ValidationService {
 
     return baseExParams.toBuilder()
         .orgUnitGroupMemberCounts(
-            getOrgUnitGroupMemberCounts(
-                UID.of(expressionInfo.getOrgUnitGroupCountIds()), orgUnits, root))
+            expressionService.getOrgUnitGroupMemberCounts(
+                UID.of(expressionInfo.getOrgUnitGroupCountIds()),
+                orgUnits,
+                root == null ? Set.of() : Set.of(root)))
         .build();
-  }
-
-  /**
-   * Gets the OUG{} counts for the org units to validate: one query per hierarchy level among them,
-   * restricted to the subtree of the analysis root org unit (if any).
-   */
-  private Map<String, Map<String, Integer>> getOrgUnitGroupMemberCounts(
-      Set<UID> orgUnitGroupIds, List<OrganisationUnit> orgUnits, OrganisationUnit root) {
-    Map<String, Map<String, Integer>> counts = new HashMap<>();
-
-    if (orgUnitGroupIds.isEmpty()) {
-      return counts;
-    }
-
-    Set<OrganisationUnit> roots = root == null ? Set.of() : Set.of(root);
-    Set<Integer> levels =
-        orgUnits.stream().map(OrganisationUnit::getLevel).collect(Collectors.toSet());
-
-    for (int level : levels) {
-      counts.putAll(expressionService.getOrgUnitGroupMemberCounts(orgUnitGroupIds, level, roots));
-    }
-
-    return counts;
   }
 
   private Set<DimensionalItemId> addToExpressionInfo(ExpressionInfo exInfo, Expression expr) {

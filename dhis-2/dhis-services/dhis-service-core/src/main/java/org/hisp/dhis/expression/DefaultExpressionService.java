@@ -551,7 +551,9 @@ public class DefaultExpressionService implements ExpressionService {
   @Override
   @Transactional(readOnly = true)
   public Map<String, Map<String, Integer>> getOrgUnitGroupMemberCounts(
-      Set<UID> orgUnitGroupIds, int level, Collection<OrganisationUnit> roots) {
+      Set<UID> orgUnitGroupIds,
+      Collection<OrganisationUnit> orgUnits,
+      Collection<OrganisationUnit> roots) {
     if (orgUnitGroupIds == null || orgUnitGroupIds.isEmpty()) {
       return new HashMap<>();
     }
@@ -561,8 +563,16 @@ public class DefaultExpressionService implements ExpressionService {
             ? Set.of()
             : roots.stream().map(OrganisationUnit::getUID).collect(Collectors.toSet());
 
-    return organisationUnitGroupStore.getOrganisationUnitGroupMemberCountsAtLevel(
-        orgUnitGroupIds, level, rootUids);
+    Set<Integer> levels =
+        orgUnits.stream().map(OrganisationUnit::getLevel).collect(Collectors.toSet());
+
+    Map<String, Map<String, Integer>> counts = new HashMap<>();
+    for (int level : levels) {
+      counts.putAll(
+          organisationUnitGroupStore.getOrganisationUnitGroupMemberCountsAtLevel(
+              orgUnitGroupIds, level, rootUids));
+    }
+    return counts;
   }
 
   @Override
