@@ -39,11 +39,22 @@ jobs:
     if: (github.event.action == 'closed' && contains(github.event.pull_request.labels.*.name, 'deploy')) || needs.check-deploy-label.outputs.removed
     runs-on: ubuntu-latest
     steps:
-      # Same im-manager pin as deploy-instance.yml; bump both together.
+      - name: 'Get latest IM tag'
+        id: latest-im-tag
+        run: |
+          # im-manager tags dropped the "v" prefix from 0.69.0 on, so sort on the version without it.
+          LATEST_IM_TAG=$(git ls-remote --tags --refs https://github.com/dhis2-sre/im-manager | sed -E 's#.*(refs/tags/v?(.*))#\2 \1#' | sort -V | tail -1 | cut -d' ' -f2)
+          if [[ -z "$LATEST_IM_TAG" ]]; then
+            echo "::error::Could not resolve the latest im-manager tag"
+            exit 1
+          fi
+          echo "Using im-manager $LATEST_IM_TAG"
+          echo "LATEST_IM_TAG=$LATEST_IM_TAG" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v7
         with:
           repository: dhis2-sre/im-manager
-          ref: d459dbea1ce3e5efd26ebb488aa88ed37c603731 # master @ 2026-11-14
+          ref: ${{ env.LATEST_IM_TAG }}
           sparse-checkout: scripts/instances
 
       - name: Install HTTPie
