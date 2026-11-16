@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
@@ -1193,6 +1194,71 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         List.of(third.getUid()),
         queryService.query(both).stream().map(OrganisationUnit::getUid).toList());
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "displayName, NAME",
+    "displayShortName, SHORT_NAME",
+    "displayDescription, DESCRIPTION"
+  })
+  void translatedOrderSortsByTheReturnedDisplayValue(String property, String translationKey) {
+    ThreadUserSettings.put(Map.of("keyDbLocale", "fr"));
+    // An empty translation falls back to the base value, and translation keys match ignoring case.
+    saveOrderOrganisationUnit('A', "Delta", new Translation(Locale.FRENCH, translationKey, ""));
+    saveOrderOrganisationUnit(
+        'B', "Bravo", new Translation(Locale.FRENCH, translationKey.toLowerCase(), "Zulu"));
+    saveOrderOrganisationUnit('C', "Alpha", new Translation(Locale.FRENCH, translationKey, "Echo"));
+    saveOrderOrganisationUnit('D', "Charlie");
+    clearSession();
+    Function<OrganisationUnit, String> displayValue =
+        switch (property) {
+          case "displayName" -> OrganisationUnit::getDisplayName;
+          case "displayShortName" -> OrganisationUnit::getDisplayShortName;
+          default -> OrganisationUnit::getDisplayDescription;
+        };
+
+    List<String> expected = List.of("Charlie", "Delta", "Echo", "Zulu");
+    assertEquals(expected, orderedDisplayValues(Order.asc(property), displayValue));
+    assertEquals(Lists.reverse(expected), orderedDisplayValues(Order.desc(property), displayValue));
+  }
+
+  @Test
+  void displayNameOrderMatchesLegacyLocaleSpellings() {
+    ThreadUserSettings.put(Map.of("keyDbLocale", "id"));
+    OrganisationUnit legacy = saveSearchOrganisationUnit('A', "Apple");
+    saveSearchOrganisationUnit('B', "Mango");
+    entityManager.flush();
+    // Current API writes canonicalize locales. Patch only this row to reproduce existing metadata.
+    entityManager
+        .createNativeQuery(
+            "update organisationunit set translations = cast(:translations as jsonb) where uid = :uid")
+        .setParameter(
+            "translations", "[{\"locale\":\"in\",\"property\":\"NAME\",\"value\":\"Zebra\"}]")
+        .setParameter("uid", legacy.getUid())
+        .executeUpdate();
+    reloadSearchOrganisationUnit(legacy);
+
+    assertEquals(
+        List.of("Mango", "Zebra"),
+        orderedDisplayValues(Order.asc("displayName"), OrganisationUnit::getDisplayName));
+  }
+
+  private List<String> orderedDisplayValues(
+      Order order, Function<OrganisationUnit, String> displayValue) {
+    return queryService.query(Query.of(OrganisationUnit.class).addOrder(order)).stream()
+        .map(displayValue)
+        .toList();
+  }
+
+  private void saveOrderOrganisationUnit(char suffix, String base, Translation... translations) {
+    OrganisationUnit unit = createOrganisationUnit(suffix);
+    unit.setUid("ouabcdefgh" + suffix);
+    unit.setName(base);
+    unit.setShortName(base);
+    unit.setDescription(base);
+    unit.setTranslations(Set.of(translations));
+    identifiableObjectManager.save(unit);
   }
 
   private OrganisationUnit reloadSearchOrganisationUnit(OrganisationUnit unit) {
