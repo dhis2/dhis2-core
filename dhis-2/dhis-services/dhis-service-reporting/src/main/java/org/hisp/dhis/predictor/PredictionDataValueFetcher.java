@@ -250,6 +250,7 @@ public class PredictionDataValueFetcher implements Runnable {
     params.setDataElementOperands(dataElementOperands);
     params.setPeriods(queryPeriods);
     params.setOrganisationUnits(currentUserOrgUnits);
+    params.setOrganisationUnitSubtrees(true);
     params.setOrgUnitLevel(orgUnitLevel);
     params.setBlockingQueue(blockingQueue);
     params.setOrderByOrgUnitPath(true);
