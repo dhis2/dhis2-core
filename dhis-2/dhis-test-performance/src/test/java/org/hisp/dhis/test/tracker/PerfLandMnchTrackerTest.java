@@ -80,6 +80,12 @@ import org.slf4j.LoggerFactory;
  * program scenario and the imports are left out; the database has no single-event program, and
  * import payloads for ANC and EIR do not exist yet.
  *
+ * <p>Each iteration goes through the {@link Journey}s of a user, each a task such as searching a
+ * child and opening it, grouped by journey and by the screens within it, as Capture shows them:
+ * "EIR / Search and open / Enrollment dashboard / Tracked entity". A request is named after what it
+ * reads, not after the client that sends it: where a screen has more than one variant of a request,
+ * the name says how they differ, such as "First page" and "First page, all fields".
+ *
  * <p>Differences to {@link TrackerTest}, for the data this database holds:
  *
  * <ul>
@@ -96,12 +102,12 @@ import org.slf4j.LoggerFactory;
  *       the query plans differ between them. Each facility's number of children is far from the
  *       sizes at which a request switches to another plan, so the statistics that ANALYZE samples
  *       before each run don't flip its plan. In smoke, a request whose plan depends on the facility
- *       is named after its band, such as "Get first page of TEs [small]", and has a p95 threshold
- *       per band: one p95 over all bands is about the slowest band's p80, so a faster band could
- *       get several times slower unnoticed. Load has about 9 iterations per band, too few for a p95
- *       each: it names and asserts these requests over all bands, for what concurrency adds. How
- *       many records a name matches changes the time of a search, not its plan, so the names don't
- *       get bands.
+ *       is named after its band, such as "First page [small]", and has a p95 threshold per band:
+ *       one p95 over all bands is about the slowest band's p80, so a faster band could get several
+ *       times slower unnoticed. Load has about 9 iterations per band, too few for a p95 each: it
+ *       names and asserts these requests over all bands, for what concurrency adds. How many
+ *       records a name matches changes the time of a search, not its plan, so the names don't get
+ *       bands.
  *   <li>EIR needs two attributes to search outside the capture scope, so every name search filters
  *       on the given and the family name, where {@link TrackerTest} filters on the first name. The
  *       like search takes the first 3 letters of each name, as a user types them
@@ -111,16 +117,16 @@ import org.slf4j.LoggerFactory;
  *   <li>Every EIR child has a Unique System Identifier (EPI), a unique attribute. The test also
  *       searches tracked entities and Birth events by the EPI of the child, which {@link
  *       TrackerTest} does not. The tracked entity search is Capture's.
- *   <li>The test opens the first child of the working list's first page, as {@link TrackerTest}
- *       does, and the child it searched by its EPI, which can be of any age: "Get searched tracked
- *       entity" and the other requests of "Go to searched enrollment".
+ *   <li>The test opens the child it searched by its EPI, which can be of any age, and the first
+ *       child of the working list's first page, as {@link TrackerTest} does: the enrollment
+ *       dashboard of "Search and open" and of "Tracked entity working list".
  *   <li>{@link TrackerTest}'s lists are those of Capture before v106.2.8 ({@code fields=*} and
- *       {@code :all}), which its CSV download still sends. They stay, as they read relationships
- *       and notes that Capture's lists no longer do, and fixes such as #26186 were measured with
- *       them. Next to them the test sends what Capture 107.9.1 and the android-sdk 1.15.0 send,
- *       named "... as Capture" and "Sync TEs as Android client": the working lists, the dashboard's
- *       tracked entity, and a page of a first sync, which reads the relationships of every tracked
- *       entity, enrollment and event.
+ *       {@code :all}), which its CSV download still sends: the variants "..., all fields". They
+ *       stay, as they read relationships and notes that Capture's lists no longer do, and fixes
+ *       such as #26186 were measured with them. Next to them the test sends what Capture 107.9.1
+ *       and the android-sdk 1.15.0 send: the working lists, the dashboard's tracked entity, and a
+ *       page of a first sync, which reads the relationships of every tracked entity, enrollment and
+ *       event.
  * </ul>
  *
  * <p>The children are bound to the records of the {@code perfland-mnch} dumps, which are the same
@@ -129,11 +135,10 @@ import org.slf4j.LoggerFactory;
  * matches in the district, the page of these searches, so DHIS2 2.42, which drops what the clerk
  * does not own after paging, returns her too. {@code -Dchildren} reads another file.
  *
- * <p>The thresholds of requests without a band are {@link TrackerTest}'s, calibrated on Sierra
- * Leone. The banded ones, the searches by EPI and the Capture and Android ones have none yet.
+ * <p>The thresholds are those of the same requests in {@link TrackerTest}, calibrated on Sierra
+ * Leone. The other requests have none yet.
  *
- * <p>The requests are grouped into {@link Step}s after the screens of Capture they belong to, and
- * the Android client's, each built for a {@link TrackerProgram}. The UIDs of the program, stage and
+ * <p>The journeys are built for a {@link TrackerProgram}. The UIDs of the program, stage and
  * attributes are those of {@link #EIR}, as {@link TrackerTest}'s attributes are constants: the
  * values of {@code children.csv} belong to them. Profiles and their parameters are those of {@link
  * TrackerTest}.
@@ -143,43 +148,59 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
   private static final AtomicLong REQUEST_COUNTER = new AtomicLong();
 
-  // Request names and the p95 thresholds of requests without a band are TrackerTest's, so runs of
-  // both compare side by side. The banded ones are to calibrate on this database.
   private static final TrackerProgram EIR =
       new TrackerProgram(
           "SSLpOM0r1U7", // Electronic Immunization Registry
-          "Get EIR TEs",
+          "EIR",
           "RcbCl5ww8XY", // Birth details
           "Birth",
           "sB1IHYu2xQT", // GEN - Given name
           "ENRjVGxVL6l", // GEN - Family name
           "KSr2yTdu1AI", // Unique System Identifier (EPI)
+          // TrackerTest's thresholds of the same requests
           Map.ofEntries(
-              Map.entry(
-                  "Not found TE by name with like operator",
-                  Map.of(Profile.SMOKE, 25, Profile.LOAD, 116)),
-              Map.entry(
-                  "Not found TE by name with eq operator",
-                  Map.of(Profile.SMOKE, 25, Profile.LOAD, 35)),
-              Map.entry(
-                  "Search TE by name with like operator",
-                  Map.of(Profile.SMOKE, 51, Profile.LOAD, 172)),
-              Map.entry(
-                  "Search TE by name with eq operator",
-                  Map.of(Profile.SMOKE, 42, Profile.LOAD, 102)),
-              Map.entry("Get TEs from events", Map.of(Profile.SMOKE, 25, Profile.LOAD, 28)),
-              Map.entry(
-                  "Search TEs as Android client", Map.of(Profile.SMOKE, 29, Profile.LOAD, 151)),
-              Map.entry("Get first tracked entity", Map.of(Profile.SMOKE, 41, Profile.LOAD, 96)),
-              Map.entry("Get first enrollment", Map.of(Profile.SMOKE, 25, Profile.LOAD, 46)),
-              Map.entry(
-                  "Get relationships for first tracked entity",
-                  Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
-              Map.entry(
-                  "Get first event from enrollment", Map.of(Profile.SMOKE, 41, Profile.LOAD, 107)),
-              Map.entry(
-                  "Get relationships for first event",
-                  Map.of(Profile.SMOKE, 25, Profile.LOAD, 28))));
+              p95(25, 116, SearchAndOpen.JOURNEY, SearchAndOpen.SEARCH, "No match, like"),
+              p95(25, 35, SearchAndOpen.JOURNEY, SearchAndOpen.SEARCH, "No match, eq"),
+              p95(51, 172, SearchAndOpen.JOURNEY, SearchAndOpen.SEARCH, "Names, like"),
+              p95(42, 102, SearchAndOpen.JOURNEY, SearchAndOpen.SEARCH, "Names, eq"),
+              p95(
+                  25,
+                  28,
+                  "Birth event working list",
+                  "Tracked entities of events, enrollment details"),
+              p95(29, 151, AndroidClient.JOURNEY, "Search, like"),
+              p95(
+                  41,
+                  96,
+                  TrackedEntityWorkingList.JOURNEY,
+                  EnrollmentDashboard.DASHBOARD,
+                  "Tracked entity, enrollments with events"),
+              p95(
+                  25,
+                  46,
+                  TrackedEntityWorkingList.JOURNEY,
+                  EnrollmentDashboard.DASHBOARD,
+                  "Enrollment"),
+              p95(
+                  25,
+                  25,
+                  TrackedEntityWorkingList.JOURNEY,
+                  EnrollmentDashboard.DASHBOARD,
+                  "Relationships of tracked entity"),
+              p95(
+                  41,
+                  107,
+                  TrackedEntityWorkingList.JOURNEY,
+                  EnrollmentDashboard.DASHBOARD,
+                  EnrollmentDashboard.EVENT_PAGE,
+                  "Event"),
+              p95(
+                  25,
+                  28,
+                  TrackedEntityWorkingList.JOURNEY,
+                  EnrollmentDashboard.DASHBOARD,
+                  EnrollmentDashboard.EVENT_PAGE,
+                  "Relationships of event")));
 
   // Of every dbgen user. Not a property: run-simulation.sh passes the admin's as -Dpassword.
   private static final String PASSWORD = "Perf-Test-2026!";
@@ -288,66 +309,34 @@ public class PerfLandMnchTrackerTest extends Simulation {
     // Bands only in smoke: 60 iterations per band (1 user, 240 iterations), against about 9 in
     // load, too few for a p95 per band.
     Band facility = this.profile == Profile.SMOKE ? Band.FACILITY : Band.NONE;
-    NameSearch nameSearch = NameSearch.of(program);
-    AndroidClient android = AndroidClient.of(program, facility);
-    // The user opens the child she searched by its EPI, which can be of any age, and the first
-    // child of the working list's first page, as TrackerTest does.
-    UniqueIdSearch uniqueIdSearch =
-        UniqueIdSearch.of(
-            program,
-            OpenRequests.of(
-                program,
-                "searched",
-                "Go to searched enrollment",
-                List.of(
-                    "Get searched tracked entity",
-                    "Get searched tracked entity as Capture",
-                    "Get searched enrollment",
-                    "Get relationships for searched tracked entity",
-                    "Get first event from searched enrollment",
-                    "Get relationships for first event of searched enrollment")));
+    SearchAndOpen searchAndOpen = SearchAndOpen.of(program);
     EventWorkingList eventList = EventWorkingList.of(program, facility);
-    TrackedEntityWorkingList trackedEntityList =
-        TrackedEntityWorkingList.of(
-            program,
-            facility,
-            OpenRequests.of(
-                program,
-                "listed",
-                "Go to single enrollment",
-                List.of(
-                    "Get first tracked entity",
-                    "Get first tracked entity as Capture",
-                    "Get first enrollment",
-                    "Get relationships for first tracked entity",
-                    "Get first event from enrollment",
-                    "Get relationships for first event")));
-    List<Step> steps = List.of(nameSearch, android, uniqueIdSearch, eventList, trackedEntityList);
-    String[] keys = steps.stream().flatMap(step -> step.keys().stream()).toArray(String[]::new);
+    TrackedEntityWorkingList trackedEntityList = TrackedEntityWorkingList.of(program, facility);
+    AndroidClient android = AndroidClient.of(program, facility);
+    List<Journey> journeys = List.of(searchAndOpen, eventList, trackedEntityList, android);
+    String[] keys =
+        journeys.stream().flatMap(journey -> journey.keys().stream()).toArray(String[]::new);
 
     ChainBuilder iteration =
         exec(session -> session.removeAll(keys))
             .exec(
                 group(program.group())
                     .on(
-                        exec(nameSearch.chain())
-                            .pause(1, 3) // user reads results
-                            .exec(android.chain())
-                            .exec(uniqueIdSearch.chain())
-                            .pause(1, 3) // user goes back to the search
-                            // User lists the child's Birth event by its EPI
-                            .exec(eventList.filteredByUniqueIdChain())
-                            .pause(1, 3) // user reads results
+                        exec(searchAndOpen.chain())
+                            .pause(1, 3) // user goes to the event working list
                             .exec(eventList.chain())
-                            .pause(1, 3) // user reads event list
-                            .exec(trackedEntityList.chain())));
+                            .pause(1, 3) // user goes to the tracked entity working list
+                            .exec(trackedEntityList.chain())
+                            .pause(1, 3)
+                            .exec(android.chain())));
 
     ScenarioBuilder scenarioBuilder =
         scenario("EIR export")
             .exec(loopForProfile(feed(this.children).exec(loginAsClerk()).exec(iteration)));
 
     return new ScenarioWithRequests(
-        scenarioBuilder, steps.stream().flatMap(step -> step.requests().stream()).toList());
+        scenarioBuilder,
+        journeys.stream().flatMap(journey -> journey.requests().stream()).toList());
   }
 
   private ChainBuilder loopForProfile(ChainBuilder chain) {
@@ -453,12 +442,17 @@ public class PerfLandMnchTrackerTest extends Simulation {
     }
   }
 
+  /** A p95 threshold per profile of the request at {@code path}, below the program's group. */
+  private static Map.Entry<String, Map<Profile, Integer>> p95(int smoke, int load, String... path) {
+    return Map.entry(String.join(" / ", path), Map.of(Profile.SMOKE, smoke, Profile.LOAD, load));
+  }
+
   /**
    * A tracker program, the attributes its tracked entities are searched by and the stage of its
-   * event working list. Its requests are grouped under {@code group}, the event ones named after
-   * {@code stageName}. {@code p95Thresholds} maps the name of a request, with its band such as
-   * {@code "Get first page of TEs [small]"}, to its p95 threshold per profile. A missing threshold
-   * asserts nothing.
+   * event working list. Its requests are grouped under {@code group}. {@code p95Thresholds} maps
+   * the path of a request below {@code group}, with its band such as {@code "Tracked entity working
+   * list / First page [small]"}, to its p95 threshold per profile. A missing threshold asserts
+   * nothing.
    */
   private record TrackerProgram(
       String uid,
@@ -489,9 +483,10 @@ public class PerfLandMnchTrackerTest extends Simulation {
   }
 
   /**
-   * A request, named {@code name [band]} if it has a band. {@code p95Thresholds} maps such a name
-   * to the p95 thresholds of each profile: a banded request has no band in load, so its load
-   * threshold is under {@code name}. A missing threshold asserts nothing.
+   * A request, named {@code name [band]} if it has a band. {@code p95Thresholds} maps its path
+   * below the program's group, with such a name, to the p95 thresholds of each profile: a banded
+   * request has no band in load, so its load threshold is under {@code name}. A missing threshold
+   * asserts nothing.
    */
   private record Request(
       String url,
@@ -519,26 +514,27 @@ public class PerfLandMnchTrackerTest extends Simulation {
       return values.stream()
           .flatMap(
               value -> {
-                Integer threshold =
-                    p95Thresholds.getOrDefault(nameOf(value), Map.of()).get(profile);
+                String[] path = Arrays.copyOf(groups, groups.length + 1);
+                path[groups.length] = nameOf(value);
+                String key = String.join(" / ", Arrays.asList(path).subList(1, path.length));
+                Integer threshold = p95Thresholds.getOrDefault(key, Map.of()).get(profile);
                 if (threshold == null) {
                   return Stream.empty();
                 }
-                String[] parts = Arrays.copyOf(groups, groups.length + 1);
-                parts[groups.length] = nameOf(value);
-                return Stream.of(details(parts).responseTime().percentile(95).lte(threshold));
+                return Stream.of(details(path).responseTime().percentile(95).lte(threshold));
               });
     }
   }
 
   /**
-   * The requests of a screen of Capture, or of the Android client, and the chain that sends them.
-   * The scenario puts the steps in the order a clerk goes through the screens, and the pauses of
-   * moving from one to the next.
+   * A user's journey: a task such as searching a child and opening it, its requests grouped by the
+   * screens it goes through. The scenario puts the journeys in the order of an iteration, and the
+   * pauses of moving from one to the next.
    */
-  private interface Step {
+  private interface Journey {
     List<Request> requests();
 
+    /** The requests in the journey's group. */
     ChainBuilder chain();
 
     /** The session keys the chain saves, removed at the start of each iteration. */
@@ -548,26 +544,55 @@ public class PerfLandMnchTrackerTest extends Simulation {
   }
 
   /**
-   * Capture's search by names: a name that matches no one, with like and eq, then the child's first
-   * 3 letters with like and its names with eq.
+   * The user searches a child on Capture's search screen: by names that match no one, with like and
+   * eq, then by the child's first 3 letters with like and its names with eq, then by its EPI.
+   * Capture opens the enrollment dashboard of a unique match itself.
    */
-  private record NameSearch(Request notFoundLike, Request notFoundEq, Request like, Request eq)
-      implements Step {
-    static NameSearch of(TrackerProgram program) {
-      return new NameSearch(
+  private record SearchAndOpen(
+      Request noMatchLike,
+      Request noMatchEq,
+      Request like,
+      Request eq,
+      Request uniqueId,
+      EnrollmentDashboard dashboard)
+      implements Journey {
+    static final String JOURNEY = "Search and open";
+    static final String SEARCH = "Search";
+
+    static SearchAndOpen of(TrackerProgram program) {
+      return new SearchAndOpen(
           program.request(
               searchUrl(program, "like", "notfoundname", "notfoundname", ""),
-              "Not found TE by name with like operator"),
+              "No match, like",
+              JOURNEY,
+              SEARCH),
           program.request(
               searchUrl(program, "eq", "notfoundname", "notfoundname", ""),
-              "Not found TE by name with eq operator"),
+              "No match, eq",
+              JOURNEY,
+              SEARCH),
           // Capture 107.9.1's fields
           program.request(
               searchUrl(program, "like", "#{givenLike}", "#{familyLike}", ",inactive"),
-              "Search TE by name with like operator"),
+              "Names, like",
+              JOURNEY,
+              SEARCH),
           program.request(
               searchUrl(program, "eq", "#{givenEq}", "#{familyEq}", ""),
-              "Search TE by name with eq operator"));
+              "Names, eq",
+              JOURNEY,
+              SEARCH),
+          // Capture's search by a unique attribute, without fields.
+          program.request(
+              "/api/tracker/trackedEntities?filter="
+                  + program.uniqueId()
+                  + ":eq:#{epi}&program="
+                  + program.uid()
+                  + "&orgUnitMode=ACCESSIBLE",
+              "Unique ID",
+              JOURNEY,
+              SEARCH),
+          EnrollmentDashboard.of(program, "searched", JOURNEY));
     }
 
     private static String searchUrl(
@@ -583,120 +608,72 @@ public class PerfLandMnchTrackerTest extends Simulation {
 
     @Override
     public List<Request> requests() {
-      return List.of(notFoundLike, notFoundEq, like, eq);
-    }
-
-    @Override
-    public ChainBuilder chain() {
-      return exec(notFoundLike.action().check(jsonPath("$.trackedEntities[*]").count().is(0)))
-          .pause(1, 3) // user reads "no results", tries exact match
-          .exec(notFoundEq.action().check(jsonPath("$.trackedEntities[*]").count().is(0)))
-          .pause(1, 3) // user reads "no results", tries different name
-          .exec(like.action().check(jsonPath("$.trackedEntities[*]").count().gte(1)))
-          .pause(1, 3) // user reads results, refines search
-          .exec(eq.action().check(jsonPath("$.trackedEntities[*]").count().gte(1)));
-    }
-  }
-
-  /**
-   * The Android client's online search by names (attributes and program owners, no enrollments),
-   * and a page of its first sync of the clerk's facility: the android-sdk 1.15.0's
-   * TrackerExporterNetworkHandlerImpl with NewTrackedEntityInstanceFields.allFields.
-   */
-  private record AndroidClient(Request search, Request sync) implements Step {
-    static AndroidClient of(TrackerProgram program, Band facility) {
-      return new AndroidClient(
-          program.request(
-              "/api/tracker/trackedEntities?page=1&pageSize=50&orgUnitMode=ACCESSIBLE&program="
-                  + program.uid()
-                  + program.nameFilters("like", "#{givenLike}", "#{familyLike}")
-                  + "&fields="
-                  + ANDROID_TE_SEARCH_FIELDS,
-              "Search TEs as Android client"),
-          program.request(
-              facility,
-              "/api/tracker/trackedEntities?orgUnits=#{orgUnit}&orgUnitMode=SELECTED&program="
-                  + program.uid()
-                  + "&order=createdAt:desc&paging=true&page=1&pageSize=50&includeDeleted=true"
-                  + "&fields="
-                  + ANDROID_TE_ALL_FIELDS,
-              "Sync TEs as Android client"));
-    }
-
-    @Override
-    public List<Request> requests() {
-      return List.of(search, sync);
-    }
-
-    @Override
-    public ChainBuilder chain() {
-      return exec(search.action().check(jsonPath("$.trackedEntities[*]").count().gte(1)))
-          .pause(1, 3) // user reads results
-          .exec(sync.action().check(jsonPath("$.trackedEntities[*]").count().gte(1)));
-    }
-  }
-
-  /**
-   * Capture's search by the child's EPI, without fields. Capture opens the dashboard of a unique
-   * match itself.
-   */
-  private record UniqueIdSearch(Request search, OpenRequests open) implements Step {
-    static UniqueIdSearch of(TrackerProgram program, OpenRequests open) {
-      return new UniqueIdSearch(
-          program.request(
-              "/api/tracker/trackedEntities?filter="
-                  + program.uniqueId()
-                  + ":eq:#{epi}&program="
-                  + program.uid()
-                  + "&orgUnitMode=ACCESSIBLE",
-              "Search TE by unique identifier"),
-          open);
-    }
-
-    @Override
-    public List<Request> requests() {
-      return Stream.concat(Stream.of(search), open.requests().stream()).toList();
+      return Stream.concat(
+              Stream.of(noMatchLike, noMatchEq, like, eq, uniqueId), dashboard.requests().stream())
+          .toList();
     }
 
     @Override
     public List<String> keys() {
-      return open.keys();
+      return dashboard.keys();
     }
 
     @Override
     public ChainBuilder chain() {
-      return exec(search
-              .action()
-              .check(jsonPath("$.trackedEntities[*]").count().is(1))
-              .check(
-                  jsonPath("$.trackedEntities[0].trackedEntity")
-                      .isEL("#{trackedEntity}")
-                      .saveAs(open.key())))
-          .doIf(session -> session.contains(open.key()))
-          .then(open.chain());
+      return exec(
+          group(JOURNEY)
+              .on(
+                  group(SEARCH)
+                      .on(
+                          exec(noMatchLike
+                                  .action()
+                                  .check(jsonPath("$.trackedEntities[*]").count().is(0)))
+                              .pause(1, 3) // user reads "no results", tries exact match
+                              .exec(
+                                  noMatchEq
+                                      .action()
+                                      .check(jsonPath("$.trackedEntities[*]").count().is(0)))
+                              .pause(1, 3) // user reads "no results", tries different name
+                              .exec(
+                                  like.action()
+                                      .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                              .pause(1, 3) // user reads results, refines search
+                              .exec(
+                                  eq.action()
+                                      .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                              .pause(1, 3) // user reads results, searches by the child's EPI
+                              .exec(
+                                  uniqueId
+                                      .action()
+                                      .check(jsonPath("$.trackedEntities[*]").count().is(1))
+                                      .check(
+                                          jsonPath("$.trackedEntities[0].trackedEntity")
+                                              .isEL("#{trackedEntity}")
+                                              .saveAs(dashboard.key()))))
+                      .doIf(session -> session.contains(dashboard.key()))
+                      .then(dashboard.chain())));
     }
   }
 
   /**
-   * The event working list of the program's stage in the clerk's facility, {@link TrackerTest}'s
-   * and Capture's: the events, then the tracked entities of the page's events (sequential). And the
-   * stage's events filtered by the child's EPI, as #26109 measured them, and Capture's list
-   * filtered by it.
+   * The user opens the event working list of the program's stage in her facility: the events, then
+   * the tracked entities of the page's events (sequential). Then she filters it by the child's EPI.
    */
   private record EventWorkingList(
+      String journey,
+      Request eventsAllFields,
+      Request trackedEntitiesWithEnrollmentDetails,
       Request events,
       Request trackedEntities,
-      Request eventsAsCapture,
-      Request trackedEntitiesAsCapture,
-      Request eventsByUniqueId,
-      Request eventsByUniqueIdAsCapture)
-      implements Step {
-    private static final String TRACKED_ENTITIES = "trackedEntityUids";
-    private static final String CAPTURE_TRACKED_ENTITIES = "captureTrackedEntityUids";
+      Request eventsByUniqueIdAllFields,
+      Request eventsByUniqueId)
+      implements Journey {
+    private static final String ALL_FIELDS_TRACKED_ENTITIES = "allFieldsEventTrackedEntities";
+    private static final String TRACKED_ENTITIES = "eventTrackedEntities";
 
     static EventWorkingList of(TrackerProgram program, Band facility) {
-      String eventsName = "Search " + program.stageName() + " events";
-      String captureEventsUrl =
+      String journey = program.stageName() + " event working list";
+      String eventsUrl =
           "/api/tracker/events?enrollmentStatus=ACTIVE&order=createdAt:desc&page=1&pageSize=15"
               + "&orgUnit=#{orgUnit}&orgUnitMode=SELECTED&program="
               + program.uid()
@@ -705,6 +682,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
               + "&fields="
               + CAPTURE_EVENT_LIST_FIELDS;
       return new EventWorkingList(
+          journey,
           program.request(
               facility,
               "/api/tracker/events?order=createdAt:desc&page=1&pageSize=15&orgUnit=#{orgUnit}"
@@ -713,24 +691,29 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   + "&programStage="
                   + program.stage()
                   + "&fields=*",
-              eventsName),
+              "Events, all fields",
+              journey),
+          // The enrollments' status, org unit and enrollment date, where Capture's reads their UID
           program.request(
               "/api/tracker/trackedEntities?pageSize=15&program="
                   + program.uid()
                   + "&trackedEntities=#{"
-                  + TRACKED_ENTITIES
+                  + ALL_FIELDS_TRACKED_ENTITIES
                   + "}&fields=trackedEntity,createdAt,attributes[attribute,value],"
                   + "programOwners[orgUnit],enrollments[enrollment,status,orgUnit,enrolledAt]",
-              "Get TEs from events"),
-          program.request(facility, captureEventsUrl, eventsName + " as Capture"),
+              "Tracked entities of events, enrollment details",
+              journey),
+          program.request(facility, eventsUrl, "Events", journey),
           program.request(
               "/api/tracker/trackedEntities?program="
                   + program.uid()
                   + "&pageSize=15&trackedEntities=#{"
-                  + CAPTURE_TRACKED_ENTITIES
+                  + TRACKED_ENTITIES
                   + "}&fields=trackedEntity,createdAt,attributes[attribute,value],"
                   + "programOwners[orgUnit],enrollments[enrollment]",
-              "Get TEs from events as Capture"),
+              "Tracked entities of events",
+              journey),
+          // In the user's search scope, not her facility, as #26109 measured it
           program.request(
               "/api/tracker/events?program="
                   + program.uid()
@@ -739,54 +722,63 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   + "&filterAttributes="
                   + program.uniqueId()
                   + ":eq:#{epi}&fields=*",
-              eventsName + " by unique identifier"),
+              "Events by unique ID, search scope, all fields",
+              journey),
           program.request(
-              captureEventsUrl + "&filterAttributes=" + program.uniqueId() + ":eq:#{epi}",
-              eventsName + " by unique identifier as Capture"));
+              eventsUrl + "&filterAttributes=" + program.uniqueId() + ":eq:#{epi}",
+              "Events by unique ID",
+              journey));
     }
 
     @Override
     public List<Request> requests() {
       return List.of(
-          eventsByUniqueId,
-          eventsByUniqueIdAsCapture,
+          eventsAllFields,
+          trackedEntitiesWithEnrollmentDetails,
           events,
           trackedEntities,
-          eventsAsCapture,
-          trackedEntitiesAsCapture);
+          eventsByUniqueIdAllFields,
+          eventsByUniqueId);
     }
 
     @Override
     public List<String> keys() {
-      return List.of(TRACKED_ENTITIES, CAPTURE_TRACKED_ENTITIES);
-    }
-
-    /** The child's event of the stage, by its EPI. */
-    ChainBuilder filteredByUniqueIdChain() {
-      return exec(eventsByUniqueId.action().check(jsonPath("$.events[*]").count().is(1)))
-          .exec(eventsByUniqueIdAsCapture.action().check(jsonPath("$.events[*]").count().is(1)));
+      return List.of(ALL_FIELDS_TRACKED_ENTITIES, TRACKED_ENTITIES);
     }
 
     @Override
     public ChainBuilder chain() {
-      return exec(events
-              .action()
-              .check(jsonPath("$.events[*]").count().gte(1))
-              .check(saveTrackedEntities(TRACKED_ENTITIES)))
-          .doIf(session -> session.contains(TRACKED_ENTITIES))
-          .then(
-              exec(trackedEntities.action().check(jsonPath("$.trackedEntities[*]").count().gte(1))))
-          .exec(
-              eventsAsCapture
-                  .action()
-                  .check(jsonPath("$.events[*]").count().gte(1))
-                  .check(saveTrackedEntities(CAPTURE_TRACKED_ENTITIES)))
-          .doIf(session -> session.contains(CAPTURE_TRACKED_ENTITIES))
-          .then(
-              exec(
-                  trackedEntitiesAsCapture
-                      .action()
-                      .check(jsonPath("$.trackedEntities[*]").count().gte(1))));
+      return exec(
+          group(journey)
+              .on(
+                  exec(eventsAllFields
+                          .action()
+                          .check(jsonPath("$.events[*]").count().gte(1))
+                          .check(saveTrackedEntities(ALL_FIELDS_TRACKED_ENTITIES)))
+                      .doIf(session -> session.contains(ALL_FIELDS_TRACKED_ENTITIES))
+                      .then(
+                          exec(
+                              trackedEntitiesWithEnrollmentDetails
+                                  .action()
+                                  .check(jsonPath("$.trackedEntities[*]").count().gte(1))))
+                      .exec(
+                          events
+                              .action()
+                              .check(jsonPath("$.events[*]").count().gte(1))
+                              .check(saveTrackedEntities(TRACKED_ENTITIES)))
+                      .doIf(session -> session.contains(TRACKED_ENTITIES))
+                      .then(
+                          exec(
+                              trackedEntities
+                                  .action()
+                                  .check(jsonPath("$.trackedEntities[*]").count().gte(1))))
+                      .pause(1, 3) // user reads the list, filters it by the child's EPI
+                      .exec(
+                          eventsByUniqueIdAllFields
+                              .action()
+                              .check(jsonPath("$.events[*]").count().is(1)))
+                      .exec(
+                          eventsByUniqueId.action().check(jsonPath("$.events[*]").count().is(1)))));
     }
 
     /** Saves the distinct tracked entities of the page's events under {@code key}. */
@@ -799,19 +791,21 @@ public class PerfLandMnchTrackerTest extends Simulation {
   }
 
   /**
-   * The tracked entity working list of the clerk's facility, {@link TrackerTest}'s and Capture's.
-   * The user opens the first child of its first page, then filters the list by enrollment status:
-   * {@link TrackerTest}'s filters on the names too, over the user's search scope.
+   * The user opens the tracked entity working list of her facility and the enrollment dashboard of
+   * the first child of its first page. Then she filters the list by enrollment status: the variant
+   * with all fields filters on the names too, over the user's search scope.
    */
   private record TrackedEntityWorkingList(
+      Request firstPageAllFields,
       Request firstPage,
-      Request firstPageAsCapture,
-      OpenRequests open,
-      Request withEnrollmentStatus,
-      Request withEnrollmentStatusAsCapture)
-      implements Step {
-    static TrackedEntityWorkingList of(TrackerProgram program, Band facility, OpenRequests open) {
-      String captureUrl =
+      EnrollmentDashboard dashboard,
+      Request activeAllFields,
+      Request active)
+      implements Journey {
+    static final String JOURNEY = "Tracked entity working list";
+
+    static TrackedEntityWorkingList of(TrackerProgram program, Band facility) {
+      String firstPageUrl =
           "/api/tracker/trackedEntities?order=createdAt:desc&page=1&pageSize=15&orgUnits="
               + "#{orgUnit}&orgUnitMode=SELECTED&program="
               + program.uid()
@@ -824,9 +818,10 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   + "#{orgUnit}&orgUnitMode=SELECTED&program="
                   + program.uid()
                   + "&fields=:all,!relationships,programOwners[orgUnit,program]",
-              "Get first page of TEs"),
-          program.request(facility, captureUrl, "Get first page of TEs as Capture"),
-          open,
+              "First page, all fields",
+              JOURNEY),
+          program.request(facility, firstPageUrl, "First page", JOURNEY),
+          EnrollmentDashboard.of(program, "listed", JOURNEY),
           program.request(
               facility,
               "/api/tracker/trackedEntities?order=createdAt:desc&page=1&pageSize=15"
@@ -835,125 +830,176 @@ public class PerfLandMnchTrackerTest extends Simulation {
                   + program.nameFilters("ge", "A", "A")
                   + "&enrollmentStatus=ACTIVE"
                   + "&fields=:all,!relationships,programOwners[orgUnit,program]",
-              "Get TEs with enrollment status"),
-          program.request(
-              facility,
-              captureUrl + "&enrollmentStatus=ACTIVE",
-              "Get TEs with enrollment status as Capture"));
+              "Active, names from A, search scope, all fields",
+              JOURNEY),
+          program.request(facility, firstPageUrl + "&enrollmentStatus=ACTIVE", "Active", JOURNEY));
     }
 
     @Override
     public List<Request> requests() {
       return Stream.concat(
-              Stream.of(
-                  firstPage,
-                  firstPageAsCapture,
-                  withEnrollmentStatus,
-                  withEnrollmentStatusAsCapture),
-              open.requests().stream())
+              Stream.of(firstPageAllFields, firstPage, activeAllFields, active),
+              dashboard.requests().stream())
           .toList();
     }
 
     @Override
     public List<String> keys() {
-      return open.keys();
+      return dashboard.keys();
     }
 
     @Override
     public ChainBuilder chain() {
-      return exec(firstPage
-              .action()
-              .check(jsonPath("$.trackedEntities[*]").count().gte(1))
-              .check(jsonPath("$.trackedEntities[0].trackedEntity").saveAs(open.key())))
-          .exec(firstPageAsCapture.action().check(jsonPath("$.trackedEntities[*]").count().gte(1)))
-          .pause(1, 3) // user reads TE list, picks one
-          .doIf(session -> session.contains(open.key()))
-          .then(open.chain())
-          .pause(1, 3) // user goes back to list
-          .exec(
-              withEnrollmentStatus.action().check(jsonPath("$.trackedEntities[*]").count().gte(1)))
-          .exec(
-              withEnrollmentStatusAsCapture
-                  .action()
-                  .check(jsonPath("$.trackedEntities[*]").count().gte(1)));
+      return exec(
+          group(JOURNEY)
+              .on(
+                  exec(firstPageAllFields
+                          .action()
+                          .check(jsonPath("$.trackedEntities[*]").count().gte(1))
+                          .check(
+                              jsonPath("$.trackedEntities[0].trackedEntity")
+                                  .saveAs(dashboard.key())))
+                      .exec(
+                          firstPage.action().check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                      .pause(1, 3) // user reads the list, opens the first child
+                      .doIf(session -> session.contains(dashboard.key()))
+                      .then(dashboard.chain())
+                      .pause(1, 3) // user goes back to the list, filters it by enrollment status
+                      .exec(
+                          activeAllFields
+                              .action()
+                              .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                      .exec(
+                          active.action().check(jsonPath("$.trackedEntities[*]").count().gte(1)))));
     }
   }
 
   /**
-   * The requests Capture sends when a user opens a child: the tracked entity, its enrollment and
-   * relationships, then the enrollment's first event and the event's relationships. The session
-   * holds the tracked entity's UID under {@code key}, {@link #chain()} saves the enrollment's and
-   * the event's under {@code key + "Enrollment"} and {@code key + "Event"}.
+   * The Android client: an online search by names (attributes and program owners, no enrollments,
+   * the android-sdk 1.15.0's NewTrackedEntityInstanceFields.asSearchFields), and a page of its
+   * first sync of the clerk's facility (TrackerExporterNetworkHandlerImpl with
+   * NewTrackedEntityInstanceFields.allFields).
    */
-  private record OpenRequests(
-      String key,
-      String groupName,
-      Request trackedEntity,
-      Request trackedEntityAsCapture,
-      Request enrollment,
-      Request relationshipsForTrackedEntity,
-      Request event,
-      Request relationshipsForEvent)
-      implements Step {
+  private record AndroidClient(Request search, Request firstSyncPage) implements Journey {
+    static final String JOURNEY = "Android";
 
-    /**
-     * {@code names} follow the order of the requests: the tracked entity, the tracked entity as
-     * Capture, the enrollment, the tracked entity's relationships, the event and the event's
-     * relationships.
-     */
-    static OpenRequests of(TrackerProgram program, String key, String group, List<String> names) {
-      String trackedEntityUrl =
-          "/api/tracker/trackedEntities/#{" + key + "}?program=" + program.uid();
-      String event = "#{" + key + "Event}";
-      return new OpenRequests(
-          key,
-          group,
+    static AndroidClient of(TrackerProgram program, Band facility) {
+      return new AndroidClient(
           program.request(
-              trackedEntityUrl + "&fields=programOwners[orgUnit],enrollments", names.get(0), group),
-          // The heaviest of the requests Capture sends for its enrollment dashboard.
+              "/api/tracker/trackedEntities?page=1&pageSize=50&orgUnitMode=ACCESSIBLE&program="
+                  + program.uid()
+                  + program.nameFilters("like", "#{givenLike}", "#{familyLike}")
+                  + "&fields="
+                  + ANDROID_TE_SEARCH_FIELDS,
+              "Search, like",
+              JOURNEY),
           program.request(
-              trackedEntityUrl
-                  + "&fields=enrollments[*,!attributes],attributes,inactive,programOwners[program,orgUnit]",
-              names.get(1),
-              group),
-          program.request(
-              "/api/tracker/enrollments/#{"
-                  + key
-                  + "Enrollment}?fields=enrollment,trackedEntity,program,status,orgUnit,enrolledAt,occurredAt,followUp,deleted,createdBy,updatedBy,updatedAt,geometry",
-              names.get(2),
-              group),
-          program.request(
-              "/api/tracker/relationships?trackedEntity=#{"
-                  + key
-                  + "}&paging=false&fields=relationship,relationshipType,createdAt,from[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]],to[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]]",
-              names.get(3),
-              group),
-          program.request(
-              "/api/tracker/events/"
-                  + event
-                  + "?fields=event,relationships[relationship,relationshipType,relationshipName,bidirectional,from[event[event,dataValues,occurredAt,scheduledAt,status,orgUnit,programStage,program]],to[event[event,dataValues,*,occurredAt,scheduledAt,status,orgUnit,programStage,program]]]",
-              names.get(4),
-              group,
-              "Get one event"),
-          program.request(
-              "/api/tracker/relationships?event="
-                  + event
-                  + "&fields=from,to,relationshipType,relationship,createdAt",
-              names.get(5),
-              group,
-              "Get one event"));
-    }
-
-    @Override
-    public List<String> keys() {
-      return List.of(key, key + "Enrollment", key + "Event");
+              facility,
+              "/api/tracker/trackedEntities?orgUnits=#{orgUnit}&orgUnitMode=SELECTED&program="
+                  + program.uid()
+                  + "&order=createdAt:desc&paging=true&page=1&pageSize=50&includeDeleted=true"
+                  + "&fields="
+                  + ANDROID_TE_ALL_FIELDS,
+              "First sync page",
+              JOURNEY));
     }
 
     @Override
     public List<Request> requests() {
+      return List.of(search, firstSyncPage);
+    }
+
+    @Override
+    public ChainBuilder chain() {
+      return exec(
+          group(JOURNEY)
+              .on(
+                  exec(search.action().check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                      .pause(1, 3) // user reads results
+                      .exec(
+                          firstSyncPage
+                              .action()
+                              .check(jsonPath("$.trackedEntities[*]").count().gte(1)))));
+    }
+  }
+
+  /**
+   * The enrollment dashboard of a child and the event page of its enrollment's first event: the
+   * tracked entity, its enrollment and relationships, then the event and its relationships. The
+   * session holds the tracked entity's UID under {@code key}, {@link #chain()} saves the
+   * enrollment's and the event's under {@code key + "Enrollment"} and {@code key + "Event"}.
+   */
+  private record EnrollmentDashboard(
+      String key,
+      Request trackedEntityWithEvents,
+      Request trackedEntity,
+      Request enrollment,
+      Request relationshipsForTrackedEntity,
+      Request event,
+      Request relationshipsForEvent) {
+    static final String DASHBOARD = "Enrollment dashboard";
+    static final String EVENT_PAGE = "Event page";
+
+    static EnrollmentDashboard of(TrackerProgram program, String key, String journey) {
+      String trackedEntityUrl =
+          "/api/tracker/trackedEntities/#{" + key + "}?program=" + program.uid();
+      String event = "#{" + key + "Event}";
+      return new EnrollmentDashboard(
+          key,
+          // Every enrollment field and its events, as #26186 measured it
+          program.request(
+              trackedEntityUrl + "&fields=programOwners[orgUnit],enrollments",
+              "Tracked entity, enrollments with events",
+              journey,
+              DASHBOARD),
+          // The heaviest of the requests Capture sends for its enrollment dashboard.
+          program.request(
+              trackedEntityUrl
+                  + "&fields=enrollments[*,!attributes],attributes,inactive,programOwners[program,orgUnit]",
+              "Tracked entity",
+              journey,
+              DASHBOARD),
+          program.request(
+              "/api/tracker/enrollments/#{"
+                  + key
+                  + "Enrollment}?fields=enrollment,trackedEntity,program,status,orgUnit,enrolledAt,occurredAt,followUp,deleted,createdBy,updatedBy,updatedAt,geometry",
+              "Enrollment",
+              journey,
+              DASHBOARD),
+          program.request(
+              "/api/tracker/relationships?trackedEntity=#{"
+                  + key
+                  + "}&paging=false&fields=relationship,relationshipType,createdAt,from[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]],to[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]]",
+              "Relationships of tracked entity",
+              journey,
+              DASHBOARD),
+          program.request(
+              "/api/tracker/events/"
+                  + event
+                  + "?fields=event,relationships[relationship,relationshipType,relationshipName,bidirectional,from[event[event,dataValues,occurredAt,scheduledAt,status,orgUnit,programStage,program]],to[event[event,dataValues,*,occurredAt,scheduledAt,status,orgUnit,programStage,program]]]",
+              "Event",
+              journey,
+              DASHBOARD,
+              EVENT_PAGE),
+          program.request(
+              "/api/tracker/relationships?event="
+                  + event
+                  + "&fields=from,to,relationshipType,relationship,createdAt",
+              "Relationships of event",
+              journey,
+              DASHBOARD,
+              EVENT_PAGE));
+    }
+
+    /** The session keys of the opened child, to remove at the start of an iteration. */
+    List<String> keys() {
+      return List.of(key, key + "Enrollment", key + "Event");
+    }
+
+    List<Request> requests() {
       return List.of(
+          trackedEntityWithEvents,
           trackedEntity,
-          trackedEntityAsCapture,
           enrollment,
           relationshipsForTrackedEntity,
           event,
@@ -961,23 +1007,20 @@ public class PerfLandMnchTrackerTest extends Simulation {
     }
 
     /** Capture loads the tracked entity, its enrollment and relationships together. */
-    @Override
-    public ChainBuilder chain() {
+    ChainBuilder chain() {
       String enrollmentKey = key + "Enrollment";
       String eventKey = key + "Event";
       return exec(
-          group(groupName)
+          group(DASHBOARD)
               .on(
-                  exec(trackedEntity
+                  exec(trackedEntityWithEvents
                           .action()
                           .check(jsonPath("$.enrollments[*]").count().gte(1))
                           .check(jsonPath("$.enrollments[0].enrollment").saveAs(enrollmentKey))
                           .check(jsonPath("$.enrollments[0].events[*]").count().gte(1))
                           .check(jsonPath("$.enrollments[0].events[0].event").saveAs(eventKey)))
                       .exec(
-                          trackedEntityAsCapture
-                              .action()
-                              .check(jsonPath("$.enrollments[*]").count().gte(1)))
+                          trackedEntity.action().check(jsonPath("$.enrollments[*]").count().gte(1)))
                       .doIf(session -> session.contains(enrollmentKey))
                       .then(
                           exec(enrollment.action().check(jsonPath("$.enrollment").exists()))
@@ -991,7 +1034,7 @@ public class PerfLandMnchTrackerTest extends Simulation {
                               // User clicks on event within enrollment
                               .doIf(session -> session.contains(eventKey))
                               .then(
-                                  group("Get one event")
+                                  group(EVENT_PAGE)
                                       .on(
                                           exec(event.action().check(jsonPath("$.event").exists()))
                                               .exec(
