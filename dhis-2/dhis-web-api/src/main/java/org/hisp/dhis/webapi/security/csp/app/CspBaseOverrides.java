@@ -58,6 +58,9 @@ import java.util.Set;
  * <p>Maps also gets {@code script-src 'wasm-unsafe-eval'} on the app and plugin entrypoints for its
  * WebAssembly RTL text plugin.
  *
+ * <p>Reports ({@code reports}, app entrypoint) gets {@code script-src 'unsafe-inline'} for the
+ * inline scripts of HTML standard reports.
+ *
  * <p>Exact origins only, no wildcard host. While {@code server.https} is off the plain HTTP
  * variants are added too: the browser inherits the {@code http://} page scheme for tile fetches in
  * dev setups, and Chrome checks the source list before any upgrade.
@@ -102,12 +105,28 @@ public final class CspBaseOverrides {
 
   private static final String WASM_UNSAFE_EVAL = "'wasm-unsafe-eval'";
 
+  public static final String REPORTS_APP_KEY = "reports";
+
+  /**
+   * The Reports app renders an HTML standard report in a {@code srcdoc} iframe, which inherits the
+   * policy of the app document. The report HTML starts with the inline script of {@code
+   * html-report.vm} and may contain the inline scripts of the report design, so the app entrypoint
+   * needs {@code 'unsafe-inline'} ({@code 'self'} is seeded from {@code default-src}). It is
+   * reported as a base unsafe token, and an administrator can disable it with {@code
+   * disabledBaseSources: ["script-src 'unsafe-inline'"]}.
+   */
+  private static final Map<String, Map<String, List<String>>> REPORTS_BASE_OVERRIDE =
+      Map.of(CspEntrypoints.APP, Map.of("script-src", List.of("'unsafe-inline'")));
+
   /**
    * The base override of an app per entrypoint ({@code "*"} and specific entrypoints).
    *
    * @return entrypoint to directive to sources, empty when the app has no base override
    */
   public static Map<String, Map<String, List<String>>> forApp(String appKey, boolean https) {
+    if (REPORTS_APP_KEY.equals(appKey)) {
+      return REPORTS_BASE_OVERRIDE;
+    }
     if (!MAPS_APP_KEY.equals(appKey)) {
       return Map.of();
     }

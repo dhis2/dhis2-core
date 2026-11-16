@@ -66,7 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class CspAppOverrideControllerTest extends H2ControllerIntegrationTestBase {
-  private static final List<String> APP_KEYS = List.of("maps", "other-app");
+  private static final List<String> APP_KEYS = List.of("maps", "other-app", "reports");
 
   private static final String CSP = "Content-Security-Policy";
   private static final String CSP_RO = "Content-Security-Policy-Report-Only";
@@ -82,8 +82,12 @@ class CspAppOverrideControllerTest extends H2ControllerIntegrationTestBase {
     if (appManager.getApp("other-app") == null) {
       appManager.installApp(app("other-app", true));
     }
+    if (appManager.getApp("reports") == null) {
+      appManager.installApp(app("reports", false));
+    }
     DELETE("/security/csp/apps/maps");
     DELETE("/security/csp/apps/other-app");
+    DELETE("/security/csp/apps/reports");
   }
 
   /** The Spring context is shared with other test classes: leave no installed apps behind. */
@@ -212,6 +216,30 @@ class CspAppOverrideControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         List.of("'self'", "'wasm-unsafe-eval'"),
         sources(header("/apps/maps/index.html", CSP), "script-src"));
+  }
+
+  @Test
+  void reportsInlineScripts_areShippedForTheReportsAppEntrypointOnly() {
+    assertEquals(
+        List.of("'self'", "'unsafe-inline'"),
+        sources(header("/apps/reports/index.html", CSP), "script-src"));
+    assertTrue(sources(header("/apps/reports/service-worker.js", CSP), "script-src").isEmpty());
+    for (String path :
+        List.of(
+            "/apps/maps/index.html",
+            "/apps/maps/plugin.html",
+            "/apps/other-app/index.html",
+            "/apps/other-app/plugin.html")) {
+      assertFalse(sources(header(path, CSP), "script-src").contains("'unsafe-inline'"), path);
+    }
+    assertTrue(sources(header("/apps/other-app/index.html", CSP), "script-src").isEmpty());
+
+    assertEquals(
+        List.of("app script-src 'unsafe-inline'"),
+        GET("/security/csp/apps/reports")
+            .content(HttpStatus.OK)
+            .getArray("baseUnsafeTokens")
+            .stringValues());
   }
 
   @Test

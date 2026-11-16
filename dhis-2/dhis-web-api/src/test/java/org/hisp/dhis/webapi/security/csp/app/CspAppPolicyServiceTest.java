@@ -162,6 +162,35 @@ class CspAppPolicyServiceTest {
   }
 
   @Test
+  void reportsBaseOverride_allowsInlineScriptsOnTheReportsAppEntrypointOnly() {
+    assertEquals(
+        Set.of("'self'", "'unsafe-inline'"),
+        sources(compose("reports", "app", null).contentSecurityPolicy(), "script-src"));
+    for (String ep : List.of("plugin", "worker", "*")) {
+      assertTrue(
+          sources(compose("reports", ep, null).contentSecurityPolicy(), "script-src").isEmpty());
+    }
+    for (String app : List.of("dashboard", "maps", "my-app")) {
+      for (String ep : CspEntrypoints.KEYS) {
+        String policy = compose(app, ep, null).contentSecurityPolicy();
+        assertFalse(sources(policy, "script-src").contains("'unsafe-inline'"), policy);
+      }
+    }
+    assertEquals(
+        List.of("app script-src 'unsafe-inline'"), CspBaseOverrides.unsafeTokens("reports", true));
+
+    EntrypointOverride disabled =
+        new EntrypointOverride(
+            null, new SourceChanges(Map.of(), List.of("script-src 'unsafe-inline'")), null);
+    assertTrue(
+        sources(
+                compose("reports", "app", override(Map.of("app", disabled)))
+                    .contentSecurityPolicy(),
+                "script-src")
+            .isEmpty());
+  }
+
+  @Test
   void mapsBaseOverride_addsHttpVariantsWhileHttpsIsOff() {
     https = false;
     String policy = compose("maps", "app", null).contentSecurityPolicy();
