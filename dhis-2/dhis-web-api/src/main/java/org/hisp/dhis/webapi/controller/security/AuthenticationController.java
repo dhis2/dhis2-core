@@ -144,9 +144,9 @@ public class AuthenticationController {
       HttpServletResponse response,
       @RequestBody LoginRequest loginRequest) {
 
-    // Normalize once, before the token is built, so every later step (user lookup, LDAP bind,
-    // failed-login count) sees the same username.
-    String username = Usernames.stripEdgeWhitespace(loginRequest.getUsername());
+    // Resolve once, before the token is built, so every later step (user lookup, LDAP bind,
+    // failed-login count) sees the same username. An exact match wins over the stripped username.
+    String username = Usernames.resolveTypedUsername(loginRequest.getUsername(), userService);
 
     try {
       validateRequest(username);

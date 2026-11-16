@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
+import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.user.UserConstants.LOGIN_MAX_FAILED_ATTEMPTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -319,6 +320,95 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
     mvc.perform(get("/api/me").header("Authorization", basicAuth("admin", password)))
         .andExpect(status().isUnauthorized());
+  }
+
+  /**
+   * Usernames stored with whitespace at the edges, as raw characters: trailing, leading and
+   * non-breaking space. Rows from before the username syntax check (2.38) and paths that skip the
+   * check can hold such usernames.
+   */
+  static Stream<String> storedEdgeWhitespaceUsernames() {
+    return Stream.of("legacy ", " legacy", "\u00a0legacy");
+  }
+
+  @ParameterizedTest
+  @MethodSource("storedEdgeWhitespaceUsernames")
+  void testLoginWithExactUsernameStoredWithEdgeWhitespace(String storedUsername) {
+    createUserWithAuth(storedUsername, "ALL");
+
+    assertEquals("SUCCESS", loginStatus(storedUsername, "district"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("storedEdgeWhitespaceUsernames")
+  void testBasicAuthWithExactUsernameStoredWithEdgeWhitespace(String storedUsername)
+      throws Exception {
+    createUserWithAuth(storedUsername, "ALL");
+    clearSecurityContext();
+
+    mvc.perform(get("/api/me").header("Authorization", basicAuth(storedUsername, "district")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value(storedUsername));
+  }
+
+  @Test
+  void testLoginPrefersExactUsernameOverStrippedUsername() {
+    createUserWithAuth("twin", "ALL");
+    createUserStoredAs(" twin", "Twin_pass_1!");
+
+    assertEquals("SUCCESS", loginStatus(" twin", "Twin_pass_1!"));
+    assertEquals(
+        HttpStatus.UNAUTHORIZED, POST("/auth/login", loginBody(" twin", "district")).status());
+    assertEquals("SUCCESS", loginStatus("twin ", "district"));
+  }
+
+  @Test
+  void testBasicAuthPrefersExactUsernameOverStrippedUsername() throws Exception {
+    createUserWithAuth("twin", "ALL");
+    createUserStoredAs(" twin", "Twin_pass_1!");
+    clearSecurityContext();
+
+    mvc.perform(get("/api/me").header("Authorization", basicAuth(" twin", "Twin_pass_1!")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value(" twin"));
+    mvc.perform(get("/api/me").header("Authorization", basicAuth("twin ", "district")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value("twin"));
+  }
+
+  @Test
+  void testFailedLoginsWithExactUsernameCountForThatUserOnly() {
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
+    createUserWithAuth("twinlock", "ALL");
+    createUserStoredAs(" twinlock", "district");
+
+    for (int i = 0; i < LOGIN_MAX_FAILED_ATTEMPTS; i++) {
+      assertEquals(
+          HttpStatus.UNAUTHORIZED, POST("/auth/login", loginBody(" twinlock", "wrong")).status());
+    }
+
+    assertEquals("ACCOUNT_LOCKED", loginStatus(" twinlock", "district"));
+    assertEquals("SUCCESS", loginStatus("twinlock", "district"));
+  }
+
+  /**
+   * Creates a user, then stores {@code storedUsername} as its username without the username syntax
+   * check. The user role is named after a generated username, as role names are trimmed.
+   */
+  private User createUserStoredAs(String storedUsername, String password) {
+    User user = createUserWithAuth("user" + generateUid().toLowerCase(), "ALL");
+    user.setUsername(storedUsername);
+    userService.encodeAndSetPassword(user, password);
+    userService.updateUser(user);
+    return user;
+  }
+
+  private String loginStatus(String username, String password) {
+    return POST("/auth/login", loginBody(username, password))
+        .content(HttpStatus.OK)
+        .as(JsonLoginResponse.class)
+        .getLoginStatus();
   }
 
   /** Builds a login body; the arguments are JSON string content and may contain escapes. */

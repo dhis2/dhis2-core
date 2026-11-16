@@ -267,6 +267,71 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     assertMessageSendTo(user.getEmail());
   }
 
+  /**
+   * Templates for usernames stored with whitespace at the edges, as raw characters: trailing,
+   * leading and non-breaking space. Rows from before the username syntax check (2.38) and paths
+   * that skip the check can hold such usernames.
+   */
+  static Stream<String> storedEdgeWhitespaceTemplates() {
+    return Stream.of("%s ", " %s", "\u00a0%s");
+  }
+
+  @ParameterizedTest
+  @MethodSource("storedEdgeWhitespaceTemplates")
+  void testUpdatePasswordWithExactUsernameStoredWithEdgeWhitespace(String template) {
+    String oldPassword = "Str0ng_old_1!";
+    String newPassword = "Str0ng_new_1!";
+    User user = createExpiredUser(template.formatted(uniqueUsername()), oldPassword);
+    clearSecurityContext();
+
+    POST(
+            "/auth/updatePassword",
+            "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                .formatted(user.getUsername(), oldPassword, newPassword))
+        .content(HttpStatus.OK);
+
+    User updated = userService.getUserByUsername(user.getUsername());
+    assertTrue(passwordEncoder.matches(newPassword, updated.getPassword()));
+  }
+
+  @ParameterizedTest
+  @MethodSource("storedEdgeWhitespaceTemplates")
+  void testResetPasswordWithExactUsernameStoredWithEdgeWhitespace(String template) {
+    settingsService.put("keyAccountRecovery", true);
+    User user = createUserStoredAs(template.formatted(uniqueUsername()));
+    clearSecurityContext();
+
+    sendForgotPasswordRequest(user.getUsername());
+
+    assertMessageSendTo(user.getEmail());
+  }
+
+  @Test
+  void testResetPasswordPrefersExactUsernameOverStrippedUsername() {
+    settingsService.put("keyAccountRecovery", true);
+    User plain = switchToNewUser(uniqueUsername());
+    User padded = createUserStoredAs(" " + plain.getUsername());
+    clearSecurityContext();
+
+    sendForgotPasswordRequest(padded.getUsername());
+    assertMessageSendTo(padded.getEmail());
+    assertTrue(emailMessageSender.getMessagesByEmail(plain.getEmail()).isEmpty());
+
+    sendForgotPasswordRequest(plain.getUsername() + " ");
+    assertMessageSendTo(plain.getEmail());
+  }
+
+  /**
+   * Creates a user with a valid username and email, then stores {@code storedUsername} as its
+   * username without the username syntax check.
+   */
+  private User createUserStoredAs(String storedUsername) {
+    User user = switchToNewUser(uniqueUsername());
+    user.setUsername(storedUsername);
+    userService.updateUser(user);
+    return user;
+  }
+
   /** A fresh username per test, so the per-user recovery lockout never carries over. */
   private static String uniqueUsername() {
     return "user" + CodeGenerator.generateUid().toLowerCase();

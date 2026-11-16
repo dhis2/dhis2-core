@@ -30,23 +30,29 @@
 package org.hisp.dhis.security.basic;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.Usernames;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.web.authentication.www.BasicAuthenticationConverter;
 
 /**
- * HTTP Basic converter that strips whitespace at the edges of the username (see {@link
- * Usernames#stripEdgeWhitespace(String)}) before the token is authenticated. The password is passed
- * on unchanged.
+ * HTTP Basic converter that resolves the username with {@link
+ * Usernames#resolveTypedUsername(String, UserService)} before the token is authenticated: an exact
+ * username match is kept, otherwise whitespace at the edges of the username is stripped. The
+ * password is passed on unchanged.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class UsernameNormalizingBasicAuthenticationConverter extends BasicAuthenticationConverter {
 
+  private final UserService userService;
+
   public UsernameNormalizingBasicAuthenticationConverter(
-      AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource) {
+      AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource,
+      UserService userService) {
     super(authenticationDetailsSource);
+    this.userService = userService;
   }
 
   @Override
@@ -55,7 +61,7 @@ public class UsernameNormalizingBasicAuthenticationConverter extends BasicAuthen
     if (token == null) {
       return null;
     }
-    String username = Usernames.stripEdgeWhitespace(token.getName());
+    String username = Usernames.resolveTypedUsername(token.getName(), userService);
     if (username.equals(token.getName())) {
       return token;
     }

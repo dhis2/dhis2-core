@@ -227,7 +227,8 @@ public class DefaultUserAccountService implements UserAccountService {
       throw new BadRequestException("Username, old password and new password are required");
     }
 
-    User user = userService.getUserByUsername(Usernames.stripEdgeWhitespace(username));
+    User user =
+        userService.getUserByUsername(Usernames.resolveTypedUsername(username, userService));
     if (user == null) {
       // Generic message on purpose: do not reveal whether the username exists. Spend one password
       // verification (result deliberately ignored) so this path takes as long as the known-user
@@ -297,7 +298,7 @@ public class DefaultUserAccountService implements UserAccountService {
   }
 
   private User getUserByEmailOrUsername(String input) throws HiddenNotFoundException {
-    String emailOrUsername = Usernames.stripEdgeWhitespace(input);
+    String emailOrUsername = Usernames.resolveTypedUsername(input, userService);
     User user;
     if (ValidationUtils.emailIsValid(emailOrUsername)) {
       user = userService.getUserByEmail(emailOrUsername);
