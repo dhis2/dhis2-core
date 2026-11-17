@@ -104,26 +104,12 @@ public interface ValidationResultService {
       Collection<Period> periods);
 
   /**
-   * Persists the violations found by an analysis of the given scope. A violation is identified by
-   * rule, period, org unit and attribute option combo.
+   * Persists the violations found by an analysis. A violation already persisted for the same rule,
+   * period, org unit, attribute option combo and day in the period keeps its row and notification
+   * state; its left and right side values are updated. Other violations are saved. Persisted
+   * violations that were not found are left unchanged.
    *
-   * <ul>
-   *   <li>Violations already persisted are kept, with their notification state; their left and
-   *       right side values are updated.
-   *   <li>Violations not yet persisted are saved.
-   *   <li>Persisted violations that were not found are left unchanged.
-   * </ul>
-   *
-   * @param orgUnit the root of the analysed org units, or null for all org units
-   * @param includeOrgUnitDescendants whether the descendants of {@code orgUnit} were analysed
-   * @param validationRules the analysed rules
-   * @param periods the analysed periods
-   * @param currentResults the violations found by the analysis
+   * @param validationResults the violations found by the analysis
    */
-  void upsertValidationResults(
-      OrganisationUnit orgUnit,
-      boolean includeOrgUnitDescendants,
-      Collection<ValidationRule> validationRules,
-      Collection<Period> periods,
-      Collection<ValidationResult> currentResults);
+  void upsertValidationResults(Collection<ValidationResult> validationResults);
 }
