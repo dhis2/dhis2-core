@@ -99,6 +99,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -110,6 +111,8 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private ValidationService validationService;
 
   @Autowired private ValidationResultService validationResultService;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @Autowired private ValidationRuleService validationRuleService;
 
@@ -1782,6 +1785,30 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
     assertEquals(original.getId(), persisted.get(0).getId());
     assertEquals(1.0, persisted.get(0).getRightsideValue());
     assertTrue(persisted.get(0).getNotificationSent());
+  }
+
+  private long sequenceValue(String sequence) {
+    return jdbcTemplate.queryForObject("select last_value from " + sequence, Long.class);
+  }
+
+  @Test
+  void testPersistingTakesIdsFromValidationResultSequence() {
+    useDataValue(dataElementA, periodA, sourceA, "1");
+    useDataValue(dataElementB, periodA, sourceA, "2");
+    useDataValue(dataElementC, periodA, sourceA, "3");
+    useDataValue(dataElementD, periodA, sourceA, "4");
+    validationRuleService.saveValidationRule(ruleA);
+    long hibernateSequence = sequenceValue("hibernate_sequence");
+
+    runValidationAnalysis(persistingParams(ruleA));
+    long id = persistedResults(ruleA).get(0).getId();
+    long validationResultSequence = sequenceValue("validationresult_sequence");
+    // found again: Postgres evaluates the column default for the conflicting row as well
+    runValidationAnalysis(persistingParams(ruleA));
+
+    assertEquals(id, validationResultSequence);
+    assertEquals(hibernateSequence, sequenceValue("hibernate_sequence"));
+    assertEquals(1, persistedResults(ruleA).size());
   }
 
   @Test
