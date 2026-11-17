@@ -102,7 +102,7 @@ public class DataEntryPipeline {
       throws BadRequestException {
     if (!options.isFirstRowIsHeader())
       throw new BadRequestException(
-          ErrorCode.E8037, "CSV without header row is no longer supported");
+          ErrorCode.E8036, "CSV without header row is no longer supported");
     progress.startingStage("Deserializing CSV data");
     List<DataEntryGroup.Input> groups =
         progress.runStageAndRethrow(

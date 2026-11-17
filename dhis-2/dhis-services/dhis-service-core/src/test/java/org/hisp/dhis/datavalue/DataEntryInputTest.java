@@ -472,7 +472,7 @@ class DataEntryInputTest {
         assertThrows(
             BadRequestException.class,
             () -> DataEntryInput.fromCsv(toStream(csv), new ImportOptions()));
-    assertEquals(ErrorCode.E8037, ex.getCode());
+    assertEquals(ErrorCode.E8036, ex.getCode());
   }
 
   private static List<DataEntryValue.Input> fromCsv(String csv) {

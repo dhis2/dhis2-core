@@ -902,7 +902,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
                     readFile("dxf2/datavalueset/dataValueSetBNoHeader.csv"),
                     options,
                     JobProgress.noop()));
-    assertEquals(ErrorCode.E8037, ex.getCode());
+    assertEquals(ErrorCode.E8036, ex.getCode());
   }
 
   @Test

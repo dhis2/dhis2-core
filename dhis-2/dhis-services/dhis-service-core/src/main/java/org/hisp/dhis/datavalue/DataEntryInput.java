@@ -86,7 +86,7 @@ public final class DataEntryInput {
       values = CSV.of(wrapAndCheckCompressionFormat(in)).as(DataEntryValue.Input.class).list();
     } catch (IllegalArgumentException ex) {
       // CSV reports all input problems as IllegalArgumentException
-      throw new BadRequestException(ErrorCode.E8037, ex.getMessage());
+      throw new BadRequestException(ErrorCode.E8036, ex.getMessage());
     }
     String ds = options.getDataSet();
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());

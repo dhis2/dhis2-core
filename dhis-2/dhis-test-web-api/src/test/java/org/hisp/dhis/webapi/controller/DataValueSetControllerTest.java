@@ -121,9 +121,10 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
         POST("/dataValueSets?dryRun=true", Body(csv), ContentType("application/csv"))
             .content(HttpStatus.BAD_REQUEST)
             .as(JsonWebMessage.class);
-    assertEquals(ErrorCode.E8037, msg.getErrorCode());
+    assertEquals(ErrorCode.E8036, msg.getErrorCode());
     assertEquals(
-        "CSV input error at line 2 column 4: Quoted value is not terminated", msg.getMessage());
+        "Data value import error: CSV input error at line 2 column 4: Quoted value is not terminated",
+        msg.getMessage());
   }
 
   @Test
@@ -136,7 +137,7 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
                 ContentType("application/csv"))
             .content(HttpStatus.BAD_REQUEST)
             .as(JsonWebMessage.class);
-    assertEquals(ErrorCode.E8037, msg.getErrorCode());
+    assertEquals(ErrorCode.E8036, msg.getErrorCode());
   }
 
   @Test
@@ -154,7 +155,7 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
   void testPostJsonDataValueSet_AsyncValueAsObject() {
     String summary =
         runAsyncImport("{\"dataValues\":[{\"value\":{}}]}", MediaType.APPLICATION_JSON_VALUE);
-    assertStartsWith("JSON input error: ", summary);
+    assertStartsWith("Data value import error: ", summary);
     assertTrue(summary.contains(".dataValues.0.value"), summary);
   }
 
@@ -162,7 +163,7 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
   void testPostJsonDataValueSet_AsyncTruncated() {
     String summary =
         runAsyncImport("{\"dataValues\":[{\"value\":\"1\"}", MediaType.APPLICATION_JSON_VALUE);
-    assertStartsWith("JSON input error: ", summary);
+    assertStartsWith("Data value import error: ", summary);
   }
 
   @Test
@@ -180,7 +181,9 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
         runAsyncImport(
             "dataElement,period,orgUnit,value\nM62VHgYT2n0,202501,DiszpKrYNg8,\"5\n",
             "application/csv");
-    assertStartsWith("CSV input error at line 2 column 4: Quoted value is not terminated", summary);
+    assertStartsWith(
+        "Data value import error: CSV input error at line 2 column 4: Quoted value is not terminated",
+        summary);
   }
 
   /**
