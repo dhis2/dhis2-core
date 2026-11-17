@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,7 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
+import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.scheduling.support.CronExpression;
@@ -149,6 +150,7 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
     validateValidCronConfiguration(addReports, tempJobConfiguration);
     validateValidFixedDelayConfiguration(addReports, tempJobConfiguration);
     validateUniqueCronTrigger(addReports, tempJobConfiguration);
+    validateReplacingMonitoringRunsAsSystem(addReports, tempJobConfiguration);
 
     // Validate parameters
 
@@ -187,6 +189,22 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
       }
     }
     return jobConfiguration;
+  }
+
+  /**
+   * A Monitoring job that replaces persisted results deletes the results it does not find again, so
+   * it must evaluate as the system user. Run as a user, that user's dimension constraints and
+   * analytics access would hide violations, which would then be deleted.
+   */
+  private void validateReplacingMonitoringRunsAsSystem(
+      Consumer<ErrorReport> addReports, JobConfiguration jobConfiguration) {
+    if (jobConfiguration.getJobType() == JobType.MONITORING
+        && jobConfiguration.getExecutedBy() != null
+        && jobConfiguration.getJobParameters() instanceof MonitoringJobParameters parameters
+        && parameters.isReplaceResults()) {
+      addReports.accept(
+          new ErrorReport(JobConfiguration.class, ErrorCode.E7008, jobConfiguration.getUid()));
+    }
   }
 
   private void validateValidCronConfiguration(

@@ -70,6 +70,8 @@ public class MonitoringJobParameters implements JobParameters {
    * When persisting results, replace the persisted results of the job's rules and periods with the
    * current violations: violations that no longer occur are removed, ongoing ones are kept with
    * their notification state, new ones are added. Without it, persisted results only ever grow.
+   *
+   * <p>A replacing job must run as the system user (no {@code executedBy}), see {@code E7008}.
    */
   @JsonProperty private boolean replaceResults;
 

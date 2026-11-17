@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -42,6 +43,7 @@ import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -156,5 +158,59 @@ class JobConfigurationObjectBundleHookTest {
     List<ErrorReport> errorReports = hook.validate(jobConfiguration, null);
     assertEquals(1, errorReports.size());
     assertEquals(ErrorCode.E7007, errorReports.get(0).getErrorCode());
+  }
+
+  private static JobConfiguration monitoringJob(boolean replaceResults, String executedBy) {
+    MonitoringJobParameters parameters = new MonitoringJobParameters();
+    parameters.setPersistResults(true);
+    parameters.setReplaceResults(replaceResults);
+    JobConfiguration jobConfiguration = new JobConfiguration();
+    jobConfiguration.setUid("monitorJob1");
+    jobConfiguration.setJobType(JobType.MONITORING);
+    jobConfiguration.setJobStatus(JobStatus.SCHEDULED);
+    jobConfiguration.setSchedulingType(SchedulingType.CRON);
+    jobConfiguration.setCronExpression("0 0 3 ? * *");
+    jobConfiguration.setEnabled(true);
+    jobConfiguration.setJobParameters(parameters);
+    jobConfiguration.setExecutedBy(executedBy);
+    return jobConfiguration;
+  }
+
+  @Test
+  void validateReplacingMonitoringJobRejectsExecutedBy() {
+    List<ErrorReport> errorReports = hook.validate(monitoringJob(true, "userUid0001"), null);
+    assertEquals(1, errorReports.size());
+    assertEquals(ErrorCode.E7008, errorReports.get(0).getErrorCode());
+  }
+
+  @Test
+  void validateReplacingMonitoringJobUpdateRejectsExecutedBy() {
+    when(jobConfigurationService.getJobConfigurationByUid("monitorJob1"))
+        .thenReturn(monitoringJob(true, null));
+
+    List<ErrorReport> errorReports = hook.validate(monitoringJob(true, "userUid0001"), null);
+    assertEquals(1, errorReports.size());
+    assertEquals(ErrorCode.E7008, errorReports.get(0).getErrorCode());
+  }
+
+  @Test
+  void validateReplacingMonitoringJobWithoutExecutedBy() {
+    assertEquals(List.of(), hook.validate(monitoringJob(true, null), null));
+  }
+
+  @Test
+  void validateNonReplacingMonitoringJobWithExecutedBy() {
+    assertEquals(List.of(), hook.validate(monitoringJob(false, "userUid0001"), null));
+  }
+
+  /**
+   * A replacing run deletes persisted results it does not find again, so it must evaluate as the
+   * system user: a user's dimension constraints or analytics access would hide violations, which
+   * would then be deleted. Monitoring jobs run as the system user because the job type does not
+   * record its creator as executing user; E7008 rejects an explicit one.
+   */
+  @Test
+  void testMonitoringJobsRunAsSystemUser() {
+    assertFalse(JobType.MONITORING.isValidUserRequiredForJob());
   }
 }
