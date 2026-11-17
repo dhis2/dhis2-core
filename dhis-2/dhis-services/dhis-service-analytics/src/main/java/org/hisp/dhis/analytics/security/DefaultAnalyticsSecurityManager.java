@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -248,7 +249,8 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
     boolean hideUnapprovedData =
         settingsProvider.getCurrentSettings().isHideUnapprovedDataInAnalytics();
-    boolean canViewUnapprovedData = currentUser.isAuthorized(F_VIEW_UNAPPROVED_DATA);
+    boolean canViewUnapprovedData =
+        isSystemUser() || currentUser.isAuthorized(F_VIEW_UNAPPROVED_DATA);
 
     if (hideUnapprovedData) {
       Map<OrganisationUnit, Integer> approvalLevels = null;
@@ -275,7 +277,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
         log.debug(
             "User: '{}' constrained by data approval levels: '{}'",
-            currentUser.getUsername(),
+            CurrentUserUtil.getCurrentUsername(),
             approvalLevels.values());
       }
     }
@@ -312,6 +314,10 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
    * @param params the data query parameters.
    */
   private void applyOrganisationUnitConstraint(QueryParamsBuilder builder, DataQueryParams params) {
+    if (isSystemUser()) {
+      return;
+    }
+
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     // ---------------------------------------------------------------------
@@ -361,6 +367,10 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
    * @param params the data query parameters.
    */
   private void applyDimensionConstraints(QueryParamsBuilder builder, DataQueryParams params) {
+    if (isSystemUser()) {
+      return;
+    }
+
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     // ---------------------------------------------------------------------
@@ -433,5 +443,14 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
           currentUser.getUsername(),
           constraint.getDimension());
     }
+  }
+
+  /**
+   * Whether the current user is the system user, which scheduled jobs without an executing user run
+   * as. It has no user record, so it cannot be loaded by username, and it has no restrictions: no
+   * data approval, organisation unit or dimension constraints apply to it.
+   */
+  private static boolean isSystemUser() {
+    return CurrentUserUtil.getCurrentUserDetails() instanceof SystemUser;
   }
 }

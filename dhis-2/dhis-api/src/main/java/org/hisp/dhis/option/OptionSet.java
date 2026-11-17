@@ -68,7 +68,6 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -236,7 +235,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   // -------------------------------------------------------------------------
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "options", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "option", namespace = DxfNamespaces.DXF_2_0)
   public List<Option> getOptions() {

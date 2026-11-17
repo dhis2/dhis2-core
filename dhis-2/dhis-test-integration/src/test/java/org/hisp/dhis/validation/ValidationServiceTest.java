@@ -1515,6 +1515,52 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testValidateOrgUnitGroupCount() {
+    useDataValue(dataElementA, periodA, sourceB, "1");
+    useDataValue(dataElementA, periodA, sourceC, "1");
+    useDataValue(dataElementA, periodA, sourceD, "1");
+    useDataValue(dataElementA, periodA, sourceE, "1");
+    useDataValue(dataElementA, periodA, sourceF, "1");
+    // OUG{} counts the group members in the org unit's subtree, the org unit itself included.
+    // Group A = {B, C}, group B = {D, E}, group C = {E, F}.
+    Expression expressionLeft =
+        new Expression(
+            "#{"
+                + dataElementA.getUid()
+                + "} + OUG{"
+                + orgUnitGroupA.getUid()
+                + "} * 100 + OUG{"
+                + orgUnitGroupB.getUid()
+                + "} * 10 + OUG{"
+                + orgUnitGroupC.getUid()
+                + "}",
+            "left",
+            NEVER_SKIP);
+    Expression expressionRight = new Expression("-1", "right", NEVER_SKIP);
+    ValidationRule rule =
+        createValidationRule("R", equal_to, expressionLeft, expressionRight, ptMonthly);
+    validationRuleService.saveValidationRule(rule);
+    Collection<ValidationResult> results =
+        runValidationAnalysis(
+            validationService
+                .newParamsBuilder(dataSetMonthly, sourceB, periodA)
+                .withIncludeOrgUnitDescendants(true)
+                .build());
+    Collection<ValidationResult> reference = new HashSet<>();
+    reference.add(
+        new ValidationResult(rule, periodA, sourceB, defaultCombo, 223.0, -1.0, dayInPeriodA));
+    reference.add(
+        new ValidationResult(rule, periodA, sourceC, defaultCombo, 101.0, -1.0, dayInPeriodA));
+    reference.add(
+        new ValidationResult(rule, periodA, sourceD, defaultCombo, 23.0, -1.0, dayInPeriodA));
+    reference.add(
+        new ValidationResult(rule, periodA, sourceE, defaultCombo, 12.0, -1.0, dayInPeriodA));
+    reference.add(
+        new ValidationResult(rule, periodA, sourceF, defaultCombo, 2.0, -1.0, dayInPeriodA));
+    assertResultsEquals(reference, results);
+  }
+
+  @Test
   void testValidateOrgUnitDataSet() {
     useDataValue(dataElementA, periodA, sourceB, "1");
     useDataValue(dataElementA, periodA, sourceC, "3");

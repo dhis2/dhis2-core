@@ -106,6 +106,10 @@ public final class WebMessageUtils {
     return createWebMessage(message, Status.ERROR, HttpStatus.CONFLICT, errorCode);
   }
 
+  public static WebMessage conflict(String message, ErrorCode errorCode, String devMessage) {
+    return createWebMessage(message, Status.ERROR, HttpStatus.CONFLICT, errorCode, devMessage);
+  }
+
   public static WebMessage conflict(ErrorCode errorCode, Object... args) {
     return conflict(new ErrorMessage(errorCode, args).getMessage(), errorCode);
   }
@@ -161,6 +165,18 @@ public final class WebMessageUtils {
   public static WebMessage createWebMessage(
       String message, Status status, HttpStatus httpStatus, ErrorCode errorCode) {
     return new WebMessage(status, httpStatus).setErrorCode(errorCode).setMessage(message);
+  }
+
+  public static WebMessage createWebMessage(
+      String message,
+      Status status,
+      HttpStatus httpStatus,
+      ErrorCode errorCode,
+      String devMessage) {
+    return new WebMessage(status, httpStatus)
+        .setErrorCode(errorCode)
+        .setMessage(message)
+        .setDevMessage(devMessage);
   }
 
   public static WebMessage createWebMessage(
