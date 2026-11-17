@@ -32,8 +32,11 @@ package org.hisp.dhis.common;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
+import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
+import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -42,6 +45,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -316,5 +320,91 @@ public class EventDataQueryRequestTest {
 
     assertNull(request.getValue());
     assertNull(request.getAggregationType());
+  }
+
+  @Test
+  void eventsWithoutStatusParamsHaveNoEnrollmentStatusFilter() {
+    EventDataQueryRequest request =
+        EventDataQueryRequest.builder().fromCriteria(new EventsAnalyticsQueryCriteria()).build();
+
+    assertEquals(Set.of(), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void enrollmentsWithoutStatusParamsHaveNoEnrollmentStatusFilter() {
+    EventDataQueryRequest request =
+        EventDataQueryRequest.builder()
+            .fromCriteria(new EnrollmentAnalyticsQueryCriteria())
+            .build();
+
+    assertEquals(Set.of(), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void eventsEnrollmentStatusIsMapped() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setEnrollmentStatus(Set.of(COMPLETED));
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(COMPLETED), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void eventsDeprecatedProgramStatusIsMapped() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setProgramStatus(Set.of(ACTIVE));
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(ACTIVE), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void eventsProgramStatusAndEnrollmentStatusTogetherAreRejected() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setProgramStatus(Set.of(ACTIVE));
+    criteria.setEnrollmentStatus(Set.of(COMPLETED));
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> EventDataQueryRequest.builder().fromCriteria(criteria));
+
+    assertEquals(ErrorCode.E7139, ex.getErrorCode());
+  }
+
+  @Test
+  void enrollmentsEnrollmentStatusIsMapped() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setEnrollmentStatus(Set.of(COMPLETED));
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(COMPLETED), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void enrollmentsDeprecatedProgramStatusIsMapped() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setProgramStatus(Set.of(ACTIVE));
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(ACTIVE), request.getEnrollmentStatus());
+  }
+
+  @Test
+  void enrollmentsProgramStatusAndEnrollmentStatusTogetherAreRejected() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setProgramStatus(Set.of(ACTIVE));
+    criteria.setEnrollmentStatus(Set.of(COMPLETED));
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> EventDataQueryRequest.builder().fromCriteria(criteria));
+
+    assertEquals(ErrorCode.E7139, ex.getErrorCode());
   }
 }
