@@ -412,6 +412,11 @@ class TrackerEventQueryParams {
     return List.copyOf(leftJoined);
   }
 
+  /** Returns attributes with a {@link QueryOperator#NULL} filter, which need a LEFT JOIN. */
+  public List<TrackedEntityAttribute> getNullFilteredAttributes() {
+    return List.copyOf(nullFilteredAttributes);
+  }
+
   public TrackerEventQueryParams filterBy(
       @Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) throws BadRequestException {
     this.attributes.putIfAbsent(tea, new ArrayList<>());

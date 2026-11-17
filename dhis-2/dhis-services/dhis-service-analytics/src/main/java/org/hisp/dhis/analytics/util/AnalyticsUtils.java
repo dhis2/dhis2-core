@@ -1169,7 +1169,8 @@ public final class AnalyticsUtils {
    * @return true if the rows contains a valid period ISO string at the given index.
    */
   public static boolean hasPeriod(List<Object> row, int periodIndex) {
-    return periodIndex < row.size()
+    return periodIndex >= 0
+        && periodIndex < row.size()
         && row.get(periodIndex) instanceof String
         && Period.ofNullable((String) row.get(periodIndex)) != null;
   }

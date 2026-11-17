@@ -337,8 +337,8 @@
       }
     },
     {
-      "name": "freeRangePeriodDimension",
-      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2022-01-01_2022-01-10&displayProperty=NAME&totalPages=false",
+      "name": "freeRangePeriodFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&filter=pe:2022-01-01_2022-01-10&displayProperty=NAME&totalPages=false",
       "version": {
         "min": 44
       }
@@ -348,6 +348,13 @@
       "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=INCIDENT_DATE:GT:2022-12-15",
       "version": {
         "min": 43
+      }
+    },
+    {
+      "name": "enrollmentStatusCompletedOnEnrollmentsAggregate",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:LAST_10_YEARS&enrollmentStatus=COMPLETED&displayProperty=NAME&totalPages=false&relativePeriodDate=2025-01-01",
+      "version": {
+        "min": 44
       }
     }
   ]
