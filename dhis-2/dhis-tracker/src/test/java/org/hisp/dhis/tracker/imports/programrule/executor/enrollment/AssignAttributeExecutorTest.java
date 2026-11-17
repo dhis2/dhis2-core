@@ -282,6 +282,111 @@ class AssignAttributeExecutorTest extends TrackerTestBase {
     assertAttributeWasAssignedAndWarningIsPresent(TE_ATTRIBUTE_NEW_VALUE, attribute, warning);
   }
 
+  @Test
+  void shouldNotOverwriteAttributeWhenAssignedValueIsEquivalent() {
+    when(settings.getRuleEngineAssignOverwrite()).thenReturn(true);
+    Enrollment enrollmentWithAttributeSetSameValue = getEnrollmentWithAttributeSetSameValue();
+    bundle.setEnrollments(List.of(enrollmentWithAttributeSetSameValue));
+
+    AssignAttributeExecutor executor =
+        new AssignAttributeExecutor(
+            settingsProvider,
+            RULE_UID,
+            "24",
+            ATTRIBUTE_UID,
+            enrollmentWithAttributeSetSameValue.getAttributes());
+
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, enrollmentWithAttributeSetSameValue);
+
+    Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_UID);
+
+    assertAttributeWasAssignedAndWarningIsPresent(TE_ATTRIBUTE_NEW_VALUE, attribute, warning);
+  }
+
+  @Test
+  void shouldNotFailWhenAssignedValueIsInScientificNotationAndEquivalentToAttribute() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(FIRST_ENROLLMENT_ID)
+            .trackedEntity(UID.generate())
+            .status(EnrollmentStatus.ACTIVE)
+            .attributes(
+                List.of(
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid(ATTRIBUTE_UID.getValue()))
+                        .value("53093393.25")
+                        .build()))
+            .build();
+    bundle.setEnrollments(List.of(enrollment));
+
+    AssignAttributeExecutor executor =
+        new AssignAttributeExecutor(
+            settingsProvider, RULE_UID, "5.309339325E7", ATTRIBUTE_UID, enrollment.getAttributes());
+
+    Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, enrollment);
+
+    Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_UID);
+
+    assertAttributeWasAssignedAndWarningIsPresent("53093393.25", attribute, warning);
+  }
+
+  @Test
+  void shouldOverwriteAttributeWhenAssignedValueIsCloseButNotEqualAndOverwriteIsTrue() {
+    when(settings.getRuleEngineAssignOverwrite()).thenReturn(true);
+    Enrollment enrollment = getEnrollmentWithAttributeValue("0.005");
+    bundle.setEnrollments(List.of(enrollment));
+
+    AssignAttributeExecutor executor =
+        new AssignAttributeExecutor(
+            settingsProvider, RULE_UID, "0", ATTRIBUTE_UID, enrollment.getAttributes());
+
+    Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, enrollment);
+
+    Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_UID);
+
+    assertAttributeWasAssignedAndWarningIsPresent("0", attribute, warning);
+  }
+
+  @Test
+  void shouldFailWhenAssignedValueIsCloseButNotEqualToAttributeAndOverwriteIsFalse() {
+    Enrollment enrollment = getEnrollmentWithAttributeValue("0.005");
+    bundle.setEnrollments(List.of(enrollment));
+
+    AssignAttributeExecutor executor =
+        new AssignAttributeExecutor(
+            settingsProvider, RULE_UID, "0", ATTRIBUTE_UID, enrollment.getAttributes());
+
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, enrollment);
+
+    Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_UID);
+
+    assertAttributeWasNotAssignedAndErrorIsPresent("0.005", attribute, error);
+  }
+
+  @Test
+  void shouldAssignPlainNumberWhenAssignedValueIsInScientificNotationAndAttributeIsEmpty() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    Enrollment enrollmentWithAttributeNOTSet = getEnrollmentWithAttributeNOTSet();
+    bundle.setTrackedEntities(List.of(getTrackedEntitiesWithAttributeNOTSet()));
+    bundle.setEnrollments(List.of(enrollmentWithAttributeNOTSet));
+
+    AssignAttributeExecutor executor =
+        new AssignAttributeExecutor(
+            settingsProvider,
+            RULE_UID,
+            "5.309339325E7",
+            ATTRIBUTE_UID,
+            enrollmentWithAttributeNOTSet.getAttributes());
+
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, enrollmentWithAttributeNOTSet);
+
+    Optional<Attribute> attribute = findAttributeByUid(bundle, SECOND_ENROLLMENT_ID, ATTRIBUTE_UID);
+
+    assertAttributeWasAssignedAndWarningIsPresent("53093393.25", attribute, warning);
+  }
+
   private Optional<Attribute> findTeiAttributeByUid(
       TrackerBundle bundle, UID teUid, UID attributeUid) {
     TrackedEntity te = bundle.findTrackedEntityByUid(teUid).get();
@@ -341,6 +446,20 @@ class AssignAttributeExecutorTest extends TrackerTestBase {
         .enrollment(FIRST_ENROLLMENT_ID)
         .status(EnrollmentStatus.ACTIVE)
         .attributes(getAttributes(idSchemes))
+        .build();
+  }
+
+  private Enrollment getEnrollmentWithAttributeValue(String value) {
+    return Enrollment.builder()
+        .enrollment(FIRST_ENROLLMENT_ID)
+        .trackedEntity(UID.generate())
+        .status(EnrollmentStatus.ACTIVE)
+        .attributes(
+            List.of(
+                Attribute.builder()
+                    .attribute(MetadataIdentifier.ofUid(ATTRIBUTE_UID.getValue()))
+                    .value(value)
+                    .build()))
         .build();
   }
 
