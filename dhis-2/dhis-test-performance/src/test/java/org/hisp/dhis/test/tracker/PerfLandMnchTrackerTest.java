@@ -287,7 +287,10 @@ public class PerfLandMnchTrackerTest extends Simulation {
           // 60 children per clerk, one clerk per facility band: a band's p95 sits below its 3
           // slowest samples, so one slow sample moves it less than with 30.
           case SMOKE -> new ProfileDefaults(1, 60, 1, 1, 1);
-          case LOAD -> new ProfileDefaults(4, 1, 15, 180, 1);
+          // 32 clerks: about 1.3 requests in flight on the perf runner, 4 kept it idle 87% of the
+          // time (0.13 in flight), and a p95 rests on about 225 samples instead of 28. 48 users
+          // still ran without errors and with the same medians.
+          case LOAD -> new ProfileDefaults(32, 1, 15, 180, 1);
           case CAPACITY -> new ProfileDefaults(8, 1, 10, 30, 4);
         };
     this.concurrentUsers = Integer.getInteger("concurrentUsers", defaults.concurrentUsers());
