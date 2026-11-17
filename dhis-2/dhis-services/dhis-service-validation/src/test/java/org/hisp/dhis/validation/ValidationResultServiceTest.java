@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,13 @@ package org.hisp.dhis.validation;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -45,6 +48,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.junit.jupiter.api.BeforeEach;
@@ -229,5 +233,21 @@ class ValidationResultServiceTest {
   private void assertError(IllegalQueryException ex, ErrorCode expected, String value) {
     assertEquals(expected, ex.getErrorCode());
     assertEquals(expected.getMessage().replace("{0}", value), ex.getMessage());
+  }
+
+  @Test
+  void testUpsertReloadsEachPeriodOnce() {
+    Period period = createPeriod("202507");
+    when(periodService.reloadPeriod(period)).thenReturn(period);
+    List<ValidationResult> results =
+        List.of(
+            new ValidationResult(null, period, null, null, 1.0, 0.0, 31),
+            new ValidationResult(null, period, null, null, 2.0, 0.0, 31),
+            new ValidationResult(null, period, null, null, 3.0, 0.0, 31));
+
+    service.upsertValidationResults(results);
+
+    verify(periodService, times(1)).reloadPeriod(any());
+    verify(store).upsert(results);
   }
 }
