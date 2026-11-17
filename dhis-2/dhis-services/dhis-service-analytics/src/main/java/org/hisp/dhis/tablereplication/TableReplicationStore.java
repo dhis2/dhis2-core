@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.tablereplication;
 
+import java.util.Date;
+import java.util.List;
 import org.hisp.dhis.db.model.Table;
 
 /**
@@ -42,4 +44,42 @@ public interface TableReplicationStore {
    * @param table the {@link Table} to replicate.
    */
   void replicateAnalyticsDatabaseTable(Table table);
+
+  /**
+   * Indicates whether the given table exists in the analytics database.
+   *
+   * @param table the {@link Table}.
+   * @return true if the table exists.
+   */
+  boolean tableExists(Table table);
+
+  /**
+   * Returns the identifiers of tracked entities, including soft deleted ones, last updated at or
+   * after the given time, read from the transactional database.
+   *
+   * @param since the earliest last updated time to include.
+   * @param limit the maximum number of identifiers to return.
+   * @return a list of tracked entity identifiers.
+   */
+  List<Long> getTrackedEntityIdsUpdatedSince(Date since, int limit);
+
+  /**
+   * Deletes the rows of the given analytics database table whose column value is in the given
+   * identifiers. Does nothing if the identifiers are empty.
+   *
+   * @param table the {@link Table}.
+   * @param column the name of the column to match.
+   * @param ids the identifiers.
+   */
+  void deleteRows(Table table, String column, List<Long> ids);
+
+  /**
+   * Copies the rows of the given transactional database table whose column value is in the given
+   * identifiers into the analytics database table. Does nothing if the identifiers are empty.
+   *
+   * @param table the {@link Table}.
+   * @param column the name of the column to match.
+   * @param ids the identifiers.
+   */
+  void replicateRows(Table table, String column, List<Long> ids);
 }
