@@ -30,13 +30,14 @@ package org.hisp.dhis.tracker.imports.programrule.executor.event;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning;
 import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor.isEqual;
+import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor.toPlainNumber;
 
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -51,7 +52,7 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
  */
 @RequiredArgsConstructor
 public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final String ruleUid;
 
@@ -77,40 +78,41 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    Boolean canOverwrite =
-        systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE);
-
     DataElement dataElement = bundle.getPreheat().getDataElement(dataElementUid);
 
-    DataValue payloadDataValue =
-        dataValues.stream()
-            .filter(dv -> dv.getDataElement().isEqualTo(dataElement))
-            .findAny()
-            .orElse(null);
+    Optional<DataValue> payloadDataValue =
+        dataValues.stream().filter(dv -> dv.getDataElement().isEqualTo(dataElement)).findAny();
 
-    if (payloadDataValue == null
-        || Boolean.TRUE.equals(canOverwrite)
-        || isEqual(value, payloadDataValue.getValue(), dataElement.getValueType())) {
-      addOrOverwriteDataValue(event, bundle, dataElement, payloadDataValue);
-      return Optional.of(warning(ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent()));
+    if (payloadDataValue.isPresent()
+        && isEqual(value, payloadDataValue.get().getValue(), dataElement.getValueType())) {
+      return valueAssigned(event);
     }
-    return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid, value));
-  }
 
-  private void addOrOverwriteDataValue(
-      Event event, TrackerBundle bundle, DataElement dataElement, DataValue payloadDataValue) {
-    if (payloadDataValue != null) {
-      payloadDataValue.setValue(value);
+    if (payloadDataValue.isPresent() && !canOverwrite()) {
+      return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid, value));
+    }
+
+    String assignedValue = toPlainNumber(value, dataElement.getValueType());
+    if (payloadDataValue.isPresent()) {
+      payloadDataValue.get().setValue(assignedValue);
     } else {
-      event
-          .getDataValues()
-          .add(
-              createDataValue(
-                  bundle.getPreheat().getIdSchemes().toMetadataIdentifier(dataElement), value));
+      event.getDataValues().add(createDataValue(bundle, dataElement, assignedValue));
     }
+    return valueAssigned(event);
   }
 
-  private DataValue createDataValue(MetadataIdentifier dataElement, String newValue) {
-    return DataValue.builder().dataElement(dataElement).value(newValue).build();
+  private boolean canOverwrite() {
+    return settingsProvider.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE);
+  }
+
+  private Optional<ProgramRuleIssue> valueAssigned(Event event) {
+    return Optional.of(warning(ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent()));
+  }
+
+  private DataValue createDataValue(
+      TrackerBundle bundle, DataElement dataElement, String assignedValue) {
+    MetadataIdentifier dataElementId =
+        bundle.getPreheat().getIdSchemes().toMetadataIdentifier(dataElement);
+    return DataValue.builder().dataElement(dataElementId).value(assignedValue).build();
   }
 }

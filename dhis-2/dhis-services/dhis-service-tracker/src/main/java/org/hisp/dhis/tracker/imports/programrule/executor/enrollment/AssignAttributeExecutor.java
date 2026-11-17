@@ -30,12 +30,13 @@ package org.hisp.dhis.tracker.imports.programrule.executor.enrollment;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning;
 import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor.isEqual;
+import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor.toPlainNumber;
 
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -52,7 +53,7 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
  */
 @RequiredArgsConstructor
 public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final String ruleUid;
 
@@ -78,25 +79,39 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
-    Boolean canOverwrite =
-        systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE);
     TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute(attributeUid);
 
     Optional<Attribute> payloadAttribute =
         attributes.stream().filter(at -> at.getAttribute().isEqualTo(attribute)).findAny();
 
-    if (payloadAttribute.isEmpty()
-        || Boolean.TRUE.equals(canOverwrite)
-        || isEqual(value, payloadAttribute.get().getValue(), attribute.getValueType())) {
-      addOrOverwriteAttribute(enrollment, bundle);
-      return Optional.of(
-          warning(ruleUid, ValidationCode.E1310, attributeUid, enrollment.getTrackedEntity()));
+    if (payloadAttribute.isPresent()
+        && isEqual(value, payloadAttribute.get().getValue(), attribute.getValueType())) {
+      return valueAssigned(enrollment);
     }
-    return Optional.of(error(ruleUid, ValidationCode.E1309, attributeUid, value));
+
+    if (payloadAttribute.isPresent() && !canOverwrite()) {
+      return Optional.of(error(ruleUid, ValidationCode.E1309, attributeUid, value));
+    }
+
+    addOrOverwriteAttribute(
+        enrollment, bundle, attribute, toPlainNumber(value, attribute.getValueType()));
+    return valueAssigned(enrollment);
   }
 
-  private void addOrOverwriteAttribute(Enrollment enrollment, TrackerBundle bundle) {
-    TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute(attributeUid);
+  private boolean canOverwrite() {
+    return settingsProvider.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE);
+  }
+
+  private Optional<ProgramRuleIssue> valueAssigned(Enrollment enrollment) {
+    return Optional.of(
+        warning(ruleUid, ValidationCode.E1310, attributeUid, enrollment.getTrackedEntity()));
+  }
+
+  private void addOrOverwriteAttribute(
+      Enrollment enrollment,
+      TrackerBundle bundle,
+      TrackedEntityAttribute attribute,
+      String assignedValue) {
     Optional<TrackedEntity> trackedEntity =
         bundle.findTrackedEntityByUid(enrollment.getTrackedEntity());
 
@@ -105,7 +120,7 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
       Optional<Attribute> optionalAttribute =
           teAttributes.stream().filter(at -> at.getAttribute().isEqualTo(attribute)).findAny();
       if (optionalAttribute.isPresent()) {
-        optionalAttribute.get().setValue(value);
+        optionalAttribute.get().setValue(assignedValue);
         return;
       }
     }
@@ -116,11 +131,11 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
             .filter(at -> at.getAttribute().isEqualTo(attribute))
             .findAny();
     if (optionalAttribute.isPresent()) {
-      optionalAttribute.get().setValue(value);
+      optionalAttribute.get().setValue(assignedValue);
     } else {
       enrollmentAttributes.add(
           createAttribute(
-              bundle.getPreheat().getIdSchemes().toMetadataIdentifier(attribute), value));
+              bundle.getPreheat().getIdSchemes().toMetadataIdentifier(attribute), assignedValue));
     }
   }
 
