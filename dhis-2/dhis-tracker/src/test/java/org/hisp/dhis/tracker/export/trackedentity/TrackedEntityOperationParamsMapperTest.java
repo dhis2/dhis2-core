@@ -793,8 +793,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailToMapFilterWhenProgramAttributeIsRequestedWithTrackedEntities()
-      throws BadRequestException, ForbiddenException {
+  void shouldFailToMapFilterWhenProgramAttributeIsRequestedWithTrackedEntities() {
     when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
         .thenReturn(true);
     when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
