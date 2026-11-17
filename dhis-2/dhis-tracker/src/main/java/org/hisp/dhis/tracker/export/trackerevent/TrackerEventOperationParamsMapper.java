@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.trackerevent;
 
 import static java.util.Collections.emptyList;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAttributeIsAllowed;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAttributeOperators;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateMinimumCharactersToSearch;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
@@ -118,8 +119,8 @@ class TrackerEventOperationParamsMapper {
     TrackerEventQueryParams queryParams = new TrackerEventQueryParams();
 
     mapDataElementFilters(queryParams, operationParams.getDataElementFilters());
-    mapAttributeFilters(queryParams, operationParams.getAttributeFilters());
-    mapOrderParam(queryParams, operationParams.getOrder());
+    mapAttributeFilters(queryParams, operationParams.getAttributeFilters(), program);
+    mapOrderParam(queryParams, operationParams.getOrder(), program);
 
     List<Program> accessibleTrackerPrograms = getTrackerPrograms(program);
 
@@ -243,7 +244,7 @@ class TrackerEventOperationParamsMapper {
   }
 
   private void mapAttributeFilters(
-      TrackerEventQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
+      TrackerEventQueryParams params, Map<UID, List<QueryFilter>> attributeFilters, Program program)
       throws BadRequestException {
     for (Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
       TrackedEntityAttribute tea =
@@ -256,6 +257,8 @@ class TrackerEventOperationParamsMapper {
                 attributeFilter.getKey()));
       }
 
+      validateAttributeIsAllowed(tea, "filter", program, null, List.of());
+
       validateAttributeOperators(attributeFilter, tea);
 
       validateMinimumCharactersToSearch(attributeFilter, tea);
@@ -266,7 +269,7 @@ class TrackerEventOperationParamsMapper {
     }
   }
 
-  private void mapOrderParam(TrackerEventQueryParams params, List<Order> orders)
+  private void mapOrderParam(TrackerEventQueryParams params, List<Order> orders, Program program)
       throws BadRequestException {
     if (orders == null || orders.isEmpty()) {
       return;
@@ -291,6 +294,7 @@ class TrackerEventOperationParamsMapper {
                   + "' as its neither a data element nor a tracked entity attribute. Events can be"
                   + " ordered by event fields, data elements and tracked entity attributes.");
         }
+        validateAttributeIsAllowed(tea, "order by", program, null, List.of());
 
         params.orderBy(tea, order.getDirection());
       } else {
