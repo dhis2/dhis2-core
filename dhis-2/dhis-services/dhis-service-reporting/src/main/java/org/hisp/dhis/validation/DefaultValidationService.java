@@ -142,7 +142,13 @@ public class DefaultValidationService implements ValidationService {
     if (context.isPersistResults()) {
       progress.startingStage("Persisting Results", SKIP_STAGE);
       progress.runStage(
-          () -> validationResultService.saveValidationResults(context.getValidationResults()));
+          () ->
+              validationResultService.upsertValidationResults(
+                  parameters.getOrgUnit(),
+                  parameters.isIncludeOrgUnitDescendants(),
+                  parameters.getValidationRules(),
+                  parameters.getPeriods(),
+                  context.getValidationResults()));
     }
 
     clock
@@ -273,13 +279,7 @@ public class DefaultValidationService implements ValidationService {
           .withCogDimensionConstraints(categoryService.getCogDimensionConstraints(currentUser));
     }
 
-    List<ValidationResult> initialResults =
-        validationResultService.getValidationResults(
-            parameters.getOrgUnit(),
-            parameters.isIncludeOrgUnitDescendants(),
-            parameters.getValidationRules(),
-            parameters.getPeriods());
-    return builder.build().addInitialResults(initialResults);
+    return builder.build();
   }
 
   private Map<PeriodType, PeriodTypeExtended> getExtendedPeriods(
