@@ -145,13 +145,7 @@ public class DefaultValidationService implements ValidationService {
     if (context.isPersistResults()) {
       progress.startingStage("Persisting Results", SKIP_STAGE);
       progress.runStage(
-          () ->
-              validationResultService.upsertValidationResults(
-                  parameters.getOrgUnit(),
-                  parameters.isIncludeOrgUnitDescendants(),
-                  parameters.getValidationRules(),
-                  parameters.getPeriods(),
-                  context.getValidationResults()));
+          () -> validationResultService.upsertValidationResults(context.getValidationResults()));
     }
 
     clock

@@ -34,9 +34,7 @@ import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -147,48 +145,10 @@ public class DefaultValidationResultService implements ValidationResultService {
 
   @Transactional
   @Override
-  public void upsertValidationResults(
-      OrganisationUnit orgUnit,
-      boolean includeOrgUnitDescendants,
-      Collection<ValidationRule> validationRules,
-      Collection<Period> periods,
-      Collection<ValidationResult> currentResults) {
-    Map<ViolationKey, ValidationResult> persisted = new HashMap<>();
-    for (ValidationResult existing :
-        getValidationResults(orgUnit, includeOrgUnitDescendants, validationRules, periods)) {
-      persisted.putIfAbsent(ViolationKey.of(existing), existing);
-    }
-
-    int added = 0;
-    int updated = 0;
-    for (ValidationResult result : currentResults) {
-      result.setPeriod(periodService.reloadPeriod(result.getPeriod()));
-      ViolationKey key = ViolationKey.of(result);
-      ValidationResult existing = persisted.get(key);
-      if (existing == null) {
-        validationResultStore.save(result);
-        persisted.put(key, result);
-        added++;
-      } else {
-        existing.setLeftsideValue(result.getLeftsideValue());
-        existing.setRightsideValue(result.getRightsideValue());
-        validationResultStore.update(existing);
-        updated++;
-      }
-    }
-
-    log.info("Persisted validation results: {} added, {} updated", added, updated);
-  }
-
-  /** Identifies a violation regardless of the day in the period on which it was found. */
-  private record ViolationKey(long rule, long period, long orgUnit, long attributeOptionCombo) {
-    static ViolationKey of(ValidationResult result) {
-      return new ViolationKey(
-          result.getValidationRule().getId(),
-          result.getPeriod().getId(),
-          result.getOrganisationUnit().getId(),
-          result.getAttributeOptionCombo().getId());
-    }
+  public void upsertValidationResults(Collection<ValidationResult> validationResults) {
+    validationResults.forEach(
+        result -> result.setPeriod(periodService.reloadPeriod(result.getPeriod())));
+    validationResultStore.upsert(validationResults);
   }
 
   private void validate(ValidationResultsDeletionRequest request) {
