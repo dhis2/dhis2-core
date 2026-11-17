@@ -30,9 +30,11 @@
 package org.hisp.dhis.datavalue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -142,7 +144,7 @@ class DataEntryInputTest {
     assertEquals("2021", dv1.period());
     assertEquals("value", dv1.value());
     assertEquals("comment", dv1.comment());
-    assertEquals(true, dv1.followUp());
+    assertTrue(dv1.followUp());
     assertEquals(true, dv1.deleted());
 
     DataEntryValue.Input dv2 = input.values().get(1);
@@ -379,8 +381,8 @@ class DataEntryInputTest {
     assertEquals("aoc23456789", dv1.attributeOptionCombo());
     assertEquals("5", dv1.value());
     assertEquals("hello", dv1.comment());
-    assertEquals(true, dv1.followUp());
-    assertEquals(false, dv1.deleted());
+    assertTrue(dv1.followUp());
+    assertFalse(dv1.deleted());
     DataEntryValue.Input dv2 = values.get(1);
     assertEquals("7", dv2.value());
     assertNull(dv2.categoryOptionCombo());
@@ -418,7 +420,7 @@ class DataEntryInputTest {
   void testFromCsv_BooleanNotABoolean() {
     List<DataEntryValue.Input> values =
         fromCsv("dataElement,value,followUp\nde123456789,5,maybe\n");
-    assertEquals(false, values.get(0).followUp());
+    assertFalse(values.get(0).followUp());
   }
 
   /*
