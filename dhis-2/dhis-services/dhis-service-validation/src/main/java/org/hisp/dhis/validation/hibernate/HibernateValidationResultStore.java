@@ -115,13 +115,13 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
       StringBuilder sql =
           new StringBuilder(
               """
-              insert into validationresult (validationresultid, created, leftsidevalue,
-                rightsidevalue, validationruleid, periodid, organisationunitid,
-                attributeoptioncomboid, dayinperiod, notificationsent)
+              insert into validationresult (created, leftsidevalue, rightsidevalue,
+                validationruleid, periodid, organisationunitid, attributeoptioncomboid,
+                dayinperiod, notificationsent)
               values\s""");
       int param = 1;
       for (int i = 0; i < batch.size(); i++) {
-        sql.append(i == 0 ? "" : ", ").append("(nextval('hibernate_sequence'), now()");
+        sql.append(i == 0 ? "" : ", ").append("(now()");
         for (int j = 0; j < 7; j++) {
           sql.append(", ?").append(param++);
         }
