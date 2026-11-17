@@ -832,7 +832,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
         List<Period> peNoLongerOpen =
             source
                 .orgUnitPeriodPairs()
-                .distinct()
                 // only check values not exempt
                 .filter(
                     e -> {
