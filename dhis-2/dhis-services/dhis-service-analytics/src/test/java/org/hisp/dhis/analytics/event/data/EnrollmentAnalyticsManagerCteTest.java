@@ -1854,22 +1854,23 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   }
 
   @Test
-  void verifyEnrollmentCountResolvesPsdePlaceholderInPiFilter() {
+  void verifyEnrollmentCountAppliesProgramIndicatorItemFilterThroughCte() {
     ProgramIndicator pi =
         createEnrollmentProgramIndicator(
-            "V{enrollment_count}",
-            "#{%s.%s} == 'hello'".formatted(programStage.getUid(), dataElementA.getUid()));
-    stubPiExpressionSql(pi, "enrollment");
-    stubPiFilterSql(pi, psdePlaceholder(pi) + " = 'hello'");
+            "#{%s.%s}".formatted(programStage.getUid(), dataElementA.getUid()), null);
+    stubPiExpressionSql(pi, psdePlaceholder(pi));
+    EventQueryParams params = createRequestParams(pi, null);
+    params.getItems().get(0).addFilter(new QueryFilter(QueryOperator.GT, "5"));
 
-    subject.getEnrollmentCount(createAggregatePiParams(pi, AggregationType.COUNT));
+    subject.getEnrollmentCount(params);
     verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
 
     String generatedSql = sql.getValue();
     assertNoCtePlaceholders(generatedSql);
     assertThat(generatedSql, startsWith("with "));
-    assertThat(generatedSql, containsString("inner join " + pi.getUid()));
-    assertThat(generatedSql, containsString(".enrollment = ax.enrollment"));
+    assertThat(generatedSql, containsString("select count(1) "));
+    assertThat(generatedSql, containsString("." + "enrollment = ax.enrollment"));
+    assertThat(generatedSql, containsString(".value > 5"));
   }
 
   @Test

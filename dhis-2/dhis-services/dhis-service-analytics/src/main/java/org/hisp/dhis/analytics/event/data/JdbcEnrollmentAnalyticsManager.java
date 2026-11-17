@@ -342,18 +342,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   public long getEnrollmentCount(EventQueryParams params) {
-    Optional<ProgramIndicatorCteSql> programIndicatorCte = getProgramIndicatorCteSql(params);
-    String sql = "select count(1) ";
-
-    sql += getFromClause(params);
-    sql += programIndicatorCte.map(ProgramIndicatorCteSql::joinClause).orElse("");
-
-    sql += getWhereClause(params);
-    sql += addFiltersToWhereClause(params);
-
-    if (programIndicatorCte.isPresent()) {
-      sql = programIndicatorCte.get().withClause() + sql;
-    }
+    String sql =
+        useExperimentalAnalyticsQueryEngine()
+            ? buildAnalyticsCountQuery(params)
+            : getEnrollmentCountSql(params);
 
     long count = 0;
 
@@ -373,6 +365,23 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     return count;
+  }
+
+  private String getEnrollmentCountSql(EventQueryParams params) {
+    Optional<ProgramIndicatorCteSql> programIndicatorCte = getProgramIndicatorCteSql(params);
+    String sql = "select count(1) ";
+
+    sql += getFromClause(params);
+    sql += programIndicatorCte.map(ProgramIndicatorCteSql::joinClause).orElse("");
+
+    sql += getWhereClause(params);
+    sql += addFiltersToWhereClause(params);
+
+    if (programIndicatorCte.isPresent()) {
+      sql = programIndicatorCte.get().withClause() + sql;
+    }
+
+    return sql;
   }
 
   /**
