@@ -274,13 +274,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   public long getEventCount(EventQueryParams params) {
-    String sql = "select count(1) ";
-
-    sql += getFromClause(params);
-
-    String whereClause = getWhereClause(params);
-    sql += whereClause;
-    sql += getAdditionalQueryItemWhereClause(params, whereClause);
+    String sql = buildAnalyticsCountQuery(params);
 
     long count = 0;
 

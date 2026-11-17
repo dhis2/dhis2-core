@@ -1900,7 +1900,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForObject(sqlCaptor.capture(), eq(Long.class));
 
     String sql = sqlCaptor.getValue();
-    assertThat(sql, containsString("inner join analytics_rs_orgunitstructure as enrous"));
+    assertThat(
+        sql,
+        containsString(
+            "inner join analytics_rs_orgunitstructure enrous"
+                + " on enrous.\"organisationunituid\" = ax.\"enrollmentou\""));
     assertThat(sql, containsString("(enrous.\"uidlevel1\" in ('" + ouA.getUid() + "'))"));
   }
 

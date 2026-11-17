@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.StringUtils.countMatches;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
@@ -1636,6 +1637,63 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     assertThat(sql.getValue().toLowerCase(), not(containsString("event_pi_candidates")));
+  }
+
+  @Test
+  void verifyEventCountAppliesEnrollmentProgramIndicatorConditionThroughCte() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(true);
+    ProgramIndicator programIndicator =
+        createEventProgramIndicator("piEnrollCount", AggregationType.SUM, "complex");
+    programIndicator.setAnalyticsType(AnalyticsType.ENROLLMENT);
+    String psdePlaceholder =
+        "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='piEnrollCount', replaceNulls='true')";
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            anyString(), eq(NUMERIC), eq(programIndicator), any(), any(), eq("subax")))
+        .thenReturn(psdePlaceholder);
+    when(programIndicatorService.getAnalyticsSql(
+            anyString(), eq(NUMERIC), eq(programIndicator), any(), any()))
+        .thenReturn(psdePlaceholder);
+    QueryItem queryItem = createProgramIndicatorQueryItem(programIndicator);
+    queryItem.addFilter(new QueryFilter(QueryOperator.GT, "5"));
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams()).addItem(queryItem).build();
+
+    subject.getEventCount(params);
+
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, startsWith("with "));
+    assertThat(generatedSql, containsString("pienrollcount as ("));
+    assertThat(generatedSql, containsString("select count(1) "));
+    assertTrue(
+        generatedSql.matches("(?s).*[a-z]{5}\\.value > 5.*"),
+        "The count must apply the condition to the joined PI CTE value: " + sql.getValue());
+    assertThat(generatedSql, not(containsString("func_cte_var(")));
+    assertThat(generatedSql, not(containsString("__psde_cte_placeholder__")));
+    assertThat(generatedSql, not(containsString("__d2func__(")));
+  }
+
+  @Test
+  void verifyEventCountDeclaresProgramIndicatorCandidatesCte() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
+    ProgramIndicator programIndicator =
+        createEventProgramIndicator("piEventFilter", AggregationType.COUNT, "ou");
+    stubProgramIndicatorExpression(programIndicator, "ou", "ou");
+    QueryItem filterItem = createProgramIndicatorQueryItem(programIndicator);
+    filterItem.addFilter(new QueryFilter(QueryOperator.GE, "0"));
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams()).addItemFilter(filterItem).build();
+
+    subject.getEventCount(params);
+
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("with event_pi_candidates as"));
+    assertThat(generatedSql, containsString("from event_pi_candidates as subax"));
+    assertThat(generatedSql, containsString("select count(1) "));
+    assertThat(generatedSql, containsString(" left join pieventfilter "));
   }
 
   @Test

@@ -2377,6 +2377,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       generateFilterCTEs(params, cteContext);
     }
 
+    addEventProgramIndicatorCandidatesCte(params, cteContext);
+
     SelectBuilder sb = new SelectBuilder();
     addCteClause(sb, cteContext);
     sb.addColumn("count(1)");
