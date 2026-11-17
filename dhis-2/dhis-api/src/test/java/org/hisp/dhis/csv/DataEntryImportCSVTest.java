@@ -193,10 +193,10 @@ class DataEntryImportCSVTest {
         de123456789,202501,ou123456789,1,TRUE,True
         de123456789,202501,ou123456789,1,false,FALSE
         """);
-    assertEquals(true, values.get(0).followUp());
-    assertEquals(true, values.get(0).deleted());
-    assertEquals(false, values.get(1).followUp());
-    assertEquals(false, values.get(1).deleted());
+    assertTrue(values.get(0).followUp());
+    assertTrue(values.get(0).deleted());
+    assertFalse(values.get(1).followUp());
+    assertFalse(values.get(1).deleted());
   }
 
   /** Excel "Save as CSV" pads empty rows with commas. */
