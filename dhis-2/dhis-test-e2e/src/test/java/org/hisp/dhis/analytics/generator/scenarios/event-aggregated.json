@@ -190,15 +190,29 @@
       }
     },
     {
-      "name": "createdDateAsDimensionWithTimeRange",
-      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6,CREATED:2016-07-30_2017-08-07&relativePeriodDate=2025-09-29",
+      "name": "incidentDateAsFilterWithTimeRange",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6&filter=INCIDENT_DATE:2021-03-01_2023-04-30&relativePeriodDate=2025-09-29",
       "version": {
         "min": 43
       }
     },
     {
-      "name": "completedDateAsDimensionWithTimeRange",
-      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6,COMPLETED:2021-07-30_2022-08-07&relativePeriodDate=2025-09-29",
+      "name": "lastUpdatedAsFilterWithTimeRange",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6&filter=LAST_UPDATED:2018-07-30_2018-08-07&relativePeriodDate=2025-09-29",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "createdDateAsFilterWithTimeRange",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6&filter=CREATED:2016-07-30_2017-08-07&relativePeriodDate=2025-09-29",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "completedDateAsFilterWithTimeRange",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6&filter=COMPLETED:2021-07-30_2022-08-07&relativePeriodDate=2025-09-29",
       "version": {
         "min": 43
       }
