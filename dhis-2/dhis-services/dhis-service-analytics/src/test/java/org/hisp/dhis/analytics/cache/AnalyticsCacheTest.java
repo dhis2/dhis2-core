@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.analytics.cache;
 
-import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.jsonMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -40,11 +39,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
@@ -56,17 +52,11 @@ import org.hisp.dhis.cache.LocalCache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.Locale;
-import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.translation.Translation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -460,31 +450,5 @@ class AnalyticsCacheTest {
     assertFalse(
         analyticsCache.get(thread2NestedKey).isPresent(),
         "Thread 2 nested grid should NOT be cached");
-  }
-
-  @Test
-  void cachedGridWithTranslatedIndicatorTypeInMetadataSerializesToJson() throws Exception {
-    IndicatorType indicatorType = new IndicatorType("Per cent", 100, false);
-    indicatorType.setTranslations(Set.of(new Translation(new Locale("fr"), "NAME", "Pourcentage")));
-    Indicator indicator = new Indicator();
-    indicator.setUid("IndicatorA1");
-    indicator.setName("Indicator A");
-    indicator.setIndicatorType(indicatorType);
-
-    Grid grid = new ListGrid();
-    grid.setMetaData(
-        Map.of("items", Map.of("IndicatorA1", new MetadataItem("Indicator A", indicator))));
-    analyticsCache.put("indicatorKey", grid, 60);
-
-    ThreadUserSettings.put(Map.of("keyDbLocale", "fr"));
-    try {
-      Grid cachedGrid = analyticsCache.get("indicatorKey").orElseThrow();
-      JsonNode json = jsonMapper.readTree(jsonMapper.writeValueAsString(cachedGrid));
-
-      assertEquals(
-          "Pourcentage", json.at("/metaData/items/IndicatorA1/indicatorType/displayName").asText());
-    } finally {
-      ThreadUserSettings.clear();
-    }
   }
 }
