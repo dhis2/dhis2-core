@@ -122,10 +122,10 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
       int param = 1;
       for (int i = 0; i < batch.size(); i++) {
         sql.append(i == 0 ? "" : ", ").append("(now()");
-        for (int j = 0; j < 7; j++) {
+        for (int j = 0; j < 8; j++) {
           sql.append(", ?").append(param++);
         }
-        sql.append(", false)");
+        sql.append(")");
       }
       sql.append(
           """
@@ -150,8 +150,61 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
         query.setParameter(param++, result.getOrganisationUnit().getId());
         query.setParameter(param++, result.getAttributeOptionCombo().getId());
         query.setParameter(param++, result.getDayInPeriod());
+        query.setParameter(param++, Boolean.TRUE.equals(result.getNotificationSent()));
       }
       query.executeUpdate();
+    }
+  }
+
+  @Override
+  public List<Row> getRows(
+      OrganisationUnit orgUnit,
+      boolean includeOrgUnitDescendants,
+      Collection<ValidationRule> validationRules,
+      Collection<Period> periods) {
+    if (isEmpty(validationRules) || isEmpty(periods)) {
+      return new ArrayList<>();
+    }
+    String orgUnitFilter = orgUnit == null ? "" : "vr.organisationUnit.path like :orgUnitPath and ";
+    Query<Object[]> query =
+        getSession()
+            .createQuery(
+                "select vr.id, vr.validationRule.id, vr.period.id, vr.organisationUnit.id,"
+                    + " vr.attributeOptionCombo.id, vr.dayInPeriod, vr.notificationSent"
+                    + " from ValidationResult vr where "
+                    + orgUnitFilter
+                    + "vr.validationRule in :validationRules and vr.period in :periods",
+                Object[].class);
+    if (orgUnit != null) {
+      query.setParameter(
+          "orgUnitPath", orgUnit.getStoredPath() + (includeOrgUnitDescendants ? "%" : ""));
+    }
+    query.setParameter("validationRules", validationRules);
+    query.setParameter("periods", periods);
+    return query.list().stream()
+        .map(
+            r ->
+                new Row(
+                    (Long) r[0],
+                    (Long) r[1],
+                    (Long) r[2],
+                    (Long) r[3],
+                    (Long) r[4],
+                    (Integer) r[5],
+                    Boolean.TRUE.equals(r[6])))
+        .toList();
+  }
+
+  /** Ids per delete statement. */
+  private static final int DELETE_BATCH_SIZE = 10_000;
+
+  @Override
+  public void deleteByIds(Collection<Long> ids) {
+    for (List<Long> batch : Lists.partition(new ArrayList<>(ids), DELETE_BATCH_SIZE)) {
+      getSession()
+          .createQuery("delete from ValidationResult vr where vr.id in :ids")
+          .setParameter("ids", batch)
+          .executeUpdate();
     }
   }
 

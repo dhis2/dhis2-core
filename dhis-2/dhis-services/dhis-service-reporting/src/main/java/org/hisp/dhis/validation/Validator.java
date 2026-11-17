@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 
 /**
  * Evaluates validation rules.
@@ -61,6 +62,22 @@ public class Validator {
    */
   public static List<ValidationResult> validate(
       ValidationRunContext context, DataValidationRunner runner, JobProgress progress) {
+    return validate(context, runner, progress, SKIP_ITEM_OUTLIER);
+  }
+
+  /**
+   * Evaluates validation rules, see {@link #validate(ValidationRunContext, DataValidationRunner,
+   * JobProgress)}.
+   *
+   * @param onChunkFailure what to do when the evaluation of an org unit chunk fails. {@link
+   *     FailurePolicy#SKIP_ITEM_OUTLIER} skips the chunk, so the results are partial; {@link
+   *     FailurePolicy#FAIL} aborts the analysis instead.
+   */
+  public static List<ValidationResult> validate(
+      ValidationRunContext context,
+      DataValidationRunner runner,
+      JobProgress progress,
+      FailurePolicy onChunkFailure) {
     int threadPoolSize = getThreadPoolSize(context);
 
     if (threadPoolSize == 0 || context.getPeriodTypeXs().isEmpty()) {
@@ -73,7 +90,7 @@ public class Validator {
     progress.startingStage(
         "Evaluating validation rules in chunks of " + chunkSize,
         orgUnitLists.size(),
-        SKIP_ITEM_OUTLIER);
+        onChunkFailure);
     progress.runStageInParallel(
         threadPoolSize,
         orgUnitLists,
