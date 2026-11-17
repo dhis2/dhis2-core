@@ -42,6 +42,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -278,40 +280,8 @@ public final class DataEntryInput {
         aoc.isObject() ? aoc.asMap(JsonString.class).toMap(JsonString::string) : null;
     Boolean dryRun = dvs.getBoolean("dryRun").bool();
     if (dryRun != null) options.setDryRun(dryRun);
-    // ID schemes
-    if (!dvs.get("idScheme").isUndefined()) schemes.setIdScheme(dvs.getString("idScheme").string());
-    if (!dvs.get("dataSetIdScheme").isUndefined())
-      schemes.setDataSetIdScheme(dvs.getString("dataSetIdScheme").string());
-    if (!dvs.get("dataElementIdScheme").isUndefined())
-      schemes.setDataElementIdScheme(dvs.getString("dataElementIdScheme").string());
-    if (!dvs.get("orgUnitIdScheme").isUndefined())
-      schemes.setOrgUnitIdScheme(dvs.getString("orgUnitIdScheme").string());
-    if (!dvs.get("categoryOptionComboIdScheme").isUndefined())
-      schemes.setCategoryOptionComboIdScheme(dvs.getString("categoryOptionComboIdScheme").string());
-    if (!dvs.get("attributeOptionComboIdScheme").isUndefined())
-      schemes.setAttributeOptionComboIdScheme(
-          dvs.getString("attributeOptionComboIdScheme").string());
-    if (!dvs.get("categoryIdScheme").isUndefined())
-      schemes.setCategoryIdScheme(dvs.getString("categoryIdScheme").string());
-    if (!dvs.get("categoryOptionIdScheme").isUndefined())
-      schemes.setCategoryOptionIdScheme(dvs.getString("categoryOptionIdScheme").string());
-
-    // deletion scope
-    DataEntryGroup.Input.Scope deletion = null;
-    if (!dvs.get("deletion").isUndefined()) {
-      JsonObject del = dvs.getObject("deletion");
-      deletion =
-          new DataEntryGroup.Input.Scope(
-              del.getArray("orgUnits").stringValues(),
-              del.getArray("periods").stringValues(),
-              del.getList("elements", JsonObject.class)
-                  .toList(
-                      e ->
-                          new DataEntryGroup.Input.Scope.Element(
-                              e.getString("dataElement").string(),
-                              e.getString("categoryOptionCombo").string(),
-                              e.getString("attributeOptionCombo").string())));
-    }
+    setIdSchemes(schemes, dvs);
+    DataEntryGroup.Input.Scope deletion = deletionScope(dvs);
 
     // values...
     List<DataEntryValue.Input> values = new ArrayList<>();
@@ -338,6 +308,38 @@ public final class DataEntryInput {
     return List.of(
         new DataEntryGroup.Input(
             ids, ds, completionDate, null, ou, pe, aocId, aocMap, deletion, values));
+  }
+
+  private static void setIdSchemes(@Nonnull IdSchemes schemes, @Nonnull JsonObject dvs) {
+    setIdScheme(dvs, "idScheme", schemes::setIdScheme);
+    setIdScheme(dvs, "dataSetIdScheme", schemes::setDataSetIdScheme);
+    setIdScheme(dvs, "dataElementIdScheme", schemes::setDataElementIdScheme);
+    setIdScheme(dvs, "orgUnitIdScheme", schemes::setOrgUnitIdScheme);
+    setIdScheme(dvs, "categoryOptionComboIdScheme", schemes::setCategoryOptionComboIdScheme);
+    setIdScheme(dvs, "attributeOptionComboIdScheme", schemes::setAttributeOptionComboIdScheme);
+    setIdScheme(dvs, "categoryIdScheme", schemes::setCategoryIdScheme);
+    setIdScheme(dvs, "categoryOptionIdScheme", schemes::setCategoryOptionIdScheme);
+  }
+
+  private static void setIdScheme(
+      @Nonnull JsonObject dvs, @Nonnull String name, @Nonnull Consumer<String> setter) {
+    if (!dvs.get(name).isUndefined()) setter.accept(dvs.getString(name).string());
+  }
+
+  @CheckForNull
+  private static DataEntryGroup.Input.Scope deletionScope(@Nonnull JsonObject dvs) {
+    if (dvs.get("deletion").isUndefined()) return null;
+    JsonObject del = dvs.getObject("deletion");
+    return new DataEntryGroup.Input.Scope(
+        del.getArray("orgUnits").stringValues(),
+        del.getArray("periods").stringValues(),
+        del.getList("elements", JsonObject.class)
+            .toList(
+                e ->
+                    new DataEntryGroup.Input.Scope.Element(
+                        e.getString("dataElement").string(),
+                        e.getString("categoryOptionCombo").string(),
+                        e.getString("attributeOptionCombo").string())));
   }
 
   @Nonnull
