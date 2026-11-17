@@ -125,8 +125,7 @@ class DataElementGroupStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "JPA: groupSets (inverse mappedBy) round-trips against the still-HBM-mapped "
-          + "DataElementGroupSet owning side")
+      "JPA: groupSets (inverse mappedBy) round-trips against the DataElementGroupSet owning side")
   void testJpaGroupSetsInverseSide() {
     DataElementGroup deg = createDataElementGroup('G');
     manager.save(deg);

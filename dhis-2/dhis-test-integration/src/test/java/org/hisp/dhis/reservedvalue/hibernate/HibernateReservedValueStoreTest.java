@@ -31,6 +31,7 @@ package org.hisp.dhis.reservedvalue.hibernate;
 
 import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.getTrackedEntityAttributeValues;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,7 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,8 +94,6 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityAttributeStore trackedEntityAttributeStore;
-
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private DbmsManager dbmsManager;
 
@@ -174,11 +173,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
             });
     ReservedValue rv = reservedValue.value(prog001).build();
     rv.setTrackedEntityAttributeId(teav.getAttribute().getId());
-    assertEquals(
-        1,
-        trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues(teav.getTrackedEntity())
-            .size());
+    assertEquals(1, getTrackedEntityAttributeValues(entityManager, teav.getTrackedEntity()).size());
     assertEquals(0, reservedValueStore.getAll().size());
     List<ReservedValue> res =
         reservedValueStore.getAvailableValues(
@@ -333,7 +328,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeStore.save(tea);
     TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(value);
-    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
+    TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue(entityManager, teav);
     return teav;
   }
 

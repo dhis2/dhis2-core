@@ -1,0 +1,14 @@
+# Makes the e2e directory permissive: a simple bind with a DN and an empty
+# password (an RFC 4513 "unauthenticated bind") succeeds as anonymous instead
+# of being refused. Some production directories behave like this, and it is the
+# setup behind CVE-2026-41720 in Spring LDAP. With it, an empty-password login
+# can only be rejected by DHIS2 and Spring, never by the directory itself, which
+# is what LdapLoginTest pins. The healthcheck in docker-compose.e2e-auth.yml
+# verifies this setting took effect.
+#
+# Author: Morten Svanæs <msvanaes@dhis2.org>
+
+dn: cn=config
+changetype: modify
+replace: olcAllows
+olcAllows: bind_anon_dn

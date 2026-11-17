@@ -102,7 +102,6 @@ import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
-import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -123,6 +122,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
@@ -219,7 +219,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         .thenReturn("postgresql");
     lenient().when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
 
-    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
     QueryItemFilterBuilder filterBuilder =
         new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
     StageQuerySqlFacade stageQuerySqlFacade =
@@ -242,12 +241,14 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             config,
             sqlBuilder,
             organisationUnitResolver,
-            columnMapper,
             filterBuilder,
             stageQuerySqlFacade,
             new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()),
             new FirstOrLastValueSubqueryRenderer(
-                sqlBuilder, eventTimeFieldSqlRenderer, programIndicatorService));
+                sqlBuilder,
+                eventTimeFieldSqlRenderer,
+                programIndicatorService,
+                organisationUnitResolver));
   }
 
   @Test
@@ -510,7 +511,9 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     booleanElement.setValueType(BOOLEAN);
 
     EventQueryParams params =
-        new EventQueryParams.Builder(createRequestParams()).withValue(booleanElement).build();
+        new EventQueryParams.Builder(createRequestParams())
+            .withValue(new Value(booleanElement))
+            .build();
 
     AbstractJdbcEventAnalyticsManager.AggregateClause clause =
         eventSubject.getAggregateClause(params);
@@ -528,7 +531,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams())
-            .withValue(de)
+            .withValue(new Value(de))
             .withAggregationType(AnalyticsAggregationType.SUM)
             .build();
 
@@ -547,7 +550,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams())
-            .withValue(de)
+            .withValue(new Value(de))
             .withAggregationType(fromAggregationType(AggregationType.CUSTOM))
             .build();
 
@@ -565,7 +568,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     de.setValueType(NUMBER);
 
     EventQueryParams.Builder paramsBuilder =
-        new EventQueryParams.Builder(createRequestParams()).withValue(de);
+        new EventQueryParams.Builder(createRequestParams()).withValue(new Value(de));
 
     // Apply override aggregation if specified
     if (overrideAggregationType != null) {
@@ -602,7 +605,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams())
-            .withValue(de)
+            .withValue(new Value(de))
             .withAggregationType(fromAggregationType(AggregationType.CUSTOM))
             .withOutputType(EventOutputType.EVENT)
             .build();
@@ -622,7 +625,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams())
-            .withValue(de)
+            .withValue(new Value(de))
             .withAggregationType(fromAggregationType(AggregationType.CUSTOM))
             .withOutputType(EventOutputType.ENROLLMENT)
             .build();
@@ -1972,6 +1975,41 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             eq(programIndicator),
             any(Date.class),
             any(Date.class));
+  }
+
+  @Test
+  void addAnalyticsTableColumnsPrefixesPlainColumnsWithAx() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+
+    eventSubject.addAnalyticsTableColumns(sb, List.of("enrollment", "trackedentity"));
+
+    String sql = sb.build();
+    assertThat(sql, containsString("ax.enrollment"));
+    assertThat(sql, containsString("ax.trackedentity"));
+  }
+
+  @Test
+  void addAnalyticsTableColumnsAddsFormulaColumnVerbatim() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+    String formula = "ST_AsGeoJSON(enrollmentgeometry)";
+
+    eventSubject.addAnalyticsTableColumns(sb, List.of(formula));
+
+    String sql = sb.build();
+    // Formula columns are emitted verbatim (no ax. prefix).
+    assertThat(sql, containsString(formula));
+    assertThat(sql, not(containsString("ax." + formula)));
+  }
+
+  @Test
+  void addAnalyticsTableColumnsAddsQualifiedColumnVerbatim() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+
+    eventSubject.addAnalyticsTableColumns(sb, List.of("ax.event"));
+
+    String sql = sb.build();
+    assertThat(sql, containsString("ax.event"));
+    assertThat(sql, not(containsString("ax.ax.event")));
   }
 
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(

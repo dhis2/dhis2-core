@@ -92,8 +92,7 @@ the registration organisation unit for the tracked entity would be used to deter
 - When `orgUnitMode=SELECTED`, `orgUnitMode=CHILDREN` or `orgUnitMode=DESCENDANTS`, the `orgUnit`
   parameter is required to specify which tracked entities to return.
 - When `orgUnitMode=ALL` tracked entities will be downloaded irrespective of the organization
-  unit they are owned by. To use this parameter, the user needs the `Search Tracked
-  entity in all org units` authority.
+  unit they are owned by. Only superusers can use this mode.
 - When `orgUnitMode=ACCESSIBLE` tracked entities owned by any organisation unit in the
   user's capture scope will be returned.
 - When `orgUnitMode=CAPTURE` tracked entities that have an enrollment organisation unit

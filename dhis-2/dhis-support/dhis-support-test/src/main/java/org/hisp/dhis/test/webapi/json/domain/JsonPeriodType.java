@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.test.webapi.json.domain;
 
+import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.translation.JsonTranslations;
 
 /**
  * @author Morten Olav Hansen
@@ -49,5 +51,29 @@ public interface JsonPeriodType extends JsonObject {
 
   default Number getFrequencyOrder() {
     return getNumber("frequencyOrder").number();
+  }
+
+  default String getDefaultName() {
+    return getString("defaultName").string();
+  }
+
+  default String getLabel() {
+    return getString("label").string();
+  }
+
+  default String getDisplayLabel() {
+    return getString("displayLabel").string();
+  }
+
+  default String getDisplayName() {
+    return getString("displayName").string();
+  }
+
+  default JsonTranslations getTranslations() {
+    return get("translations", JsonTranslations.class);
+  }
+
+  default JsonMap<JsonObject> getRelativePeriods() {
+    return getMap("relativePeriods", JsonObject.class);
   }
 }

@@ -47,7 +47,8 @@ public class EnrollmentValidator implements Validator<TrackerBundle> {
 
   public EnrollmentValidator(
       SecurityEnrollmentValidator securityEnrollmentValidator,
-      AttributeValidator attributeValidator) {
+      AttributeValidator attributeValidator,
+      CategoryOptValidator categoryOptValidator) {
     validator =
         each(
             TrackerBundle::getEnrollments,
@@ -59,11 +60,12 @@ public class EnrollmentValidator implements Validator<TrackerBundle> {
                 new DataRelationsValidator(),
                 new CategoryOptionComboValidator(),
                 all(securityEnrollmentValidator, new CascadeDeleteEnrollmentValidator()),
+                new DeletedParentValidator(),
                 all(
                     new NoteValidator(),
                     new ExistingEnrollmentValidator(),
                     new GeoValidator(),
-                    new DateValidator(),
+                    seq(new DateValidator(), categoryOptValidator),
                     attributeValidator)));
   }
 

@@ -95,7 +95,7 @@ public class TrackedEntityAggregate {
 
     Multimap<Long, TrackedEntityProgramOwner> programOwners =
         fields.isIncludesProgramOwners()
-            ? trackedEntityStore.getProgramOwners(ids)
+            ? trackedEntityStore.getProgramOwners(queryParams, ids)
             : ImmutableMultimap.of();
 
     return trackedEntities.stream()

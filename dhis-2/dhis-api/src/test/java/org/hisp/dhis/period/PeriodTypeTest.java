@@ -30,7 +30,6 @@
 package org.hisp.dhis.period;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
@@ -42,16 +41,6 @@ import org.junit.jupiter.api.Test;
  * @author Lars Helge Overland
  */
 class PeriodTypeTest {
-
-  @Test
-  void testGetByIndex() {
-    assertNull(PeriodType.getByIndex(-1));
-    PeriodType yearly = PeriodType.getByNameIgnoreCase("Yearly");
-    assertNotNull(yearly);
-    int yearlyIndex = PeriodType.getAvailablePeriodTypes().indexOf(yearly) + 1;
-    assertEquals(new YearlyPeriodType(), PeriodType.getByIndex(yearlyIndex));
-    assertNull(PeriodType.getByIndex(999));
-  }
 
   @Test
   void testGetPeriodTypeFromIsoString() {

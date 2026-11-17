@@ -42,9 +42,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,12 +63,19 @@ class EventReportControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
+  @Autowired private DhisConfigurationProvider configuration;
+
   private Program mockProgram;
 
   @BeforeEach
   public void beforeEach() {
     mockProgram = createProgram('A');
     manager.save(mockProgram);
+  }
+
+  @AfterEach
+  void resetJasperReports() {
+    configuration.getProperties().remove(ConfigurationKey.JASPER_REPORTS_ENABLED.getKey());
   }
 
   @Test
@@ -269,6 +279,10 @@ class EventReportControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testReportPdf() {
+    // storing and rendering a JasperReports design requires jasper.reports.enabled = on
+    configuration
+        .getProperties()
+        .setProperty(ConfigurationKey.JASPER_REPORTS_ENABLED.getKey(), "on");
     String body =
         """
             {"name": "Name Test", "relativePeriods": {"last12Months": true},

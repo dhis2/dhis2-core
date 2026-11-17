@@ -180,3 +180,19 @@ environment:
 
 Alternatively, you can pass the system property `-Ddhis2.home` from the command line. You need to ensure that the `DHIS2_HOME` directory is writeable by the DHIS2 process.
 
+## OIDC provider interoperability
+
+Generic providers configured through `oidc.provider.<id>.*` in `dhis.conf` support
+two independent interoperability settings:
+
+- `client_assertion_audience`: optional single audience for `private_key_jwt`
+  client assertions. When omitted, Spring uses the token endpoint. eSignet 2.0.0
+  requires its issuer URL instead, as a single-string JWT `aud`.
+- `id_token_jws_algorithm`: expected asymmetric ID-token signature algorithm,
+  default `RS256`. Use `PS256` for eSignet 2.0.0. This does not alter
+  `user_info_jws_algorithm`: identity backends can sign userinfo with a different
+  algorithm (the released eSignet mock identity backend uses `RS256`).
+
+ID tokens retain Spring's issuer, audience, timestamp, and nonce validation.
+Signed userinfo retains signature and subject validation, plus issuer and audience
+checks when those claims are present. Neither setting disables verification.

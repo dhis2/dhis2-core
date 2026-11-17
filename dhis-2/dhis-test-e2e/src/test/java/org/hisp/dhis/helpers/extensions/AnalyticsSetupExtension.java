@@ -31,6 +31,8 @@ package org.hisp.dhis.helpers.extensions;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.logging.log4j.LogManager.getLogger;
+import static org.hisp.dhis.test.e2e.db.SqlSeeder.SEED_DIR;
+import static org.hisp.dhis.test.e2e.db.SqlSeeder.SEED_DIR_AFTER;
 
 import com.google.gson.JsonObject;
 import java.util.Optional;
@@ -70,7 +72,7 @@ public class AnalyticsSetupExtension implements BeforeAllCallback {
       return;
     }
 
-    if (SqlSeeder.applySeedScripts() > 0) {
+    if (SqlSeeder.applySeedScripts(SEED_DIR) > 0) {
       clearApplicationCaches();
     }
 
@@ -119,6 +121,10 @@ public class AnalyticsSetupExtension implements BeforeAllCallback {
     watcher.stop();
 
     logger.info("Concluding analytics table export in {} minutes", watcher.getTime(MINUTES));
+
+    if (SqlSeeder.applySeedScripts(SEED_DIR_AFTER) > 0) {
+      clearApplicationCaches();
+    }
   }
 
   private static long minutes(int minutes) {

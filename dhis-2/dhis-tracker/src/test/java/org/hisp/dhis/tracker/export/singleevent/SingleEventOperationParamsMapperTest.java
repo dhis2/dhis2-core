@@ -37,7 +37,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
@@ -52,7 +51,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.sql.Types;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -93,7 +91,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -123,7 +120,7 @@ class SingleEventOperationParamsMapperTest {
 
   private UserDetails user;
 
-  private final Map<String, User> userMap = new HashMap<>();
+  private User superuser;
 
   private SingleEventOperationParams.SingleEventOperationParamsBuilder eventBuilder;
 
@@ -140,8 +137,7 @@ class SingleEventOperationParamsMapperTest {
 
     eventBuilder = SingleEventOperationParams.builderForProgram(UID.of("iS7eutanDry"));
 
-    userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
-    userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
+    superuser = createSuperuser();
   }
 
   @Test
@@ -356,35 +352,6 @@ class SingleEventOperationParamsMapperTest {
     assertEquals(searchScopeChildOrgUnit, queryParams.getOrgUnit());
   }
 
-  @Test
-  void shouldMapOrgUnitWhenModeAllProgramProvidedAndRequestedOrgUnitInSearchScope()
-      throws ForbiddenException, BadRequestException {
-    Program program = new Program();
-    program.setUid(CodeGenerator.generateUid());
-    program.setAccessLevel(OPEN);
-
-    OrganisationUnit searchScopeOrgUnit = createOrganisationUnit('A');
-    OrganisationUnit searchScopeChildOrgUnit = createOrganisationUnit('B', searchScopeOrgUnit);
-
-    User user = new User();
-    user.setUid(CodeGenerator.generateUid());
-    user.setUsername("testB");
-    user.setOrganisationUnits(Set.of(createOrganisationUnit('C')));
-    user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
-    UserRole userRole = new UserRole();
-    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
-    user.setUserRoles(Set.of(userRole));
-
-    when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
-        .thenReturn(searchScopeChildOrgUnit);
-
-    SingleEventOperationParams operationParams =
-        eventBuilder.program(program).orgUnit(searchScopeChildOrgUnit).orgUnitMode(ALL).build();
-
-    SingleEventQueryParams queryParams = mapper.map(operationParams, UserDetails.fromUser(user));
-    assertEquals(searchScopeChildOrgUnit, queryParams.getOrgUnit());
-  }
-
   @ParameterizedTest
   @EnumSource(value = OrganisationUnitSelectionMode.class)
   void shouldFailWhenRequestedOrgUnitOutsideOfSearchScope(
@@ -403,25 +370,21 @@ class SingleEventOperationParamsMapperTest {
         exception.getMessage());
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = {"admin", "superuser"})
-  void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName)
+  @Test
+  void shouldMapOrgUnitAndModeWhenModeAllAndUserIsSuper()
       throws ForbiddenException, BadRequestException {
-    User mappedUser = userMap.get(userName);
-    mappedUser.setUid(CodeGenerator.generateUid());
-    mappedUser.setUsername(userName);
-
     SingleEventOperationParams operationParams = eventBuilder.orgUnitMode(ALL).build();
 
-    SingleEventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
+    SingleEventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(superuser));
     assertNull(params.getOrgUnit());
     assertEquals(ALL, params.getOrgUnitMode());
   }
 
-  private User createUserWithAuthority(Authorities authority) {
+  private User createSuperuser() {
     User user = new User();
+    user.setUid(CodeGenerator.generateUid());
     UserRole userRole = new UserRole();
-    userRole.setAuthorities(Set.of(authority.name()));
+    userRole.setAuthorities(Set.of(Authorities.ALL.name()));
     user.setUserRoles(Set.of(userRole));
 
     return user;

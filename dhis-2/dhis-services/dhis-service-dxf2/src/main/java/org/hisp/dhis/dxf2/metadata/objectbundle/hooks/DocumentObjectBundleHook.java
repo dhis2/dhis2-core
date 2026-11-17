@@ -76,6 +76,18 @@ public class DocumentObjectBundleHook extends AbstractObjectBundleHook<Document>
         addReports.accept(
             new ErrorReport(Document.class, ErrorCode.E4016, "url", document.getUrl()));
       }
+    } else if (!document.isExternal()
+        && !fileResourceService.canAssign(
+            bundle.getUserDetails(), fileResource, FileResourceDomain.DOCUMENT)) {
+      // the sharing of the document decides who may read the file, so only a document file of the
+      // current user can be bound to it
+      addReports.accept(
+          new ErrorReport(
+              Document.class,
+              ErrorCode.E4094,
+              "url",
+              FileResourceDomain.DOCUMENT,
+              document.getUrl()));
     }
   }
 
@@ -92,7 +104,6 @@ public class DocumentObjectBundleHook extends AbstractObjectBundleHook<Document>
   private void saveDocument(Document document) {
     if (!document.isExternal()) {
       FileResource fileResource = fileResourceService.getFileResource(document.getUrl());
-      fileResource.setDomain(FileResourceDomain.DOCUMENT);
       fileResource.setAssigned(true);
       document.setFileResource(fileResource);
       fileResourceService.updateFileResource(fileResource);

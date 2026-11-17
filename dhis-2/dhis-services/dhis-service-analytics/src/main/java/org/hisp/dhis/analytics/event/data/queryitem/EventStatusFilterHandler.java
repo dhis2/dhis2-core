@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.QueryFilter;
@@ -51,8 +52,11 @@ import org.hisp.dhis.feedback.ErrorCode;
  */
 public class EventStatusFilterHandler implements QueryItemFilterHandler {
 
-  private static final Set<String> VALID_STAGE_EVENT_STATUSES =
-      Set.of("ACTIVE", "COMPLETED", "SCHEDULE");
+  /** Display labels of the event statuses accepted by stage-specific EVENT_STATUS items. */
+  public static final Map<String, String> STAGE_EVENT_STATUS_LABELS =
+      Map.of("ACTIVE", "Active", "COMPLETED", "Completed", "SCHEDULE", "Schedule");
+
+  private static final Set<String> VALID_STAGE_EVENT_STATUSES = STAGE_EVENT_STATUS_LABELS.keySet();
 
   @Override
   public boolean supports(QueryItem queryItem) {
@@ -89,5 +93,6 @@ public class EventStatusFilterHandler implements QueryItemFilterHandler {
 
     // Add IN filter with the valid statuses
     queryItem.addFilter(new QueryFilter(QueryOperator.IN, String.join(OPTION_SEP, validStatuses)));
+    validStatuses.forEach(queryItem::addDimensionValue);
   }
 }

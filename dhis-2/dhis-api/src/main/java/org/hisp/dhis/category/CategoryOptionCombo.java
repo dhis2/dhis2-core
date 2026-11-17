@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -258,9 +258,10 @@ public class CategoryOptionCombo
         || obj instanceof CategoryOptionCombo && objectEquals((CategoryOptionCombo) obj);
   }
 
+  /** Uses the other object's getters (not fields) so a proxy compares correctly. */
   private boolean objectEquals(CategoryOptionCombo other) {
-    return Objects.equals(categoryCombo, other.categoryCombo)
-        && Objects.equals(categoryOptions, other.categoryOptions);
+    return Objects.equals(categoryCombo, other.getCategoryCombo())
+        && Objects.equals(categoryOptions, other.getCategoryOptions());
   }
 
   @Override
@@ -561,20 +562,31 @@ public class CategoryOptionCombo
       return name;
     }
 
-    StringBuilder builder = new StringBuilder();
-
     if (categoryCombo == null || categoryCombo.getCategories().isEmpty()) {
       return uid;
     }
 
-    List<Category> categories = categoryCombo.getCategories();
+    return buildName(
+        categoryOptions,
+        categoryCombo.getCategories().stream().map(Category::getCategoryOptions).toList());
+  }
 
-    for (Category category : categories) {
-      List<CategoryOption> options = category.getCategoryOptions();
+  /**
+   * Builds the name of a category option combo: the display names of its options, ordered by
+   * category, comma separated and truncated to 255 characters.
+   *
+   * @param cocOptions the options of the category option combo
+   * @param optionsPerCategory the options of each category of the category combo, in category order
+   */
+  static String buildName(
+      Collection<CategoryOption> cocOptions,
+      List<? extends Collection<CategoryOption>> optionsPerCategory) {
+    StringBuilder builder = new StringBuilder();
 
-      for (CategoryOption option : categoryOptions) {
+    for (Collection<CategoryOption> options : optionsPerCategory) {
+      for (CategoryOption option : cocOptions) {
         if (options.contains(option)) {
-          builder.append(option.getDisplayName()).append(", ");
+          builder.append(option.getName()).append(", ");
         }
       }
     }

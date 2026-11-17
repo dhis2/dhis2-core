@@ -70,6 +70,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
@@ -107,7 +108,7 @@ class AggregatedEnrollmentQueryAssemblerTest {
     DataElement element = createDataElement('A', ValueType.NUMBER, AggregationType.SUM);
     EventQueryParams params =
         new EventQueryParams.Builder()
-            .withValue(element)
+            .withValue(new Value(element))
             .withValueProgramStage(createProgramStage('A', createProgram('A')))
             .withAggregationType(AnalyticsAggregationType.AVERAGE)
             .build();
@@ -126,7 +127,7 @@ class AggregatedEnrollmentQueryAssemblerTest {
     attribute.setUid("lw1SqmMlnfh");
     EventQueryParams params =
         new EventQueryParams.Builder()
-            .withValue(attribute)
+            .withValue(new Value(attribute))
             .withAggregationType(AnalyticsAggregationType.SUM)
             .build();
     SelectBuilder sb = new SelectBuilder().from("eb_table", "eb");
@@ -165,72 +166,6 @@ class AggregatedEnrollmentQueryAssemblerTest {
     String resolved = assembler.resolveHeaderColumn("programstatus");
 
     assertThat(resolved, containsString("enrollmentstatus"));
-  }
-
-  @Test
-  void addStandardColumnsWithoutShadowCteEmitsAxAlias() {
-    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
-    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
-
-    assembler.addStandardColumns(sb, cteContext, List.of("enrollment", "trackedentity"));
-
-    String sql = sb.build();
-    assertThat(sql, containsString("ax.enrollment"));
-    assertThat(sql, containsString("ax.trackedentity"));
-  }
-
-  @Test
-  void addStandardColumnsFormulaColumnInPlainPathIsAddedVerbatim() {
-    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
-    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
-    String formula = "ST_AsGeoJSON(enrollmentgeometry)";
-
-    assembler.addStandardColumns(sb, cteContext, List.of(formula));
-
-    String sql = sb.build();
-    // Formula columns are emitted verbatim (no ax. prefix) in the plain path.
-    assertThat(sql, containsString(formula));
-    assertThat(sql, not(containsString("ax." + formula)));
-  }
-
-  @Test
-  void addStandardColumnsWithShadowCtePrefixesPlainColumnsWithAx() {
-    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
-    CteContext cteContext = shadowCteContext();
-
-    assembler.addStandardColumns(sb, cteContext, List.of("enrollment", "trackedentity"));
-
-    String sql = sb.build();
-    assertThat(sql, containsString("ax.enrollment"));
-    assertThat(sql, containsString("ax.trackedentity"));
-  }
-
-  @Test
-  void addStandardColumnsWithShadowCteRewritesGeometryFormulaToAlias() {
-    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
-    CteContext cteContext = shadowCteContext();
-    String formula = "ST_AsGeoJSON(enrollmentgeometry)";
-
-    assembler.addStandardColumns(sb, cteContext, List.of(formula));
-
-    String sql = sb.build();
-    // Shadow path swaps the formula for the registered alias and ax-prefixes it.
-    assertThat(sql, containsString("ax.enrollmentgeometry_geojson"));
-    assertThat(sql, not(containsString(formula)));
-  }
-
-  @Test
-  void addStandardColumnsWithShadowCteRewritesUnknownFormulaToStableDefaultAlias() {
-    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
-    CteContext cteContext = shadowCteContext();
-    String formula = "coalesce(enrollmentdate, created)";
-
-    assembler.addStandardColumns(sb, cteContext, List.of(formula));
-
-    String sql = sb.build();
-    String expectedAlias = "formula_" + (formula.hashCode() & Integer.MAX_VALUE);
-    assertThat(sql, containsString("ax." + expectedAlias));
-    assertThat(sql, not(containsString(formula)));
   }
 
   @Test
@@ -635,12 +570,6 @@ class AggregatedEnrollmentQueryAssemblerTest {
     when(otherDef.isProgramIndicator()).thenReturn(false);
 
     assertTrue(assembler.collectCteDefinitions(cteContext).isEmpty());
-  }
-
-  private static CteContext shadowCteContext() {
-    CteContext context = new CteContext(EndpointItem.ENROLLMENT);
-    context.addShadowCte("top_enrollments", "select 1", CteDefinition.CteType.TOP_ENROLLMENTS);
-    return context;
   }
 
   private static PeriodDimension month(String isoPeriod) {

@@ -49,6 +49,9 @@ services:
         DB_DIR: "${DB_DIR:-}"
         DB_TYPE: "${DB_TYPE:-sierra-leone}"
         DB_VERSION: "${DB_VERSION:-dev}"
+        # Set by run-simulation.sh from the dump in S3, see docker/Dockerfile.postgres
+        DB_ETAG: "${DB_ETAG:-}"
+        DB_S3_VERSION_ID: "${DB_S3_VERSION_ID:-}"
     image: localhost/dhis2-postgres:16-3.5-${DB_TYPE:-sierra-leone}-${DB_VERSION:-dev}
     cpus: 4
     mem_limit: 16gb

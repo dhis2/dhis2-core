@@ -34,15 +34,19 @@ import static org.hisp.dhis.period.RelativePeriodEnum.LAST_14_DAYS;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_3_MONTHS;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_7_DAYS;
 import static org.hisp.dhis.period.RelativePeriodEnum.THIS_BIWEEK;
+import static org.hisp.dhis.period.RelativePeriodEnum.THIS_MONTH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /** Unit tests for {@link Report}. */
@@ -127,5 +131,55 @@ class ReportTest {
     assertFalse(reloaded.getRelatives().isThisMonth());
     assertEquals(weeksThisYear, reloaded.getRelatives().isWeeksThisYear());
     assertEquals(!weeksThisYear, reloaded.getRelatives().isEmpty());
+  }
+
+  @Test
+  void testHasRelativePeriodsWhenLoadedFromRawPeriods() {
+    // Only rawPeriods is persisted, so a report loaded from the database has no relatives set.
+    Report report = new Report();
+    report.setRawPeriods(List.of(THIS_MONTH.name()));
+
+    assertTrue(report.hasRelativePeriods());
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  void testHasRelativePeriodsWhenRawPeriodsIsNullOrEmpty(List<String> rawPeriods) {
+    Report report = new Report();
+    report.setRawPeriods(rawPeriods);
+
+    assertFalse(report.hasRelativePeriods());
+  }
+
+  @Test
+  void testEqualsAndHashCodeCompareUidCodeAndName() {
+    Report report = report("RepUid00001", "REP_A", "Report A");
+    Report same = report("RepUid00001", "REP_A", "Report A");
+
+    assertEquals(report, same);
+    assertEquals(report.hashCode(), same.hashCode());
+    assertNotEquals(report, report("RepUid00002", "REP_A", "Report A"));
+    assertNotEquals(report, report("RepUid00001", "REP_B", "Report A"));
+    assertNotEquals(report, report("RepUid00001", "REP_A", "Report B"));
+  }
+
+  @Test
+  void testNotEqualToOtherTypeWithSameUidCodeAndName() {
+    Report report = report("RepUid00001", "REP_A", "Report A");
+    Visualization visualization = new Visualization();
+    visualization.setUid("RepUid00001");
+    visualization.setCode("REP_A");
+    visualization.setName("Report A");
+
+    assertNotEquals(report, visualization);
+    assertNotEquals(visualization, report);
+  }
+
+  private static Report report(String uid, String code, String name) {
+    Report report = new Report();
+    report.setUid(uid);
+    report.setCode(code);
+    report.setName(name);
+    return report;
   }
 }

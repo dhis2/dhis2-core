@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.util;
 
+import static java.nio.charset.StandardCharsets.US_ASCII;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import java.sql.Timestamp;
@@ -50,6 +52,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -150,9 +154,6 @@ public class DateUtils {
   private static final DateTimeFormatter HTTP_DATE_FORMAT =
       DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'").withLocale(Locale.ENGLISH);
 
-  private static final DateTimeFormatter TIMESTAMP_UTC_TZ_FORMAT =
-      DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").withZoneUTC();
-
   public static final double DAYS_IN_YEAR = 365.0;
 
   private static final long MS_PER_DAY = 86400000;
@@ -181,13 +182,33 @@ public class DateUtils {
   }
 
   /**
-   * Converts a Date to the GMT timezone and formats it to the format yyyy-MM-dd HH:mm:ssZ.
+   * Formats the given {@link Date} as an ISO 8601 / RFC 3339 timestamp in UTC: {@code
+   * yyyy-MM-dd'T'HH:mm:ss.SSS+0000}.
    *
-   * @param date the Date to parse.
-   * @return A formatted date string.
+   * <p><b>Year numbering.</b> Year {@code 0000} follows ISO 8601 / RFC 3339 astronomical numbering
+   * (= 1 BC in the proleptic Gregorian calendar).
+   *
+   * <p><b>Year range.</b> The fixed-width buffer accommodates years {@code 0000}–{@code 9999} only
+   * — extended-year notation ({@code +YYYYY} / {@code -YYYYY}) is not produced. Instants outside
+   * that range (corrupt rows, overflow artifacts, or degenerate inputs such as {@link
+   * Long#MAX_VALUE} millis) are <em>clamped</em> to the nearest representable year rather than
+   * throwing. The resulting string is therefore not a faithful rendering of such an instant; the
+   * month, day, and time-of-day fields may also be meaningless due to overflow in the intermediate
+   * arithmetic. Callers that need the true instant for out-of-range dates must consult {@link
+   * Date#getTime()} directly.
+   *
+   * <p>The clamping is deliberate: rendering a visibly wrong year (e.g. {@code 9999-…}) is
+   * preferred over failing a UI page or log line when a corrupt value has leaked into the database.
+   * The truncated year prefix is intended to be recognizable as suspicious at a glance.
+   *
+   * @param date the date to format; may be {@code null}
+   * @return the formatted timestamp, or {@code null} if {@code date} is {@code null}
    */
   public static String toLongGmtDate(Date date) {
-    return date != null ? TIMESTAMP_UTC_TZ_FORMAT.print(new DateTime(date)) : null;
+    if (date == null) return null;
+    byte[] b = new byte[28];
+    toLongGmtDate(date.getTime(), b);
+    return new String(b, US_ASCII);
   }
 
   /**
@@ -943,5 +964,129 @@ public class DateUtils {
     } catch (IllegalInstantException e) {
       return formatter.parseLocalDateTime(dateString).toDate();
     }
+  }
+
+  @RequiredArgsConstructor
+  private static final class AsciiText implements CharSequence {
+    private final byte[] buf;
+
+    @Override
+    public int length() {
+      return buf.length;
+    }
+
+    @Override
+    public char charAt(int i) {
+      if (i < 0 || i >= buf.length) throw new IndexOutOfBoundsException(i);
+      return (char) (buf[i] & 0xFF);
+    }
+
+    @Nonnull
+    @Override
+    public CharSequence subSequence(int s, int e) {
+      return toString().subSequence(s, e); // we don't assume this is actually used
+    }
+
+    @Nonnull
+    @Override
+    public String toString() {
+      return new String(buf, US_ASCII);
+    }
+  }
+
+  /**
+   * Formats the given {@link Date} as an ISO 8601 / RFC 3339 timestamp in UTC and returns it as a
+   * zero-copy {@link CharSequence} view over an ASCII {@code byte[]}.
+   *
+   * <p>Same conventions and caveats as {@link #toLongGmtDate(Date)}: year {@code 0000} follows
+   * astronomical numbering, and years outside {@code 0000}–{@code 9999} are clamped to the nearest
+   * representable value rather than throwing.
+   *
+   * <p>The returned {@code CharSequence} supports {@link CharSequence#length()}, {@link
+   * CharSequence#charAt(int)} without further allocation.
+   *
+   * @param date the date to format; may be {@code null}
+   * @return a {@code CharSequence} view of the formatted timestamp, or {@code null} if {@code date}
+   *     is {@code null}
+   */
+  public static CharSequence toLongGmtDateText(Date date) {
+    if (date == null) return null;
+    byte[] b = new byte[28];
+    toLongGmtDate(date.getTime(), b);
+    return new AsciiText(b);
+  }
+
+  private static void toLongGmtDate(long ms, byte[] b) {
+    long epochDay = Math.floorDiv(ms, 86_400_000L);
+    long msOfDay = ms - epochDay * 86_400_000L;
+
+    long z = epochDay + 719468L;
+    long era = (z >= 0 ? z : z - 146096) / 146097;
+    long doe = z - era * 146097;
+    long yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    long y = yoe + era * 400;
+    long doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    long mp = (5 * doy + 2) / 153;
+    long d = doy - (153 * mp + 2) / 5 + 1;
+    long m = mp < 10 ? mp + 3 : mp - 9;
+    if (m <= 2) y++;
+
+    // The compact 28-byte format has no room for extended-year notation
+    // (+YYYYY / -YYYYY). Pathological inputs (corrupt DB values, overflow
+    // artifacts) that fall outside [0000, 9999] are clamped rather than
+    // allowed to throw AIOOBE from w4 — the intent is to be able to render
+    // such rows for logging and admin display. The output is not
+    // semantically faithful for the clamped cases; callers that need the
+    // true instant must read date.getTime() directly.
+    if (y < 0) y = 0;
+    else if (y > 9999) y = 9999;
+
+    int hour = (int) (msOfDay / 3_600_000L);
+    int min = (int) (msOfDay / 60_000L % 60);
+    int sec = (int) (msOfDay / 1_000L % 60);
+    int mil = (int) (msOfDay % 1_000L);
+
+    int p = 0;
+    p = w4(b, p, (int) y);
+    b[p++] = '-';
+    p = w2(b, p, (int) m);
+    b[p++] = '-';
+    p = w2(b, p, (int) d);
+    b[p++] = 'T';
+    p = w2(b, p, hour);
+    b[p++] = ':';
+    p = w2(b, p, min);
+    b[p++] = ':';
+    p = w2(b, p, sec);
+    b[p++] = '.';
+    p = w3(b, p, mil);
+    b[p++] = '+';
+    b[p++] = '0';
+    b[p++] = '0';
+    b[p++] = '0';
+    b[p] = '0';
+  }
+
+  private static final byte[] DIGITS = "0123456789".getBytes(US_ASCII);
+
+  private static int w2(byte[] b, int p, int v) {
+    b[p] = DIGITS[v / 10];
+    b[p + 1] = DIGITS[v % 10];
+    return p + 2;
+  }
+
+  private static int w3(byte[] b, int p, int v) {
+    b[p] = DIGITS[v / 100];
+    b[p + 1] = DIGITS[v / 10 % 10];
+    b[p + 2] = DIGITS[v % 10];
+    return p + 3;
+  }
+
+  private static int w4(byte[] b, int p, int v) {
+    b[p] = DIGITS[v / 1000];
+    b[p + 1] = DIGITS[v / 100 % 10];
+    b[p + 2] = DIGITS[v / 10 % 10];
+    b[p + 3] = DIGITS[v % 10];
+    return p + 4;
   }
 }

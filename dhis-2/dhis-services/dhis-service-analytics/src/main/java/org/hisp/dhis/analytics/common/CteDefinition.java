@@ -77,11 +77,7 @@ public class CteDefinition {
     /** CTE for checking existence (rowContext=true). */
     EXISTS(10),
     /** Candidate event rows used as input for EVENT program indicator CTEs. */
-    EVENT_PROGRAM_INDICATOR_CANDIDATES(4),
-    /** Special CTE for pre-aggregated enrollments. */
-    TOP_ENROLLMENTS(1),
-    SHADOW_ENROLLMENT_TABLE(2),
-    SHADOW_EVENT_TABLE(3);
+    EVENT_PROGRAM_INDICATOR_CANDIDATES(4);
 
     private final int priority;
 
@@ -496,5 +492,17 @@ public class CteDefinition {
 
   public boolean isAggregationBase() {
     return this.cteType == CteType.BASE_AGGREGATION;
+  }
+
+  /**
+   * True for CTEs that are only used to compute a program indicator and are joined inside the
+   * program indicator CTE. They must not be joined again on enrollment elsewhere: a variable or
+   * data element CTE holds one row per event, so the join would multiply the rows.
+   */
+  public boolean isProgramIndicatorInput() {
+    return switch (cteType) {
+      case VARIABLE, PROGRAM_STAGE_DATE_ELEMENT, D2_FUNCTION, D2_RELATIONSHIP_COUNT -> true;
+      default -> false;
+    };
   }
 }

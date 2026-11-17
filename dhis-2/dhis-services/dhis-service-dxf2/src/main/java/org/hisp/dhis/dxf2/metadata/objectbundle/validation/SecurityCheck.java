@@ -42,6 +42,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -141,10 +142,12 @@ public class SecurityCheck implements ObjectValidationCheck {
         }
       }
 
-      if (object instanceof UserRole) {
-        UserRole userRole = (UserRole) object;
+      if (object instanceof UserRole userRole) {
+        UserService userService = ctx.getUserService();
         List<ErrorReport> errorReports =
-            ctx.getUserService().validateUserRoleCreateOrUpdate(userRole, bundle.getUserDetails());
+            importMode.isDelete()
+                ? userService.validateUserRoleDelete(userRole, bundle.getUserDetails())
+                : userService.validateUserRoleCreateOrUpdate(userRole, bundle.getUserDetails());
 
         if (!errorReports.isEmpty()) {
           addReports.accept(createObjectReport(errorReports, object, bundle));

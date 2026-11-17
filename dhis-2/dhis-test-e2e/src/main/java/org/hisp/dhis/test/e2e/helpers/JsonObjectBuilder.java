@@ -37,6 +37,7 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
+import java.util.Iterator;
 import java.util.List;
 import org.hisp.dhis.test.e2e.Constants;
 import org.hisp.dhis.test.e2e.utils.SharingUtils;
@@ -185,11 +186,11 @@ public class JsonObjectBuilder {
   /** Removes an object from an array if a given property of the object has a given value. */
   public JsonObjectBuilder removeFromArray(String array, String property, JsonElement value) {
     if (jsonObject.has(array)) {
-      JsonArray jsonArray = jsonObject.getAsJsonArray(array);
-      for (JsonElement element : jsonArray) {
-        JsonElement propertyValue = ((JsonObject) element).get(property);
+      Iterator<JsonElement> iterator = jsonObject.getAsJsonArray(array).iterator();
+      while (iterator.hasNext()) {
+        JsonElement propertyValue = ((JsonObject) iterator.next()).get(property);
         if (value.getAsString().equals(propertyValue.getAsString())) {
-          jsonArray.remove(element);
+          iterator.remove();
         }
       }
     }

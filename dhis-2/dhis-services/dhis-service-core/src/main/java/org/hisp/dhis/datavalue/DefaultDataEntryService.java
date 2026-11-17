@@ -55,7 +55,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -98,6 +97,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class DefaultDataEntryService implements DataEntryService, DataDumpService {
+
+  private static final double MILLIS_IN_A_DAY = 86400000d;
 
   private final DataEntryStore store;
   private final IdCoder idCoder;
@@ -443,7 +444,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       throws ConflictException, BadRequestException {
     List<DataEntryError> errors = new ArrayList<>(1);
     ValidationSource source = ValidationSource.of(List.of(value));
-    DataEntryGroup valid = validate(force, dataSet, source, errors);
+    DataEntryGroup valid =
+        validate(force, Boolean.TRUE.equals(value.deleted()), dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     int n = store.upsertValues(List.of(value));
     if (n > 0)
@@ -456,7 +458,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public DataEntrySummary upsertGroup(
       @Nonnull Options options, @Nonnull DataEntryGroup group, @Nonnull JobProgress progress)
       throws ConflictException {
-
     List<DataEntryError> errors = new ArrayList<>();
     DataEntryGroup.Scope deletion = group.deletion();
     if (deletion != null) {
@@ -464,20 +465,21 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       progress.startingStage("Validating deletion scope " + deletion);
       progress.runStageAndRethrow(
           ConflictException.class,
-          () -> validate(options.force(), group.dataSet(), source, errors));
+          () -> validate(options.force(), true, group.dataSet(), source, errors));
     }
 
     DataEntryGroup valid = null;
     List<DataEntryValue> values = group.values();
     int entered = values.size();
     int attempted = entered;
+    boolean deletionsOnly = group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE);
     if (!values.isEmpty()) {
-      ValidationSource source = new ValuesValidationSource(values);
+      ValidationSource source = ValidationSource.of(values);
       progress.startingStage("Validating group " + group.describe());
       valid =
           progress.runStageAndRethrow(
               ConflictException.class,
-              () -> validate(options.force(), group.dataSet(), source, errors));
+              () -> validate(options.force(), deletionsOnly, group.dataSet(), source, errors));
       attempted = valid.values().size();
       if (options.atomic() && entered > attempted) {
         // keep original single error if possible
@@ -501,7 +503,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     int succeeded = 0;
     if (valid != null) {
       String verb = "Upserting";
-      if (group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE)) verb = "Deleting";
+      if (deletionsOnly) verb = "Deleting";
       int drySucceeded = attempted;
       List<DataEntryValue> validValues = valid.values();
       progress.startingStage("%s group %s".formatted(verb, valid.describe()));
@@ -532,8 +534,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       throws ConflictException, BadRequestException {
     DataEntryValue value = key.toDeletedValue();
     List<DataEntryError> errors = new ArrayList<>(1);
-    ValidationSource source = new ValuesValidationSource(List.of(value));
-    DataEntryGroup valid = validate(force, dataSet, source, errors);
+    ValidationSource source = ValidationSource.of(List.of(value));
+    DataEntryGroup valid = validate(force, true, dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     boolean deleted = store.deleteByKeys(List.of(key)) > 0;
     if (deleted)
@@ -546,7 +548,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public LockStatus getEntryStatus(UID dataSet, @Nonnull DataValueKey key)
       throws ConflictException {
     DataEntryValue e = key.toDeletedValue();
-    ValidationSource source = new ValuesValidationSource(List.of(e));
+    ValidationSource source = ValidationSource.of(List.of(e));
     UID ds = dataSet != null ? dataSet : autoTargetDataSet(source);
     try {
       validateEntryTimeliness(ds, source);
@@ -578,14 +580,18 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   private DataEntryGroup validate(
-      boolean force, UID ds, ValidationSource source, List<DataEntryError> errors)
+      boolean force,
+      boolean deletionsOnly,
+      UID ds,
+      ValidationSource source,
+      List<DataEntryError> errors)
       throws ConflictException {
     if (ds == null) ds = autoTargetDataSet(source);
 
     validateUserAccess(ds, source);
-    validateKeyConsistency(ds, source);
-    boolean skipTimeliness = force && getCurrentUserDetails().isSuper();
-    if (!skipTimeliness) validateEntryTimeliness(ds, source);
+    boolean canSkip = force && getCurrentUserDetails().isSuper();
+    if (!canSkip || !deletionsOnly) validateKeyConsistency(ds, source);
+    if (!canSkip) validateEntryTimeliness(ds, source);
 
     return new DataEntryGroup(ds, null, null, validateValues(ds, source.values(), errors));
   }
@@ -649,37 +655,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       if (ouAocNotInHierarchy != null)
         throw new ConflictException(
             ErrorCode.E8025, ouAocNotInHierarchy.to(), List.of(ouAocNotInHierarchy.from()));
-    }
-
-    // - require: PEs must be within the OU's operational span
-    List<Period> isoPeriods = source.periods().toList();
-    Map<String, DateRange> ouOpSpan =
-        store.getEntrySpanByOrgUnit(source.orgUnits(), timeframeOf(isoPeriods));
-    if (!ouOpSpan.isEmpty()) {
-      List<Map.Entry<UID, Period>> peNotInOuSpan =
-          source
-              .orgUnitPeriodPairs()
-              .filter(
-                  e -> {
-                    DateRange operational = ouOpSpan.get(e.getKey().getValue());
-                    if (operational == null) return false; // null => no issue with the timeframe
-                    Period pe = e.getValue();
-                    return !operational.includes(pe.getStartDate());
-                  })
-              .distinct()
-              .toList();
-      if (!peNotInOuSpan.isEmpty()) {
-        // this error only indicates issues for the first OU in conflict
-        // as there is no good way to describe more than one combination
-        UID ou = peNotInOuSpan.get(0).getKey();
-        List<Period> ouPeriods =
-            peNotInOuSpan.stream()
-                .filter(e -> ou.equals(e.getKey()))
-                .map(Map.Entry::getValue)
-                .distinct()
-                .toList();
-        throw new ConflictException(ErrorCode.E8031, ou, ouPeriods);
-      }
     }
   }
 
@@ -796,72 +771,98 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   */
 
   private void validateEntryTimeliness(UID ds, ValidationSource source) throws ConflictException {
+    // - require: PEs must be within the OU's operational span
+    List<Period> isoPeriods = source.periods().toList();
+    Map<String, DateRange> ouOpSpan =
+        store.getEntrySpanByOrgUnit(source.orgUnits(), timeframeOf(isoPeriods));
+    if (!ouOpSpan.isEmpty()) {
+      List<Map.Entry<UID, Period>> peNotInOuSpan =
+          source
+              .orgUnitPeriodPairs()
+              .filter(
+                  e -> {
+                    DateRange operational = ouOpSpan.get(e.getKey().getValue());
+                    if (operational == null) return false; // null => no issue with the timeframe
+                    // valid if the OU is open at any time within the period
+                    return !overlaps(operational, e.getValue(), 0);
+                  })
+              .distinct()
+              .toList();
+      if (!peNotInOuSpan.isEmpty()) {
+        // this error only indicates issues for the first OU in conflict
+        // as there is no good way to describe more than one combination
+        UID ou = peNotInOuSpan.get(0).getKey();
+        List<Period> ouPeriods =
+            peNotInOuSpan.stream()
+                .filter(e -> ou.equals(e.getKey()))
+                .map(Map.Entry::getValue)
+                .distinct()
+                .toList();
+        throw new ConflictException(ErrorCode.E8031, ou, ouPeriods);
+      }
+    }
+
     Date now = new Date();
     Map<String, List<DateRange>> entrySpansByIso = store.getEntrySpansByIsoPeriod(ds);
-    // only if no explicit ranges are defined use expiry and future periods
-    if (entrySpansByIso.isEmpty()) {
-      // - require: DS entry for period still allowed?
-      // (how much later can data be entered relative to current period)
-      int expiryDays = store.getDataSetExpiryDays(ds);
-      if (!getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
-        if (expiryDays > 0) { // 0 = no expiry, always open
-
-          Map<String, Set<String>> exemptedIsoByOu =
-              store.getExpiryDaysExemptedIsoPeriodsByOrgUnit(ds);
-          List<Period> peNoLongerOpen =
-              source
-                  .orgUnitPeriodPairs()
-                  // only check values not exempt
-                  .filter(
-                      e -> {
-                        Set<String> ouPeriods = exemptedIsoByOu.get(e.getKey().getValue());
-                        return ouPeriods == null || !ouPeriods.contains(e.getValue().getIsoDate());
-                      })
-                  // find the values entered outside their input period
-                  .filter(
-                      e -> {
-                        Period p = e.getValue();
-                        // +1 because the period end date is start of day but should include that
-                        // day
-                        Date endOfEntryPeriod =
-                            new Date(
-                                p.getEndDate().getTime() + TimeUnit.DAYS.toMillis(expiryDays + 1L));
-                        return now.after(endOfEntryPeriod);
-                      })
-                  .map(Map.Entry::getValue)
-                  .distinct()
-                  .toList();
-          if (!peNoLongerOpen.isEmpty())
-            throw new ConflictException(ErrorCode.E8030, ds, peNoLongerOpen);
-        }
-
-        if (expiryDays >= 0) {
-          // - require: DS entry for period already allowed?
-          // (how much earlier can data be entered relative to the current period)
-          int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
-          List<Period> isoPeriods = source.periods().toList();
-          PeriodType type = isoPeriods.get(0).getPeriodType();
-          Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
-          List<Period> isoNotYetOpen =
-              isoPeriods.stream().filter(p -> p.isAfter(latestOpen)).toList();
-          if (!isoNotYetOpen.isEmpty())
-            throw new ConflictException(ErrorCode.E8030, ds, isoNotYetOpen);
-        }
-      }
-    } else {
+    if (!entrySpansByIso.isEmpty()) {
       // - require: DS input period is open explicitly
-      // entry time-frame(s) are explicitly defined...
+      // a data set with data input periods accepts only the periods listed there, and each only
+      // within its windows; expiry days and open future periods do not apply
       List<Period> peNotOpen =
-          source
-              .periods()
+          isoPeriods.stream()
               .filter(
                   pe -> {
                     List<DateRange> openSpan = entrySpansByIso.get(pe.getIsoDate());
-                    if (openSpan == null) return true;
+                    if (openSpan == null) return true; // not listed => never open
                     return openSpan.stream().noneMatch(range -> range.includes(now));
                   })
               .toList();
       if (!peNotOpen.isEmpty()) throw new ConflictException(ErrorCode.E8030, ds, peNotOpen);
+    } else {
+      // no data input periods: use expiry days and open future periods
+      // - require: DS entry for period still allowed?
+      // (how much later can data be entered relative to current period)
+      double expiryDays = store.getDataSetExpiryDays(ds);
+      // 0 = no expiry, always open
+      if (expiryDays != 0d && !getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
+        // a period that has not ended yet can only be closed by a negative expiry, so past,
+        // current and future periods all need the check
+        Map<String, Set<String>> exemptedIsoByOu =
+            store.getExpiryDaysExemptedIsoPeriodsByOrgUnit(ds);
+        List<Period> peNoLongerOpen =
+            source
+                .orgUnitPeriodPairs()
+                // only check values not exempt
+                .filter(
+                    e -> {
+                      Set<String> ouPeriods = exemptedIsoByOu.get(e.getKey().getValue());
+                      return ouPeriods == null || !ouPeriods.contains(e.getValue().getIsoDate());
+                    })
+                // find the periods whose expiry has passed
+                .filter(
+                    e -> {
+                      Period p = e.getValue();
+                      // +1 because the period end date is start of day but should include that
+                      // day
+                      Date endOfEntryPeriod =
+                          new Date(
+                              p.getEndDate().getTime()
+                                  + Math.round(MILLIS_IN_A_DAY * (expiryDays + 1d)));
+                      return now.after(endOfEntryPeriod);
+                    })
+                .map(Map.Entry::getValue)
+                .distinct()
+                .toList();
+        if (!peNoLongerOpen.isEmpty())
+          throw new ConflictException(ErrorCode.E8030, ds, peNoLongerOpen);
+      }
+      // - require: DS entry for period already allowed?
+      // (how much earlier can data be entered relative to the current period)
+      int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
+      PeriodType type = isoPeriods.get(0).getPeriodType();
+      Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
+      List<Period> isoNotYetOpen = isoPeriods.stream().filter(p -> p.isAfter(latestOpen)).toList();
+      if (!isoNotYetOpen.isEmpty()) throw new ConflictException(ErrorCode.E8030, ds, isoNotYetOpen);
     }
 
     // - require: DS not already approved (data approval)
@@ -909,17 +910,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                   e -> {
                     DateRange span = entrySpanByAoc.get(e.getKey().getValue());
                     if (span == null) return false;
-                    Period pe = e.getValue();
-                    Date start = pe.getStartDate();
-                    Date end = pe.getEndDate();
-                    if (span.includes(start) && span.includes(end)) return false;
-                    if (openPeriodsAfterCoEndDate == 0) return true;
-                    // instead of moving range forward we move period backwards
-                    // and check against the unchanged span
-                    PeriodType type = pe.getPeriodType();
-                    end = type.getRewindedDate(end, openPeriodsAfterCoEndDate);
-                    start = type.getRewindedDate(start, openPeriodsAfterCoEndDate);
-                    return !span.includes(start) || !span.includes(end);
+                    // valid if the AOC is valid at any time within the period
+                    return !overlaps(span, e.getValue(), openPeriodsAfterCoEndDate);
                   })
               .toList();
       if (!peNotInAocRange.isEmpty()) {
@@ -935,6 +927,27 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
         throw new ConflictException(ErrorCode.E8032, aoc, aocPeriods);
       }
     }
+  }
+
+  /**
+   * Is the span valid at any time within the period? Only a span ending before the period starts or
+   * starting after the period's last day does not overlap. Missing span dates are open-ended. A
+   * span that starts after it ends (e.g. category options without a common day) is never valid.
+   *
+   * @param periodsAfterEnd the span's end is extended by this many periods of the period's type
+   */
+  private static boolean overlaps(DateRange span, Period period, int periodsAfterEnd) {
+    Date spanStart = span.getStartDate();
+    Date spanEnd = span.getEndDate();
+    if (spanStart != null && spanEnd != null && spanStart.after(spanEnd)) return false;
+    // instead of moving the span's end forward the period's start is moved back: rewinding by a
+    // negative count is not supported by all calendars (e.g. Ethiopian, Nepali, Persian)
+    Date periodStart =
+        periodsAfterEnd > 0
+            ? period.getPeriodType().getRewindedDate(period.getStartDate(), periodsAfterEnd)
+            : period.getStartDate();
+    return (spanStart == null || !spanStart.after(period.getEndDate()))
+        && (spanEnd == null || !spanEnd.before(periodStart));
   }
 
   private DateRange timeframeOf(Collection<Period> isoPeriods) {

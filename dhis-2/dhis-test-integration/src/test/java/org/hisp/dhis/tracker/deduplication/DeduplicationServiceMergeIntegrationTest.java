@@ -35,6 +35,7 @@ import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -73,7 +74,6 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -96,8 +96,6 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
   @Autowired private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
-
-  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
@@ -223,9 +221,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
           NotFoundException,
           BadRequestException {
     TrackedEntityAttribute trackedEntityAttribute = createAndPersistTrackedEntityAttribute();
-    TrackedEntityAttributeValue trackedEntityAttributeValue =
-        createAndPersistTrackedEntityAttributeValue("value", duplicate, trackedEntityAttribute);
-    addTrackedEntityAttributeValue(trackedEntityAttributeValue, duplicate);
+    addTrackedEntityAttributeValue("value", duplicate, trackedEntityAttribute);
     MergeObject mergeObject = createMergeObject(trackedEntityAttribute);
     DeduplicationMergeParams deduplicationParams =
         createDeduplicationParams(original, duplicate, mergeObject, potentialDuplicate);
@@ -254,10 +250,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
           NotFoundException,
           BadRequestException {
     TrackedEntityAttribute trackedEntityAttribute = createAndPersistTrackedEntityAttribute();
-    TrackedEntityAttributeValue trackedEntityAttributeValue =
-        createAndPersistTrackedEntityAttributeValue("value", original, trackedEntityAttribute);
-    addTrackedEntityAttributeValue(trackedEntityAttributeValue, original);
-    addTrackedEntityAttributeValue(trackedEntityAttributeValue, duplicate);
+    addTrackedEntityAttributeValue("value", original, trackedEntityAttribute);
+    addTrackedEntityAttributeValue("value", duplicate, trackedEntityAttribute);
     MergeObject mergeObject = createMergeObject(trackedEntityAttribute);
     DeduplicationMergeParams deduplicationParams =
         createDeduplicationParams(original, duplicate, mergeObject, potentialDuplicate);
@@ -285,10 +279,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
           NotFoundException,
           BadRequestException {
     TrackedEntityAttribute trackedEntityAttribute = createAndPersistTrackedEntityAttribute();
-    TrackedEntityAttributeValue trackedEntityAttributeValue =
-        createAndPersistTrackedEntityAttributeValue("value", original, trackedEntityAttribute);
-    addTrackedEntityAttributeValue(trackedEntityAttributeValue, original);
-    addTrackedEntityAttributeValue(trackedEntityAttributeValue, duplicate);
+    addTrackedEntityAttributeValue("value", original, trackedEntityAttribute);
+    addTrackedEntityAttributeValue("value", duplicate, trackedEntityAttribute);
     trackedEntityChangeLogService.addTrackedEntityChangeLog(
         duplicate,
         trackedEntityAttribute,
@@ -347,22 +339,12 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     trackedEntityAttribute.setShortName("TEA");
     trackedEntityAttribute.setAggregationType(AggregationType.AVERAGE);
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-
-    return trackedEntityAttribute;
-  }
-
-  private TrackedEntityAttributeValue createAndPersistTrackedEntityAttributeValue(
-      String value, TrackedEntity trackedEntity, TrackedEntityAttribute trackedEntityAttribute) {
     TrackedEntityTypeAttribute trackedEntityTypeAttribute =
         new TrackedEntityTypeAttribute(trackedEntityType, trackedEntityAttribute);
     trackedEntityType.getTrackedEntityTypeAttributes().add(trackedEntityTypeAttribute);
     trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
-    TrackedEntityAttributeValue trackedEntityAttributeValue =
-        new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity);
-    trackedEntityAttributeValue.setValue(value);
-    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
 
-    return trackedEntityAttributeValue;
+    return trackedEntityAttribute;
   }
 
   private DeduplicationMergeParams createDeduplicationParams(
@@ -384,10 +366,16 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
         .build();
   }
 
+  /**
+   * Saves the value via JDBC like the importer does, then refreshes the tracked entity so its
+   * attribute values are loaded from the DB as managed entities, like in a merge request.
+   */
   private void addTrackedEntityAttributeValue(
-      TrackedEntityAttributeValue trackedEntityAttributeValue, TrackedEntity trackedEntity) {
-    trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
-    manager.update(trackedEntity);
+      String value, TrackedEntity trackedEntity, TrackedEntityAttribute trackedEntityAttribute) {
+    saveTrackedEntityAttributeValue(
+        entityManager,
+        new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity, value));
+    entityManager.refresh(trackedEntity);
   }
 
   private void assertChangeLogCreate(List<TrackedEntityChangeLog> trackedEntityChangeLogs) {

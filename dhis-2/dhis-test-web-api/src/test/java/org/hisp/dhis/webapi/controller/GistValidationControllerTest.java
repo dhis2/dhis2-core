@@ -181,6 +181,88 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
 
   @Test
   void testValidation_Access_CollectionOwnerSharing() {
+    setUserGroupPublicAccess("--------");
+    switchToGuestUser();
+    assertEquals(
+        "User not allowed to view UserGroup " + userGroupId,
+        GET("/userGroups/{id}/users/gist", userGroupId).error(HttpStatus.FORBIDDEN).getMessage());
+    switchToAdminUser();
+    assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
+  }
+
+  @Test
+  void testValidation_Access_CollectionOwnerReadable() {
+    setUserGroupPublicAccess("r-------");
+    switchToGuestUser();
+    assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
+  }
+
+  @Test
+  void testValidation_Access_CollectionOwnerMissingOrHidden() {
+    setUserGroupPublicAccess("--------");
+    switchToGuestUser();
+    assertEquals(
+        "User not allowed to view UserGroup " + userGroupId,
+        GET("/userGroups/{id}/users/gist", userGroupId).error(HttpStatus.FORBIDDEN).getMessage());
+    // a missing owner is refused the same way, so the response does not reveal whether it exists
+    assertEquals(
+        "User not allowed to view UserGroup MissingGrp1",
+        GET("/userGroups/{id}/users/gist", "MissingGrp1").error(HttpStatus.FORBIDDEN).getMessage());
+  }
+
+  @Test
+  void testValidation_Access_CollectionOwnerSharedWithUser() {
+    String readerId = switchToNewUser("reader").getUid();
+    switchToAdminUser();
+    setUserGroupSharing(
+        "'users':{'" + readerId + "':{'id':'" + readerId + "','access':'r-------'}}");
+
+    switchToNewUser("other");
+    assertEquals(HttpStatus.FORBIDDEN, GET("/userGroups/{id}/users/gist", userGroupId).status());
+    switchToStoredUser(readerId);
+    assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
+  }
+
+  @Test
+  void testValidation_Access_CollectionOwnerSharedWithUserGroup() {
+    String readerId = switchToNewUser("member").getUid();
+    switchToAdminUser();
+    String readersId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/userGroups/", "{'name':'readers','users':[{'id':'" + readerId + "'}]}"));
+    setUserGroupSharing(
+        "'userGroups':{'" + readersId + "':{'id':'" + readersId + "','access':'r-------'}}");
+
+    switchToNewUser("outsider");
+    assertEquals(HttpStatus.FORBIDDEN, GET("/userGroups/{id}/users/gist", userGroupId).status());
+    switchToStoredUser(readerId);
+    assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
+  }
+
+  /** Switches to a stored user, reloaded so that its current user group memberships apply. */
+  private void switchToStoredUser(String uid) {
+    manager.flush();
+    manager.clear();
+    switchContextToUser(userService.getUser(uid));
+  }
+
+  /** Makes the user group private except for the given user or user group accesses. */
+  private void setUserGroupSharing(String accesses) {
+    String owner =
+        GET("/userGroups/{id}", userGroupId)
+            .content()
+            .getObject("sharing")
+            .getString("owner")
+            .string();
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        PUT(
+            "/userGroups/" + userGroupId + "/sharing",
+            "{'owner':'" + owner + "','public':'--------','external':false," + accesses + "}"));
+  }
+
+  private void setUserGroupPublicAccess(String publicAccess) {
     JsonObject group = GET("/userGroups/{id}", userGroupId).content();
     String sharing =
         group
@@ -188,14 +270,8 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
             .node()
             .extract()
             .member(Text.of("public"))
-            .replaceWith("\"--------\"")
+            .replaceWith("\"" + publicAccess + "\"")
             .toString();
     assertStatus(HttpStatus.NO_CONTENT, PUT("/userGroups/" + userGroupId + "/sharing", sharing));
-    switchToGuestUser();
-    assertEquals(
-        "User not allowed to view UserGroup " + userGroupId,
-        GET("/userGroups/{id}/users/gist", userGroupId).error(HttpStatus.FORBIDDEN).getMessage());
-    switchToAdminUser();
-    assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
   }
 }

@@ -40,7 +40,6 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
 import org.hisp.dhis.setting.UserSettings;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Component;
 
@@ -56,17 +55,7 @@ public class UserSettingLocaleManager implements LocaleManager {
 
   @Override
   public Locale getCurrentLocale() {
-
-    // TODO: MAS: Called by interceptor for old web ui only
-    if (CurrentUserUtil.hasCurrentUser()) {
-      Locale locale = getUserSelectedLocale();
-
-      if (locale != null) {
-        return locale;
-      }
-    }
-
-    return DEFAULT_LOCALE;
+    return UserSettings.getCurrentSettings().getUserUiLocale();
   }
 
   @Override

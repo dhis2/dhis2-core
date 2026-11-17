@@ -53,6 +53,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -73,7 +74,6 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGen
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
-import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -95,6 +95,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.ListBuilder;
 import org.postgresql.util.PSQLException;
@@ -136,7 +137,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       DhisConfigurationProvider config,
       AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver,
-      ColumnMapper columnMapper,
       QueryItemFilterBuilder filterBuilder,
       StageQuerySqlFacade stageQuerySqlFacade,
       DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver,
@@ -152,7 +152,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         settingsService,
         config,
         organisationUnitResolver,
-        columnMapper,
         filterBuilder,
         stageQuerySqlFacade,
         dateFieldPeriodBucketColumnResolver);
@@ -162,7 +161,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         new EventItemSelectColumnResolver(
             sqlBuilder,
             organisationUnitResolver,
-            queryParams -> ANALYTICS_TBL_ALIAS,
             (item, queryParams) -> getColumnAndAlias(item, queryParams, false, false),
             this::handleRowContext);
   }
@@ -474,8 +472,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   @Override
   protected String getFromClause(EventQueryParams params) {
     StringBuilder sql = new StringBuilder(" from ");
+    boolean isFirstOrLast =
+        params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType();
 
-    if (params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
+    if (isFirstOrLast) {
       sql.append(firstOrLastRenderer.render(params));
     } else {
       sql.append(params.getTableName());
@@ -496,8 +496,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
           .append(" ");
     }
 
-    resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
-        .forEach(join -> sql.append(join.toSql()).append(" "));
+    // First/last queries hold a single period, rendered as a literal, so no period bucket is read
+    if (!isFirstOrLast) {
+      resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
+          .forEach(join -> sql.append(join.toSql()).append(" "));
+    }
 
     sql.append(OrgUnitSqlCoordinator.joinClause(params, sqlBuilder));
 
@@ -649,14 +652,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // Program stage
     // ---------------------------------------------------------------------
 
-    if (params.hasProgramStage()) {
-      sql +=
-          hlp.whereAnd()
-              + " "
-              + quoteAlias("ps")
-              + " = '"
-              + params.getProgramStage().getUid()
-              + "' ";
+    Optional<ProgramStage> programStage =
+        params.hasProgramStage()
+            ? Optional.of(params.getProgramStage())
+            : params.getStageOfStageSpecificItemsWithoutFilter();
+
+    if (programStage.isPresent()) {
+      sql += hlp.whereAnd() + " " + quoteAlias("ps") + " = '" + programStage.get().getUid() + "' ";
     }
 
     sql += getOptionFilter(params, hlp);
@@ -787,7 +789,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    */
   private String getOptionFilter(EventQueryParams params, SqlHelper sqlHelper) {
     if (params.hasOption() && params.hasValue()) {
-      DimensionalItemObject dimensionalItemObject = params.getValue();
+      DimensionalItemObject dimensionalItemObject = params.getValue().getDimensionalObject();
       Option option = params.getOption();
 
       return new StringBuilder()
@@ -917,14 +919,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     columns.addAll(OrgUnitSqlCoordinator.querySelectColumns(params, sqlBuilder));
     columns.addAll(eventItemSelectColumnResolver.resolve(params, cteContext));
 
-    columns.forEach(
-        column -> {
-          if (columnIsInFormula(column) || hasColumnPrefix(column, "ax")) {
-            sb.addColumn(column);
-          } else {
-            sb.addColumn(column, "ax");
-          }
-        });
+    addAnalyticsTableColumns(sb, columns);
     // ClickHouse emits item columns (including CTE-backed program indicators) inline in items
     // order via EventItemSelectColumnResolver, so a second CTE pass would duplicate and reorder
     // them relative to the items-ordered grid headers. Other databases keep the existing two-pass
@@ -932,16 +927,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (cteContext.hasCteDefinitions() && sqlBuilder.supportsCorrelatedSubquery()) {
       getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
     }
-  }
-
-  /**
-   * Checks if the given column starts with the given prefix.
-   *
-   * @param column the column name.
-   * @return true if the column starts with the given prefix, false otherwise.
-   */
-  private boolean hasColumnPrefix(String column, String prefix) {
-    return column.startsWith(prefix + ".");
   }
 
   @Override

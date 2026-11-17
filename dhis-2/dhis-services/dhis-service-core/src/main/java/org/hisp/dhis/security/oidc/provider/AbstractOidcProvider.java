@@ -119,4 +119,24 @@ public abstract class AbstractOidcProvider {
   public static final String CLIENT_AUTHENTICATION_METHOD = "client_authentication_method";
 
   public static final String JWK_SET_URL = "jwk_set_url";
+
+  /** Optional single audience for client assertions; unset preserves Spring's default audiences. */
+  public static final String CLIENT_ASSERTION_AUDIENCE = "client_assertion_audience";
+
+  /** Expected ID-token signature algorithm, independent of userinfo; defaults to RS256. */
+  public static final String ID_TOKEN_JWS_ALGORITHM = "id_token_jws_algorithm";
+
+  /**
+   * Selects userinfo response handling: {@code json} (default; Spring Security's normal path) or
+   * {@code jwt} (eSignet-style signed JWT). See {@link
+   * org.hisp.dhis.security.oidc.UserInfoResponseType}.
+   */
+  public static final String USER_INFO_RESPONSE_TYPE = "user_info_response_type";
+
+  /**
+   * JWS algorithm used to verify the userinfo JWT when {@link #USER_INFO_RESPONSE_TYPE} is {@code
+   * jwt}. Defaults to {@code RS256}. See {@link
+   * org.hisp.dhis.security.oidc.SupportedJwsAlgorithms}.
+   */
+  public static final String USER_INFO_JWS_ALGORITHM = "user_info_jws_algorithm";
 }

@@ -109,6 +109,15 @@ public class DhisOidcProviderRepository implements ClientRegistrationRepository 
   }
 
   /**
+   * Removes the provider registered under the given registration id, if any.
+   *
+   * @param registrationId the provider registration id
+   */
+  public void removeRegistration(String registrationId) {
+    registrationHashMap.remove(registrationId);
+  }
+
+  /**
    * Returns the Spring {@link ClientRegistration} for the given registration id, or {@code null} if
    * no provider is registered under that id.
    *

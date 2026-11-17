@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -281,12 +281,25 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private ImportSummary importJson(InputStream json) {
-    return dataEntryPipeline.importJson(json, new ImportOptions(), transitory());
+    return importJson(json, new ImportOptions());
+  }
+
+  private ImportSummary importJson(InputStream json, ImportOptions options) {
+    try {
+      return dataEntryPipeline.importJson(json, options, transitory());
+    } catch (BadRequestException ex) {
+      fail("Bad input", ex);
+      return null;
+    }
   }
 
   private ImportSummary importXml(InputStream json) {
+    return importXml(json, new ImportOptions());
+  }
+
+  private ImportSummary importXml(InputStream json, ImportOptions options) {
     try {
-      return dataEntryPipeline.importXml(json, new ImportOptions(), transitory());
+      return dataEntryPipeline.importXml(json, options, transitory());
     } catch (BadRequestException ex) {
       fail("Bad input", ex);
       return null;
@@ -294,7 +307,16 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private ImportSummary importCsv(InputStream csv) {
-    return dataEntryPipeline.importCsv(csv);
+    return importCsv(csv, new ImportOptions());
+  }
+
+  private ImportSummary importCsv(InputStream csv, ImportOptions options) {
+    try {
+      return dataEntryPipeline.importCsv(csv, options, transitory());
+    } catch (BadRequestException ex) {
+      fail("Bad input", ex);
+      return null;
+    }
   }
 
   /** Import 1 data value. */
@@ -315,12 +337,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions options = ImportOptions.getDefaultImportOptions();
     options.setImportStrategy(ImportStrategy.DELETE);
 
-    assertImported(
-        0,
-        0,
-        1,
-        dataEntryPipeline.importJson(
-            readFile("datavalueset/dataValueSetJ.json"), options, transitory()));
+    assertImported(0, 0, 1, importJson(readFile("datavalueset/dataValueSetJ.json"), options));
     assertDataValuesCount(0);
   }
 
@@ -334,11 +351,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     options.setImportStrategy(ImportStrategy.DELETE);
 
     assertImported(
-        0,
-        0,
-        1,
-        dataEntryPipeline.importJson(
-            readFile("datavalueset/dataValueSetJDeleteNoValue.json"), options, transitory()));
+        0, 0, 1, importJson(readFile("datavalueset/dataValueSetJDeleteNoValue.json"), options));
     assertDataValuesCount(0);
   }
 
@@ -352,11 +365,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     options.setImportStrategy(ImportStrategy.DELETE);
 
     assertImported(
-        0,
-        0,
-        1,
-        dataEntryPipeline.importJson(
-            readFile("datavalueset/dataValueSetJDeleteNewValue.json"), options, transitory()));
+        0, 0, 1, importJson(readFile("datavalueset/dataValueSetJDeleteNewValue.json"), options));
     assertDataValuesCount(0);
   }
 
@@ -500,7 +509,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   /**
-   * Import 12 data values where 4 are marked as deleted. Deleted values should count as imports
+   * Import 12 data values where 4 are marked as deleted. Deleted values should count as ignored
    * when there are no existing non-deleted matching values.
    */
   @Test
@@ -509,7 +518,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
 
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
   }
 
@@ -521,7 +530,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportReverseDeletedValuesXml() {
     assertDataValuesCount(0);
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
 
     // Reverse deletion and update
@@ -532,14 +541,14 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   /**
-   * Import 12 data values where 4 are marked as deleted. Then import 12 data values which reverse
-   * deletion of the 4 values, ignore 4 unchanged values and add 4 values.
+   * Import 12 data values where 4 are marked as deleted (so they are ignored). Then import 12 data
+   * values which reverse deletion of the ignored 4 values (8 updates + 4 inserts).
    */
   @Test
   void testImportAddAndReverseDeletedValuesXml() {
     assertDataValuesCount(0);
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
 
     // Reverse deletion and update
@@ -848,15 +857,34 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(12, 0, summary);
   }
 
+  /**
+   * The 2.42 CSV export header has a {@code lastupdated} column. A blank {@code
+   * categoryoptioncombo} (default) must not turn the unmapped {@code lastupdated} column into a
+   * category option, which rejected the entire file (DHIS2-22466).
+   */
+  @Test
+  void testImportDataValuesCsv_Header242Export() {
+    String csv =
+        """
+        dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value,storedby,lastupdated,comment,followup,deleted
+        f7n9E0hX8qk,201201,DiszpKrYNg8,%s,,10001,john,2012-01-01T10:00:00.000,,false,
+        f7n9E0hX8qk,201202,DiszpKrYNg8,,,10002,john,2012-01-01T10:00:00.000,,false,
+        """
+            .formatted(ocDef.getUid());
+    ImportSummary summary =
+        importCsv(new ByteArrayInputStream(csv.getBytes(StandardCharsets.UTF_8)));
+
+    assertImported(2, 0, summary);
+  }
+
   @Test
   void testImportDataValuesCsvWithDataSetIdParameter() {
     assertDataValuesCount(0);
 
     ImportSummary summary =
-        dataEntryPipeline.importCsv(
+        importCsv(
             readFile("dxf2/datavalueset/dataValueSetWithDataSetHeader.csv"),
-            new ImportOptions().setDataSet("pBOMPrpg1QX"),
-            transitory());
+            new ImportOptions().setDataSet("pBOMPrpg1QX"));
 
     assertImported(3, 0, summary);
     assertDataValuesCount(3);
@@ -866,15 +894,15 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesCsvWithoutHeader() {
 
     ImportOptions options = new ImportOptions().setFirstRowIsHeader(false);
-    UnsupportedOperationException ex =
+    BadRequestException ex =
         assertThrowsExactly(
-            UnsupportedOperationException.class,
+            BadRequestException.class,
             () ->
                 dataEntryPipeline.importCsv(
                     readFile("dxf2/datavalueset/dataValueSetBNoHeader.csv"),
                     options,
                     JobProgress.noop()));
-    assertEquals("CSV without header row is no longer supported.", ex.getMessage());
+    assertEquals(ErrorCode.E8036, ex.getCode());
   }
 
   @Test
@@ -994,6 +1022,28 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(ErrorCode.E8022, conflict.getErrorCode());
     assertEquals(
         "Data set pBOMPrpg1QX not usable with org unit(s): `[j7Hg26FpoIa]`", conflict.getValue());
+  }
+
+  @Test
+  void testImportForceDeleteDataValuesWithOrgUnitOutsideHierarchy() {
+    assertDataValuesCount(0);
+
+    ImportOptions options = new ImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetE.xml"), options);
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+
+    // now with force (tests runs as superuser)
+    options = new ImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+    options.setForce(true);
+    summary = importXml(readFile("dxf2/datavalueset/dataValueSetE.xml"), options);
+
+    assertEquals(ImportStatus.SUCCESS, summary.getStatus());
+    assertEquals(3, summary.getImportCount().getIgnored());
+    assertEquals(0, summary.getImportCount().getDeleted());
+    assertDataValuesCount(0);
   }
 
   @Test

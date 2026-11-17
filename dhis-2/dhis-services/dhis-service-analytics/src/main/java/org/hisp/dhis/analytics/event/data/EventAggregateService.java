@@ -218,11 +218,15 @@ public class EventAggregateService {
       params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
       // Re-add period items, needed for data and for metadata generation (items + dimensions
-      // sections, e.g. "enrollmentdate"), regardless of skipData.
+      // sections, e.g. "enrollmentdate"), regardless of skipData. The display name labels the
+      // period header.
       if (!periods.isEmpty()) {
         params =
             new EventQueryParams.Builder(params)
-                .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), EMPTY)
+                .withPeriods(
+                    periods.stream().flatMap(p -> p.getItems().stream()).toList(),
+                    EMPTY,
+                    periods.get(0).getDimensionDisplayName())
                 .build();
       }
     }

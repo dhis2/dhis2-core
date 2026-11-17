@@ -32,9 +32,11 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
@@ -97,5 +99,54 @@ class ProgramRuleControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "The Program Rule name test already exist in Program ProgramA",
         response.findErrorReport(ErrorCode.E4057).getMessage());
+  }
+
+  @Test
+  void shouldNotReturnIssuesWhenConditionIsValid() {
+    JsonObject response =
+        POST("/programRules/condition/description?programId=" + createProgram(), "1 != 1")
+            .content(HttpStatus.OK);
+
+    assertEquals("OK", response.getString("status").string());
+    assertTrue(response.get("errors").isUndefined());
+    assertTrue(response.get("warnings").isUndefined());
+  }
+
+  @Test
+  void shouldReturnErrorWithoutPositionWhenConditionCannotBeParsed() {
+    JsonObject response =
+        POST("/programRules/condition/description?programId=" + createProgram(), "1 >")
+            .content(HttpStatus.OK);
+
+    assertEquals("ERROR", response.getString("status").string());
+    assertEquals(1, response.getArray("errors").size());
+    JsonObject error = response.getArray("errors").getObject(0);
+    assertEquals(response.getString("description").string(), error.getString("message").string());
+    assertTrue(error.get("position").isUndefined());
+  }
+
+  @Test
+  void shouldReturnErrorsWhenConditionReferencesUnknownVariable() {
+    JsonObject response =
+        POST(
+                "/programRules/condition/description?programId=" + createProgram(),
+                "#{doesNotExist} > 1")
+            .content(HttpStatus.OK);
+
+    assertEquals("ERROR", response.getString("status").string());
+    assertEquals(
+        "Unknown variable: `doesNotExist` (in #{doesNotExist})",
+        response.getString("description").string());
+    assertEquals(1, response.getArray("errors").size());
+    JsonObject error = response.getArray("errors").getObject(0);
+    assertEquals("Unknown variable: `doesNotExist`", error.getString("message").string());
+    assertEquals("#{doesNotExist}", error.getString("position").string());
+  }
+
+  private String createProgram() {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}"));
   }
 }

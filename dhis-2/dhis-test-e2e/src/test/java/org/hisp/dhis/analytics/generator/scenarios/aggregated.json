@@ -253,6 +253,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "periodOffsetIndicatorWithOrgUnitBeforePeriod",
+      "query": "/api/analytics.json?dimension=ou:O6uvpzGd5pu;fdc6uOvgoji&dimension=pe:202301&filter=dx:ZzFhiPrev01&skipMeta=true",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

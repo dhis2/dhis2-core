@@ -33,24 +33,18 @@ import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import org.hibernate.LockOptions;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementStore;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserGroupInfo;
-import org.hisp.dhis.user.User;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -114,30 +108,6 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
     String hql = "from DataElement de join de.aggregationLevels al where al = :aggregationLevel";
 
     return getQuery(hql).setParameter("aggregationLevel", aggregationLevel).list();
-  }
-
-  @Override
-  public DataElement getDataElement(String uid, User user) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    // TODO MAS: Remove this in separate PR when we invalidate user sessions on user group changes.
-    // Need to refetch here since the user might have been updated, and tests transactional
-    // semantics might not have committed yet.
-    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
-
-    List<Function<Root<DataElement>, Predicate>> sharingPredicates =
-        getSharingPredicates(
-            builder,
-            user.getUid(),
-            currentUserGroupInfo.getUserGroupUIDs(),
-            AclService.LIKE_READ_METADATA);
-
-    JpaQueryParameters<DataElement> param =
-        new JpaQueryParameters<DataElement>()
-            .addPredicates(sharingPredicates)
-            .addPredicate(root -> builder.equal(root.get("uid"), uid));
-
-    return getSingleResult(builder, param);
   }
 
   public List<DataElement> getByCategoryCombo(List<CategoryCombo> categoryCombos) {

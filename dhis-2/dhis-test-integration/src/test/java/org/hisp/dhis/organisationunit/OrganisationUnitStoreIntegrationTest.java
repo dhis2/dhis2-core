@@ -41,6 +41,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -100,7 +101,7 @@ class OrganisationUnitStoreIntegrationTest extends PostgresIntegrationTestBase {
   @Test
   void testGetOrganisationUnitsByDataSet() {
     // Given
-    DataSet dataSet = createDataSet('A', PeriodType.getByIndex(1));
+    DataSet dataSet = createDataSet('A', PeriodType.getPeriodType(PeriodTypeEnum.WEEKLY));
     dataSet.setUid("FQ2o8UBlcrS");
     manager.save(dataSet);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,7 +86,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testAllParamsNull() {
-    Long[] noLongs = null;
+    long[] noLongs = null;
     String[] noStrings = null;
     Date noDate = null;
     Integer noInt = null;
@@ -142,7 +142,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testSomeFilers() {
-    Long[] noLongs = null;
+    long[] noLongs = null;
     String[] noStrings = null;
     Date noDate = null;
     Integer noInt = null;
@@ -201,7 +201,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testDeletedOnly() {
-    Long[] noLongs = null;
+    long[] noLongs = null;
     String[] noStrings = null;
     Date noDate = null;
     Integer noInt = null;
@@ -256,7 +256,7 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testDynamicClause() {
-    Long[] noLongs = null;
+    long[] noLongs = null;
     String[] noStrings = null;
     Date noDate = null;
     Integer noInt = null;
