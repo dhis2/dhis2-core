@@ -238,6 +238,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return true;
   }
 
+  @Override
+  public boolean requiresTableMetadataRefresh() {
+    return false;
+  }
+
   // Utilities
 
   @Override

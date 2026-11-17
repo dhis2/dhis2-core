@@ -235,6 +235,12 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return false;
   }
 
+  /** The <code>postgresql</code> table function reads the table structure on every query. */
+  @Override
+  public boolean requiresTableMetadataRefresh() {
+    return false;
+  }
+
   // Utilities
 
   @Override
