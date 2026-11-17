@@ -690,7 +690,6 @@ class TrackerEventOperationParamsMapperTest {
         exception.getMessage());
   }
 
-  private User createUserWithAuthority(Authorities authority) {
   private User createSuperuser() {
     User user = new User();
     user.setUid(CodeGenerator.generateUid());
