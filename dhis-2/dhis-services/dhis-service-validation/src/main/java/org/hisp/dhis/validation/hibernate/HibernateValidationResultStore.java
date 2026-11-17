@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,12 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
@@ -93,23 +94,19 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
 
   @Override
   public void upsert(Collection<ValidationResult> validationResults) {
-    // a statement must not insert or update the same row twice
-    Map<List<Long>, ValidationResult> unique = new LinkedHashMap<>();
+    // a statement must not insert or update the same row twice; a fixed row order means
+    // concurrent upserts lock conflicting rows in the same order and cannot deadlock
+    Map<UpsertKey, ValidationResult> unique = new TreeMap<>();
     for (ValidationResult result : validationResults) {
-      unique.putIfAbsent(
-          List.of(
-              result.getValidationRule().getId(),
-              result.getPeriod().getId(),
-              result.getOrganisationUnit().getId(),
-              result.getAttributeOptionCombo().getId(),
-              (long) result.getDayInPeriod()),
-          result);
+      unique.putIfAbsent(UpsertKey.of(result), result);
     }
     if (unique.isEmpty()) {
       return;
     }
 
-    // persist anything pending, such as periods, before the insert references it
+    // the insert references rules, org units and attribute option combos by id; flush so ones
+    // saved earlier in this transaction exist (synchronizing on their entities instead would
+    // invalidate their cached queries on every upsert)
     getSession().flush();
 
     for (List<ValidationResult> batch :
@@ -134,7 +131,9 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
            on conflict (validationruleid, periodid, organisationunitid, attributeoptioncomboid,
              dayinperiod)
            do update set leftsidevalue = excluded.leftsidevalue,
-             rightsidevalue = excluded.rightsidevalue""");
+             rightsidevalue = excluded.rightsidevalue
+           where validationresult.leftsidevalue is distinct from excluded.leftsidevalue
+             or validationresult.rightsidevalue is distinct from excluded.rightsidevalue""");
 
       // synchronizing on the entity invalidates cached validation result queries
       NativeQuery<?> query =
@@ -152,6 +151,31 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
         query.setParameter(param++, result.getDayInPeriod());
       }
       query.executeUpdate();
+    }
+  }
+
+  /** The unique key of a validation result, ordered by its columns. */
+  private record UpsertKey(long rule, long period, long orgUnit, long aoc, int dayInPeriod)
+      implements Comparable<UpsertKey> {
+    private static final Comparator<UpsertKey> ORDER =
+        Comparator.comparingLong(UpsertKey::rule)
+            .thenComparingLong(UpsertKey::period)
+            .thenComparingLong(UpsertKey::orgUnit)
+            .thenComparingLong(UpsertKey::aoc)
+            .thenComparingInt(UpsertKey::dayInPeriod);
+
+    static UpsertKey of(ValidationResult result) {
+      return new UpsertKey(
+          result.getValidationRule().getId(),
+          result.getPeriod().getId(),
+          result.getOrganisationUnit().getId(),
+          result.getAttributeOptionCombo().getId(),
+          result.getDayInPeriod());
+    }
+
+    @Override
+    public int compareTo(UpsertKey other) {
+      return ORDER.compare(this, other);
     }
   }
 
