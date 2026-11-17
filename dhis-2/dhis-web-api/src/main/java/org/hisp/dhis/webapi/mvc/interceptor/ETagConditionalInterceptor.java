@@ -95,6 +95,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.PathContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
@@ -388,7 +389,7 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
 
     Set<Class<?>> metadataTypes =
         resolveMetadataEndpointTypes(resourceName, metadataEndpointTypesSupplier.get());
-    if (metadataTypes.isEmpty()) {
+    if (metadataTypes.isEmpty() || !isMetadataReadPath(request, apiRelativePath, resourceName)) {
       incrementSkip();
       return true;
     }
@@ -446,6 +447,36 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
       return false;
     }
     return eTagFieldsHopAnalyzer.analyze(rootType, fields) == ETagFieldsHopAnalyzer.Verdict.DEEP;
+  }
+
+  /**
+   * Whether the request reads the list ({@code /<resource>}), an object ({@code /<resource>/{uid}})
+   * or a property ({@code /<resource>/{uid}/{property}}) of a metadata resource: the paths whose
+   * response the resource's dependency types describe. Custom sub-endpoints such as {@code
+   * /{uid}/generate} or {@code /{uid}/data} read or write other data and fall to the body hash of
+   * {@link org.hisp.dhis.webapi.etag.ETagFilter}.
+   *
+   * <p>The request path cannot tell {@code /{uid}/name} from {@code /{uid}/generate}. Spring can: a
+   * literal mapping segment wins over the generic {@code {property}} variable. So a sub-path counts
+   * only when the matched mapping below the resource is one or two URI variables.
+   */
+  private static boolean isMetadataReadPath(
+      HttpServletRequest request, String apiRelativePath, String resourceName) {
+    if (apiRelativePath.equals(resourceName)) {
+      return true;
+    }
+    if (!(request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE)
+        instanceof String pattern)) {
+      return false;
+    }
+    List<String> segments = List.of(pattern.split("/"));
+    int resourceIndex = segments.indexOf(resourceName);
+    if (resourceIndex < 0) {
+      return false;
+    }
+    List<String> subPath = segments.subList(resourceIndex + 1, segments.size());
+    return subPath.size() <= 2
+        && subPath.stream().allMatch(segment -> segment.startsWith("{") && segment.endsWith("}"));
   }
 
   /**

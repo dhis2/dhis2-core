@@ -79,6 +79,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.servlet.HandlerMapping;
 
 /**
  * Unit tests for {@link ETagConditionalInterceptor}.
@@ -784,6 +785,11 @@ class ETagConditionalInterceptorTest {
     for (String path : paths) {
       MockHttpServletRequest request = new MockHttpServletRequest("GET", path);
       request.setRequestURI(path);
+      request.setAttribute(
+          HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE,
+          path.contains("/organisationUnits/")
+              ? "/api/organisationUnits/{uid:[a-zA-Z0-9]{11}}"
+              : "/api/organisationUnits");
       interceptor.preHandle(request, new MockHttpServletResponse(), new Object());
       etags.add(ETagConditionalInterceptor.getStoredETag(request));
     }
