@@ -1083,9 +1083,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     sb.from(ENROLLMENT_AGGR_BASE, ENROLLMENT_AGGR_BASE_ALIAS);
     appendPeriodBucketJoins(sb, periodProjections);
 
-    // 3.4: Append JOINs for each relevant CTE definition
+    // 3.4: Append JOINs for each relevant CTE definition. Program indicator inputs are already
+    // joined inside their program indicator CTE
     for (String itemUid : cteContext.getCteKeysExcluding(ENROLLMENT_AGGR_BASE)) {
       CteDefinition cteDef = cteContext.getDefinitionByItemUid(itemUid);
+      if (cteDef.isProgramIndicatorInput()) {
+        continue;
+      }
       String tableName = useItemUidForTable(cteDef) ? itemUid : cteDef.getAlias();
       sb.leftJoin(
           tableName,
