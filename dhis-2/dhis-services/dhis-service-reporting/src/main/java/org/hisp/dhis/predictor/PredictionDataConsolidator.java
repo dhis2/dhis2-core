@@ -37,6 +37,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -68,7 +70,11 @@ public class PredictionDataConsolidator {
 
   private Map<Long, OrganisationUnit> orgUnitsById;
 
-  private Queue<Long> orgUnitsRemaining;
+  /**
+   * Org units not yet returned, in insertion order. A set rather than a queue: org units with data
+   * values are removed by id in path order, which on a queue is a linear scan per org unit.
+   */
+  private Set<Long> orgUnitsRemaining;
 
   private Queue<PredictionData> readyPredictionData;
 
@@ -111,7 +117,7 @@ public class PredictionDataConsolidator {
       Set<Period> existingOutputPeriods,
       DataElementOperand outputDataElementOperand) {
     orgUnitsById = orgUnits.stream().collect(toMap(OrganisationUnit::getId, identity()));
-    orgUnitsRemaining = new ArrayDeque<>(orgUnitsById.keySet());
+    orgUnitsRemaining = new LinkedHashSet<>(orgUnitsById.keySet());
 
     readyPredictionData = new ArrayDeque<>();
 
@@ -199,8 +205,11 @@ public class PredictionDataConsolidator {
     int countToAdd =
         Math.min(orgUnitsRemaining.size(), analyticsBatchFetchSize - readyPredictionData.size());
 
+    Iterator<Long> remaining = orgUnitsRemaining.iterator();
+
     for (int i = 0; i < countToAdd; i++) {
-      Long orgUnitId = orgUnitsRemaining.poll();
+      Long orgUnitId = remaining.next();
+      remaining.remove();
       OrganisationUnit orgUnit = orgUnitsById.get(orgUnitId);
 
       readyPredictionData.add(

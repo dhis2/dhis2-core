@@ -1977,7 +1977,6 @@
       "name": "otherrole",
       "translations": [],
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "F_USER_VIEW",
         "F_GENERATE_MIN_MAX_VALUES",
         "F_ORGANISATIONUNIT_MOVE",
@@ -2020,7 +2019,6 @@
       "name": "tracker Superuser",
       "translations": [],
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
         "F_USER_VIEW",
         "F_GENERATE_MIN_MAX_VALUES",
@@ -2064,7 +2062,6 @@
       "name": "normaluser",
       "translations": [],
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "F_USER_VIEW",
         "F_GENERATE_MIN_MAX_VALUES",
         "F_ORGANISATIONUNIT_MOVE",
@@ -2104,7 +2101,6 @@
       "name": "user__role2",
       "translations": [],
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "F_USER_VIEW",
         "F_GENERATE_MIN_MAX_VALUES",
         "F_ORGANISATIONUNIT_MOVE",
