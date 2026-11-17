@@ -257,17 +257,17 @@ public final class DataEntryInput {
       throw new IllegalArgumentException("Root must be an object but was: " + root.type());
     JsonObject dvs = root.asObject();
     IdSchemes schemes = options.getIdSchemes();
-    String ds = text(dvs.get("dataSet"));
-    String completionDate = text(dvs.get("completeDate"));
+    String ds = dvs.getString("dataSet").string();
+    String completionDate = dvs.getString("completeDate").string();
     // keys that are common for all values
-    String ou = text(dvs.get("orgUnit"));
-    String pe = text(dvs.get("period"));
+    String ou = dvs.getString("orgUnit").string();
+    String pe = dvs.getString("period").string();
     JsonValue aoc = dvs.get("attributeOptionCombo");
-    String aocId = aoc.isObject() ? null : text(aoc);
+    String aocId = aoc.isObject() ? null : aoc.as(JsonString.class).string();
     Map<String, String> aocMap = textMap(aoc);
     Boolean dryRun = bool(dvs.get("dryRun"));
     if (dryRun != null) options.setDryRun(dryRun);
-    setIdSchemes(schemes, name -> text(dvs.get(name)));
+    setIdSchemes(schemes, name -> dvs.getString(name).string());
     DataEntryGroup.Input.Scope deletion = deletionScope(dvs.get("deletion"));
 
     // values...
@@ -277,16 +277,16 @@ public final class DataEntryInput {
       JsonValue coc = dv.get("categoryOptionCombo");
       values.add(
           new DataEntryValue.Input(
-              text(dv.get("dataElement")),
-              text(dv.get("orgUnit")),
-              coc.isObject() ? null : text(coc),
+              dv.getString("dataElement").string(),
+              dv.getString("orgUnit").string(),
+              coc.isObject() ? null : coc.as(JsonString.class).string(),
               textMap(coc),
-              text(dv.get("attributeOptionCombo")),
+              dv.getString("attributeOptionCombo").string(),
               null,
               null,
-              text(dv.get("period")),
-              text(dv.get("value")),
-              text(dv.get("comment")),
+              dv.getString("period").string(),
+              dv.getString("value").string(),
+              dv.getString("comment").string(),
               bool(firstDefined(dv, "followUp", "followup")),
               bool(dv.get("deleted"))));
     }
@@ -332,32 +332,14 @@ public final class DataEntryInput {
                 e ->
                     new DataEntryGroup.Input.Scope.Element(
                         requiredText(e.get("dataElement")),
-                        text(e.get("categoryOptionCombo")),
-                        text(e.get("attributeOptionCombo"))))
+                        e.getString("categoryOptionCombo").string(),
+                        e.getString("attributeOptionCombo").string()))
             .toList());
-  }
-
-  /**
-   * Up to 2.42 the JSON input was mapped by Jackson which accepted any JSON scalar for a {@link
-   * String} property. Clients depend on this, for example by sending {@code "value": 5} or numeric
-   * codes, so numbers and booleans are accepted as their JSON text.
-   *
-   * @return the text of a JSON scalar or null if the value is undefined or JSON null
-   * @throws IllegalArgumentException if the value is an object or array
-   */
-  @CheckForNull
-  private static String text(@Nonnull JsonValue value) {
-    if (value.isUndefined() || value.isNull()) return null;
-    if (value.isString()) return value.as(JsonString.class).string();
-    if (value.isNumber() || value.isBoolean()) return value.toJson();
-    throw new IllegalArgumentException(
-        "Property `%s` must be a string, number or boolean but was: %s"
-            .formatted(value.path(), value.type()));
   }
 
   @Nonnull
   private static String requiredText(@Nonnull JsonValue value) {
-    String text = text(value);
+    String text = value.as(JsonString.class).string();
     if (text == null)
       throw new IllegalArgumentException("Property `%s` is required".formatted(value.path()));
     return text;
@@ -396,7 +378,7 @@ public final class DataEntryInput {
   private static Map<String, String> textMap(@Nonnull JsonValue value) {
     if (!value.isObject()) return null;
     Map<String, String> res = new LinkedHashMap<>();
-    for (JsonMixed e : value.asObject().entries()) res.put(e.getKey().toString(), text(e));
+    for (JsonMixed e : value.asObject().entries()) res.put(e.getKey().toString(), e.string());
     return res;
   }
 

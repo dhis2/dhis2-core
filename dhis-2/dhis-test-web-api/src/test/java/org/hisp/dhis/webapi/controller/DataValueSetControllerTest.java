@@ -156,7 +156,7 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
     String summary =
         runAsyncImport("{\"dataValues\":[{\"value\":{}}]}", MediaType.APPLICATION_JSON_VALUE);
     assertStartsWith(
-        "Data value import error: Property `.dataValues.0.value` must be a string, number or boolean",
+        "Data value import error: OBJECT node at path .dataValues.0.value is not a STRING",
         summary);
   }
 
