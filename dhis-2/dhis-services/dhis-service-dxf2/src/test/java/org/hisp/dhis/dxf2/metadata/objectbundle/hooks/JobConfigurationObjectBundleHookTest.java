@@ -162,7 +162,7 @@ class JobConfigurationObjectBundleHookTest {
 
   private static JobConfiguration monitoringJob(boolean replaceResults, String executedBy) {
     MonitoringJobParameters parameters = new MonitoringJobParameters();
-    parameters.setPersistResults(true);
+    parameters.setPersistResults(!replaceResults);
     parameters.setReplaceResults(replaceResults);
     JobConfiguration jobConfiguration = new JobConfiguration();
     jobConfiguration.setUid("monitorJob1");
@@ -191,6 +191,16 @@ class JobConfigurationObjectBundleHookTest {
     List<ErrorReport> errorReports = hook.validate(monitoringJob(true, "userUid0001"), null);
     assertEquals(1, errorReports.size());
     assertEquals(ErrorCode.E7008, errorReports.get(0).getErrorCode());
+  }
+
+  @Test
+  void validateMonitoringJobRejectsPersistAndReplace() {
+    JobConfiguration jobConfiguration = monitoringJob(true, null);
+    ((MonitoringJobParameters) jobConfiguration.getJobParameters()).setPersistResults(true);
+
+    List<ErrorReport> errorReports = hook.validate(jobConfiguration, null);
+    assertEquals(1, errorReports.size());
+    assertEquals(ErrorCode.E4025, errorReports.get(0).getErrorCode());
   }
 
   @Test

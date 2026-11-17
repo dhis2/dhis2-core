@@ -105,7 +105,7 @@ class MonitoringJobTest {
 
   @Test
   void testReplaceRunHasNoResultLimit() {
-    ValidationAnalysisParams params = run(true, true);
+    ValidationAnalysisParams params = run(false, true);
     assertTrue(params.isReplacePersistedResults());
     assertEquals(Integer.MAX_VALUE, params.getMaxResults());
   }
@@ -118,9 +118,9 @@ class MonitoringJobTest {
   }
 
   @Test
-  void testReplaceIgnoredWithoutPersist() {
+  void testReplaceImpliesPersist() {
     ValidationAnalysisParams params = run(false, true);
-    assertFalse(params.isReplacePersistedResults());
-    assertEquals(ValidationService.MAX_SCHEDULED_ALERTS, params.getMaxResults());
+    assertTrue(params.isPersistResults());
+    assertTrue(params.isReplacePersistedResults());
   }
 }

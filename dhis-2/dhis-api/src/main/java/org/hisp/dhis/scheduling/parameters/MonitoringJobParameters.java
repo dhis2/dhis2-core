@@ -67,9 +67,10 @@ public class MonitoringJobParameters implements JobParameters {
   @JsonProperty private boolean persistResults;
 
   /**
-   * When persisting results, replace the persisted results of the job's rules and periods with the
+   * Persist results, replacing the persisted results of the job's rules and periods with the
    * current violations: violations that no longer occur are removed, ongoing ones are kept with
-   * their notification state, new ones are added. Without it, persisted results only ever grow.
+   * their notification state, new ones are added. With {@link #persistResults} instead, persisted
+   * results are only added and updated. The two cannot be used together ({@code E4025}).
    *
    * <p>A replacing job must run as the system user (no {@code executedBy}), see {@code E7008}.
    */
@@ -107,6 +108,12 @@ public class MonitoringJobParameters implements JobParameters {
       return Optional.of(
           new ErrorReport(
               this.getClass(), ErrorCode.E4014, invalidUIDs.get(0), "validationRuleGroups"));
+    }
+
+    // replacing persists too; both together suggests an append-only run that would delete
+    if (persistResults && replaceResults) {
+      return Optional.of(
+          new ErrorReport(this.getClass(), ErrorCode.E4025, "persistResults", "replaceResults"));
     }
 
     return Optional.empty();

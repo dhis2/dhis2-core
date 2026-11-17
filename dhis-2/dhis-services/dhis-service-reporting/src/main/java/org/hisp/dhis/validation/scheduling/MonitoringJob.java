@@ -94,7 +94,8 @@ public class MonitoringJob implements Job {
               ps -> rules.stream().map(IdentifiableObject::getName).collect(joining(", ")),
               () -> getPeriods(params, rules));
 
-      boolean replace = params.isPersistResults() && params.isReplaceResults();
+      // replacing persists too
+      boolean replace = params.isReplaceResults();
       ValidationAnalysisParams parameters =
           validationService
               .newParamsBuilder(rules, null, periods)
@@ -103,7 +104,7 @@ public class MonitoringJob implements Job {
               // a truncated run could not remove resolved violations.
               .withMaxResults(replace ? Integer.MAX_VALUE : ValidationService.MAX_SCHEDULED_ALERTS)
               .withSendNotifications(params.isSendNotifications())
-              .withPersistResults(params.isPersistResults())
+              .withPersistResults(params.isPersistResults() || replace)
               .withReplacePersistedResults(replace)
               .build();
 
