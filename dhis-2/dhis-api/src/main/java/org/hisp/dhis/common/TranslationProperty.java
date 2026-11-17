@@ -70,7 +70,7 @@ public class TranslationProperty implements Serializable {
    * deserialization does not run initializers of transient fields, so a deserialized copy (like the
    * grid clone of the analytics cache) would have a null cache.
    */
-  @Transient protected final Map<String, String> translationCache = new ConcurrentHashMap<>();
+  @Transient private final Map<String, String> translationCache = new ConcurrentHashMap<>();
 
   // -------------------------------------------------------------------------
   // Getters and setters
