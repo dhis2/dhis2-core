@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -189,6 +189,27 @@ class ValidationNotificationServiceTest extends TestBase {
         10,
         StringUtils.countMatches(text, STATIC_MOCK_SUBJECT),
         "Wrong number of messages in the summarized message");
+  }
+
+  @Test
+  void testResultsOfSameNamedOrgUnitsAreAllNotified() {
+    setUpEntitiesA();
+    OrganisationUnit twin = createOrganisationUnit('B');
+    twin.setName(orgUnitA.getName());
+    orgUnitA.setId(1);
+    twin.setId(2);
+    // results of a persisting run are not persisted entities: no id
+    ValidationResult resultA = createValidationResultA();
+    resultA.setId(0);
+    ValidationResult resultTwin = createValidationResultA();
+    resultTwin.setOrganisationUnit(twin);
+    resultTwin.setId(0);
+
+    subject.sendNotifications(Set.of(resultA, resultTwin), JobProgress.noop());
+
+    assertEquals(1, sentMessages.size());
+    assertEquals(
+        2, StringUtils.countMatches(sentMessages.iterator().next().text, STATIC_MOCK_SUBJECT));
   }
 
   @Test
