@@ -254,12 +254,6 @@ public class DataValidationRunner {
         Double leftSide,
         Double rightSide,
         Consumer<ValidationResult> addResult) {
-      // Skipping any results we already know
-      if (context.skipValidationOfTuple(
-          orgUnit, rule, period, optionCombo, periodService.getDayInPeriod(period, new Date()))) {
-        return;
-      }
-
       boolean violation = isViolation(rule, leftSide, rightSide);
 
       if (violation && !context.isAnalysisComplete()) {
