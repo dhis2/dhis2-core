@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.aggregate;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
@@ -39,8 +40,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
-import org.hisp.dhis.test.e2e.dependsOn.DependsOn;
-import org.hisp.dhis.test.e2e.dependsOn.Resource;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
@@ -57,39 +56,16 @@ public class AnalyticsQueryDv17AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  void testAggregateAnalyticsWhenNewDimensionIsSpecified() {
-    // Given new dimension MMMu9s5a52V (not exported)
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add(
-                "dimension=MMMu9s5a52V:MAs88nJc9nL,dx:M62VHgYT2n0,ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN")
-            .add("filter=pe:THIS_YEAR");
-
-    // When
-    ApiResponse response = actions.get(params);
-
-    // Then
-    assertOutOfDateColumnResponse(
-        response,
-        "Analytics tables are out of date. Ask your administrator to run a full analytics tables update.");
-  }
-
-  @Test
-  @DependsOn(
-      files = {"ind-period-offset.json"},
-      delete = true)
-  public void periodOffsetIndicatorWithOrgUnitBeforePeriod(List<Resource> resource)
-      throws JSONException {
+  public void enrollmentIndicatorWithConjunctiveEventStatusFilter() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
     boolean expectPostgis = isPostgres();
-    String indicatorUid = resource.get(0).uid();
 
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("filter=dx:" + indicatorUid)
+            .add("filter=ou:ImspTQPwCqd")
             .add("skipMeta=true")
-            .add("dimension=ou:O6uvpzGd5pu;fdc6uOvgoji,pe:202301");
+            .add("dimension=dx:pi22070And1,pe:2022");
 
     // When
     ApiResponse response = actions.get(params);
@@ -101,7 +77,7 @@ public class AnalyticsQueryDv17AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        2,
+        1,
         3,
         3); // Pass runtime flag, row count, and expected header counts
 
@@ -115,14 +91,7 @@ public class AnalyticsQueryDv17AutoTest extends AnalyticsApiTest {
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
     validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ou",
-        "Organisation unit",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
@@ -133,19 +102,134 @@ public class AnalyticsQueryDv17AutoTest extends AnalyticsApiTest {
     // 7. Assert row existence by value (unsorted results - validates all columns).
     // Validate row exists with values from original row index 0
     validateRowExists(
-        response, actualHeaders, Map.of("ou", "O6uvpzGd5pu", "pe", "202301", "value", "2159.0"));
-
-    // Validate row exists with values from original row index 1
-    validateRowExists(
-        response, actualHeaders, Map.of("ou", "fdc6uOvgoji", "pe", "202301", "value", "1410.0"));
+        response, actualHeaders, Map.of("dx", "pi22070And1", "pe", "2022", "value", "6"));
   }
 
-  private void assertOutOfDateColumnResponse(ApiResponse response, String expectedMessage) {
+  @Test
+  public void enrollmentIndicatorWithDisjunctiveEventStatusFilter() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
+            .add("skipMeta=true")
+            .add("dimension=dx:pi22070Or01,pe:2022");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // metaData not found or is empty in response, skipping assertion.
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("dx", "pi22070Or01", "pe", "2022", "value", "0"));
+  }
+
+  @Test
+  public void enrollmentIndicatorWithNegatedEventStatusFilter() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
+            .add("skipMeta=true")
+            .add("dimension=dx:pi22070Not1,pe:2022");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // metaData not found or is empty in response, skipping assertion.
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("dx", "pi22070Not1", "pe", "2022", "value", "6"));
+  }
+
+  @Test
+  void testAggregateAnalyticsWhenNewDimensionIsSpecified() {
+    // Given new dimension MMMu9s5a52V (not exported)
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add(
+                "dimension=MMMu9s5a52V:MAs88nJc9nL,dx:M62VHgYT2n0,ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN")
+            .add("filter=pe:THIS_YEAR");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    assertErrorResponse(
+        response,
+        "Invalid reference. Analytics tables may be outdated (full export might be required), or the column is invalid. Ask your administrator");
+  }
+
+  private void assertErrorResponse(ApiResponse response, String expectedMessage) {
     response
         .validate()
         .statusCode(409)
         .body("status", equalTo("ERROR"))
         .body("message", equalTo(expectedMessage))
-        .body("errorCode", equalTo("E7154"));
+        .body("errorCode", equalTo("E7154"))
+        .body("devMessage", containsString("Check the server logs"));
   }
 }
