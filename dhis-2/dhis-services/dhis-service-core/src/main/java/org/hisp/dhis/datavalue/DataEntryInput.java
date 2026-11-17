@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -54,11 +56,15 @@ import org.hisp.dhis.dxf2.adx.AdxPeriod;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonAccessException;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonPathException;
 import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.JsonTreeException;
+import org.hisp.staxwax.XMLException;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
 
@@ -74,9 +80,15 @@ public final class DataEntryInput {
 
   @Nonnull
   public static List<DataEntryGroup.Input> fromCsv(
-      @Nonnull InputStream in, @Nonnull ImportOptions options) throws IOException {
-    List<DataEntryValue.Input> values =
-        CSV.of(wrapAndCheckCompressionFormat(in)).as(DataEntryValue.Input.class).list();
+      @Nonnull InputStream in, @Nonnull ImportOptions options)
+      throws IOException, BadRequestException {
+    List<DataEntryValue.Input> values;
+    try {
+      values = CSV.of(wrapAndCheckCompressionFormat(in)).as(DataEntryValue.Input.class).list();
+    } catch (IllegalArgumentException ex) {
+      // CSV reports all input problems as IllegalArgumentException
+      throw new BadRequestException(ErrorCode.E8036, ex.getMessage());
+    }
     String ds = options.getDataSet();
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
     return List.of(new DataEntryGroup.Input(ids, ds, values));
@@ -100,7 +112,8 @@ public final class DataEntryInput {
         }
       }
       throw new BadRequestException(ErrorCode.E8007, "No root tag found");
-    } catch (XMLStreamException ex) {
+    } catch (XMLStreamException | XMLException ex) {
+      // XMLException: staxwax wraps parse errors that occur while reading the values
       throw new BadRequestException(ErrorCode.E8007, ex.getMessage());
     }
   }
@@ -229,15 +242,32 @@ public final class DataEntryInput {
 
   @Nonnull
   public static List<DataEntryGroup.Input> fromJson(
-      @Nonnull InputStream in, @Nonnull ImportOptions options) throws IOException {
+      @Nonnull InputStream in, @Nonnull ImportOptions options)
+      throws IOException, BadRequestException {
+    byte[] json = wrapAndCheckCompressionFormat(in).readAllBytes();
+    try {
+      return fromJson(
+          JsonMixed.of(JsonNode.of(json, StandardCharsets.UTF_8, null, JsonNode.Index.AUTO_SKIP)), options);
+    } catch (JsonTreeException
+        | JsonPathException
+        | JsonAccessException
+        | IllegalArgumentException ex) {
+      // JsonFormatException and JsonSchemaException are IllegalArgumentExceptions,
+      // so are invalid ID schemes
+      throw new BadRequestException(ErrorCode.E8036, ex.getMessage());
+    }
+  }
+
+  @Nonnull
+  private static List<DataEntryGroup.Input> fromJson(
+      @Nonnull JsonMixed root, @Nonnull ImportOptions options) {
+    // the index is built lazily, this checks the syntax of the entire document so that
+    // incomplete input (e.g. a lone "{") and trailing content after the root are rejected
+    root.node().endIndex();
+    if (!root.isObject())
+      throw new IllegalArgumentException("Root must be an object but was: " + root.type());
+    JsonObject dvs = root.asObject();
     IdSchemes schemes = options.getIdSchemes();
-    JsonObject dvs =
-        JsonMixed.of(
-            JsonNode.of(
-                wrapAndCheckCompressionFormat(in).readAllBytes(),
-                StandardCharsets.UTF_8,
-                null,
-                JsonNode.Index.AUTO_SKIP));
     String ds = dvs.getString("dataSet").string();
     String completionDate = dvs.getString("completeDate").string();
     // keys that are common for all values
@@ -249,40 +279,8 @@ public final class DataEntryInput {
         aoc.isObject() ? aoc.asMap(JsonString.class).toMap(JsonString::string) : null;
     Boolean dryRun = dvs.getBoolean("dryRun").bool();
     if (dryRun != null) options.setDryRun(dryRun);
-    // ID schemes
-    if (!dvs.get("idScheme").isUndefined()) schemes.setIdScheme(dvs.getString("idScheme").string());
-    if (!dvs.get("dataSetIdScheme").isUndefined())
-      schemes.setDataSetIdScheme(dvs.getString("dataSetIdScheme").string());
-    if (!dvs.get("dataElementIdScheme").isUndefined())
-      schemes.setDataElementIdScheme(dvs.getString("dataElementIdScheme").string());
-    if (!dvs.get("orgUnitIdScheme").isUndefined())
-      schemes.setOrgUnitIdScheme(dvs.getString("orgUnitIdScheme").string());
-    if (!dvs.get("categoryOptionComboIdScheme").isUndefined())
-      schemes.setCategoryOptionComboIdScheme(dvs.getString("categoryOptionComboIdScheme").string());
-    if (!dvs.get("attributeOptionComboIdScheme").isUndefined())
-      schemes.setAttributeOptionComboIdScheme(
-          dvs.getString("attributeOptionComboIdScheme").string());
-    if (!dvs.get("categoryIdScheme").isUndefined())
-      schemes.setCategoryIdScheme(dvs.getString("categoryIdScheme").string());
-    if (!dvs.get("categoryOptionIdScheme").isUndefined())
-      schemes.setCategoryOptionIdScheme(dvs.getString("categoryOptionIdScheme").string());
-
-    // deletion scope
-    DataEntryGroup.Input.Scope deletion = null;
-    if (!dvs.get("deletion").isUndefined()) {
-      JsonObject del = dvs.getObject("deletion");
-      deletion =
-          new DataEntryGroup.Input.Scope(
-              del.getArray("orgUnits").stringValues(),
-              del.getArray("periods").stringValues(),
-              del.getList("elements", JsonObject.class)
-                  .toList(
-                      e ->
-                          new DataEntryGroup.Input.Scope.Element(
-                              e.getString("dataElement").string(),
-                              e.getString("categoryOptionCombo").string(),
-                              e.getString("attributeOptionCombo").string())));
-    }
+    setIdSchemes(schemes, dvs);
+    DataEntryGroup.Input.Scope deletion = deletionScope(dvs);
 
     // values...
     List<DataEntryValue.Input> values = new ArrayList<>();
@@ -315,6 +313,38 @@ public final class DataEntryInput {
     return List.of(
         new DataEntryGroup.Input(
             ids, ds, completionDate, null, ou, pe, aocId, aocMap, deletion, values));
+  }
+
+  private static void setIdSchemes(@Nonnull IdSchemes schemes, @Nonnull JsonObject dvs) {
+    setIdScheme(dvs, "idScheme", schemes::setIdScheme);
+    setIdScheme(dvs, "dataSetIdScheme", schemes::setDataSetIdScheme);
+    setIdScheme(dvs, "dataElementIdScheme", schemes::setDataElementIdScheme);
+    setIdScheme(dvs, "orgUnitIdScheme", schemes::setOrgUnitIdScheme);
+    setIdScheme(dvs, "categoryOptionComboIdScheme", schemes::setCategoryOptionComboIdScheme);
+    setIdScheme(dvs, "attributeOptionComboIdScheme", schemes::setAttributeOptionComboIdScheme);
+    setIdScheme(dvs, "categoryIdScheme", schemes::setCategoryIdScheme);
+    setIdScheme(dvs, "categoryOptionIdScheme", schemes::setCategoryOptionIdScheme);
+  }
+
+  private static void setIdScheme(
+      @Nonnull JsonObject dvs, @Nonnull String name, @Nonnull Consumer<String> setter) {
+    if (!dvs.get(name).isUndefined()) setter.accept(dvs.getString(name).string());
+  }
+
+  @CheckForNull
+  private static DataEntryGroup.Input.Scope deletionScope(@Nonnull JsonObject dvs) {
+    if (dvs.get("deletion").isUndefined()) return null;
+    JsonObject del = dvs.getObject("deletion");
+    return new DataEntryGroup.Input.Scope(
+        del.getArray("orgUnits").stringValues(),
+        del.getArray("periods").stringValues(),
+        del.getList("elements", JsonObject.class)
+            .toList(
+                e ->
+                    new DataEntryGroup.Input.Scope.Element(
+                        e.getString("dataElement").string(),
+                        e.getString("categoryOptionCombo").string(),
+                        e.getString("attributeOptionCombo").string())));
   }
 
   @Nonnull
