@@ -42,10 +42,19 @@ import static org.hisp.dhis.expression.Operator.less_than;
 import static org.hisp.dhis.expression.Operator.less_than_or_equal_to;
 import static org.hisp.dhis.expression.Operator.not_equal_to;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.FAIL;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -91,9 +100,11 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -1817,6 +1828,174 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
 
     assertResultsEmpty(runValidationAnalysis(persistingParams(ruleA)));
     assertEquals(1, persistedResults(ruleA).size());
+  }
+
+  private List<ValidationResult> persistedResultsSourceAPeriodA() {
+    return validationResultService.getValidationResults(
+        sourceA, false, List.of(ruleA), List.of(periodA));
+  }
+
+  private ValidationAnalysisParams.Builder replacingParams() {
+    return validationService
+        .newParamsBuilder(List.of(ruleA), sourceA, List.of(periodA))
+        .withPersistResults(true)
+        .withReplacePersistedResults(true);
+  }
+
+  @Test
+  void testReplaceRemovesResolvedViolation() {
+    persistViolationThenFixData();
+    assertEquals(1, persistedResultsSourceAPeriodA().size());
+
+    assertResultsEmpty(runValidationAnalysis(replacingParams().build()));
+    assertTrue(persistedResultsSourceAPeriodA().isEmpty());
+  }
+
+  @Test
+  void testReplaceKeepsOngoingViolationWithNotificationState() {
+    useDataValue(dataElementA, periodA, sourceA, "1");
+    useDataValue(dataElementB, periodA, sourceA, "2");
+    useDataValue(dataElementC, periodA, sourceA, "3");
+    useDataValue(dataElementD, periodA, sourceA, "4");
+    validationRuleService.saveValidationRule(ruleA);
+    runValidationAnalysis(replacingParams().build());
+    List<ValidationResult> first = persistedResultsSourceAPeriodA();
+    assertEquals(1, first.size());
+    ValidationResult original = first.get(0);
+    original.setNotificationSent(true);
+    validationResultService.updateValidationResults(Set.of(original));
+
+    // still violated (3 != 0), with a different right side
+    useDataValue(dataElementC, periodA, sourceA, "4");
+    runValidationAnalysis(replacingParams().build());
+
+    List<ValidationResult> second = persistedResultsSourceAPeriodA();
+    assertEquals(1, second.size());
+    assertEquals(original.getId(), second.get(0).getId());
+    assertTrue(second.get(0).getNotificationSent());
+    assertEquals(0.0, second.get(0).getRightsideValue());
+  }
+
+  @Test
+  void testReplaceAbortsOnFailingChunk() {
+    // event data is fetched through analytics, which fails without analytics tables
+    Program program = createProgram('A');
+    programService.addProgram(program);
+    ValidationRule rule =
+        createValidationRule(
+            "I",
+            equal_to,
+            createExpression2('I', "D{" + program.getUid() + "." + dataElementA.getUid() + "}"),
+            createExpression2('J', "1"),
+            ptMonthly);
+    validationRuleService.saveValidationRule(rule);
+    validationResultService.saveValidationResults(
+        List.of(
+            createValidationResult(rule, periodA, sourceA, defaultCombo, 2.0, 1.0, dayInPeriodA)));
+    ValidationAnalysisParams params =
+        validationService
+            .newParamsBuilder(List.of(rule), sourceA, List.of(periodA))
+            .withPersistResults(true)
+            .withReplacePersistedResults(true)
+            .build();
+
+    // treating the failure as missing data would remove a violation that was never evaluated;
+    // the failure surfaces as is (one chunk) or as a cancellation (parallel chunks)
+    JobProgress progress = RecordingJobProgress.transitory();
+    assertThrows(
+        RuntimeException.class, () -> validationService.validationAnalysis(params, progress));
+    assertEquals(
+        1,
+        validationResultService
+            .getValidationResults(sourceA, false, List.of(rule), List.of(periodA))
+            .size());
+  }
+
+  @Test
+  void testReplaceUsesFailPolicyForChunks() {
+    persistViolationThenFixData();
+    JobProgress progress = mock(JobProgress.class, CALLS_REAL_METHODS);
+
+    validationService.validationAnalysis(replacingParams().build(), progress);
+
+    verify(progress).startingStage(startsWith("Evaluating validation rules"), anyInt(), eq(FAIL));
+  }
+
+  @Test
+  void testPersistWithoutReplaceSkipsFailingChunk() {
+    persistViolationThenFixData();
+    JobProgress progress = mock(JobProgress.class, CALLS_REAL_METHODS);
+
+    validationService.validationAnalysis(
+        validationService
+            .newParamsBuilder(List.of(ruleA), sourceA, List.of(periodA))
+            .withPersistResults(true)
+            .build(),
+        progress);
+
+    verify(progress)
+        .startingStage(startsWith("Evaluating validation rules"), anyInt(), eq(SKIP_ITEM_OUTLIER));
+  }
+
+  @Test
+  void testReplaceKeepsResolvedViolationWhenAnalysisIncomplete() {
+    persistViolationThenFixData();
+    // a result limit of 0 marks the analysis as incomplete
+    runValidationAnalysis(replacingParams().withMaxResults(0).build());
+    assertEquals(1, persistedResultsSourceAPeriodA().size());
+  }
+
+  @Test
+  void testUserDimensionConstraintsIgnoredWhenDisabled() {
+    useDataValue(dataElementA, periodA, sourceA, "1");
+    useDataValue(dataElementB, periodA, sourceA, "2");
+    useDataValue(dataElementC, periodA, sourceA, "3");
+    useDataValue(dataElementD, periodA, sourceA, "4");
+    validationRuleService.saveValidationRule(ruleA);
+
+    // constrain the current user to a category whose options do not include the default option
+    CategoryOption optionZ = createCategoryOption('Z');
+    Category categoryZ = createCategory('Z', optionZ);
+    categoryService.addCategoryOption(optionZ);
+    categoryService.addCategory(categoryZ);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    currentUser.getCatDimensionConstraints().add(categoryZ);
+    userService.updateUser(currentUser);
+
+    ValidationAnalysisParams constrained =
+        validationService.newParamsBuilder(List.of(ruleA), sourceA, List.of(periodA)).build();
+    assertResultsEmpty(runValidationAnalysis(constrained));
+
+    ValidationAnalysisParams unconstrained =
+        validationService
+            .newParamsBuilder(List.of(ruleA), sourceA, List.of(periodA))
+            .withApplyUserDimensionConstraints(false)
+            .build();
+    Collection<ValidationResult> reference = new HashSet<>();
+    reference.add(
+        new ValidationResult(ruleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA));
+    assertResultsEquals(reference, runValidationAnalysis(unconstrained));
+  }
+
+  @Test
+  void testReplaceKeepsNotificationStateOfOngoingViolationFromEarlierDay() {
+    useDataValue(dataElementA, periodA, sourceA, "1");
+    useDataValue(dataElementB, periodA, sourceA, "2");
+    useDataValue(dataElementC, periodA, sourceA, "3");
+    useDataValue(dataElementD, periodA, sourceA, "4");
+    validationRuleService.saveValidationRule(ruleA);
+    // the same violation, persisted and notified on an earlier day of the period
+    ValidationResult earlier =
+        new ValidationResult(ruleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA - 1);
+    earlier.setNotificationSent(true);
+    validationResultService.saveValidationResults(List.of(earlier));
+
+    runValidationAnalysis(replacingParams().build());
+
+    List<ValidationResult> persisted = persistedResultsSourceAPeriodA();
+    assertEquals(1, persisted.size());
+    assertEquals(dayInPeriodA, persisted.get(0).getDayInPeriod());
+    assertTrue(persisted.get(0).getNotificationSent());
   }
 
   private List<ValidationResult> runValidationAnalysis(ValidationAnalysisParams params) {

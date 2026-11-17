@@ -92,6 +92,14 @@ public class ValidationRunContext {
 
   @lombok.Builder.Default private boolean persistResults = false;
 
+  /**
+   * Whether a failing analytics query fails the evaluation of the org units instead of being
+   * treated as missing data. Needed when persisted results are replaced, where missing data would
+   * remove violations that were never evaluated. A query rejected by analytics validation is still
+   * treated as missing data, since it is rejected the same way on every run.
+   */
+  @lombok.Builder.Default private boolean failOnAnalyticsError = false;
+
   // -------------------------------------------------------------------------
   // Return expression details if requested
   // -------------------------------------------------------------------------
@@ -120,6 +128,7 @@ public class ValidationRunContext {
       int maxResults,
       boolean sendNotifications,
       boolean persistResults,
+      boolean failOnAnalyticsError,
       ValidationRuleExpressionDetails validationRuleExpressionDetails) {
     this.orgUnits = orgUnits;
     this.periodTypeXs = periodTypeXs;
@@ -132,6 +141,7 @@ public class ValidationRunContext {
     this.maxResults = maxResults;
     this.sendNotifications = sendNotifications;
     this.persistResults = persistResults;
+    this.failOnAnalyticsError = failOnAnalyticsError;
     this.validationRuleExpressionDetails = validationRuleExpressionDetails;
 
     requireNonNull(periodTypeXs, "Missing required property 'periodTypeXs'");

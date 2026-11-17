@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,13 +94,18 @@ public class MonitoringJob implements Job {
               ps -> rules.stream().map(IdentifiableObject::getName).collect(joining(", ")),
               () -> getPeriods(params, rules));
 
+      // replacing persists too
+      boolean replace = params.isReplaceResults();
       ValidationAnalysisParams parameters =
           validationService
               .newParamsBuilder(rules, null, periods)
               .withIncludeOrgUnitDescendants(true)
-              .withMaxResults(ValidationService.MAX_SCHEDULED_ALERTS)
+              // Replacing persisted results needs every violation, so no limit applies:
+              // a truncated run could not remove resolved violations.
+              .withMaxResults(replace ? Integer.MAX_VALUE : ValidationService.MAX_SCHEDULED_ALERTS)
               .withSendNotifications(params.isSendNotifications())
-              .withPersistResults(params.isPersistResults())
+              .withPersistResults(params.isPersistResults() || replace)
+              .withReplacePersistedResults(replace)
               .build();
 
       validationService.validationAnalysis(parameters, progress);

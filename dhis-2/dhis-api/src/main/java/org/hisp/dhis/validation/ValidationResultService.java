@@ -112,4 +112,32 @@ public interface ValidationResultService {
    * @param validationResults the violations found by the analysis
    */
   void upsertValidationResults(Collection<ValidationResult> validationResults);
+
+  /**
+   * Brings the persisted results of the given scope in line with the results of an analysis of that
+   * scope.
+   *
+   * <ul>
+   *   <li>Results are upserted as by {@link #upsertValidationResults(Collection)}. A violation that
+   *       was already notified for the same rule, period, org unit and attribute option combo on an
+   *       earlier day of the period keeps that notification state.
+   *   <li>If {@code removeResolved} is true, persisted results of the scope that the analysis did
+   *       not find are deleted: resolved violations, and earlier days of ongoing violations. Pass
+   *       false when the analysis was incomplete.
+   * </ul>
+   *
+   * @param orgUnit the root of the analysed org units, or null for all org units
+   * @param includeOrgUnitDescendants whether the descendants of {@code orgUnit} were analysed
+   * @param validationRules the analysed rules
+   * @param periods the analysed periods
+   * @param currentResults the violations found by the analysis
+   * @param removeResolved whether to delete persisted results that were not found
+   */
+  void replaceValidationResults(
+      OrganisationUnit orgUnit,
+      boolean includeOrgUnitDescendants,
+      Collection<ValidationRule> validationRules,
+      Collection<Period> periods,
+      Collection<ValidationResult> currentResults,
+      boolean removeResolved);
 }

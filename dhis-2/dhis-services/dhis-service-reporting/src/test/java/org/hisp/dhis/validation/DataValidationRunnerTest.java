@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,15 @@ import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.test.TestBase.createCategoryOptionCombo;
 import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createDataSet;
 import static org.hisp.dhis.test.TestBase.createDataValue;
 import static org.hisp.dhis.test.TestBase.createExpression2;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriod;
 import static org.hisp.dhis.test.TestBase.createValidationRule;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -49,9 +53,12 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.RandomUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -61,6 +68,7 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.Operator;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -214,6 +222,58 @@ class DataValidationRunnerTest {
     subject.run(organisationUnits, ctx);
 
     assertThat(ctx.getValidationResults().size(), is(0));
+  }
+
+  @Test
+  void verifyAnalyticsErrorTreatedAsMissingDataByDefault() {
+    ValidationRunContext ctx = createAnalyticsRuleContext(false);
+    when(analyticsService.getAggregatedDataValues(any(DataQueryParams.class)))
+        .thenThrow(new IllegalStateException("analytics table missing"));
+
+    subject.run(organisationUnits, ctx);
+
+    assertTrue(ctx.getValidationResults().isEmpty());
+  }
+
+  @Test
+  void verifyAnalyticsErrorFailsRunWhenRequested() {
+    ValidationRunContext ctx = createAnalyticsRuleContext(true);
+    IllegalStateException error = new IllegalStateException("analytics table missing");
+    when(analyticsService.getAggregatedDataValues(any(DataQueryParams.class))).thenThrow(error);
+
+    assertSame(
+        error,
+        assertThrows(IllegalStateException.class, () -> subject.run(organisationUnits, ctx)));
+  }
+
+  @Test
+  void verifyRejectedAnalyticsQueryTreatedAsMissingDataWhenFailRequested() {
+    ValidationRunContext ctx = createAnalyticsRuleContext(true);
+    when(analyticsService.getAggregatedDataValues(any(DataQueryParams.class)))
+        .thenThrow(new IllegalQueryException(ErrorCode.E7112, "PERIOD"));
+
+    subject.run(organisationUnits, ctx);
+
+    assertTrue(ctx.getValidationResults().isEmpty());
+  }
+
+  /** A context with one rule on a reporting rate, which is fetched through analytics. */
+  private ValidationRunContext createAnalyticsRuleContext(boolean failOnAnalyticsError) {
+    ValidationRuleExtended vre =
+        createValidationRuleExtended(
+            createExpression2('A', "R{FUrCpcvMAmC.REPORTING_RATE}"),
+            createExpression2('B', "-10"),
+            Operator.not_equal_to);
+    PeriodTypeExtended periodType = createPeriodTypeExtended(vre);
+    periodType.getEventItemsWithoutAttributeOptions().add(new ReportingRate(createDataSet('A')));
+
+    return ValidationRunContext.newBuilder()
+        .withOrgUnits(organisationUnits)
+        .withDefaultAttributeCombo(createCategoryOptionCombo('A', 'B'))
+        .withPeriodTypeXs(List.of(periodType))
+        .withMaxResults(500)
+        .withFailOnAnalyticsError(failOnAnalyticsError)
+        .build();
   }
 
   private void mockExpressionService(

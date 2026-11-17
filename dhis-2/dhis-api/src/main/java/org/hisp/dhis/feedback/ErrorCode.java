@@ -508,6 +508,7 @@ public enum ErrorCode {
   E7005("Cron expression is invalid: `{0}`"),
   E7006("Failed to execute job: `{0}`"),
   E7007("Delay must be not null for job with scheduling type FIXED_DELAY: `{0}`"),
+  E7008("Monitoring job replacing results must run as the system user, remove executedBy: `{0}`"),
   E7010("Failed to validate job runtime: `{0}`"),
   E7020("Job queue does not exist: `{0}`"),
   E7021("Job queue already exist: `{0}`"),

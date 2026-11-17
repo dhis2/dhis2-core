@@ -148,15 +148,94 @@ public class DefaultValidationResultService implements ValidationResultService {
   @Transactional
   @Override
   public void upsertValidationResults(Collection<ValidationResult> validationResults) {
-    // results share few periods: reload each one once
+    reloadPeriods(validationResults);
+    validationResultStore.upsert(validationResults);
+  }
+
+  @Transactional
+  @Override
+  public void replaceValidationResults(
+      OrganisationUnit orgUnit,
+      boolean includeOrgUnitDescendants,
+      Collection<ValidationRule> validationRules,
+      Collection<Period> periods,
+      Collection<ValidationResult> currentResults,
+      boolean removeResolved) {
+    reloadPeriods(currentResults);
+    // read as rows, not entities: entities in the session would go stale with the native upsert
+    List<ValidationResultStore.Row> persisted =
+        validationResultStore.getRows(
+            orgUnit,
+            includeOrgUnitDescendants,
+            validationRules,
+            periodService.reloadPeriods(new ArrayList<>(periods)));
+
+    // an ongoing violation found on a later day of the period was already notified
+    Set<ViolationKey> notified =
+        persisted.stream()
+            .filter(ValidationResultStore.Row::notificationSent)
+            .map(ViolationKey::of)
+            .collect(toSet());
+    for (ValidationResult result : currentResults) {
+      if (notified.contains(ViolationKey.of(result))) {
+        result.setNotificationSent(true);
+      }
+    }
+
+    validationResultStore.upsert(currentResults);
+
+    if (!removeResolved) {
+      log.info(
+          "Replaced validation results: {} current, none removed (analysis incomplete)",
+          currentResults.size());
+      return;
+    }
+    Set<RowKey> found = currentResults.stream().map(RowKey::of).collect(toSet());
+    List<Long> stale =
+        persisted.stream()
+            .filter(row -> !found.contains(RowKey.of(row)))
+            .map(ValidationResultStore.Row::id)
+            .toList();
+    validationResultStore.deleteByIds(stale);
+    log.info(
+        "Replaced validation results: {} current, {} removed", currentResults.size(), stale.size());
+  }
+
+  /** Sets the persisted period on each result; results share few periods, each is loaded once. */
+  private void reloadPeriods(Collection<ValidationResult> results) {
     Map<String, Period> periods = new HashMap<>();
-    validationResults.forEach(
+    results.forEach(
         result ->
             result.setPeriod(
                 periods.computeIfAbsent(
                     result.getPeriod().getIsoDate(),
                     iso -> periodService.reloadPeriod(result.getPeriod()))));
-    validationResultStore.upsert(validationResults);
+  }
+
+  /** A violation, regardless of the day in the period on which it was found. */
+  private record ViolationKey(long rule, long period, long orgUnit, long attributeOptionCombo) {
+    static ViolationKey of(ValidationResult result) {
+      return new ViolationKey(
+          result.getValidationRule().getId(),
+          result.getPeriod().getId(),
+          result.getOrganisationUnit().getId(),
+          result.getAttributeOptionCombo().getId());
+    }
+
+    static ViolationKey of(ValidationResultStore.Row row) {
+      return new ViolationKey(row.rule(), row.period(), row.orgUnit(), row.attributeOptionCombo());
+    }
+  }
+
+  /** A persisted row: the violation and the day in the period on which it was found. */
+  private record RowKey(ViolationKey violation, int dayInPeriod) {
+    static RowKey of(ValidationResult result) {
+      return new RowKey(ViolationKey.of(result), result.getDayInPeriod());
+    }
+
+    static RowKey of(ValidationResultStore.Row row) {
+      return new RowKey(ViolationKey.of(row), row.dayInPeriod());
+    }
   }
 
   private void validate(ValidationResultsDeletionRequest request) {

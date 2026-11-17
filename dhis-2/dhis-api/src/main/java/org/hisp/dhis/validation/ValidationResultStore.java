@@ -59,9 +59,52 @@ public interface ValidationResultStore extends GenericStore<ValidationResult> {
   /**
    * Inserts the given results, or updates the left and right side values of a result already
    * persisted for the same rule, period, org unit, attribute option combo and day in the period.
-   * The notification state of an existing result is kept.
+   * The notification state of an existing result is kept; a new result is inserted with its own.
    *
    * @param validationResults the results, with persisted periods
    */
   void upsert(Collection<ValidationResult> validationResults);
+
+  /**
+   * Deletes the validation results with the given ids.
+   *
+   * @param ids the ids of the results to delete
+   */
+  void deleteByIds(Collection<Long> ids);
+
+  /**
+   * A persisted validation result, reduced to its key, id and notification state.
+   *
+   * @param id the id of the result
+   * @param rule the id of its validation rule
+   * @param period the id of its period
+   * @param orgUnit the id of its org unit
+   * @param attributeOptionCombo the id of its attribute option combo
+   * @param dayInPeriod the day in the period on which it was found
+   * @param notificationSent whether a notification was sent for it
+   */
+  record Row(
+      long id,
+      long rule,
+      long period,
+      long orgUnit,
+      long attributeOptionCombo,
+      int dayInPeriod,
+      boolean notificationSent) {}
+
+  /**
+   * Returns the persisted results of the given scope as {@link Row}s, without loading them as
+   * entities.
+   *
+   * @param orgUnit the root org unit, or null for all org units
+   * @param includeOrgUnitDescendants whether to include the descendants of {@code orgUnit}
+   * @param validationRules the rules
+   * @param periods the periods, which must be persisted
+   * @return the rows of the scope
+   */
+  List<Row> getRows(
+      OrganisationUnit orgUnit,
+      boolean includeOrgUnitDescendants,
+      Collection<ValidationRule> validationRules,
+      Collection<Period> periods);
 }

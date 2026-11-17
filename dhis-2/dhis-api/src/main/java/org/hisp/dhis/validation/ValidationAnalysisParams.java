@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,6 +72,10 @@ public final class ValidationAnalysisParams {
   private boolean persistResults = false;
 
   private int dayInPeriod = -1;
+
+  private boolean applyUserDimensionConstraints = true;
+
+  private boolean replacePersistedResults = false;
 
   /**
    * Gets the rules selected for analysis
@@ -160,6 +164,32 @@ public final class ValidationAnalysisParams {
     return maxResults;
   }
 
+  /**
+   * Gets whether the current user's category option and category option group dimension constraints
+   * are applied to the analysis. Defaults to true.
+   *
+   * @return true if the user's dimension constraints are applied, false if not.
+   */
+  public boolean isApplyUserDimensionConstraints() {
+    return applyUserDimensionConstraints;
+  }
+
+  /**
+   * Gets whether persisting replaces the persisted results of the analysed rules, periods and org
+   * units with the results of this analysis, instead of only adding new ones. Defaults to false.
+   *
+   * <p>When replacing, a failing org unit chunk aborts the analysis ({@link
+   * org.hisp.dhis.scheduling.JobProgress.FailurePolicy#FAIL}) instead of being skipped, so that
+   * persisted results are never replaced from partial results. The abort is carried out by the
+   * {@link org.hisp.dhis.scheduling.JobProgress} of the run; {@link
+   * org.hisp.dhis.scheduling.JobProgress#noop()} does not abort.
+   *
+   * @return true if persisted results are replaced.
+   */
+  public boolean isReplacePersistedResults() {
+    return replacePersistedResults;
+  }
+
   public static class Builder {
     private ValidationAnalysisParams params;
 
@@ -240,6 +270,36 @@ public final class ValidationAnalysisParams {
      */
     public Builder withMaxResults(int maxResults) {
       this.params.maxResults = maxResults;
+      return this;
+    }
+
+    /**
+     * If set to false, the current user's category option and category option group dimension
+     * constraints are not applied.
+     *
+     * @param applyUserDimensionConstraints true (default) to apply them, false if not.
+     * @return the updated builder object
+     */
+    public Builder withApplyUserDimensionConstraints(boolean applyUserDimensionConstraints) {
+      this.params.applyUserDimensionConstraints = applyUserDimensionConstraints;
+      return this;
+    }
+
+    /**
+     * If set to true (together with persisting results), the persisted results of the analysed
+     * rules, periods and org units are replaced by this analysis: resolved violations are removed.
+     * The current user's dimension constraints are then not applied, so the whole scope is
+     * evaluated.
+     *
+     * @param replacePersistedResults true to replace persisted results.
+     * @return the updated builder object
+     */
+    public Builder withReplacePersistedResults(boolean replacePersistedResults) {
+      this.params.replacePersistedResults = replacePersistedResults;
+      if (replacePersistedResults) {
+        // evaluate the whole scope: anything not evaluated would be removed as resolved
+        this.params.applyUserDimensionConstraints = false;
+      }
       return this;
     }
 

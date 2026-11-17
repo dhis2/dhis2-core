@@ -66,6 +66,7 @@ import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -628,6 +629,11 @@ public class DataValidationRunner {
         return map;
       } catch (RuntimeException ex) // Other error
       {
+        // A rejected query gives the same result on every run, any other error may not
+        if (context.isFailOnAnalyticsError() && !(ex instanceof IllegalQueryException)) {
+          throw ex;
+        }
+
         log.error(DebugUtils.getStackTrace(ex));
 
         return map;
