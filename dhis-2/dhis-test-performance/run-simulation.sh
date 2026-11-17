@@ -21,7 +21,7 @@ show_usage() {
   echo "                        Valid values: dev"
   echo "                        Pattern: s3://databases.dhis2.org/<dir>/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DB_TYPE               Database type (default: sierra-leone)"
-  echo "                        Valid values without DB_DIR: sierra-leone, hmis"
+  echo "                        Valid values without DB_DIR: sierra-leone, hmis, perfland-mnch"
   echo "                        Valid values with DB_DIR: platform-perf"
   echo "  DB_VERSION            Database version (default: dev)"
   echo "                        Must be alphanumeric, dots, hyphens, underscores only"
@@ -159,11 +159,11 @@ fi
 if [ -z "$DB_DIR" ]; then
   # No DB_DIR: only standard public databases are allowed
   case "$DB_TYPE" in
-    sierra-leone|hmis)
+    sierra-leone|hmis|perfland-mnch)
       # Valid
       ;;
     *)
-      echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis' when DB_DIR is not set, got: $DB_TYPE" >&2
+      echo "Error: DB_TYPE must be 'sierra-leone', 'hmis' or 'perfland-mnch' when DB_DIR is not set, got: $DB_TYPE" >&2
       echo "Set DB_DIR to use a custom database type" >&2
       echo "Run '$0' without arguments to see usage" >&2
       exit 1
@@ -263,6 +263,24 @@ get_compose_args() {
     args+=("-f" "$COMPOSE_EXTRA_FILE")
   fi
   echo "${args[@]}"
+}
+
+cpu_governor() {
+  cat /sys/devices/system/cpu/cpufreq/policy0/scaling_governor 2>/dev/null || echo 'unknown'
+}
+
+cpu_no_turbo() {
+  # Intel only, 1 means turbo is off
+  cat /sys/devices/system/cpu/intel_pstate/no_turbo 2>/dev/null || echo 'unknown'
+}
+
+warn_if_cpu_clock_not_fixed() {
+  # The CPU clock affects every timing. The GitHub runner fixes it (performance governor, turbo off)
+  # with settings that live outside this repository and are lost on a reinstall.
+  if [ "${GITHUB_ACTIONS:-}" = "true" ] \
+    && { [ "$(cpu_governor)" != "performance" ] || [ "$(cpu_no_turbo)" != "1" ]; }; then
+    echo "::warning::CPU clock not fixed (governor $(cpu_governor), no_turbo $(cpu_no_turbo)): timings vary more"
+  fi
 }
 
 pull_mutable_image() {
@@ -824,7 +842,7 @@ generate_metadata() {
     echo "PROF_ARGS=\"$PROF_ARGS\""
     echo "MVN_ARGS=\"$MVN_ARGS\""
     echo ""
-    echo "# Additional metadata"
+    echo "# Additional metadata (recorded by this run, not inputs)"
     echo "GIT_BRANCH_PERFORMANCE_TESTS=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_COMMIT_PERFORMANCE_TESTS=$git_commit"
     echo "GIT_DIRTY_PERFORMANCE_TESTS=$([ -n "$(git status --porcelain 2>/dev/null)" ] && echo 'true' || echo 'false')"
@@ -837,6 +855,8 @@ generate_metadata() {
     if [ -n "$dhis2_labels" ]; then
       echo "$dhis2_labels"
     fi
+    echo "HOST_CPU_GOVERNOR=$(cpu_governor)"
+    echo "HOST_CPU_NO_TURBO=$(cpu_no_turbo)"
   } > "$simulation_run_file"
 
   echo "done"
@@ -973,6 +993,7 @@ run_simulation() {
 ################################################################################
 # MAIN EXECUTION
 ################################################################################
+warn_if_cpu_clock_not_fixed
 pull_mutable_image
 ensure_db_image
 

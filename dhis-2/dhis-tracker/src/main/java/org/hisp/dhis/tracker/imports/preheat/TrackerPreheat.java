@@ -286,8 +286,8 @@ public class TrackerPreheat {
   /**
    * A map of valid users by username that are present in the payload. A user not available in this
    * cache means, payload's username or uid is invalid. These users are primarily used to represent
-   * the ValueType.USERNAME of tracked entity attributes and assignedUser fields in events used in
-   * validation and persistence.
+   * the ValueType.USERNAME of tracked entity attributes, event data values and assignedUser fields
+   * in events used in validation and persistence.
    */
   private final Map<String, User> users = Maps.newHashMap();
 

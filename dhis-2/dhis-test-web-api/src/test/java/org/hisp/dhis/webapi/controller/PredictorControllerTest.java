@@ -37,8 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,12 +79,6 @@ class PredictorControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testRunPredictor() {
     String pId = postNewPredictor();
-
-    User actingUser = getAdminUser();
-    UserDetails currentUserDetails = UserDetails.fromUser(actingUser);
-    currentUserDetails.setId(0L);
-    injectSecurityContext(currentUserDetails);
-
     assertWebMessage(
         "OK",
         200,

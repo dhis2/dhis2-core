@@ -648,9 +648,15 @@ public class DefaultUserService implements UserService {
   public void setLastLogin(String username) {
     User user = getUserByUsername(username);
 
-    if (user != null) {
-      user.setLastLogin(new Date());
-      updateUser(user);
+    if (user == null) {
+      return;
+    }
+
+    userStore.updateLastLogin(user, new Date());
+
+    if (user.isInvitation()) {
+      user.clearInvitation();
+      updateUser(user, new SystemUser());
     }
   }
 

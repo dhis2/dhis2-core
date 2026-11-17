@@ -123,19 +123,18 @@ class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
     manager.flush();
     manager.clear();
 
-    User reloadedUser1 = manager.get(User.class, user1.getId());
-    DataElement dataElement1 = dataElementStore.getDataElement(dataElement.getUid(), reloadedUser1);
-    assertNotNull(dataElement1);
+    // User1 has access to DEA through UserGroup1
+    injectSecurityContextUser(user1);
+    assertNotNull(dataElementStore.getByUid(dataElementUid));
     // User2 has access to DEA
-    DataElement dataElement2 = dataElementStore.getDataElement(dataElement.getUid(), user2);
-    assertNotNull(dataElement2);
-    // User3 doesn't have access and also does't belong to any groups
-    DataElement dataElement3 = dataElementStore.getDataElement(dataElement.getUid(), user3);
-    assertNull(dataElement3);
-    // User4 doesn't have access and it belong to UserGroup2 which also
+    injectSecurityContextUser(user2);
+    assertNotNull(dataElementStore.getByUid(dataElementUid));
+    // User3 doesn't have access and also doesn't belong to any groups
+    injectSecurityContextUser(user3);
+    assertNull(dataElementStore.getByUid(dataElementUid));
+    // User4 doesn't have access and it belongs to UserGroup2 which also
     // doesn't have access
-    User reloadedUser4 = manager.get(User.class, user4.getId());
-    DataElement dataElement4 = dataElementStore.getDataElement(dataElement.getUid(), reloadedUser4);
-    assertNull(dataElement4);
+    injectSecurityContextUser(user4);
+    assertNull(dataElementStore.getByUid(dataElementUid));
   }
 }

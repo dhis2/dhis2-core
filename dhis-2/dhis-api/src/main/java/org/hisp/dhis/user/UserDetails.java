@@ -338,8 +338,6 @@ public interface UserDetails
 
   boolean hasAnyRestrictions(Collection<String> restrictions);
 
-  void setId(Long id);
-
   default boolean canIssueUserRole(UserRole role, boolean canGrantOwnUserRole) {
     if (role == null) {
       return false;

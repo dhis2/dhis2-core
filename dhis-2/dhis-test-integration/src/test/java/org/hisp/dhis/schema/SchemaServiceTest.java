@@ -42,6 +42,7 @@ import org.hibernate.mapping.Column;
 import org.hibernate.mapping.PersistentClass;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
@@ -50,6 +51,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.hibernate.HibernateMetadata;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.option.OptionGroup;
@@ -58,15 +60,18 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -232,6 +237,17 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     assertTrue(property.isReadable());
   }
 
+  /** Indicator types must be imported before the indicators that reference them. */
+  @Test
+  void testIndicatorTypeIsImportedBeforeIndicator() {
+    Schema type = schemaService.getSchema(IndicatorType.class);
+    Schema indicator = schemaService.getSchema(Indicator.class);
+    List<Schema> schemas = schemaService.getMetadataSchemas();
+
+    assertTrue(type.getOrder() < indicator.getOrder());
+    assertTrue(schemas.indexOf(type) < schemas.indexOf(indicator));
+  }
+
   /** Members must be imported before the set that references them. */
   @Test
   void testOptionGroupSetIsImportedAfterOptionGroup() {
@@ -291,5 +307,26 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
   void testDashboardDescriptionHasNoMaxLength() {
     Property property = schemaService.getSchema(Dashboard.class).getProperty("description");
     assertEquals((double) Integer.MAX_VALUE, property.getMax());
+  }
+
+  @Test
+  void shouldImportSmsCommandAfterTheTypesItReferences() {
+    int order = schemaService.getSchema(SMSCommand.class).getOrder();
+
+    // The object bundle hook resolves the data elements, attributes and category option combos
+    // of the embedded codes from the database.
+    for (Class<?> referenced :
+        List.of(
+            DataSet.class,
+            UserGroup.class,
+            Program.class,
+            ProgramStage.class,
+            DataElement.class,
+            TrackedEntityAttribute.class,
+            CategoryOptionCombo.class)) {
+      assertTrue(
+          order > schemaService.getSchema(referenced).getOrder(),
+          referenced.getSimpleName() + " is not imported before SMSCommand");
+    }
   }
 }

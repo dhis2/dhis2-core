@@ -101,3 +101,6 @@ checks:
   - tracked_entity_attributes/tracked_entity_attributes_trigram_index_out_of_sync.yaml
   - tracked_entity_attributes/tracked_entity_attributes_trigram_index_overview.yaml
   - tracked_entity_attributes/tracked_entity_attributes_duplicated_unique_values_in_org_unit.yaml
+  - tracker_data/enrollments_not_deleted_of_deleted_tracked_entities.yaml
+  - tracker_data/tracker_events_not_deleted_of_deleted_enrollments_or_tracked_entities.yaml
+  - tracker_data/relationships_not_deleted_of_deleted_tracker_data.yaml

@@ -576,7 +576,7 @@ public enum ErrorCode {
   E7153(
       "Query would compute `{0}` indicator values, more than the max of `{1}`. Remove dimensions or dimension items, or move dimensions to filters"),
   E7154(
-      "Analytics tables are out of date. Ask your administrator to run a full analytics tables update."),
+      "Invalid reference. Analytics tables may be outdated (full export might be required), or the column is invalid. Ask your administrator"),
   /* Analytics outliers */
 
   E7180(
@@ -666,6 +666,8 @@ public enum ErrorCode {
       "Aggregation type `{0}` is not supported by enrollment aggregate queries, specify `aggregationType` as one of COUNT, SUM, AVERAGE, MIN, MAX, STDDEV or VARIANCE"),
   E7268("Category `{0}` is not part of the category combination of program `{1}`"),
   E7269("Category option group set `{0}` is not supported in enrollment analytics"),
+  E7270(
+      "Date range `{0}` is not supported as a dimension in aggregate queries, use it as a filter instead"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
@@ -748,6 +750,7 @@ public enum ErrorCode {
       "Untimely data entry (already approved) for attribute option combo ${combo:{0}}, org unit ${unit:{1}} and periods: `${periods:{2}}`"),
   E8034("Data set deletion scope ID refers to a non-existing object: `${id:{0}}`"),
   E8035("Data set deletion scope ID is not a valid UID: `${id:{0}}`"),
+  E8036("Data value import error: ${error:{0}}"),
   // value level decoding and input issues
   E8100("Value #${index:{0}} period not defined in group or value: `${dv:{1}}`"),
   E8101("Value #${index:{0}} data set is required to decode category options: `${options:{1}}`"),

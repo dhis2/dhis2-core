@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.common;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.apache.commons.lang3.StringUtils.substringBefore;
@@ -36,6 +37,15 @@ import static org.hisp.dhis.common.CustomDateHelper.getCustomDateFilters;
 import static org.hisp.dhis.common.CustomDateHelper.getDimensionsWithRefactoredPeDimension;
 import static org.hisp.dhis.common.CustomDateHelper.isPeDimension;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_FREE_RANGE_SEPARATOR;
+import static org.hisp.dhis.common.DimensionConstants.STATIC_DATE_DIMENSIONS;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
+import static org.hisp.dhis.feedback.ErrorCode.E7139;
+import static org.hisp.dhis.feedback.ErrorCode.E7270;
+import static org.hisp.dhis.util.DateUtils.safeParseDate;
 import static org.hisp.dhis.util.OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria;
 
 import java.util.Arrays;
@@ -58,6 +68,7 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.EnrollmentStatus;
 
 @Getter
@@ -278,7 +289,8 @@ public class EventDataQueryRequest {
               .page(criteria.getPage())
               .pageSize(criteria.getPageSize())
               .paging(criteria.isPaging())
-              .enrollmentStatus(criteria.getProgramStatus())
+              .enrollmentStatus(
+                  getEnrollmentStatus(criteria.getProgramStatus(), criteria.getEnrollmentStatus()))
               .relativePeriodDate(criteria.getRelativePeriodDate())
               .showHierarchy(criteria.isShowHierarchy())
               .skipRounding(criteria.isSkipRounding())
@@ -304,6 +316,10 @@ public class EventDataQueryRequest {
 
       if (criteria.getDimension() == null) {
         criteria.setDimension(new HashSet<>());
+      }
+
+      if (criteria.isAggregateEndpoint()) {
+        rejectDateRangeDimensions(criteria.getDimension());
       }
 
       Set<String> dimensions;
@@ -340,13 +356,72 @@ public class EventDataQueryRequest {
       return builder.dimension(getGrouped(dimensions));
     }
 
+    /**
+     * Returns the enrollment statuses given through either the enrollmentStatus parameter or its
+     * deprecated alias programStatus.
+     *
+     * @param programStatus the statuses given through the deprecated programStatus parameter.
+     * @param enrollmentStatus the statuses given through the enrollmentStatus parameter.
+     * @return the requested enrollment statuses.
+     * @throws IllegalQueryException if both parameters are given.
+     */
+    private static Set<EnrollmentStatus> getEnrollmentStatus(
+        Set<EnrollmentStatus> programStatus, Set<EnrollmentStatus> enrollmentStatus) {
+      if (isNotEmpty(programStatus) && isNotEmpty(enrollmentStatus)) {
+        throw new IllegalQueryException(new ErrorMessage(E7139));
+      }
+
+      return isNotEmpty(enrollmentStatus) ? enrollmentStatus : programStatus;
+    }
+
     private static Set<String> splitDimension(String dimension) {
       return Arrays.stream(DIMENSION_OR_SEPARATOR.split(dimension)).collect(Collectors.toSet());
     }
 
+    /**
+     * Rejects a time dimension holding a date range, such as {@code
+     * ENROLLMENT_DATE:2026-11-01_2026-12-31}. Aggregate queries group rows by each dimension, and a
+     * date range is meant to restrict rows, which is what a filter does. Runs on the dimensions as
+     * given in the request, before date request params such as {@code incidentDate} are merged into
+     * the period dimension, so a range given through those params is still accepted.
+     *
+     * @param dimensions the dimensions as given in the request.
+     * @throws IllegalQueryException if a time dimension holds a date range.
+     */
+    private static void rejectDateRangeDimensions(Set<String> dimensions) {
+      for (Set<String> group : getGrouped(dimensions)) {
+        for (String dimension : group) {
+          if (isTimeDimension(getDimensionFromParam(dimension))
+              && getDimensionItemsFromParam(dimension).stream()
+                  .anyMatch(ExtendedEventDataQueryRequestBuilder::isDateRange)) {
+            throw new IllegalQueryException(new ErrorMessage(E7270, dimension));
+          }
+        }
+      }
+    }
+
+    private static boolean isTimeDimension(String dimensionId) {
+      return PERIOD_DIM_ID.equals(dimensionId) || STATIC_DATE_DIMENSIONS.contains(dimensionId);
+    }
+
+    /**
+     * Checks whether the given period item is a date range in {@code YYYY-MM-DD_YYYY-MM-DD} or
+     * {@code YYYYMMDD_YYYYMMDD} format, optionally followed by a date field, such as {@code
+     * 2026-11-01_2026-12-31:ENROLLMENT_DATE}. A range of a single day counts as a range.
+     */
+    private static boolean isDateRange(String item) {
+      String[] dates = substringBefore(item, DIMENSION_NAME_SEP).split(PERIOD_FREE_RANGE_SEPARATOR);
+
+      return dates.length == 2
+          && safeParseDate(dates[0]) != null
+          && safeParseDate(dates[1]) != null;
+    }
+
     public EventDataQueryRequestBuilder fromCriteria(EnrollmentAnalyticsQueryCriteria criteria) {
       EventDataQueryRequestBuilder builder =
-          startDate(criteria.getStartDate())
+          // Enrollment requests always resolve items against the enrollment analytics table.
+          outputType(EventOutputType.ENROLLMENT)
+              .startDate(criteria.getStartDate())
               .timeField(criteria.getTimeField())
               .endDate(criteria.getEndDate())
               .filter(getGrouped(criteria.getFilter()))
@@ -364,7 +439,8 @@ public class EventDataQueryRequest {
               .includeMetadataDetails(criteria.isIncludeMetadataDetails())
               .dataIdScheme(criteria.getDataIdScheme())
               .outputIdScheme(criteria.getOutputIdScheme())
-              .enrollmentStatus(criteria.getProgramStatus())
+              .enrollmentStatus(
+                  getEnrollmentStatus(criteria.getProgramStatus(), criteria.getEnrollmentStatus()))
               .page(criteria.getPage())
               .pageSize(criteria.getPageSize())
               .paging(criteria.isPaging())
@@ -387,6 +463,10 @@ public class EventDataQueryRequest {
 
       if (criteria.getDimension() == null) {
         criteria.setDimension(new HashSet<>());
+      }
+
+      if (criteria.isAggregateEndpoint()) {
+        rejectDateRangeDimensions(criteria.getDimension());
       }
 
       Set<String> dimensions;
