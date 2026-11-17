@@ -2286,6 +2286,37 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyEnrollmentQueryKeepsRelationshipFilterWhenSameProgramIndicatorHasCte() {
+    ProgramIndicator pi = createEventProgramIndicator(stageDataElementExpression());
+    stubPiExpressionSql(pi, "\"" + dataElementA.getUid() + "\"");
+    RelationshipType relationshipType = createRelationshipType();
+    QueryItem plainItem = programIndicatorItem(pi);
+    plainItem.addFilter(new QueryFilter(QueryOperator.LT, "1000"));
+    QueryItem relationshipItem =
+        programIndicatorItem(pi, AggregationType.AVERAGE, relationshipType);
+    relationshipItem.addFilter(new QueryFilter(QueryOperator.GT, "3000"));
+
+    subject.getEnrollments(
+        createRequestParamsBuilder()
+            .addItemFilter(plainItem)
+            .addItemFilter(relationshipItem)
+            .build(),
+        new ListGrid(),
+        10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertThat(cteDefinitionCount(generatedSql, pi.getUid()), is(1));
+    String alias = joinAliasFor(generatedSql, "left", pi.getUid());
+    assertThat(generatedSql, containsString(alias + ".value < 1000"));
+    // The relationship-scoped filter is not evaluated against the enrollment's own CTE value.
+    assertThat(generatedSql, not(containsString(alias + ".value > 3000")));
+    assertThat(
+        generatedSql, containsString("rty.relationshiptypeid = " + relationshipType.getId()));
+    assertThat(generatedSql, containsString(")) > '3000'"));
+  }
+
+  @Test
   void verifyAggregatedEventDataResolvesPsdePlaceholderInPiExpression() {
     ProgramIndicator pi =
         createEnrollmentProgramIndicator(

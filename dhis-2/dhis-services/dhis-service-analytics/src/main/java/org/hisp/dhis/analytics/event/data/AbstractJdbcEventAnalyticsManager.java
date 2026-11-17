@@ -91,10 +91,11 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -2937,7 +2938,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       throw new IllegalArgumentException("Query parameters and CTE context cannot be null");
     }
 
-    Set<QueryItem> processedItems = new HashSet<>();
+    // QueryItem equality ignores the relationship type, so items rendered through a CTE are tracked
+    // by identity: an equal item scoped to a relationship must still reach the subquery renderer.
+    Set<QueryItem> processedItems = Collections.newSetFromMap(new IdentityHashMap<>());
     // Build CTE conditions
     Condition cteConditions = buildCteConditions(params, cteContext, processedItems);
 
@@ -2969,8 +2972,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     List<Condition> conditions = new ArrayList<>();
 
+    // A program indicator filter with a relationship type is never read from the program indicator
+    // CTE, which is keyed by enrollment and cannot follow the relationship.
     List<QueryItem> filters =
-        Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
+        Stream.concat(
+                params.getItems().stream(),
+                params.getItemFilters().stream().filter(item -> !item.hasRelationshipType()))
             .filter(QueryItem::hasFilter)
             .toList();
 
