@@ -1,0 +1,14 @@
+{
+  "type": "indicator",
+  "code": "PERIODOFFSETPREV",
+  "name": "ANC 1st visit previous period",
+  "shortName": "ANC 1st visit previous period",
+  "numeratorDescription": "ANC 1st visit in the previous period",
+  "numerator": "#{fbfJHSPpUQD}.periodOffset(-1)",
+  "denominatorDescription": "One",
+  "denominator": "1",
+  "indicatorType": {
+    "id": "JkWynlWMjJR"
+  },
+  "legendSets": []
+}
