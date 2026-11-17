@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -249,6 +250,24 @@ class ValidationResultServiceTest {
             new ValidationResult(null, period, null, null, 3.0, 0.0, 31));
 
     service.upsertValidationResults(results);
+
+    verify(periodService, times(1)).reloadPeriod(any());
+    verify(store).upsert(results);
+  }
+
+  @Test
+  void testReplaceReloadsEachPeriodOnce() {
+    Period period = createPeriod("202507");
+    when(periodService.reloadPeriod(period)).thenReturn(period);
+    ValidationRule rule = new ValidationRule();
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    CategoryOptionCombo aoc = new CategoryOptionCombo();
+    List<ValidationResult> results =
+        List.of(
+            new ValidationResult(rule, period, orgUnit, aoc, 1.0, 0.0, 31),
+            new ValidationResult(rule, period, orgUnit, aoc, 2.0, 0.0, 30));
+
+    service.replaceValidationResults(null, true, List.of(rule), List.of(period), results, true);
 
     verify(periodService, times(1)).reloadPeriod(any());
     verify(store).upsert(results);

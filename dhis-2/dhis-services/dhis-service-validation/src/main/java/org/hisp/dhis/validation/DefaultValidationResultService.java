@@ -148,14 +148,7 @@ public class DefaultValidationResultService implements ValidationResultService {
   @Transactional
   @Override
   public void upsertValidationResults(Collection<ValidationResult> validationResults) {
-    // results share few periods: reload each one once
-    Map<String, Period> periods = new HashMap<>();
-    validationResults.forEach(
-        result ->
-            result.setPeriod(
-                periods.computeIfAbsent(
-                    result.getPeriod().getIsoDate(),
-                    iso -> periodService.reloadPeriod(result.getPeriod()))));
+    reloadPeriods(validationResults);
     validationResultStore.upsert(validationResults);
   }
 
@@ -168,8 +161,7 @@ public class DefaultValidationResultService implements ValidationResultService {
       Collection<Period> periods,
       Collection<ValidationResult> currentResults,
       boolean removeResolved) {
-    currentResults.forEach(
-        result -> result.setPeriod(periodService.reloadPeriod(result.getPeriod())));
+    reloadPeriods(currentResults);
     // read as rows, not entities: entities in the session would go stale with the native upsert
     List<ValidationResultStore.Row> persisted =
         validationResultStore.getRows(
@@ -207,6 +199,17 @@ public class DefaultValidationResultService implements ValidationResultService {
     validationResultStore.deleteByIds(stale);
     log.info(
         "Replaced validation results: {} current, {} removed", currentResults.size(), stale.size());
+  }
+
+  /** Sets the persisted period on each result; results share few periods, each is loaded once. */
+  private void reloadPeriods(Collection<ValidationResult> results) {
+    Map<String, Period> periods = new HashMap<>();
+    results.forEach(
+        result ->
+            result.setPeriod(
+                periods.computeIfAbsent(
+                    result.getPeriod().getIsoDate(),
+                    iso -> periodService.reloadPeriod(result.getPeriod()))));
   }
 
   /** A violation, regardless of the day in the period on which it was found. */
