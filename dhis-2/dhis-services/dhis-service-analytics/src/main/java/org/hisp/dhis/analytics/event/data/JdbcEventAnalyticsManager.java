@@ -280,16 +280,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     log.debug("Analytics event count SQL: '{}'", sql);
 
-    final String finalSqlValue = sql;
-
     if (params.analyzeOnly()) {
       withExceptionHandling(
-          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue),
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql),
           params.isMultipleQueries());
     } else {
-      count =
-          withExceptionHandling(() -> jdbcTemplate.queryForObject(finalSqlValue, Long.class))
-              .orElse(0L);
+      count = withExceptionHandling(() -> jdbcTemplate.queryForObject(sql, Long.class)).orElse(0L);
     }
 
     return count;
