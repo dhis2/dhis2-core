@@ -30,17 +30,22 @@ package org.hisp.dhis.validation.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
+import org.hibernate.type.DoubleType;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -81,6 +86,73 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
     super(entityManager, jdbcTemplate, publisher, ValidationResult.class, true);
     checkNotNull(userService);
     this.userService = userService;
+  }
+
+  /** Rows per insert statement, keeping the bind parameters well below the JDBC limit. */
+  private static final int UPSERT_BATCH_SIZE = 1000;
+
+  @Override
+  public void upsert(Collection<ValidationResult> validationResults) {
+    // a statement must not insert or update the same row twice
+    Map<List<Long>, ValidationResult> unique = new LinkedHashMap<>();
+    for (ValidationResult result : validationResults) {
+      unique.putIfAbsent(
+          List.of(
+              result.getValidationRule().getId(),
+              result.getPeriod().getId(),
+              result.getOrganisationUnit().getId(),
+              result.getAttributeOptionCombo().getId(),
+              (long) result.getDayInPeriod()),
+          result);
+    }
+    if (unique.isEmpty()) {
+      return;
+    }
+
+    // persist anything pending, such as periods, before the insert references it
+    getSession().flush();
+
+    for (List<ValidationResult> batch :
+        Lists.partition(new ArrayList<>(unique.values()), UPSERT_BATCH_SIZE)) {
+      StringBuilder sql =
+          new StringBuilder(
+              """
+              insert into validationresult (validationresultid, created, leftsidevalue,
+                rightsidevalue, validationruleid, periodid, organisationunitid,
+                attributeoptioncomboid, dayinperiod, notificationsent)
+              values\s""");
+      int param = 1;
+      for (int i = 0; i < batch.size(); i++) {
+        sql.append(i == 0 ? "" : ", ").append("(nextval('hibernate_sequence'), now()");
+        for (int j = 0; j < 7; j++) {
+          sql.append(", ?").append(param++);
+        }
+        sql.append(", false)");
+      }
+      sql.append(
+          """
+           on conflict (validationruleid, periodid, organisationunitid, attributeoptioncomboid,
+             dayinperiod)
+           do update set leftsidevalue = excluded.leftsidevalue,
+             rightsidevalue = excluded.rightsidevalue""");
+
+      // synchronizing on the entity invalidates cached validation result queries
+      NativeQuery<?> query =
+          getSession()
+              .createNativeQuery(sql.toString())
+              .addSynchronizedEntityClass(ValidationResult.class);
+      param = 1;
+      for (ValidationResult result : batch) {
+        query.setParameter(param++, result.getLeftsideValue(), DoubleType.INSTANCE);
+        query.setParameter(param++, result.getRightsideValue(), DoubleType.INSTANCE);
+        query.setParameter(param++, result.getValidationRule().getId());
+        query.setParameter(param++, result.getPeriod().getId());
+        query.setParameter(param++, result.getOrganisationUnit().getId());
+        query.setParameter(param++, result.getAttributeOptionCombo().getId());
+        query.setParameter(param++, result.getDayInPeriod());
+      }
+      query.executeUpdate();
+    }
   }
 
   @Override
