@@ -10,8 +10,10 @@
 -- switches to another plan, so the statistics that ANALYZE samples before each run don't flip it:
 -- of 11 facilities, each ANALYZEd 50 times in 2026-11, those near such a size flipped in up to 24%
 -- of the rounds, the two of large in none. Clerks of facilities outside the ranges are left out.
--- The rows alternate the bands, so the first n clerks spread over them; the first of each band is
--- the one measured since #26209.
+-- The rows alternate the bands, so the first n clerks spread over them. The first of each band is
+-- the one smoke measures, in EIR and in ANC: her facility keeps one plan of every banded request
+-- in both, over 50 ANALYZEs each (2026-11). Median was Heguk until #26316, whose 413 ANC women
+-- flipped ANC's first page in 9 of 50.
 --
 -- children.csv: the children each clerk works on, in order. A facility's clerks share its
 -- children: each goes to one of them, picked uniformly with a fixed seed, the md5 of the child's
@@ -63,10 +65,10 @@ insert into bands values
   ('large', 3, 1080, 1250),
   ('largest', 4, 2500, 1000000);
 
--- the clerks measured since #26209, the first of their band
+-- the clerks smoke measures, the first of their band: small, median, large, largest
 create temp table first_clerks (username text);
 insert into first_clerks values
-  ('mnch.qp1613-11-04.1'), ('mnch.qp1613-06-02.1'), ('mnch.qp1613-06-01.1'),
+  ('mnch.qp1613-11-04.1'), ('mnch.qp1613-21-03.1'), ('mnch.qp1613-06-01.1'),
   ('mnch.qp1613-12-05.1');
 
 -- dbgen's clerks mnch.<district>-<ward>-<facility>.<n> of the district's facilities. clerks and
