@@ -71,12 +71,4 @@ public interface StageQuerySqlFacade {
    */
   Optional<String> resolveWhereClause(
       QueryItem item, EventQueryParams params, AnalyticsType analyticsType);
-
-  /**
-   * Checks whether an item is a stage-specific date item.
-   *
-   * @param item the query item
-   * @return true if the item is stage event date or scheduled date
-   */
-  boolean isStageDate(QueryItem item);
 }
