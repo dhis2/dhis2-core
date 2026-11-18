@@ -64,6 +64,7 @@ import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonNode.Index;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonPathException;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonTreeException;
 import org.hisp.dhis.jsontree.Text;
 import org.hisp.staxwax.XMLException;
@@ -323,8 +324,8 @@ public final class DataEntryInput {
   private static DataEntryGroup.Input.Scope deletionScope(@Nonnull JsonObject scope) {
     if (scope.isUndefined() || (scope.isObject() && scope.isEmpty())) return null;
     return new DataEntryGroup.Input.Scope(
-        scope.getArray("orgUnits").stringValues(),
-        scope.getArray("periods").stringValues(),
+        scope.getArray("orgUnits").values().map(JsonString::string).toList(),
+        scope.getArray("periods").values().map(JsonString::string).toList(),
         scope
             .get("elements")
             .values()

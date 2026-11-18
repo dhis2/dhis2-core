@@ -505,8 +505,9 @@ class DataEntryInputTest {
 
   @Test
   void testFromJson_DeletionScopeNullEntry() {
-    assertJsonError("{\"deletion\": {\"orgUnits\": [null]}}");
-    assertJsonError("{\"deletion\": {\"periods\": [\"2024\", null]}}");
+    assertJsonError("{\"deletion\": {\"orgUnits\": [null], \"periods\": [2024] }}");
+    assertJsonError(
+        "{\"deletion\": {\"periods\": [\"2024\", null], \"orgUnits\": [\"ou123456789\"] }}");
   }
 
   /** Windows PowerShell 5 ({@code Out-File -Encoding utf8}) writes a UTF-8 byte order mark */
