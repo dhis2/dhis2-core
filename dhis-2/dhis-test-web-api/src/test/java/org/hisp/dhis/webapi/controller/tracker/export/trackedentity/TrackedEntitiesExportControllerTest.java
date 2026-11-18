@@ -189,7 +189,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertStartsWith(
         "Tracked entity attribute '" + programAttribute.getUid() + "' cannot be used to filter",
         GET(
-                "/tracker/trackedEntities?trackedEntityType={type}&filter={attribute}:eq:foo",
+                "/tracker/trackedEntities?trackedEntityType={type}&ouMode=ALL&filter={attribute}:eq:foo",
                 trackedEntityType.getUid(),
                 programAttribute.getUid())
             .error(HttpStatus.BAD_REQUEST)
