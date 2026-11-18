@@ -278,6 +278,33 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   public long getEventCount(EventQueryParams params) {
+    String sql =
+        useExperimentalAnalyticsQueryEngine()
+            ? buildAnalyticsCountQuery(params)
+            : getEventCountSql(params);
+
+    long count = 0;
+
+    log.debug("Analytics event count SQL: '{}'", sql);
+
+    if (params.analyzeOnly()) {
+      withExceptionHandling(
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql),
+          params.isMultipleQueries());
+    } else {
+      count = withExceptionHandling(() -> jdbcTemplate.queryForObject(sql, Long.class)).orElse(0L);
+    }
+
+    return count;
+  }
+
+  /**
+   * Returns the event count SQL of the query engine that does not use CTEs.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return the count SQL.
+   */
+  private String getEventCountSql(EventQueryParams params) {
     String sql = "select count(1) ";
 
     sql += getFromClause(params);
@@ -286,23 +313,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     sql += whereClause;
     sql += getAdditionalQueryItemWhereClause(params, whereClause);
 
-    long count = 0;
-
-    log.debug("Analytics event count SQL: '{}'", sql);
-
-    final String finalSqlValue = sql;
-
-    if (params.analyzeOnly()) {
-      withExceptionHandling(
-          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue),
-          params.isMultipleQueries());
-    } else {
-      count =
-          withExceptionHandling(() -> jdbcTemplate.queryForObject(finalSqlValue, Long.class))
-              .orElse(0L);
-    }
-
-    return count;
+    return sql;
   }
 
   @Override
