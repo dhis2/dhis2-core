@@ -86,7 +86,6 @@ import org.hisp.dhis.analytics.event.data.stage.DefaultStageOrgUnitSqlService;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
-import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -113,9 +112,13 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -160,6 +163,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   @Mock private PiDisagInfoInitializer piDisagInfoInitializer;
 
   @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
+
+  private final BeanRandomizer rnd = BeanRandomizer.create();
 
   @Spy
   private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
@@ -1113,7 +1118,6 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
         new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService, systemSettingsService, builder, dataElementService);
     programIndicatorSubqueryBuilder.init();
-    ColumnMapper columnMapper = new ColumnMapper(builder, systemSettingsService);
     QueryItemFilterBuilder filterBuilder =
         new QueryItemFilterBuilder(organisationUnitResolver, builder);
     EnrollmentTimeFieldSqlRenderer timeFieldRenderer = new EnrollmentTimeFieldSqlRenderer(builder);
@@ -1138,7 +1142,6 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
         config,
         builder,
         organisationUnitResolver,
-        columnMapper,
         filterBuilder,
         stageQuerySqlFacade,
         bucketResolver,
@@ -1855,9 +1858,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Test
   void verifyEnrollmentCountAppliesProgramIndicatorItemFilterThroughCte() {
-    ProgramIndicator pi =
-        createEnrollmentProgramIndicator(
-            "#{%s.%s}".formatted(programStage.getUid(), dataElementA.getUid()), null);
+    ProgramIndicator pi = createEnrollmentProgramIndicator(stageDataElementExpression(), null);
     stubPiExpressionSql(pi, psdePlaceholder(pi));
     EventQueryParams params = createRequestParams(pi, null);
     params.getItems().get(0).addFilter(new QueryFilter(QueryOperator.GT, "5"));
@@ -1871,6 +1872,155 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(generatedSql, containsString("select count(1) "));
     assertThat(generatedSql, containsString("." + "enrollment = ax.enrollment"));
     assertThat(generatedSql, containsString(".value > 5"));
+  }
+
+  // -------------------------------------------------------------------------
+  // Program indicator used as a filter (filter=<pi>:<op>:<value>)
+  // -------------------------------------------------------------------------
+
+  @Test
+  void verifyEnrollmentQueryAppliesEnrollmentProgramIndicatorFilterThroughCte() {
+    ProgramIndicator pi = createEnrollmentProgramIndicator(stageDataElementExpression(), null);
+    stubPiExpressionSql(pi, psdePlaceholder(pi));
+
+    subject.getEnrollments(
+        createProgramIndicatorFilterParams(pi, QueryOperator.GT, "1000"), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertNoCtePlaceholders(generatedSql);
+    assertThat(cteDefinitionCount(generatedSql, pi.getUid()), is(1));
+    String alias = joinAliasFor(generatedSql, "left", pi.getUid());
+    assertThat(generatedSql, containsString(alias + ".value > 1000"));
+    // A filter restricts the rows, it adds no column.
+    assertThat(generatedSql, not(containsString("as " + pi.getUid())));
+  }
+
+  @Test
+  void verifyEnrollmentQueryAppliesEventProgramIndicatorFilterThroughCte() {
+    ProgramIndicator pi = createEventProgramIndicator(stageDataElementExpression());
+    String expressionSql = "\"" + dataElementA.getUid() + "\"";
+    stubPiExpressionSql(pi, expressionSql);
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq(pi.getExpression()), eq(NUMERIC), eq(pi), any(), any(), anyString()))
+        .thenReturn(expressionSql);
+
+    subject.getEnrollments(
+        createProgramIndicatorFilterParams(pi, QueryOperator.GT, "3000"), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertNoCtePlaceholders(generatedSql);
+    assertThat(cteDefinitionCount(generatedSql, pi.getUid()), is(1));
+    assertThat(cteBody(generatedSql, pi.getUid()), containsString("avg(" + expressionSql + ")"));
+    String alias = joinAliasFor(generatedSql, "left", pi.getUid());
+    assertThat(generatedSql, containsString(alias + ".value > 3000"));
+    // A subquery in the outer where clause has no correlation with the enrollment, so it would
+    // compare one population-wide value.
+    assertThat(outerWhere(generatedSql), not(containsString("select")));
+  }
+
+  @Test
+  void verifyEnrollmentCountAppliesProgramIndicatorFilterThroughCte() {
+    ProgramIndicator pi = createEnrollmentProgramIndicator(stageDataElementExpression(), null);
+    stubPiExpressionSql(pi, psdePlaceholder(pi));
+
+    subject.getEnrollmentCount(createProgramIndicatorFilterParams(pi, QueryOperator.GT, "1000"));
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    String generatedSql = sql.getValue();
+    assertNoCtePlaceholders(generatedSql);
+    assertThat(generatedSql, containsString("select count(1) "));
+    assertThat(cteDefinitionCount(generatedSql, pi.getUid()), is(1));
+    String alias = joinAliasFor(generatedSql, "left", pi.getUid());
+    assertThat(generatedSql, containsString(alias + ".value > 1000"));
+  }
+
+  @Test
+  void verifyEnrollmentQueryComputesNoProgramIndicatorForFilterWithoutCondition() {
+    ProgramIndicator pi = createEnrollmentProgramIndicator(stageDataElementExpression(), null);
+    stubPiExpressionSql(pi, psdePlaceholder(pi));
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.addItemFilter(programIndicatorItem(pi));
+
+    subject.getEnrollments(params.build(), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertThat(cteDefinitionCount(generatedSql, pi.getUid()), is(0));
+    assertThat(generatedSql, not(containsString("join " + pi.getUid())));
+  }
+
+  @Test
+  void verifyEnrollmentQueryRegistersOneCteForProgramIndicatorUsedAsDimensionAndFilter() {
+    ProgramIndicator pi = createEnrollmentProgramIndicator(stageDataElementExpression(), null);
+    stubPiExpressionSql(pi, psdePlaceholder(pi));
+    QueryItem filterItem = programIndicatorItem(pi);
+    filterItem.addFilter(new QueryFilter(QueryOperator.GT, "1000"));
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.addItem(programIndicatorItem(pi));
+    params.addItemFilter(filterItem);
+
+    subject.getEnrollments(params.build(), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertNoCtePlaceholders(generatedSql);
+    assertThat(cteDefinitionCount(generatedSql, pi.getUid()), is(1));
+    String alias = joinAliasFor(generatedSql, "left", pi.getUid());
+    assertThat(countOccurrences(generatedSql, alias + ".value > 1000"), is(1));
+  }
+
+  @Test
+  void verifyEnrollmentQueryScopesRelationshipProgramIndicatorFilterToTheRelationshipType() {
+    ProgramIndicator pi = createEventProgramIndicator(stageDataElementExpression());
+    stubPiExpressionSql(pi, "\"" + dataElementA.getUid() + "\"");
+    RelationshipType relationshipType = createRelationshipType();
+    QueryItem item = programIndicatorItem(pi, AggregationType.AVERAGE, relationshipType);
+    item.addFilter(new QueryFilter(QueryOperator.GT, "3000"));
+
+    subject.getEnrollments(
+        createRequestParamsBuilder().addItemFilter(item).build(), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    // The program indicator CTE is keyed by enrollment and carries no relationship type.
+    assertThat(cteDefinitionCount(generatedSql, pi.getUid()), is(0));
+    assertThat(generatedSql, not(containsString("join " + pi.getUid())));
+    String outerWhere = outerWhere(generatedSql);
+    assertThat(outerWhere, containsString("rty.relationshiptypeid = " + relationshipType.getId()));
+    assertThat(outerWhere, containsString("> '3000'"));
+  }
+
+  @Test
+  void verifyEnrollmentQueryKeepsRelationshipFilterWhenSameProgramIndicatorHasCte() {
+    ProgramIndicator pi = createEventProgramIndicator(stageDataElementExpression());
+    stubPiExpressionSql(pi, "\"" + dataElementA.getUid() + "\"");
+    RelationshipType relationshipType = createRelationshipType();
+    QueryItem plainItem = programIndicatorItem(pi);
+    plainItem.addFilter(new QueryFilter(QueryOperator.LT, "1000"));
+    QueryItem relationshipItem =
+        programIndicatorItem(pi, AggregationType.AVERAGE, relationshipType);
+    relationshipItem.addFilter(new QueryFilter(QueryOperator.GT, "3000"));
+
+    subject.getEnrollments(
+        createRequestParamsBuilder()
+            .addItemFilter(plainItem)
+            .addItemFilter(relationshipItem)
+            .build(),
+        new ListGrid(),
+        10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertThat(cteDefinitionCount(generatedSql, pi.getUid()), is(1));
+    String alias = joinAliasFor(generatedSql, "left", pi.getUid());
+    assertThat(generatedSql, containsString(alias + ".value < 1000"));
+    // The relationship-scoped filter is not evaluated against the enrollment's own CTE value.
+    assertThat(generatedSql, not(containsString(alias + ".value > 3000")));
+    assertThat(
+        generatedSql, containsString("rty.relationshiptypeid = " + relationshipType.getId()));
+    assertThat(generatedSql, containsString(")) > '3000'"));
   }
 
   @Test
@@ -1973,6 +2123,37 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     return createProgramIndicator('X', AnalyticsType.ENROLLMENT, programA, expression, filter);
   }
 
+  private String stageDataElementExpression() {
+    return "#{%s.%s}".formatted(programStage.getUid(), dataElementA.getUid());
+  }
+
+  private ProgramIndicator createEventProgramIndicator(String expression) {
+    return createProgramIndicator('X', AnalyticsType.EVENT, programA, expression, null);
+  }
+
+  private QueryItem programIndicatorItem(ProgramIndicator pi) {
+    return programIndicatorItem(pi, pi.getAggregationType(), null);
+  }
+
+  private QueryItem programIndicatorItem(
+      ProgramIndicator pi, AggregationType aggregationType, RelationshipType relationshipType) {
+    return new QueryItem(
+        pi, pi.getProgram(), null, ValueType.NUMBER, aggregationType, null, relationshipType);
+  }
+
+  /** The where clause of the outer query, which follows every CTE and join. */
+  private String outerWhere(String sql) {
+    return sql.substring(sql.lastIndexOf(" where "));
+  }
+
+  /** Request params with the program indicator in filter= with the given condition. */
+  private EventQueryParams createProgramIndicatorFilterParams(
+      ProgramIndicator pi, QueryOperator operator, String value) {
+    QueryItem item = programIndicatorItem(pi);
+    item.addFilter(new QueryFilter(operator, value));
+    return createRequestParamsBuilder().addItemFilter(item).build();
+  }
+
   private EventQueryParams createAggregatePiParams(
       ProgramIndicator pi, AggregationType aggregationType) {
     return new EventQueryParams.Builder(createRequestParams())
@@ -1989,6 +2170,24 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   private String variablePlaceholder(ProgramIndicator pi) {
     return "FUNC_CTE_VAR( type='vEventDate', column='occurreddate', piUid='%s', psUid='null', offset='0')"
         .formatted(pi.getUid());
+  }
+
+  private RelationshipType createRelationshipType(RelationshipEntity toConstraint) {
+    RelationshipType relationshipTypeA = rnd.nextObject(RelationshipType.class);
+
+    RelationshipConstraint from = new RelationshipConstraint();
+    from.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+
+    RelationshipConstraint to = new RelationshipConstraint();
+    to.setRelationshipEntity(toConstraint);
+
+    relationshipTypeA.setFromConstraint(from);
+    relationshipTypeA.setToConstraint(to);
+    return relationshipTypeA;
+  }
+
+  private RelationshipType createRelationshipType() {
+    return createRelationshipType(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
   }
 
   private String d2FunctionPlaceholder(ProgramIndicator pi) {
