@@ -39,8 +39,29 @@ Settings that keep baseline and candidate comparable:
 * Maintenance (RAID check, upgrades, reboots) runs from 19:00 to 00:59 UTC, outside the nightly
   run at 01:00 UTC and the hours when compares typically run.
 
-Each run records the host's CPU governor and turbo setting in `run-simulation.env`. On CI, a run
-warns when the CPU clock is not fixed.
+Each run records the host's CPU model, threads, SMT, governor and turbo setting in
+`run-simulation.env`. On CI, a run warns when the CPU clock is not fixed.
+
+Each run also records in `resources.env` what DHIS2, Postgres and Gatling used and waited for
+while Gatling ran:
+
+* CPU used, time spent waiting for a CPU (PSI), time held back by the `cpus` quota (n/a without
+  one), peak memory and I/O wait, per part, from its cgroup. Gatling's is the cgroup of
+  `run-simulation.sh`: on the runner, the GitHub runner's service, which also runs the job's
+  scripts.
+* Postgres's blocks read from outside `shared_buffers`, temp files, commits and rows, from
+  `pg_stat_database`.
+* The containers' `cpuset` and `cpus` quota.
+
+The counters are read right before and right after `mvn gatling:test`, so nothing runs during the
+measurement. On CI, a measured run warns when a part waited for a CPU more than 1% of the time, a
+quota held a part back more than 1 ms/s, or Postgres waited for I/O more than 1% of the time: its
+timings may then include waiting rather than work. Blocks read from outside `shared_buffers` alone
+don't warn: the page cache may serve them, and large sequential scans read that way by design.
+Compare the CPU and rows per run of baseline and candidate too: they vary much less between runs
+than latencies. The counters need Linux with cgroup v2. Docker Desktop's containers run in a VM, so
+only Postgres's show there. `scripts/resources-table.sh <run directory>...` prints runs side by
+side.
 
 ## Results
 
@@ -57,6 +78,8 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 * `postgresql.log` - SQL logs (if enabled with `CAPTURE_SQL_LOGS`)
 * `pgbadger.html` - SQL analysis report (if `CAPTURE_SQL_LOGS` enabled and `pgbadger` installed)
 * `gc.log` - JVM GC and safepoint logs (always captured)
+* `resources.env` - What DHIS2, Postgres and Gatling used and waited for during the run (see
+  [Runner](#runner))
 
 ### Analysis
 
