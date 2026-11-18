@@ -2594,20 +2594,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         Condition.raw(getWhereClause(params)), Condition.raw(nonProgramIndicatorItemFilters));
   }
 
-  private void addPagingToBuilder(SelectBuilder builder, EventQueryParams params) {
-    if (params.isPaging()) {
-      if (params.isTotalPages()) {
-        builder.limitWithMax(params.getPageSizeWithDefault(), 5000).offset(params.getOffset());
-      } else {
-        builder
-            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), 5000)
-            .offset(params.getOffset());
-      }
-    } else {
-      builder.limitPlusOne(5000);
-    }
-  }
-
   /**
    * Add to the {@link CteContext} the CTE definitions that are specified in the filters of {@link
    * EventQueryParams}.
