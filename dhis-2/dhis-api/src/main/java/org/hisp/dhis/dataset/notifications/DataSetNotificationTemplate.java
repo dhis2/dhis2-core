@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -62,6 +63,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
@@ -158,6 +161,7 @@ public class DataSetNotificationTemplate
   private DataSetNotificationRecipient notificationRecipient;
 
   @ElementCollection
+  @Fetch(FetchMode.SELECT)
   @CollectionTable(
       name = "datasetnotificationtemplate_deliverychannel",
       joinColumns = @JoinColumn(name = "datasetnotificationtemplateid"))
@@ -585,29 +589,14 @@ public class DataSetNotificationTemplate
 
   @Override
   public String toString() {
-    return "{"
-        + "\"class\":\""
-        + getClass()
-        + "\", "
-        + "\"id\":\""
-        + getId()
-        + "\", "
-        + "\"uid\":\""
-        + getUid()
-        + "\", "
-        + "\"code\":\""
-        + getCode()
-        + "\", "
-        + "\"name\":\""
-        + getName()
-        + "\", "
-        + "\"created\":\""
-        + getCreated()
-        + "\", "
-        + "\"lastUpdated\":\""
-        + getLastUpdated()
-        + "\" "
-        + "}";
+    return MoreObjects.toStringHelper(getRealClass(this))
+        .add("id", getId())
+        .add("uid", getUid())
+        .add("code", getCode())
+        .add("name", getName())
+        .add("created", getCreated())
+        .add("lastUpdated", getLastUpdated())
+        .toString();
   }
 
   // -------------------------------------------------------------------------
