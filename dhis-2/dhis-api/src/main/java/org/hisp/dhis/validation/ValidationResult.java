@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -234,6 +234,12 @@ public class ValidationResult implements Comparable<ValidationResult>, Serializa
         .append(this.period.getIsoDate(), other.getPeriod().getIsoDate())
         .append(this.attributeOptionCombo, other.getAttributeOptionCombo())
         .append(this.organisationUnit, other.getOrganisationUnit())
+        // the objects above compare by name, which is not unique; results not yet persisted have
+        // no id, so the unique key decides before the id
+        .append(this.organisationUnit.getId(), other.getOrganisationUnit().getId())
+        .append(this.attributeOptionCombo.getId(), other.getAttributeOptionCombo().getId())
+        .append(this.validationRule.getId(), other.getValidationRule().getId())
+        .append(this.dayInPeriod, other.getDayInPeriod())
         .append(this.id, other.getId())
         .toComparison();
   }

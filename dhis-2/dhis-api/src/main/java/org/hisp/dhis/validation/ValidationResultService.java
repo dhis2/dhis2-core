@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,4 +102,14 @@ public interface ValidationResultService {
       boolean includeOrgUnitDescendants,
       Collection<ValidationRule> validationRules,
       Collection<Period> periods);
+
+  /**
+   * Persists the violations found by an analysis. A violation already persisted for the same rule,
+   * period, org unit, attribute option combo and day in the period keeps its row and notification
+   * state; its left and right side values are updated. Other violations are saved. Persisted
+   * violations that were not found are left unchanged.
+   *
+   * @param validationResults the violations found by the analysis
+   */
+  void upsertValidationResults(Collection<ValidationResult> validationResults);
 }
