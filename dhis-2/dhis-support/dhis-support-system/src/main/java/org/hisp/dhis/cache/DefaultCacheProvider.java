@@ -496,4 +496,33 @@ public class DefaultCacheProvider implements CacheProvider {
             .forceInMemory()
             .withMaximumSize(orZeroInTestRun(1)));
   }
+
+  /**
+   * Per-app CSP override documents, read on every HTML entrypoint of an app. Evicted on every
+   * change; the short expiry also picks up direct datastore edits. Not forced in memory so
+   * clustered (Redis) deployments see a change on all nodes.
+   */
+  @Override
+  public <V> Cache<V> createCspAppOverrideCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.cspAppOverrideCache.name())
+            .expireAfterWrite(5, MINUTES)
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1K))));
+  }
+
+  /**
+   * Deduplicated CSP violation reports per app, node-local by design: reports arrive often and are
+   * diagnostic only, so they are never written to Redis or the database. Entries inside a bucket
+   * expire 24 hours after they were last seen. Sized also in test runs: the region is the store.
+   */
+  @Override
+  public <V> Cache<V> createCspViolationCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.cspViolationCache.name())
+            .expireAfterWrite(24, HOURS)
+            .forceInMemory()
+            .withMaximumSize(getActualSize(SIZE_1K)));
+  }
 }

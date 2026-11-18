@@ -46,7 +46,9 @@ import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
@@ -165,6 +167,27 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   void testGetOpenApiDocumentHtml_FullDocument() {
     String html = GET("/openapi/openapi.html", Accept(TEXT_HTML_VALUE)).content(TEXT_HTML_VALUE);
     assertContains("DHIS2 Full API", html);
+  }
+
+  /**
+   * The docs page draws its logo and source links as {@code data:} images and imports Google Fonts.
+   * Its CSP must allow exactly those sources, otherwise the browser drops the logo, the fonts and
+   * the (text-transparent) source links.
+   */
+  @Test
+  void testGetOpenApiDocumentHtml_CspAllowsPageResources() {
+    HttpResponse response =
+        GET("/openapi/openapi.html?scope=entity:DataElement", Accept(TEXT_HTML_VALUE));
+    String html = response.content(TEXT_HTML_VALUE);
+    Map<String, List<String>> csp = parseCspDirectives(response.header("Content-Security-Policy"));
+
+    assertContains("url(data:image/png;base64,", html);
+    assertEquals(List.of("'self'", "data:"), csp.get("img-src"));
+
+    assertContains("@import url('https://fonts.googleapis.com/css2?", html);
+    assertEquals(
+        List.of("'self'", "'unsafe-inline'", "https://fonts.googleapis.com"), csp.get("style-src"));
+    assertEquals(List.of("https://fonts.gstatic.com"), csp.get("font-src"));
   }
 
   /**
@@ -327,5 +350,17 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     assertNotNull(
         new DefaultGenerator(true).opts(configurator.toClientOptInput()).generate(),
         "Like due to a query parameter which is complex, needs debugging to find out, insert breakpoint at RClientCodegen.constructExampleCode(RClientCodegen.java:950)");
+  }
+
+  private static Map<String, List<String>> parseCspDirectives(String policy) {
+    assertNotNull(policy, "Content-Security-Policy header should be present");
+    Map<String, List<String>> directives = new HashMap<>();
+    for (String directive : policy.split(";")) {
+      List<String> tokens = List.of(directive.trim().split("\\s+"));
+      if (!tokens.get(0).isEmpty()) {
+        directives.put(tokens.get(0), tokens.subList(1, tokens.size()));
+      }
+    }
+    return directives;
   }
 }

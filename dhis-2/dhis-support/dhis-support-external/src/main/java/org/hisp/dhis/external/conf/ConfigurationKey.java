@@ -34,7 +34,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.Arrays;
 import java.util.Optional;
 import lombok.Getter;
-import org.hisp.dhis.security.utils.CspConstants;
 
 /**
  * @author Lars Helge Overland
@@ -767,11 +766,18 @@ public enum ConfigurationKey {
   /** Content Security Policy feature. Enable or disable the feature. (sensitive) */
   CSP_ENABLED("csp.enabled", Constants.ON, true),
 
-  /** CSP upgrade insecure connections. Enable or disable the feature. (sensitive) */
-  CSP_UPGRADE_INSECURE_ENABLED("csp.upgrade.insecure.enabled", Constants.OFF, true),
+  /**
+   * Whether HTTPS deployments emit the CSP {@code upgrade-insecure-requests} directive. Requires
+   * {@code server.https} to be enabled. Browsers then rewrite {@code http://} sub-resource fetches
+   * to {@code https://}, closing mixed-content gaps.
+   */
+  CSP_UPGRADE_INSECURE_ENABLED("csp.upgrade.insecure.enabled", Constants.ON, true),
 
-  /** CSP default header value/string. Enable or disable the feature. */
-  CSP_HEADER_VALUE("csp.header.value", CspConstants.SCRIPT_SOURCE_DEFAULT, false),
+  /**
+   * Whether policies of app entrypoints carry a {@code report-uri} that sends CSP violation reports
+   * to {@code /api/security/csp/report}. Only has an effect while {@code csp.enabled} is on.
+   */
+  CSP_REPORT_ENABLED("csp.report.enabled", Constants.ON, false),
 
   /** Event hooks for system events. Enable or disable the feature. */
   EVENT_HOOKS_ENABLED("event_hooks.enabled", Constants.OFF, false),

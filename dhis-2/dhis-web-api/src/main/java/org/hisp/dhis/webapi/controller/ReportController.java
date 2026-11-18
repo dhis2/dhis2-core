@@ -56,6 +56,7 @@ import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.report.ReportType;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.webapi.security.csp.CspHtmlReport;
 import org.hisp.dhis.webapi.servlet.ImageServlet;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.joda.time.DateTime;
@@ -190,6 +191,7 @@ public class ReportController extends AbstractCrudController<Report, GetObjectLi
         true);
   }
 
+  @CspHtmlReport
   @GetMapping("/{uid}/data.html")
   public void getReportAsHtml(
       @PathVariable("uid") String uid,

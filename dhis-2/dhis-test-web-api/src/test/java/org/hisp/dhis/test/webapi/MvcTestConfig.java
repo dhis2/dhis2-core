@@ -57,6 +57,7 @@ import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConv
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
+import org.hisp.dhis.webapi.security.csp.CspInterceptor;
 import org.hisp.dhis.webapi.view.SuffixMediaTypeContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -99,6 +100,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Autowired private SystemSettingsInterceptor settingsInterceptor;
 
+  @Autowired private CspInterceptor cspInterceptor;
   @Autowired private TrackerExportDeadlineInterceptor trackerExportDeadlineInterceptor;
 
   @Autowired private NodeService nodeService;
@@ -146,6 +148,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new UserContextInterceptor());
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
+    registry.addInterceptor(cspInterceptor);
     registry
         .addInterceptor(trackerExportDeadlineInterceptor)
         .addPathPatterns(TrackerExportDeadlineInterceptor.PATH_PATTERNS);
@@ -186,6 +189,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
     registry.addInterceptor(new UserContextInterceptor());
     registry.addInterceptor(authorityInterceptor);
+    registry.addInterceptor(cspInterceptor);
     registry
         .addInterceptor(trackerExportDeadlineInterceptor)
         .addPathPatterns(TrackerExportDeadlineInterceptor.PATH_PATTERNS);

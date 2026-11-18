@@ -85,6 +85,15 @@ public interface AppManager {
   List<App> getApps(String contextPath);
 
   /**
+   * Returns all installed apps regardless of the access of the current user. Only for server-side
+   * configuration of apps (for example per-app CSP overrides), never to serve app content.
+   *
+   * @param contextPath the context path of this instance.
+   * @return list of all installed apps
+   */
+  List<App> getAllApps(String contextPath);
+
+  /**
    * Returns a list of installed apps with plugins. Includes both DASHBOARD_WIDGET app types and APP
    * app types with a pluginLaunchPath.
    *

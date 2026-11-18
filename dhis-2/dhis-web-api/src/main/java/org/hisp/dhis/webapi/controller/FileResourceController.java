@@ -50,8 +50,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -73,8 +71,8 @@ import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.webapi.security.csp.CspUserUploadedContent;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
-import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -102,8 +100,6 @@ public class FileResourceController
   private final FileResourceService fileResourceService;
 
   private final FileResourceUtils fileResourceUtils;
-
-  private final DhisConfigurationProvider dhisConfig;
 
   /**
    * Overridden to only use it when {@code fields} parameter is present.
@@ -211,6 +207,7 @@ public class FileResourceController
     return fileResource;
   }
 
+  @CspUserUploadedContent
   @GetMapping(value = "/{uid}/data")
   public void getFileResourceData(
       @PathVariable UID uid,
@@ -238,9 +235,6 @@ public class FileResourceController
         HttpHeaders.CONTENT_LENGTH,
         String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
-
-    HeaderUtils.setSecurityHeaders(
-        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
     try {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
