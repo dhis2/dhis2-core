@@ -44,6 +44,8 @@ import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -121,6 +123,8 @@ public class DefaultPredictionService implements PredictionService {
   private final ApplicationContext applicationContext;
 
   private final UserService userService;
+
+  private final EntityManager entityManager;
 
   // -------------------------------------------------------------------------
   // Prediction business logic
@@ -233,6 +237,23 @@ public class DefaultPredictionService implements PredictionService {
 
   @Transactional
   public void predictSimple(
+      Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary) {
+    // A prediction loads all org units of its levels into the session and never modifies an
+    // entity: predictions are written with SQL. With the default flush mode every HQL query on
+    // the way (for example analytics looking up the current user, once or twice per batch of org
+    // units) dirty-checks all of those entities first. Flush any earlier changes once, then let
+    // the session flush only at commit, as DefaultObjectBundleService.preheatWithoutAutoFlush does.
+    entityManager.flush();
+    FlushModeType flushMode = entityManager.getFlushMode();
+    entityManager.setFlushMode(FlushModeType.COMMIT);
+    try {
+      predictSimpleInSession(predictor, startDate, endDate, predictionSummary);
+    } finally {
+      entityManager.setFlushMode(flushMode);
+    }
+  }
+
+  private void predictSimpleInSession(
       Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary) {
     Expression generator = predictor.getGenerator();
     Expression skipTest = predictor.getSampleSkipTest();
