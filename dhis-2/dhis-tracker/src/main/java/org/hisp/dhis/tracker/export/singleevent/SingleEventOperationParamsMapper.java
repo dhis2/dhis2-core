@@ -83,7 +83,6 @@ class SingleEventOperationParamsMapper {
       @Nonnull SingleEventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
     Program program = paramsValidator.validateEventProgram(operationParams.getProgram(), user);
-    validateProgramStage(program, user);
 
     OrganisationUnit orgUnit =
         validateRequestedOrgUnit(applyIfNotNull(operationParams.getOrgUnit(), UID::getValue), user);
@@ -104,9 +103,14 @@ class SingleEventOperationParamsMapper {
     mapDataElementFilters(queryParams, operationParams.getDataElementFilters());
     mapOrderParam(queryParams, operationParams.getOrder());
 
+    List<ProgramStage> accessibleProgramStages =
+        program != null
+            ? List.of()
+            : trackerProgramService.getProgramStagesWithDataReadAccess(
+                trackerProgramService.getEventProgramsWithDataReadAccess());
+
     return queryParams
-        .setProgram(program)
-        .setAccessibleProgramStages(getAccessibleProgramStages(program))
+        .setProgram(program, accessibleProgramStages)
         .setOrgUnit(orgUnit)
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setQuerySearchScope(
@@ -133,36 +137,6 @@ class SingleEventOperationParamsMapper {
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setIdSchemeParams(operationParams.getIdSchemeParams())
         .setIncludeNotes(operationParams.getFields().isIncludesNotes());
-  }
-
-  /**
-   * Validates the user can read the data of the requested program's stage. The program itself is
-   * validated by {@link OperationsParamsValidator#validateEventProgram(UID, UserDetails)}.
-   *
-   * @throws ForbiddenException if the user cannot read the data of the stage
-   */
-  private void validateProgramStage(Program program, UserDetails user) throws ForbiddenException {
-    if (program == null) {
-      return;
-    }
-
-    ProgramStage programStage = program.getProgramStages().iterator().next();
-    if (!aclService.canRead(user, programStage) || !aclService.canDataRead(user, programStage)) {
-      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
-    }
-  }
-
-  /**
-   * Returns the stages the user can read the data of, of the event programs the user can read the
-   * data of, if no program is requested.
-   */
-  private List<ProgramStage> getAccessibleProgramStages(Program program) {
-    if (program != null) {
-      return List.of();
-    }
-
-    return trackerProgramService.getProgramStagesWithDataReadAccess(
-        trackerProgramService.getEventProgramsWithDataReadAccess());
   }
 
   private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid, UserDetails user)

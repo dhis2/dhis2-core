@@ -156,6 +156,10 @@ class JdbcSingleEventStore {
   }
 
   private List<SingleEvent> fetchEvents(SingleEventQueryParams queryParams, PageParams pageParams) {
+    if (queryParams.getProgram() == null && queryParams.getAccessibleProgramStages().isEmpty()) {
+      return List.of();
+    }
+
     Map<String, SingleEvent> eventsByUid;
     if (pageParams == null) {
       eventsByUid = new HashMap<>();

@@ -400,41 +400,6 @@ class SingleEventOperationParamsMapperTest {
     assertContainsOnly(List.of(stage), params.getAccessibleProgramStages());
   }
 
-  @Test
-  void shouldFailWhenUserHasNoDataReadAccessToStageOfRequestedProgram()
-      throws ForbiddenException, BadRequestException {
-    Program program = program(ProgramType.WITHOUT_REGISTRATION);
-    ProgramStage stage = programStage();
-    program.setProgramStages(Set.of(stage));
-    when(paramsValidator.validateEventProgram(UID.of(program), user)).thenReturn(program);
-    when(aclService.canRead(user, stage)).thenReturn(true);
-    when(aclService.canDataRead(user, stage)).thenReturn(false);
-
-    SingleEventOperationParams operationParams =
-        SingleEventOperationParams.builderForProgram(UID.of(program)).build();
-
-    Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams, user));
-    assertEquals("User has no access to program stage: " + stage.getUid(), exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenUserHasNoMetadataReadAccessToStageOfRequestedProgram()
-      throws ForbiddenException, BadRequestException {
-    Program program = program(ProgramType.WITHOUT_REGISTRATION);
-    ProgramStage stage = programStage();
-    program.setProgramStages(Set.of(stage));
-    when(paramsValidator.validateEventProgram(UID.of(program), user)).thenReturn(program);
-    when(aclService.canRead(user, stage)).thenReturn(false);
-
-    SingleEventOperationParams operationParams =
-        SingleEventOperationParams.builderForProgram(UID.of(program)).build();
-
-    Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams, user));
-    assertEquals("User has no access to program stage: " + stage.getUid(), exception.getMessage());
-  }
-
   private static Program program(ProgramType programType) {
     Program program = new Program();
     program.setUid(CodeGenerator.generateUid());

@@ -169,17 +169,13 @@ class SingleEventQueryParams {
     return this;
   }
 
-  public SingleEventQueryParams setProgram(Program program) {
+  public SingleEventQueryParams setProgram(Program program, List<ProgramStage> programStages) {
     this.program = program;
     if (program != null) {
       this.programStage = program.getProgramStages().iterator().next();
+    } else {
+      this.accessibleProgramStages = programStages;
     }
-    return this;
-  }
-
-  public SingleEventQueryParams setAccessibleProgramStages(
-      List<ProgramStage> accessibleProgramStages) {
-    this.accessibleProgramStages = accessibleProgramStages;
     return this;
   }
 
