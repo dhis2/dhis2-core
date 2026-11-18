@@ -212,6 +212,20 @@ class CspViolationServiceTest {
       assertNull(v.suggestedDirective());
       assertNull(v.suggestedSource());
     }
+    Set<String> remediations =
+        Set.copyOf(
+            service.list("maps", NOW).stream()
+                .map(CspViolationService.Violation::remediation)
+                .toList());
+    assertTrue(
+        remediations.contains(
+            "data: URL blocked in media-src; only script-src and font-src accept it as an unsafe"
+                + " source"),
+        remediations.toString());
+    assertTrue(
+        remediations.contains(
+            "blob: URL blocked in img-src; only script-src accepts it as an unsafe source"),
+        remediations.toString());
   }
 
   @Test

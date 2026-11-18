@@ -347,17 +347,23 @@ public class CspViolationService {
         case "WASM_EVAL" ->
             "WebAssembly compilation blocked: add 'wasm-unsafe-eval' to script-src (needs"
                 + " confirmUnsafe)";
-        case "DATA", "BLOB" ->
-            suggestable
-                ? "Add " + source + " to " + directive + " for " + appKey + " (needs confirmUnsafe)"
-                : kind.toLowerCase(Locale.ROOT)
-                    + ": URL blocked in "
-                    + directive
-                    + ("DATA".equals(kind)
-                        ? "; only script-src and font-src accept it as an unsafe source"
-                        : "; only script-src accepts it as an unsafe source");
+        case "DATA", "BLOB" -> schemeRemediation(appKey);
         default -> "Not suggestable";
       };
+    }
+
+    private String schemeRemediation(String appKey) {
+      if (suggestable) {
+        return "Add " + source + " to " + directive + " for " + appKey + " (needs confirmUnsafe)";
+      }
+      String accepting =
+          "DATA".equals(kind) ? "script-src and font-src accept" : "script-src accepts";
+      return kind.toLowerCase(Locale.ROOT)
+          + ": URL blocked in "
+          + directive
+          + "; only "
+          + accepting
+          + " it as an unsafe source";
     }
   }
 
