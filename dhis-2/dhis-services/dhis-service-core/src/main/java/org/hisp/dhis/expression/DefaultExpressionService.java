@@ -54,6 +54,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
@@ -102,6 +104,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupStore;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
@@ -543,6 +546,33 @@ public class DefaultExpressionService implements ExpressionService {
         .dataSetMap(getUidMap(DataSet.class, info.getOrgUnitDataSetIds()))
         .programMap(getUidMap(Program.class, info.getOrgUnitProgramIds()))
         .build();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, Map<String, Integer>> getOrgUnitGroupMemberCounts(
+      Set<UID> orgUnitGroupIds,
+      Collection<OrganisationUnit> orgUnits,
+      Collection<OrganisationUnit> roots) {
+    if (orgUnitGroupIds == null || orgUnitGroupIds.isEmpty()) {
+      return new HashMap<>();
+    }
+
+    Set<UID> rootUids =
+        roots == null
+            ? Set.of()
+            : roots.stream().map(OrganisationUnit::getUID).collect(Collectors.toSet());
+
+    Set<Integer> levels =
+        orgUnits.stream().map(OrganisationUnit::getLevel).collect(Collectors.toSet());
+
+    Map<String, Map<String, Integer>> counts = new HashMap<>();
+    for (int level : levels) {
+      counts.putAll(
+          organisationUnitGroupStore.getOrganisationUnitGroupMemberCountsAtLevel(
+              orgUnitGroupIds, level, rootUids));
+    }
+    return counts;
   }
 
   @Override

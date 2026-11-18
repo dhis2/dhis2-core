@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.event.aggregate;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
@@ -216,5 +217,39 @@ public class EventsAggregate13AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         Map.of("ou", "ImspTQPwCqd", "incidentdate", "20220102", "value", "32"));
+  }
+
+  private static final String PROGRAM = "IpHINAT79UW";
+
+  @Test
+  void enrollmentDateRangeDimensionIsRejected() {
+    assertRejected("ENROLLMENT_DATE:2022-01-01_2022-12-31");
+  }
+
+  @Test
+  void singleDayEnrollmentDateRangeDimensionIsRejected() {
+    assertRejected("ENROLLMENT_DATE:2022-01-01_2022-01-01");
+  }
+
+  @Test
+  void periodRangeDimensionIsRejected() {
+    assertRejected("pe:2022-01-01_2022-12-31");
+  }
+
+  private void assertRejected(String dimension) {
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:ImspTQPwCqd," + dimension)
+            .add("stage=A03MvHHogjR")
+            .add("totalPages=false");
+
+    ApiResponse response = actions.aggregate().get(PROGRAM, JSON, JSON, params);
+
+    response
+        .validate()
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("ERROR"))
+        .body("errorCode", equalTo("E7270"));
   }
 }

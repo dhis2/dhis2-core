@@ -44,8 +44,14 @@ jobs:
       - name: 'Get latest IM tag'
         id: latest-im-tag
         run: |
-          LATEST_IM_TAG=$(git ls-remote --tags --sort='v:refname' https://github.com/dhis2-sre/im-manager | tail -1 | awk '{print $2}')
-          echo "LATEST_IM_TAG=$LATEST_IM_TAG" >> $GITHUB_ENV
+          # im-manager tags dropped the "v" prefix from 0.69.0 on, so sort on the version without it.
+          LATEST_IM_TAG=$(git ls-remote --tags --refs https://github.com/dhis2-sre/im-manager | sed -E 's#.*(refs/tags/v?(.*))#\2 \1#' | sort -V | tail -1 | cut -d' ' -f2)
+          if [[ -z "$LATEST_IM_TAG" ]]; then
+            echo "::error::Could not resolve the latest im-manager tag"
+            exit 1
+          fi
+          echo "Using im-manager $LATEST_IM_TAG"
+          echo "LATEST_IM_TAG=$LATEST_IM_TAG" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v7
         with:

@@ -31,7 +31,6 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_VALUE;
-import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.COLUMN_ENROLLMENT_GEOMETRY_GEOJSON;
 import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.COL_VALUE;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
@@ -67,16 +66,13 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.springframework.stereotype.Component;
 
 /**
- * Assembles SELECT-clause columns for enrollment analytics queries — both the aggregated path
- * (count + org unit + period + header columns) and the standard list path (enrollment standard
- * columns with optional shadow-CTE alias rewriting).
+ * Assembles SELECT-clause columns for aggregated enrollment analytics queries (count + org unit +
+ * period + header columns).
  */
 @Component
 public class AggregatedEnrollmentQueryAssembler {
 
   private static final AnalyticsType ANALYTICS_TYPE = AnalyticsType.ENROLLMENT;
-
-  private static final String AX_ALIAS = "ax";
 
   private static final String ENROLLMENT_AGGR_BASE_ALIAS = "eb";
 
@@ -148,45 +144,6 @@ public class AggregatedEnrollmentQueryAssembler {
     }
 
     return Optional.of(quote(params.getValue().getUid()));
-  }
-
-  /**
-   * Adds standard enrollment columns. The shadow-CTE branch rewrites formula columns to their
-   * {@link #getFormulaColumnAliases() alias}; otherwise formula columns are emitted verbatim.
-   */
-  public void addStandardColumns(
-      SelectBuilder sb, CteContext cteContext, List<String> standardColumns) {
-    boolean useShadowCte = cteContext.containsCte("top_enrollments");
-
-    if (useShadowCte) {
-      addStandardColumnsWithShadowCte(sb, standardColumns);
-    } else {
-      addStandardColumnsWithoutShadowCte(sb, standardColumns);
-    }
-  }
-
-  private void addStandardColumnsWithShadowCte(SelectBuilder sb, List<String> standardColumns) {
-    Map<String, String> formulaAliases = getFormulaColumnAliases();
-
-    for (String column : standardColumns) {
-      if (columnIsInFormula(column)) {
-        String alias = formulaAliases.getOrDefault(column, createDefaultAlias(column));
-        sb.addColumn(alias, AX_ALIAS);
-      } else {
-        sb.addColumn(column, AX_ALIAS);
-      }
-    }
-  }
-
-  private void addStandardColumnsWithoutShadowCte(SelectBuilder sb, List<String> standardColumns) {
-    standardColumns.forEach(
-        column -> {
-          if (columnIsInFormula(column)) {
-            sb.addColumn(column);
-          } else {
-            sb.addColumn(column, AX_ALIAS);
-          }
-        });
   }
 
   /**
@@ -374,19 +331,5 @@ public class AggregatedEnrollmentQueryAssembler {
 
   private String quote(String relation) {
     return sqlBuilder.quote(relation);
-  }
-
-  private Map<String, String> getFormulaColumnAliases() {
-    Map<String, String> aliases = new HashMap<>();
-    aliases.put(COLUMN_ENROLLMENT_GEOMETRY_GEOJSON, "enrollmentgeometry_geojson");
-    return aliases;
-  }
-
-  private boolean columnIsInFormula(String col) {
-    return col.contains("(") && col.contains(")");
-  }
-
-  private String createDefaultAlias(String formula) {
-    return "formula_" + (formula.hashCode() & Integer.MAX_VALUE);
   }
 }

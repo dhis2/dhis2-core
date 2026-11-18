@@ -82,7 +82,6 @@ import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
-import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlAliasReplacer;
@@ -153,7 +152,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       DhisConfigurationProvider config,
       AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver,
-      ColumnMapper columnMapper,
       QueryItemFilterBuilder filterBuilder,
       StageQuerySqlFacade stageQuerySqlFacade,
       DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver,
@@ -170,7 +168,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         settingsService,
         config,
         organisationUnitResolver,
-        columnMapper,
         filterBuilder,
         stageQuerySqlFacade,
         dateFieldPeriodBucketColumnResolver);
@@ -335,18 +332,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   public long getEnrollmentCount(EventQueryParams params) {
-    Optional<ProgramIndicatorCteSql> programIndicatorCte = getProgramIndicatorCteSql(params);
-    String sql = "select count(1) ";
-
-    sql += getFromClause(params);
-    sql += programIndicatorCte.map(ProgramIndicatorCteSql::joinClause).orElse("");
-
-    sql += getWhereClause(params);
-    sql += addFiltersToWhereClause(params);
-
-    if (programIndicatorCte.isPresent()) {
-      sql = programIndicatorCte.get().withClause() + sql;
-    }
+    String sql = buildAnalyticsCountQuery(params);
 
     long count = 0;
 
@@ -366,10 +352,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     return count;
-  }
-
-  private String addFiltersToWhereClause(EventQueryParams params) {
-    return getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
   }
 
   /**
@@ -1098,9 +1080,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     sb.from(ENROLLMENT_AGGR_BASE, ENROLLMENT_AGGR_BASE_ALIAS);
     appendPeriodBucketJoins(sb, periodProjections);
 
-    // 3.4: Append JOINs for each relevant CTE definition
+    // 3.4: Append JOINs for each relevant CTE definition. Program indicator inputs are already
+    // joined inside their program indicator CTE
     for (String itemUid : cteContext.getCteKeysExcluding(ENROLLMENT_AGGR_BASE)) {
       CteDefinition cteDef = cteContext.getDefinitionByItemUid(itemUid);
+      if (cteDef.isProgramIndicatorInput()) {
+        continue;
+      }
       String tableName = useItemUidForTable(cteDef) ? itemUid : cteDef.getAlias();
       sb.leftJoin(
           tableName,
@@ -1263,7 +1249,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
-    aggregatedAssembler.addStandardColumns(sb, cteContext, getStandardColumns(params));
+    addAnalyticsTableColumns(sb, getStandardColumns(params));
 
     OrgUnitSqlCoordinator.querySelectColumns(
             TrackerOrgUnitDimension.REGISTRATION_OU, params, sqlBuilder)

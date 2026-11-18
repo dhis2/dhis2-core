@@ -2008,6 +2008,48 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testPredictOrgUnitGroupCount() {
+    // OUG{} counts the group members in the org unit's subtree, the org unit itself included.
+    // Group A = {A, C}, group B = {D, F}; B is the parent of C and D, D the parent of E and F.
+    Expression expression =
+        new Expression(
+            "OUG{" + ouGroupA.getUid() + "} * 10 + OUG{" + ouGroupB.getUid() + "} + 100",
+            "description",
+            MissingValueStrategy.NEVER_SKIP);
+    Set<OrganisationUnitLevel> allLevels =
+        Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
+    Predictor predictor =
+        createPredictor(
+            dataElementX,
+            defaultCombo,
+            "A",
+            expression,
+            null,
+            periodTypeMonthly,
+            allLevels,
+            1,
+            0,
+            0);
+    PredictionSummary summary = new PredictionSummary();
+    predictionService.predict(predictor, monthStart(2021, 8), monthStart(2021, 9), summary);
+    assertEquals("Pred 1 Ins 7 Upd 0 Del 0 Unch 0", shortSummary(summary));
+    assertEquals(
+        "110.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2021, 8)));
+    assertEquals(
+        "112.0", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2021, 8)));
+    assertEquals(
+        "110.0", getDataValue(dataElementX, defaultCombo, sourceC, monthlyPeriod(2021, 8)));
+    assertEquals(
+        "102.0", getDataValue(dataElementX, defaultCombo, sourceD, monthlyPeriod(2021, 8)));
+    assertEquals(
+        "100.0", getDataValue(dataElementX, defaultCombo, sourceE, monthlyPeriod(2021, 8)));
+    assertEquals(
+        "101.0", getDataValue(dataElementX, defaultCombo, sourceF, monthlyPeriod(2021, 8)));
+    assertEquals(
+        "100.0", getDataValue(dataElementX, defaultCombo, sourceG, monthlyPeriod(2021, 8)));
+  }
+
+  @Test
   void testPredictOrgUnitDataSet() {
     DataSet dataSetA = createDataSet('A', periodTypeMonthly);
     DataSet dataSetB = createDataSet('B', periodTypeMonthly);
