@@ -2108,6 +2108,54 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(generatedSql, containsString("inner join " + pi.getUid()));
   }
 
+  /**
+   * The CTEs feeding a program indicator hold one row per event. Joining them in the aggregate
+   * outer query multiplies each enrollment by its event count, so only the program indicator CTE,
+   * which has one row per enrollment, may be joined there.
+   */
+  @Test
+  void verifyAggregateEnrollmentJoinsProgramIndicatorCteButNotItsInputCtes() {
+    ProgramIndicator pi =
+        createEnrollmentProgramIndicator(
+            "#{%s.%s} + d2:daysBetween(V{enrollment_date}, V{event_date})"
+                .formatted(programStage.getUid(), dataElementA.getUid()),
+            null);
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq(pi.getExpression()), eq(NUMERIC), eq(pi), any(), any(), anyString()))
+        .thenReturn(
+            psdePlaceholder(pi)
+                + " + (cast("
+                + variablePlaceholder(pi)
+                + " as date) - cast(enrollmentdate as date))");
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(pi, null))
+            .withEndpointAction(AGGREGATE)
+            .build();
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(new GridHeader(pi.getUid(), pi.getName(), ValueType.NUMBER, false, true));
+
+    subject.getEnrollments(params, grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    assertNoCtePlaceholders(generatedSql);
+    int outerQueryStart = generatedSql.indexOf("from enrollment_aggr_base as eb");
+    String withClauseSql = generatedSql.substring(0, outerQueryStart);
+    List<String> outerJoinTargets =
+        Pattern.compile("left join ([A-Za-z0-9_]+)")
+            .matcher(generatedSql.substring(outerQueryStart))
+            .results()
+            .map(r -> r.group(1))
+            .toList();
+
+    // The data element and the variable are each read from their own CTE inside the indicator CTE
+    assertThat(withClauseSql, containsString("\"fWIAEtYVEGk\" as value"));
+    assertThat(withClauseSql, containsString("\"occurreddate\" as value"));
+    assertThat(outerJoinTargets, is(List.of(pi.getUid())));
+  }
+
   @Test
   void verifyAggregatedEventDataWithoutProgramIndicatorHasNoCtes() {
     subject.getAggregatedEventData(
