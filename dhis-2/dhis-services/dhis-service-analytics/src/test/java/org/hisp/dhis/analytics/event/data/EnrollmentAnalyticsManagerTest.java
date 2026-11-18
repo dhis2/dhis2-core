@@ -51,6 +51,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -380,9 +381,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testBadGrammarExceptionWithMultipleQueries() {
     // Given
-    mockEmptyRowSet();
+    BadSqlGrammarException badSqlGrammarException =
+        new BadSqlGrammarException("task", "sql", new SQLException());
     EventQueryParams params = createRequestParamsWithMultipleQueries();
-    when(jdbcTemplate.queryForRowSet(anyString())).thenThrow(BadSqlGrammarException.class);
+    mockEmptyRowSet();
+    when(jdbcTemplate.queryForRowSet(anyString())).thenThrow(badSqlGrammarException);
 
     // Then
     assertDoesNotThrow(() -> subject.getEnrollments(params, new ListGrid(), 10000));
