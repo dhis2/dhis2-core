@@ -51,7 +51,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PropertyPath;
-import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
 import org.hisp.dhis.jsontree.JsonBuilder;
@@ -552,11 +551,7 @@ public final class JsonStreamOutput {
   private static void addJacksonMapped(
       JsonBuilder.JsonObjectBuilder obj, CharSequence name, Object value) {
     try {
-      // an @Embedded TranslationProperty is read as the embeddable, but is exposed as the
-      // array of translations (like the hbm mapped translations and the non-gist API)
-      Object mapped =
-          value instanceof TranslationProperty ? TranslationProperty.fromObject(value) : value;
-      String json = FALLBACK_MAPPER.writeValueAsString(mapped);
+      String json = FALLBACK_MAPPER.writeValueAsString(value);
       obj.addMember(name, JsonNode.of(json));
     } catch (JsonProcessingException ex) {
       throw new IllegalArgumentException(ex);
