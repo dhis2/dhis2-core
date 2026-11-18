@@ -332,6 +332,52 @@ class CspAppOverrideControllerTest extends H2ControllerIntegrationTestBase {
     assertFalse(header("/apps/maps/index.html", CSP).contains("wms.example.org"));
   }
 
+  // embedded fonts: font-src takes data: per app, after confirmation; the default stays without it
+  @Test
+  void fontSrcData_needsConfirmation_andOnlyChangesTheChosenEntrypoints() {
+    for (String path : List.of("/apps/other-app/index.html", "/apps/other-app/service-worker.js")) {
+      assertFalse(sources(header(path, CSP), "font-src").contains("data:"), path);
+    }
+    String body =
+        """
+        {"entrypoints":{
+          "app":{"enforced":{"add":{"font-src":["data:"]}}},
+          "worker":{"enforced":{"add":{"font-src":["data:"]}}}}}
+        """;
+    JsonObject gate = PUT("/security/csp/apps/other-app", body).content(HttpStatus.CONFLICT);
+    assertEquals(
+        "CONFIRM_UNSAFE_REQUIRED",
+        gate.getList("errors", JsonObject.class).get(0).getString("code").string());
+
+    JsonObject saved =
+        PUT("/security/csp/apps/other-app", body.replaceFirst("\\{", "{\"confirmUnsafe\":true,"))
+            .content(HttpStatus.OK);
+    assertEquals(
+        List.of("app font-src data:", "worker font-src data:"),
+        saved.getArray("unsafeTokens").stringValues());
+
+    String app = header("/apps/other-app/index.html", CSP);
+    assertEquals(List.of("'self'", "data:"), sources(app, "font-src"), app);
+    String worker = header("/apps/other-app/service-worker.js", CSP);
+    assertEquals(List.of("'self'", "data:"), sources(worker, "font-src"), worker);
+    String plugin = header("/apps/other-app/plugin.html", CSP);
+    assertFalse(sources(plugin, "font-src").contains("data:"), plugin);
+    assertFalse(sources(header("/apps/maps/index.html", CSP), "font-src").contains("data:"));
+
+    JsonObject imgData =
+        PUT(
+                "/security/csp/apps/other-app",
+                """
+                {"confirmUnsafe":true,"entrypoints":{"app":{"enforced":{"add":{"img-src":["blob:"],"media-src":["data:"]}}}}}
+                """)
+            .content(HttpStatus.BAD_REQUEST);
+    assertEquals(
+        List.of("INVALID_SOURCE", "INVALID_SOURCE"),
+        imgData.getList("errors", JsonObject.class).stream()
+            .map(e -> e.getString("code").string())
+            .toList());
+  }
+
   // (d): REPORT_ONLY_EXEMPT for one entrypoint only
   @Test
   void reportOnlyExempt_needsConfirmation_andOnlyAffectsThatEntrypoint() {

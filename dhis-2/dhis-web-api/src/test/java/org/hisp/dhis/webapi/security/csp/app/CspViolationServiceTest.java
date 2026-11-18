@@ -177,6 +177,51 @@ class CspViolationServiceTest {
   }
 
   @Test
+  void dataUrlInFontSrc_isSuggestable_asDataInFontSrc() {
+    service.recordReport(report("arcgis-connector", "font-src", "data"), NOW);
+
+    CspViolationService.Violation v = service.list("arcgis-connector", NOW).get(0);
+
+    assertEquals("DATA", v.violationKind());
+    assertTrue(v.suggestable());
+    assertEquals("font-src", v.suggestedDirective());
+    assertEquals("data:", v.suggestedSource());
+    assertEquals("NEW", v.status());
+    assertEquals(
+        "Add data: to font-src for arcgis-connector (needs confirmUnsafe)", v.remediation());
+  }
+
+  @Test
+  void dataUrlInFontSrc_isAllowedNow_whenThePolicyHasData() {
+    when(appPolicyService.enforcedPolicy(anyString(), anyString(), any()))
+        .thenReturn(CspPolicy.parse("default-src 'self'; font-src 'self' data:;"));
+    service.recordReport(report("arcgis-connector", "font-src", "data"), NOW);
+
+    assertEquals("ALLOWED_NOW", service.list("arcgis-connector", NOW).get(0).status());
+  }
+
+  @Test
+  void dataAndBlobUrls_elsewhere_areNotSuggestable() {
+    service.recordReport(report("maps", "media-src", "data"), NOW);
+    service.recordReport(report("maps", "img-src", "blob"), NOW);
+    service.recordReport(report("maps", "font-src", "blob"), NOW);
+    service.recordReport(report("maps", "script-src", "data"), NOW);
+
+    for (CspViolationService.Violation v : service.list("maps", NOW)) {
+      assertFalse(v.suggestable(), v.toString());
+      assertNull(v.suggestedDirective());
+      assertNull(v.suggestedSource());
+    }
+  }
+
+  @Test
+  void dataUrlInFontSrc_onAPlatformPage_isNotSuggestable() {
+    service.recordReport(report(CspViolationService.PLATFORM_APP_KEY, "font-src", "data"), NOW);
+
+    assertFalse(service.list(CspViolationService.PLATFORM_APP_KEY, NOW).get(0).suggestable());
+  }
+
+  @Test
   void counts_splitEnforceAndReport_andClearRemovesAnApp() {
     service.recordReport(report("maps", "img-src", "https://a.example.org"));
     service.recordReport(

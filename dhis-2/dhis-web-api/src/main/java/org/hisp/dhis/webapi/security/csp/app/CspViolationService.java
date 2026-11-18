@@ -45,6 +45,7 @@ import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.CheckForNull;
@@ -347,10 +348,14 @@ public class CspViolationService {
             "WebAssembly compilation blocked: add 'wasm-unsafe-eval' to script-src (needs"
                 + " confirmUnsafe)";
         case "DATA", "BLOB" ->
-            kind.toLowerCase()
-                + ": URL blocked in "
-                + directive
-                + "; only script-src accepts it as an unsafe source";
+            suggestable
+                ? "Add " + source + " to " + directive + " for " + appKey + " (needs confirmUnsafe)"
+                : kind.toLowerCase(Locale.ROOT)
+                    + ": URL blocked in "
+                    + directive
+                    + ("DATA".equals(kind)
+                        ? "; only script-src and font-src accept it as an unsafe source"
+                        : "; only script-src accepts it as an unsafe source");
         default -> "Not suggestable";
       };
     }
@@ -365,9 +370,9 @@ public class CspViolationService {
       case "wasm-eval":
         return new Classification("WASM_EVAL", false, directive, null);
       case "data":
-        return new Classification("DATA", false, directive, null);
+        return schemeClassification("DATA", directive, "data:");
       case "blob":
-        return new Classification("BLOB", false, directive, null);
+        return schemeClassification("BLOB", directive, "blob:");
       case "self":
         return new Classification("SELF", false, directive, null);
       default:
@@ -382,5 +387,18 @@ public class CspViolationService {
             && CspOverrideValidator.isAcceptableOnRead(
                 suggestionDirective, blocked, cspPolicyService.isHttpsEnabled());
     return new Classification("EXTERNAL", suggestable, suggestionDirective, blocked);
+  }
+
+  /**
+   * A blocked {@code data:} or {@code blob:} URL. It is suggestable only where a directive other
+   * than {@code script-src} accepts the scheme as an override ({@code data:} in {@code font-src});
+   * {@code script-src} rows keep their remediation text.
+   */
+  private Classification schemeClassification(String kind, String directive, String scheme) {
+    boolean suggestable =
+        !"script-src".equals(directive)
+            && CspOverrideValidator.isAcceptableOnRead(
+                directive, scheme, cspPolicyService.isHttpsEnabled());
+    return new Classification(kind, suggestable, directive, scheme);
   }
 }

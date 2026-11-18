@@ -199,6 +199,38 @@ class CspOverrideValidatorTest {
   }
 
   @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void fontSrc_acceptsData_asAnUnsafeToken(boolean https) {
+    CspOverrideValidator.Result result = validate("app", "font-src", List.of("DATA:"), https);
+
+    assertTrue(result.valid(), result.errors().toString());
+    assertEquals(List.of("app font-src data:"), result.unsafeTokens());
+    assertEquals(List.of("data:"), result.normalized().get("app").enforced().add().get("font-src"));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "img-src,data:",
+    "media-src,data:",
+    "connect-src,data:",
+    "frame-src,data:",
+    "child-src,data:",
+    "style-src,data:",
+    "worker-src,data:",
+    "form-action,data:",
+    "font-src,blob:",
+    "font-src,https:",
+    "font-src,http:",
+    "font-src,filesystem:"
+  })
+  void otherSchemeOnlySources_stayRejectedOutsideScriptSrc(String directive, String value) {
+    assertEquals(
+        CspOverrideValidator.INVALID_SOURCE,
+        singleError(validate("app", directive, List.of(value), false)));
+    assertFalse(CspOverrideValidator.isAcceptableOnRead(directive, value, false));
+  }
+
+  @ParameterizedTest
   @ValueSource(
       strings = {
         "default-src",
@@ -308,5 +340,6 @@ class CspOverrideValidatorTest {
     assertFalse(CspOverrideValidator.isAcceptableOnRead("img-src", "http://x.example.org", true));
     assertFalse(CspOverrideValidator.isAcceptableOnRead("frame-ancestors", "https://x.org", false));
     assertFalse(CspOverrideValidator.isAcceptableOnRead("default-src", "*", false));
+    assertTrue(CspOverrideValidator.isAcceptableOnRead("font-src", "data:", true));
   }
 }

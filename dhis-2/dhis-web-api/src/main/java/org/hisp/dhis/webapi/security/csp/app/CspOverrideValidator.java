@@ -64,6 +64,9 @@ import org.hisp.dhis.webapi.security.csp.app.CspAppOverride.SourceChanges;
  *       values ({@link #UNSAFE_KEYWORDS}, {@code data:}, {@code blob:}, {@code *}, {@code http:},
  *       {@code https:}, {@code http://} origins, wildcard hosts) are collected as unsafe tokens and
  *       need an explicit confirmation on save.
+ *   <li>{@code font-src} also accepts {@code data:} for fonts embedded in an app bundle. It is an
+ *       unsafe token and needs the same confirmation on save as the unsafe {@code script-src}
+ *       values.
  *   <li>Other directives take bare origins {@code scheme://host[:port]} only (no path, query,
  *       fragment, userinfo, scheme-only source or bare {@code *}). {@code http://} and {@code
  *       ws://} are rejected while {@code server.https} is on. {@code https://*.<domain>} with at
@@ -83,6 +86,10 @@ public final class CspOverrideValidator {
 
   private static final Set<String> UNSAFE_SCRIPT_SCHEMES =
       Set.of("data:", "blob:", "*", "http:", "https:");
+
+  private static final String FONT_SRC = "font-src";
+
+  private static final String DATA_SCHEME = "data:";
 
   private static final Pattern HASH =
       Pattern.compile("^'(sha256|sha384|sha512)-[A-Za-z0-9+/_-]+={0,2}'$");
@@ -475,6 +482,9 @@ public final class CspOverrideValidator {
     }
     if ("*".equals(lower)) {
       return SourceCheck.reject(WILDCARD_NOT_ALLOWED, "A bare * is not allowed");
+    }
+    if (FONT_SRC.equals(directive) && DATA_SCHEME.equals(lower)) {
+      return SourceCheck.unsafe(lower);
     }
     if (SCHEME_ONLY.matcher(lower).matches()) {
       return SourceCheck.reject(
