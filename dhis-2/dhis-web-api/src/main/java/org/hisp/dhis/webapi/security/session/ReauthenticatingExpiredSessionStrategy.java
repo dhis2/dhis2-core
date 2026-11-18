@@ -38,8 +38,9 @@ import org.springframework.security.web.session.SessionInformationExpiredStrateg
 import org.springframework.security.web.session.SimpleRedirectSessionInformationExpiredStrategy;
 
 /**
- * Handles a request whose session has been expired, for example because the roles or user groups of
- * the user changed. The session is already logged out at this point.
+ * Handles a request whose session has been expired in the session registry, for example because the
+ * user's password changed, the user was disabled, or the user has too many sessions. The session is
+ * already logged out at this point.
  *
  * <p>A request that carries its own credentials in the {@code Authorization} header (HTTP Basic, an
  * API token or a bearer token) continues down the filter chain, so it authenticates again with the

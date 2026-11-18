@@ -427,8 +427,8 @@ public class DhisWebApiWebSecurityConfig {
                       @Override
                       public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
                         // Keep the context of an HTTP Basic login in the session, and register
-                        // that session so that it is expired when the user's roles or groups
-                        // change.
+                        // that session so that invalidating the user's sessions (for example on a
+                        // password change) expires it.
                         filter.setSecurityContextRepository(
                             new SessionRegisteringSecurityContextRepository(
                                 sessionRegistry, httpBasicSessions));

@@ -48,7 +48,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
  * <p>Since the context is already in the session when the {@code SessionManagementFilter} runs,
  * that filter skips its session authentication strategies, so without this the session would stay
  * unknown to an in-memory registry. Sessions the registry does not know are never expired when the
- * roles or user groups of the user change, and keep the user details from login.
+ * user's sessions are invalidated, for example on a password change or when the user is disabled.
  *
  * <p>The session is also marked in {@link HttpBasicSessions}, so that it does not count toward the
  * maximum number of sessions per user: neither on this request nor at the user's next interactive

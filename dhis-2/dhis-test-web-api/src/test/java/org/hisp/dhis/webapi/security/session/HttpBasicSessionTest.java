@@ -55,13 +55,14 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 /**
  * Tests through the real security filter chain how sessions created by an HTTP Basic login are
- * handled: they are registered, so that invalidating the user's sessions (as a role or user group
- * change does) expires them, also after the client authenticated again on an expired session; and
- * they do not count toward the maximum number of sessions per user that interactive logins enforce.
+ * handled: they are registered, so that invalidating the user's sessions (as a password change or
+ * disabling the user does) expires them, also after the client authenticated again on an expired
+ * session; and they do not count toward the maximum number of sessions per user that interactive
+ * logins enforce.
  *
- * <p>The test base is {@code @Transactional}, so a membership change would never commit here; the
- * tests invalidate the sessions directly. That a membership change invalidates the user's sessions
- * is covered by {@code UserGroupSessionInvalidationControllerTest}.
+ * <p>Role and user group changes do not invalidate sessions: they refresh the session user in
+ * place, see {@code UserRoleSessionRefreshControllerTest} and {@code
+ * UserGroupSessionRefreshControllerTest}.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
