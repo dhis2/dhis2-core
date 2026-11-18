@@ -265,12 +265,12 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExportTrackedEntitiesWhenFilteringByTextAttributesUsingLike()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "notUpdated0");
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnit)
             .orgUnitMode(SELECTED)
-            .filterBy(UID.of(attr), List.of(new QueryFilter(QueryOperator.LIKE, "0% \\Winter's")))
+            .filterBy(UID.of(attr), List.of(new QueryFilter(QueryOperator.LIKE, "ank PT")))
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -332,7 +332,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExportTrackedEntitiesWhenFilteringByTextAttributesUsingNotNull()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "notUpdated0");
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnit)
@@ -369,7 +369,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnit)
             .orgUnitMode(SELECTED)
-            .filterBy(UID.of("notUpdated0"))
+            .filterBy(UID.of("dIVt4l5vIOa"))
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -454,7 +454,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .trackedEntityType(trackedEntityType)
-            .filterBy(UID.of("toDelete000"), List.of(new QueryFilter(QueryOperator.NULL)))
+            .filterBy(UID.of("toUpdate000"), List.of(new QueryFilter(QueryOperator.NULL)))
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -512,7 +512,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldCountOnlyMatchingEventsWhenFilteringByNullAttribute()
       throws ForbiddenException, BadRequestException {
-    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "notUpdated0");
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
     TrackerEventOperationParams params =
         trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
@@ -611,12 +611,11 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExportEventsWhenFilteringByTextAttributesUsingLike()
       throws ForbiddenException, BadRequestException {
-    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "notUpdated0");
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
     TrackerEventOperationParams params =
         trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
-            .filterByAttribute(
-                UID.of(attr), List.of(new QueryFilter(QueryOperator.LIKE, "0% \\Winter's")))
+            .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.LIKE, "ank PT")))
             .build();
 
     List<String> events = getTrackerEvents(params);
@@ -679,7 +678,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExportEventsWhenFilteringByTextAttributesUsingNotNull()
       throws ForbiddenException, BadRequestException {
-    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "notUpdated0");
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
     TrackerEventOperationParams params =
         trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
@@ -713,7 +712,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
     TrackerEventOperationParams params =
         trackerEventOperationParamsBuilder
             .orgUnit(orgUnit)
-            .filterByAttribute(UID.of("notUpdated0"))
+            .filterByAttribute(UID.of("dIVt4l5vIOa"))
             .build();
 
     List<String> trackedEntities =
@@ -805,13 +804,15 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   void shouldExportEventsWhenFilteringByByNullValues()
       throws ForbiddenException, BadRequestException {
     TrackerEventOperationParams params =
-        TrackerEventOperationParams.builderForProgram(UID.of("TsngICFQjvH"))
-            .filterByAttribute(UID.of("toDelete000"), List.of(new QueryFilter(QueryOperator.NULL)))
+        TrackerEventOperationParams.builderForProgram(UID.of(programStage.getProgram().getUid()))
+            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
+            .programStage(programStage)
+            .filterByAttribute(UID.of("dIVt4l5vIOa"), List.of(new QueryFilter(QueryOperator.NULL)))
             .build();
 
     List<String> events = getTrackerEvents(params);
 
-    assertContainsOnly(List.of("H0PbzJY8bJG"), events);
+    assertContainsOnly(List.of("pTzf9KYMk72"), events);
   }
 
   @Test

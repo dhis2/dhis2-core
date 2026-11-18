@@ -54,6 +54,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.jsontree.Appender;
+import org.hisp.dhis.jsontree.IoAppender;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.openapi.Api.Schema.Direction;
 import org.springframework.http.HttpStatus;
@@ -113,7 +114,7 @@ public class OpenApiGenerator extends JsonGenerator {
       Info info,
       OpenApiGenerationParams params,
       OutputStream out) {
-    try (Appender appender = Appender.ofUTF8(out)) {
+    try (IoAppender appender = Appender.ofUTF8(out)) {
       OpenApiGenerator gen =
           new OpenApiGenerator(
               api, language.getAdjustFormat().apply(format), language, info, params, appender);

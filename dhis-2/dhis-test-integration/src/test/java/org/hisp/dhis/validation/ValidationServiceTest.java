@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import static org.hisp.dhis.expression.Operator.not_equal_to;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
@@ -98,6 +99,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -107,6 +109,10 @@ import org.springframework.transaction.annotation.Transactional;
 class ValidationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ValidationService validationService;
+
+  @Autowired private ValidationResultService validationResultService;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @Autowired private ValidationRuleService validationRuleService;
 
@@ -1751,6 +1757,112 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
                 .build());
     assertEquals(leftSideExpected, details.getLeftSide());
     assertEquals(rightSideExpected, details.getRightSide());
+  }
+
+  private ValidationAnalysisParams persistingParams(ValidationRule rule) {
+    return validationService
+        .newParamsBuilder(List.of(rule), sourceA, List.of(periodA))
+        .withPersistResults(true)
+        .build();
+  }
+
+  private ValidationAnalysisParams nonPersistingParams(ValidationRule rule) {
+    return validationService.newParamsBuilder(List.of(rule), sourceA, List.of(periodA)).build();
+  }
+
+  private List<ValidationResult> persistedResults(ValidationRule rule) {
+    return validationResultService.getValidationResults(
+        sourceA, false, List.of(rule), List.of(periodA));
+  }
+
+  /** Persists a violation of rule A (3 != -1), then fixes the data (3 == 3). */
+  private void persistViolationThenFixData() {
+    useDataValue(dataElementA, periodA, sourceA, "1");
+    useDataValue(dataElementB, periodA, sourceA, "2");
+    useDataValue(dataElementC, periodA, sourceA, "3");
+    useDataValue(dataElementD, periodA, sourceA, "4");
+    validationRuleService.saveValidationRule(ruleA);
+    assertEquals(1, runValidationAnalysis(persistingParams(ruleA)).size());
+    assertEquals(1, persistedResults(ruleA).size());
+    useDataValue(dataElementC, periodA, sourceA, "7");
+  }
+
+  @Test
+  void testPersistedViolationNotReturnedOnceDataIsFixed() {
+    persistViolationThenFixData();
+
+    assertResultsEmpty(runValidationAnalysis(nonPersistingParams(ruleA)));
+    assertResultsEmpty(runValidationAnalysis(createParamsMonthlySourceAPeriodA()));
+  }
+
+  @Test
+  void testPersistedViolationNotReturnedOnceRuleIsChanged() {
+    // right side value only: 0 != 1 while missing values count as 0
+    useDataValue(dataElementD, periodA, sourceA, "1");
+    validationRuleService.saveValidationRule(ruleG);
+    assertEquals(1, runValidationAnalysis(persistingParams(ruleG)).size());
+
+    ruleG.getLeftSide().setMissingValueStrategy(SKIP_IF_ALL_VALUES_MISSING);
+    validationRuleService.updateValidationRule(ruleG);
+
+    assertResultsEmpty(runValidationAnalysis(nonPersistingParams(ruleG)));
+  }
+
+  @Test
+  void testPersistingUpdatesOngoingViolation() {
+    useDataValue(dataElementA, periodA, sourceA, "1");
+    useDataValue(dataElementB, periodA, sourceA, "2");
+    useDataValue(dataElementC, periodA, sourceA, "3");
+    useDataValue(dataElementD, periodA, sourceA, "4");
+    validationRuleService.saveValidationRule(ruleA);
+    runValidationAnalysis(persistingParams(ruleA));
+    ValidationResult original = persistedResults(ruleA).get(0);
+    original.setNotificationSent(true);
+    validationResultService.updateValidationResults(Set.of(original));
+
+    // still violated (3 != 1), with a different right side
+    useDataValue(dataElementC, periodA, sourceA, "5");
+    List<ValidationResult> results = runValidationAnalysis(persistingParams(ruleA));
+
+    assertEquals(1, results.size());
+    assertEquals(1.0, results.get(0).getRightsideValue());
+    List<ValidationResult> persisted = persistedResults(ruleA);
+    assertEquals(1, persisted.size());
+    assertEquals(original.getId(), persisted.get(0).getId());
+    assertEquals(1.0, persisted.get(0).getRightsideValue());
+    assertTrue(persisted.get(0).getNotificationSent());
+  }
+
+  private long sequenceValue(String sequence) {
+    return jdbcTemplate.queryForObject("select last_value from " + sequence, Long.class);
+  }
+
+  @Test
+  void testPersistingTakesIdsFromValidationResultSequence() {
+    useDataValue(dataElementA, periodA, sourceA, "1");
+    useDataValue(dataElementB, periodA, sourceA, "2");
+    useDataValue(dataElementC, periodA, sourceA, "3");
+    useDataValue(dataElementD, periodA, sourceA, "4");
+    validationRuleService.saveValidationRule(ruleA);
+    long hibernateSequence = sequenceValue("hibernate_sequence");
+
+    runValidationAnalysis(persistingParams(ruleA));
+    long id = persistedResults(ruleA).get(0).getId();
+    long validationResultSequence = sequenceValue("validationresult_sequence");
+    // found again: Postgres evaluates the column default for the conflicting row as well
+    runValidationAnalysis(persistingParams(ruleA));
+
+    assertEquals(id, validationResultSequence);
+    assertEquals(hibernateSequence, sequenceValue("hibernate_sequence"));
+    assertEquals(1, persistedResults(ruleA).size());
+  }
+
+  @Test
+  void testPersistingKeepsResolvedViolation() {
+    persistViolationThenFixData();
+
+    assertResultsEmpty(runValidationAnalysis(persistingParams(ruleA)));
+    assertEquals(1, persistedResults(ruleA).size());
   }
 
   private List<ValidationResult> runValidationAnalysis(ValidationAnalysisParams params) {

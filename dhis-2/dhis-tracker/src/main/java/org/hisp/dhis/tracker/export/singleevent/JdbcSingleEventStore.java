@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.singleevent;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
@@ -155,6 +156,10 @@ class JdbcSingleEventStore {
   }
 
   private List<SingleEvent> fetchEvents(SingleEventQueryParams queryParams, PageParams pageParams) {
+    if (queryParams.getProgram() == null && queryParams.getAccessibleProgramStages().isEmpty()) {
+      return List.of();
+    }
+
     Map<String, SingleEvent> eventsByUid;
     if (pageParams == null) {
       eventsByUid = new HashMap<>();
@@ -735,6 +740,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     if (params.getProgram() != null) {
       sqlParams.addValue("programstageid", params.getProgramStage().getId());
       sql.append(hlp.whereAnd()).append(" ev.programstageid = :programstageid ");
+    } else {
+      sqlParams.addValue(
+          "programstageid",
+          params.getAccessibleProgramStages().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessibleProgramStages()));
+      sql.append(hlp.whereAnd()).append(" ev.programstageid in (:programstageid) ");
     }
   }
 

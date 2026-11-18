@@ -82,8 +82,9 @@ class TrackerEventQueryParams {
   @Getter private List<Program> accessibleTrackerPrograms = List.of();
 
   /**
-   * Program stage the event must be tracked entity must be enrolled in. This should not be set when
-   * {@link #accessibleTrackerPrograms} is set. The user must have data read access to this program.
+   * Program stage the events must belong to. This should not be set when {@link
+   * #accessibleTrackerProgramStages} is set. The user must have data read access to this program
+   * stage.
    */
   @Getter private ProgramStage programStage;
 
