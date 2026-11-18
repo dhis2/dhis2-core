@@ -62,6 +62,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
@@ -157,7 +159,8 @@ public class DataSetNotificationTemplate
   @Column(name = "notificationrecipienttype")
   private DataSetNotificationRecipient notificationRecipient;
 
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.LAZY)
+  @Fetch(FetchMode.SELECT)
   @CollectionTable(
       name = "datasetnotificationtemplate_deliverychannel",
       joinColumns = @JoinColumn(name = "datasetnotificationtemplateid"))
