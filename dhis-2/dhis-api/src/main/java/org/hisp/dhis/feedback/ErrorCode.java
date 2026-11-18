@@ -518,7 +518,7 @@ public enum ErrorCode {
   E7151("Too many combinations of columns or rows."),
   E7152("Periods as filter not supported with Indicator with period offset"),
   E7154(
-      "Analytics tables are out of date. Ask your administrator to run a full analytics tables update."),
+      "Invalid reference. Analytics tables may be outdated (full export might be required), or the column is invalid. Ask your administrator"),
   /* Analytics outliers */
 
   E7180(

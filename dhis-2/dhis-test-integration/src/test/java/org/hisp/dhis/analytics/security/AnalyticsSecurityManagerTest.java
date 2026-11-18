@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,9 @@ import static org.hamcrest.core.IsIterableContaining.hasItem;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -57,6 +59,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,6 +79,8 @@ class AnalyticsSecurityManagerTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private AuthenticationService authenticationService;
 
   private CategoryOption coA;
 
@@ -274,5 +279,67 @@ class AnalyticsSecurityManagerTest extends PostgresIntegrationTestBase {
     assertEquals(
         coA.getDimensionItem(),
         params.getFilter(caA.getDimension()).getItems().get(0).getDimensionItem());
+  }
+
+  // Scheduled jobs without an executing user (for example Monitoring and predictors) run as the
+  // system user, which has no user record and no restrictions.
+
+  @Test
+  void testSystemUserDecideAccess() {
+    authenticationService.obtainSystemAuthentication();
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withDataElements(Lists.newArrayList(deA))
+            .withPeriods(Lists.newArrayList(createPeriod("201801"), createPeriod("201802")))
+            .withOrganisationUnits(Lists.newArrayList(ouA, ouF))
+            .build();
+
+    assertDoesNotThrow(() -> securityManager.decideAccess(params));
+  }
+
+  @Test
+  void testSystemUserWithDataApprovalConstraints() {
+    authenticationService.obtainSystemAuthentication();
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withDataElements(Lists.newArrayList(deA))
+            .withPeriods(Lists.newArrayList(createPeriod("201801"), createPeriod("201802")))
+            .withOrganisationUnits(Lists.newArrayList(ouA))
+            .build();
+
+    DataQueryParams constrained = securityManager.withDataApprovalConstraints(params);
+
+    assertTrue(constrained.getDataApprovalLevels().isEmpty());
+  }
+
+  @Test
+  void testSystemUserWithUserConstraintsDataQueryParams() {
+    authenticationService.obtainSystemAuthentication();
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withDataElements(Lists.newArrayList(deA))
+            .withPeriods(Lists.newArrayList(createPeriod("201801"), createPeriod("201802")))
+            .build();
+
+    DataQueryParams constrained = securityManager.withUserConstraints(params);
+
+    assertTrue(constrained.getFilterOrganisationUnits().isEmpty());
+    assertNull(constrained.getFilter(caA.getDimension()));
+  }
+
+  @Test
+  void testSystemUserWithUserConstraintsEventQueryParams() {
+    authenticationService.obtainSystemAuthentication();
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addItem(new QueryItem(deA))
+            .withStartDate(getDate(2018, 1, 1))
+            .withEndDate(getDate(2018, 4, 1))
+            .build();
+
+    EventQueryParams constrained = securityManager.withUserConstraints(params);
+
+    assertTrue(constrained.getOrganisationUnits().isEmpty());
+    assertNull(constrained.getFilter(caA.getDimension()));
   }
 }
