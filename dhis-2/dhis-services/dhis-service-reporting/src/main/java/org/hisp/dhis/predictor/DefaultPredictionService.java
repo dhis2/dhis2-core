@@ -239,11 +239,11 @@ public class DefaultPredictionService implements PredictionService {
   @Transactional
   public void predictSimple(
       Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary) {
-    // A prediction loads all org units of its levels into the session and never modifies 
-    // an entity: predictions are written with SQL. With
-    // the default flush mode every HQL query on the way (for example analytics looking up the
-    // current user, once or twice per batch of org units) dirty-checks all of those entities
-    // first. Flush any earlier changes once, then let the session flush only at commit.
+    // A prediction loads all org units of its levels into the session and never modifies an
+    // entity: predictions are written with SQL. With the default flush mode every HQL query on
+    // the way (for example analytics looking up the current user, once or twice per batch of org
+    // units) dirty-checks all of those entities first. Flush any earlier changes once, then let
+    // the session flush only at commit, as DefaultObjectBundleService.preheatWithoutAutoFlush does.
     entityManager.flush();
     FlushModeType flushMode = entityManager.getFlushMode();
     entityManager.setFlushMode(FlushModeType.COMMIT);
