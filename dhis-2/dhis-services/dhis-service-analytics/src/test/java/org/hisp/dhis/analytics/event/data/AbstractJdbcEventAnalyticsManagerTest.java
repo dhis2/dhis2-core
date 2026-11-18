@@ -100,7 +100,6 @@ import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
-import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -218,7 +217,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     lenient().when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
     lenient().when(systemSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(false);
 
-    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
     QueryItemFilterBuilder filterBuilder =
         new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
     StageQuerySqlFacade stageQuerySqlFacade =
@@ -241,7 +239,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             config,
             sqlBuilder,
             organisationUnitResolver,
-            columnMapper,
             filterBuilder,
             stageQuerySqlFacade,
             new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()),
@@ -1960,6 +1957,41 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             eq(programIndicator),
             any(Date.class),
             any(Date.class));
+  }
+
+  @Test
+  void addAnalyticsTableColumnsPrefixesPlainColumnsWithAx() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+
+    eventSubject.addAnalyticsTableColumns(sb, List.of("enrollment", "trackedentity"));
+
+    String sql = sb.build();
+    assertThat(sql, containsString("ax.enrollment"));
+    assertThat(sql, containsString("ax.trackedentity"));
+  }
+
+  @Test
+  void addAnalyticsTableColumnsAddsFormulaColumnVerbatim() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+    String formula = "ST_AsGeoJSON(enrollmentgeometry)";
+
+    eventSubject.addAnalyticsTableColumns(sb, List.of(formula));
+
+    String sql = sb.build();
+    // Formula columns are emitted verbatim (no ax. prefix).
+    assertThat(sql, containsString(formula));
+    assertThat(sql, not(containsString("ax." + formula)));
+  }
+
+  @Test
+  void addAnalyticsTableColumnsAddsQualifiedColumnVerbatim() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+
+    eventSubject.addAnalyticsTableColumns(sb, List.of("ax.event"));
+
+    String sql = sb.build();
+    assertThat(sql, containsString("ax.event"));
+    assertThat(sql, not(containsString("ax.ax.event")));
   }
 
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(

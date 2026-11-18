@@ -370,6 +370,27 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "enrollmentsWithEnrollmentProgramIndicatorFilter",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&filter=qhTkqwAJLMv:GT:1000&headers=pi,ouname,enrollmentdate&desc=enrollmentdate&totalPages=true&pageSize=10&page=1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentsWithRepeatableStageProgramIndicatorFilter",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:lc3eMKXaEfw&filter=qZOBw051LSf:LT:0.9&headers=pi,ouname,enrollmentdate&desc=enrollmentdate&totalPages=true&pageSize=10&page=1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentsWithEventProgramIndicatorFilter",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:HV8RTzgcFH3&filter=GxdhnY5wmHq:GT:3500&headers=pi,ouname,enrollmentdate&desc=enrollmentdate&totalPages=true&pageSize=10&page=1",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

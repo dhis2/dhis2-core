@@ -89,7 +89,6 @@ import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
-import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -1990,7 +1989,6 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService, systemSettingsService, builder, dataElementService);
     programIndicatorSubqueryBuilder.init();
-    ColumnMapper columnMapper = new ColumnMapper(builder, systemSettingsService);
     filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, builder);
     StageQuerySqlFacade stageQuerySqlFacade =
         new DefaultStageQuerySqlFacade(
@@ -2011,7 +2009,6 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         config,
         builder,
         organisationUnitResolver,
-        columnMapper,
         filterBuilder,
         stageQuerySqlFacade,
         new DateFieldPeriodBucketColumnResolver(builder),

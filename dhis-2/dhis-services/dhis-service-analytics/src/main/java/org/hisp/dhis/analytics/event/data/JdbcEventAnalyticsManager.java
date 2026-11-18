@@ -74,7 +74,6 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGen
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
-import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -139,7 +138,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       DhisConfigurationProvider config,
       AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver,
-      ColumnMapper columnMapper,
       QueryItemFilterBuilder filterBuilder,
       StageQuerySqlFacade stageQuerySqlFacade,
       DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver,
@@ -155,7 +153,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         settingsService,
         config,
         organisationUnitResolver,
-        columnMapper,
         filterBuilder,
         stageQuerySqlFacade,
         dateFieldPeriodBucketColumnResolver);
@@ -925,14 +922,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     columns.addAll(OrgUnitSqlCoordinator.querySelectColumns(params, sqlBuilder));
     columns.addAll(eventItemSelectColumnResolver.resolve(params, cteContext));
 
-    columns.forEach(
-        column -> {
-          if (columnIsInFormula(column) || hasColumnPrefix(column, "ax")) {
-            sb.addColumn(column);
-          } else {
-            sb.addColumn(column, "ax");
-          }
-        });
+    addAnalyticsTableColumns(sb, columns);
     // ClickHouse emits item columns (including CTE-backed program indicators) inline in items
     // order via EventItemSelectColumnResolver, so a second CTE pass would duplicate and reorder
     // them relative to the items-ordered grid headers. Other databases keep the existing two-pass
@@ -940,16 +930,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (cteContext.hasCteDefinitions() && sqlBuilder.supportsCorrelatedSubquery()) {
       getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
     }
-  }
-
-  /**
-   * Checks if the given column starts with the given prefix.
-   *
-   * @param column the column name.
-   * @return true if the column starts with the given prefix, false otherwise.
-   */
-  private boolean hasColumnPrefix(String column, String prefix) {
-    return column.startsWith(prefix + ".");
   }
 
   @Override
