@@ -42,7 +42,6 @@ import static org.mockserver.model.HttpRequest.request;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Part;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -56,7 +55,6 @@ import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
-
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
 import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -411,13 +409,13 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     @Test
     void testRunRouteWhenResponseIsHttpError()
-            throws JsonProcessingException, UnsupportedEncodingException {
+        throws JsonProcessingException, UnsupportedEncodingException {
       upstreamMockServerClient
-              .when(request().withPath("/"))
-              .respond(
-                      org.mockserver.model.HttpResponse.response(
-                                      jsonMapper.writeValueAsString(Map.of("message", "not found")))
-                              .withStatusCode(404));
+          .when(request().withPath("/"))
+          .respond(
+              org.mockserver.model.HttpResponse.response(
+                      jsonMapper.writeValueAsString(Map.of("message", "not found")))
+                  .withStatusCode(404));
 
       Map<String, Object> route = new HashMap<>();
       route.put("name", "route-under-test");
@@ -425,25 +423,24 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
       MvcResult mvcResult =
-              webRequestWithAsyncMvcResult(
-                      buildMockRequest(
-                              HttpMethod.GET,
-                              "/routes/"
-                                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
-                                      + "/run",
-                              new ArrayList<>(),
-                              "application/json",
-                              null));
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run",
+                  new ArrayList<>(),
+                  "application/json",
+                  null));
 
       assertEquals(404, mvcResult.getResponse().getStatus());
       JsonObject responseBody =
-              JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+          JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
       assertEquals("not found", responseBody.get("message").as(JsonString.class).string());
     }
 
     @Test
-    void testRunRouteKeepsUpstreamResponseCompressed()
-            throws IOException {
+    void testRunRouteKeepsUpstreamResponseCompressed() throws IOException {
 
       String upstreamResponseBody = "This is a compressed message";
 
@@ -455,10 +452,12 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
       bos.close();
 
       upstreamMockServerClient
-              .when(request().withPath("/"))
-              .respond(
-                      org.mockserver.model.HttpResponse.response().withBody(compressedUpstreamResponseBody).withHeader("Content-Encoding", "gzip")
-                              .withStatusCode(200));
+          .when(request().withPath("/"))
+          .respond(
+              org.mockserver.model.HttpResponse.response()
+                  .withBody(compressedUpstreamResponseBody)
+                  .withHeader("Content-Encoding", "gzip")
+                  .withStatusCode(200));
 
       Map<String, Object> route = new HashMap<>();
       route.put("name", "route-under-test");
@@ -466,15 +465,15 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
       MvcResult mvcResult =
-              webRequestWithAsyncMvcResult(
-                      buildMockRequest(
-                              HttpMethod.GET,
-                              "/routes/"
-                                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
-                                      + "/run",
-                              new ArrayList<>(),
-                              "application/json",
-                              null));
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run",
+                  new ArrayList<>(),
+                  "application/json",
+                  null));
 
       assertEquals(200, mvcResult.getResponse().getStatus());
       assertNotEquals(upstreamResponseBody, mvcResult.getResponse().getContentAsString());
