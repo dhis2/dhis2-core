@@ -497,4 +497,16 @@ public class CteDefinition {
   public boolean isAggregationBase() {
     return this.cteType == CteType.BASE_AGGREGATION;
   }
+
+  /**
+   * True for CTEs that are only used to compute a program indicator and are joined inside the
+   * program indicator CTE. They must not be joined again on enrollment elsewhere: a variable or
+   * data element CTE holds one row per event, so the join would multiply the rows.
+   */
+  public boolean isProgramIndicatorInput() {
+    return switch (cteType) {
+      case VARIABLE, PROGRAM_STAGE_DATE_ELEMENT, D2_FUNCTION, D2_RELATIONSHIP_COUNT -> true;
+      default -> false;
+    };
+  }
 }
