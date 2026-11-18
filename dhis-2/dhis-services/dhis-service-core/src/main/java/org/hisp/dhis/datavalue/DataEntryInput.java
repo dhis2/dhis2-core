@@ -233,7 +233,8 @@ public final class DataEntryInput {
     byte[] json = wrapAndCheckCompressionFormat(in).readAllBytes();
     try {
       return fromJson(
-          JsonMixed.of(JsonNode.of(json, StandardCharsets.UTF_8, null, JsonNode.Index.AUTO_SKIP)), options);
+          JsonMixed.of(JsonNode.of(json, StandardCharsets.UTF_8, null, JsonNode.Index.AUTO_SKIP)),
+          options);
     } catch (JsonTreeException
         | JsonPathException
         | JsonAccessException
