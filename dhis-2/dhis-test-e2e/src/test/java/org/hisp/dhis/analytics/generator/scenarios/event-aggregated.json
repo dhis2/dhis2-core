@@ -811,6 +811,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "stageScheduledDateAndStageEventDate",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd,A03MvHHogjR.SCHEDULED_DATE:2021;2022,A03MvHHogjR.EVENT_DATE:2022&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
