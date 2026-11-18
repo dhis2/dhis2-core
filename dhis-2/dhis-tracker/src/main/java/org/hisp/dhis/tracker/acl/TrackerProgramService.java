@@ -124,6 +124,16 @@ public class TrackerProgramService {
         .toList();
   }
 
+  /** Retrieves the list of event programs the current user can read the data of. */
+  @Transactional(readOnly = true)
+  public @Nonnull List<Program> getEventProgramsWithDataReadAccess() {
+    UserDetails user = getCurrentUserDetails();
+
+    return programService.getAllPrograms().stream()
+        .filter(p -> p.isWithoutRegistration() && aclService.canDataRead(user, p))
+        .toList();
+  }
+
   /**
    * Retrieves the list of tracker programs accessible to the current user that match the given
    * tracked entity type. It is assumed that the user has access to the supplied trackedEntityType.
@@ -143,11 +153,11 @@ public class TrackerProgramService {
   }
 
   @Transactional(readOnly = true)
-  public @Nonnull List<ProgramStage> getTrackerProgramStagesWithDataReadAccess(
-      @Nonnull List<Program> program) {
+  public @Nonnull List<ProgramStage> getProgramStagesWithDataReadAccess(
+      @Nonnull List<Program> programs) {
     UserDetails user = getCurrentUserDetails();
 
-    return program.stream()
+    return programs.stream()
         .flatMap(p -> p.getProgramStages().stream())
         .filter(ps -> aclService.canRead(user, ps) && aclService.canDataRead(user, ps))
         .toList();

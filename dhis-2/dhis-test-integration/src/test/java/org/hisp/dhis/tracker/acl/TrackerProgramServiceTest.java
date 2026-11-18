@@ -44,6 +44,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -172,6 +173,49 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
     assertStartsWith(
         "Current user doesn't have data write access to the provided program",
         exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnAllAccessibleEventPrograms() {
+    assertContainsOnly(
+        List.of("BFcipDERJne", "BFcipDERJng", "iS7eutanDry", "cS7eutanDrT"),
+        getUids(trackerProgramService.getEventProgramsWithDataReadAccess()));
+  }
+
+  @Test
+  void shouldNotReturnEventProgramWhenUserHasNoDataReadAccess() {
+    removeDataAccessFromProgram("iS7eutanDry");
+
+    assertContainsOnly(
+        List.of("BFcipDERJne", "BFcipDERJng", "cS7eutanDrT"),
+        getUids(trackerProgramService.getEventProgramsWithDataReadAccess()));
+  }
+
+  @Test
+  void shouldReturnStagesUserHasMetadataAndDataReadAccessTo() {
+    setPublicAccessOfProgramStage("NpsdDv6kKSe", AccessStringHelper.READ);
+    setPublicAccessOfProgramStage("NpsdDv6kKSg", AccessStringHelper.DATA_READ);
+    List<Program> programs =
+        List.of(
+            manager.get(Program.class, "BFcipDERJne"),
+            manager.get(Program.class, "BFcipDERJng"),
+            manager.get(Program.class, "iS7eutanDry"));
+
+    assertContainsOnly(
+        List.of("qLZC0lvvxQH"),
+        getUids(trackerProgramService.getProgramStagesWithDataReadAccess(programs)));
+  }
+
+  private void setPublicAccessOfProgramStage(String uid, String publicAccess) {
+    User admin = getAdminUser();
+    injectSecurityContextUser(admin);
+
+    ProgramStage programStage = manager.get(ProgramStage.class, uid);
+    assertNotNull(programStage);
+    programStage.getSharing().setPublicAccess(publicAccess);
+    manager.save(programStage, false);
+
+    injectSecurityContextUser(regularUser);
   }
 
   private void removeDataAccessFromProgram(String uid) {
