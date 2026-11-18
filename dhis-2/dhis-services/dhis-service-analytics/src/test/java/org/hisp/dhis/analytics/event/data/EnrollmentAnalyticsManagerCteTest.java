@@ -37,6 +37,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_CODE_COLUMN_NAME;
@@ -2154,6 +2155,103 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(withClauseSql, containsString("\"fWIAEtYVEGk\" as value"));
     assertThat(withClauseSql, containsString("\"occurreddate\" as value"));
     assertThat(outerJoinTargets, is(List.of(pi.getUid())));
+  }
+
+  // -------------------------------------------------------------------------
+  // Program indicator conditions in enrollments/aggregate
+  // -------------------------------------------------------------------------
+
+  @Test
+  void verifyAggregateEnrollmentAppliesProgramIndicatorDimensionCondition() {
+    ProgramIndicator pi = createEnrollmentProgramIndicator(stageDataElementExpression(), null);
+    stubPiExpressionSql(pi, psdePlaceholder(pi));
+    QueryItem item = programIndicatorItem(pi);
+    item.addFilter(new QueryFilter(QueryOperator.LT, "0.9"));
+    EventQueryParams params =
+        createRequestParamsBuilder().withEndpointAction(AGGREGATE).addItem(item).build();
+    ListGrid grid = aggregateGrid();
+    grid.addHeader(new GridHeader(pi.getUid(), pi.getName(), ValueType.NUMBER, false, true));
+
+    String generatedSql = aggregateEnrollmentSql(params, grid);
+
+    assertNoCtePlaceholders(generatedSql);
+    String alias = joinAliasFor(generatedSql, "left", pi.getUid());
+    assertThat(outerWhere(generatedSql), containsString(alias + ".value < 0.9"));
+    assertThat(aggregateOuterSelectClause(generatedSql), containsString(alias + ".value"));
+    assertThat(aggregateGroupByClause(generatedSql), containsString("\"" + pi.getUid() + "\""));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentAppliesProgramIndicatorFilterCondition() {
+    ProgramIndicator pi = createEnrollmentProgramIndicator(stageDataElementExpression(), null);
+    stubPiExpressionSql(pi, psdePlaceholder(pi));
+    EventQueryParams params =
+        new EventQueryParams.Builder(
+                createProgramIndicatorFilterParams(pi, QueryOperator.LT, "0.9"))
+            .withEndpointAction(AGGREGATE)
+            .build();
+
+    String generatedSql = aggregateEnrollmentSql(params, aggregateGrid());
+
+    assertNoCtePlaceholders(generatedSql);
+    assertThat(cteDefinitionCount(generatedSql, pi.getUid()), is(1));
+    String alias = joinAliasFor(generatedSql, "left", pi.getUid());
+    assertThat(outerWhere(generatedSql), containsString(alias + ".value < 0.9"));
+    // A filter restricts the rows, it adds no column.
+    assertThat(aggregateOuterSelectClause(generatedSql), not(containsString(alias + ".")));
+    assertThat(aggregateGroupByClause(generatedSql), not(containsString(pi.getUid())));
+    // The base CTE inner joins every CTE registered before it, which would drop the enrollments
+    // without an indicator value from the population of every other condition.
+    assertThat(cteBody(generatedSql, ENROLLMENT_AGGR_BASE), not(containsString(pi.getUid())));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentAppliesProgramIndicatorConditionTogetherWithValue() {
+    ProgramIndicator pi = createEnrollmentProgramIndicator(stageDataElementExpression(), null);
+    stubPiExpressionSql(pi, psdePlaceholder(pi));
+    TrackedEntityAttribute attribute =
+        org.hisp.dhis.test.TestBase.createTrackedEntityAttribute('A', ValueType.NUMBER);
+    attribute.setUid("lw1SqmMlnfh");
+    EventQueryParams params =
+        new EventQueryParams.Builder(
+                createProgramIndicatorFilterParams(pi, QueryOperator.LT, "0.9"))
+            .withEndpointAction(AGGREGATE)
+            .withValue(new Value(attribute))
+            .withAggregationType(AnalyticsAggregationType.AVERAGE)
+            .build();
+
+    String generatedSql = aggregateEnrollmentSql(params, aggregateGrid());
+
+    String alias = joinAliasFor(generatedSql, "left", pi.getUid());
+    String outerWhere = outerWhere(generatedSql);
+    assertThat(outerWhere, containsString("eb.\"lw1SqmMlnfh\" is not null"));
+    assertThat(outerWhere, containsString(alias + ".value < 0.9"));
+  }
+
+  private ListGrid aggregateGrid() {
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    return grid;
+  }
+
+  private String aggregateEnrollmentSql(EventQueryParams params, ListGrid grid) {
+    subject.getEnrollments(params, grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    return noEof(sql.getValue());
+  }
+
+  /** The SELECT list of the aggregate outer statement, i.e. the one reading the base CTE. */
+  private String aggregateOuterSelectClause(String generatedSql) {
+    int from = generatedSql.indexOf(" from " + ENROLLMENT_AGGR_BASE + " as ");
+    return generatedSql.substring(generatedSql.lastIndexOf("select ", from), from);
+  }
+
+  /** The GROUP BY of the aggregate outer statement, empty when it groups by nothing. */
+  private String aggregateGroupByClause(String generatedSql) {
+    String outerSql =
+        generatedSql.substring(generatedSql.indexOf(" from " + ENROLLMENT_AGGR_BASE + " as "));
+    int groupBy = outerSql.indexOf(" group by ");
+    return groupBy < 0 ? "" : outerSql.substring(groupBy);
   }
 
   @Test
