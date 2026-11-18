@@ -72,6 +72,9 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -115,6 +118,8 @@ class SingleEventOperationParamsMapperTest {
   @Mock private DataElementService dataElementService;
 
   @Mock private OperationsParamsValidator paramsValidator;
+
+  @Mock private ProgramService programService;
 
   @InjectMocks private SingleEventOperationParamsMapper mapper;
 
@@ -378,6 +383,81 @@ class SingleEventOperationParamsMapperTest {
     SingleEventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(superuser));
     assertNull(params.getOrgUnit());
     assertEquals(ALL, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapReadableStagesOfReadableEventProgramsWhenNoProgramIsRequested()
+      throws ForbiddenException, BadRequestException {
+    Program program = program(ProgramType.WITHOUT_REGISTRATION);
+    Program programWithoutDataReadAccess = program(ProgramType.WITHOUT_REGISTRATION);
+    Program trackerProgram = program(ProgramType.WITH_REGISTRATION);
+    ProgramStage stage = programStage();
+    ProgramStage stageWithoutDataReadAccess = programStage();
+    ProgramStage stageWithoutMetadataReadAccess = programStage();
+    when(programService.getAllPrograms())
+        .thenReturn(List.of(program, programWithoutDataReadAccess, trackerProgram));
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, programWithoutDataReadAccess)).thenReturn(false);
+    program.setProgramStages(
+        Set.of(stage, stageWithoutDataReadAccess, stageWithoutMetadataReadAccess));
+    when(aclService.canRead(user, stage)).thenReturn(true);
+    when(aclService.canDataRead(user, stage)).thenReturn(true);
+    when(aclService.canRead(user, stageWithoutDataReadAccess)).thenReturn(true);
+    when(aclService.canDataRead(user, stageWithoutDataReadAccess)).thenReturn(false);
+    when(aclService.canRead(user, stageWithoutMetadataReadAccess)).thenReturn(false);
+
+    SingleEventQueryParams params =
+        mapper.map(SingleEventOperationParams.builderForEvent(UID.generate()).build(), user);
+
+    assertContainsOnly(List.of(stage), params.getAccessibleProgramStages());
+  }
+
+  @Test
+  void shouldFailWhenUserHasNoDataReadAccessToStageOfRequestedProgram()
+      throws ForbiddenException, BadRequestException {
+    Program program = program(ProgramType.WITHOUT_REGISTRATION);
+    ProgramStage stage = programStage();
+    program.setProgramStages(Set.of(stage));
+    when(paramsValidator.validateEventProgram(UID.of(program), user)).thenReturn(program);
+    when(aclService.canRead(user, stage)).thenReturn(true);
+    when(aclService.canDataRead(user, stage)).thenReturn(false);
+
+    SingleEventOperationParams operationParams =
+        SingleEventOperationParams.builderForProgram(UID.of(program)).build();
+
+    Exception exception =
+        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams, user));
+    assertEquals("User has no access to program stage: " + stage.getUid(), exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenUserHasNoMetadataReadAccessToStageOfRequestedProgram()
+      throws ForbiddenException, BadRequestException {
+    Program program = program(ProgramType.WITHOUT_REGISTRATION);
+    ProgramStage stage = programStage();
+    program.setProgramStages(Set.of(stage));
+    when(paramsValidator.validateEventProgram(UID.of(program), user)).thenReturn(program);
+    when(aclService.canRead(user, stage)).thenReturn(false);
+
+    SingleEventOperationParams operationParams =
+        SingleEventOperationParams.builderForProgram(UID.of(program)).build();
+
+    Exception exception =
+        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams, user));
+    assertEquals("User has no access to program stage: " + stage.getUid(), exception.getMessage());
+  }
+
+  private static Program program(ProgramType programType) {
+    Program program = new Program();
+    program.setUid(CodeGenerator.generateUid());
+    program.setProgramType(programType);
+    return program;
+  }
+
+  private static ProgramStage programStage() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid(CodeGenerator.generateUid());
+    return programStage;
   }
 
   private User createSuperuser() {

@@ -48,6 +48,8 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
@@ -74,11 +76,14 @@ class SingleEventOperationParamsMapper {
 
   private final OperationsParamsValidator paramsValidator;
 
+  private final ProgramService programService;
+
   @Transactional(readOnly = true)
   public SingleEventQueryParams map(
       @Nonnull SingleEventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
     Program program = paramsValidator.validateEventProgram(operationParams.getProgram(), user);
+    validateProgramStage(program, user);
 
     OrganisationUnit orgUnit =
         validateRequestedOrgUnit(applyIfNotNull(operationParams.getOrgUnit(), UID::getValue), user);
@@ -101,6 +106,7 @@ class SingleEventOperationParamsMapper {
 
     return queryParams
         .setProgram(program)
+        .setAccessibleProgramStages(getAccessibleProgramStages(program, user))
         .setOrgUnit(orgUnit)
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setQuerySearchScope(
@@ -127,6 +133,39 @@ class SingleEventOperationParamsMapper {
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setIdSchemeParams(operationParams.getIdSchemeParams())
         .setIncludeNotes(operationParams.getFields().isIncludesNotes());
+  }
+
+  /**
+   * Validates the user can read the data of the requested program's stage. The program itself is
+   * validated by {@link OperationsParamsValidator#validateEventProgram(UID, UserDetails)}.
+   *
+   * @throws ForbiddenException if the user cannot read the data of the stage
+   */
+  private void validateProgramStage(Program program, UserDetails user) throws ForbiddenException {
+    if (program == null) {
+      return;
+    }
+
+    ProgramStage programStage = program.getProgramStages().iterator().next();
+    if (!aclService.canRead(user, programStage) || !aclService.canDataRead(user, programStage)) {
+      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
+    }
+  }
+
+  /**
+   * Returns the stages the user can read the data of, of the event programs the user can read the
+   * data of, if no program is requested.
+   */
+  private List<ProgramStage> getAccessibleProgramStages(Program program, UserDetails user) {
+    if (program != null) {
+      return List.of();
+    }
+
+    return programService.getAllPrograms().stream()
+        .filter(p -> p.isWithoutRegistration() && aclService.canDataRead(user, p))
+        .flatMap(p -> p.getProgramStages().stream())
+        .filter(ps -> aclService.canRead(user, ps) && aclService.canDataRead(user, ps))
+        .toList();
   }
 
   private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid, UserDetails user)
