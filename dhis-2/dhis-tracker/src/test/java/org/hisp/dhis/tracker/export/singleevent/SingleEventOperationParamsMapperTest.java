@@ -72,13 +72,12 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate.Parameter;
@@ -120,9 +119,7 @@ class SingleEventOperationParamsMapperTest {
 
   @Mock private OperationsParamsValidator paramsValidator;
 
-  @Mock private ProgramService programService;
-
-  @Mock private ProgramStageService programStageService;
+  @Mock private TrackerProgramService trackerProgramService;
 
   @InjectMocks private SingleEventOperationParamsMapper mapper;
 
@@ -392,22 +389,10 @@ class SingleEventOperationParamsMapperTest {
   void shouldMapReadableStagesOfReadableEventProgramsWhenNoProgramIsRequested()
       throws ForbiddenException, BadRequestException {
     Program program = program(ProgramType.WITHOUT_REGISTRATION);
-    Program programWithoutDataReadAccess = program(ProgramType.WITHOUT_REGISTRATION);
-    Program trackerProgram = program(ProgramType.WITH_REGISTRATION);
     ProgramStage stage = programStage();
-    ProgramStage stageWithoutDataReadAccess = programStage();
-    ProgramStage stageWithoutMetadataReadAccess = programStage();
-    when(programService.getAllPrograms())
-        .thenReturn(List.of(program, programWithoutDataReadAccess, trackerProgram));
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, programWithoutDataReadAccess)).thenReturn(false);
-    when(programStageService.getProgramStagesByProgram(program))
-        .thenReturn(List.of(stage, stageWithoutDataReadAccess, stageWithoutMetadataReadAccess));
-    when(aclService.canRead(user, stage)).thenReturn(true);
-    when(aclService.canDataRead(user, stage)).thenReturn(true);
-    when(aclService.canRead(user, stageWithoutDataReadAccess)).thenReturn(true);
-    when(aclService.canDataRead(user, stageWithoutDataReadAccess)).thenReturn(false);
-    when(aclService.canRead(user, stageWithoutMetadataReadAccess)).thenReturn(false);
+    when(trackerProgramService.getEventProgramsWithDataReadAccess()).thenReturn(List.of(program));
+    when(trackerProgramService.getProgramStagesWithDataReadAccess(List.of(program)))
+        .thenReturn(List.of(stage));
 
     SingleEventQueryParams params =
         mapper.map(SingleEventOperationParams.builderForEvent(UID.generate()).build(), user);

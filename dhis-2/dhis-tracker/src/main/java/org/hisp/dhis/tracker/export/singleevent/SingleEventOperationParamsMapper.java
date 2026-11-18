@@ -48,10 +48,9 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
@@ -77,9 +76,7 @@ class SingleEventOperationParamsMapper {
 
   private final OperationsParamsValidator paramsValidator;
 
-  private final ProgramService programService;
-
-  private final ProgramStageService programStageService;
+  private final TrackerProgramService trackerProgramService;
 
   @Transactional(readOnly = true)
   public SingleEventQueryParams map(
@@ -109,7 +106,7 @@ class SingleEventOperationParamsMapper {
 
     return queryParams
         .setProgram(program)
-        .setAccessibleProgramStages(getAccessibleProgramStages(program, user))
+        .setAccessibleProgramStages(getAccessibleProgramStages(program))
         .setOrgUnit(orgUnit)
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setQuerySearchScope(
@@ -159,17 +156,13 @@ class SingleEventOperationParamsMapper {
    * Returns the stages the user can read the data of, of the event programs the user can read the
    * data of, if no program is requested.
    */
-  private List<ProgramStage> getAccessibleProgramStages(Program program, UserDetails user) {
+  private List<ProgramStage> getAccessibleProgramStages(Program program) {
     if (program != null) {
       return List.of();
     }
 
-    return programService.getAllPrograms().stream()
-        .filter(p -> p.isWithoutRegistration() && aclService.canDataRead(user, p))
-        .map(programStageService::getProgramStagesByProgram)
-        .flatMap(List::stream)
-        .filter(ps -> aclService.canRead(user, ps) && aclService.canDataRead(user, ps))
-        .toList();
+    return trackerProgramService.getProgramStagesWithDataReadAccess(
+        trackerProgramService.getEventProgramsWithDataReadAccess());
   }
 
   private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid, UserDetails user)
