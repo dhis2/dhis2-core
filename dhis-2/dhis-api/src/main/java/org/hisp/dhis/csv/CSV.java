@@ -411,7 +411,7 @@ public final class CSV {
           || components.stream()
               .map(Component::anyIfAbsent)
               .filter(not(String::isEmpty))
-              .anyMatch(headers::contains);
+              .anyMatch(name -> headers.stream().anyMatch(name::equalsIgnoreCase));
     }
 
     private void checkRequired(int[] compIdxByColIdx) {
@@ -610,7 +610,9 @@ public final class CSV {
 
     private int skipToHeaderRow() {
       fillBufferTail(0);
-      int from = skipLineBreak(skipIndent(0));
+      // a UTF-8 byte order mark (as written by Excel) is not part of the first column name
+      int start = len > 0 && buffer[0] == '\uFEFF' ? 1 : 0;
+      int from = skipLineBreak(skipIndent(start));
       // the leading blank lines/indent may fill the buffer; refill and redo
       while (from >= len && !eoi) {
         pos = 0;

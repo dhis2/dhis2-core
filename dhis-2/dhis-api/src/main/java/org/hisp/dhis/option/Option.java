@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -54,6 +55,7 @@ import jakarta.persistence.Transient;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -237,63 +239,43 @@ public class Option implements NameableObject, MetadataObject, SortableObject {
   // hashCode, equals and toString
   // -------------------------------------------------------------------------
 
+  /**
+   * Hashes the first non-null of uid, code and name. Consistent with {@link #equals(Object)}: equal
+   * options either share a uid or both lack one and share code and name.
+   */
   @Override
   public int hashCode() {
-    int result = getUid() != null ? getUid().hashCode() : 0;
-    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
-    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-    result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0);
-    result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
-    return result;
+    return Objects.hashCode(ObjectUtils.firstNonNull(getUid(), getCode(), getName()));
   }
 
-  /** Class check uses getRealClass and get-methods to handle proxied objects. */
+  /**
+   * Options are equal by uid. Only when neither has a uid (not yet persisted) are code, name and
+   * description compared. Uses getRealClass and get-methods to handle proxied objects.
+   */
   @Override
   public boolean equals(Object obj) {
-    return this == obj
-        || obj instanceof Option other
-            && getRealClass(this) == getRealClass(obj)
-            && Objects.equals(getUid(), other.getUid())
-            && Objects.equals(getCode(), other.getCode())
-            && Objects.equals(getName(), other.getName())
-            && Objects.equals(getShortName(), other.getShortName())
-            && Objects.equals(getDescription(), other.getDescription());
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof Option other) || getRealClass(this) != getRealClass(obj)) {
+      return false;
+    }
+    if (getUid() != null || other.getUid() != null) {
+      return Objects.equals(getUid(), other.getUid());
+    }
+    return Objects.equals(getCode(), other.getCode())
+        && Objects.equals(getName(), other.getName())
+        && Objects.equals(getDescription(), other.getDescription());
   }
 
   @Override
   public String toString() {
-    return "{"
-        + "\"class\":\""
-        + getClass()
-        + "\", "
-        + "\"hashCode\":\""
-        + hashCode()
-        + "\", "
-        + "\"id\":\""
-        + getId()
-        + "\", "
-        + "\"uid\":\""
-        + getUid()
-        + "\", "
-        + "\"code\":\""
-        + getCode()
-        + "\", "
-        + "\"name\":\""
-        + getName()
-        + "\", "
-        + "\"shortName\":\""
-        + getShortName()
-        + "\", "
-        + "\"description\":\""
-        + getDescription()
-        + "\", "
-        + "\"created\":\""
-        + getCreated()
-        + "\", "
-        + "\"lastUpdated\":\""
-        + getLastUpdated()
-        + "\" "
-        + "}";
+    return MoreObjects.toStringHelper(getRealClass(this))
+        .add("id", getId())
+        .add("uid", getUid())
+        .add("code", getCode())
+        .add("name", getName())
+        .toString();
   }
 
   // -------------------------------------------------------------------------

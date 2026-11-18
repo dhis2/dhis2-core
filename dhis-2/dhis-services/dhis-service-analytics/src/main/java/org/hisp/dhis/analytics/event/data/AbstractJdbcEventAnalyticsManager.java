@@ -934,9 +934,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * Returns the SQL fragment for QueryItem filters that must be appended after the base WHERE
    * clause.
    *
-   * <p>The event aggregate and count paths build their SQL directly from {@code getFromClause(..)}
-   * and {@code getWhereClause(..)}. Under the current query builder, QueryItem filters are not
-   * always included inside {@code getWhereClause(..)}, so they must be appended separately here.
+   * <p>The event aggregate path builds its SQL directly from {@code getFromClause(..)} and {@code
+   * getWhereClause(..)}. Under the current query builder, QueryItem filters are not always included
+   * inside {@code getWhereClause(..)}, so they must be appended separately here.
    *
    * @param params the query parameters
    * @param existingWhereClause the already-rendered base WHERE clause
@@ -2330,18 +2330,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   String buildAnalyticsQuery(EventQueryParams params, int maxLimit) {
 
-    // 1. Create the CTE context (collect all CTE definitions for program indicators, program
-    // stages, etc.)
-    CteContext cteContext = getCteDefinitions(params);
+    // 1. - 2. Create the CTE context that decides which rows are returned
+    CteContext cteContext = buildCteContext(params);
 
-    // 2. Generate any additional CTE filters that might be needed
     if (cteContext.isEnrollmentAnalytics()) {
-      // Filter CTEs are only meaningful for Enrollment queries
-      generateFilterCTEs(params, cteContext);
       registerStageSortCtes(params, cteContext);
     }
-
-    addEventProgramIndicatorCandidatesCte(params, cteContext);
 
     // 3. Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
@@ -2371,11 +2365,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return a complete SQL count query string.
    */
   String buildAnalyticsCountQuery(EventQueryParams params) {
-    CteContext cteContext = getCteDefinitions(params);
-
-    if (cteContext.isEnrollmentAnalytics()) {
-      generateFilterCTEs(params, cteContext);
-    }
+    CteContext cteContext = buildCteContext(params);
 
     SelectBuilder sb = new SelectBuilder();
     addCteClause(sb, cteContext);
@@ -2383,6 +2373,29 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     addFromJoinsAndWhereClause(sb, params, cteContext);
 
     return sb.build();
+  }
+
+  /**
+   * Creates the CTE context holding every CTE that decides which rows a query returns. The row
+   * query and its count query both start from this context, so they select the same rows.
+   *
+   * @param params the {@link EventQueryParams} to drive the query generation.
+   * @return the {@link CteContext} with the CTE definitions and filter CTEs registered.
+   */
+  private CteContext buildCteContext(EventQueryParams params) {
+    // 1. Create the CTE context (collect all CTE definitions for program indicators, program
+    // stages, etc.)
+    CteContext cteContext = getCteDefinitions(params);
+
+    // 2. Generate any additional CTE filters that might be needed
+    if (cteContext.isEnrollmentAnalytics()) {
+      // Filter CTEs are only meaningful for Enrollment queries
+      generateFilterCTEs(params, cteContext);
+    }
+
+    addEventProgramIndicatorCandidatesCte(params, cteContext);
+
+    return cteContext;
   }
 
   /**
@@ -2545,7 +2558,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * dimension already has its CTE. A program indicator with a relationship type gets no CTE: the
    * CTE is keyed by enrollment and cannot follow the relationship.
    */
-  private void addProgramIndicatorFilterCtes(EventQueryParams params, CteContext cteContext) {
+  void addProgramIndicatorFilterCtes(EventQueryParams params, CteContext cteContext) {
     params.getItemFilters().stream()
         .filter(QueryItem::isProgramIndicator)
         .filter(QueryItem::hasFilter)
@@ -2995,6 +3008,32 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       }
     }
+
+    return conditions.isEmpty() ? null : Condition.and(conditions.toArray(new Condition[0]));
+  }
+
+  /**
+   * Builds the conditions of the program indicators in dimensions and filters, evaluated against
+   * the value of each indicator in its CTE. Indicators without a registered CTE are skipped.
+   *
+   * @param params The event query parameters
+   * @param cteContext The CTE context holding the program indicator CTEs
+   * @return Combined condition, or null when no program indicator has a condition
+   */
+  Condition programIndicatorConditions(EventQueryParams params, CteContext cteContext) {
+    List<Condition> conditions =
+        Stream.concat(
+                params.getItems().stream(),
+                params.getItemFilters().stream().filter(item -> !item.hasRelationshipType()))
+            .filter(QueryItem::isProgramIndicator)
+            .filter(QueryItem::hasFilter)
+            .filter(item -> cteContext.containsCte(CteUtils.computeKey(item)))
+            .flatMap(
+                item ->
+                    buildItemConditions(
+                        item, cteContext.getDefinitionByItemUid(CteUtils.computeKey(item)), params)
+                        .stream())
+            .toList();
 
     return conditions.isEmpty() ? null : Condition.and(conditions.toArray(new Condition[0]));
   }
