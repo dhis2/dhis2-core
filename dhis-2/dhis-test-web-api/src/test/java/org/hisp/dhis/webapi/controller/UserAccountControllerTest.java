@@ -44,6 +44,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.auth.RegistrationParams;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
@@ -66,6 +67,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -214,6 +216,165 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(passwordEncoder.matches(newPassword, updated.getPassword()));
     // The account is no longer expired, so the frontend's follow-up auth/login will succeed.
     assertTrue(userService.userNonExpired(updated));
+  }
+
+  /**
+   * Templates with whitespace at the edges, written as JSON string content: trailing, leading,
+   * both, tab and non-breaking space.
+   */
+  static Stream<String> edgeWhitespaceJsonTemplates() {
+    return Stream.of("%s ", " %s", " %s ", "\\t%s\\t", "\\u00a0%s\\u00a0");
+  }
+
+  @ParameterizedTest
+  @MethodSource("edgeWhitespaceJsonTemplates")
+  void testUpdatePasswordIgnoresEdgeWhitespaceInUsername(String template) {
+    String oldPassword = "Str0ng_old_1!";
+    String newPassword = "Str0ng_new_1!";
+    User user = createExpiredUser(uniqueUsername(), oldPassword);
+    clearSecurityContext();
+
+    POST(
+            "/auth/updatePassword",
+            "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                .formatted(template.formatted(user.getUsername()), oldPassword, newPassword))
+        .content(HttpStatus.OK);
+
+    User updated = userService.getUserByUsername(user.getUsername());
+    assertTrue(passwordEncoder.matches(newPassword, updated.getPassword()));
+  }
+
+  @ParameterizedTest
+  @MethodSource("edgeWhitespaceJsonTemplates")
+  void testResetPasswordIgnoresEdgeWhitespaceInUsername(String template) {
+    settingsService.put("keyAccountRecovery", true);
+    User user = switchToNewUser(uniqueUsername());
+    clearSecurityContext();
+
+    sendForgotPasswordRequest(template.formatted(user.getUsername()));
+
+    assertMessageSendTo(user.getEmail());
+  }
+
+  @ParameterizedTest
+  @MethodSource("edgeWhitespaceJsonTemplates")
+  void testResetPasswordIgnoresEdgeWhitespaceInEmail(String template) {
+    settingsService.put("keyAccountRecovery", true);
+    User user = switchToNewUser(uniqueUsername());
+    clearSecurityContext();
+
+    sendForgotPasswordRequest(template.formatted(user.getEmail()));
+
+    assertMessageSendTo(user.getEmail());
+  }
+
+  /**
+   * Space characters a stored email can start with: the email validator accepts them, so user
+   * writes can store them, while the edge whitespace strip removes them.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = {"\u00a0", "\u2007", "\u3000"})
+  void testResetPasswordWithExactEmailStoredWithLeadingSpaceCharacter(String prefix) {
+    settingsService.put("keyAccountRecovery", true);
+    User user = switchToNewUser(uniqueUsername());
+    storeEmail(user, prefix + user.getEmail());
+    clearSecurityContext();
+
+    sendForgotPasswordRequest(user.getEmail());
+
+    assertMessageSendTo(user.getEmail());
+  }
+
+  @Test
+  void testResetPasswordPrefersExactEmailOverStrippedEmail() {
+    settingsService.put("keyAccountRecovery", true);
+    User plain = switchToNewUser(uniqueUsername());
+    User padded = switchToNewUser(uniqueUsername());
+    storeEmail(padded, "\u00a0" + plain.getEmail());
+    clearSecurityContext();
+
+    sendForgotPasswordRequest(padded.getEmail());
+    assertMessageSendTo(padded.getEmail());
+    assertTrue(emailMessageSender.getMessagesByEmail(plain.getEmail()).isEmpty());
+
+    sendForgotPasswordRequest(plain.getEmail() + " ");
+    assertMessageSendTo(plain.getEmail());
+  }
+
+  /** Stores {@code email} as the email of {@code user} without the email syntax check. */
+  private void storeEmail(User user, String email) {
+    user.setEmail(email);
+    userService.updateUser(user);
+  }
+
+  /**
+   * Templates for usernames stored with whitespace at the edges, as raw characters: trailing,
+   * leading and non-breaking space. Rows from before the username syntax check (2.38) and paths
+   * that skip the check can hold such usernames.
+   */
+  static Stream<String> storedEdgeWhitespaceTemplates() {
+    return Stream.of("%s ", " %s", "\u00a0%s");
+  }
+
+  @ParameterizedTest
+  @MethodSource("storedEdgeWhitespaceTemplates")
+  void testUpdatePasswordWithExactUsernameStoredWithEdgeWhitespace(String template) {
+    String oldPassword = "Str0ng_old_1!";
+    String newPassword = "Str0ng_new_1!";
+    User user = createExpiredUser(template.formatted(uniqueUsername()), oldPassword);
+    clearSecurityContext();
+
+    POST(
+            "/auth/updatePassword",
+            "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                .formatted(user.getUsername(), oldPassword, newPassword))
+        .content(HttpStatus.OK);
+
+    User updated = userService.getUserByUsername(user.getUsername());
+    assertTrue(passwordEncoder.matches(newPassword, updated.getPassword()));
+  }
+
+  @ParameterizedTest
+  @MethodSource("storedEdgeWhitespaceTemplates")
+  void testResetPasswordWithExactUsernameStoredWithEdgeWhitespace(String template) {
+    settingsService.put("keyAccountRecovery", true);
+    User user = createUserStoredAs(template.formatted(uniqueUsername()));
+    clearSecurityContext();
+
+    sendForgotPasswordRequest(user.getUsername());
+
+    assertMessageSendTo(user.getEmail());
+  }
+
+  @Test
+  void testResetPasswordPrefersExactUsernameOverStrippedUsername() {
+    settingsService.put("keyAccountRecovery", true);
+    User plain = switchToNewUser(uniqueUsername());
+    User padded = createUserStoredAs(" " + plain.getUsername());
+    clearSecurityContext();
+
+    sendForgotPasswordRequest(padded.getUsername());
+    assertMessageSendTo(padded.getEmail());
+    assertTrue(emailMessageSender.getMessagesByEmail(plain.getEmail()).isEmpty());
+
+    sendForgotPasswordRequest(plain.getUsername() + " ");
+    assertMessageSendTo(plain.getEmail());
+  }
+
+  /**
+   * Creates a user with a valid username and email, then stores {@code storedUsername} as its
+   * username without the username syntax check.
+   */
+  private User createUserStoredAs(String storedUsername) {
+    User user = switchToNewUser(uniqueUsername());
+    user.setUsername(storedUsername);
+    userService.updateUser(user);
+    return user;
+  }
+
+  /** A fresh username per test, so the per-user recovery lockout never carries over. */
+  private static String uniqueUsername() {
+    return "user" + CodeGenerator.generateUid().toLowerCase();
   }
 
   @Test

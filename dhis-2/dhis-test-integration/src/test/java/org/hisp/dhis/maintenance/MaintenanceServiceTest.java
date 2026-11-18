@@ -66,6 +66,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
@@ -147,6 +148,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   private Program program;
 
+  private ProgramStage eventProgramStage;
+
   private OrganisationUnit organisationUnit;
 
   private Enrollment enrollment;
@@ -184,6 +187,13 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     program.setProgramStages(programStages);
     program.setTrackedEntityType(trackedEntityType);
     programService.updateProgram(program);
+    Program eventProgram = createProgram('B', new HashSet<>(), organisationUnit);
+    eventProgram.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    programService.addProgram(eventProgram);
+    eventProgramStage = createProgramStage('C', eventProgram);
+    programStageService.saveProgramStage(eventProgramStage);
+    eventProgram.setProgramStages(new HashSet<>(Set.of(eventProgramStage)));
+    programService.updateProgram(eventProgram);
     trackedEntity = createTrackedEntity(organisationUnit, trackedEntityType);
     manager.save(trackedEntity);
     trackedEntityB = createTrackedEntity(organisationUnit, trackedEntityType);
@@ -220,7 +230,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     trackerEvent.setAttributeOptionCombo(coA);
 
     singleEvent = new SingleEvent();
-    singleEvent.setProgramStage(stageA);
+    singleEvent.setProgramStage(eventProgramStage);
     singleEvent.setUid(UID.generate().getValue());
     singleEvent.setOrganisationUnit(organisationUnit);
     singleEvent.setOccurredDate(new Date());
@@ -430,7 +440,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   void testDeleteSoftDeletedSingleEventLinkedToADataValueChangeLog() {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
-    SingleEvent eventA = createSingleEvent(program.getProgramStageByStage(1), organisationUnit);
+    SingleEvent eventA = createSingleEvent(eventProgramStage, organisationUnit);
     eventA.setAttributeOptionCombo(coA);
     manager.save(eventA);
     entityManager.persist(
@@ -501,12 +511,12 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   void testDeleteSoftDeletedSingleEventLinkedToARelationshipItem() {
     RelationshipType rType = createRelationshipType('A');
     rType.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
-    rType.getFromConstraint().setProgram(program);
-    rType.getFromConstraint().setProgramStage(program.getProgramStageByStage(1));
+    rType.getFromConstraint().setProgram(eventProgramStage.getProgram());
+    rType.getFromConstraint().setProgramStage(eventProgramStage);
     rType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     rType.getFromConstraint().setTrackedEntityType(trackedEntity.getTrackedEntityType());
     relationshipTypeService.addRelationshipType(rType);
-    SingleEvent eventA = createSingleEvent(program.getProgramStageByStage(1), organisationUnit);
+    SingleEvent eventA = createSingleEvent(eventProgramStage, organisationUnit);
     eventA.setAttributeOptionCombo(coA);
     manager.save(eventA);
     UID idA = UID.of(eventA);

@@ -48,7 +48,9 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
@@ -73,6 +75,8 @@ class SingleEventOperationParamsMapper {
   private final DataElementService dataElementService;
 
   private final OperationsParamsValidator paramsValidator;
+
+  private final TrackerProgramService trackerProgramService;
 
   @Transactional(readOnly = true)
   public SingleEventQueryParams map(
@@ -99,8 +103,14 @@ class SingleEventOperationParamsMapper {
     mapDataElementFilters(queryParams, operationParams.getDataElementFilters());
     mapOrderParam(queryParams, operationParams.getOrder());
 
+    List<ProgramStage> accessibleProgramStages =
+        program != null
+            ? List.of()
+            : trackerProgramService.getProgramStagesWithDataReadAccess(
+                trackerProgramService.getEventProgramsWithDataReadAccess());
+
     return queryParams
-        .setProgram(program)
+        .setProgram(program, accessibleProgramStages)
         .setOrgUnit(orgUnit)
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setQuerySearchScope(

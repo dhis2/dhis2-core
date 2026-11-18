@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -145,7 +146,7 @@ public class DefaultValidationService implements ValidationService {
     if (context.isPersistResults()) {
       progress.startingStage("Persisting Results", SKIP_STAGE);
       progress.runStage(
-          () -> validationResultService.saveValidationResults(context.getValidationResults()));
+          () -> validationResultService.upsertValidationResults(context.getValidationResults()));
     }
 
     clock
@@ -261,12 +262,15 @@ public class DefaultValidationService implements ValidationService {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Map<PeriodType, PeriodTypeExtended> periodTypeXMap = getExtendedPeriods(parameters);
 
+    List<OrganisationUnit> orgUnits = getOrganisationUnits(parameters);
+
     ExpressionParams baseExParams =
-        getExpressionInfo(periodTypeXMap, parameters.getValidationRules());
+        getExpressionInfo(
+            periodTypeXMap, parameters.getValidationRules(), orgUnits, parameters.getOrgUnit());
 
     ValidationRunContext.Builder builder =
         ValidationRunContext.newBuilder()
-            .withOrgUnits(getOrganisationUnits(parameters))
+            .withOrgUnits(orgUnits)
             .withPeriodTypeXs(new ArrayList<>(periodTypeXMap.values()))
             .withSendNotifications(parameters.isSendNotifications())
             .withPersistResults(parameters.isPersistResults())
@@ -282,13 +286,7 @@ public class DefaultValidationService implements ValidationService {
           .withCogDimensionConstraints(categoryService.getCogDimensionConstraints(currentUser));
     }
 
-    List<ValidationResult> initialResults =
-        validationResultService.getValidationResults(
-            parameters.getOrgUnit(),
-            parameters.isIncludeOrgUnitDescendants(),
-            parameters.getValidationRules(),
-            parameters.getPeriods());
-    return builder.build().addInitialResults(initialResults);
+    return builder.build();
   }
 
   private Map<PeriodType, PeriodTypeExtended> getExtendedPeriods(
@@ -365,7 +363,10 @@ public class DefaultValidationService implements ValidationService {
   }
 
   private ExpressionParams getExpressionInfo(
-      Map<PeriodType, PeriodTypeExtended> periodTypeXMap, Collection<ValidationRule> rules) {
+      Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
+      Collection<ValidationRule> rules,
+      List<OrganisationUnit> orgUnits,
+      OrganisationUnit root) {
     SetMap<PeriodTypeExtended, DimensionalItemId> periodItemIds = new SetMap<>();
 
     Set<DimensionalItemId> allItemIds = new HashSet<>();
@@ -386,7 +387,13 @@ public class DefaultValidationService implements ValidationService {
 
     saveObjectsInPeriodTypeX(periodItemIds, baseExParams.getItemMap());
 
-    return baseExParams;
+    return baseExParams.toBuilder()
+        .orgUnitGroupMemberCounts(
+            expressionService.getOrgUnitGroupMemberCounts(
+                UID.of(expressionInfo.getOrgUnitGroupCountIds()),
+                orgUnits,
+                root == null ? Set.of() : Set.of(root)))
+        .build();
   }
 
   private Set<DimensionalItemId> addToExpressionInfo(ExpressionInfo exInfo, Expression expr) {

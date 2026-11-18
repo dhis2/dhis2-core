@@ -148,10 +148,14 @@ public class AuthenticationController {
       HttpServletResponse response,
       @RequestBody LoginRequest loginRequest) {
 
-    try {
-      validateRequest(loginRequest);
+    // Resolve once, before the token is built, so every later step (user lookup, LDAP bind,
+    // failed-login count) sees the same username. An exact match wins over the stripped username.
+    String username = userService.resolveTypedUsername(loginRequest.getUsername());
 
-      Authentication authenticationResult = doAuthentication(request, loginRequest);
+    try {
+      validateRequest(username);
+
+      Authentication authenticationResult = doAuthentication(request, username, loginRequest);
       this.sessionStrategy.onAuthentication(authenticationResult, request, response);
       saveContext(request, response, authenticationResult);
 
@@ -189,8 +193,8 @@ public class AuthenticationController {
     }
   }
 
-  private void validateRequest(LoginRequest loginRequest) {
-    User user = userService.getUserByUsername(loginRequest.getUsername());
+  private void validateRequest(String username) {
+    User user = userService.getUserByUsername(username);
     if (user == null) {
       throw new BadCredentialsException("Bad credentials");
     }
@@ -201,15 +205,15 @@ public class AuthenticationController {
     }
   }
 
-  private Authentication doAuthentication(HttpServletRequest request, LoginRequest loginRequest) {
-    Authentication authenticationToken = createAuthenticationToken(request, loginRequest);
+  private Authentication doAuthentication(
+      HttpServletRequest request, String username, LoginRequest loginRequest) {
+    Authentication authenticationToken = createAuthenticationToken(request, username, loginRequest);
     return authenticationManager.authenticate(authenticationToken);
   }
 
   private static Authentication createAuthenticationToken(
-      HttpServletRequest servletRequest, LoginRequest loginRequest) {
+      HttpServletRequest servletRequest, String username, LoginRequest loginRequest) {
 
-    String username = loginRequest.getUsername();
     String password = loginRequest.getPassword();
     String twoFactorCode = loginRequest.getTwoFactorCode();
 

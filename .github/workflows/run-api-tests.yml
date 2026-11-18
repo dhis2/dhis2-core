@@ -121,7 +121,7 @@ jobs:
   send-slack-message:
     runs-on: ubuntu-latest
     if: |
-      always() &&
+      !cancelled() &&
       contains(needs.*.result, 'failure') &&
       github.ref == 'refs/heads/master'
 

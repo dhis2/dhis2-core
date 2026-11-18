@@ -356,6 +356,48 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "programIndicatorDimensionCountsEachEnrollmentOnce",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2021;2022;2023;2024&dimension=qZOBw051LSf&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "programIndicatorReadingRepeatableStageCountsEachEnrollmentOnce",
+      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?dimension=ou:ImspTQPwCqd&dimension=pe:2022&dimension=TcTRasl29wo&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "programIndicatorDimensionConditionRestrictsEnrollments",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2021;2022;2023;2024&dimension=qZOBw051LSf:LT:0.9&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "programIndicatorFilterConditionRestrictsEnrollments",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2021;2022;2023;2024&filter=qZOBw051LSf:LT:0.9&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "eventProgramIndicatorFilterConditionRestrictsEnrollments",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2021;2022;2023;2024&filter=GxdhnY5wmHq:GT:3000&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentProgramIndicatorFilterConditionRestrictsEnrollments",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2021;2022;2023;2024&filter=qhTkqwAJLMv:GT:1000&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

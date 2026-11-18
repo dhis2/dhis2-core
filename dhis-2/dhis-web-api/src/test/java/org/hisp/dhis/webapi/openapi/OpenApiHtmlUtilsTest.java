@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayOutputStream;
 import org.hisp.dhis.jsontree.Appender;
+import org.hisp.dhis.jsontree.IoAppender;
 import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.jsontree.TextBuilder;
 import org.junit.jupiter.api.Test;
@@ -169,7 +170,7 @@ class OpenApiHtmlUtilsTest {
    */
   private void assertEscapedUtf8(String expected, String actual) {
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-    try (Appender out = Appender.ofUTF8(bytes)) {
+    try (IoAppender out = Appender.ofUTF8(bytes)) {
       appendEscaped(Text.of(actual), out);
     }
     assertEquals(expected, bytes.toString(UTF_8));

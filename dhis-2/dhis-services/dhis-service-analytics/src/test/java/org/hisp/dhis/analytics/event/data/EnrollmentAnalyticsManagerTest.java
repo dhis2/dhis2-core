@@ -65,7 +65,6 @@ import org.hisp.dhis.analytics.event.data.stage.DefaultStageOrgUnitSqlService;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
-import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
@@ -154,7 +153,6 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     programIndicatorSubqueryBuilder.init();
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
     when(systemSettings.getOrgUnitCentroidsInEventsAnalytics()).thenReturn(false);
-    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
     filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
     StageQuerySqlFacade stageQuerySqlFacade =
         new DefaultStageQuerySqlFacade(
@@ -179,7 +177,6 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             config,
             sqlBuilder,
             organisationUnitResolver,
-            columnMapper,
             filterBuilder,
             stageQuerySqlFacade,
             bucketResolver,

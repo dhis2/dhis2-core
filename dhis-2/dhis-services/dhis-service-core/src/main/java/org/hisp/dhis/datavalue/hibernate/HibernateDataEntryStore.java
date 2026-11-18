@@ -656,14 +656,14 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public int getDataSetExpiryDays(UID dataSet) {
+  public double getDataSetExpiryDays(UID dataSet) {
     String sql = "SELECT ds.expirydays FROM dataset ds WHERE ds.uid = :ds";
     Object res =
         getSession()
             .createNativeQuery(sql)
             .setParameter("ds", dataSet.getValue())
             .getSingleResult();
-    return res instanceof Number n ? n.intValue() : 0;
+    return res instanceof Number n ? n.doubleValue() : 0;
   }
 
   @Override
