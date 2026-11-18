@@ -186,6 +186,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   private TrackedEntityType trackedEntityType;
   private TrackedEntityAttribute teaA;
 
+  private TrackedEntityAttribute programPhoneAttribute;
+
   private DataElement de;
 
   private Program eventProgram;
@@ -254,6 +256,23 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     manager.save(trackerProgramStage, false);
     trackerProgram.getProgramStages().add(trackerProgramStage);
     manager.save(trackerProgram, false);
+
+    programPhoneAttribute = phoneNumberAttribute('B');
+    trackerProgram
+        .getProgramAttributes()
+        .add(createProgramTrackedEntityAttribute(trackerProgram, programPhoneAttribute));
+    manager.save(trackerProgram, false);
+
+    TrackedEntityAttribute otherProgramPhoneAttribute = phoneNumberAttribute('C');
+    Program otherTrackerProgram = createProgram('C');
+    otherTrackerProgram.addOrganisationUnit(orgUnit);
+    otherTrackerProgram.getSharing().setOwner(user1);
+    otherTrackerProgram.setTrackedEntityType(trackedEntityType);
+    otherTrackerProgram.setProgramType(ProgramType.WITH_REGISTRATION);
+    otherTrackerProgram
+        .getProgramAttributes()
+        .add(createProgramTrackedEntityAttribute(otherTrackerProgram, otherProgramPhoneAttribute));
+    manager.save(otherTrackerProgram, false);
 
     eventProgram = createProgram('B');
     eventProgram.addOrganisationUnit(orgUnit);
@@ -826,6 +845,144 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
           expected.setStoredBy(user2.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         });
+  }
+
+  @Test
+  void shouldCreateEventWhenTrackedEntityIsFoundByProgramPhoneNumberAttribute()
+      throws ForbiddenException, BadRequestException {
+    SMSCommand command = new SMSCommand();
+    command.setName("visit");
+    command.setParserType(ParserType.PROGRAM_STAGE_DATAENTRY_PARSER);
+    command.setProgram(trackerProgram);
+    command.setProgramStage(trackerProgramStage);
+    SMSCode code1 = new SMSCode();
+    code1.setCode("a");
+    code1.setDataElement(de);
+    command.setCodes(Set.of(code1));
+    manager.save(command);
+
+    User user3 =
+        createUserWithAuth(
+            "tester3", Authorities.toStringArray(Authorities.F_MOBILE_SETTINGS, Authorities.ALL));
+    user3.addOrganisationUnit(orgUnit);
+    user3.setTeiSearchOrganisationUnits(Set.of(orgUnit));
+    user3.setPhoneNumber("5550001");
+    userService.updateUser(user3);
+    String originator = user3.getPhoneNumber();
+
+    TrackedEntity trackedEntity = trackedEntity();
+    TrackedEntityAttributeValue phoneNumber =
+        createTrackedEntityAttributeValue('B', trackedEntity, programPhoneAttribute);
+    phoneNumber.setValue(originator);
+    attributeValueService.addTrackedEntityAttributeValue(phoneNumber);
+    trackedEntity.getTrackedEntityAttributeValues().add(phoneNumber);
+    manager.save(trackedEntity, false);
+    Enrollment enrollment = enrollment(trackedEntity);
+
+    switchContextToUser(user3);
+
+    JsonWebMessage response =
+        POST(
+                "/sms/inbound",
+                format(
+"""
+{
+"text": "visit a=hello",
+"originator": "%s"
+}
+""",
+                    originator))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    IncomingSms smsResponse = getSms(incomingSmsService, response);
+    assertAll(
+        () -> assertEquals(SmsMessageStatus.PROCESSED, smsResponse.getStatus()),
+        () ->
+            assertSmsResponse(
+                "Command has been processed successfully", originator, smsMessageSender));
+
+    List<TrackerEvent> events =
+        trackerEventService.findEvents(
+            TrackerEventOperationParams.builderForProgram(trackerProgram.getUID())
+                .trackedEntity(trackedEntity)
+                .build());
+    assertHasSize(1, events);
+    assertEqualUids(enrollment, events.get(0).getEnrollment());
+  }
+
+  @Test
+  void shouldCreateEventWhenTrackedEntityIsFoundByTypeAndProgramPhoneNumberAttributes()
+      throws ForbiddenException, BadRequestException {
+    SMSCommand command = new SMSCommand();
+    command.setName("checkup");
+    command.setParserType(ParserType.PROGRAM_STAGE_DATAENTRY_PARSER);
+    command.setProgram(trackerProgram);
+    command.setProgramStage(trackerProgramStage);
+    SMSCode code1 = new SMSCode();
+    code1.setCode("a");
+    code1.setDataElement(de);
+    command.setCodes(Set.of(code1));
+    manager.save(command);
+
+    User user4 =
+        createUserWithAuth(
+            "tester4", Authorities.toStringArray(Authorities.F_MOBILE_SETTINGS, Authorities.ALL));
+    user4.addOrganisationUnit(orgUnit);
+    user4.setTeiSearchOrganisationUnits(Set.of(orgUnit));
+    user4.setPhoneNumber("5550002");
+    userService.updateUser(user4);
+    String originator = user4.getPhoneNumber();
+
+    // the same number in a tracked entity type attribute and in a program attribute
+    TrackedEntity trackedEntity = trackedEntity(originator);
+    TrackedEntityAttributeValue phoneNumber =
+        createTrackedEntityAttributeValue('B', trackedEntity, programPhoneAttribute);
+    phoneNumber.setValue(originator);
+    attributeValueService.addTrackedEntityAttributeValue(phoneNumber);
+    trackedEntity.getTrackedEntityAttributeValues().add(phoneNumber);
+    manager.save(trackedEntity, false);
+    Enrollment enrollment = enrollment(trackedEntity);
+
+    switchContextToUser(user4);
+
+    JsonWebMessage response =
+        POST(
+                "/sms/inbound",
+                format(
+"""
+{
+"text": "checkup a=hello",
+"originator": "%s"
+}
+""",
+                    originator))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    IncomingSms smsResponse = getSms(incomingSmsService, response);
+    assertAll(
+        () -> assertEquals(SmsMessageStatus.PROCESSED, smsResponse.getStatus()),
+        () ->
+            assertSmsResponse(
+                "Command has been processed successfully", originator, smsMessageSender));
+
+    List<TrackerEvent> events =
+        trackerEventService.findEvents(
+            TrackerEventOperationParams.builderForProgram(trackerProgram.getUID())
+                .trackedEntity(trackedEntity)
+                .build());
+    assertHasSize(1, events);
+    assertEqualUids(enrollment, events.get(0).getEnrollment());
+  }
+
+  private TrackedEntityAttribute phoneNumberAttribute(char uniqueChar) {
+    TrackedEntityAttribute attribute =
+        createTrackedEntityAttribute(uniqueChar, ValueType.PHONE_NUMBER);
+    attribute.getSharing().setOwner(user1);
+    attribute.getSharing().addUserAccess(fullAccess(user1));
+    manager.save(attribute, false);
+    return attribute;
   }
 
   private TrackedEntityType trackedEntityTypeAccessible() {
