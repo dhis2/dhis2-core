@@ -183,6 +183,20 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   @Test
+  void shouldFailWhenFilteringByProgramAttributeWithTrackedEntityType() {
+    TrackedEntityAttribute programAttribute = programAttribute(program, ValueType.TEXT);
+
+    assertStartsWith(
+        "Tracked entity attribute '" + programAttribute.getUid() + "' cannot be used to filter",
+        GET(
+                "/tracker/trackedEntities?trackedEntityType={type}&filter={attribute}:eq:foo",
+                trackedEntityType.getUid(),
+                programAttribute.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
   void shouldReturnEmptyListWhenGettingTrackedEntitiesWithNoMatchingParams() {
     LocalDate futureDate = LocalDate.now().plusYears(1);
     JsonList<JsonTrackedEntity> instances =

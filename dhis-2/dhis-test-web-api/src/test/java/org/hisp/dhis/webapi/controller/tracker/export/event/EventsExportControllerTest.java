@@ -46,6 +46,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -172,5 +175,70 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     a.setUser(user);
     a.setAccess(AccessStringHelper.FULL);
     return a;
+  }
+
+  @Test
+  void shouldFailWhenFilteringByAttributeOfAnotherProgram() {
+    TrackedEntityType type = trackedEntityType('O');
+    Program program = trackerProgram('T', type);
+    TrackedEntityAttribute otherProgramAttribute = programAttribute('O', trackerProgram('O', type));
+
+    assertStartsWith(
+        "Tracked entity attribute '"
+            + otherProgramAttribute.getUid()
+            + "' cannot be used to filter",
+        GET(
+                "/tracker/events?program={program}&filterAttributes={attribute}:eq:foo",
+                program.getUid(),
+                otherProgramAttribute.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
+  void shouldFailWhenFilteringByProgramAttributeWithoutProgram() {
+    TrackedEntityAttribute programAttribute =
+        programAttribute('O', trackerProgram('O', trackedEntityType('O')));
+
+    assertEquals(
+        "Tracked entity attribute '"
+            + programAttribute.getUid()
+            + "' cannot be used to filter, it is not an attribute of any tracked entity type you can read.",
+        GET("/tracker/events?filterAttributes={attribute}:eq:foo", programAttribute.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
+  void shouldFilterByTrackedEntityTypeAttributeWithoutProgram() {
+    TrackedEntityType type = trackedEntityType('O');
+    TrackedEntityAttribute typeAttribute = createTrackedEntityAttribute('O');
+    manager.save(typeAttribute, false);
+    type.getTrackedEntityTypeAttributes().add(new TrackedEntityTypeAttribute(type, typeAttribute));
+    manager.save(type, false);
+
+    GET("/tracker/events?filterAttributes={attribute}:eq:foo", typeAttribute.getUid())
+        .content(HttpStatus.OK);
+  }
+
+  private TrackedEntityType trackedEntityType(char uniqueChar) {
+    TrackedEntityType type = createTrackedEntityType(uniqueChar);
+    manager.save(type, false);
+    return type;
+  }
+
+  private Program trackerProgram(char uniqueChar, TrackedEntityType type) {
+    Program program = createProgram(uniqueChar);
+    program.setTrackedEntityType(type);
+    manager.save(program, false);
+    return program;
+  }
+
+  private TrackedEntityAttribute programAttribute(char uniqueChar, Program program) {
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute(uniqueChar);
+    manager.save(attribute, false);
+    program.getProgramAttributes().add(createProgramTrackedEntityAttribute(program, attribute));
+    manager.save(program, false);
+    return attribute;
   }
 }
