@@ -49,6 +49,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -84,8 +86,10 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
+import org.hisp.dhis.user.UserDetailsChangeCollector;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserInvitationStatus;
+import org.hisp.dhis.user.UserMemberships;
 import org.hisp.dhis.user.UserOrgUnitProperty;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
@@ -109,13 +113,16 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   private final SchemaService schemaService;
 
+  private final UserDetailsChangeCollector userDetailsChangeCollector;
+
   public HibernateUserStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService,
       SchemaService schemaService,
-      QueryCacheManager queryCacheManager) {
+      QueryCacheManager queryCacheManager,
+      UserDetailsChangeCollector userDetailsChangeCollector) {
 
     super(entityManager, jdbcTemplate, publisher, User.class, aclService, true);
 
@@ -124,6 +131,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     this.schemaService = schemaService;
     this.queryCacheManager = queryCacheManager;
+    this.userDetailsChangeCollector = userDetailsChangeCollector;
   }
 
   @Override
@@ -470,8 +478,24 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     return QueryUtils.getSingleResult(typedQuery);
   }
 
+  /**
+   * Disables the users with a bulk update, which bypasses the Hibernate listeners, so the usernames
+   * of the users to disable are read first and reported to the {@link UserDetailsChangeCollector}.
+   * The update repeats the condition, so a user who logs in between both statements stays enabled
+   * and is only marked as changed.
+   */
   @Override
   public int disableUsersInactiveSince(Date inactiveSince) {
+    List<String> usernames =
+        getSession()
+            .createQuery(
+                "select u.username from User u where u.disabled = false and u.lastLogin <= :inactiveSince",
+                String.class)
+            .setParameter("inactiveSince", inactiveSince)
+            .list();
+    if (usernames.isEmpty()) {
+      return 0;
+    }
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaUpdate<User> update = builder.createCriteriaUpdate(User.class);
     Root<User> user = update.from(User.class);
@@ -481,7 +505,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             builder.equal(user.get(DISABLED_COLUMN), false),
             builder.lessThanOrEqualTo(user.get("lastLogin"), inactiveSince)));
     update.set(DISABLED_COLUMN, true);
-    return entityManager.createQuery(update).executeUpdate();
+    int disabled = entityManager.createQuery(update).executeUpdate();
+    userDetailsChangeCollector.usernamesChanged(usernames);
+    return disabled;
   }
 
   @Override
@@ -656,6 +682,69 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         .createQuery("select u.username from User u where u.id in (:userIds)", String.class)
         .setParameter("userIds", userIds)
         .list();
+  }
+
+  @Override
+  public List<String> getUsernamesByUserGroupIds(@Nonnull Collection<Long> userGroupIds) {
+    if (userGroupIds.isEmpty()) {
+      return List.of();
+    }
+    return getSession()
+        .createQuery(
+            "select distinct u.username from UserGroup g join g.members u where g.id in (:userGroupIds)",
+            String.class)
+        .setParameter("userGroupIds", userGroupIds)
+        .list();
+  }
+
+  @Override
+  @Nonnull
+  public UserMemberships getMemberships(long userId) {
+    // One round trip; the first column tells which kind of row it is.
+    String sql =
+        """
+        select 1, g.usergroupid, g.uid, cast(null as varchar(255))
+        from usergroupmembers m join usergroup g on g.usergroupid = m.usergroupid
+        where m.userid = :userId
+        union all
+        select 2, r.userroleid, r.uid, cast(null as varchar(255))
+        from userrolemembers m join userrole r on r.userroleid = m.userroleid
+        where m.userid = :userId
+        union all
+        select 3, cast(null as bigint), cast(null as varchar(11)), a.authority
+        from userrolemembers m join userroleauthorities a on a.userroleid = m.userroleid
+        where m.userid = :userId
+        union all
+        select 4, cast(null as bigint), cast(null as varchar(11)), x.restriction
+        from userrolemembers m join userrolerestrictions x on x.userroleid = m.userroleid
+        where m.userid = :userId
+        """;
+    // Synchronized on the tables it reads: changes to them that are not flushed yet, for example
+    // a new member in the same transaction, are flushed before the query.
+    @SuppressWarnings("unchecked")
+    List<Object[]> rows =
+        nativeSynchronizedQuery(sql)
+            .addSynchronizedQuerySpace("usergroupmembers")
+            .addSynchronizedQuerySpace("usergroup")
+            .addSynchronizedQuerySpace("userrolemembers")
+            .addSynchronizedQuerySpace("userrole")
+            .addSynchronizedQuerySpace("userroleauthorities")
+            .addSynchronizedQuerySpace("userrolerestrictions")
+            .setParameter("userId", userId)
+            .list();
+    Map<Long, String> userGroups = new HashMap<>();
+    Map<Long, String> userRoles = new HashMap<>();
+    Set<String> authorities = new HashSet<>();
+    Set<String> restrictions = new HashSet<>();
+    for (Object[] row : rows) {
+      switch (((Number) row[0]).intValue()) {
+        case 1 -> userGroups.put(((Number) row[1]).longValue(), (String) row[2]);
+        case 2 -> userRoles.put(((Number) row[1]).longValue(), (String) row[2]);
+        case 3 -> authorities.add((String) row[3]);
+        default -> restrictions.add((String) row[3]);
+      }
+    }
+    return new UserMemberships(userGroups, userRoles, authorities, restrictions);
   }
 
   @Override

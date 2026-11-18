@@ -49,6 +49,7 @@ import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.security.session.UserDetailsSessionRefresher;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -94,6 +95,7 @@ public class ImpersonateUserController {
   private final DhisConfigurationProvider config;
   private final UserDetailsService userDetailsService;
   private final ApplicationEventPublisher eventPublisher;
+  private final UserDetailsSessionRefresher sessionRefresher;
 
   private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource =
       new WebAuthenticationDetailsSource();
@@ -114,12 +116,12 @@ public class ImpersonateUserController {
     validateReq(request);
 
     try {
-      Authentication targetUser = attemptSwitchUser(request, username);
-
-      SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
-      context.setAuthentication(targetUser);
-      this.securityContextHolderStrategy.setContext(context);
-      this.securityContextRepository.saveContext(context, request, response);
+      // The target's change token is read before the target is loaded, so that a change while
+      // loading is not acknowledged unseen.
+      sessionRefresher.startImpersonation(
+          request,
+          username,
+          () -> switchTo(attemptSwitchUser(request, username), request, response));
 
       return ImpersonateUserResponse.builder()
           .status(ImpersonateUserResponse.STATUS.IMPERSONATION_SUCCESS)
@@ -165,7 +167,7 @@ public class ImpersonateUserController {
 
     validateReq(request);
 
-    Authentication originalUser = null;
+    Authentication originalUser;
     try {
       originalUser = attemptExitUser();
     } catch (AuthenticationCredentialsNotFoundException e) {
@@ -173,16 +175,21 @@ public class ImpersonateUserController {
           "User not impersonating anyone, user: %s".formatted(userDetails.getUsername()));
     }
 
-    // update the current context back to the original user
-    SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
-    context.setAuthentication(originalUser);
-    this.securityContextHolderStrategy.setContext(context);
-    this.securityContextRepository.saveContext(context, request, response);
+    sessionRefresher.endImpersonation(request, () -> switchTo(originalUser, request, response));
 
     return ImpersonateUserResponse.builder()
         .status(ImpersonateUserResponse.STATUS.IMPERSONATION_EXIT_SUCCESS)
         .username(originalUser.getName())
         .build();
+  }
+
+  /** Makes the authentication the one of the current request and of its session. */
+  private void switchTo(
+      Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+    SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
+    context.setAuthentication(authentication);
+    this.securityContextHolderStrategy.setContext(context);
+    this.securityContextRepository.saveContext(context, request, response);
   }
 
   private Authentication attemptSwitchUser(HttpServletRequest request, String username)

@@ -69,6 +69,8 @@ import org.hisp.dhis.webapi.security.session.HttpBasicSessions;
 import org.hisp.dhis.webapi.security.session.InteractiveSessionRegistry;
 import org.hisp.dhis.webapi.security.session.ReauthenticatingExpiredSessionStrategy;
 import org.hisp.dhis.webapi.security.session.SessionRegisteringSecurityContextRepository;
+import org.hisp.dhis.webapi.security.session.UserDetailsRefreshFilter;
+import org.hisp.dhis.webapi.security.session.UserDetailsSessionRefresher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -98,6 +100,7 @@ import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.session.ConcurrentSessionFilter;
 import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
@@ -156,6 +159,8 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
 
   @Autowired private RequestCache requestCache;
+
+  @Autowired private UserDetailsSessionRefresher userDetailsSessionRefresher;
 
   @Autowired private SessionRegistry sessionRegistry;
 
@@ -275,6 +280,9 @@ public class DhisWebApiWebSecurityConfig {
       configureOAuthTokenFilters(http);
 
       http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
+      // after hard session expiry is enforced, before the request is authorized
+      http.addFilterAfter(
+          new UserDetailsRefreshFilter(userDetailsSessionRefresher), ConcurrentSessionFilter.class);
 
       setHttpHeaders(http);
 

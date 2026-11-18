@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,26 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 
 /**
- * Event published after a transaction that changed the user group memberships of users has
- * committed, so that their active sessions can be invalidated asynchronously, off the request
- * thread. The session principal holds the user group ids as they were at authentication, so without
- * this the sharing checks of an active session keep using the old memberships.
+ * The user groups and user roles of a user, with the authorities and restrictions of those roles,
+ * as stored in the database.
  *
- * @param userIds the primary keys of the users that joined or left a user group
+ * <p>They are read with SQL, not through {@link User#getGroups()} and {@link User#getUserRoles()}:
+ * those collections are kept in the second-level cache, and another node of a cluster does not
+ * evict them for every change, so a principal built from them on that node can miss the change.
+ *
+ * @param userGroups the UID of each user group of the user, by its primary key
+ * @param userRoles the UID of each user role of the user, by its primary key
+ * @param authorities the authorities of the user roles of the user
+ * @param restrictions the restrictions of the user roles of the user
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public record UserGroupMembershipChangedEvent(@Nonnull Set<Long> userIds) {}
+public record UserMemberships(
+    @Nonnull Map<Long, String> userGroups,
+    @Nonnull Map<Long, String> userRoles,
+    @Nonnull Set<String> authorities,
+    @Nonnull Set<String> restrictions) {}
