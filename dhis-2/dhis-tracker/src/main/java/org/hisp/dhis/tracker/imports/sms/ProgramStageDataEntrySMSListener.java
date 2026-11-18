@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.tracker.imports.sms.SmsImportMapper.mapCommand;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,12 +62,13 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -96,8 +98,6 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
 
   private final TrackedEntityService trackedEntityService;
 
-  private final TrackedEntityAttributeService trackedEntityAttributeService;
-
   private final SMSCommandService smsCommandService;
 
   private final EnrollmentService enrollmentService;
@@ -111,14 +111,12 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       TrackedEntityService trackedEntityService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
       SMSCommandService smsCommandService,
       EnrollmentService enrollmentService,
       TrackerImportService trackerImportService,
       CategoryService categoryService) {
     super(userService, incomingSmsService, smsSender);
     this.trackedEntityService = trackedEntityService;
-    this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.smsCommandService = smsCommandService;
     this.enrollmentService = enrollmentService;
     this.trackerImportService = trackerImportService;
@@ -201,47 +199,59 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
     throw new IllegalStateException(importReport.toString());
   }
 
+  /**
+   * Finds the tracked entities with the sender's phone number in a phone number attribute of the
+   * program or its tracked entity type. Type attributes are searched by type, so tracked entities
+   * not yet enrolled are also found, and program attributes are searched within the program.
+   */
   private List<TrackedEntity> getTrackedEntityByPhoneNumber(IncomingSms sms, SMSCommand command) {
-    List<TrackedEntityAttribute> attributes =
-        trackedEntityAttributeService.getAllTrackedEntityAttributes().stream()
-            .filter(attr -> attr.getValueType().equals(ValueType.PHONE_NUMBER))
-            .toList();
+    Program program = command.getProgram();
+    TrackedEntityType trackedEntityType = program.getTrackedEntityType();
+    List<TrackedEntityAttribute> typeAttributes = trackedEntityType.getTrackedEntityAttributes();
 
-    List<TrackedEntity> trackedEntities = new ArrayList<>();
+    List<TrackedEntityOperationParams> params = new ArrayList<>();
+    typeAttributes.stream()
+        .filter(ProgramStageDataEntrySMSListener::isPhoneNumber)
+        .map(attr -> getParams(attr, sms).trackedEntityType(trackedEntityType).build())
+        .forEach(params::add);
+    program.getTrackedEntityAttributes().stream()
+        .filter(ProgramStageDataEntrySMSListener::isPhoneNumber)
+        .filter(attr -> !typeAttributes.contains(attr))
+        .map(attr -> getParams(attr, sms).program(program.getUID()).build())
+        .forEach(params::add);
 
-    attributes.stream()
-        .map(attr -> getParams(attr, sms, command.getProgram()))
-        .forEach(
-            param -> {
-              try {
-                Page<TrackedEntity> page =
-                    trackedEntityService.findTrackedEntities(param, PageParams.of(1, 2, false));
-                trackedEntities.addAll(page.getItems());
-              } catch (BadRequestException | ForbiddenException | NotFoundException e) {
-                // TODO(tracker) Find a better error message for these exceptions
-                throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
-              }
-            });
+    Map<String, TrackedEntity> trackedEntities = new LinkedHashMap<>();
+    for (TrackedEntityOperationParams param : params) {
+      try {
+        Page<TrackedEntity> page =
+            trackedEntityService.findTrackedEntities(param, PageParams.of(1, 2, false));
+        page.getItems().forEach(te -> trackedEntities.putIfAbsent(te.getUid(), te));
+      } catch (BadRequestException | ForbiddenException | NotFoundException e) {
+        // TODO(tracker) Find a better error message for these exceptions
+        throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
+      }
+    }
 
-    return trackedEntities;
+    return new ArrayList<>(trackedEntities.values());
+  }
+
+  private static boolean isPhoneNumber(TrackedEntityAttribute attribute) {
+    return attribute.getValueType() == ValueType.PHONE_NUMBER;
   }
 
   private boolean hasMoreThanOneEntity(List<TrackedEntity> trackedEntities) {
     return trackedEntities.size() > 1;
   }
 
-  private TrackedEntityOperationParams getParams(
-      TrackedEntityAttribute attribute, IncomingSms sms, Program program) {
-
+  private TrackedEntityOperationParamsBuilder getParams(
+      TrackedEntityAttribute attribute, IncomingSms sms) {
     QueryFilter queryFilter = new QueryFilter();
     queryFilter.setOperator(QueryOperator.EQ);
     queryFilter.setFilter(sms.getOriginator());
 
     return TrackedEntityOperationParams.builder()
         .filterBy(UID.of(attribute), List.of(queryFilter))
-        .trackedEntityType(program.getTrackedEntityType())
-        .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-        .build();
+        .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
   }
 
   private boolean validate(
