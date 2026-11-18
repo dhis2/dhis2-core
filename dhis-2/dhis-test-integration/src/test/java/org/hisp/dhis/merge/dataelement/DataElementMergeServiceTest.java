@@ -2963,8 +2963,13 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   void singleEventChangeLogMergeTest()
       throws ConflictException, NotFoundException, BadRequestException {
     // given
-    ProgramStage stage = createProgramStage('s', program);
+    Program eventProgram = createProgramWithoutRegistration('e');
+    eventProgram.setEnableChangeLog(true);
+    identifiableObjectManager.save(eventProgram);
+    ProgramStage stage = createProgramStage('s', eventProgram);
     identifiableObjectManager.save(stage);
+    eventProgram.getProgramStages().add(stage);
+    identifiableObjectManager.update(eventProgram);
     SingleEvent e = createSingleEvent(stage, ou1);
     e.setAttributeOptionCombo(coc1);
     identifiableObjectManager.save(e);

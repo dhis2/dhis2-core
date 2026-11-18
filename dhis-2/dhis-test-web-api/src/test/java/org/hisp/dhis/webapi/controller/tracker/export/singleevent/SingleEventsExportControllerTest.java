@@ -38,6 +38,7 @@ import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -61,9 +62,12 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
@@ -262,6 +266,39 @@ class SingleEventsExportControllerTest extends PostgresControllerIntegrationTest
         GET("/tracker/singleEvents/{uid}", nonExistentUid)
             .error(HttpStatus.NOT_FOUND)
             .getMessage());
+  }
+
+  @Test
+  void shouldReturnNotFoundWhenUserHasNoDataReadAccessToProgram() {
+    Program program = manager.get(Program.class, PROGRAM_UID);
+    Sharing sharing = program.getSharing();
+    program.setSharing(
+        Sharing.builder()
+            .owner(sharing.getOwner())
+            .publicAccess(AccessStringHelper.READ_WRITE)
+            .build());
+    manager.update(program);
+    injectSecurityContextUser(userService.getUser("o1HMTIzBGo7"));
+
+    try {
+      assertAll(
+          () ->
+              assertEquals(
+                  "Event with id " + EVENT_UID_5 + " could not be found.",
+                  GET("/tracker/singleEvents/{uid}", EVENT_UID_5)
+                      .error(HttpStatus.NOT_FOUND)
+                      .getMessage()),
+          () ->
+              assertEquals(
+                  "Event with id " + EVENT_UID_5 + " could not be found.",
+                  GET("/tracker/events/{uid}", EVENT_UID_5)
+                      .error(HttpStatus.NOT_FOUND)
+                      .getMessage()));
+    } finally {
+      injectSecurityContextUser(user);
+      program.setSharing(sharing);
+      manager.update(program);
+    }
   }
 
   @Test

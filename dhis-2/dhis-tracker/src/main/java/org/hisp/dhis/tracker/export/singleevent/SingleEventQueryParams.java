@@ -65,7 +65,19 @@ import org.hisp.dhis.tracker.export.QuerySearchScope;
 class SingleEventQueryParams {
   @Getter private Program program;
 
+  /**
+   * Stage of {@link #program}, set together with it as event programs have a single stage. The user
+   * must have data read access to the program and the stage. Not set when {@link
+   * #accessibleProgramStages} is used.
+   */
   @Getter private ProgramStage programStage;
+
+  /**
+   * Stages the user can read the data of, of the event programs the user can read the data of. Used
+   * if no {@link #program} is requested; no event is returned if it is empty. Not set when {@link
+   * #programStage} is set.
+   */
+  @Getter private List<ProgramStage> accessibleProgramStages = List.of();
 
   @Getter private OrganisationUnit orgUnit;
 
@@ -157,10 +169,12 @@ class SingleEventQueryParams {
     return this;
   }
 
-  public SingleEventQueryParams setProgram(Program program) {
+  public SingleEventQueryParams setProgram(Program program, List<ProgramStage> programStages) {
     this.program = program;
     if (program != null) {
       this.programStage = program.getProgramStages().iterator().next();
+    } else {
+      this.accessibleProgramStages = programStages;
     }
     return this;
   }
