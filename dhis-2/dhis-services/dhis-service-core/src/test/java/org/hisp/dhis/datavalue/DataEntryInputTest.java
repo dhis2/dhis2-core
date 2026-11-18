@@ -431,10 +431,7 @@ class DataEntryInputTest {
   void testFromJson_DeletionScopeEmpty() {
     DataEntryGroup.Input.Scope scope =
         fromJson("{\"deletion\": {}, \"dataValues\": []}").deletion();
-    assertNotNull(scope);
-    assertEquals(List.of(), scope.orgUnits());
-    assertEquals(List.of(), scope.periods());
-    assertEquals(List.of(), scope.elements());
+    assertNull(scope);
   }
 
   @Test
@@ -443,7 +440,7 @@ class DataEntryInputTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"true", "\"true\"", "\"TRUE\"", "1"})
+  @ValueSource(strings = {"true", "\"true\"", "\"TRUE\"", "1", "\"1\"", "\"yes\""})
   void testFromJson_BooleansTrue(String bool) {
     DataEntryValue.Input dv = valueOf("\"followUp\": " + bool + ", \"deleted\": " + bool);
     assertTrue(dv.followUp());
@@ -451,7 +448,7 @@ class DataEntryInputTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"false", "\"false\"", "\"FALSE\"", "0"})
+  @ValueSource(strings = {"false", "\"false\"", "\"FALSE\"", "0", "\"0\"", "\"no\""})
   void testFromJson_BooleansFalse(String bool) {
     DataEntryValue.Input dv = valueOf("\"followUp\": " + bool + ", \"deleted\": " + bool);
     assertFalse(dv.followUp());
@@ -588,7 +585,7 @@ class DataEntryInputTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"1.0", "2", "\" true \"", "\"yes\"", "{}", "[]"})
+  @ValueSource(strings = {"1.0", "2", "\" true \"", "{}", "[]"})
   void testFromJson_BooleanInvalid(String bool) {
     assertJsonError("{\"dataValues\": [{\"followUp\": %s}]}".formatted(bool));
     assertJsonError("{\"dataValues\": [{\"deleted\": %s}]}".formatted(bool));
@@ -631,7 +628,7 @@ class DataEntryInputTest {
   void testFromJson_FollowUpNotABoolean() {
     assertJsonError("{\"dataValues\": [{\"followUp\": \"maybe\"}]}");
     assertJsonError("{\"dataValues\": [{\"followUp\": 2}]}");
-    assertJsonError("{\"dataValues\": [{\"followUp\": \"1\"}]}");
+    assertJsonError("{\"dataValues\": [{\"followUp\": \"2\"}]}");
   }
 
   @Test
