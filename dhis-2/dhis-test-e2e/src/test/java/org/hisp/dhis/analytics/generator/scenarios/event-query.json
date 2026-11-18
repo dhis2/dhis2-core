@@ -524,6 +524,20 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "enrollmentProgramIndicatorConditionCountsPages",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:DiszpKrYNg8&dimension=pe:202201&dimension=qZOBw051LSf:GT:0&headers=psi,eventdate,lastupdated,qZOBw051LSf&asc=eventdate,lastupdated&pageSize=20&totalPages=true",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentProgramIndicatorConditionExcludesEventsFromPageCount",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:DiszpKrYNg8&dimension=pe:202201&dimension=qZOBw051LSf:GT:20000&headers=psi,eventdate,lastupdated,qZOBw051LSf&asc=eventdate,lastupdated&pageSize=20&totalPages=true",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
