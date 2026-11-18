@@ -287,6 +287,55 @@ public class OperationsParamsValidator {
   }
 
   /**
+   * Validates that the attribute belongs to the requested program or its tracked entity type, to
+   * the requested tracked entity type, or, if neither is given, to a tracked entity type the user
+   * can read. This stops the user from inferring values they can't see by filtering or ordering on
+   * them.
+   *
+   * @throws BadRequestException if the attribute is not allowed
+   */
+  public static void validateAttributeIsAllowed(
+      TrackedEntityAttribute tea,
+      String usage,
+      Program program,
+      TrackedEntityType requestedTrackedEntityType,
+      List<TrackedEntityType> readableTrackedEntityTypes)
+      throws BadRequestException {
+    if (program != null) {
+      if (!hasAttribute(program.getTrackedEntityAttributes(), tea)
+          && !hasAttribute(program.getTrackedEntityType().getTrackedEntityAttributes(), tea)) {
+        throw attributeNotAllowed(
+            tea, usage, "program '" + program.getUid() + "' or its tracked entity type");
+      }
+      return;
+    }
+    if (requestedTrackedEntityType != null) {
+      if (!hasAttribute(requestedTrackedEntityType.getTrackedEntityAttributes(), tea)) {
+        throw attributeNotAllowed(
+            tea, usage, "tracked entity type '" + requestedTrackedEntityType.getUid() + "'");
+      }
+      return;
+    }
+    if (readableTrackedEntityTypes.stream()
+        .noneMatch(t -> hasAttribute(t.getTrackedEntityAttributes(), tea))) {
+      throw attributeNotAllowed(tea, usage, "any tracked entity type you can read");
+    }
+  }
+
+  private static boolean hasAttribute(
+      List<TrackedEntityAttribute> attributes, TrackedEntityAttribute tea) {
+    return attributes.stream().anyMatch(a -> a.getUID().equals(tea.getUID()));
+  }
+
+  private static BadRequestException attributeNotAllowed(
+      TrackedEntityAttribute tea, String usage, String allowedFrom) {
+    return new BadRequestException(
+        String.format(
+            "Tracked entity attribute '%s' cannot be used to %s, it is not an attribute of %s.",
+            tea.getUID(), usage, allowedFrom));
+  }
+
+  /**
    * Validates the specified filter operator(s) are not blocked for the given TEA
    *
    * @throws BadRequestException if the operator(s) are blocked

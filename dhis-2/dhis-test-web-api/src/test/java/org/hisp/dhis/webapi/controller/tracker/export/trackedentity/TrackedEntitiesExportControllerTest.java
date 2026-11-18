@@ -227,6 +227,15 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
+  void shouldFailWhenFilteringByProgramAttributeWithTrackedEntityType() {
+    assertStartsWith(
+        "Tracked entity attribute 'fRGt4l6yIRb' cannot be used to filter",
+        GET("/tracker/trackedEntities?trackedEntityType=ja8NY4PW7Xm&filter=fRGt4l6yIRb:eq:foo")
+            .error(BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
   void shouldReturnEmptyListWhenGettingTrackedEntitiesWithNoMatchingParams() {
     LocalDate futureDate = LocalDate.now().plusYears(1);
     JsonList<JsonTrackedEntity> trackedEntities =
