@@ -2660,7 +2660,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * dimension already has its CTE. A program indicator with a relationship type gets no CTE: the
    * CTE is keyed by enrollment and cannot follow the relationship.
    */
-  private void addProgramIndicatorFilterCtes(EventQueryParams params, CteContext cteContext) {
+  void addProgramIndicatorFilterCtes(EventQueryParams params, CteContext cteContext) {
     params.getItemFilters().stream()
         .filter(QueryItem::isProgramIndicator)
         .filter(QueryItem::hasFilter)
@@ -3122,6 +3122,32 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       }
     }
+
+    return conditions.isEmpty() ? null : Condition.and(conditions.toArray(new Condition[0]));
+  }
+
+  /**
+   * Builds the conditions of the program indicators in dimensions and filters, evaluated against
+   * the value of each indicator in its CTE. Indicators without a registered CTE are skipped.
+   *
+   * @param params The event query parameters
+   * @param cteContext The CTE context holding the program indicator CTEs
+   * @return Combined condition, or null when no program indicator has a condition
+   */
+  Condition programIndicatorConditions(EventQueryParams params, CteContext cteContext) {
+    List<Condition> conditions =
+        Stream.concat(
+                params.getItems().stream(),
+                params.getItemFilters().stream().filter(item -> !item.hasRelationshipType()))
+            .filter(QueryItem::isProgramIndicator)
+            .filter(QueryItem::hasFilter)
+            .filter(item -> cteContext.containsCte(CteUtils.computeKey(item)))
+            .flatMap(
+                item ->
+                    buildItemConditions(
+                        item, cteContext.getDefinitionByItemUid(CteUtils.computeKey(item)), params)
+                        .stream())
+            .toList();
 
     return conditions.isEmpty() ? null : Condition.and(conditions.toArray(new Condition[0]));
   }
