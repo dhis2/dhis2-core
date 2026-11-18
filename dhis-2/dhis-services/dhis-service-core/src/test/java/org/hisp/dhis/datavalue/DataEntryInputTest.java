@@ -585,7 +585,7 @@ class DataEntryInputTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"1.0", "2", "\" true \"", "{}", "[]"})
+  @ValueSource(strings = {"1.0", "2", "\" true \"", "{}", "[]", "\2\""})
   void testFromJson_BooleanInvalid(String bool) {
     assertJsonError("{\"dataValues\": [{\"followUp\": %s}]}".formatted(bool));
     assertJsonError("{\"dataValues\": [{\"deleted\": %s}]}".formatted(bool));
@@ -627,8 +627,6 @@ class DataEntryInputTest {
   @Test
   void testFromJson_FollowUpNotABoolean() {
     assertJsonError("{\"dataValues\": [{\"followUp\": \"maybe\"}]}");
-    assertJsonError("{\"dataValues\": [{\"followUp\": 2}]}");
-    assertJsonError("{\"dataValues\": [{\"followUp\": \"2\"}]}");
   }
 
   @Test
