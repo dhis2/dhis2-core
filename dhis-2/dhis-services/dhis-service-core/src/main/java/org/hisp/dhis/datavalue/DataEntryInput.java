@@ -340,6 +340,7 @@ public final class DataEntryInput {
   /**
    * Accepts what 2.42 (Jackson) accepted for a boolean: JSON booleans, the strings {@code true} and
    * {@code false} (any case), the numbers {@code 1} and {@code 0}, and an empty string as null.
+   * This also allows strings "0", "1" as well as "yes" and "no".
    *
    * @return the boolean value or null if the value is undefined, JSON null or an empty string
    * @throws IllegalArgumentException for any other value
