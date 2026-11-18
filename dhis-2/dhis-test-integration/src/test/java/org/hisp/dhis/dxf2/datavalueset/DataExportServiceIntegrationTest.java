@@ -1057,6 +1057,36 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertDataValuesCount(0);
   }
 
+  /**
+   * A data element that is not in the data set has no category option combo for the given category
+   * options. This is a conflict for the value, not a server error (DHIS2-22500).
+   */
+  @Test
+  void testImportDataValuesCategoryOptionsDataElementNotInDataSet() {
+    DataElement deX = createDataElement('X', categoryComboA);
+    dataElementService.addDataElement(deX);
+    String json =
+        """
+        {"dataSet": "pBOMPrpg1QX", "dataValues": [{"dataElement": "%s", "period": "201201",
+          "orgUnit": "DiszpKrYNg8", "value": "1", "categoryOptionCombo": {"%s": "%s"}}]}"""
+            .formatted(
+                deX.getUid(),
+                categoryComboA.getCategories().get(0).getUid(),
+                categoryOptionA.getUid());
+
+    ImportSummary summary =
+        importJson(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertEquals(1, summary.getConflictCount());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(ErrorCode.E8020, conflict.getErrorCode());
+    assertEquals(
+        "Data set pBOMPrpg1QX not usable with data element(s): `[%s]`".formatted(deX.getUid()),
+        conflict.getValue());
+    assertDataValuesCount(0);
+  }
+
   @Test
   void testImportDataValuesWithNonExistingDataElementOrgUnit() {
     assertDataValuesCount(0);
