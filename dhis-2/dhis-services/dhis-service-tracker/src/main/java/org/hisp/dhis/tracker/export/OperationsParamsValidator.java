@@ -33,6 +33,7 @@ import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -46,6 +47,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
@@ -270,5 +272,55 @@ public class OperationsParamsValidator {
     }
 
     return orgUnits;
+  }
+
+  /**
+   * Validates that the attribute belongs to the requested program or its tracked entity type, to
+   * the requested tracked entity type, or, if neither is given, to a tracked entity type the user
+   * can read. This stops the user from inferring values they can't see by filtering or ordering on
+   * them.
+   *
+   * @throws BadRequestException if the attribute is not allowed
+   */
+  public static void validateAttributeIsAllowed(
+      TrackedEntityAttribute tea,
+      String usage,
+      Program program,
+      TrackedEntityType requestedTrackedEntityType,
+      List<TrackedEntityType> readableTrackedEntityTypes)
+      throws BadRequestException {
+    if (program != null) {
+      if (!hasAttribute(program.getTrackedEntityAttributes(), tea)
+          && (program.getTrackedEntityType() == null
+              || !hasAttribute(program.getTrackedEntityType().getTrackedEntityAttributes(), tea))) {
+        throw attributeNotAllowed(
+            tea, usage, "program '" + program.getUid() + "' or its tracked entity type");
+      }
+      return;
+    }
+    if (requestedTrackedEntityType != null) {
+      if (!hasAttribute(requestedTrackedEntityType.getTrackedEntityAttributes(), tea)) {
+        throw attributeNotAllowed(
+            tea, usage, "tracked entity type '" + requestedTrackedEntityType.getUid() + "'");
+      }
+      return;
+    }
+    if (readableTrackedEntityTypes.stream()
+        .noneMatch(t -> hasAttribute(t.getTrackedEntityAttributes(), tea))) {
+      throw attributeNotAllowed(tea, usage, "any tracked entity type you can read");
+    }
+  }
+
+  private static boolean hasAttribute(
+      List<TrackedEntityAttribute> attributes, TrackedEntityAttribute tea) {
+    return attributes.stream().anyMatch(a -> a.getUid().equals(tea.getUid()));
+  }
+
+  private static BadRequestException attributeNotAllowed(
+      TrackedEntityAttribute tea, String usage, String allowedFrom) {
+    return new BadRequestException(
+        String.format(
+            "Tracked entity attribute '%s' cannot be used to %s, it is not an attribute of %s.",
+            tea.getUid(), usage, allowedFrom));
   }
 }
