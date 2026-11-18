@@ -251,6 +251,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "stageScopedDataElementHeadersWithStageOffset",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:ImspTQPwCqd&filter=trackedentity:EQ:foc5zag6gbE&headers=trackedentity,jdRD35YwbRH[-1].yLIPuJHRgey,jdRD35YwbRH[0].yLIPuJHRgey,ur1Edk5Oe2n.jdRD35YwbRH[-1].yLIPuJHRgey&totalPages=false&pageSize=10&page=1&displayProperty=NAME&includeMetadataDetails=true",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }
