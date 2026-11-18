@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.util;
 
+import static java.text.MessageFormat.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIM_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
@@ -138,6 +139,8 @@ public class AnalyticsUtils {
 
   private static final Pattern OU_LEVEL_PATTERN =
       Pattern.compile(DataQueryParams.PREFIX_ORG_UNIT_LEVEL + "(\\d+)");
+
+  private static final String DEV_MESSAGE = "{0} | Check the server logs";
 
   /**
    * Returns an SQL statement for retrieving raw data values for an aggregate query.
@@ -400,8 +403,7 @@ public class AnalyticsUtils {
       String operand =
           StringUtils.join(operands, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP);
       String dimension = StringUtils.join(dimensions, DimensionalObject.DIMENSION_SEP);
-      dimension =
-          !dimension.isEmpty() ? (DimensionalObject.DIMENSION_SEP + dimension) : StringUtils.EMPTY;
+      dimension = !dimension.isEmpty() ? (DimensionalObject.DIMENSION_SEP + dimension) : EMPTY;
       String key = operand + dimension;
 
       map.put(key, entry.getValue());
@@ -784,7 +786,6 @@ public class AnalyticsUtils {
    *
    * @param params the {@link DataQueryParams}.
    * @param grid the {@link Grid}.
-   * @return
    */
   public static Map<String, MetadataItem> getDimensionMetadataItemMap(
       DataQueryParams params, Grid grid) {
@@ -1176,7 +1177,8 @@ public class AnalyticsUtils {
       if ((ex.getCause() instanceof SQLException sqlexception)
           && (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception))) {
         log.error(E7154.getMessage(), ex);
-        throw new QueryRuntimeException(E7154);
+        throw new QueryRuntimeException(E7154)
+            .setDevMessage(format(DEV_MESSAGE, getExceptionMessage(ex)));
       }
 
       log.error(E7132.getMessage(), ex);
@@ -1187,6 +1189,18 @@ public class AnalyticsUtils {
     }
 
     return Optional.empty();
+  }
+
+  private static String getExceptionMessage(Exception exception) {
+    if (exception != null) {
+      if (exception.getCause() != null) {
+        return exception.getCause().getMessage();
+      } else {
+        return exception.getMessage();
+      }
+    }
+
+    return EMPTY;
   }
 
   private static void handleDataAccessException(DataAccessException ex, boolean isMultipleQueries) {
@@ -1204,7 +1218,8 @@ public class AnalyticsUtils {
       if (!isMultipleQueries) {
         if (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception)) {
           log.error(E7154.getMessage(), ex);
-          throw new QueryRuntimeException(E7154);
+          throw new QueryRuntimeException(E7154)
+              .setDevMessage(format(DEV_MESSAGE, getExceptionMessage(ex)));
         } else {
           log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
           throw ex;
@@ -1212,9 +1227,7 @@ public class AnalyticsUtils {
       }
       log.info(ERR_MSG_SILENT_FALLBACK, ex);
     } else {
-      if (!isMultipleQueries) {
-        throw ex;
-      }
+      throw ex;
     }
   }
 
