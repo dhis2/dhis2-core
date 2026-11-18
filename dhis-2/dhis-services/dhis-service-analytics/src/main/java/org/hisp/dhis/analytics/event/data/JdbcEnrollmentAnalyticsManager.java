@@ -1278,12 +1278,18 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
     addAnalyticsTableColumns(sb, getStandardColumns(params));
 
-    OrgUnitSqlCoordinator.querySelectColumns(
-            TrackerOrgUnitDimension.REGISTRATION_OU, params, sqlBuilder)
-        .forEach(sb::addColumn);
+    // Rows are read into the grid by position, so columns follow the header order:
+    // standard columns, dimensions, REGISTRATION_OU, query items.
+    List<String> columns = new ArrayList<>();
+    addDimensionSelectColumns(columns, params, false, false);
+    columns.addAll(
+        OrgUnitSqlCoordinator.querySelectColumns(
+            TrackerOrgUnitDimension.REGISTRATION_OU, params, sqlBuilder));
 
     // Append columns from CTE definitions
-    getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
+    columns.addAll(getSelectColumnsWithCTE(params, cteContext));
+
+    columns.forEach(sb::addColumn);
   }
 
   /**
