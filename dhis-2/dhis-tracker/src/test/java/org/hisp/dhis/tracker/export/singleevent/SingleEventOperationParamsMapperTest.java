@@ -74,9 +74,12 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate.Parameter;
@@ -118,6 +121,8 @@ class SingleEventOperationParamsMapperTest {
   @Mock private DataElementService dataElementService;
 
   @Mock private OperationsParamsValidator paramsValidator;
+
+  @Mock private TrackerProgramService trackerProgramService;
 
   @InjectMocks private SingleEventOperationParamsMapper mapper;
 
@@ -416,6 +421,34 @@ class SingleEventOperationParamsMapperTest {
     SingleEventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
     assertNull(params.getOrgUnit());
     assertEquals(ALL, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapReadableStagesOfReadableEventProgramsWhenNoProgramIsRequested()
+      throws ForbiddenException, BadRequestException {
+    Program program = program(ProgramType.WITHOUT_REGISTRATION);
+    ProgramStage stage = programStage();
+    when(trackerProgramService.getEventProgramsWithDataReadAccess()).thenReturn(List.of(program));
+    when(trackerProgramService.getProgramStagesWithDataReadAccess(List.of(program)))
+        .thenReturn(List.of(stage));
+
+    SingleEventQueryParams params =
+        mapper.map(SingleEventOperationParams.builderForEvent(UID.generate()).build(), user);
+
+    assertContainsOnly(List.of(stage), params.getAccessibleProgramStages());
+  }
+
+  private static Program program(ProgramType programType) {
+    Program program = new Program();
+    program.setUid(CodeGenerator.generateUid());
+    program.setProgramType(programType);
+    return program;
+  }
+
+  private static ProgramStage programStage() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid(CodeGenerator.generateUid());
+    return programStage;
   }
 
   private User createUserWithAuthority(Authorities authority) {
