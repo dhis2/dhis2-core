@@ -45,6 +45,7 @@ import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
@@ -54,6 +55,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -226,6 +228,55 @@ class OperationsParamsValidatorTest {
     assertEquals(
         String.format("Program specified is not a tracker program: %s", PROGRAM_UID),
         exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnEventProgramWhenUserHasAccessToProgramAndItsStage()
+      throws BadRequestException, ForbiddenException {
+    ProgramStage programStage = eventProgramWithStage();
+    when(aclService.canRead(user, programStage)).thenReturn(true);
+    when(aclService.canDataRead(user, programStage)).thenReturn(true);
+
+    assertEquals(program, paramsValidator.validateEventProgram(PROGRAM_UID, user));
+  }
+
+  @Test
+  void shouldFailWhenUserHasNoDataReadAccessToStageOfRequestedEventProgram() {
+    ProgramStage programStage = eventProgramWithStage();
+    when(aclService.canRead(user, programStage)).thenReturn(true);
+    when(aclService.canDataRead(user, programStage)).thenReturn(false);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> paramsValidator.validateEventProgram(PROGRAM_UID, user));
+
+    assertEquals(
+        "User has no access to program stage: " + programStage.getUid(), exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenUserHasNoMetadataReadAccessToStageOfRequestedEventProgram() {
+    ProgramStage programStage = eventProgramWithStage();
+    when(aclService.canRead(user, programStage)).thenReturn(false);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> paramsValidator.validateEventProgram(PROGRAM_UID, user));
+
+    assertEquals(
+        "User has no access to program stage: " + programStage.getUid(), exception.getMessage());
+  }
+
+  private ProgramStage eventProgramWithStage() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid(CodeGenerator.generateUid());
+    program.setProgramType(WITHOUT_REGISTRATION);
+    program.setProgramStages(Set.of(programStage));
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    return programStage;
   }
 
   @Test

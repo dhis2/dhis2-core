@@ -177,7 +177,7 @@ class TrackerEventOperationParamsMapper {
   private List<ProgramStage> getTrackerProgramStages(
       List<Program> programs, ProgramStage programStage) {
     if (programStage == null) {
-      return trackerProgramService.getTrackerProgramStagesWithDataReadAccess(programs);
+      return trackerProgramService.getProgramStagesWithDataReadAccess(programs);
     }
 
     return emptyList();

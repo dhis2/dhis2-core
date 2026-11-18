@@ -50,6 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -167,6 +168,11 @@ public class OperationsParamsValidator {
 
     if (program.isRegistration()) {
       throw new BadRequestException("Program specified is not an event program: " + uid);
+    }
+
+    ProgramStage programStage = program.getProgramStages().iterator().next();
+    if (!aclService.canRead(user, programStage) || !aclService.canDataRead(user, programStage)) {
+      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
     }
 
     return program;
