@@ -35,9 +35,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.render.DefaultRenderService;
+import org.hisp.dhis.schema.SchemaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -48,9 +54,9 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 /**
  * Unit test for {@link LoginConfigCorsFilter}: the security-ignored {@code /api/**&#47;loginConfig}
- * endpoint must get CORS headers from the servlet-level filter (the Spring Security chain,
- * including its CorsFilter, is skipped for this path), while all other paths pass through
- * untouched.
+ * endpoint must get the cross-origin protection and CORS headers from the servlet-level filter (the
+ * Spring Security chain, including its CorsFilter, is skipped for this path), while all other paths
+ * pass through untouched.
  *
  * @author Morten Svanæs
  */
@@ -64,7 +70,22 @@ class LoginConfigCorsFilterTest {
   void setUp() {
     ConfigurationService configurationService = mock(ConfigurationService.class);
     when(configurationService.isCorsWhitelisted(WHITELISTED_ORIGIN)).thenReturn(true);
-    filter = new LoginConfigCorsFilter(new DhisCorsProcessor(configurationService));
+    AllowedOriginMatcher allowedOriginMatcher = new AllowedOriginMatcher(configurationService);
+
+    DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
+    when(config.isEnabled(ConfigurationKey.CROSS_ORIGIN_PROTECTION_ENABLED)).thenReturn(true);
+    DefaultRenderService renderService =
+        new DefaultRenderService(
+            JacksonObjectMapperConfig.jsonMapper,
+            JacksonObjectMapperConfig.xmlMapper,
+            mock(SchemaService.class));
+    CrossOriginRequestFilter crossOriginRequestFilter =
+        new CrossOriginRequestFilter(
+            config, allowedOriginMatcher, renderService, (MeterRegistry) null);
+
+    filter =
+        new LoginConfigCorsFilter(
+            crossOriginRequestFilter, new DhisCorsProcessor(allowedOriginMatcher));
   }
 
   @ParameterizedTest
@@ -102,7 +123,7 @@ class LoginConfigCorsFilterTest {
   }
 
   @Test
-  void nonWhitelistedOriginGetsNoCorsHeadersAndStopsChain() throws ServletException, IOException {
+  void nonWhitelistedOriginIsRejected() throws ServletException, IOException {
     MockHttpServletRequest request = request("GET", "/api/loginConfig");
     request.addHeader("Origin", "http://evil.example");
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -110,8 +131,25 @@ class LoginConfigCorsFilterTest {
 
     filter.doFilter(request, response, chain);
 
+    assertEquals(403, response.getStatus());
+    assertEquals(CrossOriginRequestFilter.REJECTED_MESSAGE, readMessage(response));
     assertNull(response.getHeader("Access-Control-Allow-Origin"));
-    assertNull(chain.getRequest(), "rejected CORS request must not reach the endpoint");
+    assertNull(chain.getRequest(), "rejected request must not reach the endpoint");
+  }
+
+  @Test
+  void nonWhitelistedOriginPreflightIsRejected() throws ServletException, IOException {
+    MockHttpServletRequest request = request("OPTIONS", "/api/loginConfig");
+    request.addHeader("Origin", "http://evil.example");
+    request.addHeader("Access-Control-Request-Method", "GET");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    MockFilterChain chain = new MockFilterChain();
+
+    filter.doFilter(request, response, chain);
+
+    assertEquals(403, response.getStatus());
+    assertNull(response.getHeader("Access-Control-Allow-Origin"));
+    assertNull(chain.getRequest());
   }
 
   @Test
@@ -140,6 +178,13 @@ class LoginConfigCorsFilterTest {
         response.getHeader("Access-Control-Allow-Origin"),
         "non-loginConfig paths must not get servlet-level CORS (security chain owns them)");
     assertNotNull(chain.getRequest(), "non-loginConfig request must continue down the chain");
+  }
+
+  private static String readMessage(MockHttpServletResponse response) throws IOException {
+    return JacksonObjectMapperConfig.jsonMapper
+        .readTree(response.getContentAsString())
+        .get("message")
+        .asText();
   }
 
   private static MockHttpServletRequest request(String method, String path) {

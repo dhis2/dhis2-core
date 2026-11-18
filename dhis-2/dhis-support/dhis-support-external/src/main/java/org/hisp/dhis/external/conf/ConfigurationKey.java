@@ -801,6 +801,30 @@ public enum ConfigurationKey {
   /** CSRF feature. Enable or disable the feature. (sensitive) */
   CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true),
 
+  /**
+   * Reject state-changing browser requests that carry no Origin header but whose Sec-Fetch-Site
+   * header says they come from another site. (default: on)
+   *
+   * <p>Setting it to off does not switch off the origin check: requests whose Origin is neither
+   * this server nor on the CORS allowlist are rejected in every mode. The API already rejected them
+   * before this setting existed. The OAuth2 authorization server endpoints (enabled by {@link
+   * #OAUTH2_SERVER_ENABLED}) had no CORS filter, so the rejection is new there.
+   */
+  CROSS_ORIGIN_PROTECTION_ENABLED(
+      "http.security.cross_origin_protection.enabled", Constants.ON, false),
+
+  /**
+   * Only log, and let through, the requests that the Sec-Fetch-Site rule of {@link
+   * #CROSS_ORIGIN_PROTECTION_ENABLED} would reject. (default: off)
+   *
+   * <p>It does not apply to the origin check: requests whose Origin is neither this server nor on
+   * the CORS allowlist are rejected in every mode. The API already rejected them before this
+   * setting existed. The OAuth2 authorization server endpoints (enabled by {@link
+   * #OAUTH2_SERVER_ENABLED}) had no CORS filter, so the rejection is new there.
+   */
+  CROSS_ORIGIN_PROTECTION_LOG_ONLY(
+      "http.security.cross_origin_protection.log_only", Constants.OFF, false),
+
   /** The maximum number of category options in a single category */
   METADATA_CATEGORIES_MAX_OPTIONS("metadata.categories.max_options", "50", false),
 
