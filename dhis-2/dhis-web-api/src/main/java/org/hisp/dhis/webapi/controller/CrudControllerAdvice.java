@@ -41,11 +41,13 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
-import io.github.classgraph.ClassGraph;
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
 import jakarta.persistence.PersistenceException;
 import jakarta.servlet.ServletException;
 import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -161,15 +163,22 @@ public class CrudControllerAdvice {
   private final Map<Class<?>, Function<String, Object>> enumFromText = new HashMap<>();
 
   public CrudControllerAdvice() {
-    this.enumClasses =
-        new ClassGraph()
-            .acceptPackages("org.hisp.dhis")
-            .enableClassInfo()
-            .scan()
-            .getAllClasses()
-            .getEnums()
-            .loadClasses();
+    enumClasses = findAllEnumClasses();
     enumFromText.put(PeriodTypeEnum.class, PeriodTypeEnum::of);
+  }
+
+  private static List<Class<?>> findAllEnumClasses() {
+    ScanResult scanResult = new FastClasspathScanner("org.hisp.dhis").scan();
+    List<String> enumClassNames = scanResult.getNamesOfSubclassesOf(Enum.class);
+    List<Class<?>> enumClasses = new ArrayList<>(enumClassNames.size());
+    for (String className : enumClassNames) {
+      try {
+        enumClasses.add(Class.forName(className));
+      } catch (ClassNotFoundException e) {
+        log.error("Failed to load enum type to add custom editor: " + className);
+      }
+    }
+    return enumClasses;
   }
 
   @InitBinder
