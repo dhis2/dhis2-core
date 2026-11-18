@@ -50,6 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
@@ -77,6 +78,8 @@ class SingleEventOperationParamsMapper {
   private final OperationsParamsValidator paramsValidator;
 
   private final ProgramService programService;
+
+  private final ProgramStageService programStageService;
 
   @Transactional(readOnly = true)
   public SingleEventQueryParams map(
@@ -163,7 +166,8 @@ class SingleEventOperationParamsMapper {
 
     return programService.getAllPrograms().stream()
         .filter(p -> p.isWithoutRegistration() && aclService.canDataRead(user, p))
-        .flatMap(p -> p.getProgramStages().stream())
+        .map(programStageService::getProgramStagesByProgram)
+        .flatMap(List::stream)
         .filter(ps -> aclService.canRead(user, ps) && aclService.canDataRead(user, ps))
         .toList();
   }

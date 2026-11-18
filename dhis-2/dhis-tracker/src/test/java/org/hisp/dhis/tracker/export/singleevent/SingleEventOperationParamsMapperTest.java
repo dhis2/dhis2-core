@@ -74,6 +74,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
@@ -120,6 +121,8 @@ class SingleEventOperationParamsMapperTest {
   @Mock private OperationsParamsValidator paramsValidator;
 
   @Mock private ProgramService programService;
+
+  @Mock private ProgramStageService programStageService;
 
   @InjectMocks private SingleEventOperationParamsMapper mapper;
 
@@ -398,8 +401,8 @@ class SingleEventOperationParamsMapperTest {
         .thenReturn(List.of(program, programWithoutDataReadAccess, trackerProgram));
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, programWithoutDataReadAccess)).thenReturn(false);
-    program.setProgramStages(
-        Set.of(stage, stageWithoutDataReadAccess, stageWithoutMetadataReadAccess));
+    when(programStageService.getProgramStagesByProgram(program))
+        .thenReturn(List.of(stage, stageWithoutDataReadAccess, stageWithoutMetadataReadAccess));
     when(aclService.canRead(user, stage)).thenReturn(true);
     when(aclService.canDataRead(user, stage)).thenReturn(true);
     when(aclService.canRead(user, stageWithoutDataReadAccess)).thenReturn(true);
