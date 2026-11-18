@@ -214,6 +214,44 @@ Available properties:
 | `fields` | `id,name,users[id,name,userRoles[id,name]]` | `fields` query param (the DHIS2-21867 repro) |
 | `iterations` | `3` | Requests to run |
 
+### CollectionItemsPerformanceTest
+
+Tests the collection items endpoint on a large collection (DHIS2-20613): every iteration sends
+`POST /api/organisationUnitGroups/{uid}/organisationUnits` that adds 6 org units and removes 3
+members of a group with 100,000 members, then a second `POST` that reverts it. A request that
+loads the whole member collection scales with the group size; one that writes only the changed
+join table rows does not.
+
+[`scripts/populate-collection-items.sh`](scripts/populate-collection-items.sh) creates the group
+on the Sierra Leone DB: the org units and the membership through SQL, then it clears the caches.
+Configure it with `POPULATE_MEMBERS` (default `100000`) and `POPULATE_NON_MEMBERS` (default `10`).
+
+```sh
+POPULATE_SCRIPT=scripts/populate-collection-items.sh \
+DHIS2_IMAGE=dhis2/core-dev:latest \
+SIMULATION_CLASS=org.hisp.dhis.test.platform.CollectionItemsPerformanceTest \
+./run-simulation.sh
+```
+
+To compare a PR with master on CI, run
+[`performance-tests-compare.yml`](../../.github/workflows/performance-tests-compare.yml) with
+`DHIS2_IMAGE=dhis2/core-dev:latest` as the baseline and `DHIS2_IMAGE=dhis2/core-pr:<PR number>`
+as the candidate, both with the `POPULATE_SCRIPT` and `SIMULATION_CLASS` above.
+
+Available properties:
+
+| Property | Default | Description |
+|:---|:---|:---|
+| `configFile` | — | Path to a `.properties` file |
+| `baseUrl` | `http://localhost:8080` | DHIS2 base URL |
+| `username` | `admin` | API username |
+| `password` | `district` | API password |
+| `groupUid` | `PfCollItems` | Org unit group UID (`POPULATE_GROUP_UID`) |
+| `members` | `100000` | Members of the group; the simulation fails if the group has another size |
+| `additions` | `6` | Org units added per iteration (at most `POPULATE_NON_MEMBERS`) |
+| `deletions` | `3` | Members removed per iteration |
+| `iterations` | `30` | Iterations, each sends both requests |
+
 ## Tracker Tests
 
 The `tracker` package (`org.hisp.dhis.test.tracker`) tests the Tracker API using three Sierra Leone
