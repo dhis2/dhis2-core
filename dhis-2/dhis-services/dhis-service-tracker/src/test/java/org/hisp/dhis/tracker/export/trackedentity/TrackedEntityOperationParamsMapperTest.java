@@ -33,6 +33,8 @@ import static java.util.Collections.emptySet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.NNULL;
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
@@ -43,6 +45,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.Types;
@@ -70,11 +75,13 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.JdbcPredicate;
 import org.hisp.dhis.tracker.export.JdbcPredicate.Parameter;
@@ -98,6 +105,10 @@ class TrackedEntityOperationParamsMapperTest {
   public static final UID TEA_1_UID = UID.of("TvjwTPToKHO");
 
   public static final UID TEA_2_UID = UID.of("cy2oRh2sNr6");
+
+  private static final UID PROGRAM_TEA_UID = UID.of("Kp3mZ8qLw2A");
+
+  private static final UID UNRELATED_TEA_UID = UID.of("Hx7tN4vRb9C");
 
   private static final UID ORG_UNIT_1_UID = UID.of("lW0T2U7gZUi");
 
@@ -188,6 +199,26 @@ class TrackedEntityOperationParamsMapperTest {
 
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
     when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
+
+    trackedEntityType.setTrackedEntityTypeAttributes(
+        List.of(
+            new TrackedEntityTypeAttribute(trackedEntityType, tea1),
+            new TrackedEntityTypeAttribute(trackedEntityType, tea2)));
+
+    TrackedEntityAttribute programTea = new TrackedEntityAttribute();
+    programTea.setValueType(ValueType.TEXT);
+    programTea.setUid(PROGRAM_TEA_UID.getValue());
+    when(attributeService.getTrackedEntityAttribute(PROGRAM_TEA_UID.getValue()))
+        .thenReturn(programTea);
+    program.setProgramAttributes(List.of(new ProgramTrackedEntityAttribute(program, programTea)));
+
+    TrackedEntityAttribute unrelatedTea = new TrackedEntityAttribute();
+    unrelatedTea.setValueType(ValueType.TEXT);
+    unrelatedTea.setUid(UNRELATED_TEA_UID.getValue());
+    when(attributeService.getTrackedEntityAttribute(UNRELATED_TEA_UID.getValue()))
+        .thenReturn(unrelatedTea);
+
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
   }
 
   @Test
@@ -534,6 +565,138 @@ class TrackedEntityOperationParamsMapperTest {
             ForbiddenException.class, () -> mapper.map(operationParams, currentUserWithOrgUnits));
 
     assertEquals("User has no access to any Tracked Entity Type", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailToMapFilterWhenAttributeDoesNotBelongToRequestedProgramNorItsTrackedEntityType()
+      throws BadRequestException, ForbiddenException {
+    when(paramsValidator.validateTrackerProgram(UID.of(program), user)).thenReturn(program);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ACCESSIBLE)
+            .program(program)
+            .filterBy(UNRELATED_TEA_UID, List.of(new QueryFilter(NNULL)))
+            .build();
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
+    assertEquals(
+        "Tracked entity attribute '"
+            + UNRELATED_TEA_UID
+            + "' cannot be used to filter, it is not an attribute of program '"
+            + PROGRAM_UID
+            + "' or its tracked entity type.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailToMapFilterWhenProgramAttributeIsRequestedWithTrackedEntityType()
+      throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
+        .thenReturn(true);
+    when(paramsValidator.validateTrackedEntityType(UID.of(trackedEntityType), user))
+        .thenReturn(trackedEntityType);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .filterBy(PROGRAM_TEA_UID, List.of(new QueryFilter(NNULL)))
+            .build();
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
+    assertEquals(
+        "Tracked entity attribute '"
+            + PROGRAM_TEA_UID
+            + "' cannot be used to filter, it is not an attribute of tracked entity type '"
+            + TRACKED_ENTITY_TYPE_UID
+            + "'.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldMapFilterWhenTrackedEntityTypeAttributeIsRequestedWithTrackedEntities()
+      throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
+        .thenReturn(true);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
+    when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID), user))
+        .thenReturn(Set.of(orgUnit1));
+    when(organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds()))
+        .thenReturn(List.of(orgUnit1, orgUnit2));
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(OrganisationUnitSelectionMode.SELECTED)
+            .organisationUnits(Set.of(ORG_UNIT_1_UID))
+            .trackedEntities(Set.of(UID.generate()))
+            .filterBy(TEA_1_UID, List.of(new QueryFilter(EQ, "2")))
+            .build();
+
+    TrackedEntityQueryParams params = mapper.map(operationParams, user);
+
+    assertContainsOnly(List.of(tea1), params.getFilters().keySet());
+  }
+
+  @Test
+  void shouldFailToMapFilterWhenProgramAttributeIsRequestedWithTrackedEntities() {
+    when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
+        .thenReturn(true);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ACCESSIBLE)
+            .trackedEntities(Set.of(UID.generate()))
+            .filterBy(PROGRAM_TEA_UID, List.of(new QueryFilter(NNULL)))
+            .build();
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
+    assertEquals(
+        "Tracked entity attribute '"
+            + PROGRAM_TEA_UID
+            + "' cannot be used to filter, it is not an attribute of any tracked entity type you can read.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailToMapOrderWhenAttributeDoesNotBelongToRequestedProgramNorItsTrackedEntityType()
+      throws BadRequestException, ForbiddenException {
+    when(paramsValidator.validateTrackerProgram(UID.of(program), user)).thenReturn(program);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ACCESSIBLE)
+            .program(program)
+            .orderBy(UNRELATED_TEA_UID, SortDirection.ASC)
+            .build();
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
+    assertStartsWith(
+        "Tracked entity attribute '" + UNRELATED_TEA_UID + "' cannot be used to order by",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldNotLoadProgramAttributesWhenNoAttributeIsUsedToFilterOrOrder()
+      throws BadRequestException, ForbiddenException {
+    Program spiedProgram = spy(program);
+    when(paramsValidator.validateTrackerProgram(UID.of(program), user)).thenReturn(spiedProgram);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ACCESSIBLE)
+            .program(program)
+            .orderBy("created", SortDirection.ASC)
+            .build();
+
+    mapper.map(operationParams, user);
+
+    verify(spiedProgram, never()).getTrackedEntityAttributes();
   }
 
   private static void assertQueryFilterValue(

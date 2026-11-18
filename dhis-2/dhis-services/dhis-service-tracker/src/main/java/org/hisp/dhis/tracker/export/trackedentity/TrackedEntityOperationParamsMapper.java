@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAttributeIsAllowed;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
 import java.util.ArrayList;
@@ -109,7 +110,7 @@ class TrackedEntityOperationParamsMapper {
     TrackedEntityType requestedTrackedEntityType =
         paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityType(), user);
 
-    List<TrackedEntityType> trackedEntityTypes = getTrackedEntityTypes(program, user);
+    List<TrackedEntityType> readableTrackedEntityTypes = getTrackedEntityTypes(program, user);
 
     List<Program> programs = getTrackerPrograms(program, user);
 
@@ -118,9 +119,19 @@ class TrackedEntityOperationParamsMapper {
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    mapAttributeFilters(params, operationParams.getFilters());
+    mapAttributeFilters(
+        params,
+        operationParams.getFilters(),
+        program,
+        requestedTrackedEntityType,
+        readableTrackedEntityTypes);
 
-    mapOrderParam(params, operationParams.getOrder());
+    mapOrderParam(
+        params,
+        operationParams.getOrder(),
+        program,
+        requestedTrackedEntityType,
+        readableTrackedEntityTypes);
 
     validateTrackedEntityAttributeFilters(
         program, requestedTrackedEntityType, operationParams, orgUnits, params);
@@ -141,7 +152,7 @@ class TrackedEntityOperationParamsMapper {
         .setProgramIncidentStartDate(operationParams.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(operationParams.getProgramIncidentEndDate())
         .setTrackedEntityType(requestedTrackedEntityType)
-        .setTrackedEntityTypes(trackedEntityTypes)
+        .setTrackedEntityTypes(readableTrackedEntityTypes)
         .addOrgUnits(orgUnits)
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setEventStatus(operationParams.getEventStatus())
@@ -193,7 +204,11 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private void mapAttributeFilters(
-      TrackedEntityQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
+      TrackedEntityQueryParams params,
+      Map<UID, List<QueryFilter>> attributeFilters,
+      Program program,
+      TrackedEntityType requestedTrackedEntityType,
+      List<TrackedEntityType> readableTrackedEntityTypes)
       throws BadRequestException {
     for (Map.Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
       TrackedEntityAttribute tea =
@@ -204,6 +219,9 @@ class TrackedEntityOperationParamsMapper {
                 "attribute filters are invalid. Tracked entity attribute '%s' does not exist.",
                 attributeFilter.getKey()));
       }
+
+      validateAttributeIsAllowed(
+          tea, "filter", program, requestedTrackedEntityType, readableTrackedEntityTypes);
 
       params.filterBy(tea, attributeFilter.getValue());
     }
@@ -235,7 +253,12 @@ class TrackedEntityOperationParamsMapper {
         .orElse(null);
   }
 
-  private void mapOrderParam(TrackedEntityQueryParams params, List<Order> orders)
+  private void mapOrderParam(
+      TrackedEntityQueryParams params,
+      List<Order> orders,
+      Program program,
+      TrackedEntityType requestedTrackedEntityType,
+      List<TrackedEntityType> readableTrackedEntityTypes)
       throws BadRequestException {
     if (orders == null || orders.isEmpty()) {
       return;
@@ -252,6 +275,8 @@ class TrackedEntityOperationParamsMapper {
                   + uid.getValue()
                   + "' as its not a tracked entity attribute. Tracked entities can be ordered by fields and tracked entity attributes.");
         }
+        validateAttributeIsAllowed(
+            tea, "order by", program, requestedTrackedEntityType, readableTrackedEntityTypes);
 
         params.orderBy(tea, order.getDirection());
       } else {

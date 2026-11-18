@@ -33,12 +33,15 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAttributeIsAllowed;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -49,9 +52,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.user.User;
@@ -407,5 +413,102 @@ class OperationsParamsValidatorTest {
         paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), UserDetails.fromUser(userWithRoles));
 
     assertEquals(Set.of(orgUnit), orgUnits);
+  }
+
+  @Test
+  void shouldAllowProgramAndItsTrackedEntityTypeAttributesWhenProgramIsGiven() {
+    TrackedEntityAttribute tetAttribute = attribute();
+    TrackedEntityAttribute programAttribute = attribute();
+    TrackedEntityType tet = trackedEntityType(tetAttribute);
+    Program requestedProgram = program(tet, programAttribute);
+    TrackedEntityAttribute otherTetAttribute = attribute();
+    TrackedEntityType otherTet = trackedEntityType(otherTetAttribute);
+    List<TrackedEntityType> readable = List.of(tet, otherTet);
+
+    assertDoesNotThrow(
+        () ->
+            validateAttributeIsAllowed(
+                tetAttribute, "filter", requestedProgram, otherTet, readable));
+    assertDoesNotThrow(
+        () ->
+            validateAttributeIsAllowed(
+                programAttribute, "filter", requestedProgram, otherTet, readable));
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () ->
+                validateAttributeIsAllowed(
+                    otherTetAttribute, "order by", requestedProgram, otherTet, readable));
+    assertEquals(
+        "Tracked entity attribute '"
+            + otherTetAttribute.getUid()
+            + "' cannot be used to order by, it is not an attribute of program '"
+            + requestedProgram.getUid()
+            + "' or its tracked entity type.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldAllowOnlyTrackedEntityTypeAttributesWhenTrackedEntityTypeIsGiven() {
+    TrackedEntityAttribute tetAttribute = attribute();
+    TrackedEntityType tet = trackedEntityType(tetAttribute);
+    TrackedEntityAttribute otherTetAttribute = attribute();
+    List<TrackedEntityType> readable = List.of(tet, trackedEntityType(otherTetAttribute));
+
+    assertDoesNotThrow(
+        () -> validateAttributeIsAllowed(tetAttribute, "filter", null, tet, readable));
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateAttributeIsAllowed(otherTetAttribute, "filter", null, tet, readable));
+    assertEquals(
+        "Tracked entity attribute '"
+            + otherTetAttribute.getUid()
+            + "' cannot be used to filter, it is not an attribute of tracked entity type '"
+            + tet.getUid()
+            + "'.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldAllowReadableTrackedEntityTypesAttributesWhenNeitherProgramNorTypeIsGiven() {
+    TrackedEntityAttribute attribute1 = attribute();
+    TrackedEntityAttribute attribute2 = attribute();
+    TrackedEntityAttribute notReadable = attribute();
+    List<TrackedEntityType> readable =
+        List.of(trackedEntityType(attribute1), trackedEntityType(attribute2));
+
+    assertDoesNotThrow(
+        () -> validateAttributeIsAllowed(attribute1, "filter", null, null, readable));
+    assertDoesNotThrow(
+        () -> validateAttributeIsAllowed(attribute2, "filter", null, null, readable));
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateAttributeIsAllowed(notReadable, "filter", null, null, readable));
+    assertEquals(
+        "Tracked entity attribute '"
+            + notReadable.getUid()
+            + "' cannot be used to filter, it is not an attribute of any tracked entity type you can read.",
+        exception.getMessage());
+  }
+
+  private static TrackedEntityAttribute attribute() {
+    TrackedEntityAttribute attribute = new TrackedEntityAttribute();
+    attribute.setUid(UID.generate().getValue());
+    return attribute;
+  }
+
+  private static TrackedEntityType trackedEntityType(TrackedEntityAttribute attribute) {
+    TrackedEntityType type = new TrackedEntityType();
+    type.setTrackedEntityTypeAttributes(List.of(new TrackedEntityTypeAttribute(type, attribute)));
+    return type;
+  }
+
+  private static Program program(TrackedEntityType type, TrackedEntityAttribute attribute) {
+    Program p = new Program();
+    p.setTrackedEntityType(type);
+    p.setProgramAttributes(List.of(new ProgramTrackedEntityAttribute(p, attribute)));
+    return p;
   }
 }
