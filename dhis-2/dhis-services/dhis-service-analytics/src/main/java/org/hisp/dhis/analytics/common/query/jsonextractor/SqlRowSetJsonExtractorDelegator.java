@@ -172,9 +172,10 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
           dimIdByKey.put(shortFormatKey, dimensionIdentifier);
         } else if (isEventLevelDataElementDimension(dimensionIdentifier)) {
           // For stage-scoped data elements, add short format alias
-          // to support headers like programStageUid.dataElementUid.
+          // to support headers like programStageUid.dataElementUid and
+          // programStageUid[offset].dataElementUid.
           String shortFormatKey =
-              dimensionIdentifier.getProgramStage().getElement().getUid()
+              dimensionIdentifier.getProgramStage()
                   + DIMENSION_IDENTIFIER_SEP
                   + dimensionIdentifier.getDimension().getUid();
           dimIdByKey.put(shortFormatKey, dimensionIdentifier);

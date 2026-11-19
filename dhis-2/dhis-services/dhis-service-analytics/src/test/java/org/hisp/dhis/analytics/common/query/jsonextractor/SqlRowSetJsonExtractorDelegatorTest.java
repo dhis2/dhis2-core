@@ -57,7 +57,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
- * The point of these tests is the parse count. {@code TrackedEntityListGrid.addNamedRows} asks this
+ * Most of these tests pin the parse count. {@code TrackedEntityListGrid.addNamedRows} asks this
  * delegator for a value and for a row-context item once per requested column, inside a loop over
  * rows, and each of those used to deserialise the whole {@code enrollments} document again - around
  * twenty parses per row on the export UGANDA-10 traced, 46.8% of that request's CPU.
@@ -71,17 +71,32 @@ class SqlRowSetJsonExtractorDelegatorTest {
 
   /** One enrolment, one event, values for A but not for B. */
   private static String enrollments(String valueOfA) {
+    return enrollmentWithEvents(event("EvEnT000001", "2026-07-02T00:00:00", valueOfA));
+  }
+
+  /** One enrolment holding the given events. */
+  private static String enrollmentWithEvents(String... events) {
     return "[{\"programUid\":\""
         + PROGRAM_UID
         + "\",\"enrollmentUid\":\"EnRoLmEnT01\",\"enrollmentDate\":\"2026-07-01T00:00:00\","
-        + "\"events\":[{\"programStageUid\":\""
+        + "\"events\":["
+        + String.join(",", events)
+        + "]}]";
+  }
+
+  /** One event of the stage, with a value for A only. */
+  private static String event(String eventUid, String occurredDate, String valueOfA) {
+    return "{\"programStageUid\":\""
         + STAGE_UID
-        + "\",\"eventUid\":\"EvEnT000001\",\"occurredDate\":\"2026-07-02T00:00:00\","
-        + "\"eventStatus\":\"ACTIVE\",\"eventDataValues\":{\""
+        + "\",\"eventUid\":\""
+        + eventUid
+        + "\",\"occurredDate\":\""
+        + occurredDate
+        + "\",\"eventStatus\":\"ACTIVE\",\"eventDataValues\":{\""
         + DE_A_UID
         + "\":{\"value\":\""
         + valueOfA
-        + "\"}}}]}]";
+        + "\"}}}";
   }
 
   @Test
@@ -132,6 +147,18 @@ class SqlRowSetJsonExtractorDelegatorTest {
         delegator.getRowContextItem(withoutValue.getKey(), 0));
   }
 
+  @Test
+  void testStageScopedDataElementWithOffsetIsReadableByItsShortFormat() {
+    String twoEvents =
+        enrollmentWithEvents(
+            event("EvEnT000001", "2026-07-02T00:00:00", "older"),
+            event("EvEnT000002", "2026-07-03T00:00:00", "latest"));
+    DimensionIdentifier<DimensionParam> previousEvent = dimension(DE_A_UID, -1);
+    SqlRowSetJsonExtractorDelegator delegator = delegator(List.of(previousEvent), twoEvents);
+
+    assertEquals("older", delegator.getObject(STAGE_UID + "[-1]." + DE_A_UID));
+  }
+
   private static SqlRowSetJsonExtractorDelegator delegator(
       List<DimensionIdentifier<DimensionParam>> dimensions, String json) {
     SqlRowSet rowSet = rowSet();
@@ -148,6 +175,11 @@ class SqlRowSetJsonExtractorDelegatorTest {
   }
 
   private static DimensionIdentifier<DimensionParam> dimension(String dataElementUid) {
+    return dimension(dataElementUid, null);
+  }
+
+  private static DimensionIdentifier<DimensionParam> dimension(
+      String dataElementUid, Integer stageOffset) {
     Program program = new Program();
     program.setUid(PROGRAM_UID);
     ProgramStage programStage = new ProgramStage();
@@ -162,6 +194,8 @@ class SqlRowSetJsonExtractorDelegatorTest {
             new QueryItem(dataElement), DimensionParamType.DIMENSIONS, IdScheme.UID, List.of());
 
     return DimensionIdentifier.of(
-        ElementWithOffset.of(program), ElementWithOffset.of(programStage), dimensionParam);
+        ElementWithOffset.of(program),
+        ElementWithOffset.of(programStage, stageOffset),
+        dimensionParam);
   }
 }
