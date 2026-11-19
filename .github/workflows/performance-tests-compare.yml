@@ -419,22 +419,8 @@ jobs:
         echo "* **Memory**: 64 GB" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        BASELINE_DIR=$(dirname "$BASELINE_ENV")
-        CANDIDATE_DIR=$(dirname "$CANDIDATE_ENV")
         # What each part used and waited for during the measured run(s), written by run-simulation.sh
-        if [ -f "$BASELINE_DIR/resources.env" ] || [ -f "$CANDIDATE_DIR/resources.env" ]; then
-          echo "**Resources during the measured runs:**" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          ./scripts/resources-table.sh --warnings "$BASELINE_DIR" "$CANDIDATE_DIR" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "<details>" >> $GITHUB_STEP_SUMMARY
-          echo "<summary>What DHIS2, Postgres and Gatling used and waited for</summary>" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          ./scripts/resources-table.sh "$BASELINE_DIR" "$CANDIDATE_DIR" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "</details>" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-        fi
+        ./scripts/resources.sh summary "$(dirname "$BASELINE_ENV")" "$(dirname "$CANDIDATE_ENV")" >> $GITHUB_STEP_SUMMARY
 
         echo "## 🔄 Reproduce this run" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY

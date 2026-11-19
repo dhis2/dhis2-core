@@ -286,199 +286,29 @@ warn_if_cpu_clock_not_fixed() {
 ################################################################################
 # RESOURCES
 ################################################################################
-# What each part used and waited for during a Gatling run: its CPU, the time it waited for a CPU or
-# was held back by its cpus quota, its peak memory and I/O wait, from cgroup v2, and Postgres's
-# pg_stat_database. The counters are cumulative: they are read right before and right after
-# mvn gatling:test, and resources.env holds the difference. Nothing runs during the measurement.
-# The containers' cgroups are read on the host, so the counters are missing on Docker Desktop,
-# whose containers run in a VM.
-
-# A measured run above these is flagged: its timings may include waiting rather than work
-RESOURCES_MAX_CPU_WAIT_PCT=1
-RESOURCES_MAX_THROTTLED_MS_PER_S=1
-RESOURCES_MAX_IO_WAIT_PCT=1
-
-container_id() {
-  docker compose ps --quiet "$1" 2>/dev/null | head -n 1
-}
-
-container_cgroup() {
-  # The cgroup of a compose service's container: Docker's systemd cgroup driver, then cgroupfs
-  local id
-  id=$(container_id "$1")
-  [ -n "$id" ] || return 0
-  local dir
-  for dir in "/sys/fs/cgroup/system.slice/docker-$id.scope" "/sys/fs/cgroup/docker/$id"; do
-    if [ -f "$dir/cpu.stat" ]; then
-      echo "$dir"
-      return 0
-    fi
-  done
-}
-
-own_cgroup() {
-  # This script's cgroup, which runs mvn and Gatling: on the GitHub runner, the runner's service
-  local path
-  path=$(sed -n 's/^0:://p' /proc/self/cgroup 2>/dev/null || true)
-  if [ -n "$path" ] && [ -f "/sys/fs/cgroup$path/cpu.stat" ]; then
-    echo "/sys/fs/cgroup$path"
-  fi
-}
-
-snapshot_pressure() {
-  # <key> <pressure file>: the "some" line's total, in microseconds
-  [ -f "$2" ] || return 0
-  awk -v key="$1" '$1 == "some" { sub("total=", "", $5); print key, $5; exit }' "$2"
-}
-
-snapshot_cgroup() {
-  # <part> <cgroup directory>
-  local part="$1"
-  local dir="$2"
-  [ -n "$dir" ] || return 0
-  awk -v part="$part" '$1 == "usage_usec" || $1 == "nr_throttled" || $1 == "throttled_usec" {
-    print part "." $1, $2
-  }' "$dir/cpu.stat"
-  snapshot_pressure "$part.cpu_some_usec" "$dir/cpu.pressure"
-  snapshot_pressure "$part.io_some_usec" "$dir/io.pressure"
-  if [ -f "$dir/memory.peak" ]; then
-    echo "$part.memory_peak $(cat "$dir/memory.peak")"
-  fi
-}
-
-snapshot_postgres() {
-  local stats
-  stats=$(docker compose exec -T db psql --username=dhis --quiet --no-psqlrc --tuples-only \
-    --no-align --field-separator=' ' --command='select blks_read, blks_hit, temp_files,
-      temp_bytes, xact_commit, tup_returned, tup_fetched
-    from pg_stat_database where datname = current_database()' 2>/dev/null) || return 0
-  local i name value values
-  local names=(blks_read blks_hit temp_files temp_bytes xact_commit tup_returned tup_fetched)
-  read -r -a values <<< "$stats"
-  for i in "${!names[@]}"; do
-    name="${names[$i]}"
-    value="${values[$i]:-}"
-    [ -n "$value" ] && echo "pg.$name $value"
-  done
-}
-
-snapshot_resources() {
-  echo "time_ns $(date +%s%N)"
-  if [ -f /proc/stat ]; then
-    # Every CPU's busy time: all but idle and iowait, in USER_HZ
-    awk -v hz="$(getconf CLK_TCK)" '$1 == "cpu" {
-      printf "host.usage_usec %.0f\n", ($2 + $3 + $4 + $7 + $8 + $9) * 1000000 / hz; exit
-    }' /proc/stat
-  fi
-  snapshot_pressure host.cpu_some_usec /proc/pressure/cpu
-  snapshot_cgroup web "$(container_cgroup web)"
-  snapshot_cgroup db "$(container_cgroup db)"
-  local gatling
-  gatling=$(own_cgroup)
-  snapshot_cgroup gatling "$gatling"
-  if [ -n "$gatling" ]; then
-    echo "gatling.cgroup ${gatling#/sys/fs/cgroup}"
-  fi
-  snapshot_postgres
-}
-
-container_limits() {
-  # <service> <prefix>: its cpuset and cpus quota, as set by compose
-  local id
-  id=$(container_id "$1")
-  [ -n "$id" ] || return 0
-  docker inspect --format '{{.HostConfig.CpusetCpus}}|{{.HostConfig.NanoCpus}}' "$id" 2>/dev/null \
-    | awk -F'|' -v prefix="$2" '{
-        printf "%s_CPUSET=%s\n", prefix, ($1 == "" ? "all" : $1)
-        printf "%s_CPUS=%s\n", prefix, ($2 > 0 ? $2 / 1e9 : "unlimited")
-      }'
-}
-
-write_resources() {
-  # <before> <after> <run directory>: resources.env, the difference between the two snapshots
-  local before="$1"
-  local after="$2"
-  local out="$3/resources.env"
-  {
-    echo "# What each part used and waited for during mvn gatling:test (see run-simulation.sh)"
-    awk -v max_wait="$RESOURCES_MAX_CPU_WAIT_PCT" \
-      -v max_throttled="$RESOURCES_MAX_THROTTLED_MS_PER_S" \
-      -v max_io_wait="$RESOURCES_MAX_IO_WAIT_PCT" '
-      NR == FNR { b[$1] = $2; next }
-      { a[$1] = $2 }
-      function has(key) { return (key in a) && (key in b) }
-      function delta(key) { return a[key] - b[key] }
-      END {
-        dt = delta("time_ns") / 1e9
-        printf "DURATION_S=%.1f\n", dt
-        warnings = ""
-        split("web db gatling host", parts, " ")
-        split("WEB DB GATLING HOST", names, " ")
-        split("DHIS2,Postgres,Gatling,the host", titles, ",")
-        for (i = 1; i <= 4; i++) {
-          p = parts[i]; n = names[i]; t = titles[i]
-          if (has(p ".usage_usec"))
-            printf "%s_CORES=%.2f\n", n, delta(p ".usage_usec") / 1e6 / dt
-          if (has(p ".cpu_some_usec")) {
-            wait = delta(p ".cpu_some_usec") / 1e4 / dt
-            printf "%s_CPU_WAIT_PCT=%.2f\n", n, wait
-            if (p != "host" && wait > max_wait)
-              warnings = warnings sprintf(", %s waited for a CPU %.1f%% of the time", t, wait)
-          }
-          if (has(p ".throttled_usec")) {
-            throttled = delta(p ".throttled_usec") / 1000 / dt
-            printf "%s_THROTTLED_MS_PER_S=%.2f\n", n, throttled
-            if (throttled > max_throttled)
-              warnings = warnings sprintf(", the cpus quota held %s back %.1f ms/s", t, throttled)
-          }
-          if (has(p ".io_some_usec")) {
-            io_wait = delta(p ".io_some_usec") / 1e4 / dt
-            printf "%s_IO_WAIT_PCT=%.2f\n", n, io_wait
-            if (p == "db" && io_wait > max_io_wait)
-              warnings = warnings sprintf(", %s waited for I/O %.1f%% of the time", t, io_wait)
-          }
-          if (p ".memory_peak" in a)
-            printf "%s_MEMORY_PEAK_BYTES=%s\n", n, a[p ".memory_peak"]
-        }
-        if ("gatling.cgroup" in a)
-          printf "GATLING_CGROUP=%s\n", a["gatling.cgroup"]
-        if (has("pg.blks_read")) {
-          split("blks_read blks_hit temp_files temp_bytes xact_commit tup_returned tup_fetched", keys, " ")
-          for (i = 1; i <= 7; i++)
-            printf "PG_%s=%.0f\n", toupper(keys[i]), delta("pg." keys[i])
-          blocks = delta("pg.blks_read") + delta("pg.blks_hit")
-          if (blocks > 0)
-            printf "PG_HIT_PCT=%.2f\n", 100 * delta("pg.blks_hit") / blocks
-        }
-        printf "RESOURCES_WARNINGS=\"%s\"\n", substr(warnings, 3)
-      }' "$before" "$after"
-    container_limits web WEB
-    container_limits db DB
-  } > "$out"
-}
+# What each part used and waited for during a Gatling run, see scripts/resources.sh. The counters
+# are read right before and right after mvn gatling:test, so nothing runs during the measurement.
 
 report_resources() {
-  # <run directory> <warmup number>: prints the run's resources, and on a measured run warns if a
-  # part waited
+  # <run directory> <warmup number>: prints the run's resources, and on a measured run warns about
+  # each wait
   local dir="$1"
   local warmup_num="$2"
   [ -f "$dir/resources.env" ] || return 0
   echo ""
-  scripts/resources-table.sh "$dir"
-  local warnings
-  warnings=$(sed -n 's/^RESOURCES_WARNINGS="\(.*\)"$/\1/p' "$dir/resources.env")
-  if [ -n "$warnings" ] && [ "$warmup_num" -eq 0 ]; then
+  scripts/resources.sh table "$dir"
+  [ "$warmup_num" -eq 0 ] || return 0
+  local warning
+  scripts/resources.sh warnings "$dir" | while IFS= read -r warning; do
+    case $warning in
+      *" waited for "*) warning+=": timings may include waiting" ;;
+    esac
     if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
-      echo "::warning::${REPORT_SUFFIX:+$REPORT_SUFFIX: }$warnings: timings may include waiting"
+      echo "::warning::${REPORT_SUFFIX:+$REPORT_SUFFIX: }$warning"
     else
-      echo "Warning: $warnings: timings may include waiting"
+      echo "Warning: $warning"
     fi
-  fi
-}
-
-host_cpu_model() {
-  awk -F': ' '/^model name/ { print $2; exit }' /proc/cpuinfo 2>/dev/null \
-    || sysctl -n machdep.cpu.brand_string 2>/dev/null || echo 'unknown'
+  done
 }
 
 pull_mutable_image() {
@@ -1055,9 +885,6 @@ generate_metadata() {
     fi
     echo "HOST_CPU_GOVERNOR=$(cpu_governor)"
     echo "HOST_CPU_NO_TURBO=$(cpu_no_turbo)"
-    echo "HOST_CPU_MODEL=\"$(host_cpu_model)\""
-    echo "HOST_CPUS=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 'unknown')"
-    echo "HOST_SMT=$(cat /sys/devices/system/cpu/smt/control 2>/dev/null || echo 'unknown')"
     echo "HOST_KERNEL=$(uname -r)"
   } > "$simulation_run_file"
 
@@ -1125,10 +952,10 @@ run_simulation() {
   enable_sql_logs "$warmup_num"
   start_profiler
 
+  # Read the counters right around mvn, after the profiler starts and before it stops, so they
+  # measure the Gatling run only
   local resources_before resources_after
-  resources_before=$(mktemp)
-  resources_after=$(mktemp)
-  snapshot_resources > "$resources_before" || echo "Warning: Failed to read resources"
+  resources_before=$(scripts/resources.sh snapshot) || echo "Warning: Failed to read resources"
 
   echo "Running $SIMULATION_CLASS..."
   # Allow Maven to fail (e.g., assertion failures) but continue to post-process results
@@ -1142,7 +969,7 @@ run_simulation() {
   local mvn_exit_code=$?
   set -e
 
-  snapshot_resources > "$resources_after" || echo "Warning: Failed to read resources"
+  resources_after=$(scripts/resources.sh snapshot) || echo "Warning: Failed to read resources"
   stop_profiler
 
   # Find the gatling report directory
@@ -1186,8 +1013,8 @@ run_simulation() {
     post_process_profiler_data "$gatling_run_dir" || echo "Warning: Failed to post-process profiler data"
     post_process_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to post-process SQL logs"
     generate_metadata "$gatling_run_dir" || echo "Warning: Failed to generate metadata"
-    write_resources "$resources_before" "$resources_after" "$gatling_run_dir" \
-      || echo "Warning: Failed to write resources"
+    scripts/resources.sh diff <(echo "$resources_before") <(echo "$resources_after") \
+      > "$gatling_run_dir/resources.env" || echo "Warning: Failed to write resources"
     report_resources "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to report resources"
 
     # Track non-warmup run directory for output summary (shown after post-processing)
@@ -1197,7 +1024,6 @@ run_simulation() {
   else
     echo "Warning: Could not find Gatling report directory"
   fi
-  rm -f "$resources_before" "$resources_after"
 
   # Return the Maven exit code so failures propagate correctly
   return $mvn_exit_code
