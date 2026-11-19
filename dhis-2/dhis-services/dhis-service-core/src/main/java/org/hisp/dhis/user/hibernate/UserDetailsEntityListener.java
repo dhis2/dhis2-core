@@ -89,9 +89,9 @@ public class UserDetailsEntityListener implements PostUpdateEventListener, PostD
 
   private static final String USERNAME_PROPERTY = "username";
 
-  private final EntityManagerFactory entityManagerFactory;
+  private final transient EntityManagerFactory entityManagerFactory;
 
-  private final UserDetailsChangeCollector userDetailsChangeCollector;
+  private final transient UserDetailsChangeCollector userDetailsChangeCollector;
 
   /** The indexes of the {@link #ACCESS_PROPERTIES} in the entity state of a user. */
   private int[] accessPropertyIndexes;

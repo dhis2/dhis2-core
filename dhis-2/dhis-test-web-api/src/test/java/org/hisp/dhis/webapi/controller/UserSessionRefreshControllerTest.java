@@ -98,8 +98,16 @@ class UserSessionRefreshControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"/users/{user}/userRoles/{role}", "/userRoles/{role}/users/{user}"})
-  void addingUserRoleMarksUserAsChanged(String path) {
+  @ValueSource(
+      strings = {
+        "/users/{user}/userRoles/{role}",
+        "/userRoles/{role}/users/{user}",
+        "/users/{user}/organisationUnits/{orgUnit}",
+        "/users/{user}/dataViewOrganisationUnits/{orgUnit}",
+        "/users/{user}/teiSearchOrganisationUnits/{orgUnit}",
+        "/organisationUnits/{orgUnit}/users/{user}"
+      })
+  void addingUserRoleOrOrgUnitMarksUserAsChanged(String path) {
     String tokenBefore = changeToken();
 
     assertSeries(HttpStatus.Series.SUCCESSFUL, POST(url(path)));
@@ -115,22 +123,6 @@ class UserSessionRefreshControllerTest extends H2ControllerIntegrationTestBase {
     String tokenBefore = changeToken();
 
     assertSeries(HttpStatus.Series.SUCCESSFUL, DELETE(url(path)));
-
-    assertMarkedAsChanged(tokenBefore);
-  }
-
-  @ParameterizedTest
-  @ValueSource(
-      strings = {
-        "/users/{user}/organisationUnits/{orgUnit}",
-        "/users/{user}/dataViewOrganisationUnits/{orgUnit}",
-        "/users/{user}/teiSearchOrganisationUnits/{orgUnit}",
-        "/organisationUnits/{orgUnit}/users/{user}"
-      })
-  void addingOrgUnitMarksUserAsChanged(String path) {
-    String tokenBefore = changeToken();
-
-    assertSeries(HttpStatus.Series.SUCCESSFUL, POST(url(path)));
 
     assertMarkedAsChanged(tokenBefore);
   }

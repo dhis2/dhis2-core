@@ -162,8 +162,6 @@ public class DhisWebApiWebSecurityConfig {
 
   @Autowired private RequestCache requestCache;
 
-  @Autowired private UserDetailsSessionRefresher userDetailsSessionRefresher;
-
   @Autowired private SessionRegistry sessionRegistry;
 
   @Autowired private HttpBasicSessions httpBasicSessions;
@@ -258,7 +256,8 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   @Bean
-  protected SecurityFilterChain filterChain(HttpSecurity http) {
+  protected SecurityFilterChain filterChain(
+      HttpSecurity http, UserDetailsSessionRefresher userDetailsSessionRefresher) {
     try {
       if (dhisConfig.isEnabled(ConfigurationKey.CSRF_ENABLED)) {
         http.csrf(

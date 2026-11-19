@@ -313,8 +313,7 @@ public class UserDetailsSessionRefresher {
     if (state.isChangedBy(token)) {
       return new Check(Action.END_SESSION, principal, token, state);
     }
-    Authentication source = impersonation.getSource();
-    if (source == null || !(source.getPrincipal() instanceof UserDetails impersonator)) {
+    if (!(impersonation.getSource().getPrincipal() instanceof UserDetails impersonator)) {
       return new Check(Action.END_SESSION, principal, token, state);
     }
     String impersonatorToken = userDetailsChangeTracker.getChangeToken(impersonator.getUsername());

@@ -50,8 +50,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
  *
  * <p>The work runs after the updating transaction has committed, on a dedicated single-threaded
  * executor, in batches. This keeps a change that affects many users cheap on the request thread. If
- * the server shuts down before all batches have run, the remaining sessions simply keep the old
- * principal until they expire or the user re-authenticates.
+ * the server shuts down before all batches have run, the remaining sessions keep the old principal
+ * until the refresh interval ({@code system.session.user_details_refresh_interval}) rebuilds it,
+ * the session ends, or the user logs in again.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

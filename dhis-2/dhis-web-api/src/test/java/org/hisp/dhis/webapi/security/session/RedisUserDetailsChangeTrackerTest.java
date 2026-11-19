@@ -82,8 +82,7 @@ class RedisUserDetailsChangeTrackerTest {
     ArgumentCaptor<String> tokens = ArgumentCaptor.forClass(String.class);
     verify(values, times(2))
         .set(eq("dhis2:userDetailsChange:alice"), tokens.capture(), eq(timeToLive));
-    verify(values)
-        .set(eq("dhis2:userDetailsChange:bob"), eq(tokens.getAllValues().get(0)), eq(timeToLive));
+    verify(values).set("dhis2:userDetailsChange:bob", tokens.getAllValues().get(0), timeToLive);
     assertEquals(2, Set.copyOf(tokens.getAllValues()).size());
   }
 

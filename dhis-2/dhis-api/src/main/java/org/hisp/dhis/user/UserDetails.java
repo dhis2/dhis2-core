@@ -207,7 +207,7 @@ public interface UserDetails
           .authorities(
               memberships.authorities().stream()
                   .<GrantedAuthority>map(SimpleGrantedAuthority::new)
-                  .collect(Collectors.toList()))
+                  .toList())
           .allAuthorities(new HashSet<>(memberships.authorities()))
           .isSuper(memberships.authorities().contains(Authorities.ALL.toString()))
           .userRoleIds(new HashSet<>(memberships.userRoles().values()))

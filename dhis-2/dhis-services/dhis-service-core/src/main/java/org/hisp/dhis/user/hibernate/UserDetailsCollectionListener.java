@@ -130,9 +130,9 @@ public class UserDetailsCollectionListener
           new TrackedCollection(
               owner -> ((UserGroup) owner).getManagedGroups(), Affected.MEMBERS_OF_OWNER));
 
-  private final EntityManagerFactory entityManagerFactory;
+  private final transient EntityManagerFactory entityManagerFactory;
 
-  private final UserDetailsChangeCollector userDetailsChangeCollector;
+  private final transient UserDetailsChangeCollector userDetailsChangeCollector;
 
   @PostConstruct
   void registerListener() {

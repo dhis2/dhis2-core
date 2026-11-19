@@ -133,11 +133,17 @@ class UserGroupSessionRefreshControllerTest extends H2ControllerIntegrationTestB
   @CsvSource(
       delimiter = '|',
       value = {
+        // the member leaves the group
         "PATCH | /users/{user} | [{'op':'add','path':'/userGroups','value':[]}]",
         "DELETE | /userGroups/{group}/users/{user} | ",
-        "PUT | /userGroups/{group} | {'name':'Group','users':[]}"
+        "PUT | /userGroups/{group} | {'name':'Group','users':[]}",
+        // the group of the member starts managing another group
+        "POST | /userGroups/{group}/managedGroups/{managed} | ",
+        "PATCH | /userGroups/{group} | [{'op':'add','path':'/managedGroups','value':[{'id':'{managed}'}]}]",
+        "PUT | /userGroups/{group} | {'name':'Group','users':[{'id':'{user}'}],'managedGroups':[{'id':'{managed}'}]}"
       })
-  void leavingUserGroupMarksMemberAsChanged(String method, String path, String body) {
+  void leavingGroupOrManagingAnotherGroupMarksMemberAsChanged(
+      String method, String path, String body) {
     joinGroup();
     String tokenBefore = changeToken();
 
@@ -171,24 +177,6 @@ class UserGroupSessionRefreshControllerTest extends H2ControllerIntegrationTestB
 
     POST("/metadata?importStrategy=DELETE", "{'userGroups':[{'id':'" + groupId + "'}]}")
         .content(OK);
-    awaitUserDetailsChanges();
-
-    assertMarkedAsChangedWithSessionKept(tokenBefore);
-  }
-
-  @ParameterizedTest
-  @CsvSource(
-      delimiter = '|',
-      value = {
-        "POST | /userGroups/{group}/managedGroups/{managed} | ",
-        "PATCH | /userGroups/{group} | [{'op':'add','path':'/managedGroups','value':[{'id':'{managed}'}]}]",
-        "PUT | /userGroups/{group} | {'name':'Group','users':[{'id':'{user}'}],'managedGroups':[{'id':'{managed}'}]}"
-      })
-  void managingAnotherGroupMarksMembersAsChanged(String method, String path, String body) {
-    joinGroup();
-    String tokenBefore = changeToken();
-
-    request(method, path, body).content(OK);
     awaitUserDetailsChanges();
 
     assertMarkedAsChangedWithSessionKept(tokenBefore);
