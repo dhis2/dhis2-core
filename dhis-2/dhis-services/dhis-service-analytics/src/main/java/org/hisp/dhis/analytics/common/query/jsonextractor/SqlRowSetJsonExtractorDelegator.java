@@ -34,6 +34,7 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getEventLevelName;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getEventLevelRequestKey;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
 import static org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OffsetHelper.getItemBasedOnOffset;
@@ -154,10 +155,14 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
 
         // Event-level dimensions (static dimensions, stage-specific OUs that went through
         // DimensionalObject resolution, and data elements) are also addressable by their short
-        // format, without the program: programStageUid.eventdate, programStageUid.ou,
-        // programStageUid[offset].dataElementUid.
-        getEventLevelRequestKey(dimensionIdentifier)
-            .ifPresent(shortFormatKey -> dimIdByKey.put(shortFormatKey, dimensionIdentifier));
+        // format, without the program. It must match the grid header name TrackedEntityFields
+        // gives them: data elements keep the stage offset (programStageUid[offset].dataElementUid),
+        // the others drop it (programStageUid.eventdate, programStageUid.ou).
+        Optional<String> shortFormatKey =
+            isDataElement(dimensionIdentifier)
+                ? getEventLevelRequestKey(dimensionIdentifier)
+                : getEventLevelName(dimensionIdentifier);
+        shortFormatKey.ifPresent(key -> dimIdByKey.put(key, dimensionIdentifier));
       }
     }
     // we need to know which columns are in the sqlrowset, so that when a column is not present, we
