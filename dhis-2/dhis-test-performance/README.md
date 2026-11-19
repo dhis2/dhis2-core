@@ -39,8 +39,36 @@ Settings that keep baseline and candidate comparable:
 * Maintenance (RAID check, upgrades, reboots) runs from 19:00 to 00:59 UTC, outside the nightly
   run at 01:00 UTC and the hours when compares typically run.
 
-Each run records the host's CPU governor and turbo setting in `run-simulation.env`. On CI, a run
-warns when the CPU clock is not fixed.
+Each run records the host's CPU governor, turbo setting and kernel in `run-simulation.env`. On
+CI, a run warns when the CPU clock is not fixed.
+
+Each run also records in `resources.env` what DHIS2, Postgres, and Maven and Gatling used and
+waited for while Gatling ran, from each part's cgroup:
+
+* Cores used by DHIS2, Postgres, Maven and Gatling, and the whole host.
+* CPU wait of DHIS2, Postgres, and Maven and Gatling: the share of the time at least one of its
+  threads was ready to run but had no CPU (PSI `some`). Other parts, a `cpus` quota or `cpuset`,
+  and the part's own threads outnumbering its CPUs all count.
+* I/O wait of Postgres: the share of the time at least one of its processes waited for I/O. This
+  includes background processes such as the checkpointer and autovacuum, not only queries.
+* Memory wait of DHIS2 and Postgres: the share of the time at least one of its threads waited for
+  memory, for example rereading page cache evicted because of the container's 16 GB limit.
+
+Maven and Gatling share the cgroup of `run-simulation.sh`, which runs `mvn gatling:test`: on the
+runner, the GitHub runner's service, which includes the runner agent streaming the job log.
+Locally, your terminal's, which may include other programs. Maven compiles the simulations in the
+first run of a job, and Gatling writes its report at the end of each run.
+
+The counters are read right before and right after `mvn gatling:test`, so nothing runs during the
+measurement. The values are averages over that time, which includes Maven starting and Gatling
+writing its report. A measured run warns, on CI as a GitHub warning, when a wait exceeds 1% of the
+time: its timings may then include waiting rather than work. A wait doesn't say what the part
+waited for, and it isn't the share of each request spent waiting. `CAPTURE_SQL_LOGS` and
+`PROF_ARGS` add work to Postgres and DHIS2 that shows up here too.
+
+The counters need Linux with cgroup v2. Docker Desktop's containers run in a VM, so there a run
+warns that the waits weren't measured. `scripts/resources.sh table <run directory>...` prints runs
+side by side.
 
 ## Results
 
@@ -57,6 +85,8 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 * `postgresql.log` - SQL logs (if enabled with `CAPTURE_SQL_LOGS`)
 * `pgbadger.html` - SQL analysis report (if `CAPTURE_SQL_LOGS` enabled and `pgbadger` installed)
 * `gc.log` - JVM GC and safepoint logs (always captured)
+* `resources.env` - What DHIS2, Postgres and Gatling used and waited for during the run (see
+  [Runner](#runner))
 
 ### Analysis
 
