@@ -43,9 +43,9 @@ import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.period.PeriodTypeStore;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
@@ -56,19 +56,19 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
 
   private final DhisConfigurationProvider dhisConfigurationProvider;
 
-  private final PeriodTypeStore periodTypeStore;
+  private final PeriodStore periodStore;
 
   public ConfigurationPopulator(
       ConfigurationService configurationService,
       DhisConfigurationProvider dhisConfigurationProvider,
-      PeriodTypeStore periodTypeStore) {
+      PeriodStore periodStore) {
     checkNotNull(configurationService);
     checkNotNull(dhisConfigurationProvider);
-    checkNotNull(periodTypeStore);
+    checkNotNull(periodStore);
 
     this.configurationService = configurationService;
     this.dhisConfigurationProvider = dhisConfigurationProvider;
-    this.periodTypeStore = periodTypeStore;
+    this.periodStore = periodStore;
   }
 
   @Override
@@ -115,7 +115,7 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
    */
   private boolean ensureDataOutputPeriodTypes(Configuration config) {
     Set<PeriodType> current = config.getDataOutputPeriodTypes();
-    List<PeriodType> available = periodTypeStore.getAll();
+    List<PeriodType> available = periodStore.getAllPeriodTypes();
 
     if (current == null || current.isEmpty()) {
       if (available.isEmpty()) {

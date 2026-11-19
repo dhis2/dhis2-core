@@ -48,9 +48,9 @@ import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.period.PeriodTypeStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,7 +72,7 @@ class ConfigurationPopulatorTest {
 
   @Mock private ConfigurationService configurationService;
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
-  @Mock private PeriodTypeStore periodTypeStore;
+  @Mock private PeriodStore periodStore;
 
   private ConfigurationPopulator populator;
 
@@ -81,8 +81,7 @@ class ConfigurationPopulatorTest {
   @BeforeEach
   void setUp() {
     populator =
-        new ConfigurationPopulator(
-            configurationService, dhisConfigurationProvider, periodTypeStore);
+        new ConfigurationPopulator(configurationService, dhisConfigurationProvider, periodStore);
 
     // Stubs required by executeInTransaction() regardless of the test scenario
     when(dhisConfigurationProvider.getEncryptionStatus()).thenReturn(EncryptionStatus.OK);
@@ -91,7 +90,7 @@ class ConfigurationPopulatorTest {
     config.setDataOutputPeriodTypes(types(YEARLY));
     when(configurationService.getConfiguration()).thenReturn(config);
     lenient()
-        .when(periodTypeStore.getAll())
+        .when(periodStore.getAllPeriodTypes())
         .thenReturn(List.copyOf(types(MONTHLY, QUARTERLY, YEARLY)));
   }
 

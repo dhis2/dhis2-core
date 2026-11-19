@@ -80,10 +80,9 @@ public class StartupConfig {
   public ConfigurationPopulator configurationPopulator(
       ConfigurationService configurationService,
       DhisConfigurationProvider dhisConfigurationProvider,
-      PeriodTypeStore periodTypeStore) {
+      PeriodStore periodStore) {
     ConfigurationPopulator populator =
-        new ConfigurationPopulator(
-            configurationService, dhisConfigurationProvider, periodTypeStore);
+        new ConfigurationPopulator(configurationService, dhisConfigurationProvider, periodStore);
     populator.setName("ConfigurationPopulator");
     populator.setRunlevel(12);
     populator.setSkipInTests(true);
