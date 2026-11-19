@@ -62,7 +62,7 @@ details_sql: >
   THEN t.analytics_minutes ELSE t.other_minutes END)
   ORDER BY j.lastexecuted;
 details_id_type: jobConfigurations
-severity: SEVERE
+severity: CRITICAL
 introduction: >
   A running job regularly records that it is alive. These jobs are still marked as running, but have not
   shown any sign of progress for longer than the stale-job timeout (system settings jobsRescheduleAfterMinutes,
