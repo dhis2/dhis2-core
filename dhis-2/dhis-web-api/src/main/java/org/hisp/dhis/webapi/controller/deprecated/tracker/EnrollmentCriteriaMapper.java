@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.deprecated.tracker;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
+import static org.hisp.dhis.security.Authorities.F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.util.Date;
@@ -150,7 +150,8 @@ public class EnrollmentCriteriaMapper {
     }
 
     if (ouMode == ALL
-        && (user != null && !user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
+        && (user != null
+            && !user.isAuthorized(F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP))) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");
     }

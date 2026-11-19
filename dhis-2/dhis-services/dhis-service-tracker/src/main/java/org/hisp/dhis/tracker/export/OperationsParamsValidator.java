@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
+import static org.hisp.dhis.security.Authorities.F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP;
 
 import java.util.HashSet;
 import java.util.List;
@@ -87,7 +87,7 @@ public class OperationsParamsValidator {
   }
 
   private static void validateUserCanSearchOrgUnitModeALL(User user) throws BadRequestException {
-    if (!user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
+    if (!user.isAuthorized(F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP)) {
       throw new BadRequestException(
           "Current user is not authorized to query across all organisation units");
     }
