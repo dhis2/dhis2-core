@@ -56,7 +56,7 @@ details_sql: >-
   SELECT 'DHIS2rocks1', 'Housekeeping', 'Missing: no Housekeeping job exists'
   WHERE NOT EXISTS (SELECT 1 FROM jobconfiguration WHERE jobtype = 'HOUSEKEEPING');
 details_id_type: jobConfigurations
-severity: SEVERE
+severity: CRITICAL
 introduction: >
   The Housekeeping job runs every 20 seconds and keeps the job scheduler healthy. It deletes
   finished one-off jobs such as asynchronous imports, resets jobs left marked as running after a
