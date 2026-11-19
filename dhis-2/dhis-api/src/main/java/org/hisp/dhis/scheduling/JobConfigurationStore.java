@@ -181,6 +181,18 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
   boolean tryRevertNow(@Nonnull UID jobId);
 
   /**
+   * @param jobId the job to enable
+   * @return true, if the status was changed, false if the job does not exist or was running
+   */
+  boolean tryEnable(@Nonnull UID jobId);
+
+  /**
+   * @param jobId the job to disable
+   * @return true, if the status was changed, false if the job does not exist or was running
+   */
+  boolean tryDisable(@Nonnull UID jobId);
+
+  /**
    * A successful update means the DB state flipped from {@link JobStatus#SCHEDULED} to {@link
    * JobStatus#RUNNING}.
    *

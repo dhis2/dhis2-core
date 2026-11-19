@@ -383,13 +383,6 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         && queueName == null;
   }
 
-  public boolean isReadyToRun() {
-    return schedulingType == SchedulingType.ONCE_ASAP
-        || schedulingType == SchedulingType.CRON && cronExpression != null
-        || schedulingType == SchedulingType.FIXED_DELAY && delay != null
-        || queueName != null && queuePosition > 0;
-  }
-
   @Nonnull
   public JobKey toKey() {
     return new JobKey(UID.of(uid), jobType);
