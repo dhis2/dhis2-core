@@ -2067,12 +2067,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected List<String> getSelectColumnsWithCTE(EventQueryParams params, CteContext cteContext) {
     List<String> columns = new ArrayList<>();
 
-    // Add dimension columns only when the analytics query
-    // is for enrollments
-    if (!cteContext.isEventsAnalytics()) {
-      addDimensionSelectColumns(columns, params, false, false);
-    }
-
     // Process query items with CTE references
     for (QueryItem queryItem : params.getItems()) {
       if (queryItem.isProgramIndicator()) {
