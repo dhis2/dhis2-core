@@ -1701,36 +1701,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .map(sameGroup -> joinSql(sameGroup, OR_JOINER))
             .toList();
 
-    // Non-repeatable conditions - separate stage-specific date items
-    List<IdentifiableSql> nonRepeatableItems =
-        asSqlCollection(itemsByRepeatableFlag.get(NON_REPEATABLE), params).toList();
-
-    // Stage-specific date items should be OR'd (events can only belong to one stage)
-    List<String> stageDateConditions =
-        nonRepeatableItems.stream()
-            .filter(IdentifiableSql::isStageDateItem)
-            .map(IdentifiableSql::getSql)
-            .toList();
-
-    // Other non-repeatable items are AND'd as usual
+    // Non-repeatable conditions
     List<String> andConditions =
-        nonRepeatableItems.stream()
-            .filter(is -> !is.isStageDateItem())
+        asSqlCollection(itemsByRepeatableFlag.get(NON_REPEATABLE), params)
             .map(IdentifiableSql::getSql)
             .toList();
 
     // Combine all conditions
     List<String> allConditions = new ArrayList<>(orConditions);
     allConditions.addAll(andConditions);
-
-    // Add stage date conditions as a single OR'd group
-    if (!stageDateConditions.isEmpty()) {
-      String stageDateSql =
-          stageDateConditions.size() == 1
-              ? stageDateConditions.get(0)
-              : "(" + joinSql(stageDateConditions.stream(), OR_JOINER) + ")";
-      allConditions.add(stageDateSql);
-    }
 
     if (allConditions.isEmpty()) {
       return StringUtils.EMPTY;
@@ -1827,7 +1806,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return IdentifiableSql.builder()
         .identifier(getIdentifier(queryItem))
         .sql(toSql(queryItem, params))
-        .stageDateItem(stageQuerySqlFacade.isStageDate(queryItem))
         .build();
   }
 
@@ -1877,9 +1855,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     private final String identifier;
 
     private final String sql;
-
-    /** Whether this item is a stage-specific date dimension (EVENT_DATE or SCHEDULED_DATE). */
-    private final boolean stageDateItem;
   }
 
   /**

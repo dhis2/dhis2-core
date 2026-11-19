@@ -545,6 +545,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "stageScheduledDateAndStageEventDate",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:DiszpKrYNg8,A03MvHHogjR.SCHEDULED_DATE:2022,A03MvHHogjR.EVENT_DATE:202205&headers=psi,ouname,eventdate,scheduleddate&totalPages=true&pageSize=100&page=1&asc=eventdate",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
