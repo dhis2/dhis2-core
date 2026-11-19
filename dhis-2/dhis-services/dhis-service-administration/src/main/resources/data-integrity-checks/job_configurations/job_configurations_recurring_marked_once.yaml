@@ -28,7 +28,7 @@
 name: job_configurations_recurring_marked_once
 description: Recurring jobs with a schedule that are marked as one-off jobs
 section: Job scheduler
-section_order: 4
+section_order: 5
 summary_sql: >-
   SELECT COUNT(*) as value,
   100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM jobconfiguration

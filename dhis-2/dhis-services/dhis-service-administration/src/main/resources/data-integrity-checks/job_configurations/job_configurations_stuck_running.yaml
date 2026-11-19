@@ -28,7 +28,7 @@
 name: job_configurations_stuck_running
 description: Jobs that are still marked as running long after their last sign of progress
 section: Job scheduler
-section_order: 2
+section_order: 3
 summary_sql: >-
   WITH timeouts AS (
   SELECT

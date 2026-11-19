@@ -28,7 +28,7 @@
 name: job_configurations_never_started
 description: One-off jobs that were created more than a day ago but never started
 section: Job scheduler
-section_order: 3
+section_order: 4
 summary_sql: >-
   SELECT COUNT(*) as value
   FROM jobconfiguration

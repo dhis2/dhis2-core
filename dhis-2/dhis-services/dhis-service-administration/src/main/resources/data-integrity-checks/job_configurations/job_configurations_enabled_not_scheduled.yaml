@@ -28,7 +28,7 @@
 name: job_configurations_enabled_not_scheduled
 description: Enabled recurring jobs that the scheduler will never start
 section: Job scheduler
-section_order: 1
+section_order: 2
 summary_sql: >-
   SELECT COUNT(*) as value,
   100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM jobconfiguration WHERE schedulingtype <> 'ONCE_ASAP'), 0) as percent

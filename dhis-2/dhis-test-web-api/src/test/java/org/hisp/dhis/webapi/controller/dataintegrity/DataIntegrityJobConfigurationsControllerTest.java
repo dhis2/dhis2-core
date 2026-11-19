@@ -43,6 +43,8 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
 
   private static final String DETAILS_ID_TYPE = "jobConfigurations";
 
+  private static final String HOUSEKEEPING = "job_configurations_housekeeping_not_running";
+
   private static final String ENABLED_NOT_SCHEDULED = "job_configurations_enabled_not_scheduled";
   private static final String STUCK_RUNNING = "job_configurations_stuck_running";
   private static final String NEVER_STARTED = "job_configurations_never_started";
@@ -55,6 +57,82 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   @BeforeEach
   void removeExistingJobs() {
     jdbcTemplate.update("delete from jobconfiguration");
+  }
+
+  // -------------------------------------------------------------------------
+  // job_configurations_housekeeping_not_running
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testHousekeepingDisabled() {
+    String uid = housekeeping().enabled(false).lastFinished("3 hours").insert();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE, HOUSEKEEPING, null, uid, "Housekeeping", "Disabled", false);
+  }
+
+  @Test
+  void testHousekeepingEnabledButStoredAsDisabled() {
+    String uid = housekeeping().status("DISABLED").lastFinished("3 hours").insert();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE, HOUSEKEEPING, null, uid, "Housekeeping", "never started", false);
+  }
+
+  @Test
+  void testHousekeepingNotCompletedRecently() {
+    String uid = housekeeping().lastExecuted("2 hours").lastFinished("2 hours").insert();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE, HOUSEKEEPING, null, uid, "Housekeeping", "last hour", false);
+  }
+
+  @Test
+  void testHousekeepingCrashedWhileRunning() {
+    // nothing but Housekeeping itself resets a stale RUNNING job, so a crashed run never recovers
+    String uid =
+        housekeeping()
+            .status("RUNNING")
+            .lastExecuted("2 hours")
+            .lastAlive("2 hours")
+            .lastFinished("2 hours")
+            .insert();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE, HOUSEKEEPING, null, uid, "Housekeeping", "last hour", false);
+  }
+
+  @Test
+  void testHousekeepingMissing() {
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE, HOUSEKEEPING, null, "DHIS2rocks1", "Housekeeping", "Missing", false);
+  }
+
+  @Test
+  void testHousekeepingRunning() {
+    housekeeping().lastExecuted("30 seconds").lastFinished("25 seconds").insert();
+
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, HOUSEKEEPING, false);
+  }
+
+  @Test
+  void testHousekeepingRunningNow() {
+    housekeeping()
+        .status("RUNNING")
+        .lastExecuted("5 seconds")
+        .lastAlive("1 second")
+        .lastFinished("25 seconds")
+        .insert();
+
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, HOUSEKEEPING, false);
+  }
+
+  @Test
+  void testHousekeepingNewlyCreated() {
+    // a fresh installation has not completed a run yet
+    housekeeping().insert();
+
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, HOUSEKEEPING, false);
   }
 
   // -------------------------------------------------------------------------
@@ -196,12 +274,17 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     return new JobRow(name);
   }
 
+  /** The default Housekeeping job: enabled, every 20 seconds. */
+  private JobRow housekeeping() {
+    return job("Housekeeping").uid("DHIS2rocks1").type("HOUSEKEEPING").delay(20).enabled(true);
+  }
+
   /**
    * A job configuration row. Times are given as an age ("2 hours") relative to the database clock,
    * so the fixture does not depend on the JVM time zone.
    */
   private final class JobRow {
-    private final String uid = CodeGenerator.generateUid();
+    private String uid = CodeGenerator.generateUid();
     private final String name;
     private String type = "ANALYTICS_TABLE";
     private String scheduling = null;
@@ -216,6 +299,11 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
 
     private JobRow(String name) {
       this.name = name;
+    }
+
+    JobRow uid(String uid) {
+      this.uid = uid;
+      return this;
     }
 
     JobRow type(String type) {
