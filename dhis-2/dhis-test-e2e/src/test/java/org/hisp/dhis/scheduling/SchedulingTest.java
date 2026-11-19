@@ -30,18 +30,24 @@
 package org.hisp.dhis.scheduling;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.SystemActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 
 class SchedulingTest extends ApiTest {
 
@@ -106,5 +112,59 @@ class SchedulingTest extends ApiTest {
     } else {
       Assertions.fail("Job execution failed for agg data exchange");
     }
+  }
+
+  @Test
+  void testEnableIsReadOnly_Update() {
+    String job =
+        """
+        {
+             "id": "job12345678",
+             "name": "di-enable-disable",
+             "jobType": "DATA_INTEGRITY",
+             "cronExpression": "0 0 21 ? * *"
+         }
+        """;
+    assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", job));
+    String jobId = "job12345678";
+    JsonObject config = GET("/jobConfigurations/" + jobId);
+    assertTrue(config.get("enabled").booleanValue(), "newly created config should be enabled");
+    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/disable"));
+     config = GET("/jobConfigurations/" + jobId);
+    assertFalse(config.get("enabled").booleanValue());
+    assertStatus(HttpStatus.OK, PATCH("/jobConfigurations/" + jobId, "[{'op': 'add', 'path': '/name', 'value':  'new_name'}]"));
+    config = GET("/jobConfigurations/" + jobId);
+    assertEquals("new_name", config.get("name").string());
+    assertFalse(config.get("enabled").booleanValue(), "updating should not affect enabled");
+    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/enable"));
+    config = GET("/jobConfigurations/" + jobId);
+    assertTrue(config.get("enabled").booleanValue());
+    assertStatus(HttpStatus.OK, PATCH("/jobConfigurations/" + jobId, "[{'op': 'add', 'path': '/name', 'value':  'new_name2'}]"));
+    config = GET("/jobConfigurations/" + jobId);
+    assertEquals("new_name2", config.get("name").string());
+    assertTrue(config.get("enabled").booleanValue(), "updating should not affect enabled");
+  }
+
+  private JsonObject GET(String url) {
+    return jobConfigActions.get(url.replace("/jobConfigurations", "")).getBodyAsJsonValue();
+  }
+
+  private HttpStatus POST(String url) {
+    return HttpStatus.resolve(jobConfigActions.post(url.replace("/jobConfigurations", "")).statusCode());
+  }
+
+  private HttpStatus POST(String url, @Language("json") String body) {
+    return HttpStatus.resolve(jobConfigActions.post(url.replace("/jobConfigurations", ""), body).statusCode());
+  }
+
+  private HttpStatus PATCH(String url, @Language("json5") String body) {
+    return HttpStatus.resolve(
+        jobConfigActions
+            .patch(url.replace("/jobConfigurations", ""), body.replace('\'', '\"'))
+            .statusCode());
+  }
+
+  private static void assertStatus(HttpStatus expected, HttpStatus actual) {
+    assertEquals(expected, actual);
   }
 }
