@@ -240,7 +240,7 @@
     },
     {
       "name": "stageDimensionCheckMetadataItem",
-      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=A03MvHHogjR.a3kGcGDCuk6&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=A03MvHHogjR.ou:USER_ORGUNIT,A03MvHHogjR.a3kGcGDCuk6:GT:10",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=A03MvHHogjR.a3kGcGDCuk6&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=A03MvHHogjR.ou:USER_ORGUNIT,A03MvHHogjR.a3kGcGDCuk6:GT:10&relativePeriodDate=2026-11-19",
       "version": {
         "min": 43
       }
@@ -254,7 +254,7 @@
     },
     {
       "name": "stageScopedDataElementHeadersWithStageOffset",
-      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:ImspTQPwCqd&filter=trackedentity:EQ:foc5zag6gbE&headers=trackedentity,jdRD35YwbRH[-1].yLIPuJHRgey,jdRD35YwbRH[0].yLIPuJHRgey,ur1Edk5Oe2n.jdRD35YwbRH[-1].yLIPuJHRgey&totalPages=false&pageSize=10&page=1&displayProperty=NAME&includeMetadataDetails=true",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:ImspTQPwCqd&filter=trackedentity:EQ:foc5zag6gbE&headers=trackedentity,jdRD35YwbRH[-1].yLIPuJHRgey,jdRD35YwbRH[0].yLIPuJHRgey,ur1Edk5Oe2n.jdRD35YwbRH[-1].yLIPuJHRgey&totalPages=false&pageSize=10&page=1&displayProperty=NAME&includeMetadataDetails=true&relativePeriodDate=2026-11-19",
       "version": {
         "min": 43
       }

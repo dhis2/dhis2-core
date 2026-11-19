@@ -65,6 +65,7 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("pageSize=10")
             .add("page=1")
+            .add("relativePeriodDate=2026-11-19")
             .add("dimension=A03MvHHogjR.ou:USER_ORGUNIT,A03MvHHogjR.a3kGcGDCuk6:GT:10");
 
     // When
@@ -829,6 +830,7 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("pageSize=10")
             .add("page=1")
+            .add("relativePeriodDate=2026-11-19")
             .add("dimension=ou:ImspTQPwCqd");
 
     // When
