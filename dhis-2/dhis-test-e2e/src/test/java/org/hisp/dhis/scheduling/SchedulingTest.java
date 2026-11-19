@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static java.lang.String.format;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -37,8 +38,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import java.io.File;
+import java.util.List;
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.SystemActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
@@ -55,6 +59,7 @@ class SchedulingTest extends ApiTest {
 
   private MetadataActions metadataActions;
   private RestApiActions jobConfigActions;
+  private RestApiActions apiActions;
   private SystemActions systemActions;
 
   @BeforeAll
@@ -62,6 +67,7 @@ class SchedulingTest extends ApiTest {
     metadataActions = new MetadataActions();
     systemActions = new SystemActions();
     jobConfigActions = new RestApiActions("jobConfigurations");
+    apiActions = new RestApiActions("");
   }
 
   @AfterAll
@@ -155,25 +161,81 @@ class SchedulingTest extends ApiTest {
     assertTrue(config.get("enabled").booleanValue(), "updating should not affect enabled");
   }
 
-  private JsonObject GET(String url) {
-    return jobConfigActions.get(url.replace("/jobConfigurations", "")).getBodyAsJsonValue();
+  @Test
+  void testUpdateQueue_EnableDisable() {
+    String jobIdA = "jobA0000001";
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/jobConfigurations",
+            "{'id': 'jobA0000001', 'name':'a','jobType':'DISABLE_INACTIVE_USERS','cronExpression':'0 0 1 ? * *','jobParameters':{'inactiveMonths':'3'}}"));
+    String jobIdB = "jobB0000001";
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/jobConfigurations",
+            "{'id': 'jobB0000001', 'name':'b','jobType':'DATA_INTEGRITY','cronExpression':'0 0 12 ? * MON-FRI'}"));
+    String jobIdC = "jobC0000001";
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/jobConfigurations",
+            "{'id': 'jobC0000001', 'name':'c','jobType':'RESOURCE_TABLE','cronExpression':'0 0 3 ? * MON'}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/scheduler/queues/testQueue",
+            format(
+                "{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s','%s']}",
+                jobIdA, jobIdB, jobIdC)));
+    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobIdA + "/disable"));
+    JsonObject queue = GET("/scheduler/queues/testQueue");
+    assertEquals(
+        List.of(jobIdA, jobIdB, jobIdC),
+        queue.getArray("sequence").asList(JsonString.class).toList(JsonString::string),
+        "queue sequence was changed");
+    org.hisp.dhis.jsontree.JsonArray list = GET("/scheduler");
+    assertFalse(
+        list.stream()
+            .filter(job -> job.get("name").string().equals("testQueue"))
+            .findFirst()
+            .orElseThrow()
+            .getBoolean("enabled")
+            .booleanValue());
+
+    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobIdA + "/enable"));
+    queue = GET("/scheduler/queues/testQueue");
+    assertEquals(
+        List.of(jobIdA, jobIdB, jobIdC),
+        queue.getArray("sequence").asList(JsonString.class).toList(JsonString::string),
+        "queue sequence was changed");
+    list = GET("/scheduler");
+    assertTrue(list.getObject(0).getBoolean("enabled").booleanValue());
+  }
+
+  private JsonMixed GET(String url) {
+    return apiActions.get(url).getBodyAsJsonValue();
   }
 
   private HttpStatus POST(String url) {
     return POST(url, "");
   }
 
-  private HttpStatus POST(String url, @Language("json") String body) {
-    return HttpStatus.resolve(
-        jobConfigActions.post(url.replace("/jobConfigurations", ""), body).statusCode());
+  private HttpStatus POST(String url, @Language("json5") String body) {
+    String json = body.replace('\'', '\"');
+    RestApiActions actions = apiActions;
+    if (url.startsWith("/jobConfigurations")) {
+      actions = jobConfigActions;
+      url = url.replace("/jobConfigurations", "");
+    }
+    ApiResponse response = actions.post(url, json);
+    return HttpStatus.resolve(response.statusCode());
   }
 
   private HttpStatus PATCH(String url, @Language("json5") String body) {
     String json = body.replace('\'', '\"');
     Gson gson = new Gson();
-    ApiResponse response =
-        jobConfigActions.patch(
-            url.replace("/jobConfigurations", ""), gson.fromJson(json, JsonArray.class));
+    ApiResponse response = apiActions.patch(url, gson.fromJson(json, JsonArray.class));
     return HttpStatus.resolve(response.statusCode());
   }
 
