@@ -762,7 +762,7 @@ class DimensionIdentifierConverterTest {
     DimensionIdentifier<StringUid> dimensionIdentifier =
         converter.fromString(programs, fullDimensionId);
 
-    // Then - offset should be propagated to both program and stage
+    // Then - offset applies to the stage only; the program keeps the latest enrollment
     assertEquals(
         "eventdate",
         dimensionIdentifier.getDimension().getUid(),
@@ -771,7 +771,7 @@ class DimensionIdentifierConverterTest {
         "lxAQ7Zs9VYR",
         dimensionIdentifier.getProgram().getElement().getUid(),
         "Program uid should be resolved from program stage");
-    assertEquals(3, dimensionIdentifier.getProgram().getOffset(), "Program offset should be 3");
+    assertNull(dimensionIdentifier.getProgram().getOffset(), "Program offset should be null");
     assertEquals(
         "ZkbAXlQUYJG",
         dimensionIdentifier.getProgramStage().getElement().getUid(),
