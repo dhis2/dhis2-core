@@ -1,0 +1,76 @@
+# Copyright (c) 2004-2026, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: job_configurations_stuck_running
+description: Jobs that are still marked as running long after their last sign of progress
+section: Job scheduler
+section_order: 2
+summary_sql: >-
+  WITH timeouts AS (
+  SELECT
+  COALESCE((SELECT CASE WHEN value ~ '^[0-9]+$' THEN CAST(value AS integer) END
+  FROM systemsetting WHERE name = 'jobsRescheduleAfterMinutes'), 10) AS other_minutes,
+  COALESCE((SELECT CASE WHEN value ~ '^[0-9]+$' THEN CAST(value AS integer) END
+  FROM systemsetting WHERE name = 'jobsRescheduleAnalyticsAfterMinutes'), 240) AS analytics_minutes
+  )
+  SELECT COUNT(*) as value
+  FROM jobconfiguration j, timeouts t
+  WHERE j.jobstatus = 'RUNNING'
+  AND COALESCE(j.lastalive, j.lastexecuted, j.created) < now() - make_interval(mins =>
+  CASE WHEN j.jobtype IN ('ANALYTICS_TABLE', 'CONTINUOUS_ANALYTICS_TABLE')
+  THEN t.analytics_minutes ELSE t.other_minutes END);
+details_sql: >
+  WITH timeouts AS (
+  SELECT
+  COALESCE((SELECT CASE WHEN value ~ '^[0-9]+$' THEN CAST(value AS integer) END
+  FROM systemsetting WHERE name = 'jobsRescheduleAfterMinutes'), 10) AS other_minutes,
+  COALESCE((SELECT CASE WHEN value ~ '^[0-9]+$' THEN CAST(value AS integer) END
+  FROM systemsetting WHERE name = 'jobsRescheduleAnalyticsAfterMinutes'), 240) AS analytics_minutes
+  )
+  SELECT j.uid,
+  j.name,
+  concat(j.jobtype, ', started ', COALESCE(to_char(j.lastexecuted, 'YYYY-MM-DD HH24:MI'), 'unknown'),
+  ', last alive ', COALESCE(to_char(j.lastalive, 'YYYY-MM-DD HH24:MI'), 'never')) as comment
+  FROM jobconfiguration j, timeouts t
+  WHERE j.jobstatus = 'RUNNING'
+  AND COALESCE(j.lastalive, j.lastexecuted, j.created) < now() - make_interval(mins =>
+  CASE WHEN j.jobtype IN ('ANALYTICS_TABLE', 'CONTINUOUS_ANALYTICS_TABLE')
+  THEN t.analytics_minutes ELSE t.other_minutes END)
+  ORDER BY j.lastexecuted;
+details_id_type: jobConfigurations
+severity: SEVERE
+introduction: >
+  A running job regularly records that it is alive. These jobs are still marked as running, but have not
+  shown any sign of progress for longer than the stale-job timeout (system settings jobsRescheduleAfterMinutes,
+  and jobsRescheduleAnalyticsAfterMinutes for analytics jobs). Usually the server was restarted or the job
+  crashed while it was running. While a job of a type is marked as running, no other job of the same type
+  is started, so for example a single stuck analytics run blocks all later analytics runs.
+  The Housekeeping job normally resets such jobs; if they are listed here, Housekeeping is disabled or failing.
+recommendation: >
+  Check that the Housekeeping job is enabled and completing in the Scheduler app.
+  Reset each job listed with POST /api/jobConfigurations/{uid}/revert. Recurring jobs then continue on
+  their schedule.
