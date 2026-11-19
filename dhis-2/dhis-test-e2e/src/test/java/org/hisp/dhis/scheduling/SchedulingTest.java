@@ -34,6 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import java.io.File;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -130,16 +132,24 @@ class SchedulingTest extends ApiTest {
     JsonObject config = GET("/jobConfigurations/" + jobId);
     assertTrue(config.get("enabled").booleanValue(), "newly created config should be enabled");
     assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/disable"));
-     config = GET("/jobConfigurations/" + jobId);
+    config = GET("/jobConfigurations/" + jobId);
     assertFalse(config.get("enabled").booleanValue());
-    assertStatus(HttpStatus.OK, PATCH("/jobConfigurations/" + jobId, "[{'op': 'add', 'path': '/name', 'value':  'new_name'}]"));
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/jobConfigurations/" + jobId,
+            "[{'op': 'replace', 'path': '/name', 'value':  'new_name'}]"));
     config = GET("/jobConfigurations/" + jobId);
     assertEquals("new_name", config.get("name").string());
     assertFalse(config.get("enabled").booleanValue(), "updating should not affect enabled");
     assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/enable"));
     config = GET("/jobConfigurations/" + jobId);
     assertTrue(config.get("enabled").booleanValue());
-    assertStatus(HttpStatus.OK, PATCH("/jobConfigurations/" + jobId, "[{'op': 'add', 'path': '/name', 'value':  'new_name2'}]"));
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/jobConfigurations/" + jobId,
+            "[{'op': 'replace', 'path': '/name', 'value':  'new_name2'}]"));
     config = GET("/jobConfigurations/" + jobId);
     assertEquals("new_name2", config.get("name").string());
     assertTrue(config.get("enabled").booleanValue(), "updating should not affect enabled");
@@ -150,18 +160,21 @@ class SchedulingTest extends ApiTest {
   }
 
   private HttpStatus POST(String url) {
-    return HttpStatus.resolve(jobConfigActions.post(url.replace("/jobConfigurations", "")).statusCode());
+    return POST(url, "");
   }
 
   private HttpStatus POST(String url, @Language("json") String body) {
-    return HttpStatus.resolve(jobConfigActions.post(url.replace("/jobConfigurations", ""), body).statusCode());
+    return HttpStatus.resolve(
+        jobConfigActions.post(url.replace("/jobConfigurations", ""), body).statusCode());
   }
 
   private HttpStatus PATCH(String url, @Language("json5") String body) {
-    return HttpStatus.resolve(
-        jobConfigActions
-            .patch(url.replace("/jobConfigurations", ""), body.replace('\'', '\"'))
-            .statusCode());
+    String json = body.replace('\'', '\"');
+    Gson gson = new Gson();
+    ApiResponse response =
+        jobConfigActions.patch(
+            url.replace("/jobConfigurations", ""), gson.fromJson(json, JsonArray.class));
+    return HttpStatus.resolve(response.statusCode());
   }
 
   private static void assertStatus(HttpStatus expected, HttpStatus actual) {
