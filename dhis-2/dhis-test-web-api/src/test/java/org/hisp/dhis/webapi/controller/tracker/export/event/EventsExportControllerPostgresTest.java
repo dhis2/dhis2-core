@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.collect.Sets;
 import java.util.Date;
+import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -57,7 +58,11 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -79,6 +84,8 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   private static final String DATA_ELEMENT_VALUE = "value 1";
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired
   private org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService programOwnerService;
@@ -318,6 +325,47 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
     assertEquals(1, pager.getPageSize());
     assertEquals(1, pager.getTotal());
     assertEquals(1, pager.getPageCount());
+  }
+
+  @Test
+  void shouldFailWhenFilteringByProgramAttributeWithoutProgram() {
+    TrackedEntityAttribute programAttribute = createTrackedEntityAttribute('P');
+    manager.save(programAttribute, false);
+    program
+        .getProgramAttributes()
+        .add(createProgramTrackedEntityAttribute(program, programAttribute));
+    manager.update(program);
+
+    assertEquals(
+        "Tracked entity attribute '"
+            + programAttribute.getUid()
+            + "' cannot be used to filter, it is not an attribute of any tracked entity type you can read.",
+        GET("/tracker/events?filterAttributes={attribute}:eq:foo", programAttribute.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
+  void shouldFilterByTrackedEntityTypeAttributeWhenNoProgramIsRequested() {
+    TrackedEntityAttribute typeAttribute = createTrackedEntityAttribute('T');
+    manager.save(typeAttribute, false);
+    trackedEntityType
+        .getTrackedEntityTypeAttributes()
+        .add(new TrackedEntityTypeAttribute(trackedEntityType, typeAttribute));
+    manager.update(trackedEntityType);
+    attributeValueService.addTrackedEntityAttributeValue(
+        new TrackedEntityAttributeValue(
+            typeAttribute, event.getEnrollment().getTrackedEntity(), "foo"));
+
+    assertEquals(List.of(event.getUid()), getEventsFilteredBy(typeAttribute, "foo"));
+    assertEquals(List.of(), getEventsFilteredBy(typeAttribute, "bar"));
+  }
+
+  private List<String> getEventsFilteredBy(TrackedEntityAttribute attribute, String value) {
+    return GET("/tracker/events?filterAttributes={attribute}:eq:{value}", attribute.getUid(), value)
+        .content(HttpStatus.OK)
+        .getList("events", JsonEvent.class)
+        .toList(JsonEvent::getEvent);
   }
 
   private TrackedEntity trackedEntity() {
