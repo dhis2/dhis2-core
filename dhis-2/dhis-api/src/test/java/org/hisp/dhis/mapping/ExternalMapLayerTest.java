@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.mapping;
 
-import static org.hisp.dhis.common.Locale.*;
+import static org.hisp.dhis.common.Locale.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Locale;
 import java.util.Map;
@@ -42,7 +44,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/** Unit tests for the translated display properties of {@link ExternalMapLayer}. */
+/**
+ * Unit tests for the translated display properties and the identity of {@link ExternalMapLayer}.
+ */
 class ExternalMapLayerTest {
 
   private ExternalMapLayer layer;
@@ -185,5 +189,41 @@ class ExternalMapLayerTest {
 
     assertEquals("Contributeurs OpenStreetMap", layer.getDisplayAttribution());
     assertEquals("Couche de fond de carte", layer.getDisplayDescription());
+  }
+
+  // -------------------------------------------------------------------------
+  // translations, equals and hashCode
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testSetTranslationsNullStoresEmptySet() {
+    layer.setTranslations(null);
+
+    assertTrue(layer.getTranslations().isEmpty());
+    assertEquals("Layer", layer.getDisplayName());
+  }
+
+  @Test
+  void testEqualsAndHashCodeCompareUidCodeAndName() {
+    ExternalMapLayer other = new ExternalMapLayer("Layer");
+    layer.setUid("ExtMapLayA1");
+    other.setUid("ExtMapLayA1");
+    layer.setCode("EML_A");
+    other.setCode("EML_A");
+    other.setUrl("https://other.example.org");
+
+    assertEquals(layer, other);
+    assertEquals(layer.hashCode(), other.hashCode());
+  }
+
+  @Test
+  void testNotEqualsWhenCodeDiffers() {
+    ExternalMapLayer other = new ExternalMapLayer("Layer");
+    layer.setUid("ExtMapLayA1");
+    other.setUid("ExtMapLayA1");
+    layer.setCode("EML_A");
+    other.setCode("EML_B");
+
+    assertNotEquals(layer, other);
   }
 }
