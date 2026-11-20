@@ -48,8 +48,9 @@ import org.springframework.transaction.annotation.Transactional;
  * Runs the SQL of data integrity checks as plain JDBC statements, so the SQL reaches the database
  * exactly as written in the YAML declarations (no parameter parsing of {@code :} or {@code ?}).
  *
- * <p>As we want each check to be its own transaction the @{@link Transactional} annotation is used
- * on the store and not the service level in this case.
+ * <p>Checks run by the data integrity service join its transaction; the read-only @{@link
+ * Transactional} here only applies when the store is called outside of one. As the SQL runs over
+ * JDBC, it does not see changes still pending in the Hibernate session of that transaction.
  *
  * @author Jan Bernitt
  */
@@ -98,11 +99,8 @@ public class JdbcDataIntegrityStore implements DataIntegrityStore {
   }
 
   private static List<String> getRefs(ResultSet rs, int columns, int column) throws SQLException {
-    if (columns < column) {
-      return null;
-    }
-    Array refs = rs.getArray(column);
-    return refs == null ? null : List.of((String[]) refs.getArray());
+    Array refs = columns < column ? null : rs.getArray(column);
+    return refs == null ? List.of() : List.of((String[]) refs.getArray());
   }
 
   private static Double parsePercentage(Object[] row) {
@@ -110,8 +108,8 @@ public class JdbcDataIntegrityStore implements DataIntegrityStore {
       return null;
     }
     Object value = row[1];
-    if (value instanceof String) {
-      return Double.parseDouble(value.toString().replace("%", ""));
+    if (value instanceof String percent) {
+      return Double.parseDouble(percent.replace("%", ""));
     }
     return ((Number) value).doubleValue();
   }
@@ -127,8 +125,8 @@ public class JdbcDataIntegrityStore implements DataIntegrityStore {
     if (value == null) {
       return 0;
     }
-    if (value instanceof String) {
-      return Integer.parseInt((String) value);
+    if (value instanceof String count) {
+      return Integer.parseInt(count);
     }
     return ((Number) value).intValue();
   }
