@@ -29,7 +29,22 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
+import static org.hisp.dhis.scheduling.JobStatus.NOT_STARTED;
+import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
+import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
+import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
+import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
+import static org.hisp.dhis.scheduling.JobType.HOUSEKEEPING;
+import static org.hisp.dhis.scheduling.SchedulingType.CRON;
+import static org.hisp.dhis.scheduling.SchedulingType.FIXED_DELAY;
+import static org.hisp.dhis.scheduling.SchedulingType.ONCE_ASAP;
+
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobStatus;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +58,8 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
 
   private static final String DETAILS_ID_TYPE = "jobConfigurations";
 
-  private static final String HOUSEKEEPING = "job_configurations_housekeeping_not_running";
+  private static final String HOUSEKEEPING_NOT_RUNNING =
+      "job_configurations_housekeeping_not_running";
 
   private static final String ENABLED_NOT_SCHEDULED = "job_configurations_enabled_not_scheduled";
   private static final String STUCK_RUNNING = "job_configurations_stuck_running";
@@ -53,6 +69,8 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   private static final String DAILY = "0 0 2 ? * *";
 
   @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Autowired private JobConfigurationService jobConfigurationService;
 
   @BeforeEach
   void removeExistingJobs() {
@@ -68,15 +86,21 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     String uid = housekeeping().enabled(false).lastFinished("3 hours").insert();
 
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, HOUSEKEEPING, null, uid, "Housekeeping", "Disabled", false);
+        DETAILS_ID_TYPE, HOUSEKEEPING_NOT_RUNNING, null, uid, "Housekeeping", "Disabled", false);
   }
 
   @Test
   void testHousekeepingEnabledButStoredAsDisabled() {
-    String uid = housekeeping().status("DISABLED").lastFinished("3 hours").insert();
+    String uid = housekeeping().status(DISABLED).lastFinished("3 hours").insert();
 
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, HOUSEKEEPING, null, uid, "Housekeeping", "never started", false);
+        DETAILS_ID_TYPE,
+        HOUSEKEEPING_NOT_RUNNING,
+        null,
+        uid,
+        "Housekeeping",
+        "never started",
+        false);
   }
 
   @Test
@@ -84,7 +108,7 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     String uid = housekeeping().lastExecuted("2 hours").lastFinished("2 hours").insert();
 
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, HOUSEKEEPING, null, uid, "Housekeeping", "last hour", false);
+        DETAILS_ID_TYPE, HOUSEKEEPING_NOT_RUNNING, null, uid, "Housekeeping", "last hour", false);
   }
 
   @Test
@@ -92,39 +116,45 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     // nothing but Housekeeping itself resets a stale RUNNING job, so a crashed run never recovers
     String uid =
         housekeeping()
-            .status("RUNNING")
+            .status(RUNNING)
             .lastExecuted("2 hours")
             .lastAlive("2 hours")
             .lastFinished("2 hours")
             .insert();
 
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, HOUSEKEEPING, null, uid, "Housekeeping", "last hour", false);
+        DETAILS_ID_TYPE, HOUSEKEEPING_NOT_RUNNING, null, uid, "Housekeeping", "last hour", false);
   }
 
   @Test
   void testHousekeepingMissing() {
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, HOUSEKEEPING, null, "DHIS2rocks1", "Housekeeping", "Missing", false);
+        DETAILS_ID_TYPE,
+        HOUSEKEEPING_NOT_RUNNING,
+        null,
+        "DHIS2rocks1",
+        "Housekeeping",
+        "Missing",
+        false);
   }
 
   @Test
   void testHousekeepingRunning() {
     housekeeping().lastExecuted("30 seconds").lastFinished("25 seconds").insert();
 
-    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, HOUSEKEEPING, false);
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, HOUSEKEEPING_NOT_RUNNING, false);
   }
 
   @Test
   void testHousekeepingRunningNow() {
     housekeeping()
-        .status("RUNNING")
+        .status(RUNNING)
         .lastExecuted("5 seconds")
         .lastAlive("1 second")
         .lastFinished("25 seconds")
         .insert();
 
-    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, HOUSEKEEPING, false);
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, HOUSEKEEPING_NOT_RUNNING, false);
   }
 
   @Test
@@ -132,7 +162,16 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     // a fresh installation has not completed a run yet
     housekeeping().insert();
 
-    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, HOUSEKEEPING, false);
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, HOUSEKEEPING_NOT_RUNNING, false);
+  }
+
+  @Test
+  void testHousekeepingCreatedByScheduler() {
+    // the row the scheduler creates on startup, rather than the fixture's idea of it
+    jobConfigurationService.createDefaultJob(HOUSEKEEPING);
+    entityManager.flush();
+
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, HOUSEKEEPING_NOT_RUNNING, false);
   }
 
   // -------------------------------------------------------------------------
@@ -141,10 +180,10 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
 
   @Test
   void testEnabledRecurringJobStoredAsDisabled() {
-    String stuck = job("Analytics").cron(DAILY).enabled(true).status("DISABLED").insert();
-    job("Healthy").cron(DAILY).enabled(true).status("SCHEDULED").insert();
+    String stuck = job("Analytics").cron(DAILY).enabled(true).status(DISABLED).insert();
+    job("Healthy").cron(DAILY).enabled(true).status(SCHEDULED).insert();
     // one-off jobs are out of scope: "Run now" would re-run an old import
-    job("Old import").type("DATAVALUE_IMPORT").enabled(true).status("DISABLED").insert();
+    job("Old import").type(DATAVALUE_IMPORT).enabled(true).status(DISABLED).insert();
 
     assertHasDataIntegrityIssues(
         DETAILS_ID_TYPE, ENABLED_NOT_SCHEDULED, 50, stuck, "Analytics", null, true);
@@ -152,8 +191,8 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
 
   @Test
   void testRecurringJobsCorrectlyScheduledOrDisabled() {
-    job("Enabled").cron(DAILY).enabled(true).status("SCHEDULED").insert();
-    job("Disabled").cron(DAILY).enabled(false).status("DISABLED").insert();
+    job("Enabled").cron(DAILY).enabled(true).status(SCHEDULED).insert();
+    job("Disabled").cron(DAILY).enabled(false).status(DISABLED).insert();
 
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, ENABLED_NOT_SCHEDULED, true);
   }
@@ -170,20 +209,20 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   @Test
   void testJobRunningPastStaleTimeout() {
     String stuck =
-        job("Import").type("DATAVALUE_IMPORT").status("RUNNING").lastAlive("2 hours").insert();
+        job("Import").type(DATAVALUE_IMPORT).status(RUNNING).lastAlive("2 hours").insert();
     // analytics jobs use the longer analytics timeout (default 4 hours)
-    job("Analytics").cron(DAILY).status("RUNNING").lastAlive("2 hours").insert();
-    job("Busy import").type("DATAVALUE_IMPORT").status("RUNNING").lastAlive("1 minute").insert();
+    job("Analytics").cron(DAILY).status(RUNNING).lastAlive("2 hours").insert();
+    job("Busy import").type(DATAVALUE_IMPORT).status(RUNNING).lastAlive("1 minute").insert();
 
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, STUCK_RUNNING, null, stuck, "Import", "DATAVALUE_IMPORT", false);
+        DETAILS_ID_TYPE, STUCK_RUNNING, null, stuck, "Import", DATAVALUE_IMPORT.name(), false);
   }
 
   @Test
   void testJobsRunningWithRecentProgress() {
-    job("Import").type("DATAVALUE_IMPORT").status("RUNNING").lastAlive("1 minute").insert();
-    job("Analytics").cron(DAILY).status("RUNNING").lastAlive("3 hours").insert();
-    job("Finished").type("DATAVALUE_IMPORT").status("SCHEDULED").lastAlive("2 days").insert();
+    job("Import").type(DATAVALUE_IMPORT).status(RUNNING).lastAlive("1 minute").insert();
+    job("Analytics").cron(DAILY).status(RUNNING).lastAlive("3 hours").insert();
+    job("Finished").type(DATAVALUE_IMPORT).status(SCHEDULED).lastAlive("2 days").insert();
 
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, STUCK_RUNNING, false);
   }
@@ -200,10 +239,10 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   @Test
   void testOneOffJobNeverStarted() {
     String neverStarted =
-        job("Old import").type("DATAVALUE_IMPORT").enabled(true).created("2 days").insert();
-    job("New import").type("DATAVALUE_IMPORT").enabled(true).created("1 hour").insert();
+        job("Old import").type(DATAVALUE_IMPORT).enabled(true).created("2 days").insert();
+    job("New import").type(DATAVALUE_IMPORT).enabled(true).created("1 hour").insert();
     job("Done import")
-        .type("DATAVALUE_IMPORT")
+        .type(DATAVALUE_IMPORT)
         .created("2 days")
         .lastExecuted("2 days")
         .lastFinished("2 days")
@@ -215,15 +254,15 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
         null,
         neverStarted,
         "Old import",
-        "DATAVALUE_IMPORT",
+        DATAVALUE_IMPORT.name(),
         false);
   }
 
   @Test
   void testOneOffJobsStartedOrRecent() {
-    job("New import").type("DATAVALUE_IMPORT").enabled(true).created("1 hour").insert();
+    job("New import").type(DATAVALUE_IMPORT).enabled(true).created("1 hour").insert();
     job("Done import")
-        .type("DATAVALUE_IMPORT")
+        .type(DATAVALUE_IMPORT)
         .created("2 days")
         .lastExecuted("2 days")
         .lastFinished("2 days")
@@ -245,9 +284,9 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
 
   @Test
   void testRecurringJobMarkedAsOneOff() {
-    String marked = job("Old cron").cron(DAILY).scheduling("ONCE_ASAP").status("DISABLED").insert();
+    String marked = job("Old cron").cron(DAILY).scheduling(ONCE_ASAP).status(DISABLED).insert();
     // "Run now" on a recurring job sets ONCE_ASAP + SCHEDULED until the run finishes
-    job("Run now").cron(DAILY).scheduling("ONCE_ASAP").enabled(true).status("SCHEDULED").insert();
+    job("Run now").cron(DAILY).scheduling(ONCE_ASAP).enabled(true).status(SCHEDULED).insert();
 
     assertHasDataIntegrityIssues(
         DETAILS_ID_TYPE, RECURRING_MARKED_ONCE, 50, marked, "Old cron", null, true);
@@ -255,8 +294,8 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
 
   @Test
   void testRecurringJobsWithRecurringType() {
-    job("Cron").cron(DAILY).enabled(false).status("DISABLED").insert();
-    job("Delay").delay(20).enabled(true).status("SCHEDULED").insert();
+    job("Cron").cron(DAILY).enabled(false).status(DISABLED).insert();
+    job("Delay").delay(20).enabled(true).status(SCHEDULED).insert();
 
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, RECURRING_MARKED_ONCE, true);
   }
@@ -274,9 +313,14 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     return new JobRow(name);
   }
 
-  /** The default Housekeeping job: enabled, every 20 seconds. */
+  /** The default Housekeeping job, as defined by {@link JobType#HOUSEKEEPING}: enabled. */
   private JobRow housekeeping() {
-    return job("Housekeeping").uid("DHIS2rocks1").type("HOUSEKEEPING").delay(20).enabled(true);
+    JobType.Defaults defaults = HOUSEKEEPING.getDefaults();
+    return job(defaults.name())
+        .uid(defaults.uid().getValue())
+        .type(HOUSEKEEPING)
+        .delay(defaults.delay())
+        .enabled(true);
   }
 
   /**
@@ -286,12 +330,12 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   private final class JobRow {
     private String uid = CodeGenerator.generateUid();
     private final String name;
-    private String type = "ANALYTICS_TABLE";
-    private String scheduling = null;
+    private JobType type = ANALYTICS_TABLE;
+    private SchedulingType scheduling = null;
     private String cron = null;
     private Integer delay = null;
     private boolean enabled = false;
-    private String status = "SCHEDULED";
+    private JobStatus status = SCHEDULED;
     private String created = "1 minute";
     private String lastExecuted = null;
     private String lastFinished = null;
@@ -306,12 +350,12 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
       return this;
     }
 
-    JobRow type(String type) {
+    JobRow type(JobType type) {
       this.type = type;
       return this;
     }
 
-    JobRow scheduling(String scheduling) {
+    JobRow scheduling(SchedulingType scheduling) {
       this.scheduling = scheduling;
       return this;
     }
@@ -331,7 +375,7 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
       return this;
     }
 
-    JobRow status(String status) {
+    JobRow status(JobStatus status) {
       this.status = status;
       return this;
     }
@@ -357,10 +401,10 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     }
 
     String insert() {
-      String schedulingType =
+      SchedulingType schedulingType =
           scheduling != null
               ? scheduling
-              : cron != null ? "CRON" : delay != null ? "FIXED_DELAY" : "ONCE_ASAP";
+              : cron != null ? CRON : delay != null ? FIXED_DELAY : ONCE_ASAP;
       jdbcTemplate.update(
           """
           insert into jobconfiguration (jobconfigurationid, uid, name, created, lastupdated,
@@ -368,19 +412,20 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
             lastexecuted, lastfinished, lastalive)
           values (nextval('hibernate_sequence'), ?, ?,
             now() - ?::interval, now() - ?::interval,
-            ?, ?, ?, ?, ?, ?, 'NOT_STARTED',
+            ?, ?, ?, ?, ?, ?, ?,
             now() - ?::interval, now() - ?::interval, now() - ?::interval)
           """,
           uid,
           name,
           created,
           created,
-          type,
-          schedulingType,
+          type.name(),
+          schedulingType.name(),
           cron,
           delay,
           enabled,
-          status,
+          status.name(),
+          NOT_STARTED.name(),
           lastExecuted,
           lastFinished,
           lastAlive);
