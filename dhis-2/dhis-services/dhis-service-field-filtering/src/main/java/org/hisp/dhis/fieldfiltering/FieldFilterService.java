@@ -32,6 +32,7 @@ package org.hisp.dhis.fieldfiltering;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
@@ -39,6 +40,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -139,6 +141,22 @@ public class FieldFilterService {
     public JavaType refineSerializationType(
         MapperConfig<?> config, Annotated a, JavaType baseType) {
       return baseType;
+    }
+
+    /**
+     * A member-level {@code @JsonIncludeProperties} (on a field or getter) is never honoured by the
+     * field filter. It restricts what plain Jackson writes for a reference (e.g. {@code
+     * Icon.fileResource}), while the field filter selects the properties itself from the {@code
+     * fields} parameter, the same way it ignores type refinement. A class-level
+     * {@code @JsonIncludeProperties} is still honoured.
+     */
+    @Override
+    public JsonIncludeProperties.Value findPropertyInclusionByName(
+        MapperConfig<?> config, Annotated a) {
+      if (a instanceof AnnotatedMember) {
+        return JsonIncludeProperties.Value.all();
+      }
+      return super.findPropertyInclusionByName(config, a);
     }
   }
 
@@ -483,25 +501,33 @@ public class FieldFilterService {
       JsonNode parent, PropertyPath path, List<FieldTransformer> transformers) {
     if (path == null) return; // just to make null checker happy
     if (path.parent() != null) {
-      // need to drill down
-      String name = path.head().toString();
-      JsonNode node = parent.get(name);
-      if (node == null || node.isNull()) return; // done here
-      if (node.isObject()) {
-        applyTransformers(node, path.dropHead(), transformers);
-      } else if (node.isArray()) {
-        PropertyPath subPath = path.dropHead();
-        Iterator<JsonNode> iter = node.elements();
-        while (iter.hasNext()) applyTransformers(iter.next(), subPath, transformers);
-      }
+      drillDownAndApplyTransformers(parent, path, transformers);
     } else {
-      // need to apply the transformers
-      if (!parent.isObject()) return; // must be an object, otherwise ignore
-      String name = path.property().toString();
-      JsonNode target = parent.get(name);
-      if (target == null || target.isNull()) return; // nothing to do here
-      transformers.forEach(t -> t.apply(path, target, parent));
+      applyTransformersToProperty(parent, path, transformers);
     }
+  }
+
+  /** Applies the transformers to the child named by the head of the path (object or array). */
+  private void drillDownAndApplyTransformers(
+      JsonNode parent, PropertyPath path, List<FieldTransformer> transformers) {
+    JsonNode node = parent.get(path.head().toString());
+    if (node == null || node.isNull()) return; // done here
+    PropertyPath subPath = path.dropHead();
+    if (node.isObject()) {
+      applyTransformers(node, subPath, transformers);
+    } else if (node.isArray()) {
+      Iterator<JsonNode> iter = node.elements();
+      while (iter.hasNext()) applyTransformers(iter.next(), subPath, transformers);
+    }
+  }
+
+  /** Applies the transformers to the property the path ends in. */
+  private static void applyTransformersToProperty(
+      JsonNode parent, PropertyPath path, List<FieldTransformer> transformers) {
+    if (!parent.isObject()) return; // must be an object, otherwise ignore
+    JsonNode target = parent.get(path.property().toString());
+    if (target == null || target.isNull()) return; // nothing to do here
+    transformers.forEach(t -> t.apply(path, target, parent));
   }
 
   private SimpleFilterProvider createSimpleFilterProvider(
