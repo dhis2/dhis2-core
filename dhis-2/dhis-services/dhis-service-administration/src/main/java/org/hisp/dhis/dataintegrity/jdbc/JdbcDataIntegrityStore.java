@@ -27,12 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataintegrity.hibernate;
+package org.hisp.dhis.dataintegrity.jdbc;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import java.sql.Array;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -41,27 +40,29 @@ import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.hisp.dhis.dataintegrity.DataIntegrityStore;
 import org.hisp.dhis.dataintegrity.DataIntegritySummary;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * As we want each check to be its own transaction the @{@link Transactional} annotation is used on
- * the store and not the service level in this case.
+ * Runs the SQL of data integrity checks as plain JDBC statements, so the SQL reaches the database
+ * exactly as written in the YAML declarations (no parameter parsing of {@code :} or {@code ?}).
+ *
+ * <p>As we want each check to be its own transaction the @{@link Transactional} annotation is used
+ * on the store and not the service level in this case.
  *
  * @author Jan Bernitt
  */
 @Repository
 @RequiredArgsConstructor
-public class HibernateDataIntegrityStore implements DataIntegrityStore {
-  @PersistenceContext private final EntityManager entityManager;
+public class JdbcDataIntegrityStore implements DataIntegrityStore {
+  private final JdbcTemplate jdbcTemplate;
 
   @Override
   @Transactional(readOnly = true)
   public DataIntegritySummary querySummary(DataIntegrityCheck check, String sql) {
     Date startTime = new Date();
-    // Note! that the SQL here can be touching any table so we cannot sync it
-    Object summary =
-        entityManager.createNativeQuery(sql).getResultStream().findFirst().orElse(null);
+    Object[] summary = jdbcTemplate.query(sql, rs -> rs.next() ? getRow(rs) : null);
     return new DataIntegritySummary(
         check, startTime, new Date(), null, parseCount(summary), parsePercentage(summary));
   }
@@ -70,50 +71,59 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore {
   @Transactional(readOnly = true)
   public DataIntegrityDetails queryDetails(DataIntegrityCheck check, String sql) {
     Date startTime = new Date();
-    // Note! that the SQL here can be touching any table so we cannot sync it
-    @SuppressWarnings("unchecked")
-    List<Object[]> rows = entityManager.createNativeQuery(sql).getResultList();
-    return new DataIntegrityDetails(
-        check,
-        startTime,
-        new Date(),
-        null,
-        rows.stream()
-            .map(
-                row ->
-                    new DataIntegrityIssue(
-                        getIndex(row, 0), getIndex(row, 1), getIndex(row, 2), getRefs(row, 3)))
-            .collect(toUnmodifiableList()));
+    List<DataIntegrityIssue> issues =
+        jdbcTemplate.query(
+            sql,
+            (rs, rowNum) -> {
+              int columns = rs.getMetaData().getColumnCount();
+              return new DataIntegrityIssue(
+                  getString(rs, columns, 1),
+                  getString(rs, columns, 2),
+                  getString(rs, columns, 3),
+                  getRefs(rs, columns, 4));
+            });
+    return new DataIntegrityDetails(check, startTime, new Date(), null, List.copyOf(issues));
   }
 
-  private static String getIndex(Object[] row, int index) {
-    return row.length <= index ? null : (String) row[index];
+  private static Object[] getRow(ResultSet rs) throws SQLException {
+    Object[] row = new Object[rs.getMetaData().getColumnCount()];
+    for (int i = 0; i < row.length; i++) {
+      row[i] = rs.getObject(i + 1);
+    }
+    return row;
   }
 
-  private static List<String> getRefs(Object[] row, int index) {
-    return row.length <= index ? null : List.of((String[]) row[index]);
+  private static String getString(ResultSet rs, int columns, int column) throws SQLException {
+    return columns < column ? null : rs.getString(column);
   }
 
-  private static Double parsePercentage(Object value) {
-    if (!(value instanceof Object[])) {
+  private static List<String> getRefs(ResultSet rs, int columns, int column) throws SQLException {
+    if (columns < column) {
       return null;
     }
-    Object[] row = (Object[]) value;
-    if (row.length < 2 || row[1] == null) {
+    Array refs = rs.getArray(column);
+    return refs == null ? null : List.of((String[]) refs.getArray());
+  }
+
+  private static Double parsePercentage(Object[] row) {
+    if (row == null || row.length < 2 || row[1] == null) {
       return null;
     }
-    value = row[1];
+    Object value = row[1];
     if (value instanceof String) {
       return Double.parseDouble(value.toString().replace("%", ""));
     }
     return ((Number) value).doubleValue();
   }
 
-  private static int parseCount(Object value) {
-    if (value instanceof Object[]) {
-      Object[] row = (Object[]) value;
-      return row.length == 0 ? -1 : parseCount(row[0]);
+  private static int parseCount(Object[] row) {
+    if (row == null) {
+      return 0;
     }
+    return row.length == 0 ? -1 : parseCount(row[0]);
+  }
+
+  private static int parseCount(Object value) {
     if (value == null) {
       return 0;
     }
