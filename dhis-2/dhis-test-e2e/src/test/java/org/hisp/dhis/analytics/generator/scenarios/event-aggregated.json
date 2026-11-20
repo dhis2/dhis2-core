@@ -916,6 +916,48 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "legendValueAndDimensionAverageFilter",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&dimension=A03MvHHogjR.a3kGcGDCuk6:LT:6&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=AVERAGE&relativePeriodDate=2026-11-20",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "legendValueAndDimensionCountFilter",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&dimension=A03MvHHogjR.a3kGcGDCuk6:LT:6&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=COUNT&relativePeriodDate=2026-11-20",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "legendValueAndDimensionSumFilter",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&dimension=A03MvHHogjR.a3kGcGDCuk6:LT:6&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=SUM&relativePeriodDate=2026-11-20",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "legendValueAndDimensionAverageDimension",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&filter=A03MvHHogjR.a3kGcGDCuk6:LT:6&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=AVERAGE&relativePeriodDate=2026-11-20",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "legendValueAndDimensionCountDimension",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&filter=A03MvHHogjR.a3kGcGDCuk6:LT:6&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=COUNT&relativePeriodDate=2026-11-20",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "legendValueAndDimensionSumDimension",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&filter=A03MvHHogjR.a3kGcGDCuk6:LT:6&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=SUM&relativePeriodDate=2026-11-20",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }
