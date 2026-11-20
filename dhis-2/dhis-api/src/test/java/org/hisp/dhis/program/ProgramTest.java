@@ -205,7 +205,6 @@ class ProgramTest {
     assertTrue(copy.getProgramRuleVariables().isEmpty());
     assertTrue(copy.getProgramStages().isEmpty());
     assertTrue(copy.getTrackedEntityAttributes().isEmpty());
-    assertTrue(copy.getUserRoles().isEmpty());
   }
 
   @Test
@@ -242,7 +241,7 @@ class ProgramTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(Program.class);
-    assertEquals(69, allClassFieldsIncludingInherited.length);
+    assertEquals(68, allClassFieldsIncludingInherited.length);
   }
 
   public static boolean notEqualsOrBothNull(String original, String copy) {
@@ -294,7 +293,6 @@ class ProgramTest {
     p.setSkipOffline(true);
     p.setTrackedEntityType(new TrackedEntityType("TET", "description"));
     p.setUseFirstStageDuringRegistration(false);
-    p.setUserRoles(Collections.emptySet());
     p.setEnrollmentLabel("Enrollment label");
     p.setEnrollmentsLabel("Enrollments label");
     p.setNoteLabel("Note label");
@@ -354,7 +352,6 @@ class ProgramTest {
     p.setRelatedProgram(null);
     p.setStyle(null);
     p.setTrackedEntityType(null);
-    p.setUserRoles(null);
     return p;
   }
 

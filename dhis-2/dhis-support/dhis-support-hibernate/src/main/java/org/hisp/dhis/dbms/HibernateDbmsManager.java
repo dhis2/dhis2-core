@@ -157,8 +157,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("orgunitgroupsetdimension_items");
     emptyTable("orgunitgroupsetdimension");
 
-    emptyTable("program_userroles");
-
     emptyTable("users_catdimensionconstraints");
     emptyTable("users_cogsdimensionconstraints");
     emptyTable("userrolemembers");

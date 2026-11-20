@@ -114,7 +114,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.Sharing;
 
 /**
@@ -264,13 +263,6 @@ public class Program extends BaseMetadataObject
   @OrderColumn(name = "sort_order")
   @ListIndexBase(1)
   private List<ProgramTrackedEntityAttribute> programAttributes = new ArrayList<>();
-
-  @ManyToMany
-  @JoinTable(
-      name = "program_userroles",
-      joinColumns = @JoinColumn(name = "programid"),
-      inverseJoinColumns = @JoinColumn(name = "userroleid"))
-  private Set<UserRole> userRoles = new HashSet<>();
 
   @OneToMany(mappedBy = "program")
   private Set<ProgramIndicator> programIndicators = new HashSet<>();
@@ -1207,18 +1199,6 @@ public class Program extends BaseMetadataObject
 
   @JsonProperty
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "userRoles", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "userRole", namespace = DxfNamespaces.DXF_2_0)
-  public Set<UserRole> getUserRoles() {
-    return userRoles;
-  }
-
-  public void setUserRoles(Set<UserRole> userRoles) {
-    this.userRoles = userRoles;
-  }
-
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "programIndicators", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "programIndicator", namespace = DxfNamespaces.DXF_2_0)
   public Set<ProgramIndicator> getProgramIndicators() {
@@ -1593,7 +1573,6 @@ public class Program extends BaseMetadataObject
     copy.setStyle(original.getStyle());
     copy.setTrackedEntityType(original.getTrackedEntityType());
     copy.setUseFirstStageDuringRegistration(original.getUseFirstStageDuringRegistration());
-    copy.setUserRoles(copyOf(original.getUserRoles()));
     copy.setEnrollmentLabel(original.getEnrollmentLabel());
     copy.setEnrollmentsLabel(original.getEnrollmentsLabel());
     copy.setNoteLabel(original.getNoteLabel());
