@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.metadata.sync;
 
 import static org.hisp.dhis.security.Authorities.F_METADATA_MANAGE;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -47,11 +48,13 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
+import org.hisp.dhis.webapi.security.RejectCrossOriginGet;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -63,6 +66,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Document(
     entity = Metadata.class,
     classifiers = {"team:platform", "purpose:metadata"})
+@Slf4j
 @RestController
 @RequestMapping("/api/metadata/sync")
 public class MetadataSyncController {
@@ -71,7 +75,7 @@ public class MetadataSyncController {
   @Autowired private MetadataSyncService metadataSyncService;
 
   @RequiresAuthority(anyOf = F_METADATA_MANAGE)
-  @GetMapping
+  @PostMapping
   public ResponseEntity<MetadataSyncSummary> metadataSync()
       throws MetadataSyncException,
           BadRequestException,
@@ -115,6 +119,23 @@ public class MetadataSyncController {
     }
 
     return new ResponseEntity<>(metadataSyncSummary, HttpStatus.OK);
+  }
+
+  /**
+   * @deprecated use {@code POST /api/metadata/sync}; GET is still accepted for one release unless
+   *     the browser sent it as a cross-origin navigation or resource load
+   */
+  @Deprecated(since = "2.44", forRemoval = true)
+  @RequiresAuthority(anyOf = F_METADATA_MANAGE)
+  @GetMapping
+  @RejectCrossOriginGet
+  public ResponseEntity<MetadataSyncSummary> metadataSyncWithGet()
+      throws MetadataSyncException,
+          BadRequestException,
+          MetadataImportConflictException,
+          ForbiddenException {
+    log.warn("GET /api/metadata/sync is deprecated and will be removed, use POST instead");
+    return metadataSync();
   }
 
   private void validateSyncSummaryResponse(MetadataSyncSummary metadataSyncSummary)

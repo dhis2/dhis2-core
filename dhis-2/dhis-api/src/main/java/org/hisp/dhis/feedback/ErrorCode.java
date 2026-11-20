@@ -50,6 +50,10 @@ public enum ErrorCode {
   E1005("API query object not found"),
   E1006("API request not permitted for the current user"),
   E1007("Feature is disabled by configuration, requires `{0} = on` in dhis.conf"),
+  E1008(
+      "Request rejected: this endpoint changes server state and does not accept GET requests from"
+          + " cross-origin navigations or resource loads. Send the request from the same origin,"
+          + " or use POST where the endpoint supports it."),
 
   /* Basic metadata */
   E1100("Data element not found or not accessible: `{0}`"),

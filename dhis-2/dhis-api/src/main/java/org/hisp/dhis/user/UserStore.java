@@ -251,6 +251,8 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    *
    * @param actingUser the acting/current user
    * @param activeUsername the username of the user to set as active
+   * @throws IllegalArgumentException if {@code activeUsername} is not a linked account of the
+   *     acting user, in which case nothing is written
    */
   void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
 

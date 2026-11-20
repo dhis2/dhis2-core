@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
@@ -88,6 +89,22 @@ class UserLastLoginTest extends PostgresIntegrationTestBase {
 
     userService.setActiveLinkedAccounts(userA.getUsername(), userA.getUsername());
     assertEquals(userA.getUid(), userService.getUserByOpenId(OPEN_ID).getUid());
+  }
+
+  @Test
+  void rejectedSwitchLeavesLinkedAccountsUnchanged() {
+    User actor = addUserWithOpenId("A");
+    User active = addUserWithOpenId("B");
+    userService.setActiveLinkedAccounts(actor.getUsername(), active.getUsername());
+    Date lastLogin = userService.getUser(active.getUid()).getLastLogin();
+    String actorUsername = actor.getUsername();
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> userService.setActiveLinkedAccounts(actorUsername, "unlinked"));
+
+    assertEquals(lastLogin, userService.getUser(active.getUid()).getLastLogin());
+    assertEquals(active.getUid(), userService.getUserByOpenId(OPEN_ID).getUid());
   }
 
   @Test
