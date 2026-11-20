@@ -39,6 +39,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
@@ -90,12 +91,27 @@ class JdbcTemplateQueryAPI {
 
     @Override
     public <T> Stream<T> stream(@Nonnull Class<T> of) {
-      @SuppressWarnings("unchecked")
-      RowMapper<T> mapper =
-          of == Object[].class
-              ? (RowMapper<T>) new ObjectArrayRowMapper()
-              : new BeanPropertyRowMapper<>(of);
-      return stream(mapper);
+      return stream(rowMapper(of));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> RowMapper<T> rowMapper(Class<T> of) {
+      if (of == Object[].class) {
+        return (RowMapper<T>) new ObjectArrayRowMapper();
+      }
+      if (of == Number.class) {
+        // SingleColumnRowMapper reads Number with getDouble; keep the column's own type
+        return (rs, rowNum) -> (T) rs.getObject(1);
+      }
+      if (isSingleColumnType(of)) {
+        return new SingleColumnRowMapper<>(of);
+      }
+      return new BeanPropertyRowMapper<>(of);
+    }
+
+    /** Types read from the only column of a row, as the Hibernate query API does. */
+    private static boolean isSingleColumnType(Class<?> of) {
+      return of == String.class || of == Boolean.class || Number.class.isAssignableFrom(of);
     }
 
     @Override
