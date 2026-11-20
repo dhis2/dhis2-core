@@ -32,14 +32,18 @@ package org.hisp.dhis.dataintegrity.jdbc;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.hisp.dhis.dataintegrity.DataIntegrityStore;
 import org.hisp.dhis.dataintegrity.DataIntegritySummary;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,30 +64,57 @@ public class JdbcDataIntegrityStore implements DataIntegrityStore {
   private final JdbcTemplate jdbcTemplate;
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional(readOnly = true, noRollbackFor = DataAccessException.class)
   public DataIntegritySummary querySummary(DataIntegrityCheck check, String sql) {
     Date startTime = new Date();
-    Object[] summary = jdbcTemplate.query(sql, rs -> rs.next() ? getRow(rs) : null);
+    Object[] summary =
+        inSavepoint(() -> jdbcTemplate.query(sql, rs -> rs.next() ? getRow(rs) : null));
     return new DataIntegritySummary(
         check, startTime, new Date(), null, parseCount(summary), parsePercentage(summary));
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional(readOnly = true, noRollbackFor = DataAccessException.class)
   public DataIntegrityDetails queryDetails(DataIntegrityCheck check, String sql) {
     Date startTime = new Date();
     List<DataIntegrityIssue> issues =
-        jdbcTemplate.query(
-            sql,
-            (rs, rowNum) -> {
-              int columns = rs.getMetaData().getColumnCount();
-              return new DataIntegrityIssue(
-                  getString(rs, columns, 1),
-                  getString(rs, columns, 2),
-                  getString(rs, columns, 3),
-                  getRefs(rs, columns, 4));
-            });
+        inSavepoint(
+            () ->
+                jdbcTemplate.query(
+                    sql,
+                    (rs, rowNum) -> {
+                      int columns = rs.getMetaData().getColumnCount();
+                      return new DataIntegrityIssue(
+                          getString(rs, columns, 1),
+                          getString(rs, columns, 2),
+                          getString(rs, columns, 3),
+                          getRefs(rs, columns, 4));
+                    }));
     return new DataIntegrityDetails(check, startTime, new Date(), null, List.copyOf(issues));
+  }
+
+  /**
+   * Runs a check query within a savepoint of the current transaction. All checks of a run share the
+   * data integrity service's transaction, and a failing query aborts a PostgreSQL transaction, so
+   * without this one failing check would make all later checks of the run fail as well. The failure
+   * is still thrown, but as the transaction is rolled back to the savepoint and is not marked
+   * rollback-only (see {@code noRollbackFor}), later checks and the run itself continue.
+   */
+  private <T> T inSavepoint(Supplier<T> query) {
+    return jdbcTemplate.execute(
+        (ConnectionCallback<T>)
+            connection -> {
+              Savepoint savepoint = connection.setSavepoint();
+              T result;
+              try {
+                result = query.get();
+              } catch (RuntimeException ex) {
+                connection.rollback(savepoint);
+                throw ex;
+              }
+              connection.releaseSavepoint(savepoint);
+              return result;
+            });
   }
 
   private static Object[] getRow(ResultSet rs) throws SQLException {
