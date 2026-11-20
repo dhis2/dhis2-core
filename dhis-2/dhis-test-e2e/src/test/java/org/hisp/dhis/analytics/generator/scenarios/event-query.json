@@ -552,6 +552,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "stageDataElementInSeveralStagesWithoutItems",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:DiszpKrYNg8,pe:2022,A03MvHHogjR.X8zyunlgUfM&headers=psi,ps,ouname,eventdate,A03MvHHogjR.X8zyunlgUfM&totalPages=true&pageSize=100&page=1&asc=eventdate",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

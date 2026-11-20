@@ -1224,7 +1224,7 @@ class EventQueryParamsTest extends TestBase {
   }
 
   @Test
-  void testGetStageOfStageSpecificItemsWithoutFilterWithBareEventStatusItem() {
+  void testGetStageOfUnfilteredStageItemsWithBareEventStatusItem() {
     BaseDimensionalItemObject item =
         new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
     QueryItem qi = new QueryItem(item, prA, null, ValueType.TEXT, AggregationType.NONE, null);
@@ -1232,11 +1232,11 @@ class EventQueryParamsTest extends TestBase {
 
     EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
 
-    assertEquals(Optional.of(psA), params.getStageOfStageSpecificItemsWithoutFilter());
+    assertEquals(Optional.of(psA), params.getStageOfUnfilteredStageItems());
   }
 
   @Test
-  void testGetStageOfStageSpecificItemsWithoutFilterWithFilteredEventStatusItem() {
+  void testGetStageOfUnfilteredStageItemsWithFilteredEventStatusItem() {
     BaseDimensionalItemObject item =
         new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
     QueryItem qi = new QueryItem(item, prA, null, ValueType.TEXT, AggregationType.NONE, null);
@@ -1245,24 +1245,42 @@ class EventQueryParamsTest extends TestBase {
 
     EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
 
-    assertEquals(Optional.empty(), params.getStageOfStageSpecificItemsWithoutFilter());
+    assertEquals(Optional.empty(), params.getStageOfUnfilteredStageItems());
   }
 
   @Test
-  void testGetStageOfStageSpecificItemsWithoutFilterWithRegularDataElementWithStage() {
+  void testGetStageOfUnfilteredStageItemsWithStageDataElementWithoutFilter() {
     QueryItem qi = new QueryItem(deA);
     qi.setProgramStage(psA);
 
     EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
 
-    assertEquals(Optional.empty(), params.getStageOfStageSpecificItemsWithoutFilter());
+    assertEquals(Optional.of(psA), params.getStageOfUnfilteredStageItems());
   }
 
   @Test
-  void testGetStageOfStageSpecificItemsWithoutFilterWithNoItems() {
+  void testGetStageOfUnfilteredStageItemsWithFilteredStageDataElement() {
+    QueryItem qi = new QueryItem(deA);
+    qi.setProgramStage(psA);
+    qi.addFilter(new QueryFilter(QueryOperator.GT, "5"));
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    assertEquals(Optional.empty(), params.getStageOfUnfilteredStageItems());
+  }
+
+  @Test
+  void testGetStageOfUnfilteredStageItemsWithDataElementWithoutStage() {
+    EventQueryParams params = new EventQueryParams.Builder().addItem(new QueryItem(deA)).build();
+
+    assertEquals(Optional.empty(), params.getStageOfUnfilteredStageItems());
+  }
+
+  @Test
+  void testGetStageOfUnfilteredStageItemsWithNoItems() {
     EventQueryParams params = new EventQueryParams.Builder().build();
 
-    assertEquals(Optional.empty(), params.getStageOfStageSpecificItemsWithoutFilter());
+    assertEquals(Optional.empty(), params.getStageOfUnfilteredStageItems());
   }
 
   @Test
