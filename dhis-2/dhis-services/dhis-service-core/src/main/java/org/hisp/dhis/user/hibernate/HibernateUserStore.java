@@ -657,11 +657,16 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       @Nonnull String actingUsername, @Nonnull String activeUsername) {
 
     User actionUser = getUserByUsername(actingUsername);
+    List<User> linkedUserAccounts = getLinkedUserAccounts(actionUser);
+    if (linkedUserAccounts.stream().noneMatch(u -> u.getUsername().equals(activeUsername))) {
+      throw new IllegalArgumentException(
+          "User '%s' is not a linked account of user '%s'"
+              .formatted(activeUsername, actingUsername));
+    }
+
     Instant now = Instant.now();
     Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
     Instant oneHourInTheFuture = now.plus(1, ChronoUnit.HOURS);
-
-    List<User> linkedUserAccounts = getLinkedUserAccounts(actionUser);
     for (User user : linkedUserAccounts) {
       updateLastLogin(
           user,

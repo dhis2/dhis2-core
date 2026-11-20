@@ -40,6 +40,7 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.webapi.security.CrossOriginGetGuard;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
@@ -54,12 +55,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *
  * <p>Logout with GET is deprecated: POST is the supported method. A GET logout of an authenticated
  * session is rejected with 403 when the browser sent it as a cross-origin navigation or resource
- * load, and logs a deprecation warning otherwise. A GET logout without an authenticated session has
- * no session to end and passes unchanged; this keeps the redirect to the logout URL working after
- * the session was expired by the concurrent session control. Such a request can still come from
- * another site, for example when {@code SameSite=Strict} kept the browser from sending the session
- * cookie, so {@link org.hisp.dhis.webapi.security.SessionCookieClearingLogoutHandler} sends no
- * cookie deletions for it.
+ * load, and logs a deprecation warning otherwise. An unauthenticated GET only redirects to login or
+ * an allowed mobile callback. It must not run logout handlers: an anonymous session can still hold
+ * a saved request or an in-progress login.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -72,13 +70,19 @@ public class GetLogoutGuardFilter extends OncePerRequestFilter {
   /** Matches logout requests sent with GET. */
   @Nonnull private final RequestMatcher getLogoutRequestMatcher;
 
+  private final DhisOidcLogoutSuccessHandler logoutSuccessHandler;
+
   @Override
   protected void doFilterInternal(
       @Nonnull HttpServletRequest request,
       @Nonnull HttpServletResponse response,
       @Nonnull FilterChain filterChain)
       throws ServletException, IOException {
-    if (getLogoutRequestMatcher.matches(request) && isAuthenticated()) {
+    if (getLogoutRequestMatcher.matches(request)) {
+      if (!isAuthenticated()) {
+        logoutSuccessHandler.redirectAfterAnonymousLogout(request, response);
+        return;
+      }
       if (!CrossOriginGetGuard.isAllowed(request)) {
         CrossOriginGetGuard.logRejected(request);
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);

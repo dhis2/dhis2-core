@@ -47,6 +47,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
@@ -154,8 +155,24 @@ class LogoutTest extends AuthenticationApiTestBase {
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
 
     assertEquals(302, response.getStatus());
+    assertEquals("/login/", response.getRedirectedUrl());
     assertTrue(
         response.getHeaders("Set-Cookie").isEmpty(), response.getHeaders("Set-Cookie")::toString);
+  }
+
+  @Test
+  void anonymousLogoutPreservesPendingLogin() throws Exception {
+    MockHttpSession pendingLogin = new MockHttpSession();
+    pendingLogin.setAttribute("login-state", "pending");
+    MockHttpServletResponse response =
+        mvc.perform(get("/dhis" + LOGOUT_URL).contextPath("/dhis").session(pendingLogin))
+            .andReturn()
+            .getResponse();
+
+    assertEquals("/dhis/login/", response.getRedirectedUrl());
+    assertFalse(pendingLogin.isInvalid());
+    assertEquals("pending", pendingLogin.getAttribute("login-state"));
+    assertTrue(response.getHeaders("Set-Cookie").isEmpty());
   }
 
   static Stream<Arguments> logoutWithoutSessionHeaders() {

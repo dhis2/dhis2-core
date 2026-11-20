@@ -455,7 +455,8 @@ public class DhisWebApiWebSecurityConfig {
                 .logoutSuccessHandler(dhisOidcLogoutSuccessHandler)
                 .addLogoutHandler(new SessionCookieClearingLogoutHandler()));
     if (!csrfEnabled) {
-      http.addFilterBefore(new GetLogoutGuardFilter(getLogout), LogoutFilter.class);
+      http.addFilterBefore(
+          new GetLogoutGuardFilter(getLogout, dhisOidcLogoutSuccessHandler), LogoutFilter.class);
     }
 
     /// SESSION ////////////////
