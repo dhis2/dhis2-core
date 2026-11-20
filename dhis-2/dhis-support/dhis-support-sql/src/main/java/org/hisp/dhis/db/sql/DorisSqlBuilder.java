@@ -31,6 +31,7 @@ package org.hisp.dhis.db.sql;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -551,6 +552,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
         where t.table_schema = database() \
         and t.table_name = %s;""",
         singleQuote(name));
+  }
+
+  @Override
+  public String tablesExist(Collection<String> names) {
+    return String.format(
+        """
+        select t.table_name from information_schema.tables t \
+        where t.table_schema = database() \
+        and t.table_name in (%s);""",
+        singleQuotedCommaDelimited(names));
   }
 
   @Override
