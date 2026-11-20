@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller.datasummary;
 
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
+import static org.hisp.dhis.webapi.utils.PrometheusTextBuilder.escapeLabelValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
@@ -91,15 +92,20 @@ public class DataSummaryController {
       if (systemInfo.getBuildTime() != null) {
         buildTime = systemInfo.getBuildTime().toInstant().getEpochSecond();
       }
-      metrics.append(
+      metrics.appendLine(
           String.format(
-              "%s{version=\"%s\", commit=\"%s\"} %s%n",
-              metricName, systemInfo.getVersion(), systemInfo.getRevision(), buildTime));
+              "%s{version=\"%s\", commit=\"%s\"} %s",
+              metricName,
+              escapeLabelValue(systemInfo.getVersion()),
+              escapeLabelValue(systemInfo.getRevision()),
+              buildTime));
 
       metrics.addHelp("data_summary_system_id", "System ID");
       metrics.addType("data_summary_system_id");
-      metrics.append(
-          String.format("data_summary_system_id{system_id=\"%s\"} 1%n", systemInfo.getSystemId()));
+      metrics.appendLine(
+          String.format(
+              "data_summary_system_id{system_id=\"%s\"} 1",
+              escapeLabelValue(systemInfo.getSystemId())));
     }
   }
 
@@ -197,11 +203,11 @@ public class DataSummaryController {
 
     metrics.addHelp("data_summary_active_sessions", "Number of active HTTP sessions");
     metrics.addType("data_summary_active_sessions");
-    metrics.append(String.format("data_summary_active_sessions %d%n", gauges.sessions()));
+    metrics.appendLine(String.format("data_summary_active_sessions %d", gauges.sessions()));
 
     metrics.addHelp(
         "data_summary_active_session_users", "Number of distinct users with an active session");
     metrics.addType("data_summary_active_session_users");
-    metrics.append(String.format("data_summary_active_session_users %d%n", gauges.users()));
+    metrics.appendLine(String.format("data_summary_active_session_users %d", gauges.users()));
   }
 }

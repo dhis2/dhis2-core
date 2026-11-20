@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,10 @@
 package org.hisp.dhis.webapi.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -72,5 +75,50 @@ class PrometheusTextBuilderTest {
         test_metric{key="key1"} 1
         """;
     assertEquals(expected, builder.getMetrics());
+  }
+
+  @Test
+  void addMetricsSkipsNullValues() {
+    PrometheusTextBuilder builder = new PrometheusTextBuilder();
+    Map<String, Integer> map = new HashMap<>();
+    map.put("key1", null);
+    builder.addMetrics(map, "test_metric", "key", "Test help");
+    assertFalse(builder.getMetrics().contains("null"));
+  }
+
+  @Test
+  void updateMetricsWithLabelsMapSkipsNullValues() {
+    PrometheusTextBuilder builder = new PrometheusTextBuilder();
+    Map<String, Integer> map = new HashMap<>();
+    map.put("key1", null);
+    builder.updateMetricsWithLabelsMap(
+        map, "test_metric", Map.of("key1", "key=\"key1\""), "Test help", "gauge");
+    assertFalse(builder.getMetrics().contains("null"));
+  }
+
+  @Test
+  void addMetricsEscapesLabelValues() {
+    PrometheusTextBuilder builder = new PrometheusTextBuilder();
+    builder.addMetrics(Map.of("a\"b\\c\nd", 1), "test_metric", "key", "Test help");
+    assertTrue(builder.getMetrics().contains("test_metric{key=\"a\\\"b\\\\c\\nd\"} 1\n"));
+  }
+
+  @Test
+  void appendLineUsesUnixLineSeparator() {
+    PrometheusTextBuilder builder = new PrometheusTextBuilder();
+    builder.appendLine("test_metric 1");
+    assertEquals("test_metric 1\n", builder.getMetrics());
+  }
+
+  @Test
+  void escapeLabelValueMapsNullToEmpty() {
+    assertEquals("", PrometheusTextBuilder.escapeLabelValue(null));
+  }
+
+  @Test
+  void helpLineEscapesNewline() {
+    PrometheusTextBuilder builder = new PrometheusTextBuilder();
+    builder.addHelp("test_metric", "line1\nline2");
+    assertEquals("# HELP test_metric line1\\nline2\n", builder.getMetrics());
   }
 }
