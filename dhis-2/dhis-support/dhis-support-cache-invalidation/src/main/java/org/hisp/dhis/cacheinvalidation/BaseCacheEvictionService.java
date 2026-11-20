@@ -36,9 +36,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.cache.QueryCacheManager;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
@@ -49,26 +46,14 @@ public class BaseCacheEvictionService {
 
   @Autowired protected QueryCacheManager queryCacheManager;
 
-  @Autowired protected IdentifiableObjectManager idObjectManager;
-
-  @Autowired protected TrackedEntityAttributeService trackedEntityAttributeService;
-
-  @Autowired protected PeriodService periodService;
-
   public BaseCacheEvictionService(
       SessionFactory sessionFactory,
       PaginationCacheManager paginationCacheManager,
-      QueryCacheManager queryCacheManager,
-      IdentifiableObjectManager idObjectManager,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      PeriodService periodService) {
+      QueryCacheManager queryCacheManager) {
 
     this.sessionFactory = sessionFactory;
     this.paginationCacheManager = paginationCacheManager;
     this.queryCacheManager = queryCacheManager;
-    this.idObjectManager = idObjectManager;
-    this.trackedEntityAttributeService = trackedEntityAttributeService;
-    this.periodService = periodService;
   }
 
   protected void tryFetchNewEntity(Serializable entityId, Class<?> entityClass) {

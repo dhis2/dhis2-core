@@ -39,16 +39,14 @@ import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.cacheinvalidation.BaseCacheEvictionService;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -72,17 +70,8 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
       SessionFactory sessionFactory,
       PaginationCacheManager paginationCacheManager,
       QueryCacheManager queryCacheManager,
-      IdentifiableObjectManager idObjectManager,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      PeriodService periodService,
       @Qualifier("cacheInvalidationServerId") String serverInstanceId) {
-    super(
-        sessionFactory,
-        paginationCacheManager,
-        queryCacheManager,
-        idObjectManager,
-        trackedEntityAttributeService,
-        periodService);
+    super(sessionFactory, paginationCacheManager, queryCacheManager);
 
     this.serverInstanceId = serverInstanceId;
   }
@@ -171,56 +160,52 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
     }
   }
 
+  /**
+   * The composite ids below reference their entities by primary key only. Hibernate reads nothing
+   * but those keys from a composite id, so the entities are not loaded: loading them checks sharing
+   * for the current user, and the Redis listener thread has no authenticated user.
+   */
   private Serializable getCompleteDataSetRegistrationId(String idPart) {
     String[] parts = idPart.split(";");
-    long dataSetId = Long.parseLong(parts[0]);
-    long periodId = Long.parseLong(parts[1]);
-    long orgUnitID = Long.parseLong(parts[2]);
-    long attributeOptionComboId = Long.parseLong(parts[3]);
-
-    DataSet dataSet = idObjectManager.get(DataSet.class, dataSetId);
-    Period period = periodService.getPeriod(periodId);
-    OrganisationUnit organisationUnit = idObjectManager.get(OrganisationUnit.class, orgUnitID);
-    CategoryOptionCombo categoryOptionCombo =
-        idObjectManager.get(CategoryOptionCombo.class, attributeOptionComboId);
 
     return new CompleteDataSetRegistration(
-        dataSet, period, organisationUnit, categoryOptionCombo, false);
+        withId(new DataSet(), parts[0]),
+        periodWithId(parts[1]),
+        withId(new OrganisationUnit(), parts[2]),
+        withId(new CategoryOptionCombo(), parts[3]),
+        false);
   }
 
-  private Serializable getDataValueId(String entityIds) {
-    String[] parts = entityIds.split(";");
-
-    long dataElementId = Long.parseLong(parts[0]);
-    long periodId = Long.parseLong(parts[1]);
-    long organisationUnitId = Long.parseLong(parts[2]);
-    long categoryOptionComboId = Long.parseLong(parts[3]);
-    long attributeOptionComboId = Long.parseLong(parts[4]);
-
-    DataElement dataElement = idObjectManager.get(DataElement.class, dataElementId);
-    OrganisationUnit organisationUnit =
-        idObjectManager.get(OrganisationUnit.class, organisationUnitId);
-    CategoryOptionCombo categoryOptionCombo =
-        idObjectManager.get(CategoryOptionCombo.class, categoryOptionComboId);
-    CategoryOptionCombo attributeOptionCombo =
-        idObjectManager.get(CategoryOptionCombo.class, attributeOptionComboId);
-    Period period = periodService.getPeriod(periodId);
+  private Serializable getDataValueId(String idPart) {
+    String[] parts = idPart.split(";");
 
     return new DataValue(
-        dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo);
+        withId(new DataElement(), parts[0]),
+        periodWithId(parts[1]),
+        withId(new OrganisationUnit(), parts[2]),
+        withId(new CategoryOptionCombo(), parts[3]),
+        withId(new CategoryOptionCombo(), parts[4]));
   }
 
-  private Serializable getTrackedEntityAttributeValueId(String trackedEntityIds) {
-    String[] parts = trackedEntityIds.split(";");
+  private Serializable getTrackedEntityAttributeValueId(String idPart) {
+    String[] parts = idPart.split(";");
 
-    long trackedEntityAttributeId = Long.parseLong(parts[0]);
-    long trackedEntityId = Long.parseLong(parts[1]);
+    TrackedEntity trackedEntity = new TrackedEntity();
+    trackedEntity.setId(Long.parseLong(parts[1]));
 
-    TrackedEntityAttribute trackedEntityAttribute =
-        trackedEntityAttributeService.getTrackedEntityAttribute(trackedEntityAttributeId);
-    TrackedEntity trackedEntity = idObjectManager.get(TrackedEntity.class, trackedEntityId);
+    return new TrackedEntityAttributeValue(
+        withId(new TrackedEntityAttribute(), parts[0]), trackedEntity);
+  }
 
-    return new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity);
+  private static <T extends IdentifiableObject> T withId(T object, String id) {
+    object.setId(Long.parseLong(id));
+    return object;
+  }
+
+  private static Period periodWithId(String id) {
+    Period period = new Period();
+    period.setId(Long.parseLong(id));
+    return period;
   }
 
   @Override
