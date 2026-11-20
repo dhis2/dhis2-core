@@ -47,6 +47,8 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -113,7 +115,8 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
 
   @Test
   void testHousekeepingCrashedWhileRunning() {
-    // nothing but Housekeeping itself resets a stale RUNNING job, so a crashed run never recovers
+    // the scheduler cancels a stale running Housekeeping within a minute, so this state means the
+    // scheduler loop itself is no longer running
     String uid =
         housekeeping()
             .status(RUNNING)
@@ -198,8 +201,19 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   }
 
   @Test
-  void testEnabledNotScheduledNoJobs() {
-    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, ENABLED_NOT_SCHEDULED, false);
+  void testEnabledQueueMemberStoredAsDisabled() {
+    // queue members keep their scheduling type but have no cron expression of their own
+    String member =
+        job("Second").scheduling(CRON).queue("Nightly", 1).enabled(true).status(DISABLED).insert();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE,
+        ENABLED_NOT_SCHEDULED,
+        100,
+        member,
+        "Second",
+        "queue Nightly position 1",
+        true);
   }
 
   // -------------------------------------------------------------------------
@@ -227,11 +241,6 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, STUCK_RUNNING, false);
   }
 
-  @Test
-  void testStuckRunningNoJobs() {
-    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, STUCK_RUNNING, false);
-  }
-
   // -------------------------------------------------------------------------
   // job_configurations_never_started
   // -------------------------------------------------------------------------
@@ -239,8 +248,10 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   @Test
   void testOneOffJobNeverStarted() {
     String neverStarted =
-        job("Old import").type(DATAVALUE_IMPORT).enabled(true).created("2 days").insert();
+        job("Old import").type(DATAVALUE_IMPORT).status(NOT_STARTED).created("2 days").insert();
     job("New import").type(DATAVALUE_IMPORT).enabled(true).created("1 hour").insert();
+    // still waiting to start, e.g. behind another import that is marked as running
+    job("Waiting import").type(DATAVALUE_IMPORT).enabled(true).created("2 days").insert();
     job("Done import")
         .type(DATAVALUE_IMPORT)
         .created("2 days")
@@ -273,11 +284,6 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, NEVER_STARTED, false);
   }
 
-  @Test
-  void testNeverStartedNoJobs() {
-    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, NEVER_STARTED, false);
-  }
-
   // -------------------------------------------------------------------------
   // job_configurations_recurring_marked_once
   // -------------------------------------------------------------------------
@@ -300,9 +306,11 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, RECURRING_MARKED_ONCE, true);
   }
 
-  @Test
-  void testRecurringMarkedOnceNoJobs() {
-    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, RECURRING_MARKED_ONCE, false);
+  @ParameterizedTest
+  @ValueSource(
+      strings = {ENABLED_NOT_SCHEDULED, STUCK_RUNNING, NEVER_STARTED, RECURRING_MARKED_ONCE})
+  void testNoJobs(String check) {
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, check, false);
   }
 
   // -------------------------------------------------------------------------
@@ -340,6 +348,8 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     private String lastExecuted = null;
     private String lastFinished = null;
     private String lastAlive = null;
+    private String queueName = null;
+    private Integer queuePosition = null;
 
     private JobRow(String name) {
       this.name = name;
@@ -395,6 +405,12 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
       return this;
     }
 
+    JobRow queue(String name, int position) {
+      this.queueName = name;
+      this.queuePosition = position;
+      return this;
+    }
+
     JobRow lastAlive(String age) {
       this.lastAlive = age;
       return this;
@@ -409,11 +425,11 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
           """
           insert into jobconfiguration (jobconfigurationid, uid, name, created, lastupdated,
             jobtype, schedulingtype, cronexpression, delay, enabled, jobstatus, lastexecutedstatus,
-            lastexecuted, lastfinished, lastalive)
+            lastexecuted, lastfinished, lastalive, queuename, queueposition)
           values (nextval('hibernate_sequence'), ?, ?,
             now() - ?::interval, now() - ?::interval,
             ?, ?, ?, ?, ?, ?, ?,
-            now() - ?::interval, now() - ?::interval, now() - ?::interval)
+            now() - ?::interval, now() - ?::interval, now() - ?::interval, ?, ?)
           """,
           uid,
           name,
@@ -428,7 +444,9 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
           NOT_STARTED.name(),
           lastExecuted,
           lastFinished,
-          lastAlive);
+          lastAlive,
+          queueName,
+          queuePosition);
       return uid;
     }
   }

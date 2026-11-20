@@ -39,6 +39,7 @@ summary_sql: >-
   AND lastexecuted IS NULL
   AND lastfinished IS NULL
   AND jobstatus <> 'RUNNING'
+  AND NOT (enabled = true AND jobstatus = 'SCHEDULED')
   AND created < now() - interval '1 day';
 details_sql: >
   SELECT uid,
@@ -52,6 +53,7 @@ details_sql: >
   AND lastexecuted IS NULL
   AND lastfinished IS NULL
   AND jobstatus <> 'RUNNING'
+  AND NOT (enabled = true AND jobstatus = 'SCHEDULED')
   AND created < now() - interval '1 day'
   ORDER BY created;
 details_id_type: jobConfigurations
@@ -62,6 +64,9 @@ introduction: >
   than a day ago but never started, so their work was never done. The Housekeeping job only removes
   jobs that have finished, so these jobs, and any uploaded data attached to them, stay in the system
   indefinitely.
+  Jobs that are still waiting to start are not listed here. A one-off job waits while another job of
+  the same type is marked as running, and starts once that job is reset; such blocking jobs are listed
+  by the check for jobs that are stuck in a running state.
 recommendation: >
   For asynchronous imports, the data in the job was not imported. Check with the users concerned whether
   the data has been sent again since. The import payload is kept as a file resource with the same UID as

@@ -39,7 +39,8 @@ summary_sql: >-
 details_sql: >
   SELECT uid,
   name,
-  concat(jobtype, ', last run ', COALESCE(to_char(lastexecuted, 'YYYY-MM-DD HH24:MI'), 'never')) as comment
+  concat(jobtype, ', last run ', COALESCE(to_char(lastexecuted, 'YYYY-MM-DD HH24:MI'), 'never'),
+  CASE WHEN queueposition > 0 THEN concat(', queue ', queuename, ' position ', queueposition) END) as comment
   FROM jobconfiguration
   WHERE enabled = true
   AND jobstatus = 'DISABLED'
@@ -53,6 +54,11 @@ introduction: >
   as scheduled, which hides the problem. This happens when a job is re-enabled after the Housekeeping job
   has already marked it DISABLED.
 recommendation: >
-  For each job listed, use "Run now" in the Scheduler app (or POST /api/jobConfigurations/{uid}/execute).
-  This moves the job back to SCHEDULED, and after the run it continues on its normal schedule.
-  Check afterwards that the job no longer appears in this list.
+  For each job listed that is not part of a queue, use "Run now" in the Scheduler app (or
+  POST /api/jobConfigurations/{uid}/execute). This moves the job back to SCHEDULED, and after the run it
+  continues on its normal schedule.
+  Do not use "Run now" for jobs listed with a queue position: a queued job that is run on its own keeps
+  running again on every scheduler loop. Instead, take a backup and reset them in the database with
+  UPDATE jobconfiguration SET jobstatus = 'SCHEDULED' WHERE uid IN (...) AND enabled = true AND jobstatus = 'DISABLED';
+  using the UIDs listed. They then run as part of their queue again.
+  Check afterwards that no job appears in this list any more.
