@@ -48,32 +48,7 @@ public class EventQueryEnrollmentOuValidationTest extends AnalyticsApiTest {
 
   private static final String BO = "O6uvpzGd5pu";
 
-  private static final String TAMBIAMA_CHC = "agEKP19IUKI";
-
   private final AnalyticsEventActions eventActions = new AnalyticsEventActions();
-
-  /** A district and a facility cannot share one group-by column. */
-  @Test
-  public void eventAggregateRejectsEnrollmentOuDimensionWithMixedLevels() {
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("dimension=pe:2022,ENROLLMENT_OU:" + BO + ";" + TAMBIAMA_CHC)
-            .add("displayProperty=NAME")
-            .add("totalPages=false");
-
-    ApiResponse response = eventActions.aggregate().get(PROGRAM, JSON, JSON, params);
-
-    response
-        .validate()
-        .statusCode(409)
-        .body("status", equalTo("ERROR"))
-        .body("errorCode", equalTo("E7261"))
-        .body(
-            "message",
-            equalTo(
-                "Dimension `ENROLLMENT_OU` does not support organisation units at different"
-                    + " hierarchy levels in an aggregate query"));
-  }
 
   @Test
   public void eventAggregateRejectsEnrollmentOuWithUnknownLevel() {

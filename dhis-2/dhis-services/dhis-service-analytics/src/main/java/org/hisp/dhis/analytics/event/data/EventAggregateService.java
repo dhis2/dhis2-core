@@ -93,6 +93,7 @@ import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
 import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
@@ -440,11 +441,13 @@ public class EventAggregateService {
       Map<String, List<EventAnalyticsDimensionalItem>> table,
       String dimension) {
     List<EventAnalyticsDimensionalItem> objects =
-        ColumnHeader.REGISTRATION_OU.getItem().equals(dimension)
-            ? params.getRegistrationOuDimensionItems().stream()
-                .map(ou -> new EventAnalyticsDimensionalItem(ou, dimension))
-                .toList()
-            : params.getEventReportDimensionalItemArrayExploded(dimension);
+        TrackerOrgUnitDimension.fromUidHeader(dimension)
+            .map(
+                trackerOrgUnitDimension ->
+                    trackerOrgUnitDimension.dimensionItems(params).stream()
+                        .map(ou -> new EventAnalyticsDimensionalItem(ou, dimension))
+                        .toList())
+            .orElseGet(() -> params.getEventReportDimensionalItemArrayExploded(dimension));
 
     if (objects.isEmpty()) {
       ValueTypedDimensionalItemObject eventDimensionalItemObject =

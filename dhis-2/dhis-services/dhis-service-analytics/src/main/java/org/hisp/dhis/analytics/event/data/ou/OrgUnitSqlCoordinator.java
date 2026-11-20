@@ -32,7 +32,6 @@ package org.hisp.dhis.analytics.event.data.ou;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +45,6 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
@@ -301,15 +299,19 @@ public final class OrgUnitSqlCoordinator {
 
   /**
    * Returns the single hierarchy level shared by the given org units. One group-by column cannot
-   * represent several levels at once, and an org unit below two requested ancestors at different
-   * levels belongs to both, so a mixed-level set has no unambiguous disaggregation.
+   * represent several levels at once, so the query planner hands each aggregate query the org units
+   * of one level.
    */
   private static int singleLevelOf(
       TrackerOrgUnitDimension dimension, List<OrganisationUnit> items) {
     Map<Integer, List<OrganisationUnit>> byLevel = byLevel(items);
 
     if (byLevel.size() > 1) {
-      throwIllegalQueryEx(ErrorCode.E7261, dimension.getDimensionName());
+      throw new IllegalStateException(
+          "Aggregate query must carry "
+              + dimension.getDimensionName()
+              + " org units of a single hierarchy level, but got levels "
+              + byLevel.keySet());
     }
 
     return byLevel.keySet().iterator().next();
