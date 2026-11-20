@@ -39,14 +39,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.webapi.dimension.DimensionMapper;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
 
 public class DimensionMapperTestSupport {
-  public static <T extends BaseIdentifiableObject> void asserter(
+  public static <T extends IdentifiableObject> void asserter(
       DimensionMapper dimensionMapper,
       Supplier<T> instanceSupplier,
       List<Consumer<T>> instanceSetters,
