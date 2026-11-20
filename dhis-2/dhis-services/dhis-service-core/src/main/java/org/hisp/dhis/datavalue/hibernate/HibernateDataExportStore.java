@@ -31,15 +31,17 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.function.Function.identity;
-import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
-import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.security.acl.HibernateAccessControlStore.createDataReadCheck;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -363,7 +365,7 @@ public class HibernateDataExportStore implements DataExportStore {
   public List<String> getDataSetsNoDataReadAccess(@Nonnull Stream<UID> dataSets) {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return List.of();
-    String accessSql = generateSQlQueryForSharingCheck("ds.sharing", user, LIKE_READ_DATA);
+    String accessSql = createDataReadCheck("ds.sharing", user);
     String sql =
         """
       SELECT ds.uid
@@ -405,30 +407,27 @@ public class HibernateDataExportStore implements DataExportStore {
   public List<String> getAocNoDataReadAccess(@Nonnull Stream<UID> attributeOptionCombos) {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return List.of();
-    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_READ_DATA);
+    List<UID> requested = attributeOptionCombos.toList();
+    if (requested.isEmpty()) return List.of();
+    // the same decision as the AOC filter of the export: the AccessControlStore lookup
+    DataReadableAocs readable =
+        accessControlStore.getDataReadableAttributeOptionCombos(user, requested);
+    if (readable.isUnrestricted()) return List.of();
+    Set<Long> readableIds = LongStream.of(readable.ids()).boxed().collect(toSet());
     String sql =
         """
-      SELECT coc.uid
+      SELECT coc.uid, coc.categoryoptioncomboid
       FROM categoryoptioncombo coc
-      WHERE coc.uid = ANY (:coc)
-        AND NOT EXISTS (
-          SELECT 1
-          FROM categorycombos_optioncombos ccoc
-          JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
-          WHERE ccoc.categoryoptioncomboid = coc.categoryoptioncomboid
-            AND (cc.name = 'default'
-              OR cc.datadimensiontype = 'ATTRIBUTE'
-              AND NOT EXISTS (
-                SELECT 1
-                FROM categoryoptioncombos_categoryoptions aoc_co
-                JOIN categoryoption co ON aoc_co.categoryoptionid = co.categoryoptionid
-                WHERE aoc_co.categoryoptioncomboid = coc.categoryoptioncomboid
-                  AND NOT (:access))))""";
+      WHERE coc.uid = ANY (:coc)""";
     return createQuery(sql)
-        .setParameter("coc", attributeOptionCombos)
-        .setDynamicClause("access", accessSql)
+        .setParameter("coc", requested.stream())
         .useEqualsOverInForParameters("coc")
-        .stream(String.class)
+        .stream(
+            row ->
+                readableIds.contains(((Number) row.getObject(1)).longValue())
+                    ? null
+                    : row.getString(0))
+        .filter(Objects::nonNull)
         .toList();
   }
 
