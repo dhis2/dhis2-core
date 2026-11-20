@@ -29,16 +29,11 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import javax.sql.DataSource;
 import org.hisp.dhis.cache.CacheProvider;
@@ -85,21 +80,14 @@ import org.springframework.security.oauth2.server.resource.web.DefaultBearerToke
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
-import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.util.StringUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * The {@code DhisWebApiWebSecurityConfig} class configures mostly all authentication and
@@ -194,65 +182,9 @@ public class DhisWebApiWebSecurityConfig {
     return providerManager;
   }
 
-  static final class SpaCsrfTokenRequestHandler extends CsrfTokenRequestAttributeHandler {
-    private final CsrfTokenRequestHandler delegate = new XorCsrfTokenRequestAttributeHandler();
-
-    @Override
-    public void handle(
-        HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
-      /*
-       * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH protection of
-       * the CsrfToken when it is rendered in the response body.
-       */
-      this.delegate.handle(request, response, csrfToken);
-    }
-
-    @Override
-    public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
-      /*
-       * If the request contains a request header, use CsrfTokenRequestAttributeHandler
-       * to resolve the CsrfToken. This applies when a single-page application includes
-       * the header value automatically, which was obtained via a cookie containing the
-       * raw CsrfToken.
-       */
-      if (StringUtils.hasText(request.getHeader(csrfToken.getHeaderName()))) {
-        return super.resolveCsrfTokenValue(request, csrfToken);
-      }
-      /*
-       * In all other cases (e.g. if the request contains a request parameter), use
-       * XorCsrfTokenRequestAttributeHandler to resolve the CsrfToken. This applies
-       * when a server-side rendered form includes the _csrf request parameter as a
-       * hidden input.
-       */
-      return this.delegate.resolveCsrfTokenValue(request, csrfToken);
-    }
-  }
-
-  static final class CsrfCookieFilter extends OncePerRequestFilter {
-
-    @Override
-    protected void doFilterInternal(
-        HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-        throws ServletException, IOException {
-      CsrfToken csrfToken = (CsrfToken) request.getAttribute("_csrf");
-      // Render the token value to a cookie by causing the deferred token to be loaded
-      csrfToken.getToken();
-
-      filterChain.doFilter(request, response);
-    }
-  }
-
   @Bean
   protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    if (dhisConfig.isEnabled(ConfigurationKey.CSRF_ENABLED)) {
-      http.csrf(
-              c ->
-                  c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                      .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
-          .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
-    } else {
-      http.csrf(AbstractHttpConfigurer::disable);
-    }
+    http.csrf(AbstractHttpConfigurer::disable);
 
     http.cors(Customizer.withDefaults());
 
