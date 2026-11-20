@@ -31,7 +31,9 @@ package org.hisp.dhis.analytics.event.data.ou;
 
 import static org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension.ENROLLMENT_OU;
 import static org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension.REGISTRATION_OU;
-import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitFixtures.childOf;
+import static org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitFixtures.levelOne;
+import static org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitFixtures.withTrackerOrgUnits;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -41,11 +43,9 @@ import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,19 +60,6 @@ class OrgUnitSqlCoordinatorTest {
   private final OrganisationUnit districtB = childOf(root, 'C');
   private final OrganisationUnit chiefdom = childOf(districtA, 'D');
   private final OrganisationUnit facility = childOf(chiefdom, 'E');
-
-  private static OrganisationUnit levelOne(char c) {
-    OrganisationUnit ou = createOrganisationUnit(c);
-    ou.updatePath();
-    return ou;
-  }
-
-  private static OrganisationUnit childOf(OrganisationUnit parent, char c) {
-    OrganisationUnit ou = createOrganisationUnit(c);
-    ou.setParent(parent);
-    ou.updatePath();
-    return ou;
-  }
 
   // -------------------------------------------------------------------------
   // Join
@@ -331,22 +318,21 @@ class OrgUnitSqlCoordinatorTest {
   }
 
   /**
-   * One group-by column cannot represent org units at two levels, and an event below both is
-   * genuinely ambiguous, so this is rejected rather than silently resolved.
+   * One group-by column cannot represent org units at two levels. The query planner hands each
+   * query the org units of one level, so mixed levels reaching the SQL are a planning defect.
    */
   @ParameterizedTest
   @EnumSource(TrackerOrgUnitDimension.class)
-  void testAggregateRejectsMixedLevels(TrackerOrgUnitDimension dimension) {
+  void testAggregateFailsOnMixedLevels(TrackerOrgUnitDimension dimension) {
     EventQueryParams params = dimensionParams(dimension, districtA, facility);
 
-    IllegalQueryException exception =
+    IllegalStateException exception =
         assertThrows(
-            IllegalQueryException.class,
+            IllegalStateException.class,
             () ->
                 OrgUnitSqlCoordinator.dimensionSelectColumn(
                     dimension, params, false, true, sqlBuilder));
 
-    assertEquals(ErrorCode.E7261, exception.getErrorCode());
     assertTrue(exception.getMessage().contains(dimension.getDimensionName()));
   }
 
@@ -403,18 +389,8 @@ class OrgUnitSqlCoordinatorTest {
       TrackerOrgUnitDimension dimension,
       List<OrganisationUnit> dimensionItems,
       List<OrganisationUnit> filterItems) {
-    EventQueryParams.Builder builder = new EventQueryParams.Builder();
-
-    if (dimension == REGISTRATION_OU) {
-      if (dimensionItems != null) {
-        builder.withRegistrationOuDimension(dimensionItems);
-      }
-      return builder.withRegistrationOuFilter(filterItems).build();
-    }
-
-    if (dimensionItems != null) {
-      builder.withEnrollmentOuDimension(dimensionItems);
-    }
-    return builder.withEnrollmentOuFilter(filterItems).build();
+    return withTrackerOrgUnits(
+            new EventQueryParams.Builder(), dimension, dimensionItems, filterItems)
+        .build();
   }
 }
