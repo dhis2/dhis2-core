@@ -274,28 +274,18 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   public long getEventCount(EventQueryParams params) {
-    String sql = "select count(1) ";
-
-    sql += getFromClause(params);
-
-    String whereClause = getWhereClause(params);
-    sql += whereClause;
-    sql += getAdditionalQueryItemWhereClause(params, whereClause);
+    String sql = buildAnalyticsCountQuery(params);
 
     long count = 0;
 
     log.debug("Analytics event count SQL: '{}'", sql);
 
-    final String finalSqlValue = sql;
-
     if (params.analyzeOnly()) {
       withExceptionHandling(
-          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue),
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql),
           params.isMultipleQueries());
     } else {
-      count =
-          withExceptionHandling(() -> jdbcTemplate.queryForObject(finalSqlValue, Long.class))
-              .orElse(0L);
+      count = withExceptionHandling(() -> jdbcTemplate.queryForObject(sql, Long.class)).orElse(0L);
     }
 
     return count;

@@ -1053,34 +1053,38 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
 
-    // 1. Generate CTE definitions for filters
+    // Generate CTE definitions for filters
     generateFilterCTEs(params, cteContext, true);
 
-    // 2. Add base aggregation CTE
+    // Add base aggregation CTE
     addBaseAggregationCte(cteContext, params, headers);
 
-    // 3. Add CTE definitions for program indicators, program stages, etc.
+    // Add CTE definitions for program indicators, program stages, etc.
     getCteDefinitions(params, cteContext);
 
-    // 3.1 Add the CTE reading the "value" data element; it reads the base CTE, so it comes after it
+    // Add the CTEs of program indicators used as filters. After the base CTE, which inner joins
+    // every CTE registered before it
+    addProgramIndicatorFilterCtes(params, cteContext);
+
+    // Add the CTE reading the "value" data element; it reads the base CTE, so it comes after it
     addEnrollmentValueCte(cteContext, params);
 
-    // 3. Build up the final SQL using dedicated sub-steps
+    // Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
     List<AggregatedEnrollmentQueryAssembler.PeriodProjection> periodProjections =
         aggregatedAssembler.resolveAggregatePeriodProjections(params);
 
-    // 3.1: Append the WITH clause if needed
+    // Append the WITH clause if needed
     addCteClause(sb, cteContext);
 
     addAggregateEnrollmentSelectColumnsInHeaderOrder(
         sb, headers, params, cteContext, periodProjections);
 
-    // 3.3: Append the FROM clause (the main enrollment analytics table)
+    // Append the FROM clause (the main enrollment analytics table)
     sb.from(ENROLLMENT_AGGR_BASE, ENROLLMENT_AGGR_BASE_ALIAS);
     appendPeriodBucketJoins(sb, periodProjections);
 
-    // 3.4: Append JOINs for each relevant CTE definition. Program indicator inputs are already
+    // Append JOINs for each relevant CTE definition. Program indicator inputs are already
     // joined inside their program indicator CTE
     for (String itemUid : cteContext.getCteKeysExcluding(ENROLLMENT_AGGR_BASE)) {
       CteDefinition cteDef = cteContext.getDefinitionByItemUid(itemUid);
@@ -1094,10 +1098,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           tableAlias -> tableAlias + ".enrollment = " + ENROLLMENT_AGGR_BASE_ALIAS + ".enrollment");
     }
 
-    // 3.5: Drop enrollments without a value, so COUNT counts values and empty cells disappear
-    aggregatedAssembler
-        .valueColumn(params)
-        .ifPresent(column -> sb.where(Condition.raw(column + " is not null")));
+    // Drop enrollments without a value, so COUNT counts values and empty cells disappear, and
+    // the enrollments failing a program indicator condition
+    Condition valueNotNull =
+        aggregatedAssembler
+            .valueColumn(params)
+            .map(column -> Condition.raw(column + " is not null"))
+            .orElse(null);
+    sb.where(Condition.and(valueNotNull, programIndicatorConditions(params, cteContext)));
 
     return sb.build();
   }
@@ -1251,12 +1259,18 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
     addAnalyticsTableColumns(sb, getStandardColumns(params));
 
-    OrgUnitSqlCoordinator.querySelectColumns(
-            TrackerOrgUnitDimension.REGISTRATION_OU, params, sqlBuilder)
-        .forEach(sb::addColumn);
+    // Rows are read into the grid by position, so columns follow the header order:
+    // standard columns, dimensions, REGISTRATION_OU, query items.
+    List<String> columns = new ArrayList<>();
+    addDimensionSelectColumns(columns, params, false, false);
+    columns.addAll(
+        OrgUnitSqlCoordinator.querySelectColumns(
+            TrackerOrgUnitDimension.REGISTRATION_OU, params, sqlBuilder));
 
     // Append columns from CTE definitions
-    getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
+    columns.addAll(getSelectColumnsWithCTE(params, cteContext));
+
+    columns.forEach(sb::addColumn);
   }
 
   /**

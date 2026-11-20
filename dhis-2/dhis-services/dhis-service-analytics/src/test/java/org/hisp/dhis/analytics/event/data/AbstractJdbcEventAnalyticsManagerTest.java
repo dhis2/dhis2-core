@@ -1019,6 +1019,37 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void testGetItemsSqlCombinesDifferentStageDatesWithAnd() {
+    ProgramStage stage = createProgramStage('A', programA);
+    stage.setUid("stageUidABC");
+
+    EventQueryParams queryParams =
+        defaultEventQueryParamsBuilder()
+            .addItem(
+                buildStageDateItem(
+                    EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME,
+                    stage,
+                    "2021-01-01",
+                    "2021-12-31"))
+            .addItem(
+                buildStageDateItem(
+                    EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+                    stage,
+                    "2022-01-01",
+                    "2022-12-31"))
+            .build();
+
+    String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
+
+    assertEquals(
+        "where (ax.\"scheduleddate\" >= '2021-01-01'  and ax.\"scheduleddate\" <= '2021-12-31' "
+            + " and ax.\"ps\" = 'stageUidABC')"
+            + " and (ax.\"occurreddate\" >= '2022-01-01'  and ax.\"occurreddate\" <= '2022-12-31' "
+            + " and ax.\"ps\" = 'stageUidABC')",
+        result);
+  }
+
+  @Test
   void testAddGridValueForDoubleObject() throws SQLException {
     Double doubleNumber = 35.5d;
     String doubleValue = "35.5";
@@ -1351,6 +1382,16 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private QueryItem buildQueryItem(String item) {
     return new QueryItem(new BaseDimensionalItemObject(item));
+  }
+
+  private QueryItem buildStageDateItem(
+      String dateColumn, ProgramStage stage, String startDate, String endDate) {
+    QueryItem queryItem = buildQueryItem(dateColumn);
+    queryItem.setProgramStage(stage);
+    queryItem.setValueType(ValueType.DATE);
+    queryItem.addFilter(buildQueryFilter(QueryOperator.GE, startDate));
+    queryItem.addFilter(buildQueryFilter(QueryOperator.LE, endDate));
+    return queryItem;
   }
 
   private QueryItem buildQueryItemWithGroupAndFilters(
@@ -1900,7 +1941,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForObject(sqlCaptor.capture(), eq(Long.class));
 
     String sql = sqlCaptor.getValue();
-    assertThat(sql, containsString("inner join analytics_rs_orgunitstructure as enrous"));
+    assertThat(
+        sql,
+        containsString(
+            "inner join analytics_rs_orgunitstructure enrous"
+                + " on enrous.\"organisationunituid\" = ax.\"enrollmentou\""));
     assertThat(sql, containsString("(enrous.\"uidlevel1\" in ('" + ouA.getUid() + "'))"));
   }
 
