@@ -652,8 +652,6 @@ public enum ErrorCode {
       "Dimension is not supported as a group by in a tracked entity aggregate query: `{0}`. Supported dimensions are the registration organisation unit, tracked entity static fields, tracked entity attributes, and program or program stage scoped organisation units, dates, statuses and data elements"),
   E7259("Dimension `{0}` is not supported for a program without registration"),
   E7260("Dimension `{0}` must specify organisation units in an aggregate query"),
-  E7261(
-      "Dimension `{0}` does not support organisation units at different hierarchy levels in an aggregate query"),
   E7262("Sorting by `{0}` requires the `{1}` dimension"),
   E7263(
       "Dimensions `{0}` and `{1}` are reported under the same name `{2}` in a tracked entity aggregate query. Request one offset of a program stage dimension at a time"),
