@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.function.Predicate.not;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.commons.util.TextUtils.format;
@@ -41,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,6 +83,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -729,8 +730,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return a List of {@link AnalyticsTableColumn}
    */
   protected List<AnalyticsTableColumn> getPeriodTypeColumns(String prefix) {
+    // Yearly is mandatory: it is the partition column and is referenced by the partition
+    // check constraints, so it must be present even if not configured (e.g. blank databases)
     Set<PeriodType> periodTypes =
-        configurationService.getConfiguration().getDataOutputPeriodTypes();
+        new LinkedHashSet<>(configurationService.getConfiguration().getDataOutputPeriodTypes());
+    periodTypes.add(PeriodType.getPeriodType(PeriodTypeEnum.YEARLY));
 
     return periodTypes.stream()
         .map(
@@ -743,8 +747,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .skipIndex(skipIndex(name))
                   .build();
             })
-        .filter(not(this::skipColumn))
+        .filter(c -> isYearlyColumn(c) || !skipColumn(c))
         .toList();
+  }
+
+  private boolean isYearlyColumn(AnalyticsTableColumn column) {
+    return PeriodTypeEnum.YEARLY.getName().equalsIgnoreCase(column.getName());
   }
 
   /**
