@@ -30,6 +30,7 @@
 package org.hisp.dhis.datastatistics;
 
 import java.util.Date;
+import org.hisp.dhis.cache.ETagObserved;
 
 /**
  * Object of event to be saved
@@ -37,6 +38,7 @@ import java.util.Date;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
+@ETagObserved
 public class DataStatisticsEvent {
   private int id;
 

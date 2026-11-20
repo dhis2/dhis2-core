@@ -38,7 +38,6 @@ import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * If a translation request parameters are set the {@link UserSettings#getUserDbLocale()} is
@@ -65,12 +64,17 @@ public class UserContextInterceptor implements HandlerInterceptor {
     return true;
   }
 
+  /**
+   * Runs also when a later interceptor ends the request in its preHandle (an ETag 304) or the
+   * handler throws; postHandle runs in neither case and would leave this request's settings on the
+   * thread.
+   */
   @Override
-  public void postHandle(
+  public void afterCompletion(
       @Nonnull HttpServletRequest request,
       @Nonnull HttpServletResponse response,
       @Nonnull Object handler,
-      ModelAndView modelAndView) {
+      Exception ex) {
     // cleanup: unset for the thread
     ThreadUserSettings.clear();
   }

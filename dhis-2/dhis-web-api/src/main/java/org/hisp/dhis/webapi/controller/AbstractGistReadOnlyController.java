@@ -60,6 +60,7 @@ import org.hisp.dhis.gist.GistPipeline;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -162,13 +163,18 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
 
   /**
    * Defer the output changes after validation by wrapping it so the called code can do this as late
-   * as possible
+   * as possible.
+   *
+   * <p>A response that already carries an ETag (the smart API ETag, applied by the Gist bridge in
+   * {@code AbstractFullReadOnlyController}) keeps its cacheable {@code Cache-Control}: with {@code
+   * no-store} browsers never keep the body and never revalidate it.
    */
-  private static Supplier<OutputStream> lazyOutputStream(
-      String contentType, HttpServletResponse response) {
+  static Supplier<OutputStream> lazyOutputStream(String contentType, HttpServletResponse response) {
     return () -> {
       response.setContentType(contentType);
-      setNoStore(response);
+      if (!response.containsHeader(HttpHeaders.ETAG)) {
+        setNoStore(response);
+      }
       try {
         return response.getOutputStream();
       } catch (IOException ex) {

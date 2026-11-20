@@ -1,0 +1,28 @@
+{
+  "trackedEntityTypes": [
+    {
+      "id": "CchTET00001",
+      "name": "Cache Test TET",
+      "shortName": "Cache TET"
+    }
+  ],
+  "programs": [
+    {
+      "id": "CchPrgTRK01",
+      "name": "Cache Tracker Program for TEIF",
+      "shortName": "Cache TRK Prog",
+      "programType": "WITH_REGISTRATION",
+      "trackedEntityType": { "id": "CchTET00001" },
+      "organisationUnits": [
+        { "id": "DiszpKrYNg8" }
+      ]
+    }
+  ],
+  "trackedEntityInstanceFilters": [
+    {
+      "id": "CchTEF00001",
+      "name": "Cache Test TEI Filter",
+      "program": { "id": "CchPrgTRK01" }
+    }
+  ]
+}

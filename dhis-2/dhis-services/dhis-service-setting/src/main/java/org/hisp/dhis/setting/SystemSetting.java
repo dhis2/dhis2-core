@@ -41,6 +41,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
+import org.hisp.dhis.cache.ETagObserved;
 
 /** A system setting, for use in store layer only. */
 @Setter
@@ -50,6 +51,7 @@ import org.hibernate.annotations.Type;
 @NoArgsConstructor
 @Entity
 @Table(name = "systemsetting")
+@ETagObserved
 public class SystemSetting {
 
   @Id

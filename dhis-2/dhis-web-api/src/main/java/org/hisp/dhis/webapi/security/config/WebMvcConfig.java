@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.UrlParamsMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
+import org.hisp.dhis.webapi.mvc.interceptor.ETagConditionalInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.HandlerMethodInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.TrackerExportDeadlineInterceptor;
@@ -120,6 +121,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Autowired private AuthorityInterceptor authorityInterceptor;
 
   @Autowired private SystemSettingsInterceptor settingsInterceptor;
+
+  @Autowired private ETagConditionalInterceptor eTagConditionalInterceptor;
 
   @Autowired private StaticCacheInterceptor staticCacheInterceptor;
 
@@ -258,6 +261,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
     registry.addInterceptor(new TrailingSlashInterceptor()).excludePathPatterns("/api/**");
+    registry.addInterceptor(eTagConditionalInterceptor).addPathPatterns("/api/**");
     registry
         .addInterceptor(staticCacheInterceptor)
         .addPathPatterns("/dhis-web-*/**", "/icons/**", "/images/**", "/favicon.ico");

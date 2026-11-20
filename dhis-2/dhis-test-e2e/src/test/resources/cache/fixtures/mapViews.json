@@ -1,0 +1,36 @@
+{
+  "programs": [
+    {
+      "id": "CchPrgMV001",
+      "name": "Cache Program for MapView",
+      "shortName": "Cache MV Prog",
+      "programType": "WITHOUT_REGISTRATION",
+      "organisationUnits": [{ "id": "DiszpKrYNg8" }],
+      "programStages": [{ "id": "CchStgMV001" }]
+    }
+  ],
+  "programStages": [
+    {
+      "id": "CchStgMV001",
+      "name": "Cache MV Stage",
+      "program": { "id": "CchPrgMV001" }
+    }
+  ],
+  "maps": [
+    {
+      "id": "CchMap00001",
+      "name": "Cache Test Map",
+      "mapViews": [
+        {
+          "id": "CchMV000001",
+          "name": "Cache Test Map View",
+          "layer": "event",
+          "renderingStrategy": "SINGLE",
+          "organisationUnits": [{ "id": "DiszpKrYNg8" }],
+          "program": { "id": "CchPrgMV001" },
+          "programStage": { "id": "CchStgMV001" }
+        }
+      ]
+    }
+  ]
+}

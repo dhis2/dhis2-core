@@ -35,6 +35,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hisp.dhis.cache.ETagObserved;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
 /**
@@ -45,6 +46,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @NoArgsConstructor
+@ETagObserved
 public class UserDatastoreEntry extends BaseIdentifiableObject {
   /** A namespace represents a collection of keys */
   @JsonProperty @ToString.Include @EqualsAndHashCode.Include private String namespace;

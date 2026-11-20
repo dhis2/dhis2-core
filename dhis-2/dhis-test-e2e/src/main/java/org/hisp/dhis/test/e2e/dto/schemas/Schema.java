@@ -42,12 +42,42 @@ public class Schema {
 
   private String plural;
 
+  private String singular;
+
+  private String relativeApiEndpoint;
+
+  private boolean metadata;
+
   public String getPlural() {
     return plural;
   }
 
   public void setPlural(String plural) {
     this.plural = plural;
+  }
+
+  public String getSingular() {
+    return singular;
+  }
+
+  public void setSingular(String singular) {
+    this.singular = singular;
+  }
+
+  public String getRelativeApiEndpoint() {
+    return relativeApiEndpoint;
+  }
+
+  public void setRelativeApiEndpoint(String relativeApiEndpoint) {
+    this.relativeApiEndpoint = relativeApiEndpoint;
+  }
+
+  public boolean isMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(boolean metadata) {
+    this.metadata = metadata;
   }
 
   public List<SchemaProperty> getProperties() {

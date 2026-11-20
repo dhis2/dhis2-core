@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.cache.ETagObserved;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.storage.BlobKey;
@@ -43,6 +44,7 @@ import org.springframework.util.MimeTypeUtils;
 /**
  * @author Halvdan Hoem Grelland
  */
+@ETagObserved
 public class FileResource extends BaseIdentifiableObject {
   public static final String DEFAULT_FILENAME = "untitled";
 
