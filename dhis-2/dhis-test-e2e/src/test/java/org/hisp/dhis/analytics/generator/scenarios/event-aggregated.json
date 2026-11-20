@@ -729,6 +729,20 @@
       }
     },
     {
+      "name": "stageDataElementWithoutItems",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6&filter=pe:2022&displayProperty=NAME&outputType=EVENT&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageDataElementInSeveralStagesWithoutItems",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd,A03MvHHogjR.X8zyunlgUfM&filter=pe:2022&displayProperty=NAME&outputType=EVENT&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "enrollmentOuMixedLevels",
       "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,ENROLLMENT_OU:ImspTQPwCqd;O6uvpzGd5pu&displayProperty=NAME&totalPages=false",
       "version": {
