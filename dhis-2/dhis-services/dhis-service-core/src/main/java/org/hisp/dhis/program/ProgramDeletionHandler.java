@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
@@ -64,6 +65,7 @@ public class ProgramDeletionHandler extends IdObjectDeletionHandler<Program> {
     whenDeleting(CategoryCombo.class, this::deleteCategoryCombo);
     whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
     whenDeleting(UserRole.class, this::deleteUserRole);
+    whenDeleting(Program.class, this::deleteProgram);
     whenVetoing(TrackedEntityType.class, this::allowDeleteTrackedEntityType);
     whenDeleting(TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute);
     whenDeleting(DataEntryForm.class, this::deleteDataEntryForm);
@@ -95,14 +97,16 @@ public class ProgramDeletionHandler extends IdObjectDeletionHandler<Program> {
     }
   }
 
-  private void deleteUserRole(UserRole group) {
-    Collection<Program> programs = idObjectManager.getAllNoAcl(Program.class);
+  /**
+   * {@link Program#getUserRoles()} is read only (no owning side), so Hibernate never removes its
+   * {@code program_userroles} rows. Delete them by SQL so they neither dangle nor block deletion.
+   */
+  private void deleteUserRole(UserRole userRole) {
+    delete("DELETE FROM program_userroles WHERE userroleid = :id", Map.of("id", userRole.getId()));
+  }
 
-    for (Program program : programs) {
-      if (program.getUserRoles().remove(group)) {
-        idObjectManager.updateNoAcl(program);
-      }
-    }
+  private void deleteProgram(Program program) {
+    delete("DELETE FROM program_userroles WHERE programid = :id", Map.of("id", program.getId()));
   }
 
   private DeletionVeto allowDeleteTrackedEntityType(TrackedEntityType trackedEntityType) {
