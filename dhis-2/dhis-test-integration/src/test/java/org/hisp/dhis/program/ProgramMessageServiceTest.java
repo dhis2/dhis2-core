@@ -33,6 +33,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -42,6 +43,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -270,6 +272,38 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
         "hello",
         updatedProgramMessage.getText(),
         "The text of the updated program message should be 'hello'");
+  }
+
+  @Test
+  void shouldSaveEveryMessageOfASentBatchAsTheCallingUser() {
+    // A batch large enough to be split across threads if saving ever ran on a parallel stream
+    // again: those threads have no security context, so the enrollment lookup would fail there.
+    List<ProgramMessage> batch =
+        IntStream.range(0, 32)
+            .mapToObj(
+                i -> {
+                  ProgramMessageRecipients recipients = new ProgramMessageRecipients();
+                  recipients.setPhoneNumbers(new HashSet<>(Set.of(MSISDN)));
+                  ProgramMessage message =
+                      createProgramMessage(
+                          TEXT,
+                          SUBJECT,
+                          recipients,
+                          messageStatus,
+                          new HashSet<>(Set.of(DeliveryChannel.SMS)));
+                  message.setEnrollment(enrollment);
+                  return message;
+                })
+            .toList();
+
+    assertDoesNotThrow(() -> programMessageService.sendMessages(batch));
+
+    for (ProgramMessage message : batch) {
+      ProgramMessage saved = programMessageService.getProgramMessage(message.getUid());
+      assertNotNull(saved, "every message of the batch should be saved");
+      assertEquals(enrollment.getUid(), saved.getEnrollment().getUid());
+      assertNotNull(saved.getProcessedDate());
+    }
   }
 
   private void assertEqualProgramMessages(
