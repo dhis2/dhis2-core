@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -157,7 +157,9 @@ public class DataIntegrityController {
 
   /**
    * Handles the GET request to retrieve data integrity check metrics in Prometheus format. All
-   * checks present in the cache are returned.
+   * checks present in the cache are returned. A check that failed with an error reports a count of
+   * -1. The finished timestamp shows the age of each cached result, so stale or missing results can
+   * be detected.
    *
    * @return A string containing the metrics in Prometheus format.
    */
@@ -172,6 +174,7 @@ public class DataIntegrityController {
     Map<String, Integer> countMetrics = new HashMap<>();
     Map<String, Double> percentMetrics = new HashMap<>();
     Map<String, Long> durationMetrics = new HashMap<>();
+    Map<String, Long> finishedMetrics = new HashMap<>();
     Map<String, String> metricLabels = new HashMap<>();
 
     Collection<DataIntegrityCheck> checks = dataIntegrityService.getDataIntegrityChecks(Set.of());
@@ -195,6 +198,7 @@ public class DataIntegrityController {
             }
             long duration = summary.getFinishedTime().getTime() - summary.getStartTime().getTime();
             durationMetrics.put(key, duration);
+            finishedMetrics.put(key, summary.getFinishedTime().getTime() / 1000);
           }
         });
     metrics.updateMetricsWithLabelsMap(
@@ -216,6 +220,13 @@ public class DataIntegrityController {
         "dhis_data_integrity_check_duration_milliseconds",
         metricLabels,
         "Data integrity check durations",
+        "gauge");
+
+    metrics.updateMetricsWithLabelsMap(
+        finishedMetrics,
+        "dhis_data_integrity_check_finished_timestamp_seconds",
+        metricLabels,
+        "Unix time when the cached data integrity check result was produced",
         "gauge");
 
     return metrics.getMetrics();
