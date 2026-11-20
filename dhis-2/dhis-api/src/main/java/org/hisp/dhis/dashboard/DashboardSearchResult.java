@@ -257,8 +257,28 @@ public class DashboardSearchResult {
     this.reports = reports;
   }
 
+  /**
+   * Serialized with the identifiable object property set only. {@code contentAs =
+   * IdentifiableObject.class} would drop displayName, which the interface does not annotate.
+   */
   @JsonProperty(value = "resources")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonIncludeProperties({
+    "id",
+    "code",
+    "name",
+    "displayName",
+    "created",
+    "lastUpdated",
+    "lastUpdatedBy",
+    "createdBy",
+    "user",
+    "attributeValues",
+    "translations",
+    "sharing",
+    "access",
+    "href"
+  })
+  @OpenApi.Property(BaseIdentifiableObject[].class)
   @JacksonXmlElementWrapper(localName = "resources", namespace = DXF_2_0)
   @JacksonXmlProperty(localName = "resource", namespace = DXF_2_0)
   public List<Document> getResources() {
