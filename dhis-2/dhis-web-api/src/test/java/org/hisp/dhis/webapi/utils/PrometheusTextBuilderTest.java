@@ -104,6 +104,13 @@ class PrometheusTextBuilderTest {
   }
 
   @Test
+  void appendLineUsesUnixLineSeparator() {
+    PrometheusTextBuilder builder = new PrometheusTextBuilder();
+    builder.appendLine("test_metric 1");
+    assertEquals("test_metric 1\n", builder.getMetrics());
+  }
+
+  @Test
   void escapeLabelValueMapsNullToEmpty() {
     assertEquals("", PrometheusTextBuilder.escapeLabelValue(null));
   }

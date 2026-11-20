@@ -43,7 +43,7 @@ public class PrometheusTextBuilder {
   public static final String GAUGE = "gauge";
 
   public void addHelp(String metricName, String help) {
-    metrics.append("# HELP %s %s\n".formatted(metricName, escapeHelp(help)));
+    appendLine("# HELP %s %s".formatted(metricName, escapeHelp(help)));
   }
 
   /**
@@ -62,7 +62,7 @@ public class PrometheusTextBuilder {
    * @param type the type of the metric (e.g., counter, gauge)
    */
   public void addType(String metricName, String type) {
-    metrics.append("# TYPE %s %s\n".formatted(metricName, type));
+    appendLine("# TYPE %s %s".formatted(metricName, type));
   }
 
   /**
@@ -97,8 +97,8 @@ public class PrometheusTextBuilder {
     map.forEach(
         (key, value) -> {
           if (value != null) {
-            metrics.append(
-                "%s{%s=\"%s\"} %s\n"
+            appendLine(
+                "%s{%s=\"%s\"} %s"
                     .formatted(metricName, keyName, escapeLabelValue(String.valueOf(key)), value));
           }
         });
@@ -126,7 +126,7 @@ public class PrometheusTextBuilder {
           if (thisLabel == null || value == null) {
             return;
           }
-          metrics.append("%s{%s} %s\n".formatted(metricName, thisLabel, value));
+          appendLine("%s{%s} %s".formatted(metricName, thisLabel, value));
         });
   }
 
@@ -146,6 +146,16 @@ public class PrometheusTextBuilder {
 
   private static String escapeHelp(String help) {
     return help.replace("\\", "\\\\").replace("\n", "\\n");
+  }
+
+  /**
+   * Appends a line to the metrics. The Prometheus text format requires {@code \n} as the line
+   * separator on every platform, so this does not use the platform line separator.
+   *
+   * @param line the line to append, without a line separator
+   */
+  public void appendLine(String line) {
+    metrics.append(line).append('\n');
   }
 
   /**

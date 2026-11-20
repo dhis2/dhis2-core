@@ -92,9 +92,9 @@ public class DataSummaryController {
       if (systemInfo.getBuildTime() != null) {
         buildTime = systemInfo.getBuildTime().toInstant().getEpochSecond();
       }
-      metrics.append(
+      metrics.appendLine(
           String.format(
-              "%s{version=\"%s\", commit=\"%s\"} %s\n",
+              "%s{version=\"%s\", commit=\"%s\"} %s",
               metricName,
               escapeLabelValue(systemInfo.getVersion()),
               escapeLabelValue(systemInfo.getRevision()),
@@ -102,9 +102,9 @@ public class DataSummaryController {
 
       metrics.addHelp("data_summary_system_id", "System ID");
       metrics.addType("data_summary_system_id");
-      metrics.append(
+      metrics.appendLine(
           String.format(
-              "data_summary_system_id{system_id=\"%s\"} 1\n",
+              "data_summary_system_id{system_id=\"%s\"} 1",
               escapeLabelValue(systemInfo.getSystemId())));
     }
   }
@@ -203,11 +203,11 @@ public class DataSummaryController {
 
     metrics.addHelp("data_summary_active_sessions", "Number of active HTTP sessions");
     metrics.addType("data_summary_active_sessions");
-    metrics.append(String.format("data_summary_active_sessions %d\n", gauges.sessions()));
+    metrics.appendLine(String.format("data_summary_active_sessions %d", gauges.sessions()));
 
     metrics.addHelp(
         "data_summary_active_session_users", "Number of distinct users with an active session");
     metrics.addType("data_summary_active_session_users");
-    metrics.append(String.format("data_summary_active_session_users %d\n", gauges.users()));
+    metrics.appendLine(String.format("data_summary_active_session_users %d", gauges.users()));
   }
 }
