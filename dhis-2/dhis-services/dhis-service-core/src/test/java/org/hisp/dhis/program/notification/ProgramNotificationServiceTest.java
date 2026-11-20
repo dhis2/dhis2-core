@@ -303,6 +303,34 @@ class ProgramNotificationServiceTest extends TestBase {
     MockMessage mockMessage = sentInternalMessages.iterator().next();
 
     assertTrue(mockMessage.users.contains(userB));
+    assertFalse(mockMessage.users.contains(userA));
+    assertTrue(
+        userGroup.getMembers().contains(userA),
+        "a disabled user must stay a member of the recipient user group");
+  }
+
+  @Test
+  void testUserGroupRecipientWithoutUserGroup() {
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
+
+    when(messageService.sendMessage(any()))
+        .thenAnswer(
+            invocation -> {
+              sentInternalMessages.add(new MockMessage(invocation.getArguments()));
+              return 40L;
+            });
+
+    when(programNotificationRenderer.render(any(Enrollment.class), any(NotificationTemplate.class)))
+        .thenReturn(notificationMessage);
+
+    programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
+    programNotificationTemplate.setRecipientUserGroup(null);
+
+    programNotificationService.sendEnrollmentNotifications(enrollments.iterator().next().getId());
+
+    assertEquals(1, sentInternalMessages.size());
+    assertTrue(sentInternalMessages.iterator().next().users.isEmpty());
   }
 
   @Test

@@ -277,9 +277,8 @@ public class SystemUpdateNotificationService {
     // Fallback to fetching all users with ALL authority for our recipient
     // list if no explicit recipients group are set.
     recipients = !recipients.isEmpty() ? recipients : getUsersWithAllAuthority();
-    // filter out all users that are disabled
-    recipients.removeIf(User::isDisabled);
-    return recipients;
+    // filter out all users that are disabled, without changing the user group members
+    return recipients.stream().filter(User::isEnabled).collect(Collectors.toSet());
   }
 
   private Set<User> getUsersWithAllAuthority() {
