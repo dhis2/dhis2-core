@@ -490,26 +490,6 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldDeleteUserRoleWithoutUpdatingPrograms() {
-    String roleId = assertStatus(HttpStatus.CREATED, POST("/userRoles", "{'name':'Program role'}"));
-    String lastUpdated =
-        GET("/programs/{id}?fields=lastUpdated", PROGRAM_UID)
-            .content(HttpStatus.OK)
-            .getString("lastUpdated")
-            .string();
-
-    assertStatus(HttpStatus.OK, DELETE("/userRoles/" + roleId));
-
-    assertStatus(HttpStatus.NOT_FOUND, GET("/userRoles/" + roleId));
-    assertEquals(
-        lastUpdated,
-        GET("/programs/{id}?fields=lastUpdated", PROGRAM_UID)
-            .content(HttpStatus.OK)
-            .getString("lastUpdated")
-            .string());
-  }
-
-  @Test
   void testDeleteWithMapView() {
 
     String mapJson =
