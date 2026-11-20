@@ -31,11 +31,16 @@ package org.hisp.dhis.period;
 
 import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY_FRIDAY;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
 /**
  * PeriodType for weekly Periods. A valid weekly Period has startDate set to Friday and endDate set
  * to Saturday the same week, assuming Friday is the first day and Saturday is the last day of the
  * week.
  */
+@Entity
+@DiscriminatorValue("WeeklyFriday")
 public class WeeklyFridayPeriodType extends WeeklyAbstractPeriodType {
   public WeeklyFridayPeriodType() {
     super(WEEKLY_FRIDAY.getName(), 5, "yyyyFriWn", "P7D", 7, "1 week", "FriW");

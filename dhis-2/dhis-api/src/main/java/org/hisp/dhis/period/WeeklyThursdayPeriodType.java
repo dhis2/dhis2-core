@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.period;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
 /**
  * PeriodType for weekly Periods. A valid weekly Period has startDate set to Thursday and endDate
  * set to Wednesday the same week, assuming Thursday is the first day and Wednesday is the last day
@@ -36,6 +39,8 @@ package org.hisp.dhis.period;
  *
  * @author Torgeir Lorange Ostby
  */
+@Entity
+@DiscriminatorValue("WeeklyThursday")
 public class WeeklyThursdayPeriodType extends WeeklyAbstractPeriodType {
   public WeeklyThursdayPeriodType() {
     super(PeriodTypeEnum.WEEKLY_THURSDAY.getName(), 4, "yyyyThuWn", "P7D", 7, "1 week", "ThuW");

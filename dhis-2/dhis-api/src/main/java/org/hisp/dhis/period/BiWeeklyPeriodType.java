@@ -29,9 +29,14 @@
  */
 package org.hisp.dhis.period;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
 /**
  * @author Kristian Wærstad
  */
+@Entity
+@DiscriminatorValue("BiWeekly")
 public class BiWeeklyPeriodType extends BiWeeklyAbstractPeriodType {
   public static final String NAME = "BiWeekly";
 

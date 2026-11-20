@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.period;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -40,6 +42,8 @@ import org.joda.time.DateTimeConstants;
  *
  * @author Torgeir Lorange Ostby
  */
+@Entity
+@DiscriminatorValue("SixMonthly")
 public class SixMonthlyPeriodType extends SixMonthlyAbstractPeriodType {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 5709134010793412705L;
