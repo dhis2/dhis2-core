@@ -104,3 +104,8 @@ checks:
   - tracker_data/enrollments_not_deleted_of_deleted_tracked_entities.yaml
   - tracker_data/tracker_events_not_deleted_of_deleted_enrollments_or_tracked_entities.yaml
   - tracker_data/relationships_not_deleted_of_deleted_tracker_data.yaml
+  - job_configurations/job_configurations_housekeeping_not_running.yaml
+  - job_configurations/job_configurations_enabled_not_scheduled.yaml
+  - job_configurations/job_configurations_stuck_running.yaml
+  - job_configurations/job_configurations_never_started.yaml
+  - job_configurations/job_configurations_recurring_marked_once.yaml
