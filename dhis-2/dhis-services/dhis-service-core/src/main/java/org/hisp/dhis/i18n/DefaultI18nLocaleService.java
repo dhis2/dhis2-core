@@ -120,10 +120,6 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
   }
 
   private Locale validateLocale(String language, String country, String script) {
-    if (country != null && country.isBlank()) country = null;
-    if (script != null && script.isBlank()) {
-      script = null;
-    }
     Locale locale = Locale.of(language, country, script);
 
     if (!languages.containsKey(locale.language())
