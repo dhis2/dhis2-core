@@ -162,7 +162,7 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
-  void validateFailsWithValueDimensionAsItem() {
+  void validateValueDimensionAsItemSuccess() {
     QueryItem item = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
 
     EventQueryParams params =
@@ -175,9 +175,7 @@ class EventQueryValidatorTest extends TestBase {
             .addItem(item)
             .build();
 
-    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
-
-    assertEquals(ErrorCode.E7203, error.getErrorCode());
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
   }
 
   @Test
@@ -198,7 +196,25 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
-  void validateFailsWithValueDimensionAsOptionSetItem() {
+  void validateValueDimensionAsItemWithConditionSuccess() {
+    QueryItem item = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
+    item.addFilter(new QueryFilter(QueryOperator.LT, "6"));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(List.of(ouA))
+            .withValue(new Value(deA))
+            .addItem(item)
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateValueDimensionAsOptionSetItemSuccess() {
     QueryItem item = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), osA);
 
     EventQueryParams params =
@@ -211,9 +227,7 @@ class EventQueryValidatorTest extends TestBase {
             .addItem(item)
             .build();
 
-    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
-
-    assertEquals(ErrorCode.E7203, error.getErrorCode());
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
   }
 
   @Test
