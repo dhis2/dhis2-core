@@ -92,7 +92,9 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
         changed = true;
       }
 
-      changed |= ensureDataOutputPeriodTypes(config);
+      if (ensureDataOutputPeriodTypes(config)) {
+        changed = true;
+      }
 
       if (changed) {
         configurationService.setConfiguration(config);
