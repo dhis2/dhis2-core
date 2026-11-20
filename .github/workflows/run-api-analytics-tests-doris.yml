@@ -59,7 +59,15 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
-          cache: maven
+      - name: Cache Maven repository
+        uses: actions/cache@v6
+        with:
+          # Same path and key as setup-java's `cache: maven` (the cache version hashes the literal
+          # path), so its caches are reused; restore-keys lets a pom change start from the newest
+          # older cache instead of an empty repo (GeoTools is only on repo.osgeo.org).
+          path: /home/runner/.m2/repository
+          key: setup-java-Linux-x64-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: setup-java-Linux-x64-maven-
 
       - name: Build container image
         run: |
