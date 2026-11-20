@@ -97,10 +97,11 @@ class UserLastLoginTest extends PostgresIntegrationTestBase {
     User active = addUserWithOpenId("B");
     userService.setActiveLinkedAccounts(actor.getUsername(), active.getUsername());
     Date lastLogin = userService.getUser(active.getUid()).getLastLogin();
+    String actorUsername = actor.getUsername();
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> userService.setActiveLinkedAccounts(actor.getUsername(), "unlinked"));
+        () -> userService.setActiveLinkedAccounts(actorUsername, "unlinked"));
 
     assertEquals(lastLogin, userService.getUser(active.getUid()).getLastLogin());
     assertEquals(active.getUid(), userService.getUserByOpenId(OPEN_ID).getUid());
