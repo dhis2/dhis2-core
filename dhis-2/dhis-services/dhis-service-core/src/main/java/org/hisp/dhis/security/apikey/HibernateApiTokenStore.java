@@ -73,6 +73,7 @@ public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<Api
     return getSingleResult(
         builder,
         newJpaParameters()
+            .setCacheable(false)
             .addPredicate(root -> builder.equal(root.get("key"), key))
             .addPredicate(root -> builder.equal(root.get("createdBy"), currentUser)));
   }
@@ -81,7 +82,13 @@ public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<Api
   @CheckForNull
   public ApiToken getByKey(@Nonnull String key) {
     CriteriaBuilder builder = getCriteriaBuilder();
+    // Not from the query cache: on a cluster it can hold a token that another node deleted, for
+    // example with its owner, and the token would then still authenticate or fail to load. The API
+    // token authentication caches authenticated tokens itself.
     return getSingleResult(
-        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("key"), key)));
+        builder,
+        newJpaParameters()
+            .setCacheable(false)
+            .addPredicate(root -> builder.equal(root.get("key"), key)));
   }
 }
