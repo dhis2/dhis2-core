@@ -60,7 +60,7 @@ public class ServiceConfig {
 
   @Bean
   public ClientHttpConnector clientHttpConnector() {
-    return new ReactorClientHttpConnector(HttpClient.create());
+    return new ReactorClientHttpConnector(HttpClient.create().compress(false));
   }
 
   @Bean

@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -476,7 +477,9 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                   null));
 
       assertEquals(200, mvcResult.getResponse().getStatus());
-      assertNotEquals(upstreamResponseBody, mvcResult.getResponse().getContentAsString());
+      assertArrayEquals(
+          compressedUpstreamResponseBody, mvcResult.getResponse().getContentAsByteArray());
+      assertEquals("gzip", mvcResult.getResponse().getHeader("Content-Encoding"));
     }
   }
 
