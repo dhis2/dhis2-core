@@ -158,8 +158,9 @@ public class DataIntegrityController {
   /**
    * Handles the GET request to retrieve data integrity check metrics in Prometheus format. All
    * checks present in the cache are returned. A check that failed with an error reports a count of
-   * -1. The finished timestamp shows the age of each cached result, so stale or missing results can
-   * be detected.
+   * -1. The finished timestamp shows the age of each cached result. A result leaves the cache one
+   * hour after the check ran, together with its timestamp, so an alert on the age needs a limit
+   * below one hour. A result that is missing has no timestamp; detect it with absent().
    *
    * @return A string containing the metrics in Prometheus format.
    */
