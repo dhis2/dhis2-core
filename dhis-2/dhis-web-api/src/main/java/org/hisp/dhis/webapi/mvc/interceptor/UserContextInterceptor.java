@@ -37,15 +37,22 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserSessionAware;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * If a translation request parameters are set the {@link UserSettings#getUserDbLocale()} is
+ * Makes sure the {@link UserSettings} of the current user are held for the request.
+ *
+ * <p>If a translation request parameters are set the {@link UserSettings#getUserDbLocale()} is
  * overridden for the current request by replacing the {@link UserSettings} with a modified copy.
  */
+@Component
 @RequiredArgsConstructor
 public class UserContextInterceptor implements HandlerInterceptor {
+
+  private final UserSessionAware userSessions;
 
   @Override
   public boolean preHandle(
@@ -53,6 +60,9 @@ public class UserContextInterceptor implements HandlerInterceptor {
       @Nonnull final HttpServletResponse response,
       @Nonnull final Object handler) {
     ThreadUserSettings.clear();
+    if (CurrentUserUtil.hasCurrentUser()) {
+      userSessions.onSessionRequest(CurrentUserUtil.getCurrentUsername());
+    }
 
     // explicit opt-out only
     if ("false".equalsIgnoreCase(request.getParameter("translate"))) return true;

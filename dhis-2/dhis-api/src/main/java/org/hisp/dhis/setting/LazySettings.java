@@ -66,6 +66,7 @@ import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.translation.Translatable;
 
@@ -248,13 +249,27 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   @Override
   public JsonMap<JsonMixed> toJson(boolean includeConfidential, @Nonnull Set<String> filter) {
+    return toJson(includeConfidential, filter, true);
+  }
+
+  @Override
+  public JsonMap<JsonMixed> toJson(
+      boolean includeConfidential, @Nonnull Set<String> filter, boolean includeDefaults) {
     Set<String> includedKeys = new HashSet<>(filter);
     if (filter.isEmpty()) {
       includedKeys.addAll(keysWithDefaults(type));
       includedKeys.addAll(List.of(keys));
     }
     if (!includeConfidential) includedKeys.removeIf(LazySettings::isConfidential);
-    return Json.object(obj -> includedKeys.forEach(key -> obj.addMember(key, asJson(key).node())))
+    return Json.object(
+            obj ->
+                includedKeys.forEach(
+                    key ->
+                        obj.addMember(
+                            key,
+                            includeDefaults || indexOf(key) >= 0
+                                ? asJson(key).node()
+                                : JsonNode.NULL)))
         .asMap(JsonMixed.class);
   }
 

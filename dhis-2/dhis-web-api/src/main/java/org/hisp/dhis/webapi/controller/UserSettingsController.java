@@ -38,6 +38,7 @@ import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -95,8 +96,9 @@ public class UserSettingsController {
       throws ForbiddenException, NotFoundException {
 
     UserSettings settings = getUserSettings(userId, username, useFallback);
-    JsonMap<JsonMixed> res =
-        key == null || key.isEmpty() ? settings.toJson(false) : settings.toJson(false, key);
+    // without fallbacks a setting the user has not stored is null instead of the default value, so
+    // clients can tell "not set" (use the system default) from a value that equals the default
+    JsonMap<JsonMixed> res = settings.toJson(false, key == null ? Set.of() : key, useFallback);
     return ResponseEntity.ok().cacheControl(CacheControl.noCache().cachePrivate()).body(res);
   }
 
@@ -116,7 +118,9 @@ public class UserSettingsController {
     response.setHeader(HttpHeaders.CONTENT_TYPE, ContextUtils.CONTENT_TYPE_TEXT);
 
     UserSettings settings = getUserSettings(userId, username, useFallback);
-    return toJavaString(settings.toJson(false, Set.of(key)).get(key));
+    // without fallbacks a setting the user has not stored has no value: the body is empty
+    String value = toJavaString(settings.toJson(false, Set.of(key), useFallback).get(key));
+    return value == null ? "" : value;
   }
 
   @PostMapping(value = "/{key}")
@@ -134,8 +138,7 @@ public class UserSettingsController {
 
     if (isEmpty(newValue)) throw new ConflictException("You need to specify a new value");
 
-    if (username == null) username = getUsername(userId);
-    userSettingsService.put(key, newValue, username);
+    userSettingsService.put(key, newValue, getUsername(userId, username));
 
     return ok("User setting saved");
   }
@@ -148,23 +151,27 @@ public class UserSettingsController {
           String userId)
       throws ForbiddenException, NotFoundException, ConflictException, BadRequestException {
     checkKeyExists(key);
-    if (username == null) username = getUsername(userId);
-    userSettingsService.put(key, null, username);
+    userSettingsService.put(key, null, getUsername(userId, username));
   }
 
   /**
-   * Tries to find a user based on the uid or username. If none is supplied, currentUser will be
-   * returned. If uid or username is found, it will also make sure the current user has access to
-   * the user.
+   * Tries to find a user based on the username or uid; the username wins when both are supplied. If
+   * none is supplied, currentUser will be returned. If a user is found, it will also make sure the
+   * current user has access to the user.
    *
    * @param uid the user uid
+   * @param username the username
    * @return the username
    */
-  private String getUsername(String uid) throws ForbiddenException, NotFoundException {
-    if (uid == null) return CurrentUserUtil.getCurrentUsername();
+  private String getUsername(@CheckForNull String uid, @CheckForNull String username)
+      throws ForbiddenException, NotFoundException {
+    if (uid == null && username == null) return CurrentUserUtil.getCurrentUsername();
 
-    User user = userService.getUser(uid);
+    User user =
+        username != null ? userService.getUserByUsername(username) : userService.getUser(uid);
 
+    if (user == null && username != null)
+      throw new NotFoundException("User with username " + username + " could not be found.");
     if (user == null) throw new NotFoundException(User.class, uid);
 
     Set<String> userGroups =
@@ -179,8 +186,7 @@ public class UserSettingsController {
 
   private UserSettings getUserSettings(String userId, String username, boolean useFallback)
       throws ForbiddenException, NotFoundException {
-    if (username == null) username = getUsername(userId);
-    return userSettingsService.getUserSettings(username, useFallback);
+    return userSettingsService.getUserSettings(getUsername(userId, username), useFallback);
   }
 
   private static void checkKeyExists(String key) throws NotFoundException {

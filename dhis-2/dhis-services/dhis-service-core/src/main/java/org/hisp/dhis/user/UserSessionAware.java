@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.user;
 
+import javax.annotation.Nonnull;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.session.SessionDestroyedEvent;
 
@@ -45,6 +46,15 @@ public interface UserSessionAware {
    * @param event used to track newly created user sessions
    */
   void onSessionInit(AuthenticationSuccessEvent event);
+
+  /**
+   * Makes sure the settings of a user are held while the user has a session. They are held from
+   * login on, but they are dropped when any session of the user ends, also when the user has
+   * another session.
+   *
+   * @param username of the user that makes a request
+   */
+  void onSessionRequest(@Nonnull String username);
 
   /**
    * @param event used to track session that are no longer valid
