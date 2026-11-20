@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
@@ -47,7 +46,6 @@ import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.UserRole;
 import org.springframework.stereotype.Component;
 
 /**
@@ -64,8 +62,6 @@ public class ProgramDeletionHandler extends IdObjectDeletionHandler<Program> {
   protected void registerHandler() {
     whenDeleting(CategoryCombo.class, this::deleteCategoryCombo);
     whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
-    whenDeleting(UserRole.class, this::deleteUserRole);
-    whenDeleting(Program.class, this::deleteProgram);
     whenVetoing(TrackedEntityType.class, this::allowDeleteTrackedEntityType);
     whenDeleting(TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute);
     whenDeleting(DataEntryForm.class, this::deleteDataEntryForm);
@@ -95,18 +91,6 @@ public class ProgramDeletionHandler extends IdObjectDeletionHandler<Program> {
       program.getOrganisationUnits().remove(unit);
       idObjectManager.updateNoAcl(program);
     }
-  }
-
-  /**
-   * {@link Program#getUserRoles()} is read only (no owning side), so Hibernate never removes its
-   * {@code program_userroles} rows. Delete them by SQL so they neither dangle nor block deletion.
-   */
-  private void deleteUserRole(UserRole userRole) {
-    delete("DELETE FROM program_userroles WHERE userroleid = :id", Map.of("id", userRole.getId()));
-  }
-
-  private void deleteProgram(Program program) {
-    delete("DELETE FROM program_userroles WHERE programid = :id", Map.of("id", program.getId()));
   }
 
   private DeletionVeto allowDeleteTrackedEntityType(TrackedEntityType trackedEntityType) {

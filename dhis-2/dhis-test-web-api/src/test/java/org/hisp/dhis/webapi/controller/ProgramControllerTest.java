@@ -447,48 +447,66 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldNotWriteProgramUserRoles() {
+  void shouldNotExposeProgramUserRoles() {
+    JsonList<JsonObject> properties =
+        GET("/schemas/program").content(HttpStatus.OK).getList("properties", JsonObject.class);
+
+    assertFalse(properties.isEmpty());
+    assertTrue(
+        properties.stream()
+            .noneMatch(
+                p ->
+                    "userRoles".equals(p.getString("collectionName").string())
+                        || "userRole".equals(p.getString("name").string())));
+  }
+
+  @Test
+  void shouldImportProgramAndIgnoreUserRoles() {
     String roleId = assertStatus(HttpStatus.CREATED, POST("/userRoles", "{'name':'Program role'}"));
-
-    JsonObject userRolesProperty =
-        GET("/schemas/program")
-            .content(HttpStatus.OK)
-            .getList("properties", JsonObject.class)
-            .stream()
-            .filter(p -> "userRoles".equals(p.getString("collectionName").string()))
-            .findFirst()
-            .orElseThrow();
-    assertFalse(userRolesProperty.getBoolean("owner").booleanValue());
-
-    JsonWebMessage patch =
-        assertWebMessage(
-            HttpStatus.CONFLICT,
-            PATCH(
-                "/programs/" + PROGRAM_UID,
-                "[{'op':'add','path':'/userRoles/-','value':{'id':'%s'}}]".formatted(roleId)));
-    assertEquals(
-        ErrorCode.E5006,
-        patch.getResponse().as(JsonObjectReport.class).getErrorReports().get(0).getErrorCode());
-
+    // language=JSON
     String json =
         """
         {
-          "id": "PrZMWi7rBga",
-          "name": "test program",
-          "shortName": "test program",
-          "programType": "WITH_REGISTRATION",
-          "userRoles": [{"id": "%s"}]
+          "programs": [
+            {
+              "id": "PrZMWi7rBgb",
+              "name": "program with user roles",
+              "shortName": "program with user roles",
+              "programType": "WITHOUT_REGISTRATION",
+              "userRoles": [{"id": "%s"}, {"id": "UrNotExists"}]
+            }
+          ]
         }
         """
             .formatted(roleId);
-    assertStatus(HttpStatus.OK, PUT("/programs/" + PROGRAM_UID, json));
-    startNewRequestSession();
 
-    assertTrue(
-        GET("/programs/{id}?fields=userRoles", PROGRAM_UID)
+    JsonWebMessage message =
+        POST("/metadata", json).content(HttpStatus.OK).as(JsonWebMessage.class);
+
+    assertEquals("OK", message.getStatus());
+    JsonMixed program = GET("/programs/PrZMWi7rBgb").content(HttpStatus.OK).as(JsonMixed.class);
+    assertEquals("program with user roles", program.getString("name").string());
+    assertFalse(program.has("userRoles"));
+  }
+
+  @Test
+  void shouldDeleteUserRoleWithoutUpdatingPrograms() {
+    String roleId = assertStatus(HttpStatus.CREATED, POST("/userRoles", "{'name':'Program role'}"));
+    String lastUpdated =
+        GET("/programs/{id}?fields=lastUpdated", PROGRAM_UID)
             .content(HttpStatus.OK)
-            .getArray("userRoles")
-            .isEmpty());
+            .getString("lastUpdated")
+            .string();
+
+    assertStatus(HttpStatus.OK, DELETE("/userRoles/" + roleId));
+
+    assertStatus(HttpStatus.NOT_FOUND, GET("/userRoles/" + roleId));
+    assertEquals(
+        lastUpdated,
+        GET("/programs/{id}?fields=lastUpdated", PROGRAM_UID)
+            .content(HttpStatus.OK)
+            .getString("lastUpdated")
+            .string());
   }
 
   @Test
