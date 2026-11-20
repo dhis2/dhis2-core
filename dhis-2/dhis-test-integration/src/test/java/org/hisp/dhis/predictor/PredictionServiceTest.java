@@ -637,6 +637,48 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testPredictSelectedBelowUserOrgUnits() {
+    // The user's org units (A, B, G) are at level 1; the predictor runs at level 2 (C, D).
+    // SELECTED reads only data stored on the level 2 org units themselves, not on E below D.
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2023, 1), sourceB, 1000),
+        createDataValue(dataElementA, monthlyPeriod(2023, 1), sourceC, 10),
+        createDataValue(dataElementA, monthlyPeriod(2023, 1), sourceD, 20),
+        createDataValue(dataElementA, monthlyPeriod(2023, 1), sourceE, 300));
+
+    Expression expression = new Expression("sum(#{" + dataElementA.getUid() + "})", "expression");
+    Predictor p =
+        createPredictor(
+            dataElementX,
+            defaultCombo,
+            "PredictSelectedLevel2",
+            expression,
+            null,
+            periodTypeMonthly,
+            orgUnitLevel2,
+            1,
+            0,
+            0);
+    p.setOrganisationUnitDescendants(SELECTED);
+
+    PredictionSummary summary = new PredictionSummary();
+    predictionService.predict(p, monthStart(2023, 2), monthStart(2023, 3), summary);
+    assertEquals("Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary(summary));
+    assertEquals("10.0", getDataValue(dataElementX, defaultCombo, sourceC, monthlyPeriod(2023, 2)));
+    assertEquals("20.0", getDataValue(dataElementX, defaultCombo, sourceD, monthlyPeriod(2023, 2)));
+
+    // A user assigned to D only predicts for D's subtree: E (level 3) but not C.
+    User userD = createAndAddUser(true, "userD", Set.of(sourceD), Set.of(sourceD));
+    injectSecurityContextUser(userD);
+    p.setOrganisationUnitLevels(Sets.newHashSet(orgUnitLevel2, orgUnitLevel3));
+    summary = new PredictionSummary();
+    predictionService.predict(p, monthStart(2023, 2), monthStart(2023, 3), summary);
+    assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 1", shortSummary(summary));
+    assertEquals(
+        "300.0", getDataValue(dataElementX, defaultCombo, sourceE, monthlyPeriod(2023, 2)));
+  }
+
+  @Test
   void testPredictWithSkipTest() {
     addDataValues(
         createDataValue(dataElementA, monthlyPeriod(2023, 1), sourceA, 10),
