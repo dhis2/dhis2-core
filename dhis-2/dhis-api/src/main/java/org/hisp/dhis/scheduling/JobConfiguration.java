@@ -29,15 +29,40 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -45,9 +70,23 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.SecondaryMetadataObject;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
@@ -70,7 +109,17 @@ import org.hisp.dhis.scheduling.parameters.TestJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
+import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 
 /**
  * This class defines configuration for a job in the system. The job is defined with general
@@ -81,12 +130,21 @@ import org.hisp.dhis.schema.annotation.Property;
  *
  * <p>The class uses a custom deserializer to handle several potential {@link JobParameters}.
  *
+ * <p>The table has no creator, sharing, translations or attribute values columns, so this entity
+ * implements {@link IdentifiableObject} directly. Translations are kept in memory only, so the
+ * metadata importer can reject them for this non-translatable type. The other unsupported
+ * properties are no-op stubs at the end of the class.
+ *
  * @author Henning Håkonsen
  */
 @Getter
 @Setter
 @ToString
-public class JobConfiguration extends BaseIdentifiableObject implements SecondaryMetadataObject {
+@Entity
+@Table(name = "jobconfiguration")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@JacksonXmlRootElement(localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0)
+public class JobConfiguration implements IdentifiableObject, SecondaryMetadataObject {
 
   /**
    * A CRON based job may trigger on the same day after it has missed its execution. If time has
@@ -96,37 +154,87 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    */
   public static final int MAX_CRON_DELAY_HOURS = 4;
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "jobconfigurationid")
+  @ToString.Exclude
+  private long id;
+
+  @AuditAttribute
+  @Column(name = "uid", unique = true, nullable = false, length = 11)
+  @ToString.Exclude
+  private String uid;
+
+  @AuditAttribute
+  @Column(name = "code", unique = true, length = 50)
+  @ToString.Exclude
+  private String code;
+
+  @Column(name = "name", nullable = false, unique = true, length = 230)
+  @ToString.Exclude
+  private String name;
+
+  @Column(name = "created", nullable = false, updatable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  @ToString.Exclude
+  private Date created;
+
+  @Column(name = "lastupdated", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  @ToString.Exclude
+  private Date lastUpdated;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "lastupdatedby")
+  @ToString.Exclude
+  private User lastUpdatedBy;
+
   /** The type of job. */
   @JsonProperty(required = true)
+  @Enumerated(EnumType.STRING)
+  @Column(name = "jobtype", nullable = false, length = 120, updatable = false)
   private JobType jobType;
 
-  @JsonProperty private SchedulingType schedulingType;
+  /** Mapped through {@link #getSchedulingType()}, which derives a value when none is set. */
+  @JsonProperty @Transient private SchedulingType schedulingType;
 
   /**
    * The cron expression used for scheduling the job. Relevant for {@link #schedulingType} {@link
    * SchedulingType#CRON}.
    */
-  @JsonProperty private String cronExpression;
+  @JsonProperty
+  @Column(name = "cronexpression", length = 255)
+  private String cronExpression;
 
   /**
    * The delay in seconds between the completion of one job execution and the start of the next.
    * Relevant for {@link #schedulingType} {@link SchedulingType#FIXED_DELAY}.
    */
-  @JsonProperty private Integer delay;
+  @JsonProperty
+  @Column(name = "delay")
+  private Integer delay;
 
   /**
    * Parameters of the job. Jobs can use their own implementation of the {@link JobParameters}
    * class.
    */
+  @Column(name = "jsonbjobparameters")
+  @Type(type = "jbJobParameters")
   private JobParameters jobParameters;
 
   /** Indicates whether this job is currently enabled or disabled. */
-  @JsonProperty private boolean enabled = true;
+  @JsonProperty
+  @Column(name = "enabled", nullable = false)
+  private boolean enabled = true;
 
+  /** Mapped through {@link #getJobStatus()}, which derives a value when none is set. */
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @Transient
   private JobStatus jobStatus;
 
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @Enumerated(EnumType.STRING)
+  @Column(name = "lastexecutedstatus", nullable = false, length = 120, updatable = false)
   private JobStatus lastExecutedStatus = JobStatus.NOT_STARTED;
 
   /**
@@ -134,6 +242,8 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    * but kept for backwards compatibility.
    */
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @Column(name = "lastexecuted", insertable = false, updatable = false)
+  @Temporal(TemporalType.TIMESTAMP)
   private Date lastExecuted;
 
   /**
@@ -141,6 +251,8 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    * yet). Can be before {@link #lastExecuted} while a new run is still in progress.
    */
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @Column(name = "lastfinished", insertable = false, updatable = false)
+  @Temporal(TemporalType.TIMESTAMP)
   private Date lastFinished;
 
   /**
@@ -148,13 +260,17 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    * scheduled)
    */
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @Column(name = "lastalive", insertable = false, updatable = false)
+  @Temporal(TemporalType.TIMESTAMP)
   private Date lastAlive;
 
   /**
    * Optional UID of the user that executes the job. (The user's authentication is set in the
    * security context for the execution scope)
    */
-  @JsonProperty private String executedBy;
+  @JsonProperty
+  @Column(name = "executedby", length = 11)
+  private String executedBy;
 
   /**
    * The name of the queue this job belongs to or null if it is a stand-alone job. If set the {@link
@@ -164,6 +280,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    * {@link JobQueueService}.
    */
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @Column(name = "queuename", length = 50)
   private String queueName;
 
   /**
@@ -173,11 +290,26 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    * {@link JobQueueService}.
    */
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @Column(name = "queueposition")
   private Integer queuePosition;
 
   @CheckForNull
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @Column(name = "errorcodes", insertable = false, updatable = false, columnDefinition = "text")
+  @Type(type = "text")
   private String errorCodes;
+
+  /**
+   * Translations of this job. Not persisted; kept so the metadata importer can reject them for this
+   * non-translatable type.
+   */
+  @Transient @ToString.Exclude private Set<Translation> translations = new HashSet<>();
+
+  /** Link to this object in the API, set when it is rendered by the web layer. */
+  @Transient @ToString.Exclude private transient String href;
+
+  /** Access information for this object. Applies to current user. */
+  @Transient @ToString.Exclude private transient Access access;
 
   public JobConfiguration() {}
 
@@ -221,9 +353,143 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   }
 
   // -------------------------------------------------------------------------
+  // IdentifiableObject implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  @JsonProperty(value = "id")
+  @JacksonXmlProperty(localName = "id", isAttribute = true)
+  @Description("The Unique Identifier for this Object.")
+  @Property(value = PropertyType.IDENTIFIER, required = FALSE)
+  @PropertyRange(min = 11, max = 11)
+  public String getUid() {
+    return uid;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The unique code for this Object.")
+  @Property(PropertyType.IDENTIFIER)
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The name of this Object. Required and unique.")
+  @PropertyRange(min = 1)
+  public String getName() {
+    return name;
+  }
+
+  /** The display name is the name, as a job has no persisted translations. */
+  @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
+  public String getDisplayName() {
+    return getName();
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The date this object was created.")
+  @Property(value = PropertyType.DATE, required = FALSE)
+  public Date getCreated() {
+    return created;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The date this object was last updated.")
+  @Property(value = PropertyType.DATE, required = FALSE)
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
+
+  @Override
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getLastUpdatedBy() {
+    return lastUpdatedBy;
+  }
+
+  @Override
+  @Gist(included = Include.FALSE)
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Translation> getTranslations() {
+    if (translations == null) {
+      translations = new HashSet<>();
+    }
+
+    return translations;
+  }
+
+  @Override
+  @Sortable(value = false)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(isAttribute = true)
+  @Property(PropertyType.URL)
+  public String getHref() {
+    return href;
+  }
+
+  @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
+  public Access getAccess() {
+    return access;
+  }
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    } else if (idScheme.is(IdentifiableProperty.CODE)) {
+      return code;
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return name;
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    }
+    return null;
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    }
+    return getPropertyValue(idScheme);
+  }
+
+  // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
 
+  @jakarta.persistence.Access(AccessType.PROPERTY)
+  @Enumerated(EnumType.STRING)
+  @Column(name = "schedulingtype", nullable = false, length = 12)
   public SchedulingType getSchedulingType() {
     if (schedulingType != null) return schedulingType;
     if (cronExpression != null) return SchedulingType.CRON;
@@ -231,6 +497,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     return SchedulingType.ONCE_ASAP;
   }
 
+  @jakarta.persistence.Access(AccessType.PROPERTY)
+  @Enumerated(EnumType.STRING)
+  @Column(name = "jobstatus", nullable = false, length = 120, updatable = false)
   public JobStatus getJobStatus() {
     if (jobStatus != null)
       return enabled && jobStatus == JobStatus.DISABLED ? JobStatus.SCHEDULED : jobStatus;
@@ -419,5 +688,137 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     return nextExecutionTime == null || config.getSchedulingType() != SchedulingType.CRON
         ? null
         : nextExecutionTime.plus(maxCronDelay);
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode and equals
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    int result = getUid() != null ? getUid().hashCode() : 0;
+    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
+    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+
+    return result;
+  }
+
+  /**
+   * Same real class (Hibernate proxies resolved) and the same {@code uid}, {@code code} and {@code
+   * name}, read through the getters.
+   */
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof JobConfiguration other
+            && getRealClass(this) == getRealClass(obj)
+            && Objects.equals(getUid(), other.getUid())
+            && Objects.equals(getCode(), other.getCode())
+            && Objects.equals(getName(), other.getName());
+  }
+
+  // -------------------------------------------------------------------------
+  // Unsupported IdentifiableObject methods
+  // -------------------------------------------------------------------------
+
+  /** JobConfiguration does not support a creator. */
+  @Override
+  @Deprecated(since = "2.44")
+  @Gist(included = Include.FALSE)
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getCreatedBy() {
+    return null;
+  }
+
+  /** JobConfiguration does not support a creator. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void setCreatedBy(User createdBy) {
+    // Not supported
+  }
+
+  /** JobConfiguration does not support a creator. */
+  @Override
+  @Deprecated(since = "2.44")
+  @OpenApi.Ignore
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getUser() {
+    return null;
+  }
+
+  /** JobConfiguration does not support a creator. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void setUser(User user) {
+    // Not supported
+  }
+
+  /** JobConfiguration does not support sharing. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void setOwner(String owner) {
+    // Not supported
+  }
+
+  /**
+   * JobConfiguration does not support sharing. Returns a new {@link Sharing} rather than {@link
+   * Sharing#empty()} to keep the exported shape of the former in-memory default.
+   */
+  @Override
+  @Deprecated(since = "2.44")
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Sharing getSharing() {
+    return new Sharing();
+  }
+
+  /** JobConfiguration does not support sharing. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void setSharing(Sharing sharing) {
+    // Not supported
+  }
+
+  /** JobConfiguration does not support attribute values. */
+  @Override
+  @Deprecated(since = "2.44")
+  @OpenApi.Property(BaseIdentifiableObject.AttributeValue[].class)
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
+  public AttributeValues getAttributeValues() {
+    return AttributeValues.empty();
+  }
+
+  /** JobConfiguration does not support attribute values. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void setAttributeValues(AttributeValues attributeValues) {
+    // Not supported
+  }
+
+  /** JobConfiguration does not support attribute values. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void addAttributeValue(String attributeUid, String value) {
+    // Not supported
+  }
+
+  /** JobConfiguration does not support attribute values. */
+  @Override
+  @Deprecated(since = "2.44")
+  public void removeAttributeValue(String attributeId) {
+    // Not supported
   }
 }

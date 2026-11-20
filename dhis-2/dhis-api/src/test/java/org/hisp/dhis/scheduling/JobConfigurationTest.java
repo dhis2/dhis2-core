@@ -31,6 +31,8 @@ package org.hisp.dhis.scheduling;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Date;
@@ -44,7 +46,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -260,5 +264,52 @@ class JobConfigurationTest {
     Set<Long> uniqueTimestamps = Set.copyOf(timestamps);
     assertEquals(timestamps.size(), uniqueTimestamps.size());
     assertTrue(uniqueTimestamps.contains(now));
+  }
+
+  @Test
+  void equalsAndHashCodeCompareUidCodeAndNameOnly() {
+    JobConfiguration a = job("JobConfA001", "JOB_A", "Job A", JobType.ANALYTICS_TABLE);
+    JobConfiguration b = job("JobConfA001", "JOB_A", "Job A", JobType.DATA_INTEGRITY);
+
+    assertEquals(a, b);
+    assertEquals(a.hashCode(), b.hashCode());
+    assertNotEquals(a, job("JobConfA001", "JOB_B", "Job A", JobType.ANALYTICS_TABLE));
+    assertNotEquals(a, job("JobConfA001", "JOB_A", "Job B", JobType.ANALYTICS_TABLE));
+    assertNotEquals(a, job("JobConfB001", "JOB_A", "Job A", JobType.ANALYTICS_TABLE));
+  }
+
+  @Test
+  void propertyValuesResolveIdentifiableProperties() {
+    JobConfiguration job = job("JobConfA001", "JOB_A", "Job A", JobType.ANALYTICS_TABLE);
+    job.setId(42);
+
+    assertEquals("JobConfA001", job.getPropertyValue(IdScheme.UID));
+    assertEquals("JOB_A", job.getPropertyValue(IdScheme.CODE));
+    assertEquals("Job A", job.getPropertyValue(IdScheme.NAME));
+    assertEquals("42", job.getPropertyValue(IdScheme.ID));
+    assertEquals("Job A", job.getDisplayPropertyValue(IdScheme.NAME));
+    assertEquals("Job A", job.getDisplayName());
+  }
+
+  @Test
+  void unsupportedCreatorAndSharingAreNotKept() {
+    JobConfiguration job = new JobConfiguration(JobType.DATA_INTEGRITY);
+    User user = new User();
+    user.setUid("UserUid0001");
+
+    job.setUser(user);
+    job.getSharing().setPublicAccess("rw------");
+
+    assertNull(job.getCreatedBy());
+    assertNull(job.getUser());
+    assertNull(job.getSharing().getOwner());
+    assertNull(job.getSharing().getPublicAccess());
+  }
+
+  private static JobConfiguration job(String uid, String code, String name, JobType type) {
+    JobConfiguration job = new JobConfiguration(name, type);
+    job.setUid(uid);
+    job.setCode(code);
+    return job;
   }
 }
