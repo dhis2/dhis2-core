@@ -38,7 +38,6 @@ import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.event.CategoryOptionMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
@@ -50,7 +49,6 @@ import org.mapstruct.Named;
 @Mapper(
     uses = {
       AttributeMapper.class,
-      CategoryOptionMapper.class,
       DataValueMapper.class,
       InstantMapper.class,
       UIDMapper.class,
@@ -116,7 +114,6 @@ interface RelationshipItemMapper {
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
   @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo.uid")
-  @Mapping(target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions")
   @Mapping(target = "completedAt", source = "completedDate")
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
@@ -134,7 +131,6 @@ interface RelationshipItemMapper {
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
   @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo.uid")
-  @Mapping(target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions")
   @Mapping(target = "completedAt", source = "completedDate")
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
