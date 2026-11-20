@@ -184,27 +184,13 @@ public class JobConfigurationController
   @PostMapping("{uid}/enable")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void enable(@PathVariable("uid") UID uid) throws NotFoundException, ConflictException {
-    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid.getValue());
-    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
-    checkModifiable(obj, "Job %s is a system job that cannot be modified.");
-    if (!obj.isEnabled()) {
-      if (!obj.isReadyToRun())
-        throw new ConflictException("Job requires schedule setup before it can be enabled.");
-      obj.setEnabled(true);
-      jobConfigurationService.updateJobConfiguration(obj);
-    }
+    jobConfigurationService.enable(uid);
   }
 
   @PostMapping("{uid}/disable")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void disable(@PathVariable("uid") UID uid) throws NotFoundException, ConflictException {
-    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid.getValue());
-    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
-    checkModifiable(obj, "Job %s is a system job that cannot be modified.");
-    if (obj.isEnabled()) {
-      obj.setEnabled(false);
-      jobConfigurationService.updateJobConfiguration(obj);
-    }
+    jobConfigurationService.disable(uid);
   }
 
   @Override

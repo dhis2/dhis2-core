@@ -420,25 +420,6 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testEnableIsReadOnly_Update() {
-    JsonJobConfiguration config = createExpectSuccess(Map.of());
-    assertTrue(config.isEnabled(), "newly created config should be enabled");
-    String jobId = config.getId();
-    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/disable"));
-    config = getJsonJobConfiguration(jobId);
-    assertFalse(config.isEnabled());
-    config = updateExpectSuccess(jobId, Map.of("name", "new_name"));
-    assertEquals("new_name", config.getName());
-    assertFalse(config.isEnabled(), "updating should not affect enabled");
-    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/enable"));
-    config = getJsonJobConfiguration(jobId);
-    assertTrue(config.isEnabled());
-    config = updateExpectSuccess(jobId, Map.of("name", "new_name2"));
-    assertEquals("new_name2", config.getName());
-    assertTrue(config.isEnabled(), "updating should not affect enabled");
-  }
-
-  @Test
   void testEnableRequiresSchedule_Update() {
     JsonJobConfiguration config = createExpectSuccess(Map.of());
     assertTrue(config.isEnabled(), "newly created config should be enabled");

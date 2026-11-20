@@ -493,6 +493,48 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
+  public boolean tryEnable(@Nonnull UID jobId) {
+    String sql =
+        """
+      update jobconfiguration
+      set
+        lastupdated = now(),
+        enabled = true,
+        jobstatus = case
+          when jobstatus = 'DISABLED' then 'SCHEDULED'
+          else jobstatus end
+      where uid = :id
+      and jobstatus != 'RUNNING'""";
+    return runWriteInStatelessSession(
+            q ->
+                nativeSynchronizedQuery(q, sql)
+                    .setParameter("id", jobId.getValue())
+                    .executeUpdate())
+        > 0;
+  }
+
+  @Override
+  public boolean tryDisable(@Nonnull UID jobId) {
+    String sql =
+        """
+      update jobconfiguration
+      set
+        lastupdated = now(),
+        enabled = false,
+        jobstatus = case
+          when jobstatus = 'SCHEDULED' then 'DISABLED'
+          else jobstatus end
+      where uid = :id
+      and jobstatus != 'RUNNING'""";
+    return runWriteInStatelessSession(
+            q ->
+                nativeSynchronizedQuery(q, sql)
+                    .setParameter("id", jobId.getValue())
+                    .executeUpdate())
+        > 0;
+  }
+
+  @Override
   public boolean trySkip(@Nonnull String queue) {
     String sql =
         """

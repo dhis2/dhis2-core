@@ -69,6 +69,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -187,6 +188,34 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
         settingsProvider.getCurrentSettings().getJobsRescheduleAnalyticsAfterMinutes();
     reset += jobConfigurationStore.rescheduleStaleJobs(ttlAnalytics, analyticsJobs);
     return reset;
+  }
+
+  @Override
+  @Transactional
+  public void enable(@Nonnull UID job) throws ConflictException, NotFoundException {
+    JobEntry entry = jobConfigurationStore.getJobById(job);
+    if (entry == null) throw new NotFoundException(JobConfiguration.class, job);
+    checkModifiable(entry);
+    if (!entry.isReadyToRun())
+      throw new ConflictException("Job requires schedule setup before it can be enabled.");
+    if (!jobConfigurationStore.tryEnable(job))
+      throw new ConflictException("Job is currently RUNNING and cannot be enabled.");
+  }
+
+  @Override
+  @Transactional
+  public void disable(@Nonnull UID job) throws ConflictException, NotFoundException {
+    JobEntry entry = jobConfigurationStore.getJobById(job);
+    if (entry == null) throw new NotFoundException(JobConfiguration.class, job);
+    checkModifiable(entry);
+    if (!jobConfigurationStore.tryDisable(job))
+      throw new ConflictException("Job is currently RUNNING and cannot be disabled.");
+  }
+
+  private void checkModifiable(JobEntry job) throws ConflictException {
+    if (!job.type().isUserDefined())
+      throw new ConflictException(
+          String.format("Job %s is a system job that cannot be modified.", job.id()));
   }
 
   @Override
