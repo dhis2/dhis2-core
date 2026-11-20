@@ -847,7 +847,7 @@
         "id": "M5zQapPyTZI"
       },
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP",
         "ALL",
         "F_USER_VIEW",
         "F_GENERATE_MIN_MAX_VALUES",

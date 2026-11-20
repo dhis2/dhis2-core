@@ -89,7 +89,7 @@
       "name": "Superuser",
       "id": "yrB6vc5Ip3r",
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP",
         "ALL",
         "F_DATAELEMENTGROUP_PUBLIC_ADD",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
