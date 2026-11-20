@@ -76,4 +76,7 @@ public interface SchemaValidator {
    * @return list of errors
    */
   List<ErrorReport> validateProperty(Property property, Object object);
+
+  /** Validate the cardinality of a non-null collection without materializing its elements. */
+  List<ErrorReport> validateCollectionSize(Property property, Class<?> ownerClass, int size);
 }

@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.persister.collection.CollectionPersister;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
@@ -82,6 +83,8 @@ public class DefaultCollectionService implements CollectionService {
 
   private final UserService userService;
 
+  private final HibernateCollectionItemStore collectionItemStore;
+
   @Override
   @Transactional(rollbackFor = FeedbackException.class)
   public TypeReport addCollectionItems(
@@ -122,21 +125,26 @@ public class DefaultCollectionService implements CollectionService {
       IdentifiableObject object, Property property, Collection<String> itemCodes, TypeReport report)
       throws BadRequestException {
     Collection<IdentifiableObject> collection = getCollection(object, property);
+    CollectionPersister persister = collectionItemStore.prepare(collection);
 
-    updateCollectionItems(
-        property,
-        itemCodes,
-        report,
-        ErrorCode.E1108,
-        item -> {
-          if (!collection.contains(item)) {
-            collection.add(item);
-            report.updatedInc(1);
-          } else {
-            report.ignoredInc(1);
-          }
-        });
-    validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
+    if (persister != null) {
+      report.updatedInc(
+          updateUnloadedCollection(persister, object, getItems(property, itemCodes), true, report));
+    } else {
+      updateCollectionItems(
+          property,
+          itemCodes,
+          report,
+          ErrorCode.E1108,
+          item -> {
+            if (!collection.contains(item) && collection.add(item)) {
+              report.updatedInc(1);
+            } else {
+              report.ignoredInc(1);
+            }
+          });
+    }
+    validateOwnedCollection(object, property, persister);
   }
 
   private void addNonOwnedCollectionItems(
@@ -200,30 +208,71 @@ public class DefaultCollectionService implements CollectionService {
       delNonOwnedCollectionItems(object, property, itemCodes, report);
     }
 
-    validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
+    if (!property.isOwner()) {
+      validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
+    }
     return report;
   }
 
   private void delOwnedCollectionItems(
-      IdentifiableObject object,
-      Property property,
-      Collection<String> itemCodes,
-      TypeReport report) {
+      IdentifiableObject object, Property property, Collection<String> itemCodes, TypeReport report)
+      throws BadRequestException {
     Collection<IdentifiableObject> collection = getCollection(object, property);
+    CollectionPersister persister = collectionItemStore.prepare(collection);
 
-    updateCollectionItems(
-        property,
-        itemCodes,
-        report,
-        ErrorCode.E1109,
-        item -> {
-          if (collection.contains(item)) {
-            collection.remove(item);
-            report.deletedInc(1);
-          } else {
-            report.ignoredInc(1);
-          }
-        });
+    if (persister != null) {
+      report.deletedInc(
+          updateUnloadedCollection(
+              persister, object, getItems(property, itemCodes), false, report));
+    } else {
+      updateCollectionItems(
+          property,
+          itemCodes,
+          report,
+          ErrorCode.E1109,
+          item -> {
+            if (collection.remove(item)) {
+              report.deletedInc(1);
+            } else {
+              report.ignoredInc(1);
+            }
+          });
+    }
+    validateOwnedCollection(object, property, persister);
+  }
+
+  /**
+   * The rows of an unloaded collection are written straight to the database, where a failed
+   * statement aborts the transaction. Such a failure is left to fail the request: as an item error
+   * it would be reported next to counted changes that the database has rolled back.
+   *
+   * @return the number of items added or removed; the other items are counted as ignored
+   */
+  private int updateUnloadedCollection(
+      CollectionPersister persister,
+      IdentifiableObject object,
+      List<? extends IdentifiableObject> items,
+      boolean addition,
+      TypeReport report) {
+    int changed = collectionItemStore.update(persister, object, items, addition);
+    report.ignoredInc(items.size() - changed);
+    return changed;
+  }
+
+  private void validateOwnedCollection(
+      IdentifiableObject object, Property property, CollectionPersister persister)
+      throws BadRequestException {
+    if (persister == null) {
+      validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
+      return;
+    }
+    // Only cardinality is validated for a non-null collection. Unbounded sets need no count.
+    if ((property.getMin() != null && property.getMin() > 0)
+        || (property.getMax() != null && property.getMax() < Integer.MAX_VALUE)) {
+      int size = collectionItemStore.size(persister, object);
+      validateAndThrowErrors(
+          () -> schemaValidator.validateCollectionSize(property, object.getClass(), size));
+    }
   }
 
   private void delNonOwnedCollectionItems(
