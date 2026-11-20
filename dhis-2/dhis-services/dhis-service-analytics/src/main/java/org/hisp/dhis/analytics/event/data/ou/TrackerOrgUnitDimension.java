@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.analytics.event.data.ou;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -121,6 +123,16 @@ public enum TrackerOrgUnitDimension {
     this.filterItems = filterItems;
     this.dimensionRequested = dimensionRequested;
     this.dimensionItemsSetter = dimensionItemsSetter;
+  }
+
+  /**
+   * Returns the dimension whose output column holding the org unit UID has the given name, such as
+   * {@code enrollmentou}.
+   */
+  public static Optional<TrackerOrgUnitDimension> fromUidHeader(String headerName) {
+    return Arrays.stream(values())
+        .filter(dimension -> dimension.uidHeader.getItem().equals(headerName))
+        .findFirst();
   }
 
   /** The output columns of the query endpoint, holding the org unit UID and name. */
