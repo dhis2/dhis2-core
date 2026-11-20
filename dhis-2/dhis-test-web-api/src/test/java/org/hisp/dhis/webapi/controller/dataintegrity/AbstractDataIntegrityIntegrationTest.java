@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class AbstractDataIntegrityIntegrationTest extends PostgresControllerIntegrationTestBase {
   final JsonDataIntegrityDetails getDetails(String check) {
+    flushTestData();
     JsonObject content = GET("/dataIntegrity/details?checks={check}&timeout=1000", check).content();
     JsonDataIntegrityDetails details =
         content.get(check.replace('-', '_'), JsonDataIntegrityDetails.class);
@@ -61,6 +62,7 @@ class AbstractDataIntegrityIntegrationTest extends PostgresControllerIntegration
   }
 
   final void postDetails(String check) {
+    flushTestData();
     HttpResponse trigger = POST("/dataIntegrity/details?checks=" + check);
     assertStatus(HttpStatus.OK, trigger);
     assertEquals("http://localhost/api/dataIntegrity/details?checks=" + check, trigger.location());
@@ -68,6 +70,7 @@ class AbstractDataIntegrityIntegrationTest extends PostgresControllerIntegration
   }
 
   final JsonDataIntegritySummary getSummary(String check) {
+    flushTestData();
     JsonObject content = GET("/dataIntegrity/summary?checks={check}&timeout=1000", check).content();
     JsonDataIntegritySummary summary =
         content.get(check.replace('-', '_'), JsonDataIntegritySummary.class);
@@ -77,10 +80,19 @@ class AbstractDataIntegrityIntegrationTest extends PostgresControllerIntegration
   }
 
   public final void postSummary(String check) {
+    flushTestData();
     HttpResponse trigger = POST("/dataIntegrity/summary?checks=" + check);
     assertStatus(HttpStatus.OK, trigger);
     assertEquals("http://localhost/api/dataIntegrity/summary?checks=" + check, trigger.location());
     assertTrue(trigger.content().isA(JsonWebMessage.class));
+  }
+
+  /**
+   * Checks run plain SQL over JDBC, which does not see changes still pending in the test's
+   * Hibernate session, so these are written to the database before a check runs.
+   */
+  private void flushTestData() {
+    entityManager.flush();
   }
 
   public String createSimpleIndicator(String name, String indicatorType) {
