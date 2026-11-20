@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,6 +72,7 @@ import org.hisp.dhis.query.JpaCriteriaQueryEngine;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.planner.DefaultQueryPlanner;
+import org.hisp.dhis.query.planner.RootCollectionFilters;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
@@ -129,7 +130,7 @@ class DataElementOperandControllerTest {
     QueryService _queryService =
         new DefaultQueryService(
             new DefaultQueryParser(schemaService),
-            new DefaultQueryPlanner(schemaService),
+            new DefaultQueryPlanner(schemaService, new RootCollectionFilters(schemaService)),
             mock(JpaCriteriaQueryEngine.class),
             new InMemoryQueryEngine(schemaService, mock(AclService.class)));
     // Use "spy" on queryService, because we want a partial mock: we only
