@@ -248,6 +248,34 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     MockMessage mockMessage = sentInternalMessages.iterator().next();
 
     assertTrue(mockMessage.users.contains(userB));
+    assertFalse(mockMessage.users.contains(userA));
+    assertTrue(
+        userGroup.getMembers().contains(userA),
+        "a disabled user must stay a member of the recipient user group");
+  }
+
+  @Test
+  void testUserGroupRecipientWithoutUserGroup() {
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
+
+    when(messageService.sendMessage(any()))
+        .thenAnswer(
+            invocation -> {
+              sentInternalMessages.add(new MockMessage(invocation.getArguments()));
+              return 40L;
+            });
+
+    when(programNotificationRenderer.render(any(Enrollment.class), any(NotificationTemplate.class)))
+        .thenReturn(notificationMessage);
+
+    programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
+    programNotificationTemplate.setRecipientUserGroup(null);
+
+    programNotificationService.sendEnrollmentNotifications(enrollments.iterator().next().getId());
+
+    assertEquals(1, sentInternalMessages.size());
+    assertTrue(sentInternalMessages.iterator().next().users.isEmpty());
   }
 
   @Test
@@ -496,10 +524,16 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
     programNotificationTemplate.setRecipientUserGroup(userGroup);
 
-    programNotificationService.sendNotification(programNotificationTemplate, singleEvent, Map.of());
+    Map<Long, Set<GroupMemberInfo>> context = userGroupContext(userGroup, userA, userB);
+    when(entityManager.getReference(User.class, userB.getId())).thenReturn(userB);
+
+    programNotificationService.sendNotification(programNotificationTemplate, singleEvent, context);
 
     assertEquals(1, sentInternalMessages.size());
-    assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
+    assertEquals(Set.of(userB), sentInternalMessages.iterator().next().users);
+    assertTrue(
+        userGroup.getMembers().contains(userA),
+        "a disabled user must stay a member of the recipient user group");
   }
 
   @Test
