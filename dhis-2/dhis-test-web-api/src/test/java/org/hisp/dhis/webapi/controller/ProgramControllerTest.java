@@ -47,6 +47,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonObjectReport;
@@ -443,6 +444,51 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(program.getBoolean("onlyEnrollOnce").booleanValue());
     assertEquals(10, program.getNumber("expiryDays").intValue());
     assertEquals("Updated Enrollment Date", program.getEnrollmentDateLabel().string());
+  }
+
+  @Test
+  void shouldNotWriteProgramUserRoles() {
+    String roleId = assertStatus(HttpStatus.CREATED, POST("/userRoles", "{'name':'Program role'}"));
+
+    JsonObject userRolesProperty =
+        GET("/schemas/program")
+            .content(HttpStatus.OK)
+            .getList("properties", JsonObject.class)
+            .stream()
+            .filter(p -> "userRoles".equals(p.getString("collectionName").string()))
+            .findFirst()
+            .orElseThrow();
+    assertFalse(userRolesProperty.getBoolean("owner").booleanValue());
+
+    JsonWebMessage patch =
+        assertWebMessage(
+            HttpStatus.CONFLICT,
+            PATCH(
+                "/programs/" + PROGRAM_UID,
+                "[{'op':'add','path':'/userRoles/-','value':{'id':'%s'}}]".formatted(roleId)));
+    assertEquals(
+        ErrorCode.E5006,
+        patch.getResponse().as(JsonObjectReport.class).getErrorReports().get(0).getErrorCode());
+
+    String json =
+        """
+        {
+          "id": "PrZMWi7rBga",
+          "name": "test program",
+          "shortName": "test program",
+          "programType": "WITH_REGISTRATION",
+          "userRoles": [{"id": "%s"}]
+        }
+        """
+            .formatted(roleId);
+    assertStatus(HttpStatus.OK, PUT("/programs/" + PROGRAM_UID, json));
+    startNewRequestSession();
+
+    assertTrue(
+        GET("/programs/{id}?fields=userRoles", PROGRAM_UID)
+            .content(HttpStatus.OK)
+            .getArray("userRoles")
+            .isEmpty());
   }
 
   @Test

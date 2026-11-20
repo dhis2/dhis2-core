@@ -73,6 +73,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ListIndexBase;
+import org.hibernate.annotations.Persister;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
@@ -98,6 +99,7 @@ import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.hibernate.InverseCollectionPersister;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -265,7 +267,13 @@ public class Program extends BaseMetadataObject
   @ListIndexBase(1)
   private List<ProgramTrackedEntityAttribute> programAttributes = new ArrayList<>();
 
+  /**
+   * Legacy link without an owning side: read only, as with {@code inverse="true"} before the
+   * annotation mapping. The API and Hibernate never write {@code program_userroles}; {@code
+   * ProgramDeletionHandler} removes its rows when a program or user role is deleted.
+   */
   @ManyToMany
+  @Persister(impl = InverseCollectionPersister.class)
   @JoinTable(
       name = "program_userroles",
       joinColumns = @JoinColumn(name = "programid"),
