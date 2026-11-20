@@ -45,7 +45,7 @@ details_sql: >-
   CASE
   WHEN enabled = false THEN 'Disabled'
   WHEN jobstatus = 'DISABLED' THEN 'Enabled, but stored as DISABLED so it is never started'
-  ELSE 'Enabled, but has not completed a run in the last hour'
+  ELSE 'Enabled, but has not finished a run in the last hour'
   END || ', last completed ' || COALESCE(to_char(lastfinished, 'YYYY-MM-DD HH24:MI'), 'never') AS comment
   FROM jobconfiguration
   WHERE jobtype = 'HOUSEKEEPING'
@@ -72,5 +72,8 @@ recommendation: >
   UPDATE jobconfiguration SET enabled = true, jobstatus = 'SCHEDULED' WHERE uid = 'DHIS2rocks1';
   If it has been off for a long time, the first run deletes every finished one-off job in one go;
   you can review their number first in the Scheduler app or in the "Job scheduler" checks.
-  If the job is enabled but not completing, check the server log for errors from the Housekeeping job.
+  If the job is enabled but has not finished a run in the last hour, the job scheduler itself is not
+  running: failed Housekeeping runs also count as finished, and the scheduler cancels a Housekeeping run
+  that has stopped making progress within a minute. Check the server log for errors from the scheduler
+  loop, and restart the server if needed.
   If it is missing, restart the server or contact your system administrator.
