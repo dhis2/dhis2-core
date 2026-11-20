@@ -51,7 +51,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.setting.ThreadUserSettings;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.SystemUser;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -216,8 +220,27 @@ public class JobScheduler implements Runnable, JobRunner {
     runDueJob(config, Instant.now().truncatedTo(ChronoUnit.SECONDS));
   }
 
-  /** This is executed on a worker thread. The start time is the desired time to run. */
+  /**
+   * This is executed on a worker thread. The start time is the desired time to run.
+   *
+   * <p>Worker threads are reused. The job therefore starts without the user and the user settings
+   * that an earlier job left on the thread. When the job ends, the thread gets back the security
+   * context and the user settings it had before, which are none on a worker thread.
+   */
   private void runDueJob(JobEntry config, Instant start) {
+    SecurityContext callerContext = SecurityContextHolder.getContext();
+    UserSettings callerSettings = ThreadUserSettings.getHeld();
+    SecurityContextHolder.clearContext();
+    ThreadUserSettings.clear();
+    try {
+      executeDueJob(config, start);
+    } finally {
+      ThreadUserSettings.setHeld(callerSettings);
+      SecurityContextHolder.setContext(callerContext);
+    }
+  }
+
+  private void executeDueJob(JobEntry config, Instant start) {
     UID jobId = config.id();
     if (!service.tryRun(jobId)) {
       log.error(
