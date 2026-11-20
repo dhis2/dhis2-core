@@ -42,8 +42,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
@@ -51,6 +54,7 @@ import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.http.HttpStatus.Series;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -58,6 +62,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonDatastoreValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -72,6 +77,10 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
    * REST API.
    */
   @Autowired private DatastoreService service;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Autowired private EntityManagerFactory entityManagerFactory;
 
   @Test
   void testGetNamespaces() {
@@ -537,6 +546,122 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
         PUT("/dataStore/pets/emu", "{\"name\":\"james\"}")
             .error(HttpStatus.FORBIDDEN)
             .getMessage());
+  }
+
+  @Test
+  void testGetKeyJsonValueMetaData_PropertySet() {
+    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/dog", "{}"));
+
+    JsonObject metaData = GET("/dataStore/pets/dog/metaData").content();
+
+    assertEquals(
+        Set.of(
+            "access",
+            "attributeValues",
+            "created",
+            "createdBy",
+            "id",
+            "key",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "namespace",
+            "sharing",
+            "translations",
+            "user"),
+        Set.copyOf(metaData.names()));
+    assertEquals("rw------", metaData.getString("sharing.public").string());
+  }
+
+  @Test
+  void testSharingSetThroughSharingApiIsPersisted() {
+    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/hamster", "{}"));
+    String uid =
+        GET("/dataStore/pets/hamster/metaData").content().as(JsonDatastoreValue.class).getId();
+
+    assertStatus(
+        HttpStatus.OK,
+        POST("/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}"));
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
+    entityManagerFactory.getCache().evict(DatastoreEntry.class);
+
+    assertEquals(
+        "r-------",
+        GET("/sharing?type=dataStore&id=" + uid)
+            .content()
+            .getString("object.publicAccess")
+            .string());
+    assertEquals(
+        "r-------",
+        GET("/dataStore/pets/hamster/metaData").content().getString("sharing.public").string());
+  }
+
+  @Test
+  void testEncryptedEntryIsStoredEncryptedAndReturnedDecrypted() {
+    assertStatus(
+        HttpStatus.CREATED, POST("/dataStore/secrets/pin?encrypt=true", "{'pin':'s3cr3t-1234'}"));
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
+    entityManagerFactory.getCache().evict(DatastoreEntry.class);
+
+    String stored =
+        jdbcTemplate.queryForObject(
+            "select encrypted_value from keyjsonvalue where namespace = 'secrets'", String.class);
+    assertNotNull(stored);
+    assertFalse(stored.contains("s3cr3t-1234"), "the value must not be stored in plain text");
+    assertEquals("s3cr3t-1234", GET("/dataStore/secrets/pin").content().getString("pin").string());
+  }
+
+  @Test
+  void testSchemaProperties() {
+    JsonObject schema = GET("/schemas/dataStore").content(HttpStatus.OK);
+    assertEquals("identifiableObject", schema.getString("name").string());
+    assertFalse(schema.getBoolean("metadata").booleanValue());
+    assertTrue(schema.getBoolean("shareable").booleanValue());
+
+    JsonArray properties = schema.getArray("properties");
+    Set<String> names = new TreeSet<>();
+    Set<String> persisted = new TreeSet<>();
+    for (int i = 0; i < properties.size(); i++) {
+      JsonObject property = properties.getObject(i);
+      String name = property.getString("name").string();
+      names.add(name);
+      if (property.getBoolean("persisted").booleanValue()) {
+        persisted.add(name);
+      }
+    }
+    assertEquals(
+        Set.of(
+            "access",
+            "attributeValues",
+            "code",
+            "created",
+            "createdBy",
+            "displayName",
+            "href",
+            "id",
+            "key",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "name",
+            "namespace",
+            "sharing",
+            "translation",
+            "user",
+            "value"),
+        names);
+    assertEquals(
+        Set.of(
+            "code",
+            "created",
+            "createdBy",
+            "id",
+            "key",
+            "lastUpdated",
+            "lastUpdatedBy",
+            "namespace",
+            "sharing"),
+        persisted);
   }
 
   private void setUpNamespaceProtection(
