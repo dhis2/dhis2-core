@@ -32,6 +32,9 @@ package org.hisp.dhis.system;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -42,14 +45,61 @@ import com.vdurmont.semver4j.Semver;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.message.MessageConversationParams;
+import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserStore;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.core.io.ClassPathResource;
 
 @Slf4j
 class SystemUpdateNotificationServiceTest {
+  @Test
+  void testSendMessageForEachVersionKeepsDisabledUserInRecipientGroup() {
+    User enabledUser = new User();
+    enabledUser.setAutoFields();
+    enabledUser.setUsername("enabled");
+    User disabledUser = new User();
+    disabledUser.setAutoFields();
+    disabledUser.setUsername("disabled");
+    disabledUser.setDisabled(true);
+    UserGroup recipientGroup = new UserGroup();
+    recipientGroup.setMembers(new HashSet<>(Set.of(enabledUser, disabledUser)));
+
+    MessageService messageService = mock(MessageService.class);
+    when(messageService.getSystemUpdateNotificationRecipients())
+        .thenReturn(recipientGroup.getMembers());
+    SystemUpdateNotificationService service =
+        new SystemUpdateNotificationService(
+            mock(UserStore.class), mock(UserService.class), messageService);
+
+    service.sendMessageForEachVersion(
+        Map.of(
+            new Semver("2.43.1"),
+            Map.of(
+                "version", "2.43.1",
+                "releaseDate", "2026-01-01",
+                "downloadUrl", "https://releases.dhis2.org/2.43/dhis2-stable-2.43.1.war")),
+        JobProgress.noop());
+
+    ArgumentCaptor<MessageConversationParams> params =
+        ArgumentCaptor.forClass(MessageConversationParams.class);
+    verify(messageService).sendMessage(params.capture());
+    assertEquals(Set.of(enabledUser), params.getValue().getRecipients());
+    assertTrue(
+        recipientGroup.getMembers().contains(disabledUser),
+        "a disabled user must stay a member of the recipient user group");
+  }
+
   @Test
   void testGettingLatestPatchFor2_38() throws IOException {
     JsonObject versions = fetchVersions("json/versions_max_2.38.1.json");

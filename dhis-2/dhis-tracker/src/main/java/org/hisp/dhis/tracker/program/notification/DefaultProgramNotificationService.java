@@ -83,7 +83,6 @@ import org.hisp.dhis.tracker.program.message.ProgramMessage;
 import org.hisp.dhis.tracker.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.tracker.program.message.ProgramMessageService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -376,7 +375,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
     if (template.getNotificationRecipient().isExternalRecipient()) {
       batch.programMessages.add(createProgramMessage(event, template));
     } else {
-      batch.dhisMessages.add(createSingleEventDhisMessage(event, template));
+      batch.dhisMessages.add(createSingleEventDhisMessage(event, template, groupMembers));
     }
     sendAll(batch);
   }
@@ -616,11 +615,10 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
     ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
 
     if (recipientType == ProgramNotificationRecipient.USER_GROUP) {
-      userGroupMembers =
-          Optional.ofNullable(template)
-              .map(ProgramNotificationTemplate::getRecipientUserGroup)
-              .map(UserGroup::getMembers)
-              .orElse(userGroupMembers);
+      // Copy the members: removing users from the managed collection deletes their membership
+      if (template.getRecipientUserGroup() != null) {
+        userGroupMembers.addAll(template.getRecipientUserGroup().getMembers());
+      }
 
       final boolean limitToHierarchy =
           BooleanUtils.toBoolean(template.getNotifyUsersInHierarchyOnly());
@@ -646,8 +644,6 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
             .filter(u -> u.getOrganisationUnit().equals(parentOrgUnit))
             .collect(Collectors.toSet());
       }
-
-      userGroupMembers.addAll(template.getRecipientUserGroup().getMembers());
     } else if (recipientType == ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT) {
       userGroupMembers.addAll(orgUnit.getUsers());
     }
@@ -774,6 +770,17 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
     dhisMessage.message = singleEventNotificationRenderer.render(event, template);
     dhisMessage.recipients = resolveDhisMessageRecipients(template, event.getOrganisationUnit());
 
+    return dhisMessage;
+  }
+
+  private DhisMessage createSingleEventDhisMessage(
+      SingleEvent event,
+      ProgramNotificationTemplate template,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    DhisMessage dhisMessage = new DhisMessage();
+    dhisMessage.message = singleEventNotificationRenderer.render(event, template);
+    dhisMessage.recipients =
+        resolveDhisMessageRecipients(template, event.getOrganisationUnit(), groupMembers);
     return dhisMessage;
   }
 
