@@ -4,16 +4,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
+ * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
- * may be used to endorse or promote products derived from this software without
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -172,7 +170,7 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   void testHousekeepingCreatedByScheduler() {
     // the row the scheduler creates on startup, rather than the fixture's idea of it
     jobConfigurationService.createDefaultJob(HOUSEKEEPING);
-    entityManager.flush();
+    dbmsManager.flushSession();
 
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, HOUSEKEEPING_NOT_RUNNING, false);
   }
@@ -224,8 +222,6 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   void testJobRunningPastStaleTimeout() {
     String stuck =
         job("Import").type(DATAVALUE_IMPORT).status(RUNNING).lastAlive("2 hours").insert();
-    // analytics jobs use the longer analytics timeout (default 4 hours)
-    job("Analytics").cron(DAILY).status(RUNNING).lastAlive("2 hours").insert();
     job("Busy import").type(DATAVALUE_IMPORT).status(RUNNING).lastAlive("1 minute").insert();
 
     assertHasDataIntegrityIssues(
@@ -235,8 +231,27 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   @Test
   void testJobsRunningWithRecentProgress() {
     job("Import").type(DATAVALUE_IMPORT).status(RUNNING).lastAlive("1 minute").insert();
-    job("Analytics").cron(DAILY).status(RUNNING).lastAlive("3 hours").insert();
+    job("Analytics").cron(DAILY).status(RUNNING).lastAlive("1 minute").insert();
     job("Finished").type(DATAVALUE_IMPORT).status(SCHEDULED).lastAlive("2 days").insert();
+
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, STUCK_RUNNING, false);
+  }
+
+  @Test
+  void testAnalyticsJobUsesSameStaleTimeout() {
+    // 2.41 has no separate stale-job timeout for analytics jobs
+    String stuck = job("Analytics").cron(DAILY).status(RUNNING).lastAlive("2 hours").insert();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE, STUCK_RUNNING, null, stuck, "Analytics", ANALYTICS_TABLE.name(), false);
+  }
+
+  @Test
+  void testStaleTimeoutFromQuotedSetting() {
+    jdbcTemplate.update("delete from systemsetting where name = 'jobsRescheduleAfterMinutes'");
+    jdbcTemplate.update(
+        "insert into systemsetting (systemsettingid, name, value) values (nextval('hibernate_sequence'), 'jobsRescheduleAfterMinutes', '\"180\"')");
+    job("Import").type(DATAVALUE_IMPORT).status(RUNNING).lastAlive("2 hours").insert();
 
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, STUCK_RUNNING, false);
   }
@@ -325,7 +340,7 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   private JobRow housekeeping() {
     JobType.Defaults defaults = HOUSEKEEPING.getDefaults();
     return job(defaults.name())
-        .uid(defaults.uid().getValue())
+        .uid(defaults.uid())
         .type(HOUSEKEEPING)
         .delay(defaults.delay())
         .enabled(true);
