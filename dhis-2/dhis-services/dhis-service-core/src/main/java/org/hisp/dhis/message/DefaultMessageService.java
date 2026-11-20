@@ -482,7 +482,7 @@ public class DefaultMessageService implements MessageService {
       return Collections.emptySet();
     }
 
-    return feedbackRecipients.getMembers();
+    return new HashSet<>(feedbackRecipients.getMembers());
   }
 
   private void invokeMessageSenders(
