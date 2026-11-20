@@ -21,7 +21,7 @@ show_usage() {
   echo "                        Valid values: dev"
   echo "                        Pattern: s3://databases.dhis2.org/<dir>/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DB_TYPE               Database type (default: sierra-leone)"
-  echo "                        Valid values without DB_DIR: sierra-leone, hmis, perfland-mnch"
+  echo "                        Valid values without DB_DIR: sierra-leone, hmis, perfland-mnch, empty"
   echo "                        Valid values with DB_DIR: platform-perf"
   echo "  DB_VERSION            Database version (default: dev)"
   echo "                        Must be alphanumeric, dots, hyphens, underscores only"
@@ -39,8 +39,9 @@ show_usage() {
   echo "                        docker address pools)"
   echo "  POPULATE_SCRIPT       Script run once after the containers start, before any simulation run,"
   echo "                        to populate the database (default: not set)"
-  echo "                        e.g. scripts/populate-unique-attribute.sh, configured by POPULATE_* variables"
-  echo "                        (see the script header). POPULATE_* variables are saved in run-simulation.env"
+  echo "                        e.g. scripts/populate-unique-attribute.sh or scripts/populate-org-unit-search.sh,"
+  echo "                        configured by POPULATE_* variables (see the script header). It gets MVN_ARGS."
+  echo "                        POPULATE_* variables are saved in run-simulation.env"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo "  CAPTURE_DHIS2_LOGS    Capture DHIS2 application logs from the web container"
@@ -157,13 +158,13 @@ fi
 
 # Validate DB_TYPE
 if [ -z "$DB_DIR" ]; then
-  # No DB_DIR: only standard public databases are allowed
+  # No DB_DIR: public databases or an empty local database are allowed
   case "$DB_TYPE" in
-    sierra-leone|hmis|perfland-mnch)
+    sierra-leone|hmis|perfland-mnch|empty)
       # Valid
       ;;
     *)
-      echo "Error: DB_TYPE must be 'sierra-leone', 'hmis' or 'perfland-mnch' when DB_DIR is not set, got: $DB_TYPE" >&2
+      echo "Error: DB_TYPE must be 'sierra-leone', 'hmis', 'perfland-mnch' or 'empty' when DB_DIR is not set, got: $DB_TYPE" >&2
       echo "Set DB_DIR to use a custom database type" >&2
       echo "Run '$0' without arguments to see usage" >&2
       exit 1
@@ -334,6 +335,11 @@ pull_mutable_image() {
 db_url() {
   # Keep in sync with DB_URL in docker/Dockerfile.postgres. Path-style, as the bucket's name has
   # dots, which its virtual-hosted URL's TLS certificate doesn't cover.
+  # DB_TYPE=empty has no dump in S3, so it has no URL.
+  if [ "$DB_TYPE" = "empty" ]; then
+    echo ""
+    return 0
+  fi
   local key="${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"
   if [ -n "$DB_DIR" ]; then
     key="${DB_DIR}/${key}"
@@ -367,6 +373,16 @@ ensure_db_image() {
   compose_args=$(get_compose_args)
   # shellcheck disable=SC2086
   DB_IMAGE=$(docker compose $compose_args config --images db)
+
+  # An empty database has no dump, so no ETag to compare: build it, which reuses the build cache
+  # when nothing changed.
+  if [ "$DB_TYPE" = "empty" ]; then
+    echo "Building $DB_IMAGE as an empty database (no dump download)"
+    # shellcheck disable=SC2086
+    docker compose $compose_args build db
+    DB_IMAGE_ID=$(docker image inspect --format '{{.Id}}' "$DB_IMAGE")
+    return 0
+  fi
 
   local url
   url=$(db_url)
@@ -815,19 +831,18 @@ generate_metadata() {
 
   printf "Generating run metadata... "
 
-  # Get DHIS2 image digest for reproducibility
-  # DHIS2 images are only pushed to Docker Hub, so RepoDigests[0] is the Docker Hub digest
+  # Prefer a pullable registry digest; locally built images have only a local image ID.
   local dhis2_image_digest=""
   local dhis2_labels=""
 
-  # Get DHIS2 image RepoDigest (registry digest that can be pulled for exact reproduction)
-  dhis2_image_digest=$(docker inspect --format '{{index .RepoDigests 0}}' "$DHIS2_IMAGE" 2>/dev/null || echo "unknown")
+  # Avoid indexing an empty RepoDigests list, which can produce a malformed multiline .env value.
+  dhis2_image_digest=$(docker image inspect --format '{{if .RepoDigests}}{{index .RepoDigests 0}}{{else}}{{.Id}}{{end}}' "$DHIS2_IMAGE" 2>/dev/null || echo "unknown")
 
   # Extract DHIS2 labels from image (DHIS2_BUILD_BRANCH, DHIS2_BUILD_REVISION, DHIS2_VERSION, etc.)
   dhis2_labels=$(docker inspect --format '{{json .Config.Labels}}' "$DHIS2_IMAGE" 2>/dev/null | \
     jq --raw-output 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "\(.key)=\(.value)"' 2>/dev/null || echo "")
 
-  # Build reproducible command using RepoDigest
+  # A registry digest is portable; an image ID requires the image to exist locally.
   # The DB image is identified by DB_DIR, DB_TYPE and DB_VERSION, and its content by DB_ETAG: the
   # dumps in S3 are overwritten in place, and S3 keeps the overwritten versions (DB_S3_VERSION_ID)
   local dhis2_image_immutable="$DHIS2_IMAGE"
@@ -844,7 +859,7 @@ generate_metadata() {
     echo "#   git checkout $git_commit"
     echo "#   set -o allexport && source run-simulation.env && set +o allexport && ./run-simulation.sh"
     echo "#"
-    echo "# For exact reproduction with pinned image digest:"
+    echo "# For exact reproduction with pinned registry digest or locally available image ID:"
     echo "#   git checkout $git_commit"
     echo "#   set -o allexport && source run-simulation.env && DHIS2_IMAGE=$dhis2_image_immutable && set +o allexport && ./run-simulation.sh"
     echo ""
@@ -863,7 +878,8 @@ generate_metadata() {
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
     echo "POPULATE_SCRIPT=$POPULATE_SCRIPT"
-    env | grep '^POPULATE_' | grep -v '^POPULATE_SCRIPT=' | sort || true
+    # Quoted like MVN_ARGS, as a value can hold several arguments (POPULATE_MVN_ARGS)
+    env | grep '^POPULATE_' | grep -v '^POPULATE_SCRIPT=' | sort | sed 's/^\([^=]*\)=\(.*\)$/\1="\2"/' || true
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
     echo "CAPTURE_DHIS2_LOGS=$CAPTURE_DHIS2_LOGS"
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
@@ -1047,7 +1063,8 @@ if [ -n "$POPULATE_SCRIPT" ]; then
   echo "========================================"
   echo "PHASE: Database Population"
   echo "========================================"
-  DHIS2_USERNAME="$DHIS2_USERNAME" DHIS2_PASSWORD="$DHIS2_PASSWORD" "$POPULATE_SCRIPT"
+  DHIS2_USERNAME="$DHIS2_USERNAME" DHIS2_PASSWORD="$DHIS2_PASSWORD" MVN_ARGS="$MVN_ARGS" \
+    HEALTHCHECK_TIMEOUT="$HEALTHCHECK_TIMEOUT" "$POPULATE_SCRIPT"
 fi
 
 prepare_database

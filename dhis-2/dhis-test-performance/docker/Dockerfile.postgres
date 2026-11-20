@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
 # Dockerfile to build and restore the DB dump at build time (not runtime)
 # This significantly speeds up container startup for performance tests.
+# DB_TYPE=empty builds an empty PostGIS database instead, without downloading a dump.
+# Author of the empty-fixture mode: Morten Svanæs
 #
 # DB_ETAG is the ETag of the dump in S3 that run-simulation.sh found before the build. It makes the
 # build download exactly that object (If-Match), invalidates the build cache when the dump changes,
@@ -14,16 +16,22 @@ ARG DB_ETAG
 ARG DB_S3_VERSION_ID
 
 FROM curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13 AS downloader
+ARG DB_TYPE
 ARG DB_URL
 ARG DB_ETAG
 WORKDIR /tmp
 
-RUN echo "Downloading ${DB_URL} (ETag ${DB_ETAG:-not given})" && \
-    if [ -n "$DB_ETAG" ]; then \
-      curl --fail --silent --show-error --retry 3 --header "If-Match: \"${DB_ETAG}\"" \
-        --output dump.sql.gz "$DB_URL"; \
+RUN mkdir -p /tmp/database && \
+    if [ "$DB_TYPE" = "empty" ]; then \
+      echo "Creating an empty database; no dump download"; \
     else \
-      curl --fail --silent --show-error --retry 3 --output dump.sql.gz "$DB_URL"; \
+      echo "Downloading ${DB_URL} (ETag ${DB_ETAG:-not given})" && \
+      if [ -n "$DB_ETAG" ]; then \
+        curl --fail --silent --show-error --retry 3 --header "If-Match: \"${DB_ETAG}\"" \
+          --output /tmp/database/dump.sql.gz "$DB_URL"; \
+      else \
+        curl --fail --silent --show-error --retry 3 --output /tmp/database/dump.sql.gz "$DB_URL"; \
+      fi; \
     fi
 
 FROM ghcr.io/baosystems/postgis:16-3.5 AS builder
@@ -40,7 +48,7 @@ ENV POSTGRES_USER=dhis \
     PGDATABASE=dhis \
     PGPASSWORD=dhis
 
-COPY --from=downloader /tmp/dump.sql.gz /tmp/dump.sql.gz
+COPY --from=downloader /tmp/database/ /tmp/database/
 
 COPY docker-entrypoint-build.sh /usr/local/bin/
 # Initialize the database and restore the dump at build time
