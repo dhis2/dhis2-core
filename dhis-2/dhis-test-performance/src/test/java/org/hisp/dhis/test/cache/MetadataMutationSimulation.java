@@ -58,8 +58,8 @@ import org.slf4j.LoggerFactory;
  *
  * <p>The read-only {@link PageLoadSimulation} leaves the invalidation machinery (JDBC DML observer
  * -> version bump -> ETag rotation) idle. This simulation adds rate-controlled writers mutating a
- * dedicated seeded pool of metadata objects (name prefix {@code PERF_}) so that path is exercised
- * and measured.
+ * dedicated seeded pool of metadata objects (name and code prefix {@code ETAGBENCHPOOL}) so that
+ * path is exercised and measured.
  *
  * <p><b>Profiles</b> ({@code -Dprofile}):
  *
@@ -76,10 +76,12 @@ import org.slf4j.LoggerFactory;
  *       write-path overhead.
  * </ul>
  *
- * <p>The pool is self-cleaning: leftovers matching {@code name:like:PERF_} are deleted at startup
- * and teardown, so runs are repeatable without DB drift. Writers cycle UPDATE (description toggle),
- * and every 10th iteration CREATE a new object and DELETE an old one, so the observer sees all
- * three DML operations.
+ * <p>The pool is self-cleaning: leftovers whose code AND name start with {@code ETAGBENCHPOOL} are
+ * deleted at startup and teardown, so runs are repeatable without DB drift. The prefix holds no SQL
+ * {@code LIKE} wildcard ({@code _}, {@code %}) and both filters are case-sensitive starts-with
+ * ({@code $like}), so the cleanup cannot match metadata the benchmark did not create. Writers cycle
+ * UPDATE (description toggle), and every 10th iteration CREATE a new object and DELETE an old one,
+ * so the observer sees all three DML operations.
  *
  * <p>Run:
  *
@@ -95,7 +97,12 @@ import org.slf4j.LoggerFactory;
 public class MetadataMutationSimulation extends Simulation {
   private static final Logger log = LoggerFactory.getLogger(MetadataMutationSimulation.class);
 
-  private static final String POOL_PREFIX = "PERF_";
+  /**
+   * Marks pool objects in name and code. No SQL {@code LIKE} wildcard ({@code _} or {@code %}): the
+   * cleanup filter matches it literally.
+   */
+  private static final String POOL_PREFIX = "ETAGBENCHPOOL";
+
   private static final Pattern UID_PATTERN =
       Pattern.compile("\"id\"\\s*:\\s*\"([A-Za-z0-9]{11})\"");
 
@@ -369,29 +376,8 @@ public class MetadataMutationSimulation extends Simulation {
         dataElements.append(',');
         constants.append(',');
       }
-      dataElements
-          .append("{\"name\":\"")
-          .append(POOL_PREFIX)
-          .append("de_")
-          .append(suffix)
-          .append("\",\"shortName\":\"")
-          .append(POOL_PREFIX)
-          .append("de_")
-          .append(suffix)
-          .append("\",\"valueType\":\"INTEGER\",\"domainType\":\"AGGREGATE\",")
-          .append("\"aggregationType\":\"SUM\",\"categoryCombo\":{\"id\":\"")
-          .append(categoryCombo)
-          .append("\"}}");
-      constants
-          .append("{\"name\":\"")
-          .append(POOL_PREFIX)
-          .append("c_")
-          .append(suffix)
-          .append("\",\"shortName\":\"")
-          .append(POOL_PREFIX)
-          .append("c_")
-          .append(suffix)
-          .append("\",\"value\":1}");
+      dataElements.append(dataElementJson(POOL_PREFIX + "de_" + suffix, categoryCombo));
+      constants.append(constantJson(POOL_PREFIX + "c_" + suffix));
     }
     rest.postExpectOk(
         "/api/metadata?async=false",
@@ -497,28 +483,34 @@ public class MetadataMutationSimulation extends Simulation {
             + Long.toHexString(System.nanoTime())
             + Integer.toHexString(ThreadLocalRandom.current().nextInt(0xFFF));
     if (writeTarget == WriteTarget.CONTROL) {
-      return "{\"name\":\""
-          + POOL_PREFIX
-          + "c_"
-          + suffix
-          + "\",\"shortName\":\""
-          + POOL_PREFIX
-          + "c_"
-          + suffix
-          + "\",\"value\":1}";
+      return constantJson(POOL_PREFIX + "c_" + suffix);
     }
+    return dataElementJson(POOL_PREFIX + "de_" + suffix, seededCategoryCombo());
+  }
+
+  /** A pool data element; name, short name and code carry the pool prefix. */
+  private static String dataElementJson(String name, String categoryCombo) {
     return "{\"name\":\""
-        + POOL_PREFIX
-        + "de_"
-        + suffix
+        + name
         + "\",\"shortName\":\""
-        + POOL_PREFIX
-        + "de_"
-        + suffix
+        + name
+        + "\",\"code\":\""
+        + name
         + "\",\"valueType\":\"INTEGER\",\"domainType\":\"AGGREGATE\","
         + "\"aggregationType\":\"SUM\",\"categoryCombo\":{\"id\":\""
-        + seededCategoryCombo()
+        + categoryCombo
         + "\"}}";
+  }
+
+  /** A pool constant; name, short name and code carry the pool prefix. */
+  private static String constantJson(String name) {
+    return "{\"name\":\""
+        + name
+        + "\",\"shortName\":\""
+        + name
+        + "\",\"code\":\""
+        + name
+        + "\",\"value\":1}";
   }
 
   private volatile String categoryComboUid;
@@ -532,9 +524,16 @@ public class MetadataMutationSimulation extends Simulation {
     return uid;
   }
 
+  /** UIDs of pool objects only: code and name must both start with the pool prefix. */
   private List<String> fetchPerfUids(String endpoint) {
     return rest.uids(
-        "/api/" + endpoint + "?filter=name:like:" + POOL_PREFIX + "&fields=id&paging=false");
+        "/api/"
+            + endpoint
+            + "?filter=code:$like:"
+            + POOL_PREFIX
+            + "&filter=name:$like:"
+            + POOL_PREFIX
+            + "&fields=id&paging=false");
   }
 
   private void deletePerfObjects(String endpoint) {
