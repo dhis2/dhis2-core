@@ -225,6 +225,10 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
    * of entity types (for user/role-based access) and named version keys (for non-DML events like
    * app install/uninstall).
    *
+   * <p>The app endpoints filter apps by the user's authorities, so they depend on {@link User} (a
+   * role assignment only writes {@code userrolemembers} and bumps the {@code userinfo} row) and
+   * {@link UserRole}.
+   *
    * <p>An endpoint with empty entity types AND empty named keys is static per build — it only
    * changes on server restart.
    */
@@ -233,11 +237,11 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
           "schemas",
           new NamedEndpointDeps(Set.of(), Set.of()),
           "apps",
-          new NamedEndpointDeps(Set.of(UserRole.class), Set.of("installedApps")),
+          new NamedEndpointDeps(Set.of(User.class, UserRole.class), Set.of("installedApps")),
           "apps/menu",
-          new NamedEndpointDeps(Set.of(UserRole.class), Set.of("installedApps")),
+          new NamedEndpointDeps(Set.of(User.class, UserRole.class), Set.of("installedApps")),
           "apps/**",
-          new NamedEndpointDeps(Set.of(UserRole.class), Set.of("installedApps")),
+          new NamedEndpointDeps(Set.of(User.class, UserRole.class), Set.of("installedApps")),
           "staticContent/**",
           new NamedEndpointDeps(Set.of(), Set.of("staticContent")),
           "locales/db",

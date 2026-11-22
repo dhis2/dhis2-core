@@ -1084,12 +1084,14 @@ class ETagConditionalInterceptorTest {
     assertTrue(deps.namedKeys().isEmpty(), "schemas should have no named key dependencies");
   }
 
-  @Test
-  void testNamedEndpointAppsMenu() {
+  /** A role assignment bumps only User (userrolemembers + userinfo); the app list must follow. */
+  @ParameterizedTest
+  @ValueSource(strings = {"apps", "apps/menu", "apps/**"})
+  void testNamedEndpointAppsDependOnUserAndRoles(String pattern) {
     ETagConditionalInterceptor.NamedEndpointDeps deps =
-        ETagConditionalInterceptor.getNamedEndpointDeps("apps/menu");
+        ETagConditionalInterceptor.getNamedEndpointDeps(pattern);
     assertNotNull(deps);
-    assertFalse(deps.entityTypes().contains(User.class));
+    assertTrue(deps.entityTypes().contains(User.class));
     assertTrue(deps.entityTypes().contains(UserRole.class));
     assertTrue(deps.namedKeys().contains("installedApps"));
   }
