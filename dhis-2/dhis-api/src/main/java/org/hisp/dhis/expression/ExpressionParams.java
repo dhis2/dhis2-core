@@ -114,6 +114,14 @@ public class ExpressionParams {
   @ToString.Include @EqualsAndHashCode.Include @Builder.Default
   private final Map<String, Integer> orgUnitCountMap = new HashMap<>();
 
+  /**
+   * Map of organisation unit UID to the number of members of each organisation unit group (by group
+   * UID) in that organisation unit's subtree. Used to evaluate OUG{} for {@link #orgUnit}
+   * (predictors and validation rules); analytics supplies {@link #orgUnitCountMap} instead.
+   */
+  @Builder.Default
+  private final Map<String, Map<String, Integer>> orgUnitGroupMemberCounts = new HashMap<>();
+
   /** Map of organisation unit groups to use in evaluating the expression */
   @Builder.Default
   private final Map<String, OrganisationUnitGroup> orgUnitGroupMap = new HashMap<>();

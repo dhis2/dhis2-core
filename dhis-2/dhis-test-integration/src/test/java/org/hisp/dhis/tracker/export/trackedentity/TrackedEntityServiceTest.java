@@ -147,11 +147,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   private User user;
 
-  private User userWithSearchInAllAuthority;
-
   private User superuser;
-
-  private User authorizedUser;
 
   private OrganisationUnit orgUnitA;
 
@@ -240,24 +236,6 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     user = createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
-
-    authorizedUser =
-        createAndAddUser(
-            false,
-            "authorizedUser",
-            emptySet(),
-            emptySet(),
-            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
-
-    userWithSearchInAllAuthority =
-        createAndAddUser(
-            false,
-            "userSearchInAll",
-            Set.of(orgUnitA),
-            Set.of(orgUnitA),
-            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
-    userWithSearchInAllAuthority.setTeiSearchOrganisationUnits(
-        Set.of(orgUnitA, orgUnitB, orgUnitC));
 
     teaA = createTrackedEntityAttribute('A', ValueType.TEXT);
     teaA.setUnique(true);
@@ -1921,9 +1899,26 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnAllEntitiesByTrackedEntityTypeMatchingFilterWhenAuthorizedUserNotInSearchScope()
+  void shouldReturnAllEntitiesEnrolledInProgramMatchingFilterWhenSuperuserAndModeAll()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContextUser(authorizedUser);
+    injectSecurityContextUser(superuser);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ALL)
+            .program(programB)
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.LIKE, "A")))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnAllEntitiesByTrackedEntityTypeMatchingFilterWhenSuperuserAndModeAll()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(superuser);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -1939,28 +1934,28 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void
-      shouldReturnAllNonPaginatedEntitiesEnrolledInProgramMatchingFilterWhenAuthorizedUserNotInSearchScope()
-          throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContextUser(authorizedUser);
+  void shouldFailWhenModeAllAndUserIsNotSuperuser() {
+    injectSecurityContextUser(user);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ALL)
-            .program(programB)
-            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.LIKE, "A")))
+            .trackedEntityType(trackedEntityTypeA)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+    ForbiddenException ex =
+        assertThrows(
+            ForbiddenException.class,
+            () -> trackedEntityService.findTrackedEntities(operationParams));
 
-    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+    assertEquals(
+        "Only superusers are authorized to query across all organisation units", ex.getMessage());
   }
 
   @Test
-  void
-      shouldReturnAllPaginatedEntitiesEnrolledInProgramMatchingFilterWhenAuthorizedUserNotInSearchScope()
-          throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContextUser(authorizedUser);
+  void shouldReturnAllPaginatedEntitiesEnrolledInProgramMatchingFilterWhenModeAllAndSuperuser()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(superuser);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -1975,21 +1970,6 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .getItems();
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
-  }
-
-  @Test
-  void shouldFailWhenModeAllUserCanSearchEverywhereButNotSuperuserAndNoAccessToProgram() {
-    injectSecurityContextUser(userWithSearchInAllAuthority);
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder().orgUnitMode(ALL).program(programC).build();
-
-    ForbiddenException ex =
-        assertThrows(
-            ForbiddenException.class,
-            () -> trackedEntityService.findTrackedEntities(operationParams));
-
-    assertContains(
-        String.format("User has no access to program: %s", programC.getUid()), ex.getMessage());
   }
 
   @Test

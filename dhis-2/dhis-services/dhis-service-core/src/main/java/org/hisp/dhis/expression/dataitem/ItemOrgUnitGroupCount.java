@@ -34,6 +34,8 @@ import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 
 import java.util.Map;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.expression.ExpressionParams;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
@@ -69,11 +71,19 @@ public class ItemOrgUnitGroupCount implements ExpressionItem {
 
   @Override
   public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
-    Map<String, Integer> orgUnitCountMap = visitor.getParams().getOrgUnitCountMap();
+    ExpressionParams params = visitor.getParams();
+    OrganisationUnit orgUnit = params.getOrgUnit();
 
-    // The count map is absent for an organisation unit whose subtree contains no members of the
-    // group (the analytics org unit target aggregation returns no row for it), so a missing entry
-    // means a count of zero rather than an error.
+    // Predictors and validation rules evaluate the expression for one org unit and supply the
+    // subtree member counts per org unit; analytics (indicators) supplies the counts for the org
+    // unit being queried in the count map instead.
+    Map<String, Integer> orgUnitCountMap =
+        orgUnit != null
+            ? params.getOrgUnitGroupMemberCounts().get(orgUnit.getUid())
+            : params.getOrgUnitCountMap();
+
+    // The count is absent for an organisation unit whose subtree contains no members of the
+    // group, so a missing entry means a count of zero rather than an error.
     Integer count = orgUnitCountMap != null ? orgUnitCountMap.get(ctx.uid0.getText()) : null;
 
     return count != null ? count.doubleValue() : 0d;

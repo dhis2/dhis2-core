@@ -161,7 +161,6 @@
       "id": "yrB6vc5Ip3r",
       "description": "Superuser",
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
         "F_LEGEND_DELETE",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",

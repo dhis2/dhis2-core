@@ -48,6 +48,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource;
+import org.hisp.dhis.security.basic.UsernameNormalizingBasicAuthenticationConverter;
 import org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver;
 import org.hisp.dhis.security.jwt.DhisBearerJwtTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
@@ -57,6 +58,7 @@ import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CrossOriginRequestFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
@@ -153,6 +155,8 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
 
   @Autowired private RequestCache requestCache;
+
+  @Autowired private UserService userService;
 
   private static class CustomRequestMatcher implements RequestMatcher {
     private static final Pattern p1 = Pattern.compile("^/api/apps/.+", Pattern.CASE_INSENSITIVE);
@@ -414,6 +418,9 @@ public class DhisWebApiWebSecurityConfig {
                         // NullSecurityContextRepository by default now.
                         filter.setSecurityContextRepository(
                             new HttpSessionSecurityContextRepository());
+                        filter.setAuthenticationConverter(
+                            new UsernameNormalizingBasicAuthenticationConverter(
+                                httpBasicWebAuthenticationDetailsSource, userService));
                         return filter;
                       }
                     }));

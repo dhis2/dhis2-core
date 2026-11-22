@@ -510,6 +510,48 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "enrollmentStatusCompletedOnEventsQuery",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?stage=A03MvHHogjR&dimension=ou:ImspTQPwCqd&dimension=pe:LAST_10_YEARS&enrollmentStatus=COMPLETED&headers=psi,ouname,eventdate,programstatus&totalPages=true&pageSize=100&page=1&relativePeriodDate=2025-01-01",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentOccurredDateParam",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?stage=A03MvHHogjR&dimension=ou:ImspTQPwCqd&enrollmentOccurredDate=2022-01-01_2022-01-01&headers=psi,incidentdate,ouname&pageSize=100&totalPages=true&asc=eventdate,lastupdated",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentProgramIndicatorConditionCountsPages",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:DiszpKrYNg8&dimension=pe:202201&dimension=qZOBw051LSf:GT:0&headers=psi,eventdate,lastupdated,qZOBw051LSf&asc=eventdate,lastupdated&pageSize=20&totalPages=true",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentProgramIndicatorConditionExcludesEventsFromPageCount",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:DiszpKrYNg8&dimension=pe:202201&dimension=qZOBw051LSf:GT:20000&headers=psi,eventdate,lastupdated,qZOBw051LSf&asc=eventdate,lastupdated&pageSize=20&totalPages=true",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageScheduledDateAndStageEventDate",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:DiszpKrYNg8,A03MvHHogjR.SCHEDULED_DATE:2022,A03MvHHogjR.EVENT_DATE:202205&headers=psi,ouname,eventdate,scheduleddate&totalPages=true&pageSize=100&page=1&asc=eventdate",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageDataElementInSeveralStagesWithoutItems",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:DiszpKrYNg8,pe:2022,A03MvHHogjR.X8zyunlgUfM&headers=psi,ps,ouname,eventdate,A03MvHHogjR.X8zyunlgUfM&totalPages=true&pageSize=100&page=1&asc=eventdate",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

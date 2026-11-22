@@ -283,6 +283,7 @@ jobs:
         echo "* \`postgresql.log\` - PostgreSQL query logs (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`pgbadger.html\` - SQL log analysis report (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`gc.log\` - JVM GC and safepoint logs (always captured; analyze with [Eclipse Jifa](https://github.com/eclipse-jifa/jifa))" >> $GITHUB_STEP_SUMMARY
+        echo "* \`resources.env\` - What DHIS2, Postgres and Gatling used and waited for during the run (always captured, on Linux)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "### Compare with another run" >> $GITHUB_STEP_SUMMARY
@@ -302,9 +303,12 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Tests ran on self-hosted runner with the following specifications:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "* **CPU**: Intel(R) Xeon(R) CPU E3-1275 v6 @ 3.80GHz (8 core)" >> $GITHUB_STEP_SUMMARY
-        echo "* **Memory**: 64GiB System Memory" >> $GITHUB_STEP_SUMMARY
+        echo "* **CPU**: Intel Xeon E3-1275 v6 @ 3.80GHz (4 cores, 8 threads)" >> $GITHUB_STEP_SUMMARY
+        echo "* **Memory**: 64 GB" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+
+        # What each part used and waited for during the measured run(s), written by run-simulation.sh
+        ./scripts/resources.sh summary "$(dirname "$RUN_ENV")" >> $GITHUB_STEP_SUMMARY
 
         echo "## 🔄 Reproduce this run" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
