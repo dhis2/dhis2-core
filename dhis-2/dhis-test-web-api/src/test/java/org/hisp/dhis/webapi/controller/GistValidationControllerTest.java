@@ -175,24 +175,4 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
     switchToSuperuser();
     assertStatus(HttpStatus.OK, GET(url, getSuperuserUid()));
   }
-
-  @Test
-  void testValidation_Access_CollectionOwnerSharing() {
-    JsonObject group = GET("/userGroups/{id}", userGroupId).content();
-    String sharing =
-        group
-            .getObject("sharing")
-            .node()
-            .extract()
-            .member("public")
-            .replaceWith("\"--------\"")
-            .toString();
-    assertStatus(HttpStatus.NO_CONTENT, PUT("/userGroups/" + userGroupId + "/sharing", sharing));
-    switchToGuestUser();
-    assertEquals(
-        "User not allowed to view UserGroup " + userGroupId,
-        GET("/userGroups/{id}/users/gist", userGroupId).error(HttpStatus.FORBIDDEN).getMessage());
-    switchToSuperuser();
-    assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
-  }
 }

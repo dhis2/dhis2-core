@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
+import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
@@ -39,7 +40,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -280,6 +283,58 @@ class EnrollmentImportValidationTest extends TrackerTest {
     assertEquals(1, importReportDelete.getStats().getDeleted());
   }
 
+  @Test
+  void shouldFailWhenCreatingEnrollmentForDeletedTrackedEntity() throws IOException {
+    softDeleteOnly(manager.get(TrackedEntity.class, "Kj6vYde4LHh"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            fromJson("tracker/validations/enrollments_te_enrollments-data.json"));
+
+    assertHasError(importReport, ValidationCode.E1132, "MNWZ6hnuhSw");
+    assertEquals(0, importReport.getStats().getCreated());
+  }
+
+  @Test
+  void shouldFailWhenUpdatingEnrollmentOfDeletedTrackedEntity() throws IOException {
+    TrackerObjects trackerObjects =
+        fromJson("tracker/validations/enrollments_te_enrollments-data.json");
+    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+    // soft delete only the tracked entity, leaving its enrollments not deleted like older versions
+    // allowed
+    softDeleteOnly(manager.get(TrackedEntity.class, "Kj6vYde4LHh"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder()
+                .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+                .build(),
+            fromJson("tracker/validations/enrollments_te_enrollments-data.json"));
+
+    assertHasError(importReport, ValidationCode.E1132, "MNWZ6hnuhSw");
+    assertEquals(0, importReport.getStats().getUpdated());
+  }
+
+  @Test
+  void shouldDeleteEnrollmentLeftNotDeletedOfDeletedTrackedEntity() throws IOException {
+    TrackerImportParams params = new TrackerImportParams();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            params, fromJson("tracker/validations/enrollments_te_enrollments-data.json")));
+    // soft delete only the tracked entity, leaving its enrollments not deleted like older versions
+    // allowed
+    softDeleteOnly(manager.get(TrackedEntity.class, "Kj6vYde4LHh"));
+
+    params.setImportStrategy(TrackerImportStrategy.DELETE);
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, fromJson("tracker/validations/enrollments_te_enrollments-data-delete.json"));
+
+    assertNoErrors(importReport);
+    assertEquals(1, importReport.getStats().getDeleted());
+  }
+
   /** Notes with no value are ignored */
   @Test
   void testBadEnrollmentNoteNoValue() throws IOException {
@@ -290,5 +345,16 @@ class EnrollmentImportValidationTest extends TrackerTest {
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
 
     assertNoErrors(importReport);
+  }
+
+  /**
+   * Soft deletes only the given object, without cascading the soft delete to its children like
+   * {@code manager.delete} does, to reproduce data left behind by older versions.
+   */
+  private void softDeleteOnly(SoftDeletableObject object) {
+    object.setDeleted(true);
+    manager.update(object);
+    manager.flush();
+    manager.clear();
   }
 }

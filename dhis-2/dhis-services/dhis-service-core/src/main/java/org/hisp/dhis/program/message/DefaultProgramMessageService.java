@@ -333,9 +333,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   }
 
   private void saveProgramMessages(List<ProgramMessage> messageBatch, BatchResponseStatus status) {
-    messageBatch.parallelStream()
-        .map(pm -> setParameters(pm, status))
-        .forEach(this::saveProgramMessage);
+    messageBatch.stream().map(pm -> setParameters(pm, status)).forEach(this::saveProgramMessage);
   }
 
   private ProgramMessage setParameters(ProgramMessage message, BatchResponseStatus status) {
@@ -357,7 +355,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   private Enrollment getEnrollment(ProgramMessage programMessage) {
     if (programMessage.getEnrollment() != null) {
-      return manager.get(Enrollment.class, programMessage.getEnrollment().getUid());
+      return manager.getNoAcl(Enrollment.class, programMessage.getEnrollment().getUid());
     }
 
     return null;
@@ -365,16 +363,20 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   private Event getEvent(ProgramMessage programMessage) {
     if (programMessage.getEvent() != null) {
-      return manager.get(Event.class, programMessage.getEvent().getUid());
+      return manager.getNoAcl(Event.class, programMessage.getEvent().getUid());
     }
 
     return null;
   }
 
   private ProgramMessage setAttributesBasedOnStrategy(ProgramMessage message) {
-    // Iterate over a copy: a channel the resolved recipient cannot receive on (e.g. an org unit
-    // contact with an email but no phone number) is dropped from the message so that the remaining
-    // deliverable channels are still sent, instead of aborting the whole send.
+    // Iterate over a copy: a channel whose recipient cannot be resolved at all (e.g. a tracked
+    // entity with no attribute value of the required type) is dropped from the message so that
+    // the remaining deliverable channels are still sent, instead of aborting the whole send.
+    //
+    // Known inconsistency, a channel whose org unit contact detail is missing now stays on the
+    // persisted ProgramMessage.deliveryChannels instead of being removed as it was before.
+    // A channel whose tracked entity attribute is missing is still removed.
     for (DeliveryChannel channel : new HashSet<>(message.getDeliveryChannels())) {
       for (DeliveryChannelStrategy strategy : strategies) {
         if (strategy.getDeliveryChannel().equals(channel)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.dataintegrity;
+package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import java.util.Properties;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.Test;
+/**
+ * Enables analytics table hooks for controller tests that exercise create/update.
+ *
+ * @author Morten Svanæs
+ */
+@Configuration
+@Profile("analytics-table-hooks-enabled-test")
+public class AnalyticsTableHookEnabledConfig {
 
-class DataIntegrityUserRolesNoAuthorities extends AbstractDataIntegrityIntegrationTest {
-
-  private static final String CHECK_NAME = "user_roles_no_authorities";
-
-  private static final String DETAILS_ID_TYPE = "userRoles";
-
-  private String userRoleUid;
-
-  @Test
-  void testUserRolesNoAuthorities() {
-    userRoleUid =
-        assertStatus(
-            HttpStatus.CREATED, POST("/userRoles", "{ 'name': 'Empty role', 'authorities': [] }"));
-    assertStatus(
-        HttpStatus.CREATED,
-        POST("/userRoles", "{ 'name': 'Good role', 'authorities': ['F_DATAVALUE_ADD'] }"));
-    // Note that two user roles already exist due to the setup in the
-    // AbstractDataIntegrityIntegrationTest class
-    // Thus there should be 4 roles total. Only the Empty role should be flagged.
-    assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, CHECK_NAME, 25, userRoleUid, "Empty role", null, true);
+  @Bean
+  @Primary
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
+    Properties properties = new Properties();
+    properties.put(ConfigurationKey.ANALYTICS_TABLE_HOOKS_ENABLED.getKey(), "on");
+    provider.addProperties(properties);
+    return provider;
   }
 }

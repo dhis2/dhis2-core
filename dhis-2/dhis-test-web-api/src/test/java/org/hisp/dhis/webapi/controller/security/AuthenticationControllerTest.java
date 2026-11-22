@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -36,7 +37,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.IOException;
 import java.util.Calendar;
+import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
@@ -50,6 +54,7 @@ import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.session.SessionRegistry;
 
@@ -60,6 +65,7 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
 
   @Autowired SystemSettingManager systemSettingManager;
   @Autowired private SessionRegistry sessionRegistry;
+  @Autowired private AppManager appManager;
 
   @Test
   void testSuccessfulLoginWithOldUsername() {
@@ -85,6 +91,64 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
 
     assertEquals("SUCCESS", response.getLoginStatus());
     assertEquals("/dhis-web-dashboard", response.getRedirectUrl());
+  }
+
+  @Test
+  void testSuccessfulLoginRedirectsToAppStartModule() throws IOException {
+    assertEquals(
+        AppStatus.OK,
+        appManager.installApp(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip"));
+    systemSettingManager.saveSystemSetting(SettingKey.START_MODULE, "app:test");
+
+    JsonLoginResponse response =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    assertEquals("/api/apps/test/index.html", response.getRedirectUrl());
+  }
+
+  @Test
+  void testSuccessfulLoginRedirectsToDashboardWhenStartModuleAppNotFound() {
+    systemSettingManager.saveSystemSetting(SettingKey.START_MODULE, "app:does-not-exist");
+
+    JsonLoginResponse response =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    assertEquals("/dhis-web-dashboard", response.getRedirectUrl());
+  }
+
+  @Test
+  void testSuccessfulLoginClearsInvitation() {
+    User invitedUser = userService.getUserByUsername("admin");
+    invitedUser.setInvitation(true);
+    invitedUser.setRestoreToken("restore-token");
+    Calendar expiry = Calendar.getInstance();
+    expiry.add(Calendar.DAY_OF_YEAR, 1);
+    invitedUser.setRestoreExpiry(expiry.getTime());
+    invitedUser.setIdToken("id-token");
+    userService.updateUser(invitedUser);
+    manager.flush();
+    manager.clear();
+    clearSecurityContext();
+
+    JsonLoginResponse response =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    manager.flush();
+    manager.clear();
+    User persistedUser = userService.getUserByUsername("admin");
+    assertFalse(persistedUser.isInvitation());
+    assertNull(persistedUser.getRestoreToken());
+    assertNull(persistedUser.getRestoreExpiry());
+    assertNull(persistedUser.getIdToken());
   }
 
   @Test

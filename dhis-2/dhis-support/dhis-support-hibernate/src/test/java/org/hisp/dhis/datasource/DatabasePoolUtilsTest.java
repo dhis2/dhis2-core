@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.datasource;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -116,6 +119,42 @@ class DatabasePoolUtilsTest {
 
   @Test
   void testCreateDbPoolWhenDbPoolTypeIsHikari() throws PropertyVetoException, SQLException {
+    DhisConfigurationProvider mockDhisConfigurationProvider = mockHikariConfiguration();
+    given(mockDhisConfigurationProvider.hasProperty(ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME))
+        .willReturn(true);
+    given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME))
+        .willReturn("25");
+
+    DataSource dataSource =
+        DatabasePoolUtils.createDbPool(
+            hikariPoolConfig(mockDhisConfigurationProvider), meterRegistry);
+
+    try (HikariDataSource hikari = assertInstanceOf(HikariDataSource.class, dataSource)) {
+      assertEquals(5, hikari.getMaximumPoolSize());
+      assertEquals(3, hikari.getMinimumIdle());
+      assertEquals(SECONDS.toMillis(60), hikari.getKeepaliveTime());
+      assertEquals(SECONDS.toMillis(1200), hikari.getMaxLifetime());
+      assertEquals(SECONDS.toMillis(25), hikari.getIdleTimeout());
+    }
+  }
+
+  @Test
+  void testCreateDbPoolWhenDbPoolTypeIsHikariKeepsDefaultIdleTimeoutWhenNotConfigured()
+      throws PropertyVetoException, SQLException {
+    DhisConfigurationProvider mockDhisConfigurationProvider = mockHikariConfiguration();
+    given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME))
+        .willReturn("7200");
+
+    DataSource dataSource =
+        DatabasePoolUtils.createDbPool(
+            hikariPoolConfig(mockDhisConfigurationProvider), meterRegistry);
+
+    try (HikariDataSource hikari = assertInstanceOf(HikariDataSource.class, dataSource)) {
+      assertEquals(new HikariConfig().getIdleTimeout(), hikari.getIdleTimeout());
+    }
+  }
+
+  private static DhisConfigurationProvider mockHikariConfiguration() {
     DhisConfigurationProvider mockDhisConfigurationProvider = mock(DhisConfigurationProvider.class);
     given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS))
         .willReturn("org.hisp.dhis.datasource.StubDriver");
@@ -125,20 +164,27 @@ class DatabasePoolUtilsTest {
             mockDhisConfigurationProvider.getProperty(
                 ConfigurationKey.CONNECTION_POOL_VALIDATION_TIMEOUT))
         .willReturn("250");
+    given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_POOL_MIN_IDLE))
+        .willReturn("3");
+    given(
+            mockDhisConfigurationProvider.getProperty(
+                ConfigurationKey.CONNECTION_POOL_KEEP_ALIVE_TIME_SECONDS))
+        .willReturn("60");
+    given(
+            mockDhisConfigurationProvider.getProperty(
+                ConfigurationKey.CONNECTION_POOL_MAX_LIFETIME_SECONDS))
+        .willReturn("1200");
+    return mockDhisConfigurationProvider;
+  }
 
-    PoolConfig.PoolConfigBuilder poolConfigBuilder =
-        PoolConfig.builder("test_hikari")
-            .dbPoolType(DatabasePoolUtils.DbPoolType.HIKARI.name())
-            .jdbcUrl("jdbc:fake:db")
-            .username("")
-            .password("")
-            .maxPoolSize("1")
-            .acquireIncrement("1")
-            .maxIdleTime(String.valueOf(ThreadLocalRandom.current().nextInt()))
-            .dhisConfig(mockDhisConfigurationProvider);
-
-    DataSource dataSource =
-        DatabasePoolUtils.createDbPool(poolConfigBuilder.build(), meterRegistry);
-    assertInstanceOf(HikariDataSource.class, dataSource);
+  private static PoolConfig hikariPoolConfig(DhisConfigurationProvider dhisConfig) {
+    return PoolConfig.builder("test_hikari")
+        .dbPoolType(DatabasePoolUtils.DbPoolType.HIKARI.name())
+        .jdbcUrl("jdbc:fake:db")
+        .username("")
+        .password("")
+        .maxPoolSize("5")
+        .dhisConfig(dhisConfig)
+        .build();
   }
 }

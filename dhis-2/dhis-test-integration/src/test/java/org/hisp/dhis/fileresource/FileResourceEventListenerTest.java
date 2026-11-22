@@ -77,7 +77,13 @@ class FileResourceEventListenerTest extends IntegrationTestBase {
     fileResourceEventListener =
         new FileResourceEventListener(
             new DefaultFileResourceService(
-                fileResourceStore, null, fileResourceContentStore, null, mock(EntityManager.class)),
+                fileResourceStore,
+                null,
+                fileResourceContentStore,
+                null,
+                mock(EntityManager.class),
+                null,
+                null),
             fileResourceContentStore,
             new DefaultAuthenticationService(userService),
             imageProcessingService);

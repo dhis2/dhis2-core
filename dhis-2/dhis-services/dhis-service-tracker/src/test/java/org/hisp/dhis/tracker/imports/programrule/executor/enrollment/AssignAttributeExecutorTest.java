@@ -37,9 +37,10 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -64,6 +65,8 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
+  private static final String RULE_ID = "RuleId";
+
   private static final String TRACKED_ENTITY_ID = "TrackedEntityUid";
 
   private static final String FIRST_ENROLLMENT_ID = "ActiveEnrollmentUid";
@@ -84,7 +87,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
   @Mock private TrackerPreheat preheat;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider systemSettingsProvider;
 
   @BeforeEach
   void setUpTest() {
@@ -95,7 +98,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
     when(preheat.getTrackedEntityAttribute(attributeA.getUid())).thenReturn(attributeA);
     bundle = TrackerBundle.builder().build();
     bundle.setPreheat(preheat);
-    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
+    when(systemSettingsProvider.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
         .thenReturn(Boolean.FALSE);
   }
 
@@ -110,7 +113,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
@@ -132,7 +135,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
@@ -157,7 +160,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
@@ -182,7 +185,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
@@ -203,7 +206,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
   @Test
   void
       shouldAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTeiAndCanBeOverwritten() {
-    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
+    when(systemSettingsProvider.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
         .thenReturn(Boolean.TRUE);
     Enrollment enrollmentWithAttributeNOTSet = getEnrollmentWithAttributeNOTSet();
     List<Enrollment> enrollments = List.of(enrollmentWithAttributeNOTSet);
@@ -213,7 +216,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
@@ -239,7 +242,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
@@ -259,12 +262,12 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
     Enrollment enrollmentWithAttributeSet = getEnrollmentWithAttributeSet();
     List<Enrollment> enrollments = List.of(enrollmentWithAttributeSet);
     bundle.setEnrollments(enrollments);
-    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
+    when(systemSettingsProvider.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
         .thenReturn(Boolean.TRUE);
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_ID,
@@ -276,6 +279,117 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
     Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_ID);
 
     assertAttributeWasAssignedAndWarningIsPresent(TE_ATTRIBUTE_NEW_VALUE, attribute, warning);
+  }
+
+  @Test
+  void shouldNotOverwriteAttributeWhenAssignedValueIsEquivalent() {
+    when(systemSettingsProvider.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
+        .thenReturn(true);
+    Enrollment enrollmentWithAttributeSetSameValue = getEnrollmentWithAttributeSetSameValue();
+    bundle.setEnrollments(List.of(enrollmentWithAttributeSetSameValue));
+
+    AssignAttributeExecutor executor =
+        new AssignAttributeExecutor(
+            systemSettingsProvider,
+            RULE_ID,
+            "24",
+            ATTRIBUTE_ID,
+            enrollmentWithAttributeSetSameValue.getAttributes());
+
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, enrollmentWithAttributeSetSameValue);
+
+    Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_ID);
+
+    assertAttributeWasAssignedAndWarningIsPresent(TE_ATTRIBUTE_NEW_VALUE, attribute, warning);
+  }
+
+  @Test
+  void shouldNotFailWhenAssignedValueIsInScientificNotationAndEquivalentToAttribute() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(FIRST_ENROLLMENT_ID)
+            .trackedEntity(CodeGenerator.generateUid())
+            .status(EnrollmentStatus.ACTIVE)
+            .attributes(
+                List.of(
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid(ATTRIBUTE_ID))
+                        .value("53093393.25")
+                        .build()))
+            .build();
+    bundle.setEnrollments(List.of(enrollment));
+
+    AssignAttributeExecutor executor =
+        new AssignAttributeExecutor(
+            systemSettingsProvider,
+            RULE_ID,
+            "5.309339325E7",
+            ATTRIBUTE_ID,
+            enrollment.getAttributes());
+
+    Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, enrollment);
+
+    Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_ID);
+
+    assertAttributeWasAssignedAndWarningIsPresent("53093393.25", attribute, warning);
+  }
+
+  @Test
+  void shouldOverwriteAttributeWhenAssignedValueIsCloseButNotEqualAndOverwriteIsTrue() {
+    when(systemSettingsProvider.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
+        .thenReturn(true);
+    Enrollment enrollment = getEnrollmentWithAttributeValue("0.005");
+    bundle.setEnrollments(List.of(enrollment));
+
+    AssignAttributeExecutor executor =
+        new AssignAttributeExecutor(
+            systemSettingsProvider, RULE_ID, "0", ATTRIBUTE_ID, enrollment.getAttributes());
+
+    Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, enrollment);
+
+    Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_ID);
+
+    assertAttributeWasAssignedAndWarningIsPresent("0", attribute, warning);
+  }
+
+  @Test
+  void shouldFailWhenAssignedValueIsCloseButNotEqualToAttributeAndOverwriteIsFalse() {
+    Enrollment enrollment = getEnrollmentWithAttributeValue("0.005");
+    bundle.setEnrollments(List.of(enrollment));
+
+    AssignAttributeExecutor executor =
+        new AssignAttributeExecutor(
+            systemSettingsProvider, RULE_ID, "0", ATTRIBUTE_ID, enrollment.getAttributes());
+
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, enrollment);
+
+    Optional<Attribute> attribute = findAttributeByUid(bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_ID);
+
+    assertAttributeWasNotAssignedAndErrorIsPresent("0.005", attribute, error);
+  }
+
+  @Test
+  void shouldAssignPlainNumberWhenAssignedValueIsInScientificNotationAndAttributeIsEmpty() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    Enrollment enrollmentWithAttributeNOTSet = getEnrollmentWithAttributeNOTSet();
+    bundle.setTrackedEntities(List.of(getTrackedEntitiesWithAttributeNOTSet()));
+    bundle.setEnrollments(List.of(enrollmentWithAttributeNOTSet));
+
+    AssignAttributeExecutor executor =
+        new AssignAttributeExecutor(
+            systemSettingsProvider,
+            RULE_ID,
+            "5.309339325E7",
+            ATTRIBUTE_ID,
+            enrollmentWithAttributeNOTSet.getAttributes());
+
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, enrollmentWithAttributeNOTSet);
+
+    Optional<Attribute> attribute = findAttributeByUid(bundle, SECOND_ENROLLMENT_ID, ATTRIBUTE_ID);
+
+    assertAttributeWasAssignedAndWarningIsPresent("53093393.25", attribute, warning);
   }
 
   private Optional<Attribute> findTeiAttributeByUid(
@@ -336,6 +450,20 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
         .enrollment(FIRST_ENROLLMENT_ID)
         .status(EnrollmentStatus.ACTIVE)
         .attributes(getAttributes(idSchemes))
+        .build();
+  }
+
+  private Enrollment getEnrollmentWithAttributeValue(String value) {
+    return Enrollment.builder()
+        .enrollment(FIRST_ENROLLMENT_ID)
+        .trackedEntity(CodeGenerator.generateUid())
+        .status(EnrollmentStatus.ACTIVE)
+        .attributes(
+            List.of(
+                Attribute.builder()
+                    .attribute(MetadataIdentifier.ofUid(ATTRIBUTE_ID))
+                    .value(value)
+                    .build()))
         .build();
   }
 

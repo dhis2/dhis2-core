@@ -33,16 +33,12 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1112;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
-import java.util.List;
-import java.util.Objects;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -88,29 +84,20 @@ public abstract class AttributeValidator {
       TrackerDto dto,
       String value,
       TrackedEntityAttribute trackedEntityAttribute,
-      TrackedEntity trackedEntity,
+      String trackedEntity,
       OrganisationUnit organisationUnit) {
     checkNotNull(trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL);
 
     if (Boolean.FALSE.equals(trackedEntityAttribute.isUnique())) return;
 
-    List<UniqueAttributeValue> uniqueAttributeValues = preheat.getUniqueAttributeValues();
+    boolean isDuplicate =
+        trackedEntityAttribute.getOrgUnitScopeNullSafe()
+            ? preheat.hasDuplicateInOrgUnit(
+                trackedEntityAttribute, value, organisationUnit, trackedEntity)
+            : preheat.hasSystemWideDuplicate(trackedEntityAttribute, value, trackedEntity);
 
-    for (UniqueAttributeValue uniqueAttributeValue : uniqueAttributeValues) {
-      boolean isTeaUniqueInOrgUnitScope =
-          !trackedEntityAttribute.getOrgunitScope()
-              || uniqueAttributeValue.getOrgUnit().isEqualTo(organisationUnit);
-
-      boolean isTheSameTea = uniqueAttributeValue.getAttribute().isEqualTo(trackedEntityAttribute);
-      boolean hasTheSameValue = value.equalsIgnoreCase(uniqueAttributeValue.getValue());
-      boolean isNotSameTei =
-          trackedEntity == null
-              || !Objects.equals(trackedEntity.getUid(), uniqueAttributeValue.getTeUid());
-
-      if (isTeaUniqueInOrgUnitScope && isTheSameTea && hasTheSameValue && isNotSameTei) {
-        reporter.addError(dto, ValidationCode.E1064, value, trackedEntityAttribute);
-        return;
-      }
+    if (isDuplicate) {
+      reporter.addError(dto, ValidationCode.E1064, value, trackedEntityAttribute);
     }
   }
 }

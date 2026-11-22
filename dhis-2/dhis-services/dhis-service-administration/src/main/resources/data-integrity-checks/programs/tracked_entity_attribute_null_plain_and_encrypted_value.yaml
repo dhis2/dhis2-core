@@ -1,0 +1,76 @@
+# Copyright (c) 2004-2025, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: tracked_entity_attribute_null_plain_and_encrypted_value
+description: Tracked entity attribute value with neither a plain text nor an encrypted value
+section: Programs
+section_order: 8
+summary_sql: >-
+  WITH rs as (
+  SELECT teav.trackedentityid, teav.trackedentityattributeid
+  FROM trackedentityattributevalue teav
+  WHERE teav.value IS NULL
+  AND teav.encryptedvalue IS NULL
+  )
+  SELECT COUNT(*) as value,
+  100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) from trackedentityattributevalue),0) as percent
+  from rs;
+details_sql: >-
+  SELECT
+    te.uid as uid,
+    te.uid || ' / ' || tea.name as name,
+    'Attribute "' || tea.name || '" (' || tea.uid || ') has no value' AS comment
+  FROM trackedentityattributevalue teav
+  INNER JOIN trackedentity te ON te.trackedentityid = teav.trackedentityid
+  INNER JOIN trackedentityattribute tea ON tea.trackedentityattributeid = teav.trackedentityattributeid
+  WHERE teav.value IS NULL
+  AND teav.encryptedvalue IS NULL;
+severity: CRITICAL
+introduction: >
+  A tracked entity attribute value row is meaningful only because of its value. A row with neither a
+  plain text `value` nor an `encryptedvalue` carries no information and is not a state the application
+  produces: clearing an attribute value deletes the row instead of storing NULL.
+
+  Such rows are removed automatically by a database migration when upgrading to this version, so this
+  check is expected to always pass. It exists as a safety net to detect rows created afterwards, for
+  example by direct database manipulation. In version 2.44 and later the `value` column is not nullable,
+  so the upgrade will remove any such rows.
+details_id_type: tracker
+recommendation: >-
+  These rows carry no information and can be safely deleted:
+
+  DELETE FROM trackedentityattributevalue
+  WHERE value IS NULL
+  AND encryptedvalue IS NULL;
+
+  As is always the case with direct database manipulation, you should ensure that you have a backup of your
+  database before running these commands, ensure that DHIS2 is not running, and perform the change in a test
+  environment first.
+
+  After applying the fix, restart DHIS2 and re-run the integrity check to ensure that no tracked entity
+  attribute values are flagged.
+is_slow: true

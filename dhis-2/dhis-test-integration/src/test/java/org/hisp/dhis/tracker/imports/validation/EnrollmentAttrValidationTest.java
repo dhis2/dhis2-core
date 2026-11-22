@@ -27,15 +27,23 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
+import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 
 import java.io.IOException;
+import java.util.List;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.UserService;
@@ -174,6 +182,54 @@ class EnrollmentAttrValidationTest extends TrackerTest {
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
 
     assertHasErrors(importReport, 2, ValidationCode.E1064);
+  }
+
+  @Test
+  void shouldValidateUniquenessWhenPayloadContainsTrackedEntityWithInvalidUid() throws IOException {
+    assertNoErrors(
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            fromJson("tracker/validations/enrollments_te_te-data_3.json")));
+    manager.flush();
+    manager.clear();
+    TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_unique_attr.json");
+    Enrollment duplicate = trackerObjects.getEnrollments().get(0);
+    String invalidUid = "invalid";
+    trackerObjects
+        .getTrackedEntities()
+        .add(
+            TrackedEntity.builder()
+                .trackedEntity(invalidUid)
+                .trackedEntityType(MetadataIdentifier.ofUid("bPJ0FMtcnEh"))
+                .orgUnit(duplicate.getOrgUnit())
+                .build());
+    trackerObjects
+        .getEnrollments()
+        .add(
+            Enrollment.builder()
+                .enrollment(CodeGenerator.generateUid())
+                .trackedEntity(invalidUid)
+                .program(duplicate.getProgram())
+                .orgUnit(duplicate.getOrgUnit())
+                .status(duplicate.getStatus())
+                .enrolledAt(duplicate.getEnrolledAt())
+                .occurredAt(duplicate.getOccurredAt())
+                .attributes(
+                    List.of(
+                        Attribute.builder()
+                            .attribute(duplicate.getAttributes().get(0).getAttribute())
+                            .value("456")
+                            .build(),
+                        duplicate.getAttributes().get(1)))
+                .build());
+    TrackerImportParams params = new TrackerImportParams();
+    params.setAtomicMode(AtomicMode.OBJECT);
+
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    assertHasError(importReport.getValidationReport(), ValidationCode.E1048, invalidUid);
+    assertHasError(importReport.getValidationReport(), ValidationCode.E1064, "MNWZ6hnuhSw");
+    assertHasError(importReport.getValidationReport(), ValidationCode.E1064, "MNWZ6hnuhSx");
   }
 
   @Test

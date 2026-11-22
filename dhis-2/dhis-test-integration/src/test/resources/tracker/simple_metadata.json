@@ -423,6 +423,30 @@
           "favorites": [],
           "translations": [],
           "attributeValues": []
+        },
+        {
+          "id": "TetAttrUpd1",
+          "trackedEntityAttribute": {
+            "id": "toUpdate000"
+          }
+        },
+        {
+          "id": "TetAttrNum1",
+          "trackedEntityAttribute": {
+            "id": "numericAttr"
+          }
+        },
+        {
+          "id": "TetAttrDel1",
+          "trackedEntityAttribute": {
+            "id": "toDelete000"
+          }
+        },
+        {
+          "id": "TetAttrNot1",
+          "trackedEntityAttribute": {
+            "id": "notUpdated0"
+          }
         }
       ],
       "translations": [],

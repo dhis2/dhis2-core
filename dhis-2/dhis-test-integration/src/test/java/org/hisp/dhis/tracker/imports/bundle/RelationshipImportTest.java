@@ -31,9 +31,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -95,6 +101,76 @@ class RelationshipImportTest extends TrackerTest {
   }
 
   @Test
+  void shouldFailWhenCreatingRelationshipToDeletedEnrollmentOrEventInDeletedEnrollment()
+      throws IOException {
+    // soft delete only the enrollment, leaving its event not deleted like older versions allowed
+    softDeleteOnly(manager.get(Enrollment.class, "TvctPPhpD8u"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            adminParams().build(), fromJson("tracker/relationships.json"));
+
+    assertHasError(importReport, ValidationCode.E4021);
+    assertHasError(importReport, ValidationCode.E4022);
+    assertThat(importReport.getStats().getCreated(), is(0));
+    assertNull(manager.get(Relationship.class, "Nva3Xj2j75W"));
+    assertNull(manager.get(Relationship.class, "HiXiipNGsxT"));
+  }
+
+  @Test
+  void shouldNotRevealDeletedLinkedDataWhenUserNotAuthorizedToCreateRelationship()
+      throws IOException {
+    softDeleteOnly(manager.get(Enrollment.class, "TvctPPhpD8u"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().userId("o1HMTIzBGo7").build(),
+            fromJson("tracker/relationships.json"));
+
+    assertHasError(importReport, ValidationCode.E4020);
+    assertTrue(
+        importReport.getValidationReport().getErrors().stream()
+            .noneMatch(
+                e ->
+                    ValidationCode.E4021.name().equals(e.getErrorCode())
+                        || ValidationCode.E4022.name().equals(e.getErrorCode())));
+  }
+
+  @Test
+  void shouldFailWhenCreatingRelationshipToDeletedTrackedEntity() throws IOException {
+    softDeleteOnly(manager.get(TrackedEntity.class, "IOR1AXXl24H"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            adminParams().build(), fromJson("tracker/relationships.json"));
+
+    assertHasError(importReport, ValidationCode.E4021);
+    assertThat(importReport.getStats().getCreated(), is(0));
+    assertThat(importReport.getStats().getIgnored(), is(2));
+  }
+
+  @Test
+  void shouldDeleteRelationshipsLinkingToDeletedTrackedEntity() throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/relationships.json");
+    assertNoErrors(trackerImportService.importTracker(adminParams().build(), trackerObjects));
+    // soft delete only the tracked entity, leaving its relationships not deleted like older
+    // versions allowed
+    softDeleteOnly(manager.get(TrackedEntity.class, "IOR1AXXl24H"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            adminParams().importStrategy(TrackerImportStrategy.DELETE).build(),
+            fromJson("tracker/relationships.json"));
+
+    assertNoErrors(importReport);
+    assertThat(importReport.getStats().getDeleted(), is(2));
+  }
+
+  private static TrackerImportParams.TrackerImportParamsBuilder adminParams() {
+    return TrackerImportParams.builder().userId("M5zQapPyTZI");
+  }
+
+  @Test
   void successUpdateRelationships() throws IOException {
     TrackerImportParams trackerImportParams =
         TrackerImportParams.builder().userId(userA.getUid()).build();
@@ -107,5 +183,16 @@ class RelationshipImportTest extends TrackerTest {
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(0));
     assertThat(importReport.getStats().getIgnored(), is(1));
+  }
+
+  /**
+   * Soft deletes only the given object, without cascading the soft delete to its children like
+   * {@code manager.delete} does, to reproduce data left behind by older versions.
+   */
+  private void softDeleteOnly(SoftDeletableObject object) {
+    object.setDeleted(true);
+    manager.update(object);
+    manager.flush();
+    manager.clear();
   }
 }

@@ -143,7 +143,7 @@ public interface AnalyticsTableManager {
   /**
    * Invokes analytics table SQL hooks for the table type.
    *
-   * @return the number of analytics table hooks being executed.
+   * @return the number of analytics table hooks executed, 0 when hooks are disabled.
    */
   int invokeAnalyticsTableSqlHooks();
 

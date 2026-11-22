@@ -342,6 +342,35 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
   }
 
   @Test
+  void shouldNotSendProgramMessageForEnrollmentWebHookTemplate() {
+    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+
+    programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.WEB_HOOK);
+    programNotificationTemplate.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.HTTP));
+
+    programNotificationService.sendEnrollmentNotifications(enrollments.iterator().next().getId());
+
+    verify(programMessageService, never()).sendMessages(anyList());
+    verify(messageService, never()).sendMessage(any());
+  }
+
+  @Test
+  void shouldNotSendProgramMessageForEventWebHookTemplate() {
+    Event event = events.iterator().next();
+    when(eventStore.get(anyLong())).thenReturn(event);
+
+    programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.WEB_HOOK);
+    programNotificationTemplate.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.HTTP));
+    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
+    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
+
+    programNotificationService.sendEventCompletionNotifications(event.getId());
+
+    verify(programMessageService, never()).sendMessages(anyList());
+    verify(messageService, never()).sendMessage(any());
+  }
+
+  @Test
   void testProgramAttributeRecipientWithSMS() {
     when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
 

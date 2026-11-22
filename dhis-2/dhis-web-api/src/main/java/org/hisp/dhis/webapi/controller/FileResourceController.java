@@ -33,21 +33,27 @@ import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeIconToDefaultSi
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeOrgToDefaultSize;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.validateCustomIconFile;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.MoreObjects;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiPredicate;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.common.OrderParams;
+import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -57,21 +63,27 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceOwner;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.hisp.dhis.gist.GistParams;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -102,18 +114,87 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
+    getFileResourceWithReadableMetadata(uid, currentUser);
     return super.getObject(uid, rpParameters, currentUser, request, response);
+  }
+
+  @Override
+  @GetMapping("/{uid}/{property}")
+  public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
+      @PathVariable("uid") String uid,
+      @OpenApi.Param(org.hisp.dhis.webapi.openapi.Api.PropertyNames.class) @PathVariable("property")
+          String property,
+      @RequestParam Map<String, String> rpParameters,
+      TranslateParams translateParams,
+      @CurrentUser UserDetails currentUser,
+      HttpServletResponse response)
+      throws ForbiddenException, NotFoundException {
+    getFileResourceWithReadableMetadata(uid, currentUser);
+    return super.getObjectProperty(
+        uid, property, rpParameters, translateParams, currentUser, response);
+  }
+
+  @Override
+  @OpenApi.Response(OpenApi.EntityType.class)
+  @GetMapping(value = "/{uid}/gist", produces = "application/json")
+  public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
+      @PathVariable("uid") String uid, GistParams params)
+      throws NotFoundException, BadRequestException {
+    checkGistAccess(uid);
+    return super.getObjectGist(uid, params);
+  }
+
+  @Override
+  @OpenApi.Response(String.class)
+  @GetMapping(
+      value = {"/{uid}/gist", "/{uid}/gist.csv"},
+      produces = "text/csv")
+  public void getObjectGistAsCsv(
+      @PathVariable("uid") String uid, GistParams params, HttpServletResponse response)
+      throws BadRequestException, IOException {
+    if (checkGistCsvAccess(uid, response)) {
+      super.getObjectGistAsCsv(uid, params, response);
+    }
+  }
+
+  @Override
+  @OpenApi.Response(JsonValue.class)
+  @GetMapping(value = "/{uid}/{property}/gist", produces = "application/json")
+  public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
+      @PathVariable("uid") String uid,
+      @OpenApi.Param(org.hisp.dhis.webapi.openapi.Api.PropertyNames.class) @PathVariable("property")
+          String property,
+      GistParams params,
+      HttpServletRequest request)
+      throws BadRequestException, NotFoundException {
+    checkGistAccess(uid);
+    return super.getObjectPropertyGist(uid, property, params, request);
+  }
+
+  @Override
+  @OpenApi.Response(String.class)
+  @GetMapping(
+      value = {"/{uid}/{property}/gist", "/{uid}/{property}/gist.csv"},
+      produces = "text/csv")
+  public void getObjectPropertyGistAsCsv(
+      @PathVariable("uid") String uid,
+      @OpenApi.Param(org.hisp.dhis.webapi.openapi.Api.PropertyNames.class) @PathVariable("property")
+          String property,
+      GistParams params,
+      HttpServletResponse response)
+      throws BadRequestException, IOException {
+    if (checkGistCsvAccess(uid, response)) {
+      super.getObjectPropertyGistAsCsv(uid, property, params, response);
+    }
   }
 
   @GetMapping(value = "/{uid}")
   public FileResource getFileResource(
-      @PathVariable String uid, @RequestParam(required = false) ImageFileDimension dimension)
-      throws NotFoundException {
-    FileResource fileResource = fileResourceService.getFileResource(uid);
-
-    if (fileResource == null) {
-      throw new NotFoundException(FileResource.class, uid);
-    }
+      @PathVariable String uid,
+      @RequestParam(required = false) ImageFileDimension dimension,
+      @CurrentUser UserDetails currentUser)
+      throws NotFoundException, ForbiddenException {
+    FileResource fileResource = getFileResourceWithReadableMetadata(uid, currentUser);
 
     FileResourceUtils.setImageFileDimensions(
         fileResource, MoreObjects.firstNonNull(dimension, ImageFileDimension.ORIGINAL));
@@ -126,23 +207,22 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
       @PathVariable String uid,
       HttpServletResponse response,
       @RequestParam(required = false) ImageFileDimension dimension,
-      @CurrentUser User currentUser)
+      @CurrentUser UserDetails currentUser)
       throws NotFoundException, ForbiddenException, WebMessageException {
-    FileResource fileResource = fileResourceService.getFileResource(uid);
+    FileResource fileResource =
+        getReadableFileResource(uid, currentUser, fileResourceService::canRead);
 
-    if (fileResource == null) {
-      throw new NotFoundException(FileResource.class, uid);
+    // Serving a data value or push analysis file here would not apply the access rules
+    // of the owning object, so these domains are out of scope here for everyone, ownership or
+    // authority regardless. Data value files are read through the data value API instead.
+    if (fileResource.getDomain() == FileResourceDomain.DATA_VALUE
+        || fileResource.getDomain() == FileResourceDomain.PUSH_ANALYSIS) {
+      throw new ForbiddenException(
+          String.format("File resource not found or not accessible: %s", uid));
     }
 
     FileResourceUtils.setImageFileDimensions(
         fileResource, MoreObjects.firstNonNull(dimension, ImageFileDimension.ORIGINAL));
-
-    if (!checkSharing(fileResource, currentUser)) {
-      throw new ForbiddenException(
-          "You don't have access to fileResource '"
-              + uid
-              + "' or this fileResource is not available from this endpoint");
-    }
 
     response.setContentType(fileResource.getContentType());
 
@@ -200,32 +280,150 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
     return webMessage;
   }
 
+  @PreAuthorize("hasRole('ALL')")
   @GetMapping("/owners")
   public List<FileResourceOwner> getFileResourceOwners(@RequestParam String storageKey) {
     return fileResourceService.findOwnersByStorageKey(storageKey);
   }
 
+  private FileResource getFileResourceWithReadableMetadata(String uid, UserDetails currentUser)
+      throws NotFoundException, ForbiddenException {
+    return getReadableFileResource(uid, currentUser, fileResourceService::canReadMetadata);
+  }
+
   /**
-   * Checks is the current user has access to view the fileResource.
-   *
-   * @return true if user has access, false if not.
+   * The inherited gist handlers have no {@link CurrentUser} parameter, and gist reports a denied
+   * read with an {@link AccessDeniedException}, so this follows both conventions.
    */
-  private boolean checkSharing(FileResource fileResource, User currentUser) {
-    /*
-     * Serving DATA_VALUE and PUSH_ANALYSIS fileResources from this endpoint
-     * doesn't make sense So we will return false if the fileResource have
-     * either of these domains.
-     */
-    FileResourceDomain domain = fileResource.getDomain();
-    if (domain == FileResourceDomain.DATA_VALUE || domain == FileResourceDomain.PUSH_ANALYSIS) {
+  private void checkGistAccess(String uid) throws NotFoundException {
+    try {
+      getFileResourceWithReadableMetadata(uid, CurrentUserUtil.getCurrentUserDetails());
+    } catch (ForbiddenException ex) {
+      throw new AccessDeniedException(ex.getMessage());
+    }
+  }
+
+  /**
+   * A {@code text/csv} response cannot carry the JSON error body of a denied read, so the denial is
+   * a bare 403.
+   *
+   * @return true when the current user may read the file resource
+   */
+  private boolean checkGistCsvAccess(String uid, HttpServletResponse response) {
+    try {
+      checkGistAccess(uid);
+      return true;
+    } catch (AccessDeniedException ex) {
+      response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+      return false;
+    } catch (NotFoundException ex) {
+      response.setStatus(HttpServletResponse.SC_NOT_FOUND);
       return false;
     }
+  }
 
-    if (domain == FileResourceDomain.USER_AVATAR) {
-      return currentUser.isAuthorized("F_USER_VIEW")
-          || fileResource.equals(currentUser.getAvatar());
+  /*
+   * The inherited collection endpoints below are restricted to superusers.
+   *
+   * FileResource is not a shareable type and its schema declares no authorities, so
+   * aclService.canRead(user, FileResource.class) - the only check the generic endpoints of
+   * AbstractFullReadOnlyController apply - holds for every authenticated user, and the Gist
+   * endpoints apply no check at all. Left open, the collection endpoints would list the uid, name
+   * and domain of every file resource, including those FileResourceService.canRead does not let
+   * the caller read.
+   *
+   * Listing and Gist have no known client for this type; 2.40 never exposed either. Filtering them
+   * per row instead would mean resolving the owner of every file resource on every page, and again
+   * in the pager count query, so an authority is both the cheaper and the more predictable answer.
+   */
+
+  @Override
+  @PreAuthorize("hasRole('ALL')")
+  @GetMapping
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<FileResource>> getObjectList(
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException, BadRequestException {
+    return super.getObjectList(rpParameters, orderParams, response, currentUser);
+  }
+
+  /**
+   * Already unreachable because {@link FileResource} is not a metadata type, but gated explicitly
+   * so that the endpoint does not silently reopen if that schema flag ever changes.
+   *
+   * <p>A {@code text/csv} response cannot carry the JSON error body of a denied request, so a non
+   * superuser gets a bare 403, as for the per-object Gist CSV routes.
+   */
+  @Override
+  @GetMapping(produces = {"text/csv", "application/text"})
+  public ResponseEntity<String> getObjectListCsv(
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      @CurrentUser UserDetails currentUser,
+      @RequestParam(defaultValue = ",") char separator,
+      @RequestParam(defaultValue = ";") String arraySeparator,
+      @RequestParam(defaultValue = "false") boolean skipHeader,
+      HttpServletResponse response)
+      throws IOException,
+          NotFoundException,
+          ConflictException,
+          ForbiddenException,
+          BadRequestException {
+    if (!currentUser.isSuper()) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+    return super.getObjectListCsv(
+        rpParameters, orderParams, currentUser, separator, arraySeparator, skipHeader, response);
+  }
+
+  @Override
+  @PreAuthorize("hasRole('ALL')")
+  @GetMapping(value = "/gist", produces = "application/json")
+  public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
+      GistParams params, HttpServletRequest request) throws BadRequestException {
+    return super.getObjectListGist(params, request);
+  }
+
+  /**
+   * A {@code text/csv} response cannot carry the JSON error body of a denied request, so a non
+   * superuser gets a bare 403, as for the per-object Gist CSV routes.
+   */
+  @Override
+  @GetMapping(
+      value = {"/gist", "/gist.csv"},
+      produces = "text/csv")
+  public void getObjectListGistAsCsv(GistParams params, HttpServletResponse response)
+      throws IOException, BadRequestException {
+    if (!CurrentUserUtil.getCurrentUserDetails().isSuper()) {
+      response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+      return;
+    }
+    super.getObjectListGistAsCsv(params, response);
+  }
+
+  /**
+   * Resolves the file resource and authorizes the current user against the object that owns it.
+   *
+   * <p>{@link FileResource} is not a shareable type, so the decision cannot come from the file
+   * resource itself; {@link FileResourceService} resolves the owning document, message conversation
+   * or job and applies its access rule.
+   */
+  private FileResource getReadableFileResource(
+      String uid, UserDetails currentUser, BiPredicate<UserDetails, FileResource> canRead)
+      throws NotFoundException, ForbiddenException {
+    FileResource fileResource = fileResourceService.getFileResource(uid);
+
+    if (fileResource == null) {
+      throw new NotFoundException(FileResource.class, uid);
     }
 
-    return true;
+    if (!canRead.test(currentUser, fileResource)) {
+      throw new ForbiddenException(
+          String.format("File resource not found or not accessible: %s", uid));
+    }
+
+    return fileResource;
   }
 }

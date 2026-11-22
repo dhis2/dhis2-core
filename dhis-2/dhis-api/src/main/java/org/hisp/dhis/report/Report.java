@@ -113,7 +113,7 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
 
   /** Indicates whether this report has relative periods. */
   public boolean hasRelativePeriods() {
-    return relatives != null && !relatives.isEmpty();
+    return !getRelatives().isEmpty();
   }
 
   /** Indicates whether this report has specific report parameters set. */

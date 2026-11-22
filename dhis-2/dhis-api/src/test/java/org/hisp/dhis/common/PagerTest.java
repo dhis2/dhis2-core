@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.jupiter.api.Test;
 
 class PagerTest {
@@ -93,5 +94,19 @@ class PagerTest {
   @Test
   void testGetOffsetWithTotalZero() {
     assertEquals(0, new Pager(2, 0, 50).getOffset());
+  }
+
+  /** Pager is stored in analytics Grid metadata, which is deep-cloned via Java serialization. */
+  @Test
+  void testPagerIsSerializable() {
+    Pager pager = new Pager(2, 100, 10);
+    Pager clone = SerializationUtils.clone(pager);
+    assertEquals(pager.getPage(), clone.getPage());
+    assertEquals(pager.getTotal(), clone.getTotal());
+    assertEquals(pager.getPageSize(), clone.getPageSize());
+
+    SlimPager slimPager = new SlimPager(1, 50, true);
+    SlimPager slimClone = SerializationUtils.clone(slimPager);
+    assertEquals(slimPager.isLastPage(), slimClone.isLastPage());
   }
 }

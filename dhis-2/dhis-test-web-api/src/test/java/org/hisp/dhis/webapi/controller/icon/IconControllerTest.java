@@ -28,11 +28,14 @@
 package org.hisp.dhis.webapi.controller.icon;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -41,6 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -55,6 +59,8 @@ import org.hisp.dhis.webapi.json.domain.JsonIcon;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class IconControllerTest extends DhisControllerIntegrationTest {
@@ -229,6 +235,76 @@ class IconControllerTest extends DhisControllerIntegrationTest {
         () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
   }
 
+  @Test
+  void shouldManageIconWithOwnIconFile() throws ConflictException {
+    switchToNewUser("iconManager");
+    String fileResourceId = createFileResource();
+
+    assertStatus(HttpStatus.CREATED, POST("/icons", iconJson(fileResourceId, key1)));
+    assertStatus(
+        HttpStatus.OK, PUT("/icons/" + key1, "{'description':'changed','keywords':['k1']}"));
+    assertEquals("file content", GET("/icons/%s/icon", key1).content("image/png"));
+    assertStatus(HttpStatus.OK, DELETE("/icons/" + key1));
+  }
+
+  @Test
+  void shouldRejectIconFileUploadedByAnotherUser() throws ConflictException {
+    switchToNewUser("iconOwner");
+    String fileResourceId = createFileResource();
+
+    switchToNewUser("otherIconManager");
+
+    assertIconFileRejected(fileResourceId);
+    assertFalse(fileResourceService.getFileResource(fileResourceId).isAssigned());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = FileResourceDomain.class,
+      names = {"DOCUMENT", "MESSAGE_ATTACHMENT", "JOB_DATA", "DATA_VALUE"})
+  void shouldRejectFileOfAnotherDomain(FileResourceDomain domain) throws ConflictException {
+    String fileResourceId = createFileResource(domain, "text/plain", "private content").getUid();
+
+    // not even a superuser can turn a file of another domain into an icon
+    assertIconFileRejected(fileResourceId);
+
+    switchToNewUser("iconManager" + domain.ordinal());
+
+    assertIconFileRejected(fileResourceId);
+    assertEquals(HttpStatus.NOT_FOUND, GET("/icons/%s/icon", key1).status());
+    assertEquals(HttpStatus.FORBIDDEN, GET("/fileResources/{uid}/data", fileResourceId).status());
+    assertFalse(fileResourceService.getFileResource(fileResourceId).isAssigned());
+  }
+
+  @Test
+  void shouldNotServeOrReleaseImageThatIsNotAnIconFile() throws ConflictException {
+    FileResource file = createFileResource("image/png", "file content");
+    createIcon(file.getUid(), keywordsList1, key1);
+    // an icon that already points to a file of another domain, such as one created before the
+    // image of an icon was checked
+    file.setDomain(FileResourceDomain.DOCUMENT);
+    fileResourceService.updateFileResource(file);
+
+    assertEquals(HttpStatus.NOT_FOUND, GET("/icons/%s/icon", key1).status());
+    assertEquals(HttpStatus.NOT_FOUND, GET("/icons/%s", key1).status());
+
+    assertStatus(HttpStatus.OK, DELETE("/icons/" + key1));
+    assertTrue(fileResourceService.getFileResource(file.getUid()).isAssigned());
+  }
+
+  private void assertIconFileRejected(String fileResourceId) {
+    JsonWebMessage message =
+        POST("/icons", iconJson(fileResourceId, key1))
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+    assertEquals(ErrorCode.E4094, message.getErrorCode());
+  }
+
+  private static String iconJson(String fileResourceId, String key) {
+    return "{'key':'%s','fileResourceId':'%s','description':'description','keywords':[]}"
+        .formatted(key, fileResourceId);
+  }
+
   private JsonWebMessage createIcon(Set<String> keywords, String key) throws ConflictException {
     return createIcon(createFileResource(), keywords, key);
   }
@@ -261,10 +337,15 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
   private FileResource createFileResource(String contentType, String content)
       throws ConflictException {
+    return createFileResource(FileResourceDomain.ICON, contentType, content);
+  }
+
+  private FileResource createFileResource(
+      FileResourceDomain domain, String contentType, String content) throws ConflictException {
     byte[] data = content.getBytes();
     FileResource fr = createFileResource('A', data);
     fr.setContentType(contentType);
-    fr.setDomain(FileResourceDomain.ICON);
+    fr.setDomain(domain);
     fileResourceService.syncSaveFileResource(fr, data);
     fr.setStorageStatus(FileResourceStorageStatus.STORED);
     return fr;

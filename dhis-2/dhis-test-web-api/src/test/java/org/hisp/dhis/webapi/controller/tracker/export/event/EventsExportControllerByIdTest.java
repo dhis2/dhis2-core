@@ -74,6 +74,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -679,6 +680,35 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
             .getMessage();
 
     assertStartsWith("Image is not stored using multiple dimensions", message);
+  }
+
+  @Test
+  void shouldFailWhenFilteringByAttributeOfAnotherProgram() {
+    TrackedEntityAttribute otherProgramAttribute = otherProgramAttribute();
+    switchContextToUser(user);
+
+    assertStartsWith(
+        "Tracked entity attribute '"
+            + otherProgramAttribute.getUid()
+            + "' cannot be used to filter",
+        GET(
+                "/tracker/events?program={program}&filterAttributes={attribute}:eq:foo",
+                program.getUid(),
+                otherProgramAttribute.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  private TrackedEntityAttribute otherProgramAttribute() {
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('O');
+    manager.save(attribute, false);
+    Program otherProgram = createProgram('O');
+    otherProgram.setTrackedEntityType(trackedEntityType);
+    otherProgram
+        .getProgramAttributes()
+        .add(createProgramTrackedEntityAttribute(otherProgram, attribute));
+    manager.save(otherProgram, false);
+    return attribute;
   }
 
   private FileResource storeFile(String contentType, String content) throws ConflictException {

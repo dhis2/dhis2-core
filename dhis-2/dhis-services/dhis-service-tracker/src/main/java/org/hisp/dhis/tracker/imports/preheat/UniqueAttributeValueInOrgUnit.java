@@ -27,28 +27,23 @@
  */
 package org.hisp.dhis.tracker.imports.preheat;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
 /**
- * Simple pojo used to store the data for {@link TrackedEntityAttributeValue} that are needed in the
- * Validation phase
+ * A value of an attribute unique within an org unit, either stored in the DB or sent for more than
+ * one tracked entity in the payload. A value of the attribute equal to it, ignoring case, is a
+ * duplicate if it is in the same org unit, unless it belongs to the same tracked entity. A value
+ * whose org unit is unknown (e.g. of an enrollment of a tracked entity that does not exist) can't
+ * conflict with any other, so it has no entry.
  *
- * @author Enrico Colasante
+ * @param te the tracked entity owning the value
+ * @param attribute the attribute, in the id scheme of the import
+ * @param value the value
+ * @param orgUnit the org unit of the tracked entity owning the value
  */
-@Getter
-@AllArgsConstructor
-@EqualsAndHashCode
-public class UniqueAttributeValue {
-
-  private String teUid;
-
-  private MetadataIdentifier attribute;
-
-  private String value;
-
-  private MetadataIdentifier orgUnit;
-}
+public record UniqueAttributeValueInOrgUnit(
+    @Nonnull String te,
+    @Nonnull MetadataIdentifier attribute,
+    @Nonnull String value,
+    @Nonnull MetadataIdentifier orgUnit) {}

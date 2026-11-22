@@ -37,6 +37,7 @@ checks:
   - programs/program_stages_no_programs.yaml
   - programs/single_events_null_occurred_date.yaml
   - programs/tracked_entity_attribute_null_value.yaml
+  - programs/tracked_entity_attribute_null_plain_and_encrypted_value.yaml
   - programs/tracker_associate_is_deprecated.yaml
   - program_indicators/program_indicators_without_expression.yaml
   - program_rules/program_rules_no_action.yaml
@@ -81,3 +82,8 @@ checks:
   - users/user_roles_no_authorities.yaml
   - users/user_roles_with_no_users.yaml
   - users/users_with_invalid_usernames.yaml
+  - tracked_entity_attributes/tracked_entity_attributes_duplicated_unique_values_in_org_unit.yaml
+  - users/user_roles_with_authorities_not_held_by_creator.yaml
+  - tracker_data/enrollments_not_deleted_of_deleted_tracked_entities.yaml
+  - tracker_data/tracker_events_not_deleted_of_deleted_enrollments_or_tracked_entities.yaml
+  - tracker_data/relationships_not_deleted_of_deleted_tracker_data.yaml

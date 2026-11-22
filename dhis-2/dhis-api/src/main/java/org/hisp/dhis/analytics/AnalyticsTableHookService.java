@@ -73,9 +73,11 @@ public interface AnalyticsTableHookService {
       AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType);
 
   /**
-   * Executes the SQL commands for the given list of {@link AnalyticsTableHook}.
+   * Executes the SQL commands for the given list of {@link AnalyticsTableHook}. Does nothing when
+   * {@code analytics.table_hooks.enabled} is off.
    *
    * @param hooks the list of analytics table hooks.
+   * @return the number of hooks executed.
    */
-  void executeAnalyticsTableSqlHooks(List<AnalyticsTableHook> hooks);
+  int executeAnalyticsTableSqlHooks(List<AnalyticsTableHook> hooks);
 }

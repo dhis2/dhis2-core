@@ -53,10 +53,12 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -94,6 +96,109 @@ class TrackerPreheatTest extends DhisConvenienceTest {
     assertTrue(preheat.isValidOptionCode(1L, "CODE"));
     assertFalse(preheat.isValidOptionCode(1L, "OTHER"));
     assertFalse(preheat.isValidOptionCode(2L, "CODE"));
+  }
+
+  @Test
+  void shouldFindSystemWideDuplicateOfTheAttributeEqualIgnoringCase() {
+    TrackedEntityAttribute attribute = trackedEntityAttribute();
+    preheat.setSystemWideUniqueAttributeValues(List.of(systemWideValue(attribute, "ABC")));
+
+    assertTrue(preheat.hasSystemWideDuplicate(attribute, "aBc", CodeGenerator.generateUid()));
+    assertFalse(preheat.hasSystemWideDuplicate(attribute, "abd", CodeGenerator.generateUid()));
+    assertFalse(
+        preheat.hasSystemWideDuplicate(
+            trackedEntityAttribute(), "abc", CodeGenerator.generateUid()));
+  }
+
+  @Test
+  void shouldFindSystemWideDuplicateEqualIgnoringCaseWhenLowerCaseDiffers() {
+    // final and non-final sigma lower case differently but are equal ignoring case
+    TrackedEntityAttribute attribute = trackedEntityAttribute();
+    preheat.setSystemWideUniqueAttributeValues(List.of(systemWideValue(attribute, "σας")));
+
+    assertTrue("σασ".equalsIgnoreCase("σας"));
+    assertTrue(preheat.hasSystemWideDuplicate(attribute, "σασ", CodeGenerator.generateUid()));
+  }
+
+  @Test
+  void shouldNotFindSystemWideDuplicateOfTheSameTrackedEntity() {
+    TrackedEntityAttribute attribute = trackedEntityAttribute();
+    UniqueAttributeValueSystemWide value = systemWideValue(attribute, "abc");
+    preheat.setSystemWideUniqueAttributeValues(List.of(value));
+
+    assertFalse(preheat.hasSystemWideDuplicate(attribute, "abc", value.te()));
+  }
+
+  @Test
+  void shouldFindDuplicateOfTheAttributeInTheOrgUnitEqualIgnoringCase() {
+    TrackedEntityAttribute attribute = trackedEntityAttribute();
+    OrganisationUnit orgUnit = orgUnit();
+    preheat.setUniqueAttributeValuesInOrgUnit(List.of(inOrgUnitValue(attribute, "abc", orgUnit)));
+
+    assertTrue(
+        preheat.hasDuplicateInOrgUnit(attribute, "ABC", orgUnit, CodeGenerator.generateUid()));
+    assertFalse(
+        preheat.hasDuplicateInOrgUnit(attribute, "abc", orgUnit(), CodeGenerator.generateUid()));
+    assertFalse(preheat.hasDuplicateInOrgUnit(attribute, "abc", null, CodeGenerator.generateUid()));
+    assertFalse(
+        preheat.hasDuplicateInOrgUnit(
+            trackedEntityAttribute(), "abc", orgUnit, CodeGenerator.generateUid()));
+  }
+
+  @Test
+  void shouldNotFindDuplicateInOrgUnitOfTheSameTrackedEntity() {
+    TrackedEntityAttribute attribute = trackedEntityAttribute();
+    OrganisationUnit orgUnit = orgUnit();
+    UniqueAttributeValueInOrgUnit value = inOrgUnitValue(attribute, "abc", orgUnit);
+    preheat.setUniqueAttributeValuesInOrgUnit(List.of(value));
+
+    assertFalse(preheat.hasDuplicateInOrgUnit(attribute, "abc", orgUnit, value.te()));
+  }
+
+  @Test
+  void shouldNotFindDuplicatesWhenNoValueWasSet() {
+    TrackedEntityAttribute attribute = trackedEntityAttribute();
+
+    assertFalse(preheat.hasSystemWideDuplicate(attribute, "abc", CodeGenerator.generateUid()));
+    assertFalse(
+        preheat.hasDuplicateInOrgUnit(attribute, "abc", orgUnit(), CodeGenerator.generateUid()));
+  }
+
+  @Test
+  void shouldKeepSystemWideAndOrgUnitScopedValuesApart() {
+    TrackedEntityAttribute attribute = trackedEntityAttribute();
+    OrganisationUnit orgUnit = orgUnit();
+    preheat.setSystemWideUniqueAttributeValues(List.of(systemWideValue(attribute, "abc")));
+
+    assertFalse(
+        preheat.hasDuplicateInOrgUnit(attribute, "abc", orgUnit, CodeGenerator.generateUid()));
+  }
+
+  private static TrackedEntityAttribute trackedEntityAttribute() {
+    TrackedEntityAttribute attribute = new TrackedEntityAttribute();
+    attribute.setUid(CodeGenerator.generateUid());
+    return attribute;
+  }
+
+  private static OrganisationUnit orgUnit() {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid(CodeGenerator.generateUid());
+    return orgUnit;
+  }
+
+  private static UniqueAttributeValueSystemWide systemWideValue(
+      TrackedEntityAttribute attribute, String value) {
+    return new UniqueAttributeValueSystemWide(
+        CodeGenerator.generateUid(), MetadataIdentifier.ofUid(attribute), value);
+  }
+
+  private static UniqueAttributeValueInOrgUnit inOrgUnitValue(
+      TrackedEntityAttribute attribute, String value, OrganisationUnit orgUnit) {
+    return new UniqueAttributeValueInOrgUnit(
+        CodeGenerator.generateUid(),
+        MetadataIdentifier.ofUid(attribute),
+        value,
+        MetadataIdentifier.ofUid(orgUnit));
   }
 
   @Test

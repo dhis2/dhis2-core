@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serial;
 
 /**
  * Represents a light version of the Pager object. This should be used in cases where we do not need
@@ -42,6 +43,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 @JsonIgnoreProperties(value = {"total", "pageCount"})
 @JsonInclude(NON_NULL)
 public class SlimPager extends Pager {
+  @Serial private static final long serialVersionUID = 1L;
+
   public static final int FIRST_PAGE = 1;
 
   private Boolean lastPage;

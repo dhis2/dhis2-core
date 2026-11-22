@@ -194,7 +194,7 @@ public class TrackedEntityAggregate implements Aggregate {
     final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync =
         conditionalAsyncFetch(
             ctx.getParams().isIncludeProgramOwners(),
-            () -> trackedEntityStore.getProgramOwners(ids),
+            () -> trackedEntityStore.getProgramOwners(ids, getProgramIds(queryParams)),
             getPool());
 
     /*
@@ -292,6 +292,13 @@ public class TrackedEntityAggregate implements Aggregate {
             .toList());
 
     return enrollmentList;
+  }
+
+  /** Returns the requested program, or the tracker programs the user has data read access to. */
+  private static List<Long> getProgramIds(TrackedEntityQueryParams queryParams) {
+    return queryParams.hasEnrolledInTrackerProgram()
+        ? List.of(queryParams.getEnrolledInTrackerProgram().getId())
+        : queryParams.getAccessibleTrackerPrograms().stream().map(Program::getId).toList();
   }
 
   /** Filter attributes based on queryParams, ownership and superuser status */

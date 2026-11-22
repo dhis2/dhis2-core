@@ -454,6 +454,19 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
+  void testGetExpressionAndFilterDescriptionWithStageDataElement() {
+    String stageDataElement = "#{" + psA.getUid() + "." + deAInteger.getUid() + "}";
+
+    assertEquals(
+        "StageA.DataElementA + AttributeA",
+        programIndicatorService.getExpressionDescription(
+            stageDataElement + " + A{" + atA.getUid() + "}"));
+    assertEquals(
+        "StageA.DataElementA > 10",
+        programIndicatorService.getFilterDescription(stageDataElement + " > 10"));
+  }
+
+  @Test
   void testGetAnyValueExistsFilterEventAnalyticsSQl() {
     String expected = "\"DataElmentA\" is not null or \"Attribute0A\" is not null";
     String expression = "#{ProgrmStagA.DataElmentA} - A{Attribute0A}";
@@ -538,12 +551,12 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
     Map<String, String> descriptions = new HashMap<>();
     programIndicatorService.validate(
         "#{" + psA.getUid() + "." + deAInteger.getUid() + "}", Double.class, descriptions);
-    assertMapEquals(Map.of("#{ProgrmStagA.DataElmentA}", "StageA\\.DataElementA"), descriptions);
+    assertMapEquals(Map.of("#{ProgrmStagA.DataElmentA}", "StageA.DataElementA"), descriptions);
 
     descriptions = new HashMap<>();
     programIndicatorService.validate(
         "sum(#{" + psA.getUid() + "." + deAInteger.getUid() + "})", Double.class, descriptions);
-    assertMapEquals(Map.of("#{ProgrmStagA.DataElmentA}", "StageA\\.DataElementA"), descriptions);
+    assertMapEquals(Map.of("#{ProgrmStagA.DataElmentA}", "StageA.DataElementA"), descriptions);
   }
 
   @Test

@@ -48,6 +48,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Enrollment;
@@ -157,7 +158,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
               + " could not be found.");
     }
 
-    return fileResourceService.getExistingFileResource(fileResourceUid);
+    // Like the aggregate data value API, only data value files are served as data values.
+    String uid = fileResourceUid;
+    return fileResourceService
+        .getFileResource(uid, FileResourceDomain.DATA_VALUE)
+        .orElseThrow(() -> new NotFoundException(FileResource.class, uid));
   }
 
   /**
@@ -229,14 +234,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     TrackedEntity trackedEntity;
     if (program != null) {
       trackedEntity = getTrackedEntity(uid, program, params, includeDeleted);
-
-      if (params.isIncludeProgramOwners()) {
-        Set<TrackedEntityProgramOwner> filteredProgramOwners =
-            trackedEntity.getProgramOwners().stream()
-                .filter(te -> te.getProgram().getUid().equals(programIdentifier))
-                .collect(Collectors.toSet());
-        trackedEntity.setProgramOwners(filteredProgramOwners);
-      }
     } else {
       User user = userService.getUserByUsername(getCurrentUsername());
 
@@ -346,12 +343,27 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       result.setEnrollments(getEnrollments(trackedEntity, currentUser, includeDeleted, program));
     }
     if (params.isIncludeProgramOwners()) {
-      result.setProgramOwners(trackedEntity.getProgramOwners());
+      result.setProgramOwners(getProgramOwners(trackedEntity, currentUser, program));
     }
 
     result.setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(trackedEntity, program));
 
     return result;
+  }
+
+  /**
+   * Returns the owner of the given program, or the owners of all programs the user has data read
+   * access to if no program is given.
+   */
+  private Set<TrackedEntityProgramOwner> getProgramOwners(
+      TrackedEntity trackedEntity, User user, @CheckForNull Program program) {
+    return trackedEntity.getProgramOwners().stream()
+        .filter(
+            owner ->
+                program == null
+                    ? aclService.canDataRead(user, owner.getProgram())
+                    : program.getUid().equals(owner.getProgram().getUid()))
+        .collect(Collectors.toSet());
   }
 
   private Set<RelationshipItem> getRelationshipItems(

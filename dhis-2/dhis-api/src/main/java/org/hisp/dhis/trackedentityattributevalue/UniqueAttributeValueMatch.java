@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.dataintegrity;
+package org.hisp.dhis.trackedentityattributevalue;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
-import org.junit.jupiter.api.Test;
-
-class DataIntegrityUserRolesNoUsers extends AbstractDataIntegrityIntegrationTest {
-  private static final String CHECK_NAME = "user_roles_with_no_users";
-
-  private static final String DETAILS_ID_TYPE = "userRoles";
-
-  private String userRoleUid;
-
-  @Test
-  void testUserRolesNoUsers() {
-    userRoleUid =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST("/userRoles", "{ 'name': 'Test role', 'authorities': ['F_DATAVALUE_ADD'] }"));
-    // Note that two user roles already exist as part of the setup in the
-    // AbstractDataIntegrityIntegrationTest class
-    // Thus, there should be three roles in total, two of which are valid since they already have
-    // users associated with them.
-    postSummary(CHECK_NAME);
-
-    JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
-    assertEquals(1, summary.getCount());
-    assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, CHECK_NAME, 33, userRoleUid, "Test role", null, true);
-  }
-}
+/**
+ * A stored value of a unique tracked entity attribute that matches a value being imported.
+ *
+ * @param trackedEntity the tracked entity owning the value
+ * @param value the stored value, as persisted (not normalized to lower case)
+ * @param orgUnitId the id of the org unit of the tracked entity owning the value, only set for an
+ *     attribute unique within an org unit
+ */
+public record UniqueAttributeValueMatch(
+    @Nonnull String trackedEntity, @Nonnull String value, @CheckForNull Long orgUnitId) {}

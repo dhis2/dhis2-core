@@ -26,14 +26,15 @@
 #
 ---
 name: tracked_entity_attribute_null_value
-description: Tracked entity attribute value with no plain text value
+description: Tracked entity attribute value with an encrypted value but no plain text value
 section: Programs
 section_order: 7
 summary_sql: >-
   WITH rs as (
   SELECT teav.trackedentityid, teav.trackedentityattributeid
   FROM trackedentityattributevalue teav
-  WHERE teav.value IS NULL OR teav.value = ''
+  WHERE (teav.value IS NULL OR teav.value = '')
+  AND teav.encryptedvalue IS NOT NULL
   )
   SELECT COUNT(*) as value,
   100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) from trackedentityattributevalue),0) as percent
@@ -42,17 +43,13 @@ details_sql: >-
   SELECT
     te.uid as uid,
     te.uid || ' / ' || tea.name as name,
-    CASE
-      WHEN teav.encryptedvalue IS NOT NULL
-        THEN 'Attribute "' || tea.name || '" (' || tea.uid ||
-             ') has an encrypted value but no plain text value'
-      ELSE 'Attribute "' || tea.name || '" (' || tea.uid ||
-           ') has no value'
-    END AS comment
+    'Attribute "' || tea.name || '" (' || tea.uid ||
+    ') has an encrypted value but no plain text value' AS comment
   FROM trackedentityattributevalue teav
   INNER JOIN trackedentity te ON te.trackedentityid = teav.trackedentityid
   INNER JOIN trackedentityattribute tea ON tea.trackedentityattributeid = teav.trackedentityattributeid
-  WHERE teav.value IS NULL OR teav.value = '';
+  WHERE (teav.value IS NULL OR teav.value = '')
+  AND teav.encryptedvalue IS NOT NULL;
 severity: SEVERE
 introduction: >
   A tracked entity attribute value should always have a plain text value stored in the `value` column.
@@ -66,11 +63,8 @@ introduction: >
   to be able to upgrade to v44 and later.
 details_id_type: tracker
 recommendation: >-
-  For each flagged tracked entity attribute value you need to either restore a plain text value or delete
-  the value. How you proceed depends on whether an encrypted value is present (see the comment for each row).
-
-  Case 1 - the value has an encrypted value but no plain text value (previously confidential):
-  The plain text cannot be recovered by DHIS2 itself. You have two options.
+  The plain text of each flagged tracked entity attribute value cannot be recovered by DHIS2 itself. You
+  have two options.
 
   Option A - recover the plain text value. This requires access to the encryption key that was configured
   in `dhis.conf` (the `encryption.password` property) at the time the value was stored, and decrypting the
@@ -81,13 +75,6 @@ recommendation: >-
 
   DELETE FROM trackedentityattributevalue
   WHERE encryptedvalue IS NOT NULL
-  AND (value IS NULL OR value = '');
-
-  Case 2 - the value has neither a plain text value nor an encrypted value:
-  These are empty rows that carry no information and can be deleted:
-
-  DELETE FROM trackedentityattributevalue
-  WHERE encryptedvalue IS NULL
   AND (value IS NULL OR value = '');
 
   As is always the case with direct database manipulation, you should ensure that you have a backup of your

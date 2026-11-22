@@ -97,4 +97,23 @@ class FileResourceStoreTest extends IntegrationTestBase {
     assertEquals(1, allUnassignedByDomain.size());
     assertTrue(allUnassignedByDomain.contains(fr2));
   }
+
+  // The positive membership path is asserted end to end by FileResourceControllerTest
+  // (testGetMessageAttachment_allowedForParticipant / _deniedForNonParticipant) rather than here.
+  // On this line IntegrationTestBase truncates `fileresource` after each test without first
+  // clearing
+  // `messageattachments`, so creating a real conversation attachment here fails the teardown on the
+  // fk_messageattachments_fileresourceid constraint rather than in the assertion.
+
+  @Test
+  @DisplayName("An attachment that belongs to no conversation has no participants")
+  void findMessageAttachmentParticipantsUnassignedTest() {
+    FileResource attachment =
+        new FileResource(
+            "orphan.txt", "text/plain", 10L, "20", FileResourceDomain.MESSAGE_ATTACHMENT);
+    fileResourceStore.save(attachment);
+    entityManager.flush();
+
+    assertTrue(fileResourceStore.findMessageAttachmentParticipants(attachment.getUid()).isEmpty());
+  }
 }

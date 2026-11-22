@@ -66,6 +66,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -1281,6 +1282,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       FileResource fileResource = fileResourceService.getFileResource(attribute.getValue());
 
       if (fileResource != null
+          && fileResource.getDomain() == FileResourceDomain.DATA_VALUE
           && (!fileResource.isAssigned() || fileResource.getFileResourceOwner() == null)) {
         fileResource.setAssigned(true);
         fileResource.setFileResourceOwner(fileResourceOwner);
@@ -1429,13 +1431,32 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 String.format("File resource with uid '%s' does not exist", attribute.getValue()));
           }
 
-          if (fileResource != null
-              && checkAssigned(dtoEntityInstance, fileResource, teiExistsInDatabase)) {
-            importConflicts.addConflict(
-                "Attribute.value",
-                String.format(
-                    "File resource with uid '%s' has already been assigned to a different object",
-                    attribute.getValue()));
+          boolean savedFileValue =
+              daoEntityInstance != null
+                  && daoEntityInstance.getTrackedEntityAttributeValues().stream()
+                      .anyMatch(
+                          saved ->
+                              daoEntityAttribute.getUid().equals(saved.getAttribute().getUid())
+                                  && attribute.getValue().equals(saved.getValue()));
+
+          if (fileResource != null && !savedFileValue) {
+            if (fileResource.getDomain() == FileResourceDomain.DATA_VALUE
+                && fileResource.isAssigned()) {
+              importConflicts.addConflict(
+                  "Attribute.value",
+                  String.format(
+                      "File resource with uid '%s' has already been assigned to a different object",
+                      attribute.getValue()));
+            } else if (!fileResourceService.canAssign(
+                UserDetails.fromUserDontLoadOrgUnits(importOptions.getUser()),
+                fileResource,
+                FileResourceDomain.DATA_VALUE)) {
+              importConflicts.addConflict(
+                  "Attribute.value",
+                  String.format(
+                      "File resource with uid '%s' must be an unassigned DATA_VALUE file resource uploaded by the importing user",
+                      attribute.getValue()));
+            }
           }
         }
       }
@@ -1507,21 +1528,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     return storedBy;
-  }
-
-  private boolean checkAssigned(
-      TrackedEntityInstance dtoEntityInstance,
-      FileResource fileResource,
-      boolean teiExistsInDatabase) {
-    if (teiExistsInDatabase
-        && fileResource.getFileResourceOwner() != null
-        && !fileResource
-            .getFileResourceOwner()
-            .equals(dtoEntityInstance.getTrackedEntityInstance())) {
-      return true;
-    }
-
-    return fileResource.isAssigned() && !teiExistsInDatabase;
   }
 
   protected ImportOptions updateImportOptions(ImportOptions importOptions) {

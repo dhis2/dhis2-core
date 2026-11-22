@@ -46,7 +46,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -67,6 +67,8 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class AssignDataValueExecutorTest extends DhisConvenienceTest {
+  private static final String RULE_ID = "RuleId";
+
   private static final String EVENT_ID = "EventId";
 
   private static final String SECOND_EVENT_ID = "SecondEventId";
@@ -101,7 +103,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
 
   @Mock private TrackerPreheat preheat;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider systemSettingsProvider;
 
   @BeforeEach
   void setUpTest() {
@@ -139,7 +141,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
 
     bundle = TrackerBundle.builder().build();
     bundle.setPreheat(preheat);
-    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
+    when(systemSettingsProvider.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
         .thenReturn(Boolean.FALSE);
   }
 
@@ -152,7 +154,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             INVALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_ID,
@@ -177,7 +179,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             VALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_ID,
@@ -204,7 +206,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_ID,
@@ -226,7 +228,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_ID,
@@ -250,7 +252,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_ID,
@@ -271,7 +273,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_ID,
@@ -291,12 +293,12 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     Event eventWithDataValueSet = getEventWithDataValueSet();
     List<Event> events = List.of(eventWithDataValueSet);
     bundle.setEvents(events);
-    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
+    when(systemSettingsProvider.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
         .thenReturn(Boolean.TRUE);
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            systemSettingsProvider,
             "",
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_ID,
@@ -307,6 +309,120 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_ID);
 
     assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
+  }
+
+  @Test
+  void shouldNotOverwriteDataValueWhenAssignedValueIsEquivalent() {
+    dataElementA.setValueType(ValueType.NUMBER);
+    when(systemSettingsProvider.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
+        .thenReturn(true);
+    Event eventWithDataValueSetSameValue = getEventWithDataValueSetSameValue();
+    bundle.setEvents(List.of(eventWithDataValueSetSameValue));
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingsProvider,
+            RULE_ID,
+            "24",
+            DATA_ELEMENT_ID,
+            eventWithDataValueSetSameValue.getDataValues());
+
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, eventWithDataValueSetSameValue);
+
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_ID);
+
+    assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
+  }
+
+  @Test
+  void shouldNotFailWhenAssignedValueIsInScientificNotationAndEquivalentToDataValue() {
+    dataElementA.setValueType(ValueType.NUMBER);
+    Event event =
+        Event.builder()
+            .event(EVENT_ID)
+            .status(EventStatus.ACTIVE)
+            .dataValues(
+                Set.of(
+                    DataValue.builder()
+                        .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_ID))
+                        .value("53093393.25")
+                        .build()))
+            .build();
+    bundle.setEvents(List.of(event));
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingsProvider,
+            RULE_ID,
+            "5.309339325E7",
+            DATA_ELEMENT_ID,
+            event.getDataValues());
+
+    Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, event);
+
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_ID);
+
+    assertDataValueWasAssignedAndWarningIsPresent("53093393.25", dataValue, warning);
+  }
+
+  @Test
+  void shouldOverwriteDataValueWhenAssignedValueIsCloseButNotEqualAndOverwriteIsTrue() {
+    dataElementA.setValueType(ValueType.NUMBER);
+    when(systemSettingsProvider.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
+        .thenReturn(true);
+    Event event = getEventWithDataValue("0.005");
+    bundle.setEvents(List.of(event));
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingsProvider, RULE_ID, "0", DATA_ELEMENT_ID, event.getDataValues());
+
+    Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, event);
+
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_ID);
+
+    assertDataValueWasAssignedAndWarningIsPresent("0", dataValue, warning);
+  }
+
+  @Test
+  void shouldFailWhenAssignedValueIsCloseButNotEqualToDataValueAndOverwriteIsFalse() {
+    dataElementA.setValueType(ValueType.NUMBER);
+    Event event = getEventWithDataValue("0.005");
+    bundle.setEvents(List.of(event));
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingsProvider, RULE_ID, "0", DATA_ELEMENT_ID, event.getDataValues());
+
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, event);
+
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_ID);
+
+    assertDataValueWasNotAssignedAndErrorIsPresent("0.005", dataValue, error);
+  }
+
+  @Test
+  void shouldAssignPlainNumberWhenAssignedValueIsInScientificNotationAndDataValueIsEmpty() {
+    dataElementA.setValueType(ValueType.NUMBER);
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    Event eventWithDataValueNOTSet = getEventWithDataValueNOTSet();
+    bundle.setEvents(List.of(eventWithDataValueNOTSet));
+
+    AssignDataValueExecutor executor =
+        new AssignDataValueExecutor(
+            systemSettingsProvider,
+            RULE_ID,
+            "5.309339325E7",
+            DATA_ELEMENT_ID,
+            eventWithDataValueNOTSet.getDataValues());
+
+    Optional<ProgramRuleIssue> warning =
+        executor.executeRuleAction(bundle, eventWithDataValueNOTSet);
+
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, SECOND_EVENT_ID, DATA_ELEMENT_ID);
+
+    assertDataValueWasAssignedAndWarningIsPresent("53093393.25", dataValue, warning);
   }
 
   private Optional<DataValue> findDataValueByUid(
@@ -359,6 +475,19 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
         .event(EVENT_ID)
         .status(EventStatus.ACTIVE)
         .dataValues(getDataValues(idSchemes))
+        .build();
+  }
+
+  private Event getEventWithDataValue(String value) {
+    return Event.builder()
+        .event(EVENT_ID)
+        .status(EventStatus.ACTIVE)
+        .dataValues(
+            Set.of(
+                DataValue.builder()
+                    .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_ID))
+                    .value(value)
+                    .build()))
         .build();
   }
 

@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
@@ -56,6 +57,7 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
   @Override
   public void executeInTransaction() {
     checkSecurityConfiguration();
+    checkServerBaseUrl();
 
     Configuration config = configurationService.getConfiguration();
 
@@ -72,6 +74,32 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
       log.warn("Encryption not configured: " + status.getKey());
     } else {
       log.info("Encryption is available");
+    }
+  }
+
+  private static final String BASE_URL_HINT =
+      " Expected an absolute URL without a trailing slash,"
+          + " for example: 'https://dhis2.example.org/dhis'."
+          + " This value is important: features including password recovery, OIDC/OAuth2"
+          + " redirects, notification emails, and interpretation sharing will not work"
+          + " correctly without it. See the 'Server base URL' section in the dhis.conf"
+          + " reference documentation.";
+
+  private void checkServerBaseUrl() {
+    String baseUrl = dhisConfigurationProvider.getServerBaseUrl();
+    if (baseUrl == null) {
+      log.warn("'server.base.url' is not set in dhis.conf." + BASE_URL_HINT);
+      return;
+    }
+
+    String[] schemes = new String[] {"http", "https"};
+    UrlValidator urlValidator = new UrlValidator(schemes);
+    if (!urlValidator.isValid(baseUrl)) {
+      log.warn("'server.base.url' is not a valid URL: '{}'." + BASE_URL_HINT, baseUrl);
+
+    } else if (baseUrl.endsWith("/")) {
+      log.warn(
+          "'server.base.url' must not end with a trailing slash: '{}'." + BASE_URL_HINT, baseUrl);
     }
   }
 }

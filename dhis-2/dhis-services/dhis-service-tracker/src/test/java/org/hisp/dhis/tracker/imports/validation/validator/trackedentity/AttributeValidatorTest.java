@@ -46,7 +46,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -58,7 +60,8 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValueInOrgUnit;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValueSystemWide;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -80,6 +83,8 @@ class AttributeValidatorTest {
   private static final String TE_UID = "fdsf9e90rei";
 
   private static final String MANDATORY_ATTRIBUTE_UID = "cFr94jf03AA";
+
+  private static final MetadataIdentifier ORG_UNIT_ID = MetadataIdentifier.ofUid("orgUnitUid1");
 
   @InjectMocks private AttributeValidator validator;
 
@@ -125,6 +130,7 @@ class AttributeValidatorTest {
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
             .attributes(
                 Collections.singletonList(
                     Attribute.builder()
@@ -399,14 +405,11 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
-    when(preheat.getUniqueAttributeValues())
-        .thenReturn(
-            List.of(
-                new UniqueAttributeValue(
-                    CodeGenerator.generateUid(),
-                    MetadataIdentifier.ofUid("uid"),
-                    "ABC",
-                    MetadataIdentifier.ofUid("orgUnit"))));
+    withStoredValues(
+        List.of(
+            new UniqueAttributeValueSystemWide(
+                CodeGenerator.generateUid(), MetadataIdentifier.ofUid("uid"), "ABC")),
+        List.of());
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
@@ -423,6 +426,142 @@ class AttributeValidatorTest {
     validator.validate(reporter, bundle, trackedEntity);
 
     assertHasError(reporter, trackedEntity, ValidationCode.E1064);
+  }
+
+  @Test
+  void shouldFailValidationWhenOrgUnitScopedValueIsStoredForAnotherTrackedEntityInSameOrgUnit() {
+    TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
+
+    validator.validate(
+        reporter,
+        bundle,
+        withStoredScopedValue(
+            trackedEntity,
+            new UniqueAttributeValueInOrgUnit(
+                CodeGenerator.generateUid(), MetadataIdentifier.ofUid("uid"), "ABC", ORG_UNIT_ID)));
+
+    assertHasError(reporter, trackedEntity, ValidationCode.E1064);
+  }
+
+  @Test
+  void shouldPassValidationWhenOrgUnitScopedValueIsStoredInAnotherOrgUnit() {
+    TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
+
+    validator.validate(
+        reporter,
+        bundle,
+        withStoredScopedValue(
+            trackedEntity,
+            new UniqueAttributeValueInOrgUnit(
+                CodeGenerator.generateUid(),
+                MetadataIdentifier.ofUid("uid"),
+                "abc",
+                MetadataIdentifier.ofUid("otherOrgUni"))));
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassValidationWhenOrgUnitScopedValueIsStoredForTheSameTrackedEntity() {
+    // also covers a new tracked entity, whose own value is in the payload duplicates
+    TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
+
+    validator.validate(
+        reporter,
+        bundle,
+        withStoredScopedValue(
+            trackedEntity,
+            new UniqueAttributeValueInOrgUnit(
+                trackedEntity.getUid(), MetadataIdentifier.ofUid("uid"), "abc", ORG_UNIT_ID)));
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassValidationWhenSameValueIsStoredForAnotherAttributeInSameOrgUnit() {
+    TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
+
+    validator.validate(
+        reporter,
+        bundle,
+        withStoredScopedValue(
+            trackedEntity,
+            new UniqueAttributeValueInOrgUnit(
+                CodeGenerator.generateUid(),
+                MetadataIdentifier.ofUid("otherUid"),
+                "abc",
+                ORG_UNIT_ID)));
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassValidationWhenSameValueIsStoredForAnAttributeUniqueInTheSystem() {
+    TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
+
+    withStoredValues(
+        List.of(
+            new UniqueAttributeValueSystemWide(
+                CodeGenerator.generateUid(), MetadataIdentifier.ofUid("globalUid"), "abc")),
+        List.of());
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  /** A tracked entity in {@link #ORG_UNIT_ID} sending a value of an org unit scoped attribute. */
+  private TrackedEntity trackedEntityWithScopedValue(String value) {
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid("uid");
+    trackedEntityAttribute.setValueType(ValueType.TEXT);
+    trackedEntityAttribute.setUnique(true);
+    trackedEntityAttribute.setOrgunitScope(true);
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid(ORG_UNIT_ID.getIdentifier());
+
+    when(preheat.getTrackedEntityAttribute((MetadataIdentifier) any()))
+        .thenReturn(trackedEntityAttribute);
+    when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
+        .thenReturn(new TrackedEntityType());
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+
+    return TrackedEntity.builder()
+        .trackedEntity(CodeGenerator.generateUid())
+        .orgUnit(ORG_UNIT_ID)
+        .attributes(
+            List.of(
+                Attribute.builder()
+                    .attribute(MetadataIdentifier.ofUid("uid"))
+                    .value(value)
+                    .build()))
+        .trackedEntityType(MetadataIdentifier.ofUid("trackedEntityType"))
+        .build();
+  }
+
+  private TrackedEntity withStoredScopedValue(
+      TrackedEntity trackedEntity, UniqueAttributeValueInOrgUnit uniqueAttributeValue) {
+    withStoredValues(List.of(), List.of(uniqueAttributeValue));
+    return trackedEntity;
+  }
+
+  /** Answers the lookups of unique values with the ones of a preheat holding the given values. */
+  private void withStoredValues(
+      List<UniqueAttributeValueSystemWide> systemWide,
+      List<UniqueAttributeValueInOrgUnit> inOrgUnit) {
+    TrackerPreheat stored = new TrackerPreheat();
+    stored.setSystemWideUniqueAttributeValues(systemWide);
+    stored.setUniqueAttributeValuesInOrgUnit(inOrgUnit);
+    when(preheat.hasSystemWideDuplicate(any(), any(), any()))
+        .thenAnswer(
+            i ->
+                stored.hasSystemWideDuplicate(
+                    i.getArgument(0), i.getArgument(1), i.getArgument(2)));
+    when(preheat.hasDuplicateInOrgUnit(any(), any(), any(), any()))
+        .thenAnswer(
+            i ->
+                stored.hasDuplicateInOrgUnit(
+                    i.getArgument(0), i.getArgument(1), i.getArgument(2), i.getArgument(3)));
   }
 
   @Test
@@ -483,6 +622,7 @@ class AttributeValidatorTest {
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
             .attributes(
                 Collections.singletonList(
                     Attribute.builder()
@@ -633,6 +773,7 @@ class AttributeValidatorTest {
     FileResource fileResource = new FileResource();
     fileResource.setAssigned(true);
     fileResource.setUid(fileResourceUid);
+    fileResource.setDomain(FileResourceDomain.DATA_VALUE);
 
     when(preheat.get(FileResource.class, fileResourceUid)).thenReturn(fileResource);
     when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid("tea")))
@@ -660,8 +801,9 @@ class AttributeValidatorTest {
 
     reporter = new Reporter(idSchemes);
 
-    trackedEntity.setTrackedEntity("XYZ");
-    fileResource.setFileResourceOwner("ABC");
+    String owner = CodeGenerator.generateUid();
+    trackedEntity.setTrackedEntity(CodeGenerator.generateUid());
+    fileResource.setFileResourceOwner(owner);
 
     bundle.setStrategy(trackedEntity, TrackerImportStrategy.UPDATE);
 
@@ -671,10 +813,65 @@ class AttributeValidatorTest {
 
     reporter = new Reporter(idSchemes);
 
-    trackedEntity.setTrackedEntity("ABC");
-    fileResource.setFileResourceOwner("ABC");
+    trackedEntity.setTrackedEntity(owner);
+    fileResource.setFileResourceOwner(owner);
 
     bundle.setStrategy(trackedEntity, TrackerImportStrategy.UPDATE);
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldOnlyTreatFileValueOfTheSameAttributeAsHeld() {
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setUid("tet");
+    TrackedEntityAttribute fileAttribute = new TrackedEntityAttribute();
+    fileAttribute.setValueType(ValueType.FILE_RESOURCE);
+    fileAttribute.setUid("tea");
+    TrackedEntityAttribute textAttribute = new TrackedEntityAttribute();
+    textAttribute.setValueType(ValueType.TEXT);
+    textAttribute.setUid("text");
+
+    String fileResourceUid = CodeGenerator.generateUid();
+    FileResource fileResource = new FileResource();
+    fileResource.setAssigned(true);
+    fileResource.setUid(fileResourceUid);
+    fileResource.setDomain(FileResourceDomain.DATA_VALUE);
+    fileResource.setFileResourceOwner(CodeGenerator.generateUid());
+
+    when(preheat.get(FileResource.class, fileResourceUid)).thenReturn(fileResource);
+    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid("tea")))
+        .thenReturn(fileAttribute);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid("tet")))
+        .thenReturn(trackedEntityType);
+
+    Attribute attribute = new Attribute();
+    attribute.setAttribute(MetadataIdentifier.ofUid("tea"));
+    attribute.setValue(fileResourceUid);
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TE_UID)
+            .attributes(Collections.singletonList(attribute))
+            .trackedEntityType(MetadataIdentifier.ofUid("tet"))
+            .build();
+    bundle.setStrategy(trackedEntity, TrackerImportStrategy.UPDATE);
+
+    org.hisp.dhis.trackedentity.TrackedEntity savedTrackedEntity = trackedEntity();
+    savedTrackedEntity.setTrackedEntityAttributeValues(
+        Set.of(
+            new TrackedEntityAttributeValue(textAttribute, savedTrackedEntity, fileResourceUid)));
+    when(preheat.getTrackedEntity(TE_UID)).thenReturn(savedTrackedEntity);
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertHasError(reporter, trackedEntity, ValidationCode.E1009);
+
+    reporter = new Reporter(idSchemes);
+    savedTrackedEntity.setTrackedEntityAttributeValues(
+        Set.of(
+            new TrackedEntityAttributeValue(fileAttribute, savedTrackedEntity, fileResourceUid)));
 
     validator.validate(reporter, bundle, trackedEntity);
 
