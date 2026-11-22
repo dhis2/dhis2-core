@@ -75,11 +75,14 @@ import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -140,7 +143,8 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
   /**
    * Non-CRUD endpoints mapped to their entity-type dependencies. Every {@code me*} entry depends on
    * {@link User}: role, group and org unit assignments are join-table writes that only bump the
-   * {@code userinfo} row.
+   * {@code userinfo} row. {@code me} also lists the programs and data sets the user can read and
+   * the user's personal access tokens.
    */
   private static final Map<String, Set<Class<?>>> COMPOSITE_ENDPOINTS =
       Map.ofEntries(
@@ -151,7 +155,10 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
                   UserRole.class,
                   UserGroup.class,
                   UserSetting.class,
-                  OrganisationUnit.class)),
+                  OrganisationUnit.class,
+                  Program.class,
+                  DataSet.class,
+                  ApiToken.class)),
           Map.entry(
               "systemSettings",
               Set.of(SystemSetting.class, DatastoreEntry.class, UserSetting.class)),
@@ -230,7 +237,7 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
           "staticContent/**",
           new NamedEndpointDeps(Set.of(), Set.of("staticContent")),
           "locales/db",
-          new NamedEndpointDeps(Set.of(), Set.of()),
+          new NamedEndpointDeps(Set.of(I18nLocale.class), Set.of()),
           "locales/ui",
           new NamedEndpointDeps(Set.of(), Set.of()),
           "periodTypes",

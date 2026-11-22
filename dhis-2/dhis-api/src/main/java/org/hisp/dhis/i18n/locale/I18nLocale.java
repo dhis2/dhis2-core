@@ -56,6 +56,7 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.cache.ETagObserved;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
@@ -89,6 +90,7 @@ import org.hisp.dhis.user.sharing.Sharing;
  *
  * @author larshelg
  */
+@ETagObserved
 @Entity
 @Table(name = "i18nlocale")
 public class I18nLocale implements IdentifiableObject {

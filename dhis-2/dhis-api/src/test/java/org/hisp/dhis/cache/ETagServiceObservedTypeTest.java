@@ -38,6 +38,7 @@ import org.hisp.dhis.datastatistics.DataStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.UserSetting;
@@ -62,6 +63,7 @@ class ETagServiceObservedTypeTest {
     assertTrue(ETagService.isObservedType(UserDatastoreEntry.class));
     assertTrue(ETagService.isObservedType(DataStatistics.class));
     assertTrue(ETagService.isObservedType(DataStatisticsEvent.class));
+    assertTrue(ETagService.isObservedType(I18nLocale.class));
   }
 
   @Test

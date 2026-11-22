@@ -39,7 +39,7 @@ import java.lang.annotation.Target;
 /**
  * Marks a persistent type that is not a {@link org.hisp.dhis.common.MetadataObject} but whose
  * writes must still change the API ETags of the endpoints that serve it (settings, datastore,
- * configuration, file resources, data statistics).
+ * configuration, file resources, data statistics, database locales).
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

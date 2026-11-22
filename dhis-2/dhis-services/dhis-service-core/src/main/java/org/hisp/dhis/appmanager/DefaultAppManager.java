@@ -181,6 +181,8 @@ public class DefaultAppManager implements AppManager {
     // Cache all discovered apps
     installedApps.values().forEach(app -> cacheApp(app.getLeft()));
     log.info("Loaded {} apps.", installedApps.size());
+    // The reload may replace, add or drop apps without an install call: refresh the apps ETags.
+    eTagService.incrementNamedVersion("installedApps");
   }
 
   /**
@@ -620,7 +622,6 @@ public class DefaultAppManager implements AppManager {
 
     blobStoreAppStorageService.deleteApp(app);
     reloadApps();
-    eTagService.incrementNamedVersion("installedApps");
 
     // If a bundled version exists it will replace the deleted override.
     // In that case, deleting the app should not remove the namespace protection

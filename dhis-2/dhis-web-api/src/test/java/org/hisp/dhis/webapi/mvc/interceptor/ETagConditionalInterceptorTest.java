@@ -53,12 +53,16 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
@@ -282,11 +286,19 @@ class ETagConditionalInterceptorTest {
 
   @Test
   void testResolveCompositeEndpointTypes_me() {
-    // /api/me embeds the user's own profile, roles, groups, settings and org units, so it must
-    // invalidate on User, UserRole, UserGroup, UserSetting and OrganisationUnit DML.
+    // /api/me embeds the user's own profile, roles, groups, settings and org units, the programs
+    // and data sets the user can read and the user's personal access tokens, so it must
+    // invalidate on DML of each of these types.
     Set<Class<?>> expectedTypes =
         Set.of(
-            User.class, UserRole.class, UserGroup.class, UserSetting.class, OrganisationUnit.class);
+            User.class,
+            UserRole.class,
+            UserGroup.class,
+            UserSetting.class,
+            OrganisationUnit.class,
+            Program.class,
+            DataSet.class,
+            ApiToken.class);
     assertEquals(expectedTypes, ETagConditionalInterceptor.getCompositeEndpointTypes("me"));
     assertEquals(
         expectedTypes, ETagConditionalInterceptor.resolveCompositeEndpointTypes("/api/me"));
@@ -1043,5 +1055,14 @@ class ETagConditionalInterceptorTest {
     assertFalse(deps.entityTypes().contains(User.class));
     assertTrue(deps.entityTypes().contains(UserRole.class));
     assertTrue(deps.namedKeys().contains("installedApps"));
+  }
+
+  @Test
+  void testNamedEndpointDbLocalesDependsOnLocales() {
+    // a locale added through /api/locales/dbLocales must change the /api/locales/db ETag
+    ETagConditionalInterceptor.NamedEndpointDeps deps =
+        ETagConditionalInterceptor.getNamedEndpointDeps("locales/db");
+    assertNotNull(deps);
+    assertEquals(Set.of(I18nLocale.class), deps.entityTypes());
   }
 }
