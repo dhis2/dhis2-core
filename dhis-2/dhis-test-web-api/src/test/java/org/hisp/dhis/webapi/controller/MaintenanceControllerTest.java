@@ -64,6 +64,25 @@ class MaintenanceControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
+  void testClearETagCache() {
+    // the smart ETag tier is off in tests: the no-op version service answers version 0
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "ETag cache invalidated. New all-cache version: 0",
+        PUT("/maintenance/etagCacheClear").content());
+  }
+
+  @Test
+  void testClearETagCache_MissingAuthority() {
+    switchToNewUser("guest");
+    assertEquals(
+        "Access is denied, requires one Authority from [F_PERFORM_MAINTENANCE]",
+        PUT("/maintenance/etagCacheClear").error(HttpStatus.FORBIDDEN).getMessage());
+  }
+
+  @Test
   void testPruneDataByOrganisationUnit_DoesNotExist() {
     String ouId = CodeGenerator.generateUid();
     assertEquals(
