@@ -46,10 +46,10 @@ import org.springframework.util.StringUtils;
  * Clears the session cookie and the {@link SessionTimeoutHeaderFilter#COOKIE_NAME} cookie on
  * logout.
  *
- * <p>The expired cookies carry the same {@code Path}, {@code SameSite}, {@code HttpOnly} and {@code
- * Secure} attributes as the cookies they replace. Spring's {@code CookieClearingLogoutHandler}
- * writes them without {@code SameSite}, which browsers may treat differently from the cookie that
- * was set.
+ * <p>The expired cookies carry the same {@code Domain}, {@code Path}, {@code SameSite}, {@code
+ * HttpOnly} and {@code Secure} attributes as the cookies they replace: a browser deletes a cookie
+ * only when name, domain and path match. Spring's {@code CookieClearingLogoutHandler} writes them
+ * without {@code SameSite}, which browsers may treat differently from the cookie that was set.
  *
  * <p>Only the logout of an authenticated session clears the cookies. A logout request without one
  * has no session to end. It may be a cross-site GET that arrived without the session cookie because
@@ -86,6 +86,7 @@ public class SessionCookieClearingLogoutHandler implements LogoutHandler {
         StringUtils.hasText(config.getName()) ? config.getName() : DEFAULT_SESSION_COOKIE_NAME;
     return ResponseCookie.from(name, "")
         .maxAge(0)
+        .domain(config.getDomain())
         .path(sessionCookiePath(request, config))
         .httpOnly(config.isHttpOnly())
         // the servlet container also marks the session cookie secure on secure requests

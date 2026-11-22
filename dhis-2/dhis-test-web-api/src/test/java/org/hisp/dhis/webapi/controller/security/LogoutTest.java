@@ -71,12 +71,15 @@ class LogoutTest extends AuthenticationApiTestBase {
 
   private boolean previousHttpOnly;
 
+  private String previousDomain;
+
   @BeforeEach
   void configureSessionCookie() {
     cookieConfig = webApplicationContext.getServletContext().getSessionCookieConfig();
     previousSameSite = cookieConfig.getAttribute("SameSite");
     previousSecure = cookieConfig.isSecure();
     previousHttpOnly = cookieConfig.isHttpOnly();
+    previousDomain = cookieConfig.getDomain();
     // as configured by DhisWebApiWebAppInitializer with server.https=on
     cookieConfig.setAttribute("SameSite", "Strict");
     cookieConfig.setSecure(true);
@@ -88,6 +91,7 @@ class LogoutTest extends AuthenticationApiTestBase {
     cookieConfig.setAttribute("SameSite", previousSameSite);
     cookieConfig.setSecure(previousSecure);
     cookieConfig.setHttpOnly(previousHttpOnly);
+    cookieConfig.setDomain(previousDomain);
   }
 
   static Stream<Arguments> acceptedGetHeaders() {
@@ -118,6 +122,30 @@ class LogoutTest extends AuthenticationApiTestBase {
     MockHttpServletResponse response = perform(post(LOGOUT_URL), List.of());
 
     assertLoggedOut(response);
+  }
+
+  /**
+   * A browser deletes a cookie only when name, domain and path match, so a session cookie scoped to
+   * a parent domain and a context path is deleted with that scope. The timeout cookie keeps its own
+   * host-only, root scope.
+   */
+  @Test
+  void testLogoutClearsSessionCookieWithItsDomainAndContextPath() throws Exception {
+    cookieConfig.setDomain("example.org");
+
+    MockHttpServletResponse response =
+        perform(post("/dhis" + LOGOUT_URL).contextPath("/dhis"), List.of());
+
+    assertEquals(302, response.getStatus());
+    assertTrue(session.isInvalid());
+    List<String> cookies = response.getHeaders("Set-Cookie");
+    String sessionCookie = findCookie(cookies, "JSESSIONID=");
+    assertTrue(sessionCookie.contains("Domain=example.org"), sessionCookie);
+    assertTrue(sessionCookie.contains("Path=/dhis;"), sessionCookie);
+    assertTrue(sessionCookie.contains("Max-Age=0"), sessionCookie);
+    String expireCookie = findCookie(cookies, "SESSION_EXPIRE=");
+    assertFalse(expireCookie.contains("Domain="), expireCookie);
+    assertTrue(expireCookie.contains("Path=/;"), expireCookie);
   }
 
   /**
