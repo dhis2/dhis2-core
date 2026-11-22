@@ -123,8 +123,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   private User userWithOrgUnitZ;
 
-  private User authorizedUser;
-
   private Program programA;
 
   private ProgramStage programStageA;
@@ -176,13 +174,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
     userWithOrgUnitZ = createUserWithAuth("userWithoutOrgUnit");
     userWithOrgUnitZ.setTeiSearchOrganisationUnits(Set.of(orgUnitZ));
-    authorizedUser =
-        createAndAddUser(
-            false,
-            "test user",
-            Set.of(orgUnitA),
-            Set.of(orgUnitA),
-            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
 
     trackedEntityTypeA = createTrackedEntityType('A');
     trackedEntityTypeA.getSharing().setOwner(user);
@@ -702,20 +693,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnAllAccessibleEnrollmentsInTheSystemWhenModeAllAndUserAuthorized()
-      throws ForbiddenException, BadRequestException {
-    injectSecurityContextUser(authorizedUser);
-
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
-
-    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
-    assertContainsOnly(
-        List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
-        uids(enrollments));
-  }
-
-  @Test
   void shouldFailWhenOrgUnitModeAllAndUserNotAuthorized() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
@@ -724,7 +701,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             ForbiddenException.class, () -> enrollmentService.findEnrollments(operationParams));
     assertEquals(
-        "User is not authorized to query across all organisation units", exception.getMessage());
+        "Only superusers are authorized to query across all organisation units",
+        exception.getMessage());
   }
 
   @Test
@@ -743,7 +721,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnAllEnrollmentsWhenOrgUnitModeAllAndUserAuthorized()
+  void shouldReturnAllEnrollmentsWhenOrgUnitModeAllAndUserIsSuper()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(admin);
 
@@ -822,7 +800,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.flush();
     manager.clear();
 
-    injectSecurityContextUser(authorizedUser);
+    injectSecurityContextUser(user);
     List<Enrollment> enrollments =
         enrollmentService.findEnrollments(UID.of(enrollmentA, enrollmentB));
     assertIsEmpty(enrollments);

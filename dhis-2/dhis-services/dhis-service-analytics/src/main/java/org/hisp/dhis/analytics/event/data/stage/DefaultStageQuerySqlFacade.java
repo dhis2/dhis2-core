@@ -120,10 +120,4 @@ public class DefaultStageQuerySqlFacade implements StageQuerySqlFacade {
 
     return Optional.empty();
   }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isStageDate(QueryItem item) {
-    return classifier.isStageDate(item);
-  }
 }

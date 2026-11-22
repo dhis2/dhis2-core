@@ -29,13 +29,13 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.executor;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Optional;
-import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.AssignAttributeExecutor;
@@ -56,7 +56,7 @@ public interface RuleActionExecutor<T> {
 
   /**
    * Tests whether the given values are equal. If the given value type is numeric, the values are
-   * converted to doubles before being checked for equality.
+   * compared by numeric value without tolerance.
    *
    * @param value1 the first value.
    * @param value2 the second value.
@@ -68,12 +68,36 @@ public interface RuleActionExecutor<T> {
       return true;
     }
 
-    if (valueType.isNumeric()) {
-      return NumberUtils.isParsable(value1)
-          && NumberUtils.isParsable(value2)
-          && MathUtils.isEqual(Double.parseDouble(value1), Double.parseDouble(value2));
+    if (valueType.isNumeric() && value1 != null && value2 != null) {
+      try {
+        return new BigDecimal(value1).compareTo(new BigDecimal(value2)) == 0;
+      } catch (NumberFormatException e) {
+        return false;
+      }
     }
     return false;
+  }
+
+  /**
+   * Converts a numeric value in scientific notation (e.g. {@code 5.309339325E7}) to plain decimal
+   * notation (e.g. {@code 53093393.25}). The rule engine formats large numbers in scientific
+   * notation, which numeric value type validation rejects. Values of non-numeric value types,
+   * values not in scientific notation and values that are not numbers are returned unchanged.
+   *
+   * @param value the value.
+   * @param valueType the value type.
+   * @return the value in plain decimal notation if it is a number in scientific notation.
+   */
+  static String toPlainNumber(String value, ValueType valueType) {
+    if (!valueType.isNumeric() || !StringUtils.containsAny(value, 'e', 'E')) {
+      return value;
+    }
+
+    try {
+      return new BigDecimal(value).toPlainString();
+    } catch (NumberFormatException e) {
+      return value;
+    }
   }
 
   /**

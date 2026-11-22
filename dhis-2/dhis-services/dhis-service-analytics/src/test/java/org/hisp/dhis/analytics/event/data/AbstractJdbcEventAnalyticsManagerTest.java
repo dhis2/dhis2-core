@@ -102,7 +102,6 @@ import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
-import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -220,7 +219,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         .thenReturn("postgresql");
     lenient().when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
 
-    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
     QueryItemFilterBuilder filterBuilder =
         new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
     StageQuerySqlFacade stageQuerySqlFacade =
@@ -243,7 +241,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             config,
             sqlBuilder,
             organisationUnitResolver,
-            columnMapper,
             filterBuilder,
             stageQuerySqlFacade,
             new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()),
@@ -1022,6 +1019,37 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void testGetItemsSqlCombinesDifferentStageDatesWithAnd() {
+    ProgramStage stage = createProgramStage('A', programA);
+    stage.setUid("stageUidABC");
+
+    EventQueryParams queryParams =
+        defaultEventQueryParamsBuilder()
+            .addItem(
+                buildStageDateItem(
+                    EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME,
+                    stage,
+                    "2021-01-01",
+                    "2021-12-31"))
+            .addItem(
+                buildStageDateItem(
+                    EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+                    stage,
+                    "2022-01-01",
+                    "2022-12-31"))
+            .build();
+
+    String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
+
+    assertEquals(
+        "where (ax.\"scheduleddate\" >= '2021-01-01'  and ax.\"scheduleddate\" <= '2021-12-31' "
+            + " and ax.\"ps\" = 'stageUidABC')"
+            + " and (ax.\"occurreddate\" >= '2022-01-01'  and ax.\"occurreddate\" <= '2022-12-31' "
+            + " and ax.\"ps\" = 'stageUidABC')",
+        result);
+  }
+
+  @Test
   void testAddGridValueForDoubleObject() throws SQLException {
     Double doubleNumber = 35.5d;
     String doubleValue = "35.5";
@@ -1354,6 +1382,16 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private QueryItem buildQueryItem(String item) {
     return new QueryItem(new BaseDimensionalItemObject(item));
+  }
+
+  private QueryItem buildStageDateItem(
+      String dateColumn, ProgramStage stage, String startDate, String endDate) {
+    QueryItem queryItem = buildQueryItem(dateColumn);
+    queryItem.setProgramStage(stage);
+    queryItem.setValueType(ValueType.DATE);
+    queryItem.addFilter(buildQueryFilter(QueryOperator.GE, startDate));
+    queryItem.addFilter(buildQueryFilter(QueryOperator.LE, endDate));
+    return queryItem;
   }
 
   private QueryItem buildQueryItemWithGroupAndFilters(
@@ -1903,7 +1941,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForObject(sqlCaptor.capture(), eq(Long.class));
 
     String sql = sqlCaptor.getValue();
-    assertThat(sql, containsString("inner join analytics_rs_orgunitstructure as enrous"));
+    assertThat(
+        sql,
+        containsString(
+            "inner join analytics_rs_orgunitstructure enrous"
+                + " on enrous.\"organisationunituid\" = ax.\"enrollmentou\""));
     assertThat(sql, containsString("(enrous.\"uidlevel1\" in ('" + ouA.getUid() + "'))"));
   }
 
@@ -1978,6 +2020,41 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             eq(programIndicator),
             any(Date.class),
             any(Date.class));
+  }
+
+  @Test
+  void addAnalyticsTableColumnsPrefixesPlainColumnsWithAx() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+
+    eventSubject.addAnalyticsTableColumns(sb, List.of("enrollment", "trackedentity"));
+
+    String sql = sb.build();
+    assertThat(sql, containsString("ax.enrollment"));
+    assertThat(sql, containsString("ax.trackedentity"));
+  }
+
+  @Test
+  void addAnalyticsTableColumnsAddsFormulaColumnVerbatim() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+    String formula = "ST_AsGeoJSON(enrollmentgeometry)";
+
+    eventSubject.addAnalyticsTableColumns(sb, List.of(formula));
+
+    String sql = sb.build();
+    // Formula columns are emitted verbatim (no ax. prefix).
+    assertThat(sql, containsString(formula));
+    assertThat(sql, not(containsString("ax." + formula)));
+  }
+
+  @Test
+  void addAnalyticsTableColumnsAddsQualifiedColumnVerbatim() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+
+    eventSubject.addAnalyticsTableColumns(sb, List.of("ax.event"));
+
+    String sql = sb.build();
+    assertThat(sql, containsString("ax.event"));
+    assertThat(sql, not(containsString("ax.ax.event")));
   }
 
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(

@@ -39,12 +39,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueStatus;
@@ -57,7 +61,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
- * The point of these tests is the parse count. {@code TrackedEntityListGrid.addNamedRows} asks this
+ * Most of these tests pin the parse count. {@code TrackedEntityListGrid.addNamedRows} asks this
  * delegator for a value and for a row-context item once per requested column, inside a loop over
  * rows, and each of those used to deserialise the whole {@code enrollments} document again - around
  * twenty parses per row on the export UGANDA-10 traced, 46.8% of that request's CPU.
@@ -68,20 +72,38 @@ class SqlRowSetJsonExtractorDelegatorTest {
   private static final String STAGE_UID = "StAgE000001";
   private static final String DE_A_UID = "DaTaEleMnTA";
   private static final String DE_B_UID = "DaTaEleMnTB";
+  private static final String ORG_UNIT_UID = "OrGuNiT0001";
 
   /** One enrolment, one event, values for A but not for B. */
   private static String enrollments(String valueOfA) {
+    return enrollmentWithEvents(event("EvEnT000001", "2026-07-02T00:00:00", valueOfA));
+  }
+
+  /** One enrolment holding the given events. */
+  private static String enrollmentWithEvents(String... events) {
     return "[{\"programUid\":\""
         + PROGRAM_UID
         + "\",\"enrollmentUid\":\"EnRoLmEnT01\",\"enrollmentDate\":\"2026-07-01T00:00:00\","
-        + "\"events\":[{\"programStageUid\":\""
+        + "\"events\":["
+        + String.join(",", events)
+        + "]}]";
+  }
+
+  /** One event of the stage, with a value for A only. */
+  private static String event(String eventUid, String occurredDate, String valueOfA) {
+    return "{\"programStageUid\":\""
         + STAGE_UID
-        + "\",\"eventUid\":\"EvEnT000001\",\"occurredDate\":\"2026-07-02T00:00:00\","
-        + "\"eventStatus\":\"ACTIVE\",\"eventDataValues\":{\""
+        + "\",\"eventUid\":\""
+        + eventUid
+        + "\",\"occurredDate\":\""
+        + occurredDate
+        + "\",\"orgUnitUid\":\""
+        + ORG_UNIT_UID
+        + "\",\"eventStatus\":\"ACTIVE\",\"eventDataValues\":{\""
         + DE_A_UID
         + "\":{\"value\":\""
         + valueOfA
-        + "\"}}}]}]";
+        + "\"}}}";
   }
 
   @Test
@@ -132,6 +154,50 @@ class SqlRowSetJsonExtractorDelegatorTest {
         delegator.getRowContextItem(withoutValue.getKey(), 0));
   }
 
+  @Test
+  void testStageScopedDataElementWithOffsetIsReadableByItsShortFormat() {
+    String twoEvents =
+        enrollmentWithEvents(
+            event("EvEnT000001", "2026-07-02T00:00:00", "older"),
+            event("EvEnT000002", "2026-07-03T00:00:00", "latest"));
+    DimensionIdentifier<DimensionParam> previousEvent = dimension(DE_A_UID, -1);
+    SqlRowSetJsonExtractorDelegator delegator = delegator(List.of(previousEvent), twoEvents);
+
+    assertEquals("older", delegator.getObject(STAGE_UID + "[-1]." + DE_A_UID));
+  }
+
+  @Test
+  void testStageScopedEventDateWithOffsetIsReadableByItsHeaderName() {
+    String twoEvents =
+        enrollmentWithEvents(
+            event("EvEnT000001", "2026-07-02T00:00:00", "older"),
+            event("EvEnT000002", "2026-07-03T00:00:00", "latest"));
+    DimensionIdentifier<DimensionParam> previousEventDate =
+        stageDimension(StaticDimension.EVENT_DATE.name(), -1);
+    SqlRowSetJsonExtractorDelegator delegator = delegator(List.of(previousEventDate), twoEvents);
+
+    // TrackedEntityFields names an event-level static dimension's header without the stage offset.
+    assertEquals(
+        JsonExtractorUtils.getFormattedDate(LocalDateTime.of(2026, 7, 2, 0, 0)),
+        delegator.getObject(STAGE_UID + "." + StaticDimension.EVENT_DATE.getHeaderName()));
+  }
+
+  @Test
+  void testStageScopedOrgUnitWithOffsetIsReadableByItsHeaderName() {
+    DimensionIdentifier<DimensionParam> previousEventOrgUnit =
+        stageDimension(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of()), -1);
+    SqlRowSetJsonExtractorDelegator delegator =
+        delegator(
+            List.of(previousEventOrgUnit),
+            enrollmentWithEvents(
+                event("EvEnT000001", "2026-07-02T00:00:00", "older"),
+                event("EvEnT000002", "2026-07-03T00:00:00", "latest")));
+
+    // TrackedEntityFields names an event-level org unit's header without the stage offset.
+    assertEquals(ORG_UNIT_UID, delegator.getObject(STAGE_UID + ".ou"));
+  }
+
   private static SqlRowSetJsonExtractorDelegator delegator(
       List<DimensionIdentifier<DimensionParam>> dimensions, String json) {
     SqlRowSet rowSet = rowSet();
@@ -148,20 +214,33 @@ class SqlRowSetJsonExtractorDelegatorTest {
   }
 
   private static DimensionIdentifier<DimensionParam> dimension(String dataElementUid) {
+    return dimension(dataElementUid, null);
+  }
+
+  private static DimensionIdentifier<DimensionParam> dimension(
+      String dataElementUid, Integer stageOffset) {
+    DataElement dataElement = new DataElement();
+    dataElement.setUid(dataElementUid);
+    dataElement.setValueType(ValueType.TEXT);
+
+    return stageDimension(new QueryItem(dataElement), stageOffset);
+  }
+
+  /** A dimension of the stage, built the way the request parser builds it. */
+  private static DimensionIdentifier<DimensionParam> stageDimension(
+      Object dimensionalObjectOrQueryItem, Integer stageOffset) {
     Program program = new Program();
     program.setUid(PROGRAM_UID);
     ProgramStage programStage = new ProgramStage();
     programStage.setUid(STAGE_UID);
 
-    DataElement dataElement = new DataElement();
-    dataElement.setUid(dataElementUid);
-    dataElement.setValueType(ValueType.TEXT);
-
     DimensionParam dimensionParam =
         DimensionParam.ofObject(
-            new QueryItem(dataElement), DimensionParamType.DIMENSIONS, IdScheme.UID, List.of());
+            dimensionalObjectOrQueryItem, DimensionParamType.DIMENSIONS, IdScheme.UID, List.of());
 
     return DimensionIdentifier.of(
-        ElementWithOffset.of(program), ElementWithOffset.of(programStage), dimensionParam);
+        ElementWithOffset.of(program),
+        ElementWithOffset.of(programStage, stageOffset),
+        dimensionParam);
   }
 }

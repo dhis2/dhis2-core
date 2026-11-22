@@ -31,7 +31,9 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
+import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.external.conf.ConfigurationKey.SERVER_BASE_URL;
+import static org.hisp.dhis.user.UserConstants.LOGIN_MAX_FAILED_ATTEMPTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -41,8 +43,11 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +74,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -249,6 +255,194 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
     assertEquals("Unauthorized", response.getHttpStatus());
     assertEquals(401, response.getHttpStatusCode());
     assertEquals("ERROR", response.getStatus());
+  }
+
+  /**
+   * Username templates with whitespace at the edges, written as JSON string content: trailing,
+   * leading, both, tab and non-breaking space.
+   */
+  static Stream<String> edgeWhitespaceJsonTemplates() {
+    return Stream.of("%s ", " %s", " %s ", "\\t%s\\t", "\\u00a0%s\\u00a0");
+  }
+
+  /** The same templates as {@link #edgeWhitespaceJsonTemplates()}, as raw characters. */
+  static Stream<String> edgeWhitespaceTemplates() {
+    return Stream.of("%s ", " %s", " %s ", "\t%s\t", "\u00a0%s\u00a0");
+  }
+
+  @ParameterizedTest
+  @MethodSource("edgeWhitespaceJsonTemplates")
+  void testLoginIgnoresEdgeWhitespaceInUsername(String template) {
+    JsonLoginResponse response =
+        POST("/auth/login", loginBody(template.formatted("admin"), "district"))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+  }
+
+  @Test
+  void testLoginKeepsInnerWhitespaceInUsername() {
+    createUserWithAuth("inner space", "ALL");
+
+    JsonLoginResponse response =
+        POST("/auth/login", loginBody(" inner space ", "district"))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    assertEquals(
+        HttpStatus.UNAUTHORIZED, POST("/auth/login", loginBody("innerspace", "district")).status());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"district ", " district", "\\tdistrict", "\\u00a0district"})
+  void testLoginDoesNotTrimPassword(String password) {
+    assertEquals(
+        HttpStatus.UNAUTHORIZED, POST("/auth/login", loginBody("admin", password)).status());
+  }
+
+  @Test
+  void testFailedLoginsWithEdgeWhitespaceCountForTheSameUser() {
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
+    createUserWithAuth("lockme", "ALL");
+
+    edgeWhitespaceJsonTemplates()
+        .limit(LOGIN_MAX_FAILED_ATTEMPTS)
+        .forEach(
+            template ->
+                assertEquals(
+                    HttpStatus.UNAUTHORIZED,
+                    POST("/auth/login", loginBody(template.formatted("lockme"), "wrong"))
+                        .status()));
+
+    JsonLoginResponse response =
+        POST("/auth/login", loginBody("lockme", "district"))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("ACCOUNT_LOCKED", response.getLoginStatus());
+  }
+
+  @ParameterizedTest
+  @MethodSource("edgeWhitespaceTemplates")
+  void testBasicAuthIgnoresEdgeWhitespaceInUsername(String template) throws Exception {
+    clearSecurityContext();
+
+    mvc.perform(
+            get("/api/me")
+                .header("Authorization", basicAuth(template.formatted("admin"), "district")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value("admin"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"district ", " district", "\tdistrict", "\u00a0district"})
+  void testBasicAuthDoesNotTrimPassword(String password) throws Exception {
+    clearSecurityContext();
+
+    mvc.perform(get("/api/me").header("Authorization", basicAuth("admin", password)))
+        .andExpect(status().isUnauthorized());
+  }
+
+  /**
+   * Usernames stored with whitespace at the edges, as raw characters: trailing, leading and
+   * non-breaking space. Rows from before the username syntax check (2.38) and paths that skip the
+   * check can hold such usernames.
+   */
+  static Stream<String> storedEdgeWhitespaceUsernames() {
+    return Stream.of("legacy ", " legacy", "\u00a0legacy");
+  }
+
+  @ParameterizedTest
+  @MethodSource("storedEdgeWhitespaceUsernames")
+  void testLoginWithExactUsernameStoredWithEdgeWhitespace(String storedUsername) {
+    createUserWithAuth(storedUsername, "ALL");
+
+    assertEquals("SUCCESS", loginStatus(storedUsername, "district"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("storedEdgeWhitespaceUsernames")
+  void testBasicAuthWithExactUsernameStoredWithEdgeWhitespace(String storedUsername)
+      throws Exception {
+    createUserWithAuth(storedUsername, "ALL");
+    clearSecurityContext();
+
+    mvc.perform(get("/api/me").header("Authorization", basicAuth(storedUsername, "district")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value(storedUsername));
+  }
+
+  @Test
+  void testLoginPrefersExactUsernameOverStrippedUsername() {
+    createUserWithAuth("twin", "ALL");
+    createUserStoredAs(" twin", "Twin_pass_1!");
+
+    assertEquals("SUCCESS", loginStatus(" twin", "Twin_pass_1!"));
+    assertEquals(
+        HttpStatus.UNAUTHORIZED, POST("/auth/login", loginBody(" twin", "district")).status());
+    assertEquals("SUCCESS", loginStatus("twin ", "district"));
+  }
+
+  @Test
+  void testBasicAuthPrefersExactUsernameOverStrippedUsername() throws Exception {
+    createUserWithAuth("twin", "ALL");
+    createUserStoredAs(" twin", "Twin_pass_1!");
+    clearSecurityContext();
+
+    mvc.perform(get("/api/me").header("Authorization", basicAuth(" twin", "Twin_pass_1!")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value(" twin"));
+    mvc.perform(get("/api/me").header("Authorization", basicAuth("twin ", "district")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value("twin"));
+  }
+
+  @Test
+  void testFailedLoginsWithExactUsernameCountForThatUserOnly() {
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
+    createUserWithAuth("twinlock", "ALL");
+    createUserStoredAs(" twinlock", "district");
+
+    for (int i = 0; i < LOGIN_MAX_FAILED_ATTEMPTS; i++) {
+      assertEquals(
+          HttpStatus.UNAUTHORIZED, POST("/auth/login", loginBody(" twinlock", "wrong")).status());
+    }
+
+    assertEquals("ACCOUNT_LOCKED", loginStatus(" twinlock", "district"));
+    assertEquals("SUCCESS", loginStatus("twinlock", "district"));
+  }
+
+  /**
+   * Creates a user, then stores {@code storedUsername} as its username without the username syntax
+   * check. The user role is named after a generated username, as role names are trimmed.
+   */
+  private User createUserStoredAs(String storedUsername, String password) {
+    User user = createUserWithAuth("user" + generateUid().toLowerCase(), "ALL");
+    user.setUsername(storedUsername);
+    userService.encodeAndSetPassword(user, password);
+    userService.updateUser(user);
+    return user;
+  }
+
+  private String loginStatus(String username, String password) {
+    return POST("/auth/login", loginBody(username, password))
+        .content(HttpStatus.OK)
+        .as(JsonLoginResponse.class)
+        .getLoginStatus();
+  }
+
+  /** Builds a login body; the arguments are JSON string content and may contain escapes. */
+  private static String loginBody(String username, String password) {
+    return "{\"username\":\"%s\",\"password\":\"%s\"}".formatted(username, password);
+  }
+
+  private static String basicAuth(String username, String password) {
+    byte[] credentials = (username + ":" + password).getBytes(StandardCharsets.UTF_8);
+    return "Basic " + Base64.getEncoder().encodeToString(credentials);
   }
 
   @Test

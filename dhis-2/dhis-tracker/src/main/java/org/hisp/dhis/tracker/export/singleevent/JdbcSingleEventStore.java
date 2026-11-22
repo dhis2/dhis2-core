@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.singleevent;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
@@ -155,6 +156,10 @@ class JdbcSingleEventStore {
   }
 
   private List<SingleEvent> fetchEvents(SingleEventQueryParams queryParams, PageParams pageParams) {
+    if (queryParams.getProgram() == null && queryParams.getAccessibleProgramStages().isEmpty()) {
+      return List.of();
+    }
+
     Map<String, SingleEvent> eventsByUid;
     if (pageParams == null) {
       eventsByUid = new HashMap<>();
@@ -453,7 +458,7 @@ class JdbcSingleEventStore {
       SingleEventQueryParams params,
       boolean hasProgramJoin) {
     SqlHelper hlp = new SqlHelper(true);
-    addDataElementConditions(sql, sqlParams, params);
+    addDataElementConditions(sql, sqlParams, params, hlp);
     if (hasProgramJoin) {
       addProgramConditions(sql, sqlParams, params, hlp);
     } else {
@@ -702,7 +707,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private void addWhereConditions(
       StringBuilder sql, MapSqlParameterSource sqlParams, SingleEventQueryParams params) {
     SqlHelper hlp = new SqlHelper(true);
-    addDataElementConditions(sql, sqlParams, params);
+    addDataElementConditions(sql, sqlParams, params, hlp);
     addProgramConditions(sql, sqlParams, params, hlp);
     addLastUpdatedConditions(sql, sqlParams, params, hlp);
     addCategoryOptionComboConditions(sql, sqlParams, params, hlp);
@@ -716,9 +721,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private void addDataElementConditions(
-      StringBuilder sql, MapSqlParameterSource sqlParams, SingleEventQueryParams params) {
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
     if (!params.getDataElements().isEmpty()) {
-      sql.append(" and ");
+      sql.append(hlp.whereAnd());
       addPredicates(sql, sqlParams, params.getDataElements());
       sql.append(" ");
     }
@@ -732,6 +740,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     if (params.getProgram() != null) {
       sqlParams.addValue("programstageid", params.getProgramStage().getId());
       sql.append(hlp.whereAnd()).append(" ev.programstageid = :programstageid ");
+    } else {
+      sqlParams.addValue(
+          "programstageid",
+          params.getAccessibleProgramStages().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessibleProgramStages()));
+      sql.append(hlp.whereAnd()).append(" ev.programstageid in (:programstageid) ");
     }
   }
 

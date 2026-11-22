@@ -215,7 +215,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR.ou\":{\"name\":\"Organisation unit, Child Programme (1), Birth (1)\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"VpYAl8dXs6m\":{\"name\":\"Bendoma (Malegohun) MCHP\"},\"Qr41Mw2MSjo\":{\"name\":\"Senthai MCHP\"},\"IpHINAT79UW.A03MvHHogjR.ou\":{\"name\":\"Organisation unit\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"},\"QZzRkqdGjlm\":{\"name\":\"Mindohun CHP\"}},\"dimensions\":{\"pe\":[],\"A03MvHHogjR.ou\":[\"DiszpKrYNg8\",\"QII5GqfDfO3\",\"Qr41Mw2MSjo\",\"QZzRkqdGjlm\",\"VpYAl8dXs6m\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR.ou\":{\"name\":\"Organisation unit, Child Programme, Birth (1)\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"VpYAl8dXs6m\":{\"name\":\"Bendoma (Malegohun) MCHP\"},\"Qr41Mw2MSjo\":{\"name\":\"Senthai MCHP\"},\"IpHINAT79UW.A03MvHHogjR.ou\":{\"name\":\"Organisation unit\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"},\"QZzRkqdGjlm\":{\"name\":\"Mindohun CHP\"}},\"dimensions\":{\"pe\":[],\"A03MvHHogjR.ou\":[\"DiszpKrYNg8\",\"QII5GqfDfO3\",\"Qr41Mw2MSjo\",\"QZzRkqdGjlm\",\"VpYAl8dXs6m\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -224,7 +224,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "A03MvHHogjR.ou",
-        "Organisation unit, Child Programme (1), Birth (1)",
+        "Organisation unit, Child Programme, Birth (1)",
         "TEXT",
         "java.lang.String",
         false,
@@ -2322,7 +2322,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression (-1), Grouped visits (-1)\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"]}}";
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits (-1)\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -2331,7 +2331,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "r21967Stg01.ou",
-        "Organisation unit, TE aggregate scoped regression (-1), Grouped visits (-1)",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits (-1)",
         "TEXT",
         "java.lang.String",
         false,
@@ -2382,7 +2382,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression (1), Grouped visits (1)\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"]}}";
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits (1)\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -2391,7 +2391,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "r21967Stg01.ou",
-        "Organisation unit, TE aggregate scoped regression (1), Grouped visits (1)",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits (1)",
         "TEXT",
         "java.lang.String",
         false,
@@ -2444,7 +2444,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression (-1), Grouped visits (-1)\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"]}}";
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits (-1)\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -2453,7 +2453,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "r21967Stg01.ou",
-        "Organisation unit, TE aggregate scoped regression (-1), Grouped visits (-1)",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits (-1)",
         "TEXT",
         "java.lang.String",
         false,
@@ -2506,7 +2506,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression (1), Grouped visits (1)\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"]}}";
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits (1)\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -2515,7 +2515,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "r21967Stg01.ou",
-        "Organisation unit, TE aggregate scoped regression (1), Grouped visits (1)",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits (1)",
         "TEXT",
         "java.lang.String",
         false,
@@ -3012,7 +3012,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression (-5), Grouped visits (-5)\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[]}}";
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits (-5)\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -3021,7 +3021,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "r21967Stg01.ou",
-        "Organisation unit, TE aggregate scoped regression (-5), Grouped visits (-5)",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits (-5)",
         "TEXT",
         "java.lang.String",
         false,

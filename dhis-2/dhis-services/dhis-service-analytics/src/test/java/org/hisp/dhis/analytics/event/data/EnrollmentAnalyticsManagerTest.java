@@ -41,6 +41,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,6 +53,7 @@ import static org.mockito.Mockito.when;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -63,10 +65,10 @@ import org.hisp.dhis.analytics.event.data.stage.DefaultStageOrgUnitSqlService;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
-import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -151,7 +153,6 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     programIndicatorSubqueryBuilder.init();
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
     when(systemSettings.getOrgUnitCentroidsInEventsAnalytics()).thenReturn(false);
-    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
     filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
     StageQuerySqlFacade stageQuerySqlFacade =
         new DefaultStageQuerySqlFacade(
@@ -176,7 +177,6 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             config,
             sqlBuilder,
             organisationUnitResolver,
-            columnMapper,
             filterBuilder,
             stageQuerySqlFacade,
             bucketResolver,
@@ -238,6 +238,29 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(sql.getValue(), containsString("as registrationouname"));
   }
 
+  /**
+   * Query rows are mapped to headers by position, and the headers list the dimensions before
+   * REGISTRATION_OU, so the select columns must follow the same order.
+   */
+  @Test
+  void verifyRegistrationOuColumnsFollowDimensionColumns() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('R')))
+            .build();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "ax.\"quarterly\" as quarterly, ax.\"ou\" as ou, "
+                + "regous.\"organisationunituid\" as registrationou, "
+                + "regous.\"name\" as registrationouname"));
+  }
+
   /** ENROLLMENT_OU is supported on the event endpoints only, so it contributes no column here. */
   @Test
   void verifyEnrollmentOuContributesNoAggregateColumn() {
@@ -285,6 +308,37 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertThat(sql.getValue(), startsWith("select count(1) "));
     assertThat(sql.getValue(), containsString("from analytics_enrollment_"));
+  }
+
+  @Test
+  void verifyEnrollmentCountAppendsItemFilterToExistingWhereClause() {
+    EventQueryParams params =
+        createRequestParamsWithFilter(null, ValueType.TEXT, QueryOperator.EQ, "Female");
+
+    subject.getEnrollmentCount(params);
+
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    assertEquals(1, StringUtils.countMatches(sql.getValue(), "where "), sql.getValue());
+    assertThat(
+        sql.getValue(), containsString("and ax.\"" + dataElementA.getUid() + "\" = 'Female'"));
+  }
+
+  @Test
+  void verifyEnrollmentCountOfStageDataElementFilterJoinsStageCteInsteadOfCorrelatedSubquery() {
+    EventQueryParams params =
+        createRequestParamsWithFilter(programStage, ValueType.INTEGER, QueryOperator.GT, "3000");
+
+    subject.getEnrollmentCount(params);
+
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    String countSql = sql.getValue();
+    assertThat(countSql, not(containsString("limit 1")));
+    assertThat(countSql, startsWith("with "));
+    assertThat(countSql, containsString("select count(1) "));
+    assertThat(countSql, containsString("inner join"));
+    assertThat(countSql, containsString(".enrollment = ax.enrollment and "));
   }
 
   @Test
