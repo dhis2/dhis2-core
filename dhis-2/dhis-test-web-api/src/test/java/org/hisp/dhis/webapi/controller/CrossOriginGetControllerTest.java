@@ -35,14 +35,9 @@ import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
 
+import com.google.gson.JsonParser;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -57,8 +52,6 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.system.SystemUpdateNotificationService;
-import org.hisp.dhis.system.util.DhisHttpResponse;
-import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.TestUtils;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -71,8 +64,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -97,6 +90,9 @@ class CrossOriginGetControllerTest extends H2ControllerIntegrationTestBase {
       """;
 
   @Autowired private MessageService messageService;
+
+  /** Spied to serve {@link #RELEASE_FEED} instead of the feed on releases.dhis2.org. */
+  @MockitoSpyBean private SystemUpdateNotificationService systemUpdateNotificationService;
 
   /** Browser headers of cross-origin requests that never carry an Origin header. */
   static Stream<Arguments> rejectedHeaders() {
@@ -289,31 +285,16 @@ class CrossOriginGetControllerTest extends H2ControllerIntegrationTestBase {
 
   /** Serves a local release feed: the test must not depend on releases.dhis2.org. */
   @Test
-  void testSystemUpdatesWithAuthority() throws Exception {
+  void testSystemUpdatesWithAuthority() {
     switchToNewUser("maintainer", "F_PERFORM_MAINTENANCE");
-    DhisHttpResponse feed = mock(DhisHttpResponse.class);
-    when(feed.getStatusCode()).thenReturn(200);
-    when(feed.getResponse()).thenReturn(RELEASE_FEED);
+    doReturn(JsonParser.parseString(RELEASE_FEED).getAsJsonObject())
+        .when(systemUpdateNotificationService)
+        .fetchReleaseFeed();
 
-    JsonObject versions;
-    try (MockedStatic<HttpUtils> http = mockStatic(HttpUtils.class)) {
-      http.when(
-              () ->
-                  HttpUtils.httpGET(
-                      eq(SystemUpdateNotificationService.DHIS_2_ORG_VERSIONS_JSON),
-                      anyBoolean(),
-                      any(),
-                      any(),
-                      any(),
-                      anyInt(),
-                      anyBoolean()))
-          .thenReturn(feed);
-
-      versions =
-          GET("/systemUpdates?forceVersion=2.38.0")
-              .content(HttpStatus.OK)
-              .getObject("response.versionMetadata");
-    }
+    JsonObject versions =
+        GET("/systemUpdates?forceVersion=2.38.0")
+            .content(HttpStatus.OK)
+            .getObject("response.versionMetadata");
 
     assertEquals(List.of("2.38.1"), versions.names());
     assertFalse(messageService.getMatchingExtId("2.38.1").isEmpty());

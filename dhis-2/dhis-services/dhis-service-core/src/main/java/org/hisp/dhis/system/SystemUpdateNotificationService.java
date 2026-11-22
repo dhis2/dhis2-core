@@ -112,6 +112,17 @@ public class SystemUpdateNotificationService {
     return convertJsonToMap(newerVersions);
   }
 
+  /**
+   * Fetches the list of released versions from {@link #DHIS_2_ORG_VERSIONS_JSON}. An instance
+   * method, so that tests can serve a local feed instead of calling releases.dhis2.org.
+   *
+   * @return the released versions
+   * @throws IllegalStateException when the feed cannot be fetched
+   */
+  public JsonObject fetchReleaseFeed() {
+    return fetchAllVersions();
+  }
+
   private static JsonObject fetchAllVersions() {
     try {
       DhisHttpResponse httpResponse =

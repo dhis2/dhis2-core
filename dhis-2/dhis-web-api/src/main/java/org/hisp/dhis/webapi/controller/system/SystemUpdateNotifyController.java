@@ -75,7 +75,8 @@ public class SystemUpdateNotifyController {
     }
 
     Map<Semver, Map<String, String>> newerVersions =
-        SystemUpdateNotificationService.getLatestNewerThanFetchFirst(currentVersion);
+        SystemUpdateNotificationService.getLatestNewerThan(
+            currentVersion, service.fetchReleaseFeed());
 
     service.sendMessageForEachVersion(newerVersions, JobProgress.noop());
 
