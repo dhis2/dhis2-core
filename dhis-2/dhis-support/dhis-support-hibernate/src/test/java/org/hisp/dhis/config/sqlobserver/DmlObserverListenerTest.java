@@ -403,6 +403,68 @@ class DmlObserverListenerTest {
     assertEquals(0, timed.pendingEventCount());
   }
 
+  @Test
+  void lateCommitAfterTheSweepBumpsAgain() throws Exception {
+    AtomicLong now = new AtomicLong();
+    DmlObserverListener timed =
+        new DmlObserverListener(registry, eTagService, null, new UnmatchedDmlLog(), now::get);
+    activateListener(timed);
+    ExecutionInfo execInfo = createSuccessExecutionInfo(false);
+
+    // a transaction writes, then stays idle past the stale age before it commits
+    timed.afterQuery(
+        execInfo, List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)")));
+    now.addAndGet(TimeUnit.MINUTES.toNanos(6));
+    timed.sweepStaleBatches();
+    verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
+
+    // readers between sweep and commit saw the old data under the new ETag: bump again
+    timed.afterMethod(createMethodContext(execInfo.getStatement().getConnection(), "commit"));
+
+    verify(eTagService, times(2)).incrementEntityTypeVersion(DataElement.class);
+    assertEquals(0, timed.sweptBatchCount());
+  }
+
+  @Test
+  void rollbackAfterTheSweepDoesNotBumpAgain() throws Exception {
+    AtomicLong now = new AtomicLong();
+    DmlObserverListener timed =
+        new DmlObserverListener(registry, eTagService, null, new UnmatchedDmlLog(), now::get);
+    activateListener(timed);
+    ExecutionInfo execInfo = createSuccessExecutionInfo(false);
+
+    timed.afterQuery(
+        execInfo, List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)")));
+    now.addAndGet(TimeUnit.MINUTES.toNanos(6));
+    timed.sweepStaleBatches();
+    timed.afterMethod(createMethodContext(execInfo.getStatement().getConnection(), "rollback"));
+
+    verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
+    assertEquals(0, timed.sweptBatchCount());
+  }
+
+  @Test
+  void sweptBatchesAreBoundedByCountAndAge() throws Exception {
+    AtomicLong now = new AtomicLong();
+    DmlObserverListener timed =
+        new DmlObserverListener(registry, eTagService, null, new UnmatchedDmlLog(), now::get);
+    activateListener(timed);
+    for (int i = 0; i <= DmlObserverListener.MAX_SWEPT_BATCHES; i++) {
+      ExecutionInfo execInfo = createSuccessExecutionInfo(false);
+      when(execInfo.getConnectionId()).thenReturn("abandoned-" + i);
+      timed.afterQuery(
+          execInfo, List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)")));
+    }
+    now.addAndGet(TimeUnit.MINUTES.toNanos(6));
+    timed.sweepStaleBatches();
+    assertEquals(DmlObserverListener.MAX_SWEPT_BATCHES, timed.sweptBatchCount());
+
+    // connections that never commit, roll back or close are forgotten after an hour
+    now.addAndGet(TimeUnit.MINUTES.toNanos(61));
+    timed.sweepStaleBatches();
+    assertEquals(0, timed.sweptBatchCount());
+  }
+
   private ExecutionInfo createSuccessExecutionInfo(boolean autoCommit) throws SQLException {
     ExecutionInfo execInfo = mock(ExecutionInfo.class);
     when(execInfo.isSuccess()).thenReturn(true);

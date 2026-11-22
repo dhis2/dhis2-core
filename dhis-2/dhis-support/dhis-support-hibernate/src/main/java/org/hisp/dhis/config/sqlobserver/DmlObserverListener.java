@@ -57,8 +57,10 @@ import java.sql.Connection;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -136,6 +138,22 @@ public class DmlObserverListener
    * to avoid calling connection.toString() on pooled connections.
    */
   private final ConcurrentHashMap<String, PendingBatch> pendingBatches = new ConcurrentHashMap<>();
+
+  /**
+   * A batch the sweep already bumped. Its transaction may still commit later: that commit (or the
+   * connection's close) bumps the same types again, because readers between the sweep and the
+   * commit saw the old data under the new ETag. A rollback just forgets it.
+   */
+  record SweptBatch(List<DmlEvent> events, long sweptAtNanos) {}
+
+  /** Cap on remembered swept batches; past it, a swept batch gets only its early bump. */
+  static final int MAX_SWEPT_BATCHES = 1000;
+
+  /** Time after which a swept batch whose connection never commits or closes is forgotten. */
+  private static final long SWEPT_BATCH_RETENTION_NANOS = 60 * 60 * 1_000_000_000L;
+
+  /** Swept batches keyed like {@link #pendingBatches}, bounded by count and by age. */
+  private final ConcurrentHashMap<String, SweptBatch> sweptBatches = new ConcurrentHashMap<>();
 
   private final AtomicLong queryCounter = new AtomicLong(0);
   private volatile boolean observingEnabled;
@@ -413,6 +431,12 @@ public class DmlObserverListener
   }
 
   private void publishAndClear(String connectionId) {
+    SweptBatch swept = sweptBatches.remove(connectionId);
+    if (swept != null) {
+      log.debug(
+          "Late commit on connection {} after a sweep; bumping its types again", connectionId);
+      bumpETagVersions(swept.events());
+    }
     PendingBatch batch = pendingBatches.remove(connectionId);
     if (batch != null && !batch.events().isEmpty()) {
       log.debug("Processing {} DML events for connection {}", batch.events().size(), connectionId);
@@ -423,6 +447,7 @@ public class DmlObserverListener
   }
 
   private void discardAndClear(String connectionId) {
+    sweptBatches.remove(connectionId);
     PendingBatch batch = pendingBatches.remove(connectionId);
     if (batch != null && !batch.events().isEmpty()) {
       if (batchesDiscarded != null) batchesDiscarded.increment();
@@ -431,6 +456,11 @@ public class DmlObserverListener
           batch.events().size(),
           connectionId);
     }
+  }
+
+  /** Number of remembered swept batches (for tests). */
+  int sweptBatchCount() {
+    return sweptBatches.size();
   }
 
   /**
@@ -518,11 +548,14 @@ public class DmlObserverListener
    *
    * <p>A swept batch bumps its types instead of being dropped: whether its writes committed is
    * unknown, and an extra version bump only costs one 200 per client, while a missed one serves
-   * stale 304s until the TTL window ends.
+   * stale 304s until the TTL window ends. The batch is also remembered as a {@link SweptBatch}, so
+   * a commit that arrives after the sweep bumps again (at most {@link #MAX_SWEPT_BATCHES}, each
+   * kept for an hour).
    */
   void sweepStaleBatches() {
     long now = nanoClock.getAsLong();
-    List<PendingBatch> swept = new ArrayList<>();
+    sweptBatches.values().removeIf(s -> now - s.sweptAtNanos() > SWEPT_BATCH_RETENTION_NANOS);
+    Map<String, PendingBatch> swept = new HashMap<>();
     for (String connectionId : pendingBatches.keySet()) {
       pendingBatches.computeIfPresent(
           connectionId,
@@ -530,7 +563,7 @@ public class DmlObserverListener
             if (now - batch.lastActivityNanos().get() <= STALE_BATCH_NANOS) {
               return batch;
             }
-            swept.add(batch);
+            swept.put(k, batch);
             return null;
           });
     }
@@ -542,9 +575,13 @@ public class DmlObserverListener
         "Swept {} pending DML batches idle for more than 5 minutes (abandoned connections); "
             + "bumping their ETag versions",
         swept.size());
-    for (PendingBatch batch : swept) {
-      bumpETagVersions(batch.events());
-    }
+    swept.forEach(
+        (connectionId, batch) -> {
+          bumpETagVersions(batch.events());
+          if (sweptBatches.size() < MAX_SWEPT_BATCHES) {
+            sweptBatches.put(connectionId, new SweptBatch(batch.events(), now));
+          }
+        });
   }
 
   private String getConnectionId(ExecutionInfo execInfo) {
