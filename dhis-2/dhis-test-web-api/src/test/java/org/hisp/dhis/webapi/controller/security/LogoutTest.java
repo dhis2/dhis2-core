@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 
 import jakarta.servlet.SessionCookieConfig;
 import java.util.List;
@@ -46,6 +47,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -115,6 +118,23 @@ class LogoutTest extends AuthenticationApiTestBase {
     MockHttpServletResponse response = perform(post(LOGOUT_URL), List.of());
 
     assertLoggedOut(response);
+  }
+
+  /**
+   * Spring Security's default logout matcher also accepted PUT and DELETE while CSRF was disabled.
+   * Only POST, and GET for one more release, log out now; clients must migrate to POST.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = {"PUT", "DELETE"})
+  void testLogoutWithPutOrDeleteDoesNotLogOut(String method) throws Exception {
+    MockHttpServletResponse response =
+        perform(request(HttpMethod.valueOf(method), LOGOUT_URL), List.of());
+
+    assertFalse(session.isInvalid());
+    assertTrue(
+        response.getHeaders("Set-Cookie").stream()
+            .noneMatch(cookie -> cookie.startsWith("JSESSIONID=")),
+        response.getHeaders("Set-Cookie")::toString);
   }
 
   @ParameterizedTest(name = "{0}")

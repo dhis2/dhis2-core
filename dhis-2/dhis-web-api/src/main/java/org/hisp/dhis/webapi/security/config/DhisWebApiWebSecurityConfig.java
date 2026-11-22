@@ -444,6 +444,9 @@ public class DhisWebApiWebSecurityConfig {
     // POST is the supported logout method. GET is deprecated and stays accepted for one more
     // release while CSRF tokens are disabled, guarded against cross-origin navigations and
     // resource loads by GetLogoutGuardFilter.
+    // PUT and DELETE no longer log out. Spring Security's default matcher accepted GET, POST, PUT
+    // and DELETE when CSRF was disabled; clients that log out with PUT or DELETE must switch to
+    // POST.
     RequestMatcher postLogout = logoutMatcher(HttpMethod.POST);
     RequestMatcher getLogout = logoutMatcher(HttpMethod.GET);
     boolean csrfEnabled = dhisConfig.isEnabled(ConfigurationKey.CSRF_ENABLED);
