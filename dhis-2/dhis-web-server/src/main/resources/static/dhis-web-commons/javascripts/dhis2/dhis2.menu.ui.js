@@ -76,10 +76,13 @@
     };
 
     /**
-     * Logout must use POST, so logout links are submitted as a POST form instead of being followed.
+     * Logout must use POST, so the log out item of the profile menu submits a POST form instead of
+     * following its link. Other links, including ones that mention the logout path, are followed.
      */
-    function isLogoutUrl(url) {
-        return typeof url === 'string' && /\/dhis-web-commons-security\/logout\.action(\?|#|$)/.test(url);
+    var LOGOUT_MENU_ITEM = '#profileButton li[data-id="log_out"]';
+
+    function isLogoutMenuItem(element) {
+        return !!element && typeof element.matches === 'function' && element.matches(LOGOUT_MENU_ITEM);
     }
 
     function submitLogout(url) {
@@ -91,10 +94,12 @@
         form.submit();
     }
 
+    // Delegated, because the menu items are rendered again when their translations arrive.
+    // Enter on the focused link fires this click too.
     document.addEventListener('click', function (event) {
-        var link = event.target && event.target.closest ? event.target.closest('a') : null;
+        var link = event.target && event.target.closest ? event.target.closest(LOGOUT_MENU_ITEM + ' a') : null;
 
-        if (link && isLogoutUrl(link.getAttribute('href'))) {
+        if (link) {
             event.preventDefault();
             submitLogout(link.href);
         }
@@ -495,7 +500,7 @@
             url = jqLite(link).attr('href');
 
             //TODO: Check if it is an actual url?
-            if (url && isLogoutUrl(url)) {
+            if (url && isLogoutMenuItem(menuElement)) {
                 submitLogout(link.href);
             } else if (url) {
                 window.location = url;
