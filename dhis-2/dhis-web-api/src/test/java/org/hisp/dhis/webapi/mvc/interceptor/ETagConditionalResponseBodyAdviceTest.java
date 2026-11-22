@@ -52,6 +52,7 @@ import org.hisp.dhis.webapi.service.ETagConditionalService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -199,6 +200,28 @@ class ETagConditionalResponseBodyAdviceTest {
             header().string("Cache-Control", "max-age=0, private, stale-while-revalidate=60"));
   }
 
+  @Test
+  void testSmartETagReplacesTheControllersNoStore() throws Exception {
+    mockMvc
+        .perform(get("/api/me/authorities"))
+        .andExpect(status().isOk())
+        .andExpect(header().exists("ETag"))
+        .andExpect(
+            header()
+                .stringValues("Cache-Control", "max-age=0, private, stale-while-revalidate=60"));
+  }
+
+  @Test
+  void testControllersNoStoreStandsWhenTheSmartTierIsOff() throws Exception {
+    when(eTagService.isEnabled()).thenReturn(false);
+
+    mockMvc
+        .perform(get("/api/me/authorities"))
+        .andExpect(status().isOk())
+        .andExpect(header().doesNotExist("ETag"))
+        .andExpect(header().stringValues("Cache-Control", "no-store"));
+  }
+
   @Controller
   private static class TestController {
     private final AtomicInteger meSettingsResponses = new AtomicInteger();
@@ -222,6 +245,11 @@ class ETagConditionalResponseBodyAdviceTest {
     @GetMapping("/api/ping")
     public @ResponseBody ResponseEntity<Map<String, String>> ping() {
       return ResponseEntity.ok(Map.of("status", "pong"));
+    }
+
+    @GetMapping("/api/me/authorities")
+    public @ResponseBody ResponseEntity<List<String>> authorities() {
+      return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(List.of("ALL"));
     }
   }
 }

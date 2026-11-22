@@ -69,6 +69,8 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
@@ -123,6 +125,13 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   void testGetAuthorities() {
     assertEquals(
         singletonList("ALL"), GET("/me/authorities").content(HttpStatus.OK).stringValues());
+  }
+
+  /** Without the smart ETag tier (off in tests) these per-user answers must not be stored. */
+  @ParameterizedTest
+  @ValueSource(strings = {"/me/authorities", "/me/authorities/ALL", "/me/dataApprovalLevels"})
+  void testGetIsNotStoredWithoutTheSmartETagTier(String path) {
+    assertEquals("no-store", GET(path).header("Cache-Control"));
   }
 
   @Test

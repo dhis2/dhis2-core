@@ -32,6 +32,7 @@ package org.hisp.dhis.systemsettings;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonObject;
@@ -44,7 +45,6 @@ import org.hisp.dhis.test.e2e.actions.SystemSettingActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -320,13 +320,15 @@ class SystemSettingsTests extends ApiTest {
   }
 
   @Test
-  @Disabled("Cache-Control headers now managed by conditional ETag mechanism")
   @DisplayName(
-      "A call to the system settings endpoint returns expected cache control header values")
+      "A call to the system settings endpoint returns the smart ETag tier's cache control header")
   void getSystemSettingsCheckCacheControl() {
+    // The e2e server runs with the smart ETag tier on (cache.api.etag.enabled), which replaces the
+    // controller's no-store with a revalidated private cache entry.
     ValidatableResponse validate = systemSettingActions.get().validate();
     validate.statusCode(200);
-    validate.header("Cache-Control", "no-cache, no-store, must-revalidate");
+    validate.header("Cache-Control", "max-age=0, private");
+    validate.header("ETag", notNullValue());
   }
 
   @Test
