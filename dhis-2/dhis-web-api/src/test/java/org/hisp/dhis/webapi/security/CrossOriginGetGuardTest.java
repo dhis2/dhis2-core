@@ -42,6 +42,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -136,6 +138,26 @@ class CrossOriginGetGuardTest {
     assertEquals("-", CrossOriginGetGuard.sanitize(null));
     assertEquals("cross-site__x", CrossOriginGetGuard.sanitize("cross-site\r\nx"));
     assertEquals(203, CrossOriginGetGuard.sanitize("a".repeat(500)).length());
+  }
+
+  @Test
+  void routeIsTheHandlerTemplateNotTheRequestUri() {
+    MockHttpServletRequest request =
+        new MockHttpServletRequest("GET", "/api/routes/abcdefghijk/run/private/path");
+    // as set by Spring MVC handler mapping before interceptors and handlers run
+    request.setAttribute(
+        HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE,
+        PathPatternParser.defaultInstance.parse("/api/routes/{id}/run/**"));
+
+    assertEquals("/api/routes/{id}/run/**", CrossOriginGetGuard.route(request));
+  }
+
+  @Test
+  void routeIsPlaceholderBeforeHandlerMapping() {
+    MockHttpServletRequest request =
+        new MockHttpServletRequest("GET", "/api/routes/abcdefghijk/run/private/path");
+
+    assertEquals("-", CrossOriginGetGuard.route(request));
   }
 
   private static MockHttpServletRequest request(String method, String site, boolean withOrigin) {

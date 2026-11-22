@@ -84,7 +84,7 @@ public class GetLogoutGuardFilter extends OncePerRequestFilter {
         return;
       }
       if (!CrossOriginGetGuard.isAllowed(request)) {
-        CrossOriginGetGuard.logRejected(request);
+        CrossOriginGetGuard.logRejected(request, "logout");
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         jsonMapper.writeValue(

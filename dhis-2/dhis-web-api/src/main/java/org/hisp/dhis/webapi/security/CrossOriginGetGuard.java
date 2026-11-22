@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.springframework.web.servlet.HandlerMapping;
 
 /**
  * Same-origin GET guard for endpoints that change server state on GET or HEAD.
@@ -107,28 +108,45 @@ public final class CrossOriginGetGuard {
   }
 
   /**
-   * Throws when the request fails the guard and logs the rejection.
+   * Throws when the request fails the guard and logs the rejection with the route template of the
+   * matched handler.
    *
-   * @param request the current request
+   * @param request the current request, already matched to a handler
    * @throws ForbiddenException when the request fails the guard
    */
   public static void check(@Nonnull HttpServletRequest request) throws ForbiddenException {
     if (!isAllowed(request)) {
-      logRejected(request);
+      logRejected(request, route(request));
       throw new ForbiddenException(ERROR_CODE);
     }
   }
 
-  /** Logs a rejected request with the headers needed to diagnose it. */
-  public static void logRejected(@Nonnull HttpServletRequest request) {
+  /**
+   * Logs a rejected request with the headers needed to diagnose it.
+   *
+   * @param request the rejected request
+   * @param route a route template or fixed handler name; never the request URI, which holds object
+   *     identifiers and route subpaths
+   */
+  public static void logRejected(@Nonnull HttpServletRequest request, @Nonnull String route) {
     log.warn(
         "Rejected cross-origin {} {} without Origin header: Sec-Fetch-Site={}, Sec-Fetch-Mode={},"
             + " Sec-Fetch-Dest={}",
         request.getMethod(),
-        sanitize(request.getRequestURI()),
+        route,
         sanitize(request.getHeader(SEC_FETCH_SITE)),
         sanitize(request.getHeader(SEC_FETCH_MODE)),
         sanitize(request.getHeader(SEC_FETCH_DEST)));
+  }
+
+  /**
+   * @return the route template of the handler the request matched, such as {@code
+   *     /api/routes/{id}/run/**}, or {@code -} before handler mapping
+   */
+  @Nonnull
+  static String route(@Nonnull HttpServletRequest request) {
+    Object pattern = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
+    return pattern != null ? pattern.toString() : "-";
   }
 
   /**
