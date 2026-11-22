@@ -86,6 +86,13 @@ class CrossOriginGetControllerTest extends H2ControllerIntegrationTestBase {
               Header("Sec-Fetch-Site", "same-site"),
               Header("Sec-Fetch-Mode", "no-cors"),
               Header("Sec-Fetch-Dest", "image")
+            }),
+        Arguments.of(
+            "cross-site navigation with an empty Origin",
+            new Header[] {
+              Header("Sec-Fetch-Site", "cross-site"),
+              Header("Sec-Fetch-Mode", "navigate"),
+              Header("Origin", "")
             }));
   }
 

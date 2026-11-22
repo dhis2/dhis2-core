@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 
@@ -46,7 +47,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
  *   <li>the method is {@code GET} or {@code HEAD},
  *   <li>the {@code Sec-Fetch-Site} header is present and is neither {@code same-origin} nor {@code
  *       none},
- *   <li>the request has no {@code Origin} header.
+ *   <li>the request has no {@code Origin} header, or an empty one.
  * </ul>
  *
  * <p>Browsers never send {@code Origin} on navigations or on resource loads such as images and
@@ -56,6 +57,10 @@ import org.hisp.dhis.feedback.ForbiddenException;
  * neither the server origin nor on the CORS allowlist. Cross-origin fetches from allowlisted apps
  * therefore pass. Clients that send no Fetch Metadata headers (Android apps, scripts, browsers on
  * plain-HTTP deployments) pass as well.
+ *
+ * <p>The earlier origin check skips a request whose {@code Origin} header is empty, so the guard
+ * counts an empty value as missing too. A literal {@code null} is a value: the earlier check has
+ * already compared it to the allowlist.
  *
  * <p>Use {@link RejectCrossOriginGet} on handler methods, or call {@link #check} for side effects
  * that depend on request parameters.
@@ -98,7 +103,7 @@ public final class CrossOriginGetGuard {
     if (site == null || "same-origin".equals(site) || "none".equals(site)) {
       return true;
     }
-    return request.getHeader(ORIGIN) != null;
+    return StringUtils.isNotEmpty(request.getHeader(ORIGIN));
   }
 
   /**

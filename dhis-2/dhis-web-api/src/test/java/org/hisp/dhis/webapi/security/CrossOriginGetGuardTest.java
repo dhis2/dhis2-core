@@ -103,6 +103,29 @@ class CrossOriginGetGuardTest {
     assertDoesNotThrow(() -> CrossOriginGetGuard.check(request));
   }
 
+  static Stream<Arguments> crossSiteOrigins() {
+    return Stream.of(
+        Arguments.of("missing", null, false),
+        Arguments.of("empty", "", false),
+        Arguments.of("literal null", "null", true),
+        Arguments.of("allowlisted", "https://allowed.example.org", true));
+  }
+
+  /**
+   * The CORS origin check skips an empty Origin, so the guard must not trust one. A literal {@code
+   * null} is a value that the CORS origin check has already compared to the allowlist.
+   */
+  @ParameterizedTest(name = "{0} Origin -> allowed={2}")
+  @MethodSource("crossSiteOrigins")
+  void isAllowedTreatsEmptyOriginAsMissing(String name, String origin, boolean expected) {
+    MockHttpServletRequest request = request("GET", "cross-site", false);
+    if (origin != null) {
+      request.addHeader("Origin", origin);
+    }
+
+    assertEquals(expected, CrossOriginGetGuard.isAllowed(request));
+  }
+
   @Test
   void checkAcceptsRequestWithoutFetchMetadata() {
     assertDoesNotThrow(() -> CrossOriginGetGuard.check(request("GET", null, false)));

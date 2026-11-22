@@ -104,7 +104,10 @@ class LogoutTest extends AuthenticationApiTestBase {
             List.of("Sec-Fetch-Site", "cross-site", "Sec-Fetch-Mode", "navigate")),
         Arguments.of(
             "same-site image load",
-            List.of("Sec-Fetch-Site", "same-site", "Sec-Fetch-Dest", "image")));
+            List.of("Sec-Fetch-Site", "same-site", "Sec-Fetch-Dest", "image")),
+        Arguments.of(
+            "cross-site navigation with an empty Origin",
+            List.of("Sec-Fetch-Site", "cross-site", "Sec-Fetch-Mode", "navigate", "Origin", "")));
   }
 
   @Test
