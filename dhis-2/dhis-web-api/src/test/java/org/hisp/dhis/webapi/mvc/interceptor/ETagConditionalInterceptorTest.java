@@ -76,6 +76,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -924,6 +925,42 @@ class ETagConditionalInterceptorTest {
 
     assertTrue(result);
     assertNotNull(ETagConditionalInterceptor.getStoredETag(request));
+  }
+
+  /**
+   * A deep path in a second {@code fields} value or in a {@code filter} must bypass the cache: the
+   * controller joins repeated {@code fields} values, and a filter two hops away selects the
+   * objects.
+   */
+  @ParameterizedTest
+  @CsvSource(
+      delimiter = ';',
+      value = {
+        "fields;userGroups[members[name]]",
+        "filter;userGroups.members.name:eq:x",
+      })
+  void testDeepPathInAnyFieldsOrFilterValueBypassesETagCaching(String param, String value) {
+    setUpSecurityContext();
+
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/users");
+    request.setRequestURI("/api/users");
+    request.addParameter("fields", "id,name"); // the first value alone is shallow
+    request.addParameter(param, value);
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    when(eTagConditionalService.isEnabled()).thenReturn(true);
+    List<Schema> metadataSchemas =
+        List.of(
+            metadataSchema(
+                "users", User.class, Set.of(UserRole.class, UserGroup.class), true, false, false));
+    when(schemaService.getMetadataSchemas()).thenReturn(metadataSchemas);
+    stubHopAnalyzerSchemas();
+
+    boolean result = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(result);
+    verify(eTagConditionalService, never()).generateETag(any(UserDetails.class), any(Set.class));
+    assertNull(ETagConditionalInterceptor.getStoredETag(request));
   }
 
   @Test

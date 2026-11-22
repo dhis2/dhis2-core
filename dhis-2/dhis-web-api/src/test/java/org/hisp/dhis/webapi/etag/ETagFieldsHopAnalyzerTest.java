@@ -37,6 +37,8 @@ import java.util.List;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.option.OptionSet;
@@ -109,6 +111,15 @@ class ETagFieldsHopAnalyzerTest {
     sharing.addProperty(scalar("owner"));
     sharing.addProperty(scalar("public"));
 
+    Schema dataSet = new Schema(DataSet.class, "dataSet", "dataSets");
+    dataSet.addProperty(scalar("id"));
+    dataSet.addProperty(singleRef("categoryCombo", CategoryCombo.class));
+    dataSet.addProperty(complexCollection("dataSetElements", DataSetElement.class));
+
+    Schema dataSetElement = new Schema(DataSetElement.class, "dataSetElement", "dataSetElements");
+    dataSetElement.addProperty(singleRef("dataElement", DataElement.class));
+    dataSetElement.addProperty(singleRef("categoryCombo", CategoryCombo.class));
+
     when(schemaService.getSchema(User.class)).thenReturn(user);
     when(schemaService.getSchema(UserGroup.class)).thenReturn(userGroup);
     when(schemaService.getSchema(DataElement.class)).thenReturn(dataElement);
@@ -116,6 +127,8 @@ class ETagFieldsHopAnalyzerTest {
     when(schemaService.getSchema(Category.class)).thenReturn(category);
     when(schemaService.getSchema(OptionSet.class)).thenReturn(optionSet);
     when(schemaService.getSchema(Sharing.class)).thenReturn(sharing);
+    when(schemaService.getSchema(DataSet.class)).thenReturn(dataSet);
+    when(schemaService.getSchema(DataSetElement.class)).thenReturn(dataSetElement);
 
     analyzer = new ETagFieldsHopAnalyzer(schemaService);
   }
@@ -197,6 +210,68 @@ class ETagFieldsHopAnalyzerTest {
     assertEquals(Verdict.SHALLOW, analyzer.analyze(User.class, "sharing[owner]"));
   }
 
+  @ParameterizedTest
+  @CsvSource(
+      delimiter = ';',
+      value = {
+        // a reference id-stub below an embedded object is stored with the root
+        "'dataSetElements[dataElement]';SHALLOW",
+        // the root references CategoryCombo directly, so its fields are in the dependency set
+        "'dataSetElements[categoryCombo[name]]';SHALLOW",
+        // DataSet has no direct DataElement reference: its fields are outside the dependency set
+        "'dataSetElements[dataElement[name]]';DEEP",
+        "'dataSetElements.dataElement.name';DEEP",
+      })
+  void referenceBelowEmbeddedObjectPolicy(String fields, Verdict expected) {
+    assertEquals(expected, analyzer.analyze(DataSet.class, fields), fields);
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+      delimiter = ';',
+      value = {
+        "'name:like:abc';SHALLOW",
+        "'categoryCombo.name:eq:x';SHALLOW",
+        "'categoryCombo:null';SHALLOW",
+        "'categoryCombo.categories.name:eq:x';DEEP",
+        "'bogus:eq:x';DEEP",
+      })
+  void filterPathsCountLikeFieldPaths(String filter, Verdict expected) {
+    assertEquals(
+        expected,
+        analyzer.analyze(DataElement.class, new String[] {"id,name"}, new String[] {filter}));
+  }
+
+  @Test
+  void everyRepeatedFieldsValueCounts() {
+    assertEquals(
+        Verdict.DEEP,
+        analyzer.analyze(
+            DataElement.class, new String[] {"id,name", "categoryCombo[categories[name]]"}, null));
+    assertEquals(
+        Verdict.SHALLOW,
+        analyzer.analyze(DataElement.class, new String[] {"id,name", "categoryCombo[name]"}, null));
+  }
+
+  @Test
+  void noFieldsAndNoFiltersAreShallow() {
+    assertEquals(Verdict.SHALLOW, analyzer.analyze(DataElement.class, null, null));
+    assertEquals(Verdict.SHALLOW, analyzer.analyze(DataElement.class, new String[] {" "}, null));
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+      delimiter = ';',
+      value = {
+        "name:eq:x;name",
+        "name;name",
+        "categoryCombo.name:like:x;categoryCombo[name]",
+        "categoryCombo.categories.name:eq:x;categoryCombo[categories[name]]",
+      })
+  void filterPathAsFieldsPath(String filter, String expected) {
+    assertEquals(expected, ETagFieldsHopAnalyzer.filterPathAsFieldsPath(filter));
+  }
+
   @Test
   void unknownRootTypeIsDeep() {
     assertEquals(Verdict.DEEP, analyzer.analyze(String.class, "name"));
@@ -261,6 +336,16 @@ class ETagFieldsHopAnalyzerTest {
     Property p = new Property(klass);
     p.setName(name);
     p.setPropertyType(PropertyType.COMPLEX);
+    return p;
+  }
+
+  private static Property complexCollection(String name, Class<?> itemKlass) {
+    Property p = new Property(List.class);
+    p.setName(name);
+    p.setCollection(true);
+    p.setItemKlass(itemKlass);
+    p.setItemPropertyType(PropertyType.COMPLEX);
+    p.setPropertyType(PropertyType.COLLECTION);
     return p;
   }
 }

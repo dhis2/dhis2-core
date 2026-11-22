@@ -120,6 +120,10 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
 
   private static final String ETAG_ATTR = ETagConditionalInterceptor.class.getName() + ".etag";
 
+  private static final String FIELDS_PARAM = "fields";
+
+  private static final String FILTER_PARAM = "filter";
+
   /**
    * Leading separator prepended to an API-relative path before it is parsed as an absolute path.
    */
@@ -429,31 +433,34 @@ public class ETagConditionalInterceptor implements HandlerInterceptor {
   }
 
   /**
-   * Returns whether this request's {@code fields=} expression traverses more than one reference hop
-   * and must therefore bypass the ETag cache (the dependency set only covers direct references;
-   * deeper data would be served bounded-stale). Applies to schema-derived metadata endpoints only;
-   * composite and named-key endpoints keep their hand-curated dependency sets.
+   * Returns whether this request's {@code fields=} or {@code filter=} paths traverse more than one
+   * reference hop and must therefore bypass the ETag cache (the dependency set only covers direct
+   * references; deeper data would be served bounded-stale). Applies to schema-derived metadata
+   * endpoints only; composite and named-key endpoints keep their hand-curated dependency sets.
    */
   private boolean isDeepFieldsRequest(HttpServletRequest request, String resourceName) {
-    String fields = request.getParameter("fields");
-    if (fields == null || fields.isBlank()) {
+    if (request.getParameterValues(FIELDS_PARAM) == null
+        && request.getParameterValues(FILTER_PARAM) == null) {
       return false;
     }
     Schema schema = schemaService.getSchemaByPluralName(resourceName);
     if (schema == null) {
       return false; // no resolvable root schema: keep status-quo caching behavior
     }
-    return eTagFieldsHopAnalyzer.analyze(schema.getKlass(), fields)
-        == ETagFieldsHopAnalyzer.Verdict.DEEP;
+    return isDeepFieldsRequest(request, schema.getKlass());
   }
 
-  /** Variant for endpoints with a designated schema root (composite endpoints such as /me). */
+  /**
+   * Variant for endpoints with a designated schema root (composite endpoints such as /me). Every
+   * value of a repeated {@code fields} parameter counts: the controller joins them into one
+   * expression.
+   */
   private boolean isDeepFieldsRequest(HttpServletRequest request, Class<?> rootType) {
-    String fields = request.getParameter("fields");
-    if (fields == null || fields.isBlank()) {
-      return false;
-    }
-    return eTagFieldsHopAnalyzer.analyze(rootType, fields) == ETagFieldsHopAnalyzer.Verdict.DEEP;
+    return eTagFieldsHopAnalyzer.analyze(
+            rootType,
+            request.getParameterValues(FIELDS_PARAM),
+            request.getParameterValues(FILTER_PARAM))
+        == ETagFieldsHopAnalyzer.Verdict.DEEP;
   }
 
   /**

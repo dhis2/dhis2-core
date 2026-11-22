@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.etag;
 
 import java.util.List;
+import java.util.StringJoiner;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.cache2k.Cache;
@@ -54,10 +55,13 @@ import org.springframework.stereotype.Component;
  * the TTL window flips.
  *
  * <p>This analyzer walks the parsed field paths against the schema graph and returns {@link
- * Verdict#DEEP} when any path crosses more than one reference hop. Callers skip ETag caching for
- * DEEP requests, trading a cache hit for guaranteed freshness. Every ambiguity resolves to DEEP
- * (fail-safe): unknown segments, nested presets, unresolvable schemas and parser failures all opt
- * out of caching rather than risking staleness.
+ * Verdict#DEEP} when any path crosses more than one reference hop, or descends into a reference
+ * held by an embedded object (that reference is not a direct reference of the root, so its type is
+ * outside the dependency set). Filter paths count like field paths: a filter on {@code
+ * categoryCombo.categories.name} selects the listed objects by data two hops away. Callers skip
+ * ETag caching for DEEP requests, trading a cache hit for guaranteed freshness. Every ambiguity
+ * resolves to DEEP (fail-safe): unknown segments, nested presets, unresolvable schemas and parser
+ * failures all opt out of caching rather than risking staleness.
  *
  * <p>Verdicts are cached in a bounded cache keyed by root type and raw fields string. The bound
  * matters: the fields parameter is client-controlled, so an unbounded memoization would be a memory
@@ -116,6 +120,53 @@ public class ETagFieldsHopAnalyzer {
     return verdict;
   }
 
+  /**
+   * Analyzes the {@code fields=} and {@code filter=} parameters of a request against the schema of
+   * the given root type. Every {@code fields} value counts (Spring joins repeated values into one
+   * expression), and so does the property path of every {@code filter} value.
+   *
+   * @param rootType the entity class the endpoint lists (the resource schema class)
+   * @param fields the {@code fields=} parameter values, may be {@code null}
+   * @param filters the {@code filter=} parameter values, may be {@code null}
+   * @return {@link Verdict#SHALLOW} when caching is safe, {@link Verdict#DEEP} when the request
+   *     must bypass the ETag cache
+   */
+  @Nonnull
+  public Verdict analyze(
+      @Nonnull Class<?> rootType, @CheckForNull String[] fields, @CheckForNull String[] filters) {
+    StringJoiner expression = new StringJoiner(",");
+    if (fields != null) {
+      for (String value : fields) {
+        if (value != null && !value.isBlank()) {
+          expression.add(value);
+        }
+      }
+    }
+    if (filters != null) {
+      for (String filter : filters) {
+        if (filter != null && !filter.isBlank()) {
+          expression.add(filterPathAsFieldsPath(filter));
+        }
+      }
+    }
+    return analyze(rootType, expression.toString());
+  }
+
+  /**
+   * The property path of a filter as a fields path: {@code categoryCombo.categories.name:eq:x}
+   * becomes {@code categoryCombo[categories[name]]}.
+   */
+  static String filterPathAsFieldsPath(String filter) {
+    int operatorStart = filter.indexOf(':');
+    String path = (operatorStart < 0 ? filter : filter.substring(0, operatorStart)).strip();
+    String[] segments = path.split("\\.", -1);
+    StringBuilder fieldsPath = new StringBuilder(segments[0]);
+    for (int i = 1; i < segments.length; i++) {
+      fieldsPath.append('[').append(segments[i]);
+    }
+    return fieldsPath.append("]".repeat(segments.length - 1)).toString();
+  }
+
   private Verdict analyzeUncached(Class<?> rootType, String fields) {
     Schema root = schemaService.getSchema(rootType);
     if (root == null) {
@@ -148,6 +199,7 @@ public class ETagFieldsHopAnalyzer {
 
     Schema current = root;
     int hops = 0;
+    boolean belowEmbedded = false;
     for (int i = 0; i < segments.size(); i++) {
       String segment = stripExcludeMarker(segments.get(i));
       if (isPreset(segment)) {
@@ -160,14 +212,21 @@ public class ETagFieldsHopAnalyzer {
       if (property == null) {
         return true; // empty or unknown segment (includes attribute UIDs), fail safe
       }
+      boolean descends = i < segments.size() - 1;
       if (isReference(property)) {
         hops++;
         if (hops >= 2) {
           return true;
         }
+        if (descends && belowEmbedded && !root.getReferences().contains(targetType(property))) {
+          // a reference held by an embedded object is not a direct reference of the root: its
+          // fields are outside the dependency set (a leaf id-stub is stored with the root)
+          return true;
+        }
         current = schemaFor(property);
-      } else if (i < segments.size() - 1) {
+      } else if (descends) {
         // complex/embedded property with nested segments: same-row data, no hop
+        belowEmbedded = true;
         current = schemaFor(property);
       }
     }
@@ -198,8 +257,13 @@ public class ETagFieldsHopAnalyzer {
 
   @CheckForNull
   private Schema schemaFor(Property property) {
-    Class<?> target = property.isCollection() ? property.getItemKlass() : property.getKlass();
+    Class<?> target = targetType(property);
     return target == null ? null : schemaService.getSchema(target);
+  }
+
+  @CheckForNull
+  private static Class<?> targetType(Property property) {
+    return property.isCollection() ? property.getItemKlass() : property.getKlass();
   }
 
   private static String stripExcludeMarker(String segment) {
