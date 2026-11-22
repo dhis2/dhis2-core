@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.ETagService;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.ETagCacheActivation;
@@ -134,22 +135,26 @@ public class ETagLocalService implements ETagService, InitializingBean {
   }
 
   @Override
+  @NonTransactional
   public long getAllCacheVersion() {
     return allCacheVersion.get();
   }
 
   @Override
+  @NonTransactional
   public long incrementAllCacheVersion() {
     return allCacheVersion.incrementAndGet();
   }
 
   @Override
+  @NonTransactional
   public long getEntityTypeVersion(@Nonnull Class<?> entityType) {
     AtomicLong version = entityTypeVersions.get(entityType.getName());
     return version != null ? version.get() : 0L;
   }
 
   @Override
+  @NonTransactional
   public long incrementEntityTypeVersion(@Nonnull Class<?> entityType) {
     String key = entityType.getName();
     long newVersion =
@@ -159,6 +164,7 @@ public class ETagLocalService implements ETagService, InitializingBean {
   }
 
   @Override
+  @NonTransactional
   public long getNamedVersion(@Nonnull String key) {
     AtomicLong version = namedVersions.get(key);
     return version != null ? version.get() : 0L;
@@ -173,6 +179,7 @@ public class ETagLocalService implements ETagService, InitializingBean {
    * update the pinned key-set test in {@code ETagLocalServiceCardinalityTest}.
    */
   @Override
+  @NonTransactional
   public long incrementNamedVersion(@Nonnull String key) {
     long newVersion = namedVersions.computeIfAbsent(key, k -> new AtomicLong(0)).incrementAndGet();
     log.debug("Incremented named version for {} to {}", key, newVersion);
@@ -180,11 +187,13 @@ public class ETagLocalService implements ETagService, InitializingBean {
   }
 
   @Override
+  @NonTransactional
   public boolean isEnabled() {
     return ETagCacheActivation.isEffectivelyEnabled(configurationProvider);
   }
 
   @Override
+  @NonTransactional
   public int getTtlMinutes() {
     return Integer.parseInt(
         configurationProvider.getPropertyOrDefault(
@@ -193,6 +202,7 @@ public class ETagLocalService implements ETagService, InitializingBean {
   }
 
   @Override
+  @NonTransactional
   public int getStaleWhileRevalidateSeconds() {
     return Integer.parseInt(
         configurationProvider.getPropertyOrDefault(

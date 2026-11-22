@@ -31,6 +31,7 @@ package org.hisp.dhis.cacheinvalidation.etag;
 
 import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.ETagService;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.external.conf.ETagCacheDisabledCondition;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -46,46 +47,55 @@ import org.springframework.stereotype.Service;
 public class ETagNoOpService implements ETagService {
 
   @Override
+  @NonTransactional
   public long getAllCacheVersion() {
     return 0L;
   }
 
   @Override
+  @NonTransactional
   public long incrementAllCacheVersion() {
     return 0L;
   }
 
   @Override
+  @NonTransactional
   public long getEntityTypeVersion(@Nonnull Class<?> entityType) {
     return 0L;
   }
 
   @Override
+  @NonTransactional
   public long incrementEntityTypeVersion(@Nonnull Class<?> entityType) {
     return 0L;
   }
 
   @Override
+  @NonTransactional
   public long getNamedVersion(@Nonnull String key) {
     return 0L;
   }
 
   @Override
+  @NonTransactional
   public long incrementNamedVersion(@Nonnull String key) {
     return 0L;
   }
 
   @Override
+  @NonTransactional
   public boolean isEnabled() {
     return false;
   }
 
   @Override
+  @NonTransactional
   public int getTtlMinutes() {
     return 0;
   }
 
   @Override
+  @NonTransactional
   public int getStaleWhileRevalidateSeconds() {
     return 0;
   }

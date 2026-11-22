@@ -51,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.ETagService;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,6 +114,7 @@ public class ETagConditionalService {
    *
    * @return true if enabled, false otherwise
    */
+  @NonTransactional
   public boolean isEnabled() {
     return eTagVersionService.isEnabled();
   }
@@ -124,6 +126,7 @@ public class ETagConditionalService {
    * @param entityType the entity class (e.g., OrganisationUnit.class)
    * @return the generated hashed ETag value (without quotes)
    */
+  @NonTransactional
   public String generateETag(@Nonnull UserDetails userDetails, @Nonnull Class<?> entityType) {
     String userUid = userDetails.getUid();
     String entityTypeName = entityType.getName();
@@ -151,6 +154,7 @@ public class ETagConditionalService {
    * @param entityTypes the entity classes this endpoint depends on
    * @return the generated hashed ETag value (without quotes)
    */
+  @NonTransactional
   public String generateETag(
       @Nonnull UserDetails userDetails, @Nonnull Collection<Class<?>> entityTypes) {
     String userUid = userDetails.getUid();
@@ -179,6 +183,7 @@ public class ETagConditionalService {
    * @param namedKeys non-entity version key names this endpoint depends on (may be empty)
    * @return the generated hashed ETag value (without quotes)
    */
+  @NonTransactional
   public String generateETag(
       @Nonnull UserDetails userDetails,
       @Nonnull Collection<Class<?>> entityTypes,
@@ -255,6 +260,7 @@ public class ETagConditionalService {
    * @param currentETag the current ETag value (without quotes)
    * @return true if the cached response is still valid (304 should be returned)
    */
+  @NonTransactional
   public boolean checkNotModified(
       @Nonnull HttpServletRequest request, @Nonnull String currentETag) {
     String ifNoneMatch = request.getHeader(HttpHeaders.IF_NONE_MATCH);
@@ -286,6 +292,7 @@ public class ETagConditionalService {
    * @param response the HTTP response to set headers on
    * @param currentETag the already computed ETag value (without quotes)
    */
+  @NonTransactional
   public void setETagHeaders(@Nonnull HttpServletResponse response, @Nonnull String currentETag) {
     response.setHeader(HttpHeaders.ETAG, quote(currentETag));
     response.setHeader(HttpHeaders.VARY, "Accept, Cookie, Authorization");
