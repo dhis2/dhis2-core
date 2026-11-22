@@ -43,6 +43,7 @@ import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,7 +94,7 @@ class DmlObserverListenerTest {
     "true, INSERT INTO audit (data) VALUES (?)",
     "false, INSERT INTO dataelement (uid) VALUES (?)"
   })
-  void afterQuery_doesNotBumpVersions(boolean autoCommit, String sql) {
+  void afterQuery_doesNotBumpVersions(boolean autoCommit, String sql) throws Exception {
     ExecutionInfo execInfo = createSuccessExecutionInfo(autoCommit);
     List<QueryInfo> queries = List.of(createQueryInfo(sql));
 
@@ -114,7 +115,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_ignoresDmlBeforeContextRefresh() {
+  void afterQuery_ignoresDmlBeforeContextRefresh() throws Exception {
     DmlObserverListener inactiveListener = new DmlObserverListener(registry, eTagService, null);
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
@@ -126,7 +127,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_insertOnAutoCommitBumpsVersionImmediately() {
+  void afterQuery_insertOnAutoCommitBumpsVersionImmediately() throws Exception {
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
 
@@ -136,7 +137,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_jobConfigurationUpdateBumpsVersion() {
+  void afterQuery_jobConfigurationUpdateBumpsVersion() throws Exception {
     // /api/jobConfigurations is a cached metadata endpoint, so its table must be observed
     when(registry.getTableInfo("jobconfiguration"))
         .thenReturn(
@@ -151,7 +152,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void commitOfAJoinTableWriteBumpsTheOwnersOfBothSides() throws java.sql.SQLException {
+  void commitOfAJoinTableWriteBumpsTheOwnersOfBothSides() throws Exception {
     // adding a user to a group writes only usergroupmembers
     when(registry.getTableInfo("usergroupmembers"))
         .thenReturn(
@@ -170,7 +171,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void commitBumpsVersionsForAccumulatedEvents() throws java.sql.SQLException {
+  void commitBumpsVersionsForAccumulatedEvents() throws Exception {
     // Accumulate an event
     ExecutionInfo execInfo = createSuccessExecutionInfo(false);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
@@ -185,7 +186,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void rollbackDoesNotBumpVersions() throws java.sql.SQLException {
+  void rollbackDoesNotBumpVersions() throws Exception {
     // Accumulate an event
     ExecutionInfo execInfo = createSuccessExecutionInfo(false);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
@@ -201,7 +202,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_multipleDmlOnAutoCommitBumpsForEachEntityType() {
+  void afterQuery_multipleDmlOnAutoCommitBumpsForEachEntityType() throws Exception {
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries =
         List.of(
@@ -215,7 +216,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_deleteOnAutoCommitBumpsVersionImmediately() {
+  void afterQuery_deleteOnAutoCommitBumpsVersionImmediately() throws Exception {
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries =
         List.of(createQueryInfo("DELETE FROM dataelement WHERE dataelementid = ?"));
@@ -226,8 +227,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_deduplicatesSameTableAndOperationWithinTransaction()
-      throws java.sql.SQLException {
+  void afterQuery_deduplicatesSameTableAndOperationWithinTransaction() throws Exception {
     // Simulate a bulk import: 100 INSERTs into the same table on the same connection
     for (int i = 0; i < 100; i++) {
       ExecutionInfo execInfo = createSuccessExecutionInfo(false);
@@ -246,7 +246,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_differentEntityTypesHaveSeparateVersionBumps() throws java.sql.SQLException {
+  void afterQuery_differentEntityTypesHaveSeparateVersionBumps() throws Exception {
     ExecutionInfo execInfo = createSuccessExecutionInfo(false);
     listener.afterQuery(
         execInfo, List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)")));
@@ -263,8 +263,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_sameEntityTypeDifferentOperationsDeduplicatedByEntityType()
-      throws java.sql.SQLException {
+  void afterQuery_sameEntityTypeDifferentOperationsDeduplicatedByEntityType() throws Exception {
     ExecutionInfo execInfo = createSuccessExecutionInfo(false);
     listener.afterQuery(
         execInfo, List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)")));
@@ -283,7 +282,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_deduplicationResetsAfterCommit() throws java.sql.SQLException {
+  void afterQuery_deduplicationResetsAfterCommit() throws Exception {
     ExecutionInfo execInfo = createSuccessExecutionInfo(false);
 
     // First transaction: INSERT into dataelement
@@ -304,7 +303,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_nonMetadataEntityDoesNotBumpVersion() {
+  void afterQuery_nonMetadataEntityDoesNotBumpVersion() throws Exception {
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO datavalue (value) VALUES (?)"));
 
@@ -315,7 +314,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_unmappedTableDoesNotBumpVersion() {
+  void afterQuery_unmappedTableDoesNotBumpVersion() throws Exception {
     // Table with no registry mapping (entityClassName will be null)
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO unknowntable (uid) VALUES (?)"));
@@ -326,7 +325,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_exceptionInVersionBumpDoesNotPropagate() {
+  void afterQuery_exceptionInVersionBumpDoesNotPropagate() throws Exception {
     doThrow(new RuntimeException("Simulated version service failure"))
         .when(eTagService)
         .incrementEntityTypeVersion(DataElement.class);
@@ -340,7 +339,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_reportsWritesTheParserCannotRead() {
+  void afterQuery_reportsWritesTheParserCannotRead() throws Exception {
     UnmatchedDmlLog unmatched = mock(UnmatchedDmlLog.class);
     DmlObserverListener reporting =
         new DmlObserverListener(registry, eTagService, null, unmatched, System::nanoTime);
@@ -362,7 +361,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void sweepKeepsTheBatchOfATransactionThatIsStillWriting() throws java.sql.SQLException {
+  void sweepKeepsTheBatchOfATransactionThatIsStillWriting() throws Exception {
     AtomicLong now = new AtomicLong();
     DmlObserverListener timed =
         new DmlObserverListener(registry, eTagService, null, new UnmatchedDmlLog(), now::get);
@@ -386,7 +385,7 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void sweepOfAnAbandonedBatchBumpsItsTypes() {
+  void sweepOfAnAbandonedBatchBumpsItsTypes() throws Exception {
     AtomicLong now = new AtomicLong();
     DmlObserverListener timed =
         new DmlObserverListener(registry, eTagService, null, new UnmatchedDmlLog(), now::get);
@@ -404,8 +403,7 @@ class DmlObserverListenerTest {
     assertEquals(0, timed.pendingEventCount());
   }
 
-  @lombok.SneakyThrows
-  private ExecutionInfo createSuccessExecutionInfo(boolean autoCommit) {
+  private ExecutionInfo createSuccessExecutionInfo(boolean autoCommit) throws SQLException {
     ExecutionInfo execInfo = mock(ExecutionInfo.class);
     when(execInfo.isSuccess()).thenReturn(true);
     when(execInfo.getConnectionId()).thenReturn("test-conn-1");
@@ -427,8 +425,8 @@ class DmlObserverListenerTest {
     return queryInfo;
   }
 
-  @lombok.SneakyThrows
-  private MethodExecutionContext createMethodContext(Object target, String methodName) {
+  private MethodExecutionContext createMethodContext(Object target, String methodName)
+      throws NoSuchMethodException {
     MethodExecutionContext ctx = mock(MethodExecutionContext.class);
     when(ctx.getTarget()).thenReturn(target);
     Method method = Connection.class.getMethod(methodName);

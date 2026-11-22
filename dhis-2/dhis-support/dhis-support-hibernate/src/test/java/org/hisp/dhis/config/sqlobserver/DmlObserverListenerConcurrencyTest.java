@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,7 +90,7 @@ class DmlObserverListenerConcurrencyTest {
   }
 
   @RepeatedTest(5)
-  void concurrentBatchAccumulation_sameConnection() throws InterruptedException {
+  void concurrentBatchAccumulation_sameConnection() throws Exception {
     int threadCount = 20;
     int eventsPerThread = 50;
     String connectionId = "conn-concurrent-1";
@@ -139,7 +140,7 @@ class DmlObserverListenerConcurrencyTest {
   }
 
   @RepeatedTest(5)
-  void concurrentDifferentConnections() throws InterruptedException {
+  void concurrentDifferentConnections() throws Exception {
     int connectionCount = 10;
     int eventsPerConnection = 20;
 
@@ -181,7 +182,7 @@ class DmlObserverListenerConcurrencyTest {
   }
 
   @Test
-  void concurrentCommitAndAccumulation_noLostBumps() throws InterruptedException {
+  void concurrentCommitAndAccumulation_noLostBumps() throws Exception {
     // Simulate a race: one thread accumulating, another committing
     String connectionId = "conn-race-1";
     int iterations = 100;
@@ -232,7 +233,7 @@ class DmlObserverListenerConcurrencyTest {
   }
 
   @Test
-  void concurrentAutoCommitDoesNotInterfereWithBatches() throws InterruptedException {
+  void concurrentAutoCommitDoesNotInterfereWithBatches() throws Exception {
     // Mix of auto-commit and non-auto-commit on different connections
     String batchConnId = "conn-batch";
     int autoCommitCount = 50;
@@ -296,8 +297,8 @@ class DmlObserverListenerConcurrencyTest {
     assertEquals(autoCommitCount + 1, bumpCount.get());
   }
 
-  @lombok.SneakyThrows
-  private ExecutionInfo createSuccessExecutionInfo(boolean autoCommit, String connectionId) {
+  private ExecutionInfo createSuccessExecutionInfo(boolean autoCommit, String connectionId)
+      throws SQLException {
     ExecutionInfo execInfo = mock(ExecutionInfo.class);
     when(execInfo.isSuccess()).thenReturn(true);
     when(execInfo.getConnectionId()).thenReturn(connectionId);
@@ -323,9 +324,8 @@ class DmlObserverListenerConcurrencyTest {
     return queryInfo;
   }
 
-  @lombok.SneakyThrows
   private MethodExecutionContext createMethodContext(
-      Object target, String methodName, String connectionId) {
+      Object target, String methodName, String connectionId) throws NoSuchMethodException {
     MethodExecutionContext ctx = mock(MethodExecutionContext.class);
     when(ctx.getTarget()).thenReturn(target);
     Method method = Connection.class.getMethod(methodName);
