@@ -179,7 +179,8 @@ public class ETagFieldsHopAnalyzer {
       return Verdict.DEEP;
     }
     for (FieldPath path : paths) {
-      if (isDeep(root, path)) {
+      // exclusions remove fields, they never add data
+      if (!path.isExclude() && isDeep(root, path)) {
         return Verdict.DEEP;
       }
     }
@@ -187,18 +188,15 @@ public class ETagFieldsHopAnalyzer {
   }
 
   /**
-   * Walks one path root-to-leaf, counting reference hops. Returns {@code true} when the path
-   * escapes the one-hop dependency set or cannot be fully resolved.
+   * Walks one included path root-to-leaf. Returns {@code true} when the path crosses a second
+   * reference hop, descends into a reference held by an embedded object, or cannot be fully
+   * resolved: each escapes the one-hop dependency set.
    */
   private boolean isDeep(Schema root, FieldPath fieldPath) {
-    if (fieldPath.isExclude()) {
-      return false; // exclusions remove fields, they never add data
-    }
-
     List<String> segments = fieldPath.getPath().segments().map(CharSequence::toString).toList();
 
     Schema current = root;
-    int hops = 0;
+    boolean crossedReference = false;
     boolean belowEmbedded = false;
     for (int i = 0; i < segments.size(); i++) {
       String segment = stripExcludeMarker(segments.get(i));
@@ -214,15 +212,10 @@ public class ETagFieldsHopAnalyzer {
       }
       boolean descends = i < segments.size() - 1;
       if (isReference(property)) {
-        hops++;
-        if (hops >= 2) {
+        if (crossedReference || escapesBelowEmbedded(root, property, descends, belowEmbedded)) {
           return true;
         }
-        if (descends && belowEmbedded && !root.getReferences().contains(targetType(property))) {
-          // a reference held by an embedded object is not a direct reference of the root: its
-          // fields are outside the dependency set (a leaf id-stub is stored with the root)
-          return true;
-        }
+        crossedReference = true;
         current = schemaFor(property);
       } else if (descends) {
         // complex/embedded property with nested segments: same-row data, no hop
@@ -231,6 +224,15 @@ public class ETagFieldsHopAnalyzer {
       }
     }
     return false;
+  }
+
+  /**
+   * A reference held by an embedded object is not a direct reference of the root: descending into
+   * it leaves the dependency set (a leaf id-stub is stored with the root).
+   */
+  private static boolean escapesBelowEmbedded(
+      Schema root, Property property, boolean descends, boolean belowEmbedded) {
+    return descends && belowEmbedded && !root.getReferences().contains(targetType(property));
   }
 
   private static boolean isReference(Property property) {
