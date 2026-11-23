@@ -71,4 +71,24 @@ public interface StageQuerySqlFacade {
    */
   Optional<String> resolveWhereClause(
       QueryItem item, EventQueryParams params, AnalyticsType analyticsType);
+
+  /**
+   * Builds a SQL predicate for a stage date dimension whose requested periods contain gaps. For
+   * example, selecting {@code 2022Q1;2022Q3} includes January through March and July through
+   * September. Each interval starts on the first day and uses the day after the last as its
+   * exclusive upper bound.
+   *
+   * <p>Returns empty when the periods form a single interval, any value cannot be parsed as a
+   * period, or the item is outside the query's stage date dimensions. A date item selected for
+   * FIRST/LAST aggregation also keeps its existing lookback filter.
+   *
+   * @param item the query item whose requested periods are evaluated
+   * @param params the planned aggregate query containing the dimensions and any FIRST/LAST
+   *     selection
+   * @param dateColumn the SQL date column, quoted and qualified as needed in the caller's scope
+   * @return a parenthesized predicate joining disjoint intervals with {@code OR}, or an empty
+   *     optional to use the item's existing filters
+   */
+  Optional<String> resolveDisjointPeriodFilter(
+      QueryItem item, EventQueryParams params, String dateColumn);
 }

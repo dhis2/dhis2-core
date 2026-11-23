@@ -32,11 +32,15 @@ package org.hisp.dhis.common;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
@@ -45,6 +49,7 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -238,5 +243,50 @@ class QueryItemTest {
     qiB.setRepeatableStageParams(rspB);
 
     assertNotEquals(qiA.getKey(), qiB.getKey());
+  }
+
+  @Test
+  void testCopyHasTheSameValueInEveryField() throws IllegalAccessException {
+    QueryItem item = createItemWithEveryFieldSet();
+
+    QueryItem copy = item.copy();
+
+    for (Field field : QueryItem.class.getDeclaredFields()) {
+      if (Modifier.isStatic(field.getModifiers())) {
+        continue;
+      }
+      field.setAccessible(true);
+      assertNotNull(field.get(item), "Field not set by the test: " + field.getName());
+      assertEquals(field.get(item), field.get(copy), "Field not copied: " + field.getName());
+    }
+  }
+
+  @Test
+  void testCopyHasItsOwnFiltersAndDimensionValues() {
+    QueryItem item = createItemWithEveryFieldSet();
+
+    QueryItem copy = item.copy();
+    copy.addFilter(new QueryFilter(QueryOperator.LE, "2022-12-31"));
+    copy.addDimensionValue("2023");
+
+    assertEquals(List.of(new QueryFilter(QueryOperator.GE, "2022-01-01")), item.getFilters());
+    assertEquals(List.of("2022"), item.getDimensionValues());
+  }
+
+  private QueryItem createItemWithEveryFieldSet() {
+    ProgramStage stage = new ProgramStage("StageA", prA);
+    stage.setUid("PSUIDA");
+    QueryItem item =
+        new QueryItem(
+            deA, prA, lsA, ValueType.TEXT, AggregationType.SUM, osA, new RelationshipType());
+    item.setGroupUUID(UUID.randomUUID());
+    item.setOption(opA);
+    item.setProgramStage(stage);
+    item.setRepeatableStageParams(rspA);
+    item.setUnique(true);
+    item.setCustomHeader(AnalyticsCustomHeader.forEventDate(stage));
+    item.addFilter(new QueryFilter(QueryOperator.GE, "2022-01-01"));
+    item.addDimensionValue("2022");
+    return item;
   }
 }

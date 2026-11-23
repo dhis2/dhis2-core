@@ -468,6 +468,41 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageEventDateWithPeriodsOfDifferentTypes",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2021;2022Q1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageEventDateWithOverlappingPeriodsOfDifferentTypes",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2022;2022Q1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageEventDateWithRelativePeriodsOfDifferentTypes",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_12_MONTHS;THIS_YEAR&relativePeriodDate=2022-06-15",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageEventDateWithNonconsecutiveQuartersAndYear",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2021;2022Q1;2022Q3",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "repeatableStageDateWithLatestEventInPeriodGap",
+      "query": "/api/analytics/enrollments/aggregate/flProg00001.json?dimension=ou:PwoQgMJNWbR&dimension=flBirth0001.EVENT_DATE:202201;202204",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
