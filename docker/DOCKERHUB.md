@@ -81,14 +81,44 @@ Docker containers.
 
 # How to configure this image
 
+There are two kinds of images.
+
+* DHIS2 2.44 and later, including `dhis2/core-dev:latest`: DHIS2 runs on an embedded Tomcat. The
+  image is based on a [distroless](https://github.com/GoogleContainerTools/distroless) Java image,
+  the DHIS2 WAR is at `/app/dhis.war` and is started with `java -jar`. The image has no shell and no
+  tools like `curl`, `wget` or `tar`.
+* DHIS2 2.43 and earlier: the image is based on the [Tomcat](https://hub.docker.com/_/tomcat) image
+  and DHIS2 is unpacked into `/usr/local/tomcat/webapps/ROOT`.
+
+## JVM options
+
+Set JVM options using the environment variable `JAVA_TOOL_OPTIONS`. This works with both kinds of
+images.
+
 ## Context path
 
 To deploy DHIS2 under a different context then root (`/`) configure the context path by setting the
 environment variable
 
-`CATALINA_OPTS: "-Dcontext.path='/dhis2'"`
+* DHIS2 2.44 and later: `SERVER_SERVLET_CONTEXT_PATH: "/dhis2"`
+* DHIS2 2.43 and earlier: `CATALINA_OPTS: "-Dcontext.path='/dhis2'"`
 
 DHIS2 should be available at `http://localhost:8080/dhis2`.
+
+## Health checks
+
+Use `http://localhost:8080/api/ping` to check if DHIS2 is up, for example in a Kubernetes HTTP probe.
+The images of DHIS2 2.44 and later have no tool to run a health check from inside the container. In
+Docker Compose you can use a second container that shares the network of the DHIS2 container
+
+```yaml
+  web-healthcheck:
+    image: curlimages/curl
+    network_mode: service:web
+    command: ["sleep", "infinity"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/api/ping"]
+```
 
 ## DHIS2_HOME
 

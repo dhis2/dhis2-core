@@ -156,9 +156,11 @@ For more configuration options related to Jib or Docker go to [docker/image/pom.
 
 To deploy DHIS2 under a different context then root (`/`) configure the context path by setting the environment variable.
 
-`CATALINA_OPTS: "-Dcontext.path='/dhis2'"`
+`SERVER_SERVLET_CONTEXT_PATH: "/dhis2"`
 
 DHIS2 should be available at `http://localhost:8080/dhis2`.
+
+Images of DHIS2 2.43 and earlier are based on the Tomcat image and use `CATALINA_OPTS: "-Dcontext.path='/dhis2'"` instead.
 
 ##### Overriding default values
 

@@ -5,7 +5,7 @@ set -euo pipefail
 # The image is built by the Jib Maven plugin from an existing WAR, see docker/image/pom.xml.
 IMAGE_POM=${IMAGE_POM:-'docker/image/pom.xml'}
 # Image profile of docker/image/pom.xml: "tomcat" (Tomcat base image) or "embedded" (embedded Tomcat).
-IMAGE_PROFILE=${IMAGE_PROFILE:-'tomcat'}
+IMAGE_PROFILE=${IMAGE_PROFILE:-'embedded'}
 # Tomcat base image of the "tomcat" profile. The default is defined in docker/image/pom.xml.
 BASE_IMAGE=${BASE_IMAGE:-}
 IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-'dhis2/core'}
@@ -30,7 +30,8 @@ function help() {
    echo 'Environment variables:'
    echo 'ARCHITECTURES   Space-separated list of architectures to build. Defaults to "amd64".'
    echo '                Example: ARCHITECTURES="amd64 arm64" build-docker-image.sh -t 40.1.1 -d'
-   echo 'IMAGE_PROFILE   Image profile of docker/image/pom.xml: "tomcat" or "embedded". Defaults to "tomcat".'
+   echo 'IMAGE_PROFILE   Image profile of docker/image/pom.xml: "embedded" or "tomcat". Defaults to "embedded".'
+   echo '                Use "tomcat" for DHIS2 2.43 and earlier.'
    echo 'BASE_IMAGE      Tomcat base image of the "tomcat" profile. Defaults to the one in docker/image/pom.xml.'
    echo 'WAR_PATH        WAR to build the image from, must be named dhis.war. Not used with -r.'
    echo
@@ -150,6 +151,16 @@ function use_new_war() {
 # Builds the image for all architectures and pushes it as one multi-architecture image (manifest list).
 function build_main_image() {
   echo "Building image for version $image_tag with image profile $IMAGE_PROFILE ..."
+
+  if [[ "$IMAGE_PROFILE" == 'embedded' ]]; then
+    local manifest
+    manifest="$(unzip -p "$war_dir/$war_name" META-INF/MANIFEST.MF)"
+    if [[ "$manifest" != *'Main-Class:'* ]]; then
+      echo "Error: $war_dir/$war_name cannot be started with \"java -jar\"."
+      echo 'Build DHIS2 with the Maven profile "embedded", or set IMAGE_PROFILE=tomcat for DHIS2 2.43 and earlier.'
+      exit 1
+    fi
+  fi
 
   local -a arch_list
   read -ra arch_list <<< "$ARCHITECTURES"

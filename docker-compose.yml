@@ -7,7 +7,7 @@ x-web-base: &web-base
     - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
   environment:
     # JAVA_TOOL_OPTIONS: Standard JVM environment variable, works with all image types
-    # (both tomcat-based dhis2/core-dev:latest and distroless dhis2/core-dev:local)
+    # (embedded Tomcat images of DHIS2 2.44 and later, Tomcat based images of earlier versions)
     JAVA_TOOL_OPTIONS:
       "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
       -Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml

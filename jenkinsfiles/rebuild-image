@@ -40,8 +40,10 @@ pipeline {
                         // hence we have to use the version "name" from the stable.json as the matching git tag.
                         env.VERSIONS_TO_REBUILD.tokenize(" ").each { version ->
                             def majorVersion = version.split('\\.')[0].toInteger()
+                            // 2.44 and later run the WAR on embedded Tomcat, earlier versions on a Tomcat base image.
+                            // An empty BASE_IMAGE uses the base image defined in docker/image/pom.xml.
+                            env.IMAGE_PROFILE = majorVersion >= 44 ? "embedded" : "tomcat"
                             if (majorVersion >= 42) {
-                                // Use the Tomcat base image defined in docker/image/pom.xml.
                                 env.BASE_IMAGE = ""
                             } else if (majorVersion == 41) {
                                 env.BASE_IMAGE = "tomcat:9.0-jre17"
