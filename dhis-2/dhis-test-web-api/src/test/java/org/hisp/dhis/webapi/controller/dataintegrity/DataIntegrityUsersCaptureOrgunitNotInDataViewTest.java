@@ -137,4 +137,107 @@ class DataIntegrityUsersCaptureOrgunitNotInDataViewTest
 
     assertTrue(detailsRefs.contains("Fish District"));
   }
+
+  @Test
+  void testDataCaptureUnitBelowHierarchyUnitIsNotFlagged() {
+    String districtUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
+    String clinicUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish Clinic', 'shortName': 'Fish Clinic', 'openingDate' : '2022-01-01', "
+                    + "'parent': {'id' : '"
+                    + districtUid
+                    + "'}}"));
+    String otherDistrictUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}"));
+
+    // capture below the hierarchy unit: OK
+    postUser("bobbytables", clinicUid, districtUid);
+    // capture above the hierarchy unit: flagged
+    String userAboveUid = postUser("janedoe", districtUid, clinicUid);
+    // capture in two hierarchies, only one of them covered: flagged for the uncovered one
+    String userMixedUid =
+        postUser("tommytables", clinicUid + "'}, {'id' : '" + otherDistrictUid, districtUid);
+
+    // 2 users out of 4, thus 50% of users have data integrity issues
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE,
+        CHECK_NAME,
+        50,
+        Set.of(userAboveUid, userMixedUid),
+        Set.of(),
+        Set.of(),
+        true);
+
+    JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues =
+        getDetails(CHECK_NAME).getIssues();
+    assertEquals(2, issues.size());
+    for (JsonDataIntegrityDetails.JsonDataIntegrityIssue issue : issues) {
+      Set<String> refs =
+          issue.getRefs().stream().map(JsonString::string).collect(toUnmodifiableSet());
+      assertEquals(
+          issue.getId().equals(userAboveUid) ? Set.of("Fish District") : Set.of("Pizza District"),
+          refs);
+    }
+  }
+
+  @Test
+  void testDataCaptureUnitsAllWithinHierarchyReportsZero() {
+    String districtUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
+    String clinicUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish Clinic', 'shortName': 'Fish Clinic', 'openingDate' : '2022-01-01', "
+                    + "'parent': {'id' : '"
+                    + districtUid
+                    + "'}}"));
+
+    // capture at and below the hierarchy unit: nobody is flagged
+    postUser("bobbytables", clinicUid, districtUid);
+    postUser("janedoe", districtUid, districtUid);
+
+    // The summary must still return a row with zero, not fail the check (count -1)
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, true);
+  }
+
+  private String postUser(String username, String captureUids, String hierarchyUid) {
+    String roleUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/userRoles",
+                "{ 'name': 'Role " + username + "', 'authorities': ['F_DATAVALUE_ADD'] }"));
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/users",
+            "{ 'username': '"
+                + username
+                + "', 'password': 'District123+', 'firstName': 'First', 'surname': 'Last', "
+                + "'organisationUnits' : [{'id' : '"
+                + captureUids
+                + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
+                + hierarchyUid
+                + "'}], 'userRoles' : [{'id' : '"
+                + roleUid
+                + "'}]}"));
+  }
 }

@@ -54,7 +54,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -107,13 +106,13 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
 
   @Autowired private IndicatorService indicatorService;
 
-  @Autowired private ConfigurationService configurationService;
-
   private Period jan;
 
   private Period feb;
 
   private Period mar;
+
+  private Period apr;
 
   private Period q1;
 
@@ -132,14 +131,17 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
     jan = createPeriod("2022-01");
     feb = createPeriod("2022-02");
     mar = createPeriod("2022-03");
+    apr = createPeriod("2022-04");
     q1 = createPeriod("2022Q1");
     periodService.addPeriod(jan);
     periodService.addPeriod(feb);
     periodService.addPeriod(mar);
+    periodService.addPeriod(apr);
     periodService.addPeriod(q1);
     jan = periodService.reloadPeriod(jan);
     feb = periodService.reloadPeriod(feb);
     mar = periodService.reloadPeriod(mar);
+    apr = periodService.reloadPeriod(apr);
     q1 = periodService.reloadPeriod(q1);
 
     ouA = createOrganisationUnit('A');
@@ -296,6 +298,28 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testPeriodOffsetWithOrgUnitBeforePeriodAndOnlyShiftedPeriodData() {
+    expected = List.of("inabcdefghA-ouabcdefghA-202204-3.0");
+
+    result = queryWithOrgUnitBeforePeriod("#{deabcdefghA}.periodOffset(-1)", apr);
+
+    assertEquals(expected, result);
+  }
+
+  @Test
+  void testPeriodOffsetWithOrgUnitBeforePeriod() {
+    expected =
+        List.of(
+            "inabcdefghA-ouabcdefghA-202202-1.0",
+            "inabcdefghA-ouabcdefghA-202203-2.0",
+            "inabcdefghA-ouabcdefghA-202204-3.0");
+
+    result = queryWithOrgUnitBeforePeriod("#{deabcdefghA}.periodOffset(-1)", jan, feb, mar, apr);
+
+    assertEquals(expected, result);
+  }
+
+  @Test
   void testInsideAndOutsidePeriodOffset() {
     expected =
         List.of("inabcdefghA-202201-3.0", "inabcdefghA-202202-5.0", "inabcdefghA-202203-3.0");
@@ -440,6 +464,17 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
     assertEquals(expected, result);
   }
 
+  @Test
+  void testPeriodOffsetSubExpression() {
+    expected =
+        List.of("inabcdefghA-202201-1.0", "inabcdefghA-202202-3.0", "inabcdefghA-202203-5.0");
+
+    result =
+        query("subExpression(#{deabcdefghA} + #{deabcdefghA}.periodOffset(-1))", jan, feb, mar);
+
+    assertEquals(expected, result);
+  }
+
   @AfterAll
   void cleanUpRefs() {
     cleanPeriodTypes();
@@ -466,15 +501,34 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
 
   /** Queries analytics with an indicator expression. */
   private List<String> query(String expression, Period... periods) {
+    return query(
+        expression,
+        DataQueryParams.newBuilder()
+            .withFilterOrganisationUnits(List.of(ouA))
+            .withPeriods(Stream.of(periods).map(PeriodDimension::of).toList()));
+  }
+
+  /**
+   * Queries analytics with an indicator expression, with the org unit dimension placed before the
+   * period dimension.
+   */
+  private List<String> queryWithOrgUnitBeforePeriod(String expression, Period... periods) {
+    return query(
+        expression,
+        DataQueryParams.newBuilder()
+            .withOrganisationUnits(List.of(ouA))
+            .withPeriods(Stream.of(periods).map(PeriodDimension::of).toList()));
+  }
+
+  /** Queries analytics with an indicator expression and the given org unit and period setup. */
+  private List<String> query(String expression, DataQueryParams.Builder builder) {
     indicatorA.setNumerator(expression);
     indicatorService.updateIndicator(indicatorA);
 
     DataQueryParams params =
-        DataQueryParams.newBuilder()
+        builder
             .withIndicators(List.of(indicatorA))
             .withAggregationType(AnalyticsAggregationType.SUM)
-            .withFilterOrganisationUnits(List.of(ouA))
-            .withPeriods(Stream.of(periods).map(PeriodDimension::of).toList())
             .withOutputFormat(OutputFormat.ANALYTICS)
             .build();
 

@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.singleevent;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
@@ -79,15 +80,18 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.Geometries;
+import org.hisp.dhis.tracker.export.JdbcNotes;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.export.OrgUnitQueryBuilder;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
+import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -96,24 +100,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.singleevent.EventStore")
 @RequiredArgsConstructor
 class JdbcSingleEventStore {
-  private static final String EVENT_NOTE_QUERY =
-      """
-      select evn.eventid as evn_id,\
-       n.noteid as note_id,\
-       n.notetext as note_text,\
-       n.created as note_created,\
-       n.uid as note_uid,\
-       userinfo.userinfoid as note_user_id,\
-       userinfo.code as note_user_code,\
-       userinfo.uid as note_user_uid,\
-       userinfo.username as note_user_username,\
-       userinfo.firstname as note_user_firstname,\
-       userinfo.surname as note_user_surname\
-       from singleevent_notes evn\
-       inner join note n\
-       on evn.noteid = n.noteid\
-       left join userinfo on n.lastupdatedby = userinfo.userinfoid\s""";
-
   private static final String DEFAULT_ORDER = "ev_occurreddate desc, ev_id desc";
 
   private static final String PK_COLUMN = "ev_id";
@@ -149,7 +135,16 @@ class JdbcSingleEventStore {
   private static final ObjectReader eventDataValueJsonReader =
       JsonBinaryType.MAPPER.readerFor(new TypeReference<Map<String, EventDataValue>>() {});
 
+  /** Export reads. Enforces the tracker export deadline. */
+  @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate jdbcTemplate;
+
+  /**
+   * The sync timestamp write. Kept on the primary template: it is a write, called by the data sync
+   * job rather than by any export endpoint, so it must not be bounded by an export deadline.
+   */
+  @Qualifier("namedParameterJdbcTemplate")
+  private final NamedParameterJdbcTemplate writeJdbcTemplate;
 
   public List<SingleEvent> getEvents(SingleEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
@@ -161,6 +156,10 @@ class JdbcSingleEventStore {
   }
 
   private List<SingleEvent> fetchEvents(SingleEventQueryParams queryParams, PageParams pageParams) {
+    if (queryParams.getProgram() == null && queryParams.getAccessibleProgramStages().isEmpty()) {
+      return List.of();
+    }
+
     Map<String, SingleEvent> eventsByUid;
     if (pageParams == null) {
       eventsByUid = new HashMap<>();
@@ -182,7 +181,6 @@ class JdbcSingleEventStore {
         sql,
         sqlParameters,
         resultSet -> {
-          Set<String> notes = new HashSet<>();
           // data elements per event
           Map<String, Set<String>> dataElementUids = new HashMap<>();
 
@@ -311,6 +309,13 @@ class JdbcSingleEventStore {
                             resultSet.getString("ev_eventdatavalues")));
               }
 
+              if (queryParams.isIncludeNotes()) {
+                List<Note> notes = JdbcNotes.fromJson(resultSet.getString("notes"));
+                if (notes != null) {
+                  event.getNotes().addAll(notes);
+                }
+              }
+
               events.add(event);
             }
 
@@ -329,28 +334,6 @@ class JdbcSingleEventStore {
                   dataElementUids.get(eventUid).add(dataElementUid);
                 }
               }
-            }
-
-            if (resultSet.getString("note_text") != null
-                && !notes.contains(resultSet.getString("note_id"))) {
-              Note note = new Note();
-              note.setUid(resultSet.getString("note_uid"));
-              note.setNoteText(resultSet.getString("note_text"));
-              note.setCreated(resultSet.getTimestamp("note_created"));
-
-              if (resultSet.getObject("note_user_id") != null) {
-                User noteLastUpdatedBy = new User();
-                noteLastUpdatedBy.setId(resultSet.getLong("note_user_id"));
-                noteLastUpdatedBy.setCode(resultSet.getString("note_user_code"));
-                noteLastUpdatedBy.setUid(resultSet.getString("note_user_uid"));
-                noteLastUpdatedBy.setUsername(resultSet.getString("note_user_username"));
-                noteLastUpdatedBy.setFirstName(resultSet.getString("note_user_firstname"));
-                noteLastUpdatedBy.setSurname(resultSet.getString("note_user_surname"));
-                note.setLastUpdatedBy(noteLastUpdatedBy);
-              }
-
-              event.getNotes().add(note);
-              notes.add(resultSet.getString("note_id"));
             }
           }
 
@@ -373,7 +356,7 @@ class JdbcSingleEventStore {
             .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
             .addValue("uids", eventUids);
 
-    jdbcTemplate.update(sql, parameters);
+    writeJdbcTemplate.update(sql, parameters);
   }
 
   private EventDataValue parseEventDataValue(
@@ -475,7 +458,7 @@ class JdbcSingleEventStore {
       SingleEventQueryParams params,
       boolean hasProgramJoin) {
     SqlHelper hlp = new SqlHelper(true);
-    addDataElementConditions(sql, sqlParams, params);
+    addDataElementConditions(sql, sqlParams, params, hlp);
     if (hasProgramJoin) {
       addProgramConditions(sql, sqlParams, params, hlp);
     } else {
@@ -516,7 +499,10 @@ class JdbcSingleEventStore {
       PageParams pageParams,
       MapSqlParameterSource mapSqlParameterSource,
       UserDetails user) {
-    StringBuilder sqlBuilder = new StringBuilder("select *");
+    StringBuilder sqlBuilder = new StringBuilder("select event.*");
+    if (queryParams.isIncludeNotes()) {
+      sqlBuilder.append(", notes.jsonnotes as notes");
+    }
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
       sqlBuilder.append(
@@ -533,9 +519,11 @@ class JdbcSingleEventStore {
       sqlBuilder.append(getLimitAndOffsetClause(pageParams));
     }
 
-    sqlBuilder.append(") as event left join (");
-    sqlBuilder.append(EVENT_NOTE_QUERY);
-    sqlBuilder.append(") as cm on event.ev_id=cm.evn_id ");
+    sqlBuilder.append(") as event ");
+
+    if (queryParams.isIncludeNotes()) {
+      sqlBuilder.append(JdbcNotes.leftJoinLateral("singleeventid", "event.ev_id"));
+    }
 
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
@@ -719,7 +707,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private void addWhereConditions(
       StringBuilder sql, MapSqlParameterSource sqlParams, SingleEventQueryParams params) {
     SqlHelper hlp = new SqlHelper(true);
-    addDataElementConditions(sql, sqlParams, params);
+    addDataElementConditions(sql, sqlParams, params, hlp);
     addProgramConditions(sql, sqlParams, params, hlp);
     addLastUpdatedConditions(sql, sqlParams, params, hlp);
     addCategoryOptionComboConditions(sql, sqlParams, params, hlp);
@@ -733,9 +721,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private void addDataElementConditions(
-      StringBuilder sql, MapSqlParameterSource sqlParams, SingleEventQueryParams params) {
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
     if (!params.getDataElements().isEmpty()) {
-      sql.append(" and ");
+      sql.append(hlp.whereAnd());
       addPredicates(sql, sqlParams, params.getDataElements());
       sql.append(" ");
     }
@@ -749,6 +740,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     if (params.getProgram() != null) {
       sqlParams.addValue("programstageid", params.getProgramStage().getId());
       sql.append(hlp.whereAnd()).append(" ev.programstageid = :programstageid ");
+    } else {
+      sqlParams.addValue(
+          "programstageid",
+          params.getAccessibleProgramStages().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessibleProgramStages()));
+      sql.append(hlp.whereAnd()).append(" ev.programstageid in (:programstageid) ");
     }
   }
 

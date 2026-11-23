@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -42,7 +43,9 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
@@ -288,6 +291,36 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
                 "updated program attribute value",
                 changeLogs.getItems().get(0)),
         () -> assertCreate(programAttribute, "Frank PTEA", changeLogs.getItems().get(1)));
+  }
+
+  @Test
+  void shouldNotReturnChangeLogsForAttributeWhenUserCannotReadAttribute()
+      throws NotFoundException, ForbiddenException, BadRequestException {
+    String trackedEntity = "QS6w44flWAf";
+    String integerAttr = "integerAttr";
+
+    // Remove metadata read access to the integer attribute. The import user is a superuser and
+    // bypasses attribute sharing, so query as a regular user who can access the tracked entity
+    // (matching org unit and publicly data-readable type) but is not allowed to read that
+    // attribute.
+    TrackedEntityAttribute attribute = manager.get(TrackedEntityAttribute.class, integerAttr);
+    attribute.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.updateNoAcl(attribute);
+    manager.flush();
+    manager.clear();
+
+    injectSecurityContextUser(manager.get(User.class, "Z7870757a75"));
+
+    Page<TrackedEntityChangeLog> changeLogs =
+        trackedEntityChangeLogService.getTrackedEntityChangeLog(
+            UID.of(trackedEntity), null, defaultOperationParams, defaultPageParams);
+
+    // The restricted attribute is filtered out, while change logs of other readable attributes of
+    // the same tracked entity are still returned.
+    assertNumberOfChanges(0, filterTrackedEntityAttribute(changeLogs, integerAttr));
+    assertFalse(
+        changeLogs.getItems().isEmpty(),
+        "expected change logs of other readable attributes to be returned");
   }
 
   private static void assertNumberOfChanges(int expected, List<TrackedEntityChangeLog> changeLogs) {

@@ -68,7 +68,6 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -100,6 +99,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Setter
 @Entity
 @Table(name = "optionset")
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class OptionSet extends BaseMetadataObject implements IdentifiableObject, VersionedObject {
 
   @Id
@@ -119,6 +119,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
 
+  @Type(type = "text")
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
@@ -127,7 +128,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "optionsetid", foreignKey = @ForeignKey(name = "fk_optionset_optionid"))
   @OrderBy(value = "sortOrder ASC")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private List<Option> options = new ArrayList<>();
 
   @Type(type = "jsbAttributeValues")
@@ -234,7 +235,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   // -------------------------------------------------------------------------
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "options", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "option", namespace = DxfNamespaces.DXF_2_0)
   public List<Option> getOptions() {

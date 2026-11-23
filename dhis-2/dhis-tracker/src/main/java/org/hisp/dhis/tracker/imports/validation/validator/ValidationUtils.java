@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,12 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1004;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1009;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +46,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -52,12 +55,13 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.option.Option;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -70,13 +74,16 @@ import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.UserDetails;
 import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 public class ValidationUtils {
   private ValidationUtils() {
     throw new IllegalStateException("Utility class");
@@ -118,7 +125,7 @@ public class ValidationUtils {
   public static List<MetadataIdentifier> validateDeletionMandatoryDataValue(
       Event event,
       @Nonnull ProgramStage programStage,
-      List<MetadataIdentifier> mandatoryDataElements) {
+      Collection<MetadataIdentifier> mandatoryDataElements) {
     if (!needsToValidateDataValues(event, programStage)) {
       return List.of();
     }
@@ -136,7 +143,7 @@ public class ValidationUtils {
       TrackerBundle bundle,
       Event event,
       @Nonnull ProgramStage programStage,
-      List<MetadataIdentifier> mandatoryDataElements) {
+      Collection<MetadataIdentifier> mandatoryDataElements) {
     if (!needsToValidateDataValues(event, programStage)) {
       return List.of();
     }
@@ -156,17 +163,17 @@ public class ValidationUtils {
   }
 
   private static Stream<MetadataIdentifier> getSavedDataValues(TrackerBundle bundle, Event event) {
-    Set<EventDataValue> savedDataValues;
+    return getSavedEventDataValues(bundle, event).stream()
+        .map(dv -> MetadataIdentifier.ofUid(dv.getDataElement()));
+  }
 
+  private static Set<EventDataValue> getSavedEventDataValues(TrackerBundle bundle, Event event) {
     if (isTrackerEvent(event)) {
       var trackerEvent = bundle.getPreheat().getTrackerEvent(event.getUID());
-      savedDataValues = trackerEvent != null ? trackerEvent.getEventDataValues() : Set.of();
-    } else {
-      var singleEvent = bundle.getPreheat().getSingleEvent(event.getUID());
-      savedDataValues = singleEvent != null ? singleEvent.getEventDataValues() : Set.of();
+      return trackerEvent != null ? trackerEvent.getEventDataValues() : Set.of();
     }
-
-    return savedDataValues.stream().map(dv -> MetadataIdentifier.ofUid(dv.getDataElement()));
+    var singleEvent = bundle.getPreheat().getSingleEvent(event.getUID());
+    return singleEvent != null ? singleEvent.getEventDataValues() : Set.of();
   }
 
   private static boolean isTrackerEvent(Event event) {
@@ -248,23 +255,54 @@ public class ValidationUtils {
         || bundle.findSingleEventByUid(event).isPresent();
   }
 
+  /** A soft deleted {@link Enrollment} or {@link TrackedEntity}. */
+  public record DeletedEntity(@Nonnull TrackerType type, @Nonnull String uid) {}
+
+  /**
+   * Finds the given enrollment if it is soft deleted, otherwise its tracked entity if that is soft
+   * deleted. Tracker data under a soft deleted enrollment or tracked entity must not be created,
+   * updated or linked to by a relationship.
+   */
+  public static Optional<DeletedEntity> findDeletedEnrollmentOrTrackedEntity(
+      @Nonnull Enrollment enrollment) {
+    if (enrollment.isDeleted()) {
+      return Optional.of(new DeletedEntity(TrackerType.ENROLLMENT, enrollment.getUid()));
+    }
+    TrackedEntity trackedEntity = enrollment.getTrackedEntity();
+    if (trackedEntity != null && trackedEntity.isDeleted()) {
+      return Optional.of(new DeletedEntity(TrackerType.TRACKED_ENTITY, trackedEntity.getUid()));
+    }
+    return Optional.empty();
+  }
+
   public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet(
-      Reporter reporter, TrackerDto dto, T optionalObject, @Nonnull String value) {
+      Reporter reporter,
+      TrackerPreheat preheat,
+      TrackerDto dto,
+      T optionalObject,
+      @Nonnull String value) {
     if (!optionalObject.hasOptionSet()) {
       return;
     }
-
-    Set<String> validCodes =
-        optionalObject.getOptionSet().getOptions().stream()
-            .map(Option::getCode)
-            .collect(Collectors.toSet());
 
     List<String> codes =
         optionalObject.getValueType().isMultiText()
             ? ValueType.splitMultiText(value)
             : List.of(value);
 
-    if (!validCodes.containsAll(codes)) {
+    Long optionSetId = optionalObject.getOptionSet().getId();
+    boolean allCodesValid =
+        codes.stream().allMatch(code -> preheat.isValidOptionCode(optionSetId, code));
+
+    if (!allCodesValid) {
+      if (!preheat.isOptionSetResolved(optionSetId)) {
+        // Diagnostic only, the validation outcome below is unchanged. An unresolved option set
+        // means the supplier never checked it, which is an internal bug rather than user error.
+        log.warn(
+            "Option set {} was never resolved during preheat; treating code {} as invalid",
+            optionalObject.getOptionSet().getUid(),
+            value);
+      }
       reporter.addError(dto, ValidationCode.E1125, value, optionalObject.getOptionSet().getUid());
     }
   }
@@ -311,7 +349,7 @@ public class ValidationUtils {
     }
 
     if (valueType.isFile()) {
-      validateFileNotAlreadyAssigned(reporter, bundle, dto, value);
+      validateFileAssignment(reporter, bundle, dto, value, object);
     }
   }
 
@@ -329,26 +367,78 @@ public class ValidationUtils {
         : null;
   }
 
-  private static void validateFileNotAlreadyAssigned(
+  /**
+   * A file value binds the file resource to the tracker object, after which the tracker API serves
+   * its content to everyone who can read that object. A new binding therefore needs a data value
+   * file that is either unassigned and uploaded by the importing user (or the importing user is a
+   * superuser), or already assigned to the object being updated. A value the same field of the
+   * object already holds is not a new binding.
+   */
+  private static void validateFileAssignment(
       Reporter reporter,
       TrackerBundle bundle,
-      org.hisp.dhis.tracker.imports.domain.TrackerDto trackerDto,
-      String value) {
-
+      TrackerDto dto,
+      String value,
+      ValueTypedDimensionalItemObject field) {
     FileResource fileResource = bundle.getPreheat().get(FileResource.class, value);
 
-    if (bundle.getStrategy(trackerDto).isCreate()) {
-      reporter.addErrorIf(
-          () -> fileResource != null && fileResource.isAssigned(), trackerDto, E1009, value);
-    } else if (bundle.getStrategy(trackerDto).isUpdate()) {
-      reporter.addErrorIf(
-          () ->
-              fileResource != null
-                  && fileResource.getFileResourceOwner() != null
-                  && !fileResource.getFileResourceOwner().equals(trackerDto.getUID().getValue()),
-          trackerDto,
-          E1009,
-          value);
+    // a missing file resource is reported by the value type validation
+    if (fileResource == null || isSavedFileValue(bundle, dto, value, field)) {
+      return;
     }
+
+    if (fileResource.getDomain() != FileResourceDomain.DATA_VALUE) {
+      reporter.addError(dto, E1004, value);
+      return;
+    }
+
+    if (fileResource.isAssigned()) {
+      UID uid = dto.getUID();
+      boolean ownedByDto =
+          bundle.getStrategy(dto).isUpdate()
+              && uid != null
+              && uid.getValue().equals(fileResource.getFileResourceOwner());
+      reporter.addErrorIf(() -> !ownedByDto, dto, E1009, value);
+      return;
+    }
+
+    UserDetails user = bundle.getUser();
+    reporter.addErrorIf(
+        () -> user == null || !(user.isSuper() || fileResource.isCreatedBy(user)),
+        dto,
+        E1004,
+        value);
+  }
+
+  /**
+   * @return true when the given field of the persisted object already holds the file value. Values
+   *     of other fields do not count, as they are not validated as files. The attributes of an
+   *     enrollment are stored on its tracked entity.
+   */
+  private static boolean isSavedFileValue(
+      TrackerBundle bundle, TrackerDto dto, String value, ValueTypedDimensionalItemObject field) {
+    String fieldUid = field.getUid();
+    TrackerPreheat preheat = bundle.getPreheat();
+    if (dto instanceof Event event) {
+      Set<EventDataValue> savedDataValues = getSavedEventDataValues(bundle, event);
+      return savedDataValues.stream()
+          .anyMatch(dv -> fieldUid.equals(dv.getDataElement()) && value.equals(dv.getValue()));
+    }
+
+    UID trackedEntityUid = null;
+    if (dto instanceof org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity) {
+      trackedEntityUid = trackedEntity.getUID();
+    } else if (dto instanceof org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
+      trackedEntityUid = enrollment.getTrackedEntity();
+    }
+    TrackedEntity trackedEntity =
+        trackedEntityUid == null ? null : preheat.getTrackedEntity(trackedEntityUid);
+    return trackedEntity != null
+        && trackedEntity.getTrackedEntityAttributeValues().stream()
+            .anyMatch(
+                av ->
+                    av.getAttribute() != null
+                        && fieldUid.equals(av.getAttribute().getUid())
+                        && value.equals(av.getValue()));
   }
 }

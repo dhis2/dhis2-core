@@ -36,13 +36,17 @@ import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -61,6 +65,8 @@ import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
+import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -168,6 +174,91 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
         .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
 
     assertContainsOnly(List.of("event_completion_subject"), messageSubjects());
+  }
+
+  @Test
+  void shouldRenderDataElementValueInEventCompletionNotification() {
+    addLifecycleTemplate(
+        "de_subject", "value is #{DATAEL00001}", NotificationTrigger.COMPLETION, programStage);
+
+    importEnrollmentWithCompletedEvent(
+        Set.of(
+            DataValue.builder()
+                .dataElement(MetadataIdentifier.ofUid("DATAEL00001"))
+                .value("rendered")
+                .build()));
+
+    await()
+        .atMost(3, TimeUnit.SECONDS)
+        .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
+
+    assertContainsOnly(List.of("value is rendered"), messageTexts());
+  }
+
+  @Test
+  void shouldRenderOptionNameInEventCompletionNotificationWhenDataElementHasOptionSet() {
+    // the fixture names the option like its code, rename it so resolving the code is observable
+    Option option = manager.get(Option.class, "IHYwYAtvjCY");
+    option.setName("Option one");
+    manager.update(option);
+
+    // DATAEL00005 is a data element of NpsdDv6kKSO with option set VWzgQENmzPK
+    addLifecycleTemplate(
+        "option_subject", "value is #{DATAEL00005}", NotificationTrigger.COMPLETION, programStage);
+
+    importEnrollmentWithCompletedEvent(
+        Set.of(
+            DataValue.builder()
+                .dataElement(MetadataIdentifier.ofUid("DATAEL00005"))
+                .value(option.getCode())
+                .build()));
+
+    await()
+        .atMost(3, TimeUnit.SECONDS)
+        .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
+
+    assertContainsOnly(List.of("value is Option one"), messageTexts());
+  }
+
+  @Test
+  void shouldRenderAttributeValueInEnrollmentNotificationWhenAttributeIsImportedWithEnrollment() {
+    addLifecycleTemplate(
+        "attribute_subject", "name is A{dIVt4l5vIOa}", NotificationTrigger.ENROLLMENT, program);
+
+    importEnrollment(EnrollmentStatus.ACTIVE, List.of(firstNameAttribute("Jane")));
+
+    await()
+        .atMost(3, TimeUnit.SECONDS)
+        .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
+
+    assertContainsOnly(List.of("name is Jane"), messageTexts());
+  }
+
+  @Test
+  void shouldRenderUpdatedAttributeValueInEnrollmentNotificationWhenAttributeAlreadyExists() {
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build(),
+            TrackerObjects.builder()
+                .trackedEntities(
+                    List.of(
+                        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+                            .trackedEntity(trackedEntityUid)
+                            .trackedEntityType(MetadataIdentifier.ofUid("ja8NY4PW7Xm"))
+                            .orgUnit(MetadataIdentifier.ofUid("h4w96yEMlzO"))
+                            .attributes(new ArrayList<>(List.of(firstNameAttribute("Jane"))))
+                            .build()))
+                .build()));
+    addLifecycleTemplate(
+        "attribute_subject", "name is A{dIVt4l5vIOa}", NotificationTrigger.ENROLLMENT, program);
+
+    importEnrollment(EnrollmentStatus.ACTIVE, List.of(firstNameAttribute("Joan")));
+
+    await()
+        .atMost(3, TimeUnit.SECONDS)
+        .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
+
+    assertContainsOnly(List.of("name is Joan"), messageTexts());
   }
 
   @Test
@@ -304,6 +395,15 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
   }
 
   private void importEnrollment(UID enrollmentUid, EnrollmentStatus status) {
+    importEnrollment(enrollmentUid, status, List.of());
+  }
+
+  private void importEnrollment(EnrollmentStatus status, List<Attribute> attributes) {
+    importEnrollment(UID.generate(), status, attributes);
+  }
+
+  private void importEnrollment(
+      UID enrollmentUid, EnrollmentStatus status, List<Attribute> attributes) {
     Enrollment enrollment =
         Enrollment.builder()
             .enrollment(enrollmentUid)
@@ -314,6 +414,7 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
             .attributeOptionCombo(MetadataIdentifier.ofUid("HllvX50cXC0"))
+            .attributes(new ArrayList<>(attributes))
             .build();
     assertNoErrors(
         trackerImportService.importTracker(
@@ -321,7 +422,18 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
             TrackerObjects.builder().enrollments(List.of(enrollment)).build()));
   }
 
+  private static Attribute firstNameAttribute(String value) {
+    return Attribute.builder()
+        .attribute(MetadataIdentifier.ofUid("dIVt4l5vIOa"))
+        .value(value)
+        .build();
+  }
+
   private void importEnrollmentWithCompletedEvent() {
+    importEnrollmentWithCompletedEvent(Set.of());
+  }
+
+  private void importEnrollmentWithCompletedEvent(Set<DataValue> dataValues) {
     UID enrollmentUid = UID.generate();
     Enrollment enrollment =
         Enrollment.builder()
@@ -344,6 +456,7 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
             .status(EventStatus.COMPLETED)
             .occurredAt(Instant.now())
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+            .dataValues(dataValues)
             .build();
     assertNoErrors(
         trackerImportService.importTracker(
@@ -357,6 +470,13 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
   private List<String> messageSubjects() {
     return manager.getAll(MessageConversation.class).stream()
         .map(MessageConversation::getSubject)
+        .toList();
+  }
+
+  private List<String> messageTexts() {
+    return manager.getAll(MessageConversation.class).stream()
+        .flatMap(conversation -> conversation.getMessages().stream())
+        .map(Message::getText)
         .toList();
   }
 
@@ -394,6 +514,24 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
 
   private void addLifecycleTemplate(String subject, NotificationTrigger trigger, ProgramStage ps) {
     ProgramNotificationTemplate template = addNotificationTemplate(subject, trigger);
+    ps.getNotificationTemplates().add(template);
+    manager.update(ps);
+  }
+
+  private void addLifecycleTemplate(
+      String subject, String messageTemplate, NotificationTrigger trigger, Program p) {
+    ProgramNotificationTemplate template = addNotificationTemplate(subject, trigger);
+    template.setMessageTemplate(messageTemplate);
+    manager.update(template);
+    p.getNotificationTemplates().add(template);
+    manager.update(p);
+  }
+
+  private void addLifecycleTemplate(
+      String subject, String messageTemplate, NotificationTrigger trigger, ProgramStage ps) {
+    ProgramNotificationTemplate template = addNotificationTemplate(subject, trigger);
+    template.setMessageTemplate(messageTemplate);
+    manager.update(template);
     ps.getNotificationTemplates().add(template);
     manager.update(ps);
   }

@@ -23,6 +23,84 @@ mvn test \
     -Dtest.track_called_endpoints=true
 ```
 
+### Real eSignet OIDC login (opt-in)
+
+From the repository root:
+
+```sh
+./dhis-2/dhis-test-e2e/run-esignet-tests.sh
+```
+
+Requires Docker Compose v2, Java 17 (`java` and `keytool` on `PATH`), Maven,
+`curl`, and `sha256sum`. Allow at least 8 GiB RAM and 15 GiB free disk for the
+build and stack. Run one instance per checkout. The runner builds the current
+checkout, generates a short-lived RSA keystore, starts fresh databases, registers
+the client from DHIS2's public JWKS, runs only the `esignet`-tagged tests, and
+removes its containers, network, volumes, and client private key on exit.
+It does not push an image. To reuse an image you have already built from this
+checkout, set `ESIGNET_SKIP_BUILD=true DHIS2_IMAGE=<local-image>`.
+
+The standalone `docker-compose.e2e-esignet.yml` is based on
+[eSignet v2.0.0's own Compose setup](https://github.com/mosip/esignet/tree/db528423dac7898ad546cb7b2f5f867a949676a7/docker-compose).
+The runtime images are pinned to eSignet/oidc-ui `2.0.0`, mock-identity-system
+`0.14.0`, PostgreSQL `16.6-bookworm`, and PostGIS `16-3.5-alpine`. **eSignet is
+rebuilt with an explicit upstream JWKS metadata fix**, not used stock: see
+`config/esignet/Dockerfile` and `external-rsa-jwks.patch` and the observations below.
+The source archive, schema/identity seed, and nginx configuration come from that
+immutable release commit and are SHA-256 checked. The builder is Go `1.26.0`.
+No Redis, Keycloak, LDAP, S3, production MOSIP deployment, or external identity
+credentials are needed.
+
+The suite follows DHIS2's authorization redirect, submits the upstream seeded
+identity `1774231323` and mock OTP `111111` through eSignet's real flow API,
+approves the returned consent prompt, follows the callback, and checks `/api/me`.
+It also checks rejection before the identity is mapped to a DHIS2 user.
+This is a headless HTTP protocol E2E, not a Selenium visual test: it uses
+isolated browser-style cookie jars and the same APIs as the upstream UI.
+The upstream mock identity service is the only mocked system; eSignet and DHIS2
+are real released/built services. Upstream's development profile disables CAPTCHA
+verification and client-management authorization. Never expose this stack publicly.
+
+Each run gets its own `target/esignet/run.*/` directory containing the
+build/run/container logs and JUnit reports. Its `reports/esignet-evidence.json`
+records the observed algorithms, exact claims, media type, and JWKS verification.
+No private keys or bearer tokens are deliberately included in that evidence file;
+all identity claims are upstream test data.
+
+GitHub Actions runs the same command only when the PR has the
+`run-esignet-tests` label or through `workflow_dispatch` in
+`.github/workflows/run-esignet-tests.yml`. There is no push or nightly trigger.
+The default Maven profile excludes `esignet`; the existing `auth-idp`, analytics,
+and UI profiles select their own tags and do not collect this suite.
+
+#### Released-stack interoperability observations
+
+The initial run against PR #23839 at `c3bc1487ee` found:
+
+- Token exchange returned `401 invalid_client`. eSignet 2.0.0 requires the
+  client assertion's `aud` to be its issuer URL as a single string, not the
+  token endpoint. The same DHIS2-published RSA key and RS256 assertion succeeded
+  with the issuer audience.
+- ID tokens were PS256. Userinfo was `application/jwt`, signed RS256 by
+  mock-identity-system 0.14.0, with exactly `sub`, `email`, `iss`, and `aud`.
+  Both signatures verified against keys in eSignet's JWKS; the subjects matched.
+- The upstream mock's local profile hardcodes `iss=http://localhost:8088/v1/esignet`,
+  and eSignet advertises the mock RSA signing key as PS256 despite its RS256
+  signatures. The fixture sets the mock issuer to `http://esignet:8080`.
+  The explicit eSignet patch omits the optional `alg` for external RSA keys:
+  a certificate does not tell eSignet whether that backend uses RS256 or PS256.
+  eSignet's own ID-token key remains PS256. DHIS2 still pins the actual userinfo
+  algorithm to RS256 and verifies signatures, issuer, audience, and subject.
+
+The optional DHIS2 setting `oidc.provider.<id>.client_assertion_audience` selects
+one audience for private-key client assertions. Leave it unset to preserve the
+existing token-endpoint audience; this fixture sets it to the eSignet issuer.
+`oidc.provider.<id>.id_token_jws_algorithm` independently pins ID-token verification
+(RS256 when unset); this fixture uses PS256. It retains Spring's issuer,
+audience, timestamp, and nonce validation. Setting only the userinfo algorithm
+does not configure the ID-token decoder.
+
+
 ### Selenium Grid and CPU architecture
 
 When running docker compose locally on MacOS with M1/M2/M3..., you need to use the Selenium Grid image for ARM64 architecture. 
@@ -285,3 +363,28 @@ Example (`ind-expected-pregnancies.json`):
 Add a `List<Resource>` (or a single `Resource`) parameter to your test method; 
 the extension injects the created objects, each exposing `type`, `code`, and `uid`.
 
+
+### Seeding the e2e database with SQL
+
+`@DependsOn` provisions metadata through the API. When an
+analytics test instead needs rows the API cannot create, put a `.sql` file in
+`src/test/resources/db/seed/`. It is applied automatically at the start of an analytics run.
+
+The seeding mechanism is supposed to be used to populate run-time tables, not the system-generated
+analytics tables.
+
+`AnalyticsSetupExtension` applies the scripts in file-name order, clears the instance's application
+caches if any were applied, and only then exports the analytics tables. Seeded data therefore flows
+The seeded data is injected into Postgres tables directly and then exported, so it does not matter
+which target database you run the analytics against.
+
+Pass `-Ddb.seed.enabled=false` to skip the scripts without deleting them — useful for checking
+whether a seed script is what broke a test.
+
+The scripts write to the runtime tables over JDBC. `db.url` defaults to the `db` service of the
+compose stacks — the same Postgres database on the Doris and ClickHouse runs, which differ only in
+where analytics is exported to — so containerised runs need no configuration. A run against a
+locally started instance needs `-Ddb.url=…` of its own. When the directory holds no scripts nothing
+connects to any database, so runs against instances you cannot reach are unaffected.
+
+See `src/test/resources/db/seed/README.md` for the full contract and its limitations.

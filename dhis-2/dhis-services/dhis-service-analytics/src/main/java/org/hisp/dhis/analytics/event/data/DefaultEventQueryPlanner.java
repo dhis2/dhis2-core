@@ -47,6 +47,7 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
+import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
@@ -55,7 +56,10 @@ import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.common.DimensionConstants;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.eventvisualization.Value;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.stereotype.Service;
@@ -70,6 +74,8 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
   private final PartitionManager partitionManager;
 
+  private final FirstOrLastStagePeriodPlanner firstOrLastStagePeriodPlanner;
+
   // -------------------------------------------------------------------------
   // EventQueryPlanner implementation
   // -------------------------------------------------------------------------
@@ -82,8 +88,10 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
         new ImmutableList.Builder<Function<EventQueryParams, List<EventQueryParams>>>()
             .add(this::groupByQueryItems)
             .add(this::groupByOrgUnitLevel)
+            .add(this::groupByTrackerOrgUnitLevel)
             .add(this::groupByPeriodType)
             .add(this::groupByPeriod)
+            .add(firstOrLastStagePeriodPlanner::plan)
             .build();
 
     for (Function<EventQueryParams, List<EventQueryParams>> grouper : groupers) {
@@ -143,7 +151,9 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
         params.getItems().stream()
             .anyMatch(
                 item ->
-                    EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId()));
+                    EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId())
+                        || EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME.equals(
+                            item.getItemId()));
 
     if (hasEventDateItem) {
       builder.withSkipPartitioning(true);
@@ -192,6 +202,56 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
    */
   private List<EventQueryParams> groupByOrgUnitLevel(EventQueryParams params) {
     return QueryPlannerUtils.convert(queryPlanner.groupByOrgUnitLevel(params));
+  }
+
+  /**
+   * Groups by the hierarchy level of the org units of each tracker org unit dimension, such as
+   * ENROLLMENT_OU. An aggregate query groups such a dimension by the org unit structure column of a
+   * single level, so each query carries the org units of one level, like {@link
+   * #groupByOrgUnitLevel}. The dimensions are grouped in turn, which yields one query per
+   * combination of their levels. Filters are left whole, since they restrict without a group-by
+   * column.
+   *
+   * @param params the event query parameters.
+   * @return a list of {@link EventQueryParams}.
+   */
+  private List<EventQueryParams> groupByTrackerOrgUnitLevel(EventQueryParams params) {
+    List<EventQueryParams> queries = List.of(params);
+
+    for (TrackerOrgUnitDimension dimension : TrackerOrgUnitDimension.values()) {
+      queries =
+          queries.stream()
+              .flatMap(query -> splitByTrackerOrgUnitLevel(dimension, query).stream())
+              .toList();
+    }
+
+    return queries;
+  }
+
+  /**
+   * Splits the given query into one query per hierarchy level of the dimension org units of the
+   * given tracker org unit dimension.
+   *
+   * @param dimension the tracker org unit dimension.
+   * @param params the event query parameters.
+   * @return one {@link EventQueryParams} per level, or the given params when there is at most one.
+   */
+  private List<EventQueryParams> splitByTrackerOrgUnitLevel(
+      TrackerOrgUnitDimension dimension, EventQueryParams params) {
+    ListMap<Integer, OrganisationUnit> levelOrgUnitMap =
+        QueryPlannerUtils.getLevelOrgUnitTypedMap(dimension.dimensionItems(params));
+
+    if (levelOrgUnitMap.size() <= 1) {
+      return List.of(params);
+    }
+
+    return levelOrgUnitMap.values().stream()
+        .map(
+            orgUnits ->
+                dimension
+                    .withDimensionItems(new EventQueryParams.Builder(params), orgUnits)
+                    .build())
+        .toList();
   }
 
   /**
@@ -248,7 +308,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             new EventQueryParams.Builder(params)
                 .removeItems()
                 .removeItemProgramIndicators()
-                .withValue(item.getItem())
+                .withValue(new Value(item.getItem()))
                 .withOption(item.getOption())
                 .withAggregationType(aggregationType);
 

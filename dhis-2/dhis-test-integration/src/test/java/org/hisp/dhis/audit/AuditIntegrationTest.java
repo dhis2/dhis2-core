@@ -31,7 +31,6 @@ package org.hisp.dhis.audit;
 
 import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
-import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -78,8 +77,6 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -114,8 +111,6 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private AuditService auditService;
 
   @Autowired private DataElementService dataElementService;
-
-  @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private DataDumpService dataDumpService;
   @Autowired private DataEntryService dataEntryService;
@@ -195,35 +190,6 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(TrackedEntity.class.getName(), audit.getKlass());
     assertEquals(trackedEntity.getUid(), audit.getUid());
     assertEquals(trackedEntity.getUid(), audit.getAttributes().get("uid"));
-    assertNotNull(audit.getData());
-  }
-
-  @Test
-  void testSaveTrackedAttributeValue() {
-    OrganisationUnit ou = createOrganisationUnit('A');
-    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
-    manager.save(ou);
-    manager.save(attribute);
-
-    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
-    manager.save(trackedEntityType);
-
-    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute, trackedEntityType);
-    manager.save(trackedEntity);
-    TrackedEntityAttributeValue dataValue =
-        createTrackedEntityAttributeValue('A', trackedEntity, attribute);
-    attributeValueService.addTrackedEntityAttributeValue(dataValue);
-    AuditAttributes attributes = new AuditAttributes();
-    attributes.put("attribute", attribute.getUid());
-    attributes.put("trackedEntity", trackedEntity.getUid());
-    AuditQuery query = AuditQuery.builder().auditAttributes(attributes).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
-    List<Audit> audits = auditService.getAudits(query);
-    assertEquals(1, audits.size());
-    Audit audit = audits.get(0);
-    assertEquals(TrackedEntityAttributeValue.class.getName(), audit.getKlass());
-    assertEquals(attribute.getUid(), audit.getAttributes().get("attribute"));
-    assertEquals(trackedEntity.getUid(), audit.getAttributes().get("trackedEntity"));
     assertNotNull(audit.getData());
   }
 

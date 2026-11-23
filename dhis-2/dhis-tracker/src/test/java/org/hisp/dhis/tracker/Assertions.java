@@ -331,9 +331,11 @@ public class Assertions {
                                       actualNote.getNoteText(),
                                       "noteText"),
                               () ->
+                                  // compare instants; java.sql.Timestamp.equals(Date) is false
+                                  // even for the same instant
                                   assertEquals(
-                                      expectedNote.getCreated(),
-                                      actualNote.getCreated(),
+                                      expectedNote.getCreated().getTime(),
+                                      actualNote.getCreated().getTime(),
                                       "created"));
                         })
             .toList();

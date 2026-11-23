@@ -71,9 +71,10 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Note;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.service.ContextService;
 import org.locationtech.jts.io.ParseException;
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -117,6 +118,8 @@ Import tracker data.
 
   private final NoteService noteService;
 
+  private final ContextService contextService;
+
   private final NoteMapper noteMapper = Mappers.getMapper(NoteMapper.class);
 
   @OpenApi.Description(OPENAPI_IMPORT_DESCRIPTION)
@@ -124,13 +127,12 @@ Import tracker data.
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public ResponseEntity<?> importJson(
-      HttpServletRequest request,
       ImportRequestParams requestParams,
       @RequestBody Body body,
       @CurrentUser UserDetails currentUser)
       throws ConflictException, IOException {
     if (requestParams.isAsync()) {
-      return importAsync(request, requestParams, body, currentUser, MediaType.APPLICATION_JSON);
+      return importAsync(requestParams, body, currentUser, MediaType.APPLICATION_JSON);
     }
 
     return importSync(requestParams, body);
@@ -153,19 +155,14 @@ Import tracker data.
     Body body = Body.builder().events(events).build();
 
     if (requestParams.isAsync()) {
-      return importAsync(
-          request, requestParams, body, currentUser, MimeType.valueOf("application/csv"));
+      return importAsync(requestParams, body, currentUser, MimeType.valueOf("application/csv"));
     }
 
     return importSync(requestParams, body);
   }
 
   private ResponseEntity<WebMessage> importAsync(
-      HttpServletRequest request,
-      ImportRequestParams requestParams,
-      Body body,
-      UserDetails user,
-      MimeType contentType)
+      ImportRequestParams requestParams, Body body, UserDetails user, MimeType contentType)
       throws IOException, ConflictException {
     TrackerImportParams importParams = TrackerImportParamsMapper.trackerImportParams(requestParams);
 
@@ -180,11 +177,11 @@ Import tracker data.
     jobExecutionService.executeOnceNow(config, contentType, new ByteArrayInputStream(jsonInput));
 
     String jobId = config.getUid();
-    String location = ContextUtils.getRootPath(request) + "/tracker/jobs/" + jobId;
-    return ResponseEntity.status(HttpStatus.OK)
+    String location = contextService.getApiPath() + "/tracker/jobs/" + jobId;
+    return ResponseEntity.ok()
+        .header(HttpHeaders.LOCATION, location)
         .body(
             ok(TRACKER_JOB_ADDED)
-                .setLocation("/tracker/jobs/" + jobId)
                 .setResponse(
                     TrackerJobWebMessageResponse.builder().id(jobId).location(location).build()));
   }

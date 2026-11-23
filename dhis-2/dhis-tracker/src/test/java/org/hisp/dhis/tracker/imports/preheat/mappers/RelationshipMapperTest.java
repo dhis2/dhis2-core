@@ -32,14 +32,34 @@ package org.hisp.dhis.tracker.imports.preheat.mappers;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValues;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.setIdSchemeFields;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import java.util.Map;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.junit.jupiter.api.Test;
 
 class RelationshipMapperTest {
+
+  @Test
+  void shouldMapSingleEventWhenMappingRelationshipItem() {
+    SingleEvent singleEvent = new SingleEvent();
+    singleEvent.setUid("QRYjLTiJTrA");
+
+    RelationshipItem from = new RelationshipItem();
+    from.setSingleEvent(singleEvent);
+    Relationship relationship = new Relationship();
+    relationship.setFrom(from);
+
+    Relationship mapped = RelationshipMapper.INSTANCE.map(relationship);
+
+    assertNotSame(singleEvent, mapped.getFrom().getSingleEvent());
+    assertEquals("QRYjLTiJTrA", mapped.getFrom().getSingleEvent().getUid());
+  }
+
   @Test
   void testIdSchemeRelatedFieldsAreMapped() {
 

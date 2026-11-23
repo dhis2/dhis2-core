@@ -41,12 +41,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +82,8 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -143,6 +150,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private final UserService userService;
 
+  private final FileResourceService fileResourceService;
+
   @Override
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true)
@@ -196,6 +205,10 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
       List<? extends IdentifiableObject> objects = queryService.query(query);
 
+      if (klass == FileResource.class) {
+        objects = readableFileResources(objects, params.getCurrentUserDetails());
+      }
+
       if (!objects.isEmpty()) {
         log.info(
             "("
@@ -215,6 +228,22 @@ public class DefaultMetadataExportService implements MetadataExportService {
   }
 
   /**
+   * {@link FileResource} is not a shareable type, so its query applies no row level access and
+   * returns every file resource. This keeps only those the user may read by the rule of {@link
+   * FileResourceService#canRead}, which the file resource API applies to each of them. A superuser,
+   * and an export without a user, keep all of them.
+   */
+  private List<? extends IdentifiableObject> readableFileResources(
+      List<? extends IdentifiableObject> objects, @CheckForNull UserDetails user) {
+    if (user == null || user.isSuper()) {
+      return objects;
+    }
+    return objects.stream()
+        .filter(object -> fileResourceService.canRead(user, (FileResource) object))
+        .toList();
+  }
+
+  /**
    * This predicate is used to filter out deprecated Analytics schemas, {@link EventChart} & {@link
    * EventReport}.As they are no longer used ({@link EventVisualization} has replaced them), they
    * should be removed from the metadata export flow. This was causing issues otherwise. See <a
@@ -222,6 +251,20 @@ public class DefaultMetadataExportService implements MetadataExportService {
    */
   public static final Predicate<Schema> DEPRECATED_ANALYTICS_SCHEMAS =
       schema -> schema.getKlass() != EventChart.class && schema.getKlass() != EventReport.class;
+
+  /**
+   * Kept in step with the dispatch in {@link #getMetadataWithDependencies(IdentifiableObject)},
+   * which is empty for anything else. Pinned by {@code
+   * DefaultMetadataExportServiceMultiObjectTest#supportedRootTypesMatchTheDispatch}.
+   */
+  private static final Set<Class<? extends IdentifiableObject>> DEPENDENCY_ROOT_TYPES =
+      Set.of(
+          OptionSet.class,
+          DataSet.class,
+          Program.class,
+          CategoryCombo.class,
+          Dashboard.class,
+          DataElementGroup.class);
 
   @Override
   @Transactional(readOnly = true)
@@ -259,7 +302,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
           FieldFilterParams.of(
               new ArrayList<>(entry.getValue()),
               String.join(",", params.getFields(entry.getKey())),
-              params.getSkipSharing());
+              params.getSkipSharing(),
+              params.isSkipCreatedAndLastUpdated());
 
       List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(fieldFilterParams);
 
@@ -280,7 +324,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
     if (params.isExportWithDependencies()) {
       getMetadataWithDependenciesAsNodeStream(
-          params.getObjectExportWithDependencies(), params, outputStream);
+          params.getObjectsExportWithDependencies(), params, outputStream);
       return;
     }
 
@@ -309,6 +353,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
                 objects,
                 String.join(",", params.getFields(klass)),
                 params.getSkipSharing(),
+                params.isSkipCreatedAndLastUpdated(),
                 CurrentUserUtil.getCurrentUserDetails());
 
         String plural = schemaService.getSchema(klass).getPlural();
@@ -325,11 +370,13 @@ public class DefaultMetadataExportService implements MetadataExportService {
   @Override
   @Transactional(readOnly = true)
   public void getMetadataWithDependenciesAsNodeStream(
-      IdentifiableObject object, @Nonnull MetadataExportParams params, OutputStream outputStream)
+      Collection<? extends IdentifiableObject> objects,
+      @Nonnull MetadataExportParams params,
+      OutputStream outputStream)
       throws IOException {
     SystemInfoForMetadataExport systemInfo = systemService.getSystemInfoForMetadataExport();
-    SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata =
-        getMetadataWithDependencies(object);
+    Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata =
+        getMetadataWithDependencies(objects);
     try (JsonGenerator generator = objectMapper.getFactory().createGenerator(outputStream)) {
       generator.writeStartObject();
 
@@ -342,9 +389,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
       for (Class<? extends IdentifiableObject> klass : metadata.keySet()) {
         List<ObjectNode> objectNodes =
-            fieldFilterService.toObjectNodes(
-                FieldFilterParams.of(
-                    new ArrayList<>(metadata.get(klass)), ":owner", params.getSkipSharing()));
+            fieldFilterService.toObjectNodes(dependencyExportFields(metadata.get(klass), params));
 
         if (!objectNodes.isEmpty()) {
           String plural = schemaService.getSchema(klass).getPlural();
@@ -375,9 +420,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
     for (Class<? extends IdentifiableObject> klass : metadata.keySet()) {
       List<ObjectNode> objectNodes =
-          fieldFilterService.toObjectNodes(
-              FieldFilterParams.of(
-                  new ArrayList<>(metadata.get(klass)), ":owner", params.getSkipSharing()));
+          fieldFilterService.toObjectNodes(dependencyExportFields(metadata.get(klass), params));
 
       if (!objectNodes.isEmpty()) {
         String plural = schemaService.getSchema(klass).getPlural();
@@ -386,6 +429,15 @@ public class DefaultMetadataExportService implements MetadataExportService {
     }
 
     return rootNode;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public MetadataExportParams getDependencyExportParams(Map<String, List<String>> parameters) {
+    MetadataExportParams params = getParamsFromMap(parameters);
+    params.setClasses(new HashSet<>());
+    validate(params);
+    return params;
   }
 
   @Override
@@ -445,6 +497,12 @@ public class DefaultMetadataExportService implements MetadataExportService {
     if (parameters.containsKey("skipSharing")) {
       params.setSkipSharing(Boolean.parseBoolean(parameters.get("skipSharing").get(0)));
       parameters.remove("skipSharing");
+    }
+
+    if (parameters.containsKey("skipCreatedAndLastUpdated")) {
+      params.setSkipCreatedAndLastUpdated(
+          Boolean.parseBoolean(parameters.get("skipCreatedAndLastUpdated").get(0)));
+      parameters.remove("skipCreatedAndLastUpdated");
     }
 
     if (parameters.containsKey("defaults")) {
@@ -515,6 +573,51 @@ public class DefaultMetadataExportService implements MetadataExportService {
     }
 
     return params;
+  }
+
+  /**
+   * Field filter params shared by both dependency exports. These always export the owner fields --
+   * a dependency export has no {@code fields} parameter, so only the skip flags vary.
+   */
+  private FieldFilterParams<IdentifiableObject> dependencyExportFields(
+      Collection<IdentifiableObject> objects, MetadataExportParams params) {
+    return FieldFilterParams.of(
+        new ArrayList<>(objects),
+        ":owner",
+        params.getSkipSharing(),
+        params.isSkipCreatedAndLastUpdated());
+  }
+
+  @Override
+  public Set<Class<? extends IdentifiableObject>> getDependencyRootTypes() {
+    return DEPENDENCY_ROOT_TYPES;
+  }
+
+  /**
+   * Unions the dependency closure of every root into one result. De-duplication is the union
+   * itself: {@link SetMap} adds into a {@link java.util.HashSet}, so objects collapse by whatever
+   * {@code equals} their type declares, which is always at least uid, code and name.
+   *
+   * <p>Carries its own transaction, since the per-root call is a self-invocation that bypasses the
+   * proxy and the traversal needs one session spanning all roots.
+   */
+  @Override
+  @Transactional(readOnly = true)
+  public SetMap<Class<? extends IdentifiableObject>, IdentifiableObject>
+      getMetadataWithDependencies(Collection<? extends IdentifiableObject> objects) {
+    if (objects == null || objects.isEmpty()) {
+      return new SetMap<>();
+    }
+
+    // the first closure is a freshly built map, so it can serve as the accumulator; a single root
+    // therefore costs no merge and no copy, which keeps the per-type endpoints as cheap as before
+    Iterator<? extends IdentifiableObject> roots = objects.iterator();
+    SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> merged =
+        getMetadataWithDependencies(roots.next());
+
+    roots.forEachRemaining(root -> merged.putValues(getMetadataWithDependencies(root)));
+
+    return merged;
   }
 
   @Override

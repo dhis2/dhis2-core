@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.UserDetails;
@@ -88,11 +89,9 @@ public interface JobConfigurationService {
    * least once. This is to protect against aborting a job that does not support alive signals as it
    * does not yet use the {@link JobProgress} tracking.
    *
-   * @param timeoutMinutes duration in minutes for which the job has not been updated for it to be
-   *     considered stale and changed back to {@link JobStatus#SCHEDULED}.
    * @return number of job configurations that were affected
    */
-  int rescheduleStaleJobs(int timeoutMinutes);
+  int rescheduleStaleJobs();
 
   /**
    * Add a job configuration
@@ -163,8 +162,9 @@ public interface JobConfigurationService {
    *
    * @param staleForSeconds the duration for which the job has not been updated (alive).
    * @return all jobs that appear to be stale (hanging) considering the given timeout
+   * @throws BadRequestException in case the given timeout duration is non-positive
    */
-  List<JobEntry> getStaleConfigurations(int staleForSeconds);
+  List<JobEntry> getStaleConfigurations(int staleForSeconds) throws BadRequestException;
 
   /**
    * @param params query parameters (criteria) to find

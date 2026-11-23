@@ -26,6 +26,50 @@ Performance tests run on a single shared [self-hosted
 runner](https://github.com/dhis2/dhis2-core/actions/runners?tab=self-hosted) with exclusive access.
 Iterate locally; use CI only to publish numbers for PRs or release notes.
 
+### Runner
+
+The GitHub runner is a dedicated server: Intel Xeon E3-1275 v6 @ 3.80GHz (4 cores, 8 threads),
+64 GB of memory, mirrored NVMe drives. DHIS2 and Postgres get 4 CPUs and 16 GB each. Gatling
+shares the cores with them.
+
+Settings that keep baseline and candidate comparable:
+
+* The CPU runs at a fixed 3.8 GHz: `performance` governor, turbo off.
+* One job at a time. Setup (image build, database copy) happens before the measured part.
+* Maintenance (RAID check, upgrades, reboots) runs from 19:00 to 00:59 UTC, outside the nightly
+  run at 01:00 UTC and the hours when compares typically run.
+
+Each run records the host's CPU governor, turbo setting and kernel in `run-simulation.env`. On
+CI, a run warns when the CPU clock is not fixed.
+
+Each run also records in `resources.env` what DHIS2, Postgres, and Maven and Gatling used and
+waited for while Gatling ran, from each part's cgroup:
+
+* Cores used by DHIS2, Postgres, Maven and Gatling, and the whole host.
+* CPU wait of DHIS2, Postgres, and Maven and Gatling: the share of the time at least one of its
+  threads was ready to run but had no CPU (PSI `some`). Other parts, a `cpus` quota or `cpuset`,
+  and the part's own threads outnumbering its CPUs all count.
+* I/O wait of Postgres: the share of the time at least one of its processes waited for I/O. This
+  includes background processes such as the checkpointer and autovacuum, not only queries.
+* Memory wait of DHIS2 and Postgres: the share of the time at least one of its threads waited for
+  memory, for example rereading page cache evicted because of the container's 16 GB limit.
+
+Maven and Gatling share the cgroup of `run-simulation.sh`, which runs `mvn gatling:test`: on the
+runner, the GitHub runner's service, which includes the runner agent streaming the job log.
+Locally, your terminal's, which may include other programs. Maven compiles the simulations in the
+first run of a job, and Gatling writes its report at the end of each run.
+
+The counters are read right before and right after `mvn gatling:test`, so nothing runs during the
+measurement. The values are averages over that time, which includes Maven starting and Gatling
+writing its report. A measured run warns, on CI as a GitHub warning, when a wait exceeds 1% of the
+time: its timings may then include waiting rather than work. A wait doesn't say what the part
+waited for, and it isn't the share of each request spent waiting. `CAPTURE_SQL_LOGS` and
+`PROF_ARGS` add work to Postgres and DHIS2 that shows up here too.
+
+The counters need Linux with cgroup v2. Docker Desktop's containers run in a VM, so there a run
+warns that the waits weren't measured. `scripts/resources.sh table <run directory>...` prints runs
+side by side.
+
 ## Results
 
 Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
@@ -41,6 +85,8 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 * `postgresql.log` - SQL logs (if enabled with `CAPTURE_SQL_LOGS`)
 * `pgbadger.html` - SQL analysis report (if `CAPTURE_SQL_LOGS` enabled and `pgbadger` installed)
 * `gc.log` - JVM GC and safepoint logs (always captured)
+* `resources.env` - What DHIS2, Postgres and Gatling used and waited for during the run (see
+  [Runner](#runner))
 
 ### Analysis
 
@@ -63,6 +109,10 @@ side automatically (same behavior as `gstat --combine` for non-compare output, b
 `compare` since a row per request needs a single value per side). Pass `--exclude warmup` to drop
 warmup runs.
 
+Look at a request's sample count before its percentiles. A percentile from few samples moves a lot
+between two runs of the same image, so a large difference on such a request is not a regression on
+its own.
+
 `gstat` percentiles are computed over the full sample, not Gatling's `index.html` t-digest, so they
 may differ slightly from the numbers shown in Gatling's HTML report. If exact parity with Gatling's
 UI matters, use `index.html` as the source of truth.
@@ -71,6 +121,38 @@ Since Gatling 3.12, test results are written in binary format. The `run-simulati
 automatically converts `simulation.log` to `simulation.csv` if
 [glog](https://github.com/dhis2/gatling/releases) is installed like in CI.
 
+## Databases
+
+Performance tests only support databases hosted in S3 (see `run-simulation.sh` for details):
+
+* `sierra-leone`: the Sierra Leone demo database, managed by hand, see the
+  [operations handbook](https://github.com/dhis2/operations-handbook#database-management).
+* `hmis`: managed by hand, and rarely updated.
+* `platform-perf` (`DB_DIR=dev`): managed by hand, made with
+  [db-populator](https://github.com/david-mackessy/db-populator) by a script that wasn't recorded.
+
+### Database Images
+
+`DB_DIR`, `DB_TYPE` and `DB_VERSION` name a dump in S3,
+`https://s3.eu-west-1.amazonaws.com/databases.dhis2.org/[<dir>/]<type>/<version>/dhis2-db-<type>.sql.gz`.
+The harness restores it into an image, `localhost/dhis2-postgres:16-3.5-<type>-<version>`, once,
+and every run starts a fresh container from that image. Its labels `org.dhis2.db.url` and
+`org.dhis2.db.etag` name the dump it holds (`docker image inspect <image>`).
+
+Dumps in S3 are overwritten in place. Before each run, the harness compares the dump's ETag in S3
+with the image's label `org.dhis2.db.etag`, and rebuilds the image when they differ. On CI it then
+removes the replaced image and the build cache. If S3 can't be reached, it runs on the cached
+image with a warning.
+
+`run-simulation.env` records which dump a run used: `DB_URL`, `DB_ETAG`, `DB_S3_VERSION_ID`
+(S3 keeps overwritten versions) and `DB_IMAGE_ID`. If results look off:
+
+* Compare `DB_ETAG` of the runs: a different ETag is a different dump.
+* A dump older than `DHIS2_IMAGE`, such as Sierra Leone's `dev` behind master, is migrated by
+  DHIS2 when it starts. A new migration can change the schema or the data, and with them the
+  results, even when the code under test didn't change. See the latest migrations during a run
+  with `docker compose exec db psql --command 'select version, installed_on from
+  flyway_schema_history order by installed_rank desc limit 5'`.
 
 ## Platform Tests
 
@@ -234,6 +316,55 @@ Run export only (skip import, DB must be seeded): `-DtestMode=export`
 
 See `TrackerTest.java` javadoc for all available profiles and parameters.
 
+### Unique attribute imports
+
+The Synthea payloads have no unique attribute, so imports barely exercise the uniqueness check.
+`scripts/populate-unique-attribute.sh` creates an org unit scoped unique attribute
+(`PerfUniqOu1`) and stores its values `1..N` in many org units. With
+`-DuniqueAttribute=PerfUniqOu1`, TrackerTest adds a value of it to every imported tracked entity.
+Each value already exists in all populated org units, but not in the org unit the import writes to
+(Ngelehun CHC), so the import still succeeds. Consecutive runs continue the numbering (kept in the
+dataStore), so warmup and measured runs never send the same value twice.
+
+Pass the script as `POPULATE_SCRIPT` to run it after the containers start. It is configured by
+`POPULATE_*` variables, which are saved in `run-simulation.env`:
+
+| Variable | Default | Description |
+|:---|:---|:---|
+| `POPULATE_PROFILE` | `regression` | `regression`: 10 org units x 25000 values. `worst-case`: 200 org units x 25000 values |
+| `POPULATE_ORG_UNITS` | from profile | Number of org units holding every value |
+| `POPULATE_VALUES_PER_ORG_UNIT` | from profile | Values per org unit; must cover all tracked entities imported by warmup and measured runs (smoke: ~170 per run, load: ~11k per run) |
+| `POPULATE_ATTRIBUTE_UID` | `PerfUniqOu1` | UID of the attribute to create |
+| `POPULATE_ATTRIBUTE_ORG_UNIT_SCOPE` | `true` | `false` creates a system wide unique attribute (requires `POPULATE_ORG_UNITS=0`) |
+
+Two ways to use it:
+
+* **Regression check**: same data and test for baseline and candidate, comparing the raw numbers.
+
+  ```sh
+  POPULATE_SCRIPT=scripts/populate-unique-attribute.sh POPULATE_PROFILE=regression \
+  DHIS2_IMAGE=dhis2/core-dev:latest SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest \
+  MVN_ARGS="-Dprofile=load -DtestMode=import -DuniqueAttribute=PerfUniqOu1" \
+  ./run-simulation.sh
+  ```
+
+* **Worst case**: every imported value is stored in many other org units, which made the uniqueness
+  check load one tracked entity per stored value before the fix. Raise `POPULATE_ORG_UNITS` to
+  make it worse.
+
+  ```sh
+  POPULATE_SCRIPT=scripts/populate-unique-attribute.sh POPULATE_PROFILE=worst-case \
+  DHIS2_IMAGE=dhis2/core-dev:latest SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest \
+  MVN_ARGS="-Dprofile=smoke -DtestMode=import -DuniqueAttribute=PerfUniqOu1" \
+  ./run-simulation.sh
+  ```
+
+Populating the `worst-case` profile (5M tracked entities) takes about 2 minutes. The script can
+also run again against an already running stack from `dhis-test-performance`
+(`./scripts/populate-unique-attribute.sh`): it replaces the previous population, which takes a few
+minutes more for large ones, and continues the numbering after the values already imported. Without `-DuniqueAttribute`, TrackerTest payloads are
+unchanged, so results stay comparable with runs that don't use it.
+
 ## Raw Tests (JSON-driven)
 
 The `raw` package (`org.hisp.dhis.test.raw`) contains JSON-driven performance tests ported from
@@ -311,28 +442,6 @@ Point to any JSON file using an absolute path:
 ```sh
 MVN_ARGS="-Dscenario=/path/to/my-scenarios.json -Dversion=42 -Dbaseline=42"
 ```
-
-## Databases
-
-Performance tests only support databases hosted in S3 (see `run-simulation.sh` for details). See the
-[operations handbook](https://github.com/dhis2/operations-handbook?tab=readme-ov-file#modifying-the-demo-dbs)
-for modifying them.
-
-### Database Image Caching on CI
-
-Database images are cached on the CI server to avoid restoring dumps on every run. The S3 dumps are
-mutable, so cached images (e.g., `localhost/dhis2-postgres:14-3.5-sierra-leone-dev`) can become
-stale when the source dump is updated.
-
-To refresh a cached image, a `#team-devops` member must run on the CI server:
-
-```sh
-# Remove the specific cached image (adjust tag as needed)
-docker rmi localhost/dhis2-postgres:14-3.5-sierra-leone-dev
-docker builder prune -a
-```
-
-Use `-a` to remove all cache layers, not just unused ones.
 
 ## Recording Traffic
 

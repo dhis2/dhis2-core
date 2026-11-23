@@ -21,7 +21,7 @@ show_usage() {
   echo "                        Valid values: dev"
   echo "                        Pattern: s3://databases.dhis2.org/<dir>/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DB_TYPE               Database type (default: sierra-leone)"
-  echo "                        Valid values without DB_DIR: sierra-leone, hmis"
+  echo "                        Valid values without DB_DIR: sierra-leone, hmis, perfland-mnch"
   echo "                        Valid values with DB_DIR: platform-perf"
   echo "  DB_VERSION            Database version (default: dev)"
   echo "                        Must be alphanumeric, dots, hyphens, underscores only"
@@ -32,6 +32,15 @@ show_usage() {
   echo "                        Required for analytics endpoints that query pre-computed tables"
   echo "  ANALYTICS_TIMEOUT     Max wait time for analytics generation in seconds (default: 900 = 15min)"
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300 = 5min)"
+  echo "  DHIS_CONF_FILE        dhis.conf variant from ./docker/ mounted into the web container"
+  echo "                        (default: dhis.conf; e.g. dhis-l2cache-on.conf, dhis-l2cache-off.conf)"
+  echo "  COMPOSE_EXTRA_FILE    Additional docker compose override file appended to every compose"
+  echo "                        invocation (e.g. to pin a network subnet on hosts with exhausted"
+  echo "                        docker address pools)"
+  echo "  POPULATE_SCRIPT       Script run once after the containers start, before any simulation run,"
+  echo "                        to populate the database (default: not set)"
+  echo "                        e.g. scripts/populate-unique-attribute.sh, configured by POPULATE_* variables"
+  echo "                        (see the script header). POPULATE_* variables are saved in run-simulation.env"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo "  CAPTURE_DHIS2_LOGS    Capture DHIS2 application logs from the web container"
@@ -58,6 +67,14 @@ show_usage() {
   echo "  REPORT_SUFFIX=\"baseline\" \\"
   echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
+  echo ""
+  echo "  # Tracker import against the worst case for the unique attribute check"
+  echo "  POPULATE_SCRIPT=scripts/populate-unique-attribute.sh \\"
+  echo "  POPULATE_PROFILE=worst-case \\"
+  echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
+  echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest \\"
+  echo "  MVN_ARGS=\"-Dprofile=smoke -DtestMode=import -DuniqueAttribute=PerfUniqOu1\" \\"
+  echo "  $0"
   echo ""
   echo "  # With analytics table generation (required for analytics endpoints)"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest \\"
@@ -102,11 +119,31 @@ ANALYTICS_GENERATE=${ANALYTICS_GENERATE:-"false"}
 ANALYTICS_TIMEOUT=${ANALYTICS_TIMEOUT:-900} # default of 15min
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 WARMUP=${WARMUP:-1}
+POPULATE_SCRIPT=${POPULATE_SCRIPT:-""}
 REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 CAPTURE_DHIS2_LOGS=${CAPTURE_DHIS2_LOGS:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 PROF_ARGS=${PROF_ARGS:=""}
 MVN_ARGS=${MVN_ARGS:-""}
+DHIS_CONF_FILE=${DHIS_CONF_FILE:-"dhis.conf"}
+COMPOSE_EXTRA_FILE=${COMPOSE_EXTRA_FILE:-""}
+# docker compose interpolates ${DHIS_CONF_FILE} in the volume mount
+export DHIS_CONF_FILE
+# Set by ensure_db_image from the dump in S3 and the database image the run uses
+DB_ETAG=""
+DB_S3_VERSION_ID=""
+DB_IMAGE=""
+DB_IMAGE_ID=""
+
+if [ -n "$POPULATE_SCRIPT" ] && [ ! -x "$POPULATE_SCRIPT" ]; then
+  echo "Error: POPULATE_SCRIPT=$POPULATE_SCRIPT is not an executable file"
+  exit 1
+fi
+
+if [ ! -f "docker/$DHIS_CONF_FILE" ]; then
+  echo "Error: DHIS_CONF_FILE=$DHIS_CONF_FILE does not exist in ./docker/"
+  exit 1
+fi
 
 # Track last non-warmup run directory for output summary
 LAST_RUN_DIR=""
@@ -122,11 +159,11 @@ fi
 if [ -z "$DB_DIR" ]; then
   # No DB_DIR: only standard public databases are allowed
   case "$DB_TYPE" in
-    sierra-leone|hmis)
+    sierra-leone|hmis|perfland-mnch)
       # Valid
       ;;
     *)
-      echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis' when DB_DIR is not set, got: $DB_TYPE" >&2
+      echo "Error: DB_TYPE must be 'sierra-leone', 'hmis' or 'perfland-mnch' when DB_DIR is not set, got: $DB_TYPE" >&2
       echo "Set DB_DIR to use a custom database type" >&2
       echo "Run '$0' without arguments to see usage" >&2
       exit 1
@@ -190,6 +227,9 @@ cleanup() {
   if [ -n "$PROF_ARGS" ]; then
     compose_files+=("-f" "docker-compose.profile.yml")
   fi
+  if [ -n "$COMPOSE_EXTRA_FILE" ]; then
+    compose_files+=("-f" "$COMPOSE_EXTRA_FILE")
+  fi
   docker compose "${compose_files[@]}" down --volumes --remove-orphans 2>/dev/null || true
 
   # Show output summary for the main (non-warmup) run
@@ -219,7 +259,56 @@ get_compose_args() {
   if [ -n "$PROF_ARGS" ]; then
     args+=("-f" "docker-compose.profile.yml")
   fi
+  if [ -n "$COMPOSE_EXTRA_FILE" ]; then
+    args+=("-f" "$COMPOSE_EXTRA_FILE")
+  fi
   echo "${args[@]}"
+}
+
+cpu_governor() {
+  cat /sys/devices/system/cpu/cpufreq/policy0/scaling_governor 2>/dev/null || echo 'unknown'
+}
+
+cpu_no_turbo() {
+  # Intel only, 1 means turbo is off
+  cat /sys/devices/system/cpu/intel_pstate/no_turbo 2>/dev/null || echo 'unknown'
+}
+
+warn_if_cpu_clock_not_fixed() {
+  # The CPU clock affects every timing. The GitHub runner fixes it (performance governor, turbo off)
+  # with settings that live outside this repository and are lost on a reinstall.
+  if [ "${GITHUB_ACTIONS:-}" = "true" ] \
+    && { [ "$(cpu_governor)" != "performance" ] || [ "$(cpu_no_turbo)" != "1" ]; }; then
+    echo "::warning::CPU clock not fixed (governor $(cpu_governor), no_turbo $(cpu_no_turbo)): timings vary more"
+  fi
+}
+
+################################################################################
+# RESOURCES
+################################################################################
+# What each part used and waited for during a Gatling run, see scripts/resources.sh. The counters
+# are read right before and right after mvn gatling:test, so nothing runs during the measurement.
+
+report_resources() {
+  # <run directory> <warmup number>: prints the run's resources, and on a measured run warns about
+  # each wait
+  local dir="$1"
+  local warmup_num="$2"
+  [ -f "$dir/resources.env" ] || return 0
+  echo ""
+  scripts/resources.sh table "$dir"
+  [ "$warmup_num" -eq 0 ] || return 0
+  local warning
+  scripts/resources.sh warnings "$dir" | while IFS= read -r warning; do
+    case $warning in
+      *" waited for "*) warning+=": timings may include waiting" ;;
+    esac
+    if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+      echo "::warning::${REPORT_SUFFIX:+$REPORT_SUFFIX: }$warning"
+    else
+      echo "Warning: $warning"
+    fi
+  done
 }
 
 pull_mutable_image() {
@@ -239,6 +328,105 @@ pull_mutable_image() {
     echo "========================================"
     echo "Pulling mutable image tag: $DHIS2_IMAGE"
     docker pull "$DHIS2_IMAGE"
+  fi
+}
+
+db_url() {
+  # Keep in sync with DB_URL in docker/Dockerfile.postgres. Path-style, as the bucket's name has
+  # dots, which its virtual-hosted URL's TLS certificate doesn't cover.
+  local key="${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"
+  if [ -n "$DB_DIR" ]; then
+    key="${DB_DIR}/${key}"
+  fi
+  echo "https://s3.eu-west-1.amazonaws.com/databases.dhis2.org/${key}"
+}
+
+image_label() {
+  # Print the value of a label of a local image, or nothing if it has no such label
+  local image="$1"
+  local label="$2"
+  local value
+  value=$(docker image inspect --format "{{ index .Config.Labels \"$label\" }}" "$image" 2>/dev/null || true)
+  if [ "$value" = "<no value>" ]; then
+    value=""
+  fi
+  echo "$value"
+}
+
+ensure_db_image() {
+  # The database image is built once and cached under a tag of the type and version. The dumps in
+  # S3 are overwritten in place, so a cached image can hold an older dump than S3. The image is
+  # labelled with the ETag of the dump it was built from: rebuild it when the dump's ETag in S3
+  # differs, and remove the image it replaces.
+  echo ""
+  echo "========================================"
+  echo "PHASE: Database Image"
+  echo "========================================"
+
+  local compose_args
+  compose_args=$(get_compose_args)
+  # shellcheck disable=SC2086
+  DB_IMAGE=$(docker compose $compose_args config --images db)
+
+  local url
+  url=$(db_url)
+  local cached_id=""
+  local cached_etag=""
+  if docker image inspect "$DB_IMAGE" >/dev/null 2>&1; then
+    cached_id=$(docker image inspect --format '{{.Id}}' "$DB_IMAGE")
+    cached_etag=$(image_label "$DB_IMAGE" org.dhis2.db.etag)
+  fi
+
+  local headers
+  headers=$(curl --head --silent --fail --max-time 30 "$url" | tr -d '\r' || true)
+  DB_ETAG=$(echo "$headers" | awk 'tolower($1) == "etag:" { gsub(/"/, "", $2); print $2 }')
+  DB_S3_VERSION_ID=$(echo "$headers" | awk 'tolower($1) == "x-amz-version-id:" { print $2 }')
+
+  if [ -z "$DB_ETAG" ]; then
+    if [ -z "$cached_id" ]; then
+      echo "Error: Cannot get the ETag of $url, and $DB_IMAGE is not cached" >&2
+      exit 1
+    fi
+    echo "Warning: Cannot get the ETag of $url; using the cached $DB_IMAGE"
+    echo "  built from ETag ${cached_etag:-unknown}, which may be older than the dump in S3"
+    DB_ETAG="$cached_etag"
+    DB_S3_VERSION_ID=$(image_label "$DB_IMAGE" org.dhis2.db.s3-version-id)
+    DB_IMAGE_ID="$cached_id"
+    return 0
+  fi
+
+  if [ "$DB_ETAG" = "$cached_etag" ]; then
+    echo "$DB_IMAGE is up to date with $url (ETag $DB_ETAG)"
+    DB_IMAGE_ID="$cached_id"
+    return 0
+  fi
+
+  local cached="not cached"
+  if [ -n "$cached_id" ]; then
+    cached="${cached_etag:-none}"
+  fi
+  echo "Building $DB_IMAGE from $url"
+  echo "  ETag in S3: $DB_ETAG, of the cached image: $cached"
+  export DB_ETAG DB_S3_VERSION_ID
+  local start_time
+  start_time=$(date +%s)
+  # shellcheck disable=SC2086
+  docker compose $compose_args build db
+  DB_IMAGE_ID=$(docker image inspect --format '{{.Id}}' "$DB_IMAGE")
+  echo "Built $DB_IMAGE (took $(($(date +%s) - start_time))s)"
+
+  # The replaced image is left untagged. The containerd image store removes it itself.
+  if [ -n "$cached_id" ] && [ "$cached_id" != "$DB_IMAGE_ID" ] \
+    && docker image inspect "$cached_id" >/dev/null 2>&1; then
+    echo "Removing the image it replaces, $cached_id"
+    docker image rm "$cached_id" || echo "Warning: Failed to remove $cached_id"
+  fi
+
+  # On CI, nothing but database images is built, and their build cache holds a dump and its
+  # restored data directory per build, which a rebuild never reuses. Locally, leave the cache alone.
+  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    echo "Pruning the build cache"
+    docker builder prune --all --force
   fi
 }
 
@@ -640,7 +828,8 @@ generate_metadata() {
     jq --raw-output 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "\(.key)=\(.value)"' 2>/dev/null || echo "")
 
   # Build reproducible command using RepoDigest
-  # DB image is reproducible via DB_TYPE and DB_VERSION args
+  # The DB image is identified by DB_DIR, DB_TYPE and DB_VERSION, and its content by DB_ETAG: the
+  # dumps in S3 are overwritten in place, and S3 keeps the overwritten versions (DB_S3_VERSION_ID)
   local dhis2_image_immutable="$DHIS2_IMAGE"
   if [ "$dhis2_image_digest" != "unknown" ] && [ -n "$dhis2_image_digest" ]; then
     dhis2_image_immutable="$dhis2_image_digest"
@@ -665,26 +854,38 @@ generate_metadata() {
     echo "DB_DIR=$DB_DIR"
     echo "DB_TYPE=$DB_TYPE"
     echo "DB_VERSION=$DB_VERSION"
+    echo "DHIS_CONF_FILE=$DHIS_CONF_FILE"
+    echo "COMPOSE_EXTRA_FILE=$COMPOSE_EXTRA_FILE"
     echo "DHIS2_USERNAME=$DHIS2_USERNAME"
     echo "DHIS2_PASSWORD=$DHIS2_PASSWORD"
     echo "ANALYTICS_GENERATE=$ANALYTICS_GENERATE"
     echo "ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
+    echo "POPULATE_SCRIPT=$POPULATE_SCRIPT"
+    env | grep '^POPULATE_' | grep -v '^POPULATE_SCRIPT=' | sort || true
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
     echo "CAPTURE_DHIS2_LOGS=$CAPTURE_DHIS2_LOGS"
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
     echo "PROF_ARGS=\"$PROF_ARGS\""
     echo "MVN_ARGS=\"$MVN_ARGS\""
     echo ""
-    echo "# Additional metadata"
+    echo "# Additional metadata (recorded by this run, not inputs)"
     echo "GIT_BRANCH_PERFORMANCE_TESTS=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_COMMIT_PERFORMANCE_TESTS=$git_commit"
     echo "GIT_DIRTY_PERFORMANCE_TESTS=$([ -n "$(git status --porcelain 2>/dev/null)" ] && echo 'true' || echo 'false')"
     echo "DHIS2_IMAGE_DIGEST=$dhis2_image_digest"
+    echo "DB_URL=$(db_url)"
+    echo "DB_ETAG=$DB_ETAG"
+    echo "DB_S3_VERSION_ID=$DB_S3_VERSION_ID"
+    echo "DB_IMAGE=$DB_IMAGE"
+    echo "DB_IMAGE_ID=$DB_IMAGE_ID"
     if [ -n "$dhis2_labels" ]; then
       echo "$dhis2_labels"
     fi
+    echo "HOST_CPU_GOVERNOR=$(cpu_governor)"
+    echo "HOST_CPU_NO_TURBO=$(cpu_no_turbo)"
+    echo "HOST_KERNEL=$(uname -r)"
   } > "$simulation_run_file"
 
   echo "done"
@@ -712,6 +913,7 @@ print_output_summary() {
   [ -f "$dir/profile.html" ]   && files+=("profile.html|Profiler flamegraph")
   [ -f "$dir/dhis.log" ]       && files+=("dhis.log|DHIS2 application log")
   [ -f "$dir/pgbadger.html" ]  && files+=("pgbadger.html|SQL analysis")
+  [ -f "$dir/resources.env" ]  && files+=("resources.env|Resources used")
 
   if [ ${#files[@]} -gt 0 ]; then
     for entry in "${files[@]}"; do
@@ -750,6 +952,11 @@ run_simulation() {
   enable_sql_logs "$warmup_num"
   start_profiler
 
+  # Read the counters right around mvn, after the profiler starts and before it stops, so they
+  # measure the Gatling run only
+  local resources_before resources_after
+  resources_before=$(scripts/resources.sh snapshot) || echo "Warning: Failed to read resources"
+
   echo "Running $SIMULATION_CLASS..."
   # Allow Maven to fail (e.g., assertion failures) but continue to post-process results
   set +e
@@ -762,6 +969,7 @@ run_simulation() {
   local mvn_exit_code=$?
   set -e
 
+  resources_after=$(scripts/resources.sh snapshot) || echo "Warning: Failed to read resources"
   stop_profiler
 
   # Find the gatling report directory
@@ -805,6 +1013,9 @@ run_simulation() {
     post_process_profiler_data "$gatling_run_dir" || echo "Warning: Failed to post-process profiler data"
     post_process_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to post-process SQL logs"
     generate_metadata "$gatling_run_dir" || echo "Warning: Failed to generate metadata"
+    scripts/resources.sh diff <(echo "$resources_before") <(echo "$resources_after") \
+      > "$gatling_run_dir/resources.env" || echo "Warning: Failed to write resources"
+    report_resources "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to report resources"
 
     # Track non-warmup run directory for output summary (shown after post-processing)
     if [ "$warmup_num" -eq 0 ]; then
@@ -821,13 +1032,24 @@ run_simulation() {
 ################################################################################
 # MAIN EXECUTION
 ################################################################################
+warn_if_cpu_clock_not_fixed
 pull_mutable_image
+ensure_db_image
 
 echo ""
 echo "========================================"
 echo "PHASE: Container Startup"
 echo "========================================"
 start_containers
+
+if [ -n "$POPULATE_SCRIPT" ]; then
+  echo ""
+  echo "========================================"
+  echo "PHASE: Database Population"
+  echo "========================================"
+  DHIS2_USERNAME="$DHIS2_USERNAME" DHIS2_PASSWORD="$DHIS2_PASSWORD" "$POPULATE_SCRIPT"
+fi
+
 prepare_database
 
 if [ "$WARMUP" -gt 0 ]; then

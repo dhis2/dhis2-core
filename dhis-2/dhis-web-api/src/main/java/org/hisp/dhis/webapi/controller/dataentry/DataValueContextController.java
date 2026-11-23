@@ -46,6 +46,7 @@ import org.hisp.dhis.datavalue.DataValueChangelogEntry;
 import org.hisp.dhis.datavalue.DataValueChangelogService;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueContextDto;
@@ -66,7 +67,8 @@ public class DataValueContextController {
   private final PeriodService periodService;
 
   @GetMapping("/dataValueContext")
-  public DataValueContextDto getChangeLog(DataValueQueryParams params) throws ConflictException {
+  public DataValueContextDto getChangeLog(DataValueQueryParams params)
+      throws ConflictException, ForbiddenException {
     // treat "" as null for CC + CP (this endpoint only for backwards compatibility)
     if ("".equals(params.getCp())) params.setCp(null);
     if ("".equals(params.getCc())) params.setCc(null);

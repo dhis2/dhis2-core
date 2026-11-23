@@ -529,6 +529,40 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
   }
 
   @Test
+  void testEnrollmentHasValueDataElementUsesPlaceholderWithoutNullReplacement() {
+    programIndicator.setAnalyticsType(ENROLLMENT);
+    when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+
+    String sql = test("d2:hasValue(#{ProgrmStagA.DataElmentA})");
+
+    assertThat(
+        sql,
+        is(
+            "(__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentA', offset='0', "
+                + "boundaryHash='noboundaries', piUid='"
+                + programIndicator.getUid()
+                + "', replaceNulls='false') is not null)"));
+  }
+
+  @Test
+  void testEnrollmentDataElementUsesPlaceholderWithNullReplacement() {
+    programIndicator.setAnalyticsType(ENROLLMENT);
+    when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+
+    String sql = test("#{ProgrmStagA.DataElmentA}");
+
+    assertThat(
+        sql,
+        is(
+            "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentA', offset='0', "
+                + "boundaryHash='noboundaries', piUid='"
+                + programIndicator.getUid()
+                + "', replaceNulls='true')"));
+  }
+
+  @Test
   void testHasValueAttribute() {
     when(idObjectManager.get(TrackedEntityAttribute.class, attributeA.getUid()))
         .thenReturn(attributeA);

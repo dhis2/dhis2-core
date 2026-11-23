@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class AggregationTypeTest {
@@ -49,5 +50,32 @@ class AggregationTypeTest {
     assertTrue(AggregationType.LAST_AVERAGE_ORG_UNIT.isLast());
     assertFalse(AggregationType.SUM.isLast());
     assertFalse(AggregationType.FIRST.isLast());
+  }
+
+  @Test
+  void singleValueAggregationTypesArePlainSqlFunctions() {
+    for (AggregationType type :
+        List.of(
+            AggregationType.COUNT,
+            AggregationType.SUM,
+            AggregationType.AVERAGE,
+            AggregationType.MIN,
+            AggregationType.MAX,
+            AggregationType.STDDEV,
+            AggregationType.VARIANCE)) {
+      assertTrue(type.isSingleValueAggregation(), type.name());
+    }
+
+    for (AggregationType type :
+        List.of(
+            AggregationType.LAST,
+            AggregationType.FIRST,
+            AggregationType.LAST_IN_PERIOD,
+            AggregationType.AVERAGE_SUM_ORG_UNIT,
+            AggregationType.NONE,
+            AggregationType.DEFAULT,
+            AggregationType.CUSTOM)) {
+      assertFalse(type.isSingleValueAggregation(), type.name());
+    }
   }
 }

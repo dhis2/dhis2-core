@@ -46,6 +46,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.storage.BlobKey;
+import org.hisp.dhis.storage.BlobReadOptions;
 import org.hisp.dhis.storage.BlobStoreService;
 import org.hisp.dhis.storage.BlobStoreService.ContentDisposition;
 import org.hisp.dhis.storage.ContentHash;
@@ -181,7 +182,7 @@ public class BlobStoreFileResourceContentStore implements FileResourceContentSto
   @Override
   public void copyContent(BlobKey key, OutputStream output)
       throws IOException, NoSuchElementException {
-    ensureBlobExists(key);
+    ensureBlobExists(key, BlobReadOptions.none());
 
     try (InputStream in = blobStore.openStream(key)) {
       IOUtils.copy(in, output);
@@ -189,22 +190,24 @@ public class BlobStoreFileResourceContentStore implements FileResourceContentSto
   }
 
   @Override
-  public byte[] copyContent(BlobKey key) throws IOException, NoSuchElementException {
-    ensureBlobExists(key);
+  public byte[] copyContent(BlobKey key, BlobReadOptions options)
+      throws IOException, NoSuchElementException {
+    ensureBlobExists(key, options);
 
-    try (InputStream in = blobStore.openStream(key)) {
+    try (InputStream in = blobStore.openStream(key, options)) {
       return IOUtils.toByteArray(in);
     }
   }
 
   @Override
-  public InputStream openStream(BlobKey key) throws IOException, NoSuchElementException {
-    ensureBlobExists(key);
-    return blobStore.openStream(key);
+  public InputStream openStream(BlobKey key, BlobReadOptions options)
+      throws IOException, NoSuchElementException {
+    ensureBlobExists(key, options);
+    return blobStore.openStream(key, options);
   }
 
-  private void ensureBlobExists(BlobKey key) {
-    if (!blobStore.blobExists(key)) {
+  private void ensureBlobExists(BlobKey key, BlobReadOptions options) {
+    if (!blobStore.blobExists(key, options)) {
       throw new NoSuchElementException("key '" + key + "' not found.");
     }
   }

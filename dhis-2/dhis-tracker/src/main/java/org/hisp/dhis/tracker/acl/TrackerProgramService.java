@@ -41,6 +41,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserDetails;
@@ -56,6 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackerProgramService {
 
   @Nonnull private final ProgramService programService;
+  @Nonnull private final ProgramStageService programStageService;
   @Nonnull private final AclService aclService;
 
   /**
@@ -124,6 +126,16 @@ public class TrackerProgramService {
         .toList();
   }
 
+  /** Retrieves the list of event programs the current user can read the data of. */
+  @Transactional(readOnly = true)
+  public @Nonnull List<Program> getEventProgramsWithDataReadAccess() {
+    UserDetails user = getCurrentUserDetails();
+
+    return programService.getAllPrograms().stream()
+        .filter(p -> p.isWithoutRegistration() && aclService.canDataRead(user, p))
+        .toList();
+  }
+
   /**
    * Retrieves the list of tracker programs accessible to the current user that match the given
    * tracked entity type. It is assumed that the user has access to the supplied trackedEntityType.
@@ -156,13 +168,22 @@ public class TrackerProgramService {
         .toList();
   }
 
+  /**
+   * Returns the stages of the given programs the current user can read.
+   *
+   * <p>Queries on the owning side rather than reading {@link Program#getProgramStages()}, whose
+   * lazy inverse collection can come back empty depending on the caller's Hibernate session.
+   * Callers bind the result into {@code ev.programstageid in (:programstageid)}, where an empty
+   * list matches no rows and silently drops every event.
+   */
   @Transactional(readOnly = true)
-  public @Nonnull List<ProgramStage> getTrackerProgramStagesWithDataReadAccess(
-      @Nonnull List<Program> program) {
+  public @Nonnull List<ProgramStage> getProgramStagesWithDataReadAccess(
+      @Nonnull List<Program> programs) {
     UserDetails user = getCurrentUserDetails();
 
-    return program.stream()
-        .flatMap(p -> p.getProgramStages().stream())
+    return programs.stream()
+        .map(programStageService::getProgramStagesByProgram)
+        .flatMap(List::stream)
         .filter(ps -> aclService.canRead(user, ps) && aclService.canDataRead(user, ps))
         .toList();
   }

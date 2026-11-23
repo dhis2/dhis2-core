@@ -65,6 +65,9 @@ public enum AggregationType {
   private static final EnumSet<AggregationType> FIRST_TYPES =
       EnumSet.of(FIRST, FIRST_AVERAGE_ORG_UNIT, FIRST_FIRST_ORG_UNIT);
 
+  private static final EnumSet<AggregationType> SINGLE_VALUE_TYPES =
+      EnumSet.of(COUNT, SUM, AVERAGE, MIN, MAX, STDDEV, VARIANCE);
+
   private final String value;
 
   private boolean aggregatable;
@@ -92,6 +95,14 @@ public enum AggregationType {
 
   public boolean isFirst() {
     return FIRST_TYPES.contains(this);
+  }
+
+  /**
+   * Indicates whether this type is a plain SQL aggregate function applied to one value per row unit
+   * (enrollment or tracked entity), without period or org unit disaggregation.
+   */
+  public boolean isSingleValueAggregation() {
+    return SINGLE_VALUE_TYPES.contains(this);
   }
 
   public static AggregationType fromValue(String value) {

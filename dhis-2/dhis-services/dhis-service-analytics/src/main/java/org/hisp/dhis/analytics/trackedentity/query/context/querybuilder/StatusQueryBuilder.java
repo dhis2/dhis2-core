@@ -127,6 +127,7 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
 
     acceptedDimensions.stream()
         .filter(SqlQueryBuilders::hasRestrictions)
+        .filter(dimension -> !AggregateQueryBuilder.isGroupedInAggregate(ctx, dimension))
         .map(
             dimensionIdentifier ->
                 GroupableCondition.of(
@@ -135,19 +136,24 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
                         dimensionIdentifier, StatusCondition.of(dimensionIdentifier, ctx))))
         .forEach(builder::groupableCondition);
 
-    acceptedSortingParams.forEach(
-        sortingParam -> {
-          DimensionIdentifier<DimensionParam> dimensionIdentifier = sortingParam.getOrderBy();
-          String fieldName =
-              dimensionIdentifier.getDimension().getStaticDimension().getColumnName();
+    acceptedSortingParams.stream()
+        .filter(
+            sortingParam ->
+                !AggregateQueryBuilder.isGroupedInAggregate(ctx, sortingParam.getOrderBy()))
+        .forEach(
+            sortingParam -> {
+              DimensionIdentifier<DimensionParam> dimensionIdentifier = sortingParam.getOrderBy();
+              String fieldName =
+                  dimensionIdentifier.getDimension().getStaticDimension().getColumnName();
 
-          builder.orderClause(
-              IndexedOrder.of(
-                  sortingParam.getIndex(),
-                  Order.of(
-                      SqlQueryHelper.buildOrderSubQuery(sortingParam.getOrderBy(), () -> fieldName),
-                      sortingParam.getSortDirection())));
-        });
+              builder.orderClause(
+                  IndexedOrder.of(
+                      sortingParam.getIndex(),
+                      Order.of(
+                          SqlQueryHelper.buildOrderSubQuery(
+                              sortingParam.getOrderBy(), () -> fieldName),
+                          sortingParam.getSortDirection())));
+            });
 
     return builder.build();
   }

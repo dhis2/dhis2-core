@@ -342,7 +342,7 @@ public class Interpretation extends BaseIdentifiableObject implements UsesPeriod
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public DataSet getDataSet() {
     return dataSet;

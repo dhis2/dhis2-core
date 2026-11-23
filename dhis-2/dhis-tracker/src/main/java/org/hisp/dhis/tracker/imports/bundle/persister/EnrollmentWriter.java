@@ -45,7 +45,7 @@ import org.hisp.dhis.tracker.model.Enrollment;
 /**
  * Flushes staged {@link Enrollment} writes: a multi-row JDBC INSERT against {@code enrollment} (ids
  * pre-allocated from {@code enrollment_sequence}), a single unnest UPDATE, and a cascade insert of
- * any new notes into {@code note} + {@code enrollment_notes}.
+ * any new notes into {@code note}.
  */
 final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
 
@@ -133,7 +133,7 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
           + " ) v where e.enrollmentid = v.enrollmentid";
 
   private final UserInfoJsonCache userInfo;
-  private final NoteCascadeWriter notes = new NoteCascadeWriter("enrollment_notes", "enrollmentid");
+  private final NoteWriter notes = new NoteWriter("enrollmentid");
 
   EnrollmentWriter(UserInfoJsonCache userInfo) {
     this.userInfo = userInfo;
@@ -143,7 +143,7 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
   void flush(Connection conn) throws SQLException {
     insert(conn);
     update(conn);
-    notes.cascade(conn, inserts, updates, Enrollment::getId, Enrollment::getNotes);
+    notes.write(conn, inserts, updates, Enrollment::getId, Enrollment::getNotes);
   }
 
   private void insert(Connection conn) throws SQLException {

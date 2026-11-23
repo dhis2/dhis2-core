@@ -44,8 +44,11 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * @author Lars Helge Overland
@@ -122,6 +125,22 @@ class QueryItemTest {
     assertEquals(expected, qiB.getOptionSetFilterItemsOrAll());
   }
 
+  @ParameterizedTest
+  @CsvSource({
+    "D2__NOVALUE;CODEA;CODEB, D2__NOVALUE;UIDA;UIDB",
+    "CODEA;D2__NOVALUE;CODEB, UIDA;D2__NOVALUE;UIDB",
+    "CODEA;CODEB;D2__NOVALUE, UIDA;UIDB;D2__NOVALUE",
+    "CODEB;D2__NOVALUE;CODEA, UIDB;D2__NOVALUE;UIDA",
+    "D2__NOVALUE, D2__NOVALUE",
+    "UNKNOWN;CODEB;D2__NOVALUE;CODEA, UIDB;D2__NOVALUE;UIDA"
+  })
+  void testOptionSetFilterPreservesNoValueOrder(String filter, String expected) {
+    QueryItem item = new QueryItem(deA, null, ValueType.TEXT, AggregationType.SUM, osA);
+    item.addFilter(new QueryFilter(IN, filter));
+
+    assertEquals(List.of(expected.split(";")), item.getOptionSetFilterItemsOrAll());
+  }
+
   @Test
   void testGet() {
     QueryItem qiA = new QueryItem(deB, lsA, ValueType.TEXT, AggregationType.SUM, null);
@@ -190,6 +209,33 @@ class QueryItemTest {
 
     QueryItem qiB = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
     qiB.setDimensionValues(List.of("value2"));
+
+    assertNotEquals(qiA.getKey(), qiB.getKey());
+  }
+
+  @Test
+  void testGetKeyNotTheSameWithDifferentProgramStages() {
+    ProgramStage psA = new ProgramStage("StageA", prA);
+    psA.setUid("PSUIDA");
+    ProgramStage psB = new ProgramStage("StageB", prA);
+    psB.setUid("PSUIDB");
+
+    QueryItem qiA = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiA.setProgramStage(psA);
+
+    QueryItem qiB = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiB.setProgramStage(psB);
+
+    assertNotEquals(qiA.getKey(), qiB.getKey());
+  }
+
+  @Test
+  void testGetKeyNotTheSameWithDifferentRepeatableStageParams() {
+    QueryItem qiA = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiA.setRepeatableStageParams(rspA);
+
+    QueryItem qiB = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiB.setRepeatableStageParams(rspB);
 
     assertNotEquals(qiA.getKey(), qiB.getKey());
   }

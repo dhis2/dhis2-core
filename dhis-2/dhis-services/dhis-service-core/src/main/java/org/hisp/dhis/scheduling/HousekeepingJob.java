@@ -90,9 +90,7 @@ public class HousekeepingJob implements Job {
 
     progress.startingStage("Reschedule stale jobs", SKIP_STAGE);
     progress.runStage(
-        0,
-        "%d jobs were rescheduled"::formatted,
-        () -> jobConfigurationService.rescheduleStaleJobs(-1));
+        0, "%d jobs were rescheduled"::formatted, jobConfigurationService::rescheduleStaleJobs);
 
     progress.startingStage("Deleting orphan default icons", SKIP_STAGE);
     progress.runStage(0, "%d icons were deleted"::formatted, iconService::deleteOrphanDefaultIcons);

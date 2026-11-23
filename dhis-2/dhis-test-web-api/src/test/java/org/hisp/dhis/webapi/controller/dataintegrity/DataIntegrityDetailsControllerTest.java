@@ -55,6 +55,10 @@ class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityIntegratio
   @Test
   void testLegacyChecksOnly() {
     for (DataIntegrityCheckType type : DataIntegrityCheckType.values()) {
+      if (type == DataIntegrityCheckType.SERVER_BASE_URL_NOT_CONFIGURED) {
+        // depends on dhis.conf rather than metadata, see DataIntegrityServerBaseUrlControllerTest
+        continue;
+      }
       String check = type.getName();
       postDetails(check);
       JsonDataIntegrityDetails details = getDetails(check);

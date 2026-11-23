@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -210,6 +210,21 @@ public interface SqlBuilder {
    * @return true if the DBMS requires indexes for analytics tables for performance.
    */
   boolean requiresIndexesForAnalytics();
+
+  /**
+   * @return true if the DBMS supports continuous (incremental latest-partition) analytics table
+   *     updates.
+   */
+  boolean supportsContinuousAnalytics();
+
+  /**
+   * @return true if analytics tables must be created with a real unique key for continuous
+   *     analytics table updates to work correctly on this DBMS. When true, the natural key column
+   *     of the affected analytics table types (e.g. {@code event}, {@code id}) is passed as the
+   *     table's primary key so the DBMS can use it for both deduplication on insert and DELETE
+   *     statements that join back to operational tables.
+   */
+  boolean requiresUniqueKeyAnalyticsTables();
 
   /**
    * The percentile_cont function is a statistical function that calculates the continuous
@@ -539,6 +554,16 @@ public interface SqlBuilder {
   String tableExists(String name);
 
   /**
+   * Only meaningful for engines where {@link #requiresUniqueKeyAnalyticsTables()} is true, which
+   * may have main tables predating the introduction of unique-key analytics tables.
+   *
+   * @param name the table name.
+   * @return a statement which returns the table's create statement, which can be inspected to
+   *     determine the table's key model.
+   */
+  String showCreateTable(String name);
+
+  /**
    * @param table the {@link Table}.
    * @return a count rows statement.
    */
@@ -556,6 +581,21 @@ public interface SqlBuilder {
    * @return in insert into select from statement.
    */
   String insertIntoSelectFrom(Table intoTable, String fromTable);
+
+  /**
+   * @param intoTable the table to insert rows into.
+   * @param fromTable the name of the table to select rows from, preferrably quoted.
+   * @param whereClause the condition restricting the selected rows, without the where keyword.
+   * @return in insert into select from statement with a where clause.
+   */
+  String insertIntoSelectFrom(Table intoTable, String fromTable, String whereClause);
+
+  /**
+   * @param table the table to delete rows from.
+   * @param whereClause the condition selecting the rows to delete, without the where keyword.
+   * @return a delete from where statement.
+   */
+  String deleteFromWhere(Table table, String whereClause);
 
   /**
    * Generates an SQL fragment that casts the given numeric expression to a decimal type.
@@ -585,4 +625,19 @@ public interface SqlBuilder {
    * @return an SQL fragment that casts {@code literal} to {@code DECIMAL(precision, scale)}
    */
   String decimalLiteral(String literal, int precision, int scale);
+
+  /**
+   * Returns an SQL expression that yields {@code NULL} when {@code column} holds an empty string,
+   * and the column value otherwise. This normalises empty text to {@code NULL} so that absent and
+   * empty text values are treated the same way across analytics databases.
+   *
+   * <p>The default returns the column unchanged. Engines that store empty strings where other
+   * engines store {@code NULL} (ClickHouse) override this to wrap the column in a {@code nullif}.
+   *
+   * @param column the text SQL column or expression.
+   * @return a NULL-normalising SQL fragment.
+   */
+  default String nullIfEmpty(String column) {
+    return column;
+  }
 }

@@ -412,6 +412,59 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldNotImportEventWhenAnErrorIsTriggeredByATeaValueSavedInDbAndPayloadHasOnlyTheEvent()
+      throws IOException {
+    ImportReport report =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            testSetup.fromJson("tracker/programrule/te_with_attribute_enrollment.json"));
+    assertNoErrors(report);
+
+    errorProgramRuleWithD2HasValue();
+    report =
+        trackerImportService.importTracker(
+            new TrackerImportParams(), testSetup.fromJson("tracker/programrule/event.json"));
+
+    assertHasOnlyErrors(report, E1300);
+  }
+
+  @Test
+  void shouldImportCompletedEventWhenOnCompleteErrorRuleIsNotTriggeredBecauseTeaSavedInDbHasValue()
+      throws IOException {
+    ImportReport report =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            testSetup.fromJson("tracker/programrule/te_with_attribute_enrollment.json"));
+    assertNoErrors(report);
+
+    onCompleteErrorProgramRuleWhenTeaHasNoValue();
+    report =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            testSetup.fromJson("tracker/programrule/completed_event.json"));
+
+    assertNoErrors(report);
+  }
+
+  @Test
+  void shouldNotImportCompletedEventWhenOnCompleteErrorRuleIsTriggeredBecauseTeaHasNoValue()
+      throws IOException {
+    ImportReport report =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            testSetup.fromJson("tracker/programrule/te_enrollment.json"));
+    assertNoErrors(report);
+
+    onCompleteErrorProgramRuleWhenTeaHasNoValue();
+    report =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            testSetup.fromJson("tracker/programrule/completed_event.json"));
+
+    assertHasOnlyErrors(report, E1300);
+  }
+
+  @Test
   void shouldImportWithNoWarningsWhenDataElementHasNoValue() throws IOException {
     showErrorWhenVariableHasValueRule();
     TrackerObjects trackerObjects =
@@ -579,6 +632,17 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
     programRuleService.addProgramRule(programRule);
     ProgramRuleAction programRuleAction =
         createProgramRuleAction(programRule, SHOWERROR, null, null);
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
+  }
+
+  private void onCompleteErrorProgramRuleWhenTeaHasNoValue() {
+    ProgramRule programRule =
+        createProgramRule('O', program, null, "!d2:hasValue(#{ProgramRuleVariableB})");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction =
+        createProgramRuleAction(programRule, ProgramRuleActionType.ERRORONCOMPLETE, null, null);
     programRuleActionService.addProgramRuleAction(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);

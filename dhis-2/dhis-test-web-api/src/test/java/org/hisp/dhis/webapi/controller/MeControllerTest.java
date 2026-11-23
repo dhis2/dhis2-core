@@ -65,6 +65,8 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonMeDto;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -465,5 +467,33 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     // Verify avatar is removed
     User userAfterRemoval = userService.getUserByUsername(currentUsername);
     assertNull(userAfterRemoval.getAvatar());
+  }
+
+  /**
+   * DHIS2-21908: /api/me must tolerate users who belong to membership groups that manage other
+   * groups. Building UserDetails via {@code userService.createUserDetails} batch-resolves managed
+   * group PKs; the legacy {@code UserDetails.fromUser} path N+1s on usergroupmanaged.
+   */
+  @Test
+  void testGetCurrentUser_WithManagedUserGroups() {
+    User user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    UserGroup managed = createUserGroup('Y', Set.of());
+    manager.save(managed);
+
+    UserGroup managing = createUserGroup('X', Set.of(user));
+    managing.addManagedGroup(managed);
+    manager.save(managing);
+
+    user.getGroups().add(managing);
+    userService.updateUser(user);
+
+    JsonMeDto me = GET("/me?fields=id").content().as(JsonMeDto.class);
+    assertEquals(user.getUid(), me.getId());
+
+    // Same choke point MeController now uses for UserDetails construction.
+    User reloaded = userService.getUser(user.getUid());
+    UserDetails details = userService.createUserDetails(reloaded);
+    assertTrue(details.getManagedGroupLongIds().contains(managed.getId()));
   }
 }

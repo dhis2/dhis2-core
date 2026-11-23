@@ -121,6 +121,14 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testGetPathOpenApiDocument_ControllerMappedAtApiRoot() {
+    JsonObject doc = GET("/dataApprovals/openapi.json").content();
+    assertTrue(
+        doc.getObject("paths")
+            .has("/api/dataApprovals", "/api/dataApprovals/status", "/api/dataAcceptances"));
+  }
+
+  @Test
   void testGetOpenApiDocument_ScopeFilter() {
     JsonObject doc = GET("/openapi/openapi.json?scope=entity:User").content();
     assertTrue(doc.isObject());
@@ -133,9 +141,11 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
                 "/api/users/sharing"));
     assertLessOrEqual(151, doc.getObject("paths").size());
     assertLessOrEqual(
-        130,
+        150,
         doc.getObject("components.schemas")
-            .size()); // Increased from 120 to 130 due to DataApprovalLevel JPA migration
+            .size()); // 120 -> 130 (DataApprovalLevel JPA migration); -> 150 for the category JPA
+    // migrations (Category / CategoryOptionGroupSet expose full DimensionalObject schemas reachable
+    // from the User entity scope via cat/cogs dimension constraints)
   }
 
   @Test

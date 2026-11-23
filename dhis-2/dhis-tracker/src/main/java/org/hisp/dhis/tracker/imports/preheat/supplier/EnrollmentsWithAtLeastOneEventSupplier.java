@@ -57,7 +57,7 @@ public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatS
           + "from trackerevent "
           + "where enrollment.enrollmentid = trackerevent.enrollmentid "
           + "and enrollment.deleted = false) "
-          + "and enrollmentid in (:ids)";
+          + "and enrollmentid = any(:ids)";
 
   protected EnrollmentsWithAtLeastOneEventSupplier(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
@@ -65,21 +65,24 @@ public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatS
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    List<Long> enrollmentIds =
-        preheat.getEnrollments().values().stream().map(IdentifiableObject::getId).toList();
-
-    if (!enrollmentIds.isEmpty()) {
-      List<UID> uids = new ArrayList<>();
-
-      MapSqlParameterSource parameters = new MapSqlParameterSource();
-      parameters.addValue("ids", enrollmentIds);
-      jdbcTemplate.query(
-          SQL,
-          parameters,
-          rs -> {
-            uids.add(UID.of(rs.getString(COLUMN)));
-          });
-      preheat.setEnrollmentsWithOneOrMoreNonDeletedEvent(uids);
+    if (preheat.getEnrollments().isEmpty()) {
+      return;
     }
+
+    Long[] enrollmentIds =
+        preheat.getEnrollments().values().stream()
+            .map(IdentifiableObject::getId)
+            .toArray(Long[]::new);
+    List<UID> uids = new ArrayList<>();
+
+    MapSqlParameterSource parameters = new MapSqlParameterSource();
+    parameters.addValue("ids", enrollmentIds);
+    jdbcTemplate.query(
+        SQL,
+        parameters,
+        rs -> {
+          uids.add(UID.of(rs.getString(COLUMN)));
+        });
+    preheat.setEnrollmentsWithOneOrMoreNonDeletedEvent(uids);
   }
 }

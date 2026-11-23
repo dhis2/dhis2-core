@@ -29,56 +29,40 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
-import com.google.common.collect.Lists;
-import jakarta.persistence.EntityManager;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.NoteMapper;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
+ * Preheats the uids of the payload's notes that already exist, so the importer skips them with
+ * warning E1119. A note cannot be updated.
+ *
  * @author Luciano Fiandesio
  */
 @Component
 @StrategyFor(value = Note.class, mapper = NoteMapper.class)
-public class NoteStrategy extends HibernateGenericStore<Note>
-    implements ClassBasedSupplierStrategy {
+@RequiredArgsConstructor
+public class NoteStrategy implements ClassBasedSupplierStrategy {
+  /**
+   * {@code = any(array)} binds all uids as one parameter instead of one per uid as {@code in (...)}
+   * would. The unique constraint on {@code note.uid} backs the lookup with an index.
+   */
+  private static final String SQL = "select uid from note where uid = any(:uids)";
 
-  public NoteStrategy(
-      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, Note.class, false);
-  }
+  private final NamedParameterJdbcTemplate jdbcTemplate;
 
   @Override
   public void add(List<List<String>> splitList, TrackerPreheat preheat) {
-    List<UID> uids = splitList.stream().flatMap(Collection::stream).map(UID::of).toList();
-
-    preheat.addNotes(getExistingNotes(uids));
-  }
-
-  private Set<UID> getExistingNotes(List<UID> uids) {
-    Set<UID> notes = new HashSet<>();
-    List<List<UID>> uidsPartitions = Lists.partition(uids, 20000);
-
-    for (List<UID> uidsPartition : uidsPartitions) {
-      if (!uidsPartition.isEmpty()) {
-        notes.addAll(
-            UID.of(
-                getSession()
-                    .createQuery("select n.uid from Note as n where n.uid in (:uids)", String.class)
-                    .setParameter("uids", UID.toValueList(uidsPartition))
-                    .list()));
-      }
+    for (List<String> uids : splitList) {
+      List<String> existing =
+          jdbcTemplate.queryForList(SQL, Map.of("uids", uids.toArray(String[]::new)), String.class);
+      preheat.addNotes(UID.of(existing));
     }
-
-    return notes;
   }
 }

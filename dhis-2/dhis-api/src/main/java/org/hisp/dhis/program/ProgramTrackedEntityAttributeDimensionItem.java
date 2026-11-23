@@ -86,6 +86,7 @@ public class ProgramTrackedEntityAttributeDimensionItem extends BaseDimensionalI
   }
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.PROGRAM_ATTRIBUTE;
   }

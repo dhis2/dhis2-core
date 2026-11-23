@@ -103,4 +103,9 @@ public class EnrollmentQueryDorisGenerator implements Generator {
     // This flag becomes less relevant, but set to false as we won't use index-based row validation.
     return false;
   }
+
+  @Override
+  public boolean geospatialHeadersDependOnDatabase() {
+    return true;
+  }
 }

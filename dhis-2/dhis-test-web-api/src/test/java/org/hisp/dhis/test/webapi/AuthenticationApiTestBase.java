@@ -72,6 +72,7 @@ public abstract class AuthenticationApiTestBase extends H2ControllerIntegrationT
               .ignoring()
               .requestMatchers(
                   new AntPathRequestMatcher("/api/ping"),
+                  new AntPathRequestMatcher("/api/**/loginConfig"),
                   new AntPathRequestMatcher("/auth/login"),
                   new AntPathRequestMatcher("/favicon.ico"));
     }

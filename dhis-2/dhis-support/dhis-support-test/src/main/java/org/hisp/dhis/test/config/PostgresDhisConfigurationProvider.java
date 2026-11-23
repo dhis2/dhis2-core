@@ -42,13 +42,14 @@ public class PostgresDhisConfigurationProvider extends TestDhisConfigurationProv
   private static final String DEFAULT_CONFIGURATION_FILE_NAME = "postgresTestDhis.conf";
 
   /**
-   * Refers to the {@code postgis/postgis:16-3.5-alpine} image which contains PostgreSQL 16 and
-   * PostGIS 3.4.2.
+   * Refers to the {@code ghcr.io/baosystems/postgis:16-3.5} image which contains PostgreSQL 16 and
+   * PostGIS 3.5. It is used instead of the official {@code postgis/postgis} image as it is also
+   * built for arm64.
    */
-  private static final String POSTGRES_POSTGIS_VERSION = "16-3.5-alpine";
+  private static final String POSTGRES_POSTGIS_VERSION = "16-3.5";
 
   private static final DockerImageName POSTGIS_IMAGE_NAME =
-      DockerImageName.parse("imresamu/postgis").asCompatibleSubstituteFor("postgres");
+      DockerImageName.parse("ghcr.io/baosystems/postgis").asCompatibleSubstituteFor("postgres");
   private static final String POSTGRES_DATABASE_NAME = "dhis";
   private static final String POSTGRES_USERNAME = "dhis";
   private static final String POSTGRES_PASSWORD = "dhis";
@@ -63,7 +64,8 @@ public class PostgresDhisConfigurationProvider extends TestDhisConfigurationProv
             .withPassword(POSTGRES_PASSWORD)
             .withInitScript("db/extensions.sql")
             .withTmpFs(Map.of("/testtmpfs", "rw"))
-            .withCommand("postgres -c idle_session_timeout=35000")
+            .withCommand(
+                "postgres -c idle_session_timeout=35000 -c shared_preload_libraries=postgis-3")
             .withEnv("LC_COLLATE", "C");
 
     POSTGRES_CONTAINER.start();

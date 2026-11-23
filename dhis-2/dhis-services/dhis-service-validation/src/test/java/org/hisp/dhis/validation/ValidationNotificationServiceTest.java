@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.expression.Operator;
+import org.hisp.dhis.i18n.I18nLocaleService;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -59,6 +62,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.period.PeriodTypeStore;
+import org.hisp.dhis.period.RelativePeriodStore;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
@@ -98,6 +103,14 @@ class ValidationNotificationServiceTest extends TestBase {
   @Mock private ValidationResultService validationResultService;
 
   @Mock private PeriodStore periodStore;
+  @Mock private PeriodTypeStore periodperiodTypeStore;
+  @Mock private RelativePeriodStore relativePeriodStore;
+
+  @Mock private I18nManager i18nManager;
+
+  @Mock private ConfigurationService configurationService;
+
+  @Mock private I18nLocaleService localeService;
 
   private DefaultPeriodService periodService;
 
@@ -128,7 +141,14 @@ class ValidationNotificationServiceTest extends TestBase {
   void initTest() {
     subject =
         new DefaultValidationNotificationService(renderer, messageService, validationResultService);
-    this.periodService = new DefaultPeriodService(periodStore);
+    this.periodService =
+        new DefaultPeriodService(
+            periodStore,
+            periodperiodTypeStore,
+            relativePeriodStore,
+            i18nManager,
+            configurationService,
+            localeService);
     sentMessages = new ArrayList<>();
     when(messageService.sendValidationMessage(
             anySet(), anyString(), anyString(), any(MessageConversationPriority.class)))
@@ -189,6 +209,27 @@ class ValidationNotificationServiceTest extends TestBase {
         10,
         StringUtils.countMatches(text, STATIC_MOCK_SUBJECT),
         "Wrong number of messages in the summarized message");
+  }
+
+  @Test
+  void testResultsOfSameNamedOrgUnitsAreAllNotified() {
+    setUpEntitiesA();
+    OrganisationUnit twin = createOrganisationUnit('B');
+    twin.setName(orgUnitA.getName());
+    orgUnitA.setId(1);
+    twin.setId(2);
+    // results of a persisting run are not persisted entities: no id
+    ValidationResult resultA = createValidationResultA();
+    resultA.setId(0);
+    ValidationResult resultTwin = createValidationResultA();
+    resultTwin.setOrganisationUnit(twin);
+    resultTwin.setId(0);
+
+    subject.sendNotifications(Set.of(resultA, resultTwin), JobProgress.noop());
+
+    assertEquals(1, sentMessages.size());
+    assertEquals(
+        2, StringUtils.countMatches(sentMessages.iterator().next().text, STATIC_MOCK_SUBJECT));
   }
 
   @Test

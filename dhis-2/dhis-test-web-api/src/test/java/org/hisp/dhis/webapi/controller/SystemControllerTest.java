@@ -95,6 +95,11 @@ class SystemControllerTest extends H2ControllerIntegrationTestBase {
     // testing one sensitive and one non-sensitive property
     assertNotNull(info.getString("javaVersion").string());
     assertNotNull(info.getString("serverDate").string());
+    // per-AnalyticsTableType update timestamps (DHIS2-21992), surfaced alongside the legacy
+    // single-value fields; empty objects are expected here since no analytics table update has
+    // run in this test
+    assertTrue(info.getObject("lastAnalyticsTableSuccessByType").isObject());
+    assertTrue(info.getObject("lastAnalyticsTablePartitionSuccessByType").isObject());
   }
 
   @Test
@@ -104,6 +109,9 @@ class SystemControllerTest extends H2ControllerIntegrationTestBase {
     // testing one sensitive and one non-sensitive property
     assertNull(info.getString("javaVersion").string());
     assertNotNull(info.getString("serverDate").string());
+    // not sensitive, stays visible to non-superusers too, same as the legacy fields
+    assertTrue(info.getObject("lastAnalyticsTableSuccessByType").isObject());
+    assertTrue(info.getObject("lastAnalyticsTablePartitionSuccessByType").isObject());
   }
 
   @Test

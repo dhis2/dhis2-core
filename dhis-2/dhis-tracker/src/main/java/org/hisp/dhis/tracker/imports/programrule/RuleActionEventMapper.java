@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
@@ -86,11 +85,11 @@ class RuleActionEventMapper {
       return List.of();
     }
 
-    // Pre-build the set of data element UIDs for this program stage so that
-    // isDataElementPartOfProgramStage does not stream over the collection per effect.
+    // Data elements of the stage, projected by ProgramStageDataElementsSupplier. Rules refer to
+    // data elements by uid, so the uid set is the one to probe.
     Set<String> stageDataElementUids =
-        programStage.getDataElements().stream()
-            .map(IdentifiableObject::getUid)
+        bundle.getPreheat().getProgramStageDataElements(programStage).memberUids().stream()
+            .map(UID::getValue)
             .collect(Collectors.toSet());
 
     return ruleValidationEffects.stream()

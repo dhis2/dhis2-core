@@ -50,6 +50,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
@@ -60,10 +61,15 @@ class DataValueChangelogStoreTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private CategoryService categoryService;
   @Autowired private PeriodService periodService;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private CategoryOptionCombo coc1;
   private CategoryOptionCombo coc2;
   private CategoryOptionCombo coc3;
+
+  private DataElement dataElementA;
+  private Period periodA;
+  private OrganisationUnit orgUnitA;
 
   @BeforeEach
   void setUp() {
@@ -79,13 +85,12 @@ class DataValueChangelogStoreTest extends PostgresIntegrationTestBase {
     coc3.setCategoryCombo(categoryService.getDefaultCategoryCombo());
     categoryService.addCategoryOptionCombo(coc3);
 
-    DataElement dataElementA = createDataElement('A');
+    dataElementA = createDataElement('A');
     DataElement dataElementB = createDataElement('B');
     DataElement dataElementC = createDataElement('C');
     manager.save(List.of(dataElementA, dataElementB, dataElementC));
 
-    Period periodA =
-        createPeriod(new MonthlyPeriodType(), getDate(2017, 1, 1), getDate(2017, 1, 31));
+    periodA = createPeriod(new MonthlyPeriodType(), getDate(2017, 1, 1), getDate(2017, 1, 31));
     Period periodB =
         createPeriod(new MonthlyPeriodType(), getDate(2018, 1, 1), getDate(2017, 1, 31));
     Period periodC =
@@ -94,7 +99,7 @@ class DataValueChangelogStoreTest extends PostgresIntegrationTestBase {
     periodService.addPeriod(periodB);
     periodService.addPeriod(periodC);
 
-    OrganisationUnit orgUnitA = createOrganisationUnit('A');
+    orgUnitA = createOrganisationUnit('A');
     OrganisationUnit orgUnitB = createOrganisationUnit('B');
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
     manager.save(List.of(orgUnitA, orgUnitB, orgUnitC));
@@ -148,6 +153,32 @@ class DataValueChangelogStoreTest extends PostgresIntegrationTestBase {
     assertTrue(dvaCoc1After.isEmpty(), "There should be 0 audits referencing Cat Opt Combo 1");
     assertTrue(dvaCoc2After.isEmpty(), "There should be 0 audits referencing Cat Opt Combo 2");
     assertEquals(2, dvaCoc3After.size(), "There should be 2 audits referencing Cat Opt Combo 3");
+  }
+
+  @Test
+  @DisplayName("New datavalueaudit rows get their id from datavalueaudit_sequence")
+  void testAuditRowIdComesFromDedicatedSequence() {
+    long hibernateSeqBefore = getSequenceValue("hibernate_sequence");
+    long dedicatedSeqBefore = getSequenceValue("datavalueaudit_sequence");
+
+    // a combination not already inserted in setUp(), so the trigger fires a fresh CREATE audit
+    addDataValues(createDataValue(dataElementA, periodA, orgUnitA, coc2, coc2, "99"));
+
+    long hibernateSeqAfter = getSequenceValue("hibernate_sequence");
+    long dedicatedSeqAfter = getSequenceValue("datavalueaudit_sequence");
+
+    assertEquals(
+        dedicatedSeqBefore + 1,
+        dedicatedSeqAfter,
+        "datavalueaudit_sequence should advance by exactly 1 for the new audit row");
+    assertEquals(
+        hibernateSeqBefore,
+        hibernateSeqAfter,
+        "hibernate_sequence must not be consumed by the datavalue audit trigger");
+  }
+
+  private long getSequenceValue(String sequenceName) {
+    return jdbcTemplate.queryForObject("select last_value from " + sequenceName, Long.class);
   }
 
   private void addDataValues(DataValue... values) {

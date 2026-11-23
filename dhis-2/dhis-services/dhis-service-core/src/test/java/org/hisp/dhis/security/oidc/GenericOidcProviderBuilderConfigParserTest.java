@@ -31,10 +31,14 @@ package org.hisp.dhis.security.oidc;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.Properties;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -165,5 +169,93 @@ class GenericOidcProviderBuilderConfigParserTest {
     p.put("oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession");
     List<DhisOidcClientRegistration> parse = GenericOidcProviderConfigParser.parse(p);
     assertThat(parse, hasSize(0));
+  }
+
+  // --- new keys: user_info_response_type / user_info_jws_algorithm ---
+
+  @Test
+  void parseAcceptsUserInfoResponseTypeJwt() {
+    Properties p = baseValidProvider("idporten");
+    p.put("oidc.provider.idporten.user_info_response_type", "jwt");
+    p.put("oidc.provider.idporten.user_info_jws_algorithm", "PS256");
+    List<DhisOidcClientRegistration> parse = GenericOidcProviderConfigParser.parse(p);
+    assertThat(parse, hasSize(1));
+    assertEquals(UserInfoResponseType.JWT, parse.get(0).getUserInfoResponseType());
+    assertEquals("PS256", parse.get(0).getUserInfoJwsAlgorithm().getName());
+  }
+
+  @Test
+  void parseRejectsUnknownUserInfoResponseType() {
+    Properties p = baseValidProvider("idporten");
+    p.put("oidc.provider.idporten.user_info_response_type", "yaml");
+    assertThat(GenericOidcProviderConfigParser.parse(p), hasSize(0));
+  }
+
+  @Test
+  void parseRejectsUnsupportedJwsAlgorithm() {
+    Properties p = baseValidProvider("idporten");
+    p.put("oidc.provider.idporten.user_info_response_type", "jwt");
+    p.put("oidc.provider.idporten.user_info_jws_algorithm", "HS256");
+    assertThat(GenericOidcProviderConfigParser.parse(p), hasSize(0));
+  }
+
+  // --- client_secret / private_key_jwt ---
+
+  @Test
+  void parseRejectsMissingClientSecretWithoutPrivateKeyJwt() {
+    Properties p = baseValidProvider("idporten");
+    p.remove("oidc.provider.idporten.client_secret");
+    assertThat(GenericOidcProviderConfigParser.parse(p), hasSize(0));
+  }
+
+  @Test
+  void parseDoesNotRequireClientSecretWithPrivateKeyJwt() {
+    Properties p = privateKeyJwtProvider("idporten");
+    p.remove("oidc.provider.idporten.client_secret");
+
+    // validation passes, so the builder runs and fails on the keystore file this test lacks
+    IllegalStateException ex =
+        assertThrows(IllegalStateException.class, () -> GenericOidcProviderConfigParser.parse(p));
+    assertEquals("Could not load key from keystore", ex.getMessage());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"keystore_path", "keystore_password", "key_alias", "key_password"})
+  void parseRejectsPrivateKeyJwtWithoutKeystoreSetting(String missingKey) {
+    Properties p = privateKeyJwtProvider("idporten");
+    p.remove("oidc.provider.idporten." + missingKey);
+    assertThat(GenericOidcProviderConfigParser.parse(p), hasSize(0));
+  }
+
+  @Test
+  void parseStillRequiresUserInfoUriEvenInJwtMode() {
+    Properties p = baseValidProvider("idporten");
+    p.remove("oidc.provider.idporten.user_info_uri");
+    p.put("oidc.provider.idporten.user_info_response_type", "jwt");
+    assertThat(GenericOidcProviderConfigParser.parse(p), hasSize(0));
+  }
+
+  private static Properties baseValidProvider(String id) {
+    Properties p = new Properties();
+    String pre = "oidc.provider." + id + ".";
+    p.put(pre + "client_id", "testClientId");
+    p.put(pre + "client_secret", "testClientSecret");
+    p.put(pre + "authorization_uri", "https://oidc-ver2.difi.no/authorize");
+    p.put(pre + "token_uri", "https://oidc-ver2.difi.no/token");
+    p.put(pre + "user_info_uri", "https://oidc-ver2.difi.no/userinfo");
+    p.put(pre + "jwk_uri", "https://oidc-ver2.difi.no/jwk");
+    return p;
+  }
+
+  private static Properties privateKeyJwtProvider(String id) {
+    Properties p = baseValidProvider(id);
+    String pre = "oidc.provider." + id + ".";
+    p.put(pre + "client_authentication_method", "private_key_jwt");
+    p.put(pre + "keystore_path", "/nonexistent/dhis2-oidc-client.p12");
+    p.put(pre + "keystore_password", "keystore-password");
+    p.put(pre + "key_alias", "dhis2-oidc-client");
+    p.put(pre + "key_password", "key-password");
+    p.put(pre + "jwk_set_url", "https://dhis2.example.org/api/publicKeys/" + id + "/jwks.json");
+    return p;
   }
 }

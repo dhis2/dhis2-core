@@ -46,7 +46,6 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -58,6 +57,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -327,7 +327,7 @@ public class MapView extends BaseAnalyticalObject
   }
 
   @Override
-  public DimensionalItemObject getValue() {
+  public Value getValue() {
     return null;
   }
 

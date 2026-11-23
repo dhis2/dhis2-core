@@ -38,8 +38,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
 /**
- * DimensionItemObject data as found with organisation unit, period, attribute option combination,
- * and a value.
+ * DimensionItemObject data as found with organisation unit, period, category option combination,
+ * attribute option combination, and a value.
+ *
+ * <p>The category option combination is null unless the value is for a single disaggregation of the
+ * item (for example a data element operand, or a disaggregated program indicator.)
  *
  * @author Jim Grace
  */
@@ -51,6 +54,8 @@ public class FoundDimensionItemValue {
   private final OrganisationUnit organisationUnit;
 
   private final Period period;
+
+  private final CategoryOptionCombo categoryOptionCombo;
 
   private final CategoryOptionCombo attributeOptionCombo;
 

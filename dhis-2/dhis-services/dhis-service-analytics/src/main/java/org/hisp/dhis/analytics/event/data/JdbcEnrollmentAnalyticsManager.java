@@ -38,6 +38,7 @@ import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitT
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.getProgramIndicators;
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.withoutProgramStageItems;
+import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -64,6 +65,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.EndpointItem;
@@ -71,6 +73,8 @@ import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.aggregate.AggregatedEnrollmentDateHeaderResolver;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
+import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.event.data.stage.StageHeaderClassifier;
@@ -78,12 +82,12 @@ import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
-import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlAliasReplacer;
 import org.hisp.dhis.analytics.util.sql.SqlColumnParser;
 import org.hisp.dhis.analytics.util.sql.SqlWhereClauseExtractor;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
@@ -97,6 +101,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -147,7 +152,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       DhisConfigurationProvider config,
       AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver,
-      ColumnMapper columnMapper,
       QueryItemFilterBuilder filterBuilder,
       StageQuerySqlFacade stageQuerySqlFacade,
       DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver,
@@ -164,7 +168,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         settingsService,
         config,
         organisationUnitResolver,
-        columnMapper,
         filterBuilder,
         stageQuerySqlFacade,
         dateFieldPeriodBucketColumnResolver);
@@ -329,18 +332,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   public long getEnrollmentCount(EventQueryParams params) {
-    Optional<ProgramIndicatorCteSql> programIndicatorCte = getProgramIndicatorCteSql(params);
-    String sql = "select count(pi) ";
-
-    sql += getFromClause(params);
-    sql += programIndicatorCte.map(ProgramIndicatorCteSql::joinClause).orElse("");
-
-    sql += getWhereClause(params);
-    sql += addFiltersToWhereClause(params);
-
-    if (programIndicatorCte.isPresent()) {
-      sql = programIndicatorCte.get().withClause() + sql;
-    }
+    String sql = buildAnalyticsCountQuery(params);
 
     long count = 0;
 
@@ -362,10 +354,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return count;
   }
 
-  private String addFiltersToWhereClause(EventQueryParams params) {
-    return getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
-  }
-
   /**
    * Returns a from SQL clause for the given analytics table partition.
    *
@@ -383,6 +371,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
         .forEach(join -> sql.append(join.toSql()).append(" "));
 
+    sql.append(
+        OrgUnitSqlCoordinator.joinClause(
+            TrackerOrgUnitDimension.REGISTRATION_OU, params, sqlBuilder));
+
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
 
@@ -390,6 +382,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   @Override
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
     sb.from(params.getTableName(), "ax");
+    OrgUnitSqlCoordinator.addJoinIfNeeded(
+        TrackerOrgUnitDimension.REGISTRATION_OU, sb, params, sqlBuilder);
   }
 
   /**
@@ -551,6 +545,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + ",4326) ";
     }
 
+    sql +=
+        OrgUnitSqlCoordinator.wherePredicate(
+            TrackerOrgUnitDimension.REGISTRATION_OU, params, hlp, sqlBuilder);
+
     return sql;
   }
 
@@ -674,6 +672,21 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return getColumn(item, "");
   }
 
+  /**
+   * Is a category dimension an attribute category (rather than a disaggregation category)?
+   * Attribute categories are not included in enrollment tables, so category user dimension
+   * restrictions (which use attribute categories) do not apply.
+   */
+  static boolean isAttributeCategory(DimensionalObject categoryDim) {
+    return !categoryDim.getItems().isEmpty()
+        && ((CategoryOption) categoryDim.getItems().get(0))
+                .getCategories()
+                .iterator()
+                .next()
+                .getDataDimensionType()
+            == ATTRIBUTE;
+  }
+
   @Override
   protected AnalyticsType getAnalyticsType() {
     return AnalyticsType.ENROLLMENT;
@@ -714,13 +727,26 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     addDimensionSelectColumns(columns, params, true, true);
     removeLegacyPeriodDimensionColumns(columns, params);
 
+    // The registration OU projection is added separately, qualified and aliased, because stripping
+    // its table alias would leave a uidlevelN reference that is ambiguous once regous is joined.
+    boolean joinsRegistrationOu = params.hasRegistrationOu();
+    columns.removeIf(OrgUnitSqlCoordinator::isRegistrationOuColumn);
+
     SelectBuilder sb = new SelectBuilder();
     sb.addColumn(ENROLLMENT_COL, "ax", ENROLLMENT_COL);
     for (String column : Sets.newHashSet(columns)) {
-      sb.addColumn(SqlColumnParser.removeTableAlias(column));
+      String stripped = SqlColumnParser.removeTableAlias(column);
+      String projection =
+          joinsRegistrationOu
+              ? OrgUnitSqlCoordinator.preserveQualifierIfAmbiguous(column, stripped)
+              : stripped;
+      // Quoted so mixed-case uid columns (org unit group sets, categories) keep their case
+      sb.addColumn(projection.equals(stripped) ? quote(stripped) : projection);
     }
+    OrgUnitSqlCoordinator.baseCteSelectColumn(params, sqlBuilder).ifPresent(sb::addColumn);
 
     addNonDefaultPeriodSourceColumns(sb, params);
+    aggregatedAssembler.valueBaseColumn(params).ifPresent(sb::addColumnIfNotExist);
 
     List<String> programIndicators =
         getProgramIndicators(params).stream().map(QueryItem::getItemId).toList();
@@ -735,6 +761,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       }
       String colToAdd =
           dateHeaderResolver.normalizeHeaderKey(SqlColumnParser.removeTableAlias(column));
+      // Added above as a qualified, aliased projection; a bare copy would resolve to the raw
+      // registration OU uid instead of the requested ancestor level.
+      if (ColumnHeader.REGISTRATION_OU.getItem().equals(colToAdd)) {
+        continue;
+      }
       if (!programIndicators.contains(colToAdd)) {
         Optional<AggregatedEnrollmentDateHeaderResolver.BaseAggregationHeaderProjection>
             headerProjection =
@@ -854,7 +885,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       QueryItem queryItem = queryItemsByUid.get(column);
 
       if (queryItem != null) {
-        sb.addColumnIfNotExist(column);
+        sb.addColumnIfNotExist(quote(column));
       }
     }
 
@@ -884,8 +915,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     List<QueryItem> aggregateEventDateFilters = getAggregateEventDateFilters(params);
     Map<TimeField, List<DateRange>> eventTimeDateRanges = getAggregateEventTimeDateRanges(params);
+    Map<TimeField, List<DateRange>> eventFilterTimeDateRanges =
+        params.getFilterTimeDateRanges(EVENT_TIME_FIELDS);
 
-    if (aggregateEventDateFilters.isEmpty() && eventTimeDateRanges.isEmpty()) {
+    if (aggregateEventDateFilters.isEmpty()
+        && eventTimeDateRanges.isEmpty()
+        && eventFilterTimeDateRanges.isEmpty()) {
       return;
     }
 
@@ -907,6 +942,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                 .map(dateRange -> buildEventDateRangeSql(timeField, dateRange))
                 .filter(StringUtils::isNotBlank)
                 .forEach(eventFilters::add));
+
+    // Period filter ranges on the same time field are in the "OR" relation
+    eventFilterTimeDateRanges.forEach(
+        (timeField, dateRanges) ->
+            eventFilters.add(
+                dateRanges.stream()
+                    .map(dateRange -> buildEventDateRangeSql(timeField, dateRange))
+                    .collect(joining(") or (", "((", "))"))));
 
     if (eventFilters.isEmpty()) {
       return;
@@ -973,12 +1016,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           withoutQueryItems(sanitizedParams, item -> aggregateEventDateFilters.contains(item));
     }
 
-    if (sanitizedParams.hasTimeDateRanges()) {
-      sanitizedParams =
-          new EventQueryParams.Builder(sanitizedParams)
-              .withoutTimeDateRanges(EVENT_TIME_FIELDS)
-              .build();
-    }
+    sanitizedParams =
+        new EventQueryParams.Builder(sanitizedParams)
+            .withoutTimeDateRanges(EVENT_TIME_FIELDS)
+            .build();
 
     return getWhereClause(sanitizedParams);
   }
@@ -999,7 +1040,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private boolean usesAggregateEventJoin(EventQueryParams params) {
     return !getAggregateEventDateFilters(params).isEmpty()
-        || !getAggregateEventTimeDateRanges(params).isEmpty();
+        || !getAggregateEventTimeDateRanges(params).isEmpty()
+        || !params.getFilterTimeDateRanges(EVENT_TIME_FIELDS).isEmpty();
   }
 
   private String buildAggregatedEnrollmentQueryWithCte(
@@ -1007,40 +1049,92 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
 
-    // 1. Generate CTE definitions for filters
+    // Generate CTE definitions for filters
     generateFilterCTEs(params, cteContext, true);
 
-    // 2. Add base aggregation CTE
+    // Add base aggregation CTE
     addBaseAggregationCte(cteContext, params, headers);
 
-    // 3. Add CTE definitions for program indicators, program stages, etc.
+    // Add CTE definitions for program indicators, program stages, etc.
     getCteDefinitions(params, cteContext);
 
-    // 3. Build up the final SQL using dedicated sub-steps
+    // Add the CTEs of program indicators used as filters. After the base CTE, which inner joins
+    // every CTE registered before it
+    addProgramIndicatorFilterCtes(params, cteContext);
+
+    // Add the CTE reading the "value" data element; it reads the base CTE, so it comes after it
+    addEnrollmentValueCte(cteContext, params);
+
+    // Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
     List<AggregatedEnrollmentQueryAssembler.PeriodProjection> periodProjections =
         aggregatedAssembler.resolveAggregatePeriodProjections(params);
 
-    // 3.1: Append the WITH clause if needed
+    // Append the WITH clause if needed
     addCteClause(sb, cteContext);
 
     addAggregateEnrollmentSelectColumnsInHeaderOrder(
         sb, headers, params, cteContext, periodProjections);
 
-    // 3.3: Append the FROM clause (the main enrollment analytics table)
+    // Append the FROM clause (the main enrollment analytics table)
     sb.from(ENROLLMENT_AGGR_BASE, ENROLLMENT_AGGR_BASE_ALIAS);
     appendPeriodBucketJoins(sb, periodProjections);
 
-    // 3.4: Append JOINs for each relevant CTE definition
+    // Append JOINs for each relevant CTE definition. Program indicator inputs are already
+    // joined inside their program indicator CTE
     for (String itemUid : cteContext.getCteKeysExcluding(ENROLLMENT_AGGR_BASE)) {
       CteDefinition cteDef = cteContext.getDefinitionByItemUid(itemUid);
+      if (cteDef.isProgramIndicatorInput()) {
+        continue;
+      }
       String tableName = useItemUidForTable(cteDef) ? itemUid : cteDef.getAlias();
       sb.leftJoin(
           tableName,
           cteDef.getAlias(),
           tableAlias -> tableAlias + ".enrollment = " + ENROLLMENT_AGGR_BASE_ALIAS + ".enrollment");
     }
+
+    // Drop enrollments without a value, so COUNT counts values and empty cells disappear, and
+    // the enrollments failing a program indicator condition
+    Condition valueNotNull =
+        aggregatedAssembler
+            .valueColumn(params)
+            .map(column -> Condition.raw(column + " is not null"))
+            .orElse(null);
+    sb.where(Condition.and(valueNotNull, programIndicatorConditions(params, cteContext)));
+
     return sb.build();
+  }
+
+  /**
+   * Registers the CTE reading the "value" data element from the latest event of its stage in each
+   * enrollment. An attribute value needs no CTE: it is a column of the enrollment table.
+   *
+   * @param cteContext the {@link CteContext} to register the CTE in.
+   * @param params the {@link EventQueryParams}.
+   */
+  private void addEnrollmentValueCte(CteContext cteContext, EventQueryParams params) {
+    if (!params.hasValueProgramStage() || !params.hasValueDimension()) {
+      return;
+    }
+
+    DataElement dataElement = (DataElement) params.getValue().getDimensionalObject();
+    QueryItem valueItem =
+        new QueryItem(
+            dataElement,
+            params.getProgram(),
+            null,
+            dataElement.getValueType(),
+            dataElement.getAggregationType(),
+            null);
+    valueItem.setProgramStage(params.getValueProgramStage());
+
+    cteContext.addEnrollmentValueCte(
+        buildAggregatedCteSql(
+            AnalyticsTableNames.eventTable(params.getProgram()),
+            quote(dataElement.getUid()),
+            valueItem,
+            params));
   }
 
   private void addAggregateEnrollmentSelectColumnsInHeaderOrder(
@@ -1050,7 +1144,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       CteContext cteContext,
       List<AggregatedEnrollmentQueryAssembler.PeriodProjection> periodProjections) {
     if (headers.isEmpty()) {
-      aggregatedAssembler.addAggregatedColumns(sb);
+      aggregatedAssembler.addAggregatedColumns(sb, params);
       aggregatedAssembler.addOrgUnitAggregateColumns(sb, params);
       aggregatedAssembler.addPeriodAggregateColumns(params, sb, periodProjections);
       aggregatedAssembler.addHeaderAggregateColumns(
@@ -1076,7 +1170,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       switch (headerType) {
         case VALUE -> {
           if (addedInfrastructureColumns.add(headerType)) {
-            aggregatedAssembler.addAggregatedColumns(sb);
+            aggregatedAssembler.addAggregatedColumns(sb, params);
           }
         }
         case ORG_UNIT -> {
@@ -1159,14 +1253,20 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
-    if (params.isAggregatedEnrollments()) {
-      aggregatedAssembler.addAggregatedColumns(sb);
-    } else {
-      aggregatedAssembler.addStandardColumns(sb, cteContext, getStandardColumns(params));
-    }
+    addAnalyticsTableColumns(sb, getStandardColumns(params));
+
+    // Rows are read into the grid by position, so columns follow the header order:
+    // standard columns, dimensions, REGISTRATION_OU, query items.
+    List<String> columns = new ArrayList<>();
+    addDimensionSelectColumns(columns, params, false, false);
+    columns.addAll(
+        OrgUnitSqlCoordinator.querySelectColumns(
+            TrackerOrgUnitDimension.REGISTRATION_OU, params, sqlBuilder));
 
     // Append columns from CTE definitions
-    getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
+    columns.addAll(getSelectColumnsWithCTE(params, cteContext));
+
+    columns.forEach(sb::addColumn);
   }
 
   /**

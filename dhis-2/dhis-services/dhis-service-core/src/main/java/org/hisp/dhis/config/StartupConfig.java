@@ -36,9 +36,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nLocaleService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodTypePopulator;
+import org.hisp.dhis.period.PeriodTypeStore;
 import org.hisp.dhis.scheduling.JobScheduler;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.startup.ConfigurationPopulator;
@@ -58,8 +57,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class StartupConfig {
   @Bean("org.hisp.dhis.period.PeriodTypePopulator")
-  public PeriodTypePopulator periodTypePopulator(PeriodStore periodStore) {
-    PeriodTypePopulator populator = new PeriodTypePopulator(periodStore);
+  public PeriodTypePopulator periodTypePopulator(PeriodTypeStore periodTypeStore) {
+    PeriodTypePopulator populator = new PeriodTypePopulator(periodTypeStore);
     populator.setName("PeriodTypePopulator");
     populator.setRunlevel(3);
     return populator;
@@ -80,9 +79,11 @@ public class StartupConfig {
   @Bean("org.hisp.dhis.startup.ConfigurationPopulator")
   public ConfigurationPopulator configurationPopulator(
       ConfigurationService configurationService,
-      DhisConfigurationProvider dhisConfigurationProvider) {
+      DhisConfigurationProvider dhisConfigurationProvider,
+      PeriodTypeStore periodTypeStore) {
     ConfigurationPopulator populator =
-        new ConfigurationPopulator(configurationService, dhisConfigurationProvider);
+        new ConfigurationPopulator(
+            configurationService, dhisConfigurationProvider, periodTypeStore);
     populator.setName("ConfigurationPopulator");
     populator.setRunlevel(12);
     populator.setSkipInTests(true);
@@ -109,9 +110,8 @@ public class StartupConfig {
   }
 
   @Bean("org.hisp.dhis.startup.ModelUpgrader")
-  public ModelUpgrader modelUpgrader(
-      OrganisationUnitService organisationUnitService, CategoryService categoryService) {
-    ModelUpgrader upgrader = new ModelUpgrader(organisationUnitService, categoryService);
+  public ModelUpgrader modelUpgrader(CategoryService categoryService) {
+    ModelUpgrader upgrader = new ModelUpgrader(categoryService);
     upgrader.setName("ModelUpgrader");
     upgrader.setRunlevel(7);
     upgrader.setSkipInTests(true);

@@ -75,6 +75,20 @@ public class TextUtils {
 
   private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\{([^}]+)\\}");
 
+  /** The whitespace the {@code trg_trim_name} trigger trims from the name column. */
+  private static final String NAME_TRIM_CHARS = " \t\n\r\f\u000B";
+
+  /**
+   * Trims the name the same way as the {@code trg_trim_name} database trigger, which removes
+   * leading and trailing space, tab, line feed, carriage return, form feed and vertical tab.
+   *
+   * @param name the name, may be null.
+   * @return the trimmed name, or null if the name is null.
+   */
+  public static String trimName(String name) {
+    return StringUtils.strip(name, NAME_TRIM_CHARS);
+  }
+
   /**
    * Remove all non-alphanumeric characters within string
    *

@@ -204,8 +204,10 @@ public class CommonRequestParams {
   private Set<String> eventStatus = new LinkedHashSet<>();
 
   /**
-   * UID of the numeric dimension (a tracked entity attribute for tracked entity aggregate queries)
-   * to aggregate over. Resolved downstream. When omitted, an aggregate query counts instances.
+   * The numeric dimension to aggregate over in a tracked entity aggregate query: either a tracked
+   * entity attribute UID, or a program-stage data element in {@code
+   * programUid.programStageUid.dataElementUid} form. Resolved downstream. When omitted, an
+   * aggregate query counts instances.
    */
   private String value;
 

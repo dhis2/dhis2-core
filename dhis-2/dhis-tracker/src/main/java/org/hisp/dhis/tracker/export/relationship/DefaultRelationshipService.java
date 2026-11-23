@@ -30,9 +30,12 @@
 package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -40,15 +43,19 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.preheat.mappers.RelationshipTypeMapper;
+import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.RelationshipItem;
 import org.hisp.dhis.tracker.model.RelationshipKey;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
@@ -63,6 +70,7 @@ public class DefaultRelationshipService implements RelationshipService {
   private final TrackerAccessManager trackerAccessManager;
   private final HibernateRelationshipStore relationshipStore;
   private final RelationshipOperationParamsMapper mapper;
+  private final JdbcNoteReader noteReader;
 
   @Nonnull
   @Override
@@ -80,14 +88,23 @@ public class DefaultRelationshipService implements RelationshipService {
           case EVENT -> relationshipStore.getRelationshipItemsByEvent(uid, includeDeleted);
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
-    return relationshipItems.stream()
-        .filter(
-            ri ->
-                trackerAccessManager
-                    .canRead(CurrentUserUtil.getCurrentUserDetails(), ri.getRelationship())
-                    .isEmpty())
-        .map(ri -> RELATIONSHIP_ITEM_MAPPER.map(fields, ri))
-        .collect(Collectors.toSet());
+    Set<RelationshipItem> result =
+        relationshipItems.stream()
+            .filter(
+                ri ->
+                    trackerAccessManager
+                        .canRead(CurrentUserUtil.getCurrentUserDetails(), ri.getRelationship())
+                        .isEmpty())
+            .map(ri -> RELATIONSHIP_ITEM_MAPPER.map(fields, ri))
+            .collect(Collectors.toSet());
+    // only from and to are exported, not the item of the entity whose relationships these are
+    List<RelationshipItem> items = new ArrayList<>(2 * result.size());
+    for (RelationshipItem item : result) {
+      items.add(item.getRelationship().getFrom());
+      items.add(item.getRelationship().getTo());
+    }
+    addNotes(items);
+    return result;
   }
 
   @Nonnull
@@ -166,14 +183,81 @@ public class DefaultRelationshipService implements RelationshipService {
   /** Map to a non-proxied Relationship to prevent hibernate exceptions. */
   private List<Relationship> map(RelationshipFields fields, List<Relationship> relationships) {
     List<Relationship> result = new ArrayList<>(relationships.size());
+    List<RelationshipItem> items = new ArrayList<>(2 * relationships.size());
     for (Relationship relationship : relationships) {
       if (trackerAccessManager
           .canRead(CurrentUserUtil.getCurrentUserDetails(), relationship)
           .isEmpty()) {
-        result.add(map(fields, relationship));
+        Relationship mapped = map(fields, relationship);
+        result.add(mapped);
+        items.add(mapped.getFrom());
+        items.add(mapped.getTo());
       }
     }
+    addNotes(items);
     return result;
+  }
+
+  /**
+   * Notes are not mapped by Hibernate, so set the notes of the mapped enrollments and events using
+   * one query per entity type.
+   */
+  private void addNotes(List<RelationshipItem> items) {
+    Map<String, List<Enrollment>> enrollments = new HashMap<>();
+    Map<String, List<TrackerEvent>> trackerEvents = new HashMap<>();
+    Map<String, List<SingleEvent>> singleEvents = new HashMap<>();
+    for (RelationshipItem item : items) {
+      if (item == null) {
+        continue;
+      }
+      if (item.getTrackedEntity() != null) {
+        item.getTrackedEntity()
+            .getEnrollments()
+            .forEach(e -> collect(e, enrollments, trackerEvents));
+      }
+      if (item.getEnrollment() != null) {
+        collect(item.getEnrollment(), enrollments, trackerEvents);
+      }
+      if (item.getTrackerEvent() != null) {
+        trackerEvents
+            .computeIfAbsent(item.getTrackerEvent().getUid(), k -> new ArrayList<>())
+            .add(item.getTrackerEvent());
+      }
+      if (item.getSingleEvent() != null) {
+        singleEvents
+            .computeIfAbsent(item.getSingleEvent().getUid(), k -> new ArrayList<>())
+            .add(item.getSingleEvent());
+      }
+    }
+
+    setNotes(
+        enrollments, noteReader.findEnrollmentNotes(enrollments.keySet()), Enrollment::setNotes);
+    setNotes(
+        trackerEvents,
+        noteReader.findTrackerEventNotes(trackerEvents.keySet()),
+        TrackerEvent::setNotes);
+    setNotes(
+        singleEvents,
+        noteReader.findSingleEventNotes(singleEvents.keySet()),
+        SingleEvent::setNotes);
+  }
+
+  private static void collect(
+      Enrollment enrollment,
+      Map<String, List<Enrollment>> enrollments,
+      Map<String, List<TrackerEvent>> trackerEvents) {
+    enrollments.computeIfAbsent(enrollment.getUid(), k -> new ArrayList<>()).add(enrollment);
+    for (TrackerEvent event : enrollment.getEvents()) {
+      trackerEvents.computeIfAbsent(event.getUid(), k -> new ArrayList<>()).add(event);
+    }
+  }
+
+  private static <T> void setNotes(
+      Map<String, List<T>> entities,
+      Map<String, List<Note>> notes,
+      BiConsumer<T, List<Note>> setter) {
+    notes.forEach(
+        (uid, entityNotes) -> entities.get(uid).forEach(e -> setter.accept(e, entityNotes)));
   }
 
   private Relationship map(RelationshipFields fields, Relationship relationship) {

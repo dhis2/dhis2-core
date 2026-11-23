@@ -36,6 +36,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 
@@ -213,7 +214,7 @@ public class BaseNameableObject extends BaseIdentifiableObject implements Nameab
 
   /** Returns the form name, or the name if it does not exist. */
   public String getFormNameFallback() {
-    return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+    return StringUtils.isEmpty(getFormName()) ? getDisplayName() : getFormName();
   }
 
   @Sortable

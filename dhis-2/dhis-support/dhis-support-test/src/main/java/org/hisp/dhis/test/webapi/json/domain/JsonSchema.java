@@ -49,7 +49,7 @@ public interface JsonSchema extends JsonObject {
 
   default List<Class<?>> getReferences() {
     // compiler inference issue...
-    Streamable.Sized<Class<?>> tmp =
+    Streamable<Class<?>> tmp =
         getArray("references").values().map(e -> e.parsedChecked(Class::forName));
     return tmp.toList();
   }

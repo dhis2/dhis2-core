@@ -52,9 +52,12 @@ public enum TimeField {
       EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
       EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
       "enrollmentdate"),
+  // Constructor order is (enrollmentColumnName, eventColumnName, trackedEntityColumnName). In the
+  // event analytics table the enrollment occurred (incident) date is "enrollmentoccurreddate";
+  // "occurreddate" there is the event date.
   INCIDENT_DATE(
-      EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
       EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+      EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
       "occurreddate"),
   OCCURRED_DATE("occurreddate"),
   SCHEDULED_DATE(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),

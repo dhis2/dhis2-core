@@ -81,11 +81,12 @@ class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest
     orgUnitService.addOrganisationUnit(unitC);
     dbmsManager.clearSession();
 
+    // the name is trimmed by the trg_trim_name trigger, unitA is reported for its short name
     JsonObject json_unitA = GET("/organisationUnits/" + unitA.getUid()).content();
-    assertEquals(unitAName, json_unitA.getString("name").string());
+    assertEquals(unitAName.strip(), json_unitA.getString("name").string());
 
     Set<String> orgUnitUIDs = Set.of(unitA.getUid(), unitB.getUid());
-    Set<String> orgunitNames = Set.of(unitA.getName(), unitB.getName());
+    Set<String> orgunitNames = Set.of(unitAName.strip(), unitBName);
 
     assertHasDataIntegrityIssues(
         detailsIdType, check, 66, orgUnitUIDs, orgunitNames, Set.of(), true);

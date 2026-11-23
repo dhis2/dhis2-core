@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -74,7 +74,7 @@ class DataIntegrityYamlReaderTest {
 
         try (InputStream checkStream = new ClassPathResource(resourcePath).getInputStream()) {
           JsonNode checkJson = yaml.readValue(checkStream, JsonNode.class);
-          Set<ValidationMessage> validationMessages =
+          List<Error> validationMessages =
               JsonSchemaValidator.validateDataIntegrityCheck(checkJson);
 
           assertTrue(
@@ -93,7 +93,7 @@ class DataIntegrityYamlReaderTest {
 
     List<DataIntegrityCheck> checks = new ArrayList<>();
     readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
-    assertEquals(95, checks.size());
+    assertEquals(105, checks.size());
 
     // Names should be unique
     List<String> allNames = checks.stream().map(DataIntegrityCheck::getName).toList();
@@ -152,6 +152,25 @@ class DataIntegrityYamlReaderTest {
     List<DataIntegrityCheck> checks = new ArrayList<>();
     readYaml(checks, "test-data-integrity-checks.yaml", "test-data-integrity-checks", CLASS_PATH);
     assertEquals(1, checks.size());
+  }
+
+  @Test
+  void testCheckSqlIsRunAsWritten() {
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readYaml(
+        checks,
+        "test-data-integrity-checks-sql-as-written.yaml",
+        "test-data-integrity-checks",
+        CLASS_PATH);
+    assertEquals(1, checks.size());
+
+    // Literal columns, casts and || '%' (e.g. a LIKE prefix match) must reach the database as is
+    String sql =
+        checks.get(0).getRunDetailsCheck().apply(checks.get(0)).getIssues().get(0).getComment();
+    assertEquals(
+        "select 'test' as label, uid, name, 'note' as description, path::varchar as comment"
+            + " from organisationunit ou where path LIKE ou.uid || '%'",
+        sql);
   }
 
   @Test

@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.Set;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -139,6 +138,7 @@ public class Indicator extends BaseDataDimensionalItemObject implements Metadata
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.INDICATOR;
   }
@@ -177,7 +177,7 @@ public class Indicator extends BaseDataDimensionalItemObject implements Metadata
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public IndicatorType getIndicatorType() {
     return indicatorType;
@@ -285,7 +285,7 @@ public class Indicator extends BaseDataDimensionalItemObject implements Metadata
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "dataSets", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "dataSet", namespace = DxfNamespaces.DXF_2_0)
   public Set<DataSet> getDataSets() {

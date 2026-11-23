@@ -29,12 +29,17 @@
  */
 package org.hisp.dhis.analytics.generator;
 
-import org.hisp.dhis.analytics.generator.impl.EnrollmentQueryGenerator;
+import org.hisp.dhis.analytics.generator.impl.EventAggregatedGenerator;
 
 /** This class simply hold the generator implementation to be used during the code generation. */
 public class TestGenerator {
   static Generator get() {
-    return new EnrollmentQueryGenerator("stageAndEventStatusActiveAndEventDate2021");
+    return new EventAggregatedGenerator(
+        "lastValueWithStageOrgUnitAtStagePeriods",
+        "lastValueWithEnrollmentOrgUnit",
+        "lastValueWithRegistrationOrgUnit",
+        "lastValueAtEnrollmentDatePeriods",
+        "firstValueAtEnrollmentDatePeriods");
 
     // To generate all e2e tests just return the default constructor.
     // ie.: return new TeiQueryGenerator();

@@ -29,20 +29,15 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query;
 
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
-
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamItem;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.ConstantValuesRenderer;
-import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.InConditionRenderer;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 
@@ -50,20 +45,32 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
  * a condition renderable for status dimension. will render to one of these:
  * "program".enrollmentstatus in (...) "program.programstage".status in (...)
  */
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class StatusCondition extends BaseRenderable {
   private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
   private final QueryContext queryContext;
 
+  private final ScopedColumnResolver columnResolver;
+
+  public static StatusCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext queryContext) {
+    return of(dimensionIdentifier, queryContext, ScopedColumnResolver.status(dimensionIdentifier));
+  }
+
+  public static StatusCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      QueryContext queryContext,
+      ScopedColumnResolver columnResolver) {
+    return new StatusCondition(dimensionIdentifier, queryContext, columnResolver);
+  }
+
   @Nonnull
   @Override
   public String render() {
     return InConditionRenderer.of(
-            Field.ofUnquoted(
-                doubleQuote(getPrefix(dimensionIdentifier)),
-                () -> dimensionIdentifier.getDimension().getStaticDimension().getColumnName(),
-                StringUtils.EMPTY),
+            columnResolver.resolve(
+                dimensionIdentifier.getDimension().getStaticDimension().getColumnName()),
             ConstantValuesRenderer.of(
                 dimensionIdentifier.getDimension().getItems().stream()
                     .map(DimensionParamItem::getValues)

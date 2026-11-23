@@ -32,12 +32,16 @@ package org.hisp.dhis.common;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serial;
+import java.io.Serializable;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement(localName = "pager", namespace = DxfNamespaces.DXF_2_0)
-public class Pager {
+public class Pager implements Serializable {
+  @Serial private static final long serialVersionUID = 1L;
+
   public static final int DEFAULT_PAGE_SIZE = 50;
 
   public static final int DEFAULT_PAGE = 1;

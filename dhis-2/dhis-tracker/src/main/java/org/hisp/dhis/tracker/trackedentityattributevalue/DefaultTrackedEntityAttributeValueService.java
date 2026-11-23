@@ -29,23 +29,12 @@
  */
 package org.hisp.dhis.tracker.trackedentityattributevalue;
 
-import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
-import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
-
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,96 +42,31 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DefaultTrackedEntityAttributeValueService
     implements TrackedEntityAttributeValueService {
-  private final HibernateTrackedEntityAttributeValueStore attributeValueStore;
-
-  private final FileResourceService fileResourceService;
-
-  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
-
-  private final ReservedValueService reservedValueService;
-
-  private final DhisConfigurationProvider config;
+  private final JdbcTrackedEntityAttributeValueStore attributeValueStore;
 
   @Override
   @Transactional
-  public void deleteTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    trackedEntityChangeLogService.addTrackedEntityChangeLog(
-        attributeValue.getTrackedEntity(),
-        attributeValue.getAttribute(),
-        attributeValue.getValue(),
-        null,
-        DELETE,
-        getCurrentUsername());
-
-    deleteFileValue(attributeValue);
-    attributeValueStore.delete(attributeValue);
+  public void deleteTrackedEntityAttributeValues(TrackedEntity trackedEntity) {
+    attributeValueStore.delete(trackedEntity);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      TrackedEntity trackedEntity) {
-    return attributeValueStore.get(trackedEntity);
-  }
-
-  @Override
-  @Transactional
-  public void addTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    if (attributeValue == null
-        || attributeValue.getAttribute() == null
-        || attributeValue.getAttribute().getValueType() == null) {
-      throw new IllegalQueryException("Attribute or type is null or empty");
+  public List<UniqueAttributeValueMatch> getUniqueAttributeValues(
+      TrackedEntityAttribute attribute, Set<String> values) {
+    if (values.isEmpty()) {
+      return List.of();
     }
-
-    String result =
-        valueIsValid(attributeValue.getValue(), attributeValue.getAttribute().getValueType());
-
-    if (result != null) {
-      throw new IllegalQueryException("Value is not valid:  " + result);
-    }
-
-    attributeValue.setAutoFields();
-
-    if (attributeValue.getAttribute().getValueType().isFile()
-        && !StringUtils.isEmpty(attributeValue.getValue())
-        && !addFileValue(attributeValue)) {
-      throw new IllegalQueryException(
-          String.format("FileResource with id '%s' not found", attributeValue.getValue()));
-    }
-
-    if (attributeValue.getValue() != null) {
-      attributeValueStore.saveVoid(attributeValue);
-    }
-  }
-
-  private void deleteFileValue(TrackedEntityAttributeValue value) {
-    if (!value.getAttribute().getValueType().isFile()
-        || fileResourceService.getFileResource(value.getValue()) == null) {
-      return;
-    }
-
-    FileResource fileResource = fileResourceService.getFileResource(value.getValue());
-    fileResourceService.updateFileResource(fileResource);
-  }
-
-  private boolean addFileValue(TrackedEntityAttributeValue value) {
-    FileResource fileResource = fileResourceService.getFileResource(value.getValue());
-
-    if (fileResource == null) {
-      return false;
-    }
-
-    fileResource.setAssigned(true);
-    fileResourceService.updateFileResource(fileResource);
-    return true;
+    return attributeValueStore.getUniqueAttributeValues(attribute, values);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<TrackedEntityAttributeValue> getUniqueAttributeByValues(
-      Map<TrackedEntityAttribute, List<String>> uniqueAttributes) {
-    return uniqueAttributes.entrySet().stream()
-        .flatMap(entry -> this.attributeValueStore.get(entry.getKey(), entry.getValue()).stream())
-        .toList();
+  public List<UniqueAttributeValueMatch> getUniqueAttributeValues(
+      TrackedEntityAttribute attribute, Map<Long, Set<String>> valuesByOrgUnitId) {
+    if (valuesByOrgUnitId.isEmpty()) {
+      return List.of();
+    }
+    return attributeValueStore.getUniqueAttributeValues(attribute, valuesByOrgUnitId);
   }
 }

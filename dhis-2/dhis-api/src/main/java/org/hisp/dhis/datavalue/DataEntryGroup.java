@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 
 import static java.util.Objects.requireNonNull;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
+import static org.hisp.dhis.util.Preconditions.requireNonEmpty;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -179,8 +180,8 @@ public record DataEntryGroup(
         @Nonnull List<Element> elements) {
 
       public Scope {
-        requireNonNull(orgUnits);
-        requireNonNull(periods);
+        requireNonEmpty(orgUnits);
+        requireNonEmpty(periods);
         requireNonNull(elements);
       }
 
@@ -190,7 +191,7 @@ public record DataEntryGroup(
           @CheckForNull String attributeOptionCombo) {
 
         public Element {
-          requireNonNull(dataElement);
+          requireNonEmpty(dataElement);
         }
       }
     }

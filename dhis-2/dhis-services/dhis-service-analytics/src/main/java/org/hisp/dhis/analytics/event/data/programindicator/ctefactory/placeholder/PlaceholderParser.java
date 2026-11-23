@@ -48,9 +48,15 @@ public class PlaceholderParser {
    * @param offset offset
    * @param boundaryHash hash containing the program indicator boundary
    * @param piUid program indicator UID
+   * @param replaceNulls whether a missing value should be replaced with the value type default
    */
   public record PsDeFields(
-      String psUid, String deUid, int offset, String boundaryHash, String piUid) {}
+      String psUid,
+      String deUid,
+      int offset,
+      String boundaryHash,
+      String piUid,
+      boolean replaceNulls) {}
 
   /**
    * Data structure for the parsed fields of a filter placeholder.
@@ -133,13 +139,14 @@ public class PlaceholderParser {
     private static final Pattern PATTERN =
         Pattern.compile(
             "__PSDE_CTE_PLACEHOLDER__\\(psUid='([^']*)',\\s*deUid='([^']*)',\\s*offset='([^']*)',"
-                + "\\s*boundaryHash='([^']*)',\\s*piUid='([^']*)'\\)");
+                + "\\s*boundaryHash='([^']*)',\\s*piUid='([^']*)',\\s*replaceNulls='([^']*)'\\)");
 
     private static final int GROUP_PS_UID = 1;
     private static final int GROUP_DE_UID = 2;
     private static final int GROUP_OFFSET = 3;
     private static final int GROUP_BOUNDARY_HASH = 4;
     private static final int GROUP_PI_UID = 5;
+    private static final int GROUP_REPLACE_NULLS = 6;
 
     private ProgramStageDataElementPlaceholderParser() {}
 
@@ -152,7 +159,8 @@ public class PlaceholderParser {
               m.group(GROUP_DE_UID),
               toInteger(m.group(GROUP_OFFSET)),
               m.group(GROUP_BOUNDARY_HASH),
-              m.group(GROUP_PI_UID)));
+              m.group(GROUP_PI_UID),
+              Boolean.parseBoolean(m.group(GROUP_REPLACE_NULLS))));
     }
   }
 

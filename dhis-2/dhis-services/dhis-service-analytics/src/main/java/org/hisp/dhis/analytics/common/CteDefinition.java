@@ -49,12 +49,16 @@ public class CteDefinition {
 
   public static final String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
 
+  public static final String ENROLLMENT_VALUE = "enrollment_value";
+
   @Getter
   public enum CteType {
     /** CTE for standard program stage data/offsets. */
     PROGRAM_STAGE(10),
     /** CTE for the base aggregation query (e.g., enrollment_aggr_base). */
     BASE_AGGREGATION(10),
+    /** CTE holding the "value" data element of each enrollment in an enrollment aggregate query. */
+    ENROLLMENT_VALUE(10),
     /** CTE representing a full Program Indicator calculation. */
     PROGRAM_INDICATOR_EVENT(10),
 
@@ -73,11 +77,7 @@ public class CteDefinition {
     /** CTE for checking existence (rowContext=true). */
     EXISTS(10),
     /** Candidate event rows used as input for EVENT program indicator CTEs. */
-    EVENT_PROGRAM_INDICATOR_CANDIDATES(4),
-    /** Special CTE for pre-aggregated enrollments. */
-    TOP_ENROLLMENTS(1),
-    SHADOW_ENROLLMENT_TABLE(2),
-    SHADOW_EVENT_TABLE(3);
+    EVENT_PROGRAM_INDICATOR_CANDIDATES(4);
 
     private final int priority;
 
@@ -322,6 +322,30 @@ public class CteDefinition {
   }
 
   /**
+   * Creates the CTE definition reading the "value" data element from the latest event of its stage
+   * in each enrollment of an enrollment aggregate query.
+   *
+   * @param cteDefinitionSql The SQL body for the CTE.
+   */
+  public static CteDefinition forEnrollmentValue(String cteDefinitionSql) {
+    return new CteDefinition(
+        ENROLLMENT_VALUE, // itemId
+        null, // programStageUid
+        null, // programIndicatorUid
+        cteDefinitionSql,
+        ENROLLMENT_VALUE, // alias
+        false, // rowContext
+        false, // isExists
+        false, // requiresCoalesce
+        null, // aggregateWhereClause
+        "enrollment", // joinColumn
+        null, // targetRank
+        CteType.ENROLLMENT_VALUE,
+        false, // hasFilter
+        false); // hasValueName
+  }
+
+  /**
    * Creates a CTE definition for Program Stage / Data Element CTEs (replacing #{...} subqueries).
    */
   public static CteDefinition forProgramStageDataElement(
@@ -468,5 +492,17 @@ public class CteDefinition {
 
   public boolean isAggregationBase() {
     return this.cteType == CteType.BASE_AGGREGATION;
+  }
+
+  /**
+   * True for CTEs that are only used to compute a program indicator and are joined inside the
+   * program indicator CTE. They must not be joined again on enrollment elsewhere: a variable or
+   * data element CTE holds one row per event, so the join would multiply the rows.
+   */
+  public boolean isProgramIndicatorInput() {
+    return switch (cteType) {
+      case VARIABLE, PROGRAM_STAGE_DATE_ELEMENT, D2_FUNCTION, D2_RELATIONSHIP_COUNT -> true;
+      default -> false;
+    };
   }
 }

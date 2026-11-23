@@ -458,7 +458,7 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
         orgUnitId, "Peter", "Paul", "Paula", "Ringo", "John", "George", "paul");
     assertEquals(
         List.of("Paul", "paul"),
-        GET("/dataSets/gist?fields=name&filter=name:ieq:paul&headless=true&order=name")
+        GET("/dataSets/gist?fields=name&filter=name:ieq:PAUL&headless=true&order=name")
             .content()
             .stringValues());
   }

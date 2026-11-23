@@ -47,7 +47,7 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  * Flushes staged {@link TrackerEvent} writes: a multi-row JDBC INSERT against {@code trackerevent}
  * (ids pre-allocated from {@code trackerevent_sequence}; {@code eventdatavalues} jsonb serialized
  * as a JSON object keyed by dataElement uid), a single unnest UPDATE, and a cascade insert of any
- * new notes into {@code note} + {@code trackerevent_notes}.
+ * new notes into {@code note}.
  */
 final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
 
@@ -140,7 +140,7 @@ final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
           + " ) v where ev.eventid = v.eventid";
 
   private final UserInfoJsonCache userInfo;
-  private final NoteCascadeWriter notes = new NoteCascadeWriter("trackerevent_notes", "eventid");
+  private final NoteWriter notes = new NoteWriter("trackereventid");
 
   TrackerEventWriter(UserInfoJsonCache userInfo) {
     this.userInfo = userInfo;
@@ -150,7 +150,7 @@ final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
   void flush(Connection conn) throws SQLException {
     insert(conn);
     update(conn);
-    notes.cascade(conn, inserts, updates, TrackerEvent::getId, TrackerEvent::getNotes);
+    notes.write(conn, inserts, updates, TrackerEvent::getId, TrackerEvent::getNotes);
   }
 
   private void insert(Connection conn) throws SQLException {

@@ -90,12 +90,14 @@ public abstract class ProgramMinMaxFunction extends ProgramExpressionItem {
         + ".enrollment "
         + (pi.getEndEventBoundary() != null
             ? ("and "
-                + sb.getBoundaryCondition(pi.getEndEventBoundary(), pi, startDate, endDate)
+                + sb.getBoundaryCondition(
+                    pi.getEndEventBoundary(), pi, null, startDate, endDate, AnalyticsType.EVENT)
                 + " ")
             : "")
         + (pi.getStartEventBoundary() != null
             ? ("and "
-                + sb.getBoundaryCondition(pi.getStartEventBoundary(), pi, startDate, endDate)
+                + sb.getBoundaryCondition(
+                    pi.getStartEventBoundary(), pi, null, startDate, endDate, AnalyticsType.EVENT)
                 + " ")
             : "")
         + "and ps = '"

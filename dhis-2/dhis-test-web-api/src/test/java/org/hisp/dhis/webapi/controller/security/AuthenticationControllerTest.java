@@ -31,15 +31,26 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
+import static org.hisp.dhis.common.CodeGenerator.generateUid;
+import static org.hisp.dhis.user.UserConstants.LOGIN_MAX_FAILED_ATTEMPTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
@@ -56,9 +67,19 @@ import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -68,6 +89,8 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Autowired private SystemSettingsService settingsService;
   @Autowired private SessionRegistry sessionRegistry;
+  @Autowired private ConfigurableApplicationContext applicationContext;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @AfterEach
   void tearDown() {
@@ -87,6 +110,95 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
     assertEquals("SUCCESS", response.getLoginStatus());
     assertEquals("/", response.getRedirectUrl());
+  }
+
+  @Test
+  void testLoginRecordsLastLoginWithoutChangingLastUpdated() {
+    Map<String, Object> before = lastUpdatedAndLastLogin("admin");
+
+    POST("/auth/login", "{'username':'admin','password':'district'}").content(HttpStatus.OK);
+
+    // a login that went through the entity lifecycle would only reach the table on flush
+    entityManager.flush();
+    Map<String, Object> after = lastUpdatedAndLastLogin("admin");
+    assertEquals(before.get("lastupdated"), after.get("lastupdated"));
+    assertNotNull(after.get("lastlogin"));
+    assertNotEquals(before.get("lastlogin"), after.get("lastlogin"));
+  }
+
+  /** H2 tests run without the second-level cache, so there is no query cache to keep up to date. */
+  @Test
+  void testSetLastLoginWithoutQueryCache() {
+    userService.setLastLogin("admin");
+
+    assertNotNull(lastUpdatedAndLastLogin("admin").get("lastlogin"));
+  }
+
+  private Map<String, Object> lastUpdatedAndLastLogin(String username) {
+    return jdbcTemplate.queryForMap(
+        "select lastupdated, lastlogin from userinfo where username = ?", username);
+  }
+
+  @Test
+  void testSuccessfulLoginClearsInvitation() {
+    User invitedUser = createUserWithAuth("invited", "ALL");
+    userService.encodeAndSetPassword(invitedUser, "district");
+    invitedUser.setInvitation(true);
+    invitedUser.setRestoreToken("restore-token");
+    Calendar expiry = Calendar.getInstance();
+    expiry.add(Calendar.DAY_OF_YEAR, 1);
+    invitedUser.setRestoreExpiry(expiry.getTime());
+    invitedUser.setIdToken("id-token");
+    userService.updateUser(invitedUser);
+    manager.flush();
+    manager.clear();
+    clearSecurityContext();
+
+    JsonLoginResponse response =
+        POST("/auth/login", "{'username':'invited','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    manager.flush();
+    manager.clear();
+    User persistedUser = userService.getUserByUsername("invited");
+    assertFalse(persistedUser.isInvitation());
+    assertNull(persistedUser.getRestoreToken());
+    assertNull(persistedUser.getRestoreExpiry());
+    assertNull(persistedUser.getIdToken());
+  }
+
+  @Test
+  void testLoginPublishesNoDuplicateSessionCreatedEvent() {
+    // HttpSessionEventPublisher is registered as a servlet container listener in
+    // DhisWebApiWebAppInitializer, which already publishes HttpSessionCreatedEvent when the
+    // container creates the login session. In this MockMvc setup no container listener exists,
+    // so any HttpSessionCreatedEvent observed during login can only come from a manual publish
+    // in the login code path, which would make session lifecycle consumers count logins twice.
+    List<ApplicationEvent> sessionCreatedEvents = new CopyOnWriteArrayList<>();
+    ApplicationListener<ApplicationEvent> listener =
+        event -> {
+          if (event instanceof HttpSessionCreatedEvent) {
+            sessionCreatedEvents.add(event);
+          }
+        };
+    ApplicationEventMulticaster multicaster =
+        applicationContext.getBean(
+            AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
+            ApplicationEventMulticaster.class);
+    multicaster.addApplicationListener(listener);
+    try {
+      POST("/auth/login", "{'username':'admin','password':'district'}").content(HttpStatus.OK);
+
+      assertEquals(
+          0,
+          sessionCreatedEvents.size(),
+          "login must not manually publish HttpSessionCreatedEvent; the container listener"
+              + " already publishes it, a manual publish means sessions get counted twice");
+    } finally {
+      multicaster.removeApplicationListener(listener);
+    }
   }
 
   @Test
@@ -119,6 +231,194 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
     assertEquals("Unauthorized", response.getHttpStatus());
     assertEquals(401, response.getHttpStatusCode());
     assertEquals("ERROR", response.getStatus());
+  }
+
+  /**
+   * Username templates with whitespace at the edges, written as JSON string content: trailing,
+   * leading, both, tab and non-breaking space.
+   */
+  static Stream<String> edgeWhitespaceJsonTemplates() {
+    return Stream.of("%s ", " %s", " %s ", "\\t%s\\t", "\\u00a0%s\\u00a0");
+  }
+
+  /** The same templates as {@link #edgeWhitespaceJsonTemplates()}, as raw characters. */
+  static Stream<String> edgeWhitespaceTemplates() {
+    return Stream.of("%s ", " %s", " %s ", "\t%s\t", "\u00a0%s\u00a0");
+  }
+
+  @ParameterizedTest
+  @MethodSource("edgeWhitespaceJsonTemplates")
+  void testLoginIgnoresEdgeWhitespaceInUsername(String template) {
+    JsonLoginResponse response =
+        POST("/auth/login", loginBody(template.formatted("admin"), "district"))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+  }
+
+  @Test
+  void testLoginKeepsInnerWhitespaceInUsername() {
+    createUserWithAuth("inner space", "ALL");
+
+    JsonLoginResponse response =
+        POST("/auth/login", loginBody(" inner space ", "district"))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    assertEquals(
+        HttpStatus.UNAUTHORIZED, POST("/auth/login", loginBody("innerspace", "district")).status());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"district ", " district", "\\tdistrict", "\\u00a0district"})
+  void testLoginDoesNotTrimPassword(String password) {
+    assertEquals(
+        HttpStatus.UNAUTHORIZED, POST("/auth/login", loginBody("admin", password)).status());
+  }
+
+  @Test
+  void testFailedLoginsWithEdgeWhitespaceCountForTheSameUser() {
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
+    createUserWithAuth("lockme", "ALL");
+
+    edgeWhitespaceJsonTemplates()
+        .limit(LOGIN_MAX_FAILED_ATTEMPTS)
+        .forEach(
+            template ->
+                assertEquals(
+                    HttpStatus.UNAUTHORIZED,
+                    POST("/auth/login", loginBody(template.formatted("lockme"), "wrong"))
+                        .status()));
+
+    JsonLoginResponse response =
+        POST("/auth/login", loginBody("lockme", "district"))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("ACCOUNT_LOCKED", response.getLoginStatus());
+  }
+
+  @ParameterizedTest
+  @MethodSource("edgeWhitespaceTemplates")
+  void testBasicAuthIgnoresEdgeWhitespaceInUsername(String template) throws Exception {
+    clearSecurityContext();
+
+    mvc.perform(
+            get("/api/me")
+                .header("Authorization", basicAuth(template.formatted("admin"), "district")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value("admin"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"district ", " district", "\tdistrict", "\u00a0district"})
+  void testBasicAuthDoesNotTrimPassword(String password) throws Exception {
+    clearSecurityContext();
+
+    mvc.perform(get("/api/me").header("Authorization", basicAuth("admin", password)))
+        .andExpect(status().isUnauthorized());
+  }
+
+  /**
+   * Usernames stored with whitespace at the edges, as raw characters: trailing, leading and
+   * non-breaking space. Rows from before the username syntax check (2.38) and paths that skip the
+   * check can hold such usernames.
+   */
+  static Stream<String> storedEdgeWhitespaceUsernames() {
+    return Stream.of("legacy ", " legacy", "\u00a0legacy");
+  }
+
+  @ParameterizedTest
+  @MethodSource("storedEdgeWhitespaceUsernames")
+  void testLoginWithExactUsernameStoredWithEdgeWhitespace(String storedUsername) {
+    createUserWithAuth(storedUsername, "ALL");
+
+    assertEquals("SUCCESS", loginStatus(storedUsername, "district"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("storedEdgeWhitespaceUsernames")
+  void testBasicAuthWithExactUsernameStoredWithEdgeWhitespace(String storedUsername)
+      throws Exception {
+    createUserWithAuth(storedUsername, "ALL");
+    clearSecurityContext();
+
+    mvc.perform(get("/api/me").header("Authorization", basicAuth(storedUsername, "district")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value(storedUsername));
+  }
+
+  @Test
+  void testLoginPrefersExactUsernameOverStrippedUsername() {
+    createUserWithAuth("twin", "ALL");
+    createUserStoredAs(" twin", "Twin_pass_1!");
+
+    assertEquals("SUCCESS", loginStatus(" twin", "Twin_pass_1!"));
+    assertEquals(
+        HttpStatus.UNAUTHORIZED, POST("/auth/login", loginBody(" twin", "district")).status());
+    assertEquals("SUCCESS", loginStatus("twin ", "district"));
+  }
+
+  @Test
+  void testBasicAuthPrefersExactUsernameOverStrippedUsername() throws Exception {
+    createUserWithAuth("twin", "ALL");
+    createUserStoredAs(" twin", "Twin_pass_1!");
+    clearSecurityContext();
+
+    mvc.perform(get("/api/me").header("Authorization", basicAuth(" twin", "Twin_pass_1!")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value(" twin"));
+    mvc.perform(get("/api/me").header("Authorization", basicAuth("twin ", "district")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value("twin"));
+  }
+
+  @Test
+  void testFailedLoginsWithExactUsernameCountForThatUserOnly() {
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
+    createUserWithAuth("twinlock", "ALL");
+    createUserStoredAs(" twinlock", "district");
+
+    for (int i = 0; i < LOGIN_MAX_FAILED_ATTEMPTS; i++) {
+      assertEquals(
+          HttpStatus.UNAUTHORIZED, POST("/auth/login", loginBody(" twinlock", "wrong")).status());
+    }
+
+    assertEquals("ACCOUNT_LOCKED", loginStatus(" twinlock", "district"));
+    assertEquals("SUCCESS", loginStatus("twinlock", "district"));
+  }
+
+  /**
+   * Creates a user, then stores {@code storedUsername} as its username without the username syntax
+   * check. The user role is named after a generated username, as role names are trimmed.
+   */
+  private User createUserStoredAs(String storedUsername, String password) {
+    User user = createUserWithAuth("user" + generateUid().toLowerCase(), "ALL");
+    user.setUsername(storedUsername);
+    userService.encodeAndSetPassword(user, password);
+    userService.updateUser(user);
+    return user;
+  }
+
+  private String loginStatus(String username, String password) {
+    return POST("/auth/login", loginBody(username, password))
+        .content(HttpStatus.OK)
+        .as(JsonLoginResponse.class)
+        .getLoginStatus();
+  }
+
+  /** Builds a login body; the arguments are JSON string content and may contain escapes. */
+  private static String loginBody(String username, String password) {
+    return "{\"username\":\"%s\",\"password\":\"%s\"}".formatted(username, password);
+  }
+
+  private static String basicAuth(String username, String password) {
+    byte[] credentials = (username + ":" + password).getBytes(StandardCharsets.UTF_8);
+    return "Basic " + Base64.getEncoder().encodeToString(credentials);
   }
 
   @Test

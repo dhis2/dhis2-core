@@ -30,13 +30,14 @@
 package org.hisp.dhis.jsonschema;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+import com.networknt.schema.InputFormat;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Set;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 
@@ -47,13 +48,13 @@ public class JsonSchemaValidator {
   private static final String DATA_INTEGRITY_CHECK_SCHEMA_FILE = "integrity_check_schema.json";
   private static final String DATA_INTEGRITY_CHECK_SCHEMA =
       DATA_INTEGRITY_CHECK_DIR + DATA_INTEGRITY_CHECK_SCHEMA_FILE;
-  private static JsonSchema dataIntegritySchema;
+  private static Schema dataIntegritySchema;
 
   static {
-    JsonSchemaFactory schemaFactory =
-        JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
+    SchemaRegistry schemaRegistry =
+        SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
     try (InputStream is = new ClassPathResource(DATA_INTEGRITY_CHECK_SCHEMA).getInputStream()) {
-      dataIntegritySchema = schemaFactory.getSchema(is);
+      dataIntegritySchema = schemaRegistry.getSchema(is);
     } catch (IOException e) {
       log.error(
           "Error loading data integrity check schema at class path location {}. Error message: {}",
@@ -66,7 +67,7 @@ public class JsonSchemaValidator {
     throw new UnsupportedOperationException("util");
   }
 
-  public static Set<ValidationMessage> validateDataIntegrityCheck(JsonNode json) {
-    return dataIntegritySchema.validate(json);
+  public static List<Error> validateDataIntegrityCheck(JsonNode json) {
+    return dataIntegritySchema.validate(json.toString(), InputFormat.JSON);
   }
 }

@@ -33,6 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.SqlUtils.escape;
 
 import jakarta.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.List;
@@ -134,6 +135,40 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
         });
 
     return eventTypeCountMap;
+  }
+
+  @Override
+  public List<Integer> getDistinctActiveUserCounts(List<Date> startDates, Date endDate) {
+    if (startDates.isEmpty()) {
+      return List.of();
+    }
+    Date earliest = startDates.stream().min(Date::compareTo).orElseThrow();
+    StringBuilder sql = new StringBuilder("select ");
+    for (int i = 0; i < startDates.size(); i++) {
+      if (i > 0) {
+        sql.append(", ");
+      }
+      sql.append("count(distinct username) filter (where timestamp >= ?) as c").append(i);
+    }
+    sql.append(" from datastatisticsevent where timestamp between ? and ?");
+    return jdbcTemplate.query(
+        sql.toString(),
+        ps -> {
+          int i = 1;
+          for (Date startDate : startDates) {
+            ps.setTimestamp(i++, new java.sql.Timestamp(startDate.getTime()));
+          }
+          ps.setTimestamp(i++, new java.sql.Timestamp(earliest.getTime()));
+          ps.setTimestamp(i, new java.sql.Timestamp(endDate.getTime()));
+        },
+        rs -> {
+          rs.next();
+          List<Integer> counts = new ArrayList<>(startDates.size());
+          for (int i = 0; i < startDates.size(); i++) {
+            counts.add(rs.getInt(i + 1));
+          }
+          return counts;
+        });
   }
 
   @Override

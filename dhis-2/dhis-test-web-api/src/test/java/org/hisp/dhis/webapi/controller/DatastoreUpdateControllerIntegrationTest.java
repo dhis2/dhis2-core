@@ -38,9 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,14 +51,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class DatastoreUpdateControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
-
-  @BeforeEach
-  void setUp() {
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    currentUserDetails.setId(0L);
-    clearSecurityContext();
-    injectSecurityContext(currentUserDetails);
-  }
 
   @Test
   void testUpdateEntry_RootWithNullValue() {

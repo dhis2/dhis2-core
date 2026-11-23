@@ -80,7 +80,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
   @Override
   public void validate(
       RelationshipType object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-    validateRelationshipType(object, addReports);
+    validateRelationshipType(object, bundle, addReports);
   }
 
   @Override
@@ -135,18 +135,18 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
    * Validates the RelationshipType. A type should have constraints for both left and right side.
    */
   private void validateRelationshipType(
-      RelationshipType relationshipType, Consumer<ErrorReport> addReports) {
+      RelationshipType relationshipType, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
     if (relationshipType.getFromConstraint() == null) {
       addReports.accept(new ErrorReport(RelationshipType.class, ErrorCode.E4000, "leftConstraint"));
     } else {
-      validateRelationshipConstraint(relationshipType.getFromConstraint(), addReports);
+      validateRelationshipConstraint(relationshipType.getFromConstraint(), bundle, addReports);
     }
 
     if (relationshipType.getToConstraint() == null) {
       addReports.accept(
           new ErrorReport(RelationshipType.class, ErrorCode.E4000, "rightConstraint"));
     } else {
-      validateRelationshipConstraint(relationshipType.getToConstraint(), addReports);
+      validateRelationshipConstraint(relationshipType.getToConstraint(), bundle, addReports);
     }
   }
 
@@ -155,22 +155,60 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
    * depending on the RelationshipEntity set for this constraint.
    */
   private void validateRelationshipConstraint(
-      RelationshipConstraint constraint, Consumer<ErrorReport> addReports) {
+      RelationshipConstraint constraint, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
     switch (constraint.getRelationshipEntity()) {
       case TRACKED_ENTITY_INSTANCE:
-        validateTrackedEntityInstance(constraint, addReports, constraint.getTrackerDataView());
+        validateTrackedEntityInstance(
+            constraint, bundle, addReports, constraint.getTrackerDataView());
         break;
       case PROGRAM_INSTANCE:
-        validateProgramInstance(constraint, addReports, constraint.getTrackerDataView());
+        validateProgramInstance(constraint, bundle, addReports, constraint.getTrackerDataView());
         break;
       case PROGRAM_STAGE_INSTANCE:
-        validateProgramStageInstance(constraint, addReports, constraint.getTrackerDataView());
+        validateProgramStageInstance(
+            constraint, bundle, addReports, constraint.getTrackerDataView());
         break;
     }
   }
 
+  /**
+   * Resolves an object referenced by a RelationshipConstraint. The referenced object may be part of
+   * the same import payload (e.g. a Program being created/updated together with a RelationshipType
+   * that references it) and therefore not yet persisted/committed, so the bundle itself is checked
+   * before falling back to a database lookup.
+   */
+  private <T extends IdentifiableObject> Optional<T> findInBundle(
+      ObjectBundle bundle, Class<T> klass, String uid) {
+    if (bundle == null || uid == null) {
+      return Optional.empty();
+    }
+
+    for (T object : bundle.getObjects(klass)) {
+      if (uid.equals(object.getUid())) {
+        return Optional.of(object);
+      }
+    }
+
+    return Optional.empty();
+  }
+
+  private TrackedEntityType getTrackedEntityType(ObjectBundle bundle, String uid) {
+    return findInBundle(bundle, TrackedEntityType.class, uid)
+        .orElseGet(() -> trackedEntityTypeService.getTrackedEntityType(uid));
+  }
+
+  private Program getProgram(ObjectBundle bundle, String uid) {
+    return findInBundle(bundle, Program.class, uid).orElseGet(() -> programService.getProgram(uid));
+  }
+
+  private ProgramStage getProgramStage(ObjectBundle bundle, String uid) {
+    return findInBundle(bundle, ProgramStage.class, uid)
+        .orElseGet(() -> programStageService.getProgramStage(uid));
+  }
+
   private void validateTrackedEntityInstance(
       RelationshipConstraint constraint,
+      ObjectBundle bundle,
       Consumer<ErrorReport> addReports,
       TrackerDataView trackerDataView) {
     Set<String> trackerDataViewAttributes = new HashSet<>();
@@ -203,7 +241,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
               RELATIONSHIP_ENTITY,
               TRACKED_ENTITY_INSTANCE));
     } else {
-      trackedEntityType = trackedEntityTypeService.getTrackedEntityType(trackedEntityType.getUid());
+      trackedEntityType = getTrackedEntityType(bundle, trackedEntityType.getUid());
 
       Set<String> trackedEntityTypeAttributes =
           Optional.ofNullable(trackedEntityType)
@@ -216,7 +254,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
 
       Set<String> programTrackedEntityAttributes =
           Optional.ofNullable(constraint.getProgram())
-              .map(p -> programService.getProgram(p.getUid()))
+              .map(p -> getProgram(bundle, p.getUid()))
               .map(
                   p ->
                       p.getTrackedEntityAttributes().stream()
@@ -257,6 +295,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
 
   private void validateProgramInstance(
       RelationshipConstraint constraint,
+      ObjectBundle bundle,
       Consumer<ErrorReport> addReports,
       TrackerDataView trackerDataView) {
     Set<String> trackerDataViewAttributes = new HashSet<>();
@@ -298,7 +337,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
               RELATIONSHIP_ENTITY,
               PROGRAM_INSTANCE));
     } else {
-      Program program = programService.getProgram(constraint.getProgram().getUid());
+      Program program = getProgram(bundle, constraint.getProgram().getUid());
 
       Set<String> trackedEntityAttributes =
           Optional.ofNullable(program)
@@ -340,6 +379,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
 
   private void validateProgramStageInstance(
       RelationshipConstraint constraint,
+      ObjectBundle bundle,
       Consumer<ErrorReport> addReports,
       TrackerDataView trackerDataView) {
     Set<String> trackerDataViewDataElements = new HashSet<>();
@@ -372,7 +412,8 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
     }
 
     Program program =
-        programService.getProgram(
+        getProgram(
+            bundle,
             Optional.ofNullable(constraint.getProgram())
                 .map(IdentifiableObject::getUid)
                 .orElse(StringUtils.EMPTY));
@@ -380,7 +421,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
 
     Set<String> dataElementIds =
         Optional.ofNullable(programStage)
-            .map(ps -> programStageService.getProgramStage(ps.getUid()))
+            .map(ps -> getProgramStage(bundle, ps.getUid()))
             .map(
                 s ->
                     s.getDataElements().stream()

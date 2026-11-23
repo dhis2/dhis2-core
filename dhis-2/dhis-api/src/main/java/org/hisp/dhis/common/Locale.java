@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.io.Serializable;
@@ -87,13 +89,21 @@ public record Locale(
   }
 
   @Nonnull
+  public static Locale of(@Nonnull String language, @CheckForNull String region) {
+    return of(language, region, null);
+  }
+
+  @Nonnull
+  public static Locale of(
+      @Nonnull String language, @CheckForNull String region, @CheckForNull String script) {
+    if (isBlank(region)) region = null;
+    if (isBlank(script)) script = null;
+    return new Locale(language, region, script);
+  }
+
+  @Nonnull
   public static Locale of(@Nonnull java.util.Locale locale) {
-    String lang = locale.getLanguage();
-    String region = locale.getCountry();
-    String script = locale.getScript();
-    if (region.isEmpty()) region = null;
-    if (script.isEmpty()) script = null;
-    return new Locale(lang, region, script);
+    return of(locale.getLanguage(), locale.getCountry(), locale.getScript());
   }
 
   @CheckForNull

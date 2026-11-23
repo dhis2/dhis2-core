@@ -53,11 +53,14 @@ public class UserContextInterceptor implements HandlerInterceptor {
       @Nonnull final HttpServletResponse response,
       @Nonnull final Object handler) {
     ThreadUserSettings.clear();
-    // Note: if there is no override happening the settings are initialized on access
-    if (!"true".equals(request.getParameter("translate"))) return true;
+
+    // explicit opt-out only
+    if ("false".equalsIgnoreCase(request.getParameter("translate"))) return true;
+
     String locale = request.getParameter("locale");
     if (locale == null || locale.isEmpty()) return true;
     if (!CurrentUserUtil.hasCurrentUser()) return true;
+
     ThreadUserSettings.put(Map.of("keyDbLocale", locale));
     return true;
   }

@@ -35,6 +35,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -57,7 +58,7 @@ public interface EventAnalyticalObject extends AnalyticalObject {
 
   EventOutputType getOutputType();
 
-  DimensionalItemObject getValue();
+  Value getValue();
 
   // -------------------------------------------------------------------------
   // Base class emulation methods with default implementations
@@ -66,4 +67,6 @@ public interface EventAnalyticalObject extends AnalyticalObject {
   default void setDataElementValueDimension(DataElement dataElementValueDimension) {}
 
   default void setAttributeValueDimension(TrackedEntityAttribute attributeValueDimension) {}
+
+  default void setProgramStageValueDimension(ProgramStage programStageValueDimension) {}
 }

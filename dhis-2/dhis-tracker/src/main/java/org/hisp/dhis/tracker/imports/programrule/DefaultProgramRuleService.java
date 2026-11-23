@@ -57,6 +57,7 @@ import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleVariable;
+import org.hisp.dhis.rules.models.TriggerEnvironment;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -325,7 +326,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
                         requirements.getNeedsOrgUnitGroups(),
                         orgUnitUids != null ? orgUnitUids : Set.of(),
                         user),
-                    constantMap),
+                    constantMap,
+                    TriggerEnvironment.SERVER),
                 requirements.getNeedsAttributes(),
                 requirements.getNeedsAllEvents()));
       }
@@ -420,7 +422,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
             .map(attributes -> RuleEngineMapper.mapAttributes(preheat, attributes))
             .orElse(Collections.emptyList());
 
-    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
+    TrackedEntity trackedEntity = getTrackedEntity(enrollmentUid, teUid, preheat);
     if (trackedEntity == null) {
       return Stream.concat(
               payloadTrackedEntityAttributes.stream(), payloadProgramAttributes.stream())
@@ -444,6 +446,22 @@ class DefaultProgramRuleService implements ProgramRuleService {
                 payloadTrackedEntityAttributes.stream(), payloadProgramAttributes.stream()),
             dbAttributesNotPresentInPayload)
         .toList();
+  }
+
+  // Resolve the tracked entity holding the attribute values saved in the DB.
+  // Tracked entities are only preheated when they are referenced by the payload. Payloads
+  // containing just events (like the one the Capture app sends when completing an event) do not
+  // reference any tracked entity, so fall back to the tracked entity of the saved enrollment, which
+  // is preheated for every payload event and already carries its attribute values.
+  private static TrackedEntity getTrackedEntity(
+      UID enrollmentUid, UID teUid, TrackerPreheat preheat) {
+    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
+    if (trackedEntity != null) {
+      return trackedEntity;
+    }
+
+    Enrollment enrollment = preheat.getEnrollment(enrollmentUid);
+    return enrollment == null ? null : enrollment.getTrackedEntity();
   }
 
   // Fetch all saved events for the given enrollments in a single DB query and group by enrollment.

@@ -29,7 +29,10 @@
  */
 package org.hisp.dhis.gist;
 
+import static java.util.Spliterator.ORDERED;
+import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
 import static org.hisp.dhis.gist.GistBuilder.createCountBuilder;
 import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
@@ -40,6 +43,7 @@ import jakarta.persistence.EntityManager;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -99,7 +103,14 @@ public class DefaultGistService implements GistService {
   public GistObjectList exportObjectList(@Nonnull GistQuery query) {
     GistQuery planned = plan(query);
     Stream<Object[]> values = gist(planned);
-    return new GistObjectList(pager(query), properties(planned), values);
+    if (!query.isPaging())
+      return new GistObjectList(pager(query, true), properties(planned), values);
+    // we peek the stream to see if it is empty or not, then re-wrap it back into a stream
+    Iterator<Object[]> rows = values.iterator(); // marks values stream as "consumed"
+    boolean hasRows = rows.hasNext();
+    Stream<Object[]> valuesRewrapped =
+        stream(spliteratorUnknownSize(rows, ORDERED), false).onClose(values::close);
+    return new GistObjectList(pager(query, hasRows), properties(planned), valuesRewrapped);
   }
 
   @Nonnull
@@ -179,7 +190,7 @@ public class DefaultGistService implements GistService {
     return queryBuilder.transform(rows);
   }
 
-  private GistPager pager(GistQuery query) {
+  private GistPager pager(GistQuery query, boolean hasRows) {
     if (!query.isPaging()) return null;
     int page = 1 + (query.getPageOffset() / query.getPageSize());
     Schema schema = schemaService.getSchema(query.getElementType());
@@ -204,7 +215,7 @@ public class DefaultGistService implements GistService {
                 .toString();
       }
       Integer pageCount = GistPager.getPageCount(total, query.getPageSize());
-      if (pageCount == null || pageCount > page) {
+      if (hasRows && (pageCount == null || pageCount > page)) {
         next =
             UriComponentsBuilder.fromUri(queryURI)
                 .replaceQueryParam("page", page + 1)

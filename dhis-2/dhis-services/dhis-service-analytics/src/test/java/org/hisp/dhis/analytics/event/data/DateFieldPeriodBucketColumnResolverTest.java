@@ -87,7 +87,7 @@ class DateFieldPeriodBucketColumnResolverTest {
         Arguments.of(
             "2022W1",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"weekly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"occurreddate\")::date)"),
+            "(select \"weekly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"enrollmentoccurreddate\")::date)"),
         Arguments.of(
             "202301",
             TimeField.ENROLLMENT_DATE.name(),
@@ -95,7 +95,7 @@ class DateFieldPeriodBucketColumnResolverTest {
         Arguments.of(
             "2022",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"yearly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('year', ax.\"occurreddate\")::date)"),
+            "(select \"yearly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('year', ax.\"enrollmentoccurreddate\")::date)"),
         Arguments.of(
             "2022W1",
             TimeField.LAST_UPDATED.name(),
@@ -115,43 +115,43 @@ class DateFieldPeriodBucketColumnResolverTest {
         Arguments.of(
             "202701B",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"bimonthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( extract(year from ax.\"occurreddate\")::int, ((extract(month from ax.\"occurreddate\")::int - 1) / 2) * 2 + 1, 1 ))"),
+            "(select \"bimonthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( extract(year from ax.\"enrollmentoccurreddate\")::int, ((extract(month from ax.\"enrollmentoccurreddate\")::int - 1) / 2) * 2 + 1, 1 ))"),
         Arguments.of(
             "2027S1",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"sixmonthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( extract(year from ax.\"occurreddate\")::int, case when extract(month from ax.\"occurreddate\") <= 6 then 1 else 7 end, 1 ))"),
+            "(select \"sixmonthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( extract(year from ax.\"enrollmentoccurreddate\")::int, case when extract(month from ax.\"enrollmentoccurreddate\") <= 6 then 1 else 7 end, 1 ))"),
         Arguments.of(
             "2027BiW1",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"biweekly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"occurreddate\")::date - ((extract(week from ax.\"occurreddate\")::int - 1) % 2) * interval '7 days')"),
+            "(select \"biweekly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"enrollmentoccurreddate\")::date - ((extract(week from ax.\"enrollmentoccurreddate\")::int - 1) % 2) * interval '7 days')"),
         Arguments.of(
             "2027Q1",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"quarterly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('quarter', ax.\"occurreddate\")::date)"),
+            "(select \"quarterly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('quarter', ax.\"enrollmentoccurreddate\")::date)"),
         Arguments.of(
             "2027NovQ1",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"quarterlynov\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('quarter', ax.\"occurreddate\" - interval '1 month')::date + interval '1 month')"),
+            "(select \"quarterlynov\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('quarter', ax.\"enrollmentoccurreddate\" - interval '1 month')::date + interval '1 month')"),
         Arguments.of(
             "2027WedW1",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"weeklywednesday\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"occurreddate\" + interval '5 days')::date - interval '5 days')"),
+            "(select \"weeklywednesday\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"enrollmentoccurreddate\" + interval '5 days')::date - interval '5 days')"),
         Arguments.of(
             "2027ThuW1",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"weeklythursday\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"occurreddate\" + interval '4 days')::date - interval '4 days')"),
+            "(select \"weeklythursday\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"enrollmentoccurreddate\" + interval '4 days')::date - interval '4 days')"),
         Arguments.of(
             "2027FriW1",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"weeklyfriday\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"occurreddate\" + interval '3 days')::date - interval '3 days')"),
+            "(select \"weeklyfriday\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"enrollmentoccurreddate\" + interval '3 days')::date - interval '3 days')"),
         Arguments.of(
             "2027SatW1",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"weeklysaturday\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"occurreddate\" + interval '2 days')::date - interval '2 days')"),
+            "(select \"weeklysaturday\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"enrollmentoccurreddate\" + interval '2 days')::date - interval '2 days')"),
         Arguments.of(
             "2027SunW1",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"weeklysunday\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"occurreddate\" + interval '1 day')::date - interval '1 day')"),
+            "(select \"weeklysunday\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('week', ax.\"enrollmentoccurreddate\" + interval '1 day')::date - interval '1 day')"),
         Arguments.of(
             "2021AprilS1",
             TimeField.CREATED.name(),
@@ -159,35 +159,35 @@ class DateFieldPeriodBucketColumnResolverTest {
         Arguments.of(
             "2027NovS1",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"sixmonthlynov\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = case when extract(month from ax.\"occurreddate\") between 5 and 10 then make_date(extract(year from ax.\"occurreddate\")::int, 5, 1) when extract(month from ax.\"occurreddate\") >= 11 then make_date(extract(year from ax.\"occurreddate\")::int, 11, 1) else make_date(extract(year from ax.\"occurreddate\")::int - 1, 11, 1) end)"),
+            "(select \"sixmonthlynov\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = case when extract(month from ax.\"enrollmentoccurreddate\") between 5 and 10 then make_date(extract(year from ax.\"enrollmentoccurreddate\")::int, 5, 1) when extract(month from ax.\"enrollmentoccurreddate\") >= 11 then make_date(extract(year from ax.\"enrollmentoccurreddate\")::int, 11, 1) else make_date(extract(year from ax.\"enrollmentoccurreddate\")::int - 1, 11, 1) end)"),
         Arguments.of(
             "2027Feb",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"financialfeb\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"occurreddate\") >= 2 then extract(year from ax.\"occurreddate\")::int else extract(year from ax.\"occurreddate\")::int - 1 end, 2, 1 ))"),
+            "(select \"financialfeb\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"enrollmentoccurreddate\") >= 2 then extract(year from ax.\"enrollmentoccurreddate\")::int else extract(year from ax.\"enrollmentoccurreddate\")::int - 1 end, 2, 1 ))"),
         Arguments.of(
             "2027April",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"financialapril\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"occurreddate\") >= 4 then extract(year from ax.\"occurreddate\")::int else extract(year from ax.\"occurreddate\")::int - 1 end, 4, 1 ))"),
+            "(select \"financialapril\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"enrollmentoccurreddate\") >= 4 then extract(year from ax.\"enrollmentoccurreddate\")::int else extract(year from ax.\"enrollmentoccurreddate\")::int - 1 end, 4, 1 ))"),
         Arguments.of(
             "2027July",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"financialjuly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"occurreddate\") >= 7 then extract(year from ax.\"occurreddate\")::int else extract(year from ax.\"occurreddate\")::int - 1 end, 7, 1 ))"),
+            "(select \"financialjuly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"enrollmentoccurreddate\") >= 7 then extract(year from ax.\"enrollmentoccurreddate\")::int else extract(year from ax.\"enrollmentoccurreddate\")::int - 1 end, 7, 1 ))"),
         Arguments.of(
             "2027Aug",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"financialaug\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"occurreddate\") >= 8 then extract(year from ax.\"occurreddate\")::int else extract(year from ax.\"occurreddate\")::int - 1 end, 8, 1 ))"),
+            "(select \"financialaug\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"enrollmentoccurreddate\") >= 8 then extract(year from ax.\"enrollmentoccurreddate\")::int else extract(year from ax.\"enrollmentoccurreddate\")::int - 1 end, 8, 1 ))"),
         Arguments.of(
             "2027Sep",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"financialsep\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"occurreddate\") >= 9 then extract(year from ax.\"occurreddate\")::int else extract(year from ax.\"occurreddate\")::int - 1 end, 9, 1 ))"),
+            "(select \"financialsep\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"enrollmentoccurreddate\") >= 9 then extract(year from ax.\"enrollmentoccurreddate\")::int else extract(year from ax.\"enrollmentoccurreddate\")::int - 1 end, 9, 1 ))"),
         Arguments.of(
             "2027Oct",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"financialoct\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"occurreddate\") >= 10 then extract(year from ax.\"occurreddate\")::int else extract(year from ax.\"occurreddate\")::int - 1 end, 10, 1 ))"),
+            "(select \"financialoct\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"enrollmentoccurreddate\") >= 10 then extract(year from ax.\"enrollmentoccurreddate\")::int else extract(year from ax.\"enrollmentoccurreddate\")::int - 1 end, 10, 1 ))"),
         Arguments.of(
             "2027Nov",
             TimeField.INCIDENT_DATE.name(),
-            "(select \"financialnov\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"occurreddate\") >= 11 then extract(year from ax.\"occurreddate\")::int else extract(year from ax.\"occurreddate\")::int - 1 end, 11, 1 ))"),
+            "(select \"financialnov\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = make_date( case when extract(month from ax.\"enrollmentoccurreddate\") >= 11 then extract(year from ax.\"enrollmentoccurreddate\")::int else extract(year from ax.\"enrollmentoccurreddate\")::int - 1 end, 11, 1 ))"),
         Arguments.of(
             "2021AprilS1",
             TimeField.ENROLLMENT_DATE.name(),

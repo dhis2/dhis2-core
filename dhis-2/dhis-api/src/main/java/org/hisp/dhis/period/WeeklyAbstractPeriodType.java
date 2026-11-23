@@ -35,6 +35,7 @@ import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateIntervalType;
@@ -79,6 +80,7 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType {
     return startOfWeek;
   }
 
+  @Nonnull
   @Override
   public String getIso8601Duration() {
     return isoDuration;
@@ -94,6 +96,7 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType {
     return sqlInterval;
   }
 
+  @Nonnull
   @Override
   public String getIsoFormat() {
     return isoFormat;

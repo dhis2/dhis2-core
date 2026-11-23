@@ -95,7 +95,8 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
           "predictor", // NPE in preheat when creating objects
           "aggregateDataExchange", // required JSONB objects not working,
           "oauth2Authorization", // Read-only
-          "oauth2AuthorizationConsent" // Read-only
+          "oauth2AuthorizationConsent", // Read-only
+          "analyticsTableHook" // disabled by default (analytics.table_hooks.enabled)
           );
 
   /**

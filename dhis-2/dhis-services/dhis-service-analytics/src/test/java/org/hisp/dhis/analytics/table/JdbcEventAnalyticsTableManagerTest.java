@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,9 @@ import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -1128,6 +1130,39 @@ class JdbcEventAnalyticsTableManagerTest {
     String mainTableName = TABLE_PREFIX + program.getUid().toLowerCase();
     assertThat(sql.getValue(), containsString(quote(mainTableName)));
     assertThat(sql.getValue(), not(containsString(quote(mainTableName + STAGING_TABLE_SUFFIX))));
+  }
+
+  @Test
+  @DisplayName(
+      "On Postgres a program without a main table gets the same continuous window as any other,"
+          + " without checking whether its main table exists")
+  void latestTableOfProgramWithoutMainTableKeepsWindowOnPostgres() {
+    Program created = createProgram('C');
+
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    List<Map<String, Object>> queryResp = new ArrayList<>();
+    queryResp.add(Map.of("eventid", 1));
+    String tableExistsSql =
+        sqlBuilder.tableExists(AnalyticsTable.getTableName(AnalyticsTableType.EVENT, created));
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+        .thenReturn(lastLatestPartitionUpdate);
+    when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(created));
+    whenConfigurationPeriodSettings();
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+    assertThat(tables, hasSize(1));
+
+    assertNotEquals(new Date(0L), tables.get(0).getLatestTablePartition().getStartDate());
+    verify(jdbcTemplate, never()).queryForList(tableExistsSql);
   }
 
   @Test

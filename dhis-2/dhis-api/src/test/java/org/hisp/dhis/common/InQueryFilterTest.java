@@ -31,46 +31,72 @@ package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class InQueryFilterTest {
 
   @Test
   void verifyInWithTextParameters() {
-    executeTest("aFilter1;aFilter2", true, "aField in ('aFilter1','aFilter2') ");
+    executeTest("aFilter1;aFilter2", true, false, "aField in ('aFilter1','aFilter2') ");
   }
 
   @Test
   void verifyInWithNumberParameters() {
-    executeTest("1;2;3", false, "aField in (1,2,3) ");
+    executeTest("1;2;3", false, false, "aField in (1,2,3) ");
   }
 
   @Test
-  void verifyInWithNullAndTextParameters() {
-    executeTest("NV;aFilter1", true, "(aField in ('aFilter1') or aField is null ) ");
+  @DisplayName("Non-option-set: NV is the no-value keyword (mixed with text)")
+  void verifyNonOptionSetNvAndText() {
+    executeTest("NV;aFilter1", true, false, "(aField in ('aFilter1') or aField is null ) ");
   }
 
   @Test
-  void verifyInWithNullAndNumberParameters() {
-    executeTest("NV;1", false, "(aField in (1) or aField is null ) ");
+  @DisplayName("Non-option-set: NV is the no-value keyword (mixed with number)")
+  void verifyNonOptionSetNvAndNumber() {
+    executeTest("NV;1", false, false, "(aField in (1) or aField is null ) ");
   }
 
   @Test
-  void verifyInWithNullOnly() {
-    executeTest("NV", true, "aField is null ");
+  @DisplayName("Non-option-set: NV only")
+  void verifyNonOptionSetNvOnly() {
+    executeTest("NV", true, false, "aField is null ");
+  }
+
+  @Test
+  @DisplayName("Option-set: D2__NOVALUE is the no-value keyword (mixed with code)")
+  void verifyOptionSetNoValueAndText() {
+    executeTest("D2__NOVALUE;aFilter1", true, true, "(aField in ('aFilter1') or aField is null ) ");
+  }
+
+  @Test
+  @DisplayName("Option-set: D2__NOVALUE only")
+  void verifyOptionSetNoValueOnly() {
+    executeTest("D2__NOVALUE", true, true, "aField is null ");
+  }
+
+  @Test
+  @DisplayName("Option-set: NV is a literal option code, not no-value")
+  void verifyOptionSetNvIsLiteral() {
+    executeTest("NV;aFilter1", true, true, "aField in ('NV','aFilter1') ");
   }
 
   @Test
   void verifyNestedSqlStmtInFieldWithNullOnly() {
     String field = "(select * from xy)";
-    executeTest(field, "NV", true, "(" + field + " is null and exists((select * from xy))) ");
+    executeTest(
+        field, "NV", true, false, "(" + field + " is null and exists((select * from xy))) ");
   }
 
-  private void executeTest(String filterValue, boolean shouldQuote, String expected) {
-    executeTest("aField", filterValue, shouldQuote, expected);
+  private void executeTest(
+      String filterValue, boolean shouldQuote, boolean isOptionSet, String expected) {
+    executeTest("aField", filterValue, shouldQuote, isOptionSet, expected);
   }
 
-  private void executeTest(String field, String filterValue, boolean shouldQuote, String expected) {
-    assertEquals(new InQueryFilter(field, filterValue, shouldQuote).getSqlFilter(), expected);
+  private void executeTest(
+      String field, String filterValue, boolean shouldQuote, boolean isOptionSet, String expected) {
+    assertEquals(
+        new InQueryFilter(field, filterValue, shouldQuote, isOptionSet).getSqlFilter(), expected);
   }
 }

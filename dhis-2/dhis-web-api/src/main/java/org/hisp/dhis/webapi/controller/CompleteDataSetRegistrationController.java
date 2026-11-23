@@ -72,6 +72,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -206,30 +207,33 @@ public class CompleteDataSetRegistrationController {
     // ---------------------------------------------------------------------
     // Check locked status
     // ---------------------------------------------------------------------
-    List<String> lockedDataSets = new ArrayList<>();
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    if (!currentUser.isSuper()) {
+      List<String> lockedDataSets = new ArrayList<>();
 
-    Collection<OrganisationUnit> orgUnitsToCheck =
-        multiOu ? organisationUnit.getChildren() : List.of(organisationUnit);
-    for (DataSet dataSet : dataSets) {
-      UID de =
-          UID.of(
-              dataSet
-                  .getDataElements()
-                  .iterator()
-                  .next()); // de is not relevant but required, so we use any
-      for (OrganisationUnit orgUnit : orgUnitsToCheck) {
-        DataValueKey key =
-            new DataValueKey(de, UID.of(orgUnit), null, UID.of(attributeOptionCombo), period);
-        if (!dataEntryService.getEntryStatus(UID.of(dataSet), key).isOpen()) {
-          lockedDataSets.add(dataSet.getUid());
-          break;
+      Collection<OrganisationUnit> orgUnitsToCheck =
+          multiOu ? organisationUnit.getChildren() : List.of(organisationUnit);
+      for (DataSet dataSet : dataSets) {
+        UID de =
+            UID.of(
+                dataSet
+                    .getDataElements()
+                    .iterator()
+                    .next()); // de is not relevant but required, so we use any
+        for (OrganisationUnit orgUnit : orgUnitsToCheck) {
+          DataValueKey key =
+              new DataValueKey(de, UID.of(orgUnit), null, UID.of(attributeOptionCombo), period);
+          if (!dataEntryService.getEntryStatus(UID.of(dataSet), key).isOpen()) {
+            lockedDataSets.add(dataSet.getUid());
+            break;
+          }
         }
       }
-    }
 
-    if (!lockedDataSets.isEmpty()) {
-      throw new WebMessageException(
-          conflict("Locked Data set(s) : " + StringUtils.join(lockedDataSets, ", ")));
+      if (!lockedDataSets.isEmpty()) {
+        throw new WebMessageException(
+            conflict("Locked Data set(s) : " + StringUtils.join(lockedDataSets, ", ")));
+      }
     }
 
     // ---------------------------------------------------------------------

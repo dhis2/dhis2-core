@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.util;
 
+import static java.text.MessageFormat.format;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
@@ -40,12 +42,15 @@ import static org.hisp.dhis.common.DimensionConstants.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
+import static org.hisp.dhis.feedback.ErrorCode.E7154;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SQL_SYNTAX_ERROR;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING;
+import static org.hisp.dhis.util.SqlExceptionUtils.columnDoesNotExist;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
+import static org.hisp.dhis.util.SqlExceptionUtils.unionColumnsDontMatch;
 import static org.springframework.util.Assert.isTrue;
 
 import com.google.common.collect.Lists;
@@ -143,6 +148,8 @@ public final class AnalyticsUtils {
 
   private static final Pattern OU_LEVEL_PATTERN =
       Pattern.compile(DataQueryParams.PREFIX_ORG_UNIT_LEVEL + "(\\d+)");
+
+  private static final String DEV_MESSAGE = "{0} | Check the server logs";
 
   /**
    * Returns an SQL statement for retrieving raw data values for an aggregate query.
@@ -388,7 +395,7 @@ public final class AnalyticsUtils {
       String operand =
           StringUtils.join(operands, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP);
       String dimension = StringUtils.join(dimensions, DIMENSION_SEP);
-      dimension = !dimension.isEmpty() ? (DIMENSION_SEP + dimension) : StringUtils.EMPTY;
+      dimension = !dimension.isEmpty() ? (DIMENSION_SEP + dimension) : EMPTY;
       String key = operand + dimension;
 
       map.put(key, entry.getValue());
@@ -1166,7 +1173,8 @@ public final class AnalyticsUtils {
    * @return true if the rows contains a valid period ISO string at the given index.
    */
   public static boolean hasPeriod(List<Object> row, int periodIndex) {
-    return periodIndex < row.size()
+    return periodIndex >= 0
+        && periodIndex < row.size()
         && row.get(periodIndex) instanceof String
         && Period.ofNullable((String) row.get(periodIndex)) != null;
   }
@@ -1239,6 +1247,12 @@ public final class AnalyticsUtils {
         // rethrow as BadSqlGrammarException for consistent handling
         throw new BadSqlGrammarException("", "", sqlexception);
       }
+      if ((ex.getCause() instanceof SQLException sqlexception)
+          && (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception))) {
+        log.error(E7154.getMessage(), ex);
+        throw new QueryRuntimeException(E7154)
+            .setDevMessage(format(DEV_MESSAGE, getExceptionMessage(ex)));
+      }
       log.error(E7132.getMessage(), ex);
       throw new QueryRuntimeException(E7132);
     } catch (DataAccessResourceFailureException ex) {
@@ -1247,6 +1261,18 @@ public final class AnalyticsUtils {
     }
 
     return Optional.empty();
+  }
+
+  private static String getExceptionMessage(Exception exception) {
+    if (exception != null) {
+      if (exception.getCause() != null) {
+        return exception.getCause().getMessage();
+      } else {
+        return exception.getMessage();
+      }
+    }
+
+    return EMPTY;
   }
 
   private static void handleDataAccessException(DataAccessException ex, boolean isMultipleQueries) {
@@ -1262,8 +1288,14 @@ public final class AnalyticsUtils {
         throw ex;
       }
       if (!isMultipleQueries) {
-        log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
-        throw ex;
+        if (columnDoesNotExist(sqlexception) || unionColumnsDontMatch(sqlexception)) {
+          log.error(E7154.getMessage(), ex);
+          throw new QueryRuntimeException(E7154)
+              .setDevMessage(format(DEV_MESSAGE, getExceptionMessage(ex)));
+        } else {
+          log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
+          throw ex;
+        }
       }
       log.info(ERR_MSG_SILENT_FALLBACK, ex);
     } else {

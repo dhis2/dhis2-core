@@ -34,11 +34,10 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.SUPPORTED_EVENT_STATIC_DIMENSIONS;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getEventLevelName;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getEventLevelRequestKey;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelStaticDimension;
 import static org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OffsetHelper.getItemBasedOnOffset;
-import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.feedback.ErrorCode.E7250;
 
@@ -92,9 +91,40 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     OBJECT_MAPPER.findAndRegisterModules();
   }
 
+  /** Package-private so that a test can count how often the document is actually parsed. */
   @SneakyThrows
-  private List<JsonEnrollment> parseEnrollmentsFromJson(String json) {
+  List<JsonEnrollment> parseEnrollmentsFromJson(String json) {
     return OBJECT_MAPPER.readValue(json, new TypeReference<>() {});
+  }
+
+  /**
+   * Returns the parsed {@code enrollments} document for the row the cursor is on, parsing it at
+   * most once per row.
+   *
+   * <p>Every requested column used to trigger its own {@code readValue} of the whole document, from
+   * two independent call sites ({@link #getObject(String)} and {@link #getRowContextItem(String,
+   * int)}), so a line list with ten data-element dimensions parsed the same string around twenty
+   * times per row.
+   *
+   * <p>The memo is keyed on the document itself rather than on the cursor position, which is what
+   * makes a stale hit impossible rather than merely unlikely: a hit requires the current row's
+   * document to be equal to the memoised one, and equal input cannot produce a different parse
+   * result. {@link String#equals} short-circuits on identity, which is the case a forward cursor
+   * hits on every column after the first.
+   *
+   * <p>The returned list is shared between the callers within a row. Nothing downstream mutates it
+   * - the extractors only stream over it, and {@code getItemBasedOnOffset} sorts the stream, not
+   * the source.
+   */
+  private List<JsonEnrollment> getEnrollments() {
+    String json = super.getString("enrollments");
+
+    if (memoisedEnrollments == null || !Objects.equals(memoisedJson, json)) {
+      memoisedEnrollments = parseEnrollmentsFromJson(json);
+      memoisedJson = json;
+    }
+
+    return memoisedEnrollments;
   }
 
   private static final Comparator<JsonEnrollment> ENR_ENROLLMENT_DATE_COMPARATOR =
@@ -107,6 +137,14 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
 
   private final List<String> existingColumnsInRowSet;
 
+  /**
+   * The {@code enrollments} document of the row the cursor is on, and its parse. Per-instance state
+   * on a per-request object; this class is not shared between threads and must not become so.
+   */
+  private String memoisedJson;
+
+  private List<JsonEnrollment> memoisedEnrollments;
+
   public SqlRowSetJsonExtractorDelegator(
       SqlRowSet sqlRowSet, List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers) {
     super(sqlRowSet);
@@ -115,54 +153,21 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
       if (!dimIdByKey.containsKey(dimensionIdentifier.getKey())) {
         dimIdByKey.put(dimensionIdentifier.getKey(), dimensionIdentifier);
 
-        // For event-level static dimensions, also add short format key alias
-        // to support headers like programStageUid.eventdate
-        if (isEventLevelStaticDimension(dimensionIdentifier, SUPPORTED_EVENT_STATIC_DIMENSIONS)) {
-          String shortFormatKey =
-              dimensionIdentifier.getProgramStage().getElement().getUid()
-                  + DIMENSION_IDENTIFIER_SEP
-                  + dimensionIdentifier.getDimension().getStaticDimension().getHeaderName();
-          dimIdByKey.put(shortFormatKey, dimensionIdentifier);
-        } else if (isEventLevelOuDimensionalObject(dimensionIdentifier)) {
-          // For stage-specific OU dimensions that went through DimensionalObject resolution,
-          // also add short format key alias to support headers like programStageUid.ou
-          String shortFormatKey =
-              dimensionIdentifier.getProgramStage().getElement().getUid()
-                  + DIMENSION_IDENTIFIER_SEP
-                  + "ou";
-          dimIdByKey.put(shortFormatKey, dimensionIdentifier);
-        } else if (isEventLevelDataElementDimension(dimensionIdentifier)) {
-          // For stage-scoped data elements, add short format alias
-          // to support headers like programStageUid.dataElementUid.
-          String shortFormatKey =
-              dimensionIdentifier.getProgramStage().getElement().getUid()
-                  + DIMENSION_IDENTIFIER_SEP
-                  + dimensionIdentifier.getDimension().getUid();
-          dimIdByKey.put(shortFormatKey, dimensionIdentifier);
-        }
+        // Event-level dimensions (static dimensions, stage-specific OUs that went through
+        // DimensionalObject resolution, and data elements) are also addressable by their short
+        // format, without the program. It must match the grid header name TrackedEntityFields
+        // gives them: data elements keep the stage offset (programStageUid[offset].dataElementUid),
+        // the others drop it (programStageUid.eventdate, programStageUid.ou).
+        Optional<String> shortFormatKey =
+            isDataElement(dimensionIdentifier)
+                ? getEventLevelRequestKey(dimensionIdentifier)
+                : getEventLevelName(dimensionIdentifier);
+        shortFormatKey.ifPresent(key -> dimIdByKey.put(key, dimensionIdentifier));
       }
     }
     // we need to know which columns are in the sqlrowset, so that when a column is not present, we
     // can check if it is present in the json string
     this.existingColumnsInRowSet = Arrays.asList(sqlRowSet.getMetaData().getColumnNames());
-  }
-
-  /**
-   * Checks if the dimension identifier is a stage-specific OU dimension that has a
-   * DimensionalObject (i.e., went through org unit resolution rather than being treated as a static
-   * dimension).
-   */
-  private static boolean isEventLevelOuDimensionalObject(
-      DimensionIdentifier<DimensionParam> dimIdentifier) {
-    return dimIdentifier.isEventDimension()
-        && dimIdentifier.getDimension().isDimensionalObject()
-        && dimIdentifier.getDimension().getDimensionParamObjectType()
-            == DimensionParamObjectType.ORGANISATION_UNIT;
-  }
-
-  private static boolean isEventLevelDataElementDimension(
-      DimensionIdentifier<DimensionParam> dimIdentifier) {
-    return isDataElement(dimIdentifier);
   }
 
   @Override
@@ -179,7 +184,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
       return super.getObject(canonicalLabel);
     }
     // if the column is not present in the rowset, we check if it is present in the json string
-    List<JsonEnrollment> enrollments = parseEnrollmentsFromJson(super.getString("enrollments"));
+    List<JsonEnrollment> enrollments = getEnrollments();
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier = dimIdByKey.get(canonicalLabel);
     if (dimensionIdentifier == null) {
@@ -350,8 +355,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     }
 
     JsonEvent event =
-        getJsonEnrollment(
-                parseEnrollmentsFromJson(super.getString("enrollments")), dimensionIdentifier)
+        getJsonEnrollment(getEnrollments(), dimensionIdentifier)
             .map(jEnr -> getJsonEvent(dimensionIdentifier, jEnr))
             .orElse(null);
 

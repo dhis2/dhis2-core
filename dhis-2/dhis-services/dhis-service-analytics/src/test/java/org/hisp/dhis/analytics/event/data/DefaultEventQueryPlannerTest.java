@@ -30,11 +30,16 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitFixtures.childOf;
+import static org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitFixtures.levelOne;
+import static org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitFixtures.withTrackerOrgUnits;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,11 +56,19 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventvisualization.Value;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -63,6 +76,7 @@ import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
@@ -70,8 +84,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,6 +97,10 @@ class DefaultEventQueryPlannerTest extends TestBase {
   @Mock private QueryPlanner queryPlanner;
 
   @Mock private PartitionManager partitionManager;
+
+  @Spy
+  private FirstOrLastStagePeriodPlanner firstOrLastStagePeriodPlanner =
+      new FirstOrLastStagePeriodPlanner(new DefaultStageQueryItemClassifier());
 
   @InjectMocks private DefaultEventQueryPlanner eventQueryPlanner;
 
@@ -93,6 +114,11 @@ class DefaultEventQueryPlannerTest extends TestBase {
   private User currentUser;
   private QueryItem queryItemA;
   private QueryItem queryItemB;
+
+  private final OrganisationUnit root = levelOne('R');
+  private final OrganisationUnit districtA = childOf(root, 'S');
+  private final OrganisationUnit districtB = childOf(root, 'T');
+  private final OrganisationUnit chiefdom = childOf(districtA, 'U');
 
   @BeforeEach
   void setUp() {
@@ -444,9 +470,159 @@ class DefaultEventQueryPlannerTest extends TestBase {
     assertThat(result.size(), greaterThanOrEqualTo(2));
   }
 
+  @ParameterizedTest
+  @EnumSource(
+      value = AggregationType.class,
+      names = {
+        "FIRST", "FIRST_AVERAGE_ORG_UNIT", "FIRST_FIRST_ORG_UNIT",
+        "LAST", "LAST_AVERAGE_ORG_UNIT", "LAST_LAST_ORG_UNIT"
+      })
+  void shouldPlanEachStageDatePeriodWithoutChangingTheRequest(AggregationType aggregationType) {
+    ProgramStage stage = createProgramStage('A', program);
+    QueryItem dateItem = createStageEventDateItem(stage, "202601", "202602");
+    dateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
+    dateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-02-28"));
+    EventQueryParams params = createStageDateAggregateParams(stage, dateItem, aggregationType);
+    mockQueryPlannerToReturnSameEventParams();
+
+    List<EventQueryParams> queries = eventQueryPlanner.planAggregateQuery(params);
+
+    assertEquals(2, queries.size());
+    assertEquals(
+        List.of("202601", "202602"),
+        queries.stream().map(q -> q.getFirstOrLastStagePeriod().period().getIsoDate()).toList());
+    assertTrue(queries.stream().allMatch(EventQueryParams::isMultipleQueries));
+    assertTrue(queries.stream().allMatch(EventQueryParams::isSkipPartitioning));
+    assertNull(params.getFirstOrLastStagePeriod());
+    assertNull(params.getStartDate());
+    assertNull(params.getEndDate());
+    assertEquals(List.of("202601", "202602"), dateItem.getDimensionValues());
+    assertEquals(2, dateItem.getFilters().size());
+  }
+
+  // -------------------------------------------------------------------------
+  // Tracker org unit dimensions
+  // -------------------------------------------------------------------------
+
+  @ParameterizedTest
+  @EnumSource(TrackerOrgUnitDimension.class)
+  void shouldPlanOneQueryPerLevelOfMixedLevelTrackerOrgUnitDimension(
+      TrackerOrgUnitDimension dimension) {
+    EventQueryParams params =
+        trackerOrgUnitParams(dimension, List.of(root, districtA, districtB), List.of());
+    mockQueryPlannerToReturnSameEventParams();
+
+    List<EventQueryParams> queries = eventQueryPlanner.planAggregateQuery(params);
+
+    assertThat(
+        queries.stream().map(dimension::dimensionItems).toList(),
+        containsInAnyOrder(List.of(root), List.of(districtA, districtB)));
+    assertTrue(queries.stream().allMatch(EventQueryParams::isMultipleQueries));
+  }
+
+  @ParameterizedTest
+  @EnumSource(TrackerOrgUnitDimension.class)
+  void shouldPlanOneQueryForSingleLevelTrackerOrgUnitDimension(TrackerOrgUnitDimension dimension) {
+    EventQueryParams params =
+        trackerOrgUnitParams(dimension, List.of(districtA, districtB), List.of());
+    mockQueryPlannerToReturnSameEventParams();
+
+    List<EventQueryParams> queries = eventQueryPlanner.planAggregateQuery(params);
+
+    assertEquals(
+        List.of(List.of(districtA, districtB)),
+        queries.stream().map(dimension::dimensionItems).toList());
+  }
+
+  /** A filter restricts without a group-by column, so its levels are OR-ed in one query. */
+  @ParameterizedTest
+  @EnumSource(TrackerOrgUnitDimension.class)
+  void shouldPlanOneQueryForMixedLevelTrackerOrgUnitFilter(TrackerOrgUnitDimension dimension) {
+    EventQueryParams params =
+        trackerOrgUnitParams(dimension, null, List.of(root, districtA, chiefdom));
+    mockQueryPlannerToReturnSameEventParams();
+
+    List<EventQueryParams> queries = eventQueryPlanner.planAggregateQuery(params);
+
+    assertEquals(
+        List.of(List.of(root, districtA, chiefdom)),
+        queries.stream().map(dimension::filterItems).toList());
+  }
+
+  @Test
+  void shouldPlanOneQueryPerLevelCombinationOfBothTrackerOrgUnitDimensions() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(createBasicEventQueryParams())
+            .withEnrollmentOuDimension(List.of(root, districtA))
+            .withRegistrationOuDimension(List.of(districtB, chiefdom))
+            .build();
+    mockQueryPlannerToReturnSameEventParams();
+
+    List<EventQueryParams> queries = eventQueryPlanner.planAggregateQuery(params);
+
+    assertThat(
+        queries.stream()
+            .map(
+                query ->
+                    List.of(
+                        query.getEnrollmentOuDimensionItems(),
+                        query.getRegistrationOuDimensionItems()))
+            .toList(),
+        containsInAnyOrder(
+            List.of(List.of(root), List.of(districtB)),
+            List.of(List.of(root), List.of(chiefdom)),
+            List.of(List.of(districtA), List.of(districtB)),
+            List.of(List.of(districtA), List.of(chiefdom))));
+  }
+
   // -------------------------------------------------------------------------
   // Helper methods
   // -------------------------------------------------------------------------
+
+  /**
+   * Builds aggregate params with the given tracker org unit dimension and filter items. A null
+   * dimension list leaves the dimension out.
+   */
+  private EventQueryParams trackerOrgUnitParams(
+      TrackerOrgUnitDimension dimension,
+      List<OrganisationUnit> dimensionItems,
+      List<OrganisationUnit> filterItems) {
+    return withTrackerOrgUnits(
+            new EventQueryParams.Builder(createBasicEventQueryParams()),
+            dimension,
+            dimensionItems,
+            filterItems)
+        .build();
+  }
+
+  private QueryItem createStageEventDateItem(ProgramStage stage, String... periods) {
+    QueryItem item =
+        new QueryItem(
+            new BaseDimensionalItemObject("occurreddate"),
+            program,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    item.setProgramStage(stage);
+    for (String period : periods) {
+      item.addDimensionValue(period);
+    }
+    return item;
+  }
+
+  private EventQueryParams createStageDateAggregateParams(
+      ProgramStage stage, QueryItem stageDateItem, AggregationType aggregationType) {
+    return new EventQueryParams.Builder()
+        .withProgram(program)
+        .withProgramStage(stage)
+        .withValue(new Value(dataElementA))
+        .withEndpointItem(EndpointItem.EVENT)
+        .addItem(stageDateItem)
+        .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
+        .withOrganisationUnits(List.of(orgUnitA))
+        .build();
+  }
 
   private EventQueryParams createBasicEventQueryParams() {
     return new EventQueryParams.Builder()

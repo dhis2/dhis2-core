@@ -173,7 +173,8 @@ class OptionServiceTest extends PostgresIntegrationTestBase {
   // OptionGroup
   // -------------------------------------------------------------------------
   @Test
-  void testAddGetOptionGroup() {
+  void testAddGetOptionGroup() throws ConflictException {
+    optionService.saveOptionSet(optionSetA);
     optionGroupA.getMembers().add(option1);
     optionGroupA.getMembers().add(option2);
     optionGroupB.getMembers().add(option3);
@@ -192,7 +193,8 @@ class OptionServiceTest extends PostgresIntegrationTestBase {
   // OptionGroupSet
   // -------------------------------------------------------------------------
   @Test
-  void testAddGetOptionGroupSet() {
+  void testAddGetOptionGroupSet() throws ConflictException {
+    optionService.saveOptionSet(optionSetA);
     optionGroupA.getMembers().add(option1);
     optionGroupA.getMembers().add(option2);
     optionGroupB.getMembers().add(option3);

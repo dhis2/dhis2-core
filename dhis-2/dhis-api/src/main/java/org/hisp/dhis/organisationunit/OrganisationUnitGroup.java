@@ -123,6 +123,7 @@ public class OrganisationUnitGroup extends BaseDimensionalItemObject
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.ORGANISATION_UNIT_GROUP;
   }

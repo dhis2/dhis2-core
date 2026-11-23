@@ -67,4 +67,19 @@ public interface Config extends org.aeonbits.owner.Config {
 
   @Key("analytics.run.export")
   Boolean shouldRunAnalyticsExport();
+
+  @Key("db.url")
+  String databaseUrl();
+
+  @Key("db.username")
+  String databaseUsername();
+
+  @Key("db.password")
+  String databasePassword();
+
+  @Key("db.seed.enabled")
+  Boolean shouldApplySeedScripts();
+
+  @Key("db.seed.timeout.seconds")
+  Integer seedTimeoutSeconds();
 }

@@ -254,7 +254,7 @@ public class DefaultDataEntryFormService implements DataEntryFormService {
                 : "";
 
         if (ValueType.BOOLEAN == valueType) {
-          inputHtml = inputHtml.replaceAll(inputHtml, TAG_CLOSE);
+          inputHtml = TAG_CLOSE;
 
           appendCode += "<label>";
           appendCode +=

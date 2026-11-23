@@ -88,6 +88,12 @@ public class SingleEventPersister
   }
 
   @Override
+  protected Set<String> trackedEntityUidsForAttributeLoad(
+      List<org.hisp.dhis.tracker.imports.domain.SingleEvent> dtos) {
+    return Set.of();
+  }
+
+  @Override
   protected void assignId(SingleEvent entity, long id) {
     entity.setId(id);
   }
@@ -299,6 +305,11 @@ public class SingleEventPersister
 
   @Override
   protected Set<UID> getUpdatedTrackedEntities(SingleEvent entity) {
+    return Set.of();
+  }
+
+  @Override
+  protected Set<UID> getUpdatedSingleEvents(SingleEvent entity) {
     return Set.of();
   }
 

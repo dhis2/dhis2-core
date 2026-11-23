@@ -208,7 +208,7 @@ public class DimensionIdentifierConverter {
     Program program = programStage.getProgram();
 
     return DimensionIdentifier.of(
-        ElementWithOffset.of(program, stageElement.getOffset()),
+        ElementWithOffset.of(program),
         ElementWithOffset.of(programStage, stageElement.getOffset()),
         dimension);
   }

@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.trackedentity.NoValueFilterValidator;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.collection.CollectionUtils;
@@ -55,12 +56,17 @@ public class SqlQueryCreatorService {
    *
    * @param contextParams the {@link ContextParams} to build the SqlQueryCreator from.
    * @return a SqlQueryCreator
+   * @throws org.hisp.dhis.common.IllegalQueryException if a non-option-set dimension is filtered by
+   *     the reserved no-value keyword.
    */
   public SqlQueryCreator getSqlQueryCreator(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    CommonParsedParams parsedParams = contextParams.getCommonParsed();
+
+    NoValueFilterValidator.validate(parsedParams);
+
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(contextParams, sqlParameterManager);
-    CommonParsedParams parsedParams = contextParams.getCommonParsed();
 
     RenderableSqlQuery renderableSqlQuery =
         RenderableSqlQuery.builder().countRequested(false).build();

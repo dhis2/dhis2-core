@@ -102,6 +102,33 @@ public class AnalyticsTablePartition extends Table {
     this.endDate = null;
   }
 
+  /**
+   * Constructor. Sets the name to represent the master table's staging table without a
+   * partition-specific suffix, for engines where a single physical table serves every logical
+   * partition (native/declarative partitioning) - while still carrying the given year and date
+   * range, so callers can determine {@link #isLatestPartition()} and build a correctly-scoped
+   * populate window against a table name that actually exists.
+   *
+   * @param masterTable the master {@link AnalyticsTable} of this partition.
+   * @param year the year which represents this partition.
+   * @param startDate the start date of data for this partition.
+   * @param endDate the end date of data for this partition.
+   */
+  public AnalyticsTablePartition(
+      AnalyticsTable masterTable, Integer year, Date startDate, Date endDate) {
+    super(
+        toStaging(getTableName(masterTable.getMainName(), null)),
+        List.of(),
+        List.of(),
+        List.of(),
+        masterTable.getLogged(),
+        masterTable);
+    this.masterTable = masterTable;
+    this.year = year;
+    this.startDate = startDate;
+    this.endDate = endDate;
+  }
+
   // -------------------------------------------------------------------------
   // Static methods
   // -------------------------------------------------------------------------

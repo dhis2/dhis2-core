@@ -113,8 +113,29 @@ class ProgramItemStageElementTest extends TestBase {
 
     String expectedPlaceholder =
         String.format(
-            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='noboundaries', piUid='%s')",
+            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='noboundaries', piUid='%s', replaceNulls='true')",
             psUid, deUid, programIndicator.getUid());
+
+    when(expressionState.isReplaceNulls()).thenReturn(true);
+
+    Object result = item.getSql(ctx, visitor);
+
+    assertEquals(expectedPlaceholder, result);
+  }
+
+  @Test
+  void getSql_whenNullsAreNotReplaced_thenPlaceholderCarriesTheFlag() {
+    when(expressionState.getStageOffset()).thenReturn(Integer.MIN_VALUE);
+
+    ProgramIndicator programIndicator = createProgramIndicator();
+    when(progParams.getProgramIndicator()).thenReturn(programIndicator);
+
+    String expectedPlaceholder =
+        String.format(
+            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='noboundaries', piUid='%s', replaceNulls='false')",
+            psUid, deUid, programIndicator.getUid());
+
+    when(expressionState.isReplaceNulls()).thenReturn(false);
 
     Object result = item.getSql(ctx, visitor);
 
@@ -129,10 +150,12 @@ class ProgramItemStageElementTest extends TestBase {
 
     String expectedPlaceholder =
         String.format(
-            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='noboundaries', piUid='%s')",
+            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='noboundaries', piUid='%s', replaceNulls='true')",
             psUid, deUid, programIndicator.getUid());
 
     // method under test
+    when(expressionState.isReplaceNulls()).thenReturn(true);
+
     Object result = item.getSql(ctx, visitor);
 
     assertEquals(expectedPlaceholder, result);
@@ -147,10 +170,12 @@ class ProgramItemStageElementTest extends TestBase {
 
     String expectedPlaceholder =
         String.format(
-            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='noboundaries', piUid='%s')",
+            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='noboundaries', piUid='%s', replaceNulls='true')",
             psUid, deUid, offset, programIndicator.getUid());
 
     // method under test
+    when(expressionState.isReplaceNulls()).thenReturn(true);
+
     Object result = item.getSql(ctx, visitor);
 
     assertEquals(expectedPlaceholder, result);
@@ -165,10 +190,12 @@ class ProgramItemStageElementTest extends TestBase {
 
     String expectedPlaceholder =
         String.format(
-            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='noboundaries', piUid='%s')",
+            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='noboundaries', piUid='%s', replaceNulls='true')",
             psUid, deUid, offset, programIndicator.getUid());
 
     // method under test
+    when(expressionState.isReplaceNulls()).thenReturn(true);
+
     Object result = item.getSql(ctx, visitor);
 
     assertEquals(expectedPlaceholder, result);
@@ -202,10 +229,12 @@ class ProgramItemStageElementTest extends TestBase {
 
     String expectedPlaceholder =
         String.format(
-            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='%s', piUid='%s')",
+            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='%s', piUid='%s', replaceNulls='true')",
             psUid, deUid, expectedHash, programIndicator.getUid());
 
     // method under test
+    when(expressionState.isReplaceNulls()).thenReturn(true);
+
     Object result = item.getSql(ctx, visitor);
 
     assertEquals(expectedPlaceholder, result);
@@ -230,10 +259,12 @@ class ProgramItemStageElementTest extends TestBase {
 
     String expectedPlaceholder =
         String.format(
-            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s')",
+            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s', replaceNulls='true')",
             psUid, deUid, offset, expectedHash, programIndicator.getUid());
 
     // method under test
+    when(expressionState.isReplaceNulls()).thenReturn(true);
+
     Object result = item.getSql(ctx, visitor);
 
     assertEquals(expectedPlaceholder, result);
@@ -266,10 +297,12 @@ class ProgramItemStageElementTest extends TestBase {
 
     String expectedPlaceholder =
         String.format(
-            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='%s', piUid='%s')",
+            "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='%s', piUid='%s', replaceNulls='true')",
             psUid, deUid, expectedHash, programIndicator.getUid());
 
     // Act
+    when(expressionState.isReplaceNulls()).thenReturn(true);
+
     Object result = item.getSql(ctx, visitor);
 
     // Assert

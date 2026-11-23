@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -233,6 +234,12 @@ public class ValidationResult implements Comparable<ValidationResult>, Serializa
         .append(this.period.getIsoDate(), other.getPeriod().getIsoDate())
         .append(this.attributeOptionCombo, other.getAttributeOptionCombo())
         .append(this.organisationUnit, other.getOrganisationUnit())
+        // the objects above compare by name, which is not unique; results not yet persisted have
+        // no id, so the unique key decides before the id
+        .append(this.organisationUnit.getId(), other.getOrganisationUnit().getId())
+        .append(this.attributeOptionCombo.getId(), other.getAttributeOptionCombo().getId())
+        .append(this.validationRule.getId(), other.getValidationRule().getId())
+        .append(this.dayInPeriod, other.getDayInPeriod())
         .append(this.id, other.getId())
         .toComparison();
   }
@@ -275,7 +282,7 @@ public class ValidationResult implements Comparable<ValidationResult>, Serializa
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public CategoryOptionCombo getAttributeOptionCombo() {
     return attributeOptionCombo;

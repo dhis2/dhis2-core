@@ -118,6 +118,8 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
     createProgramStage();
     createEvent();
     createNotificationTemplate();
+    // the renderer reads the metadata with SQL, so flush what was built through Hibernate
+    clearSession();
   }
 
   @Test

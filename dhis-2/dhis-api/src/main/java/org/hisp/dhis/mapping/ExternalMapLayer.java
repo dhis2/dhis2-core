@@ -35,7 +35,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -57,6 +60,12 @@ public class ExternalMapLayer extends BaseIdentifiableObject implements Metadata
   private LegendSet legendSet;
 
   private String legendSetUrl;
+
+  private String description;
+
+  private String descriptionUrl;
+
+  private String image;
 
   // -----------------------------------------------------
   // Constructor
@@ -100,6 +109,14 @@ public class ExternalMapLayer extends BaseIdentifiableObject implements Metadata
 
   public void setAttribution(String attribution) {
     this.attribution = attribution;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "attribution", key = "ATTRIBUTION")
+  @Sortable(whenPersisted = false)
+  public String getDisplayAttribution() {
+    return getTranslation("ATTRIBUTION", getAttribution());
   }
 
   @JsonProperty
@@ -150,5 +167,46 @@ public class ExternalMapLayer extends BaseIdentifiableObject implements Metadata
 
   public void setLegendSetUrl(String legendSetUrl) {
     this.legendSetUrl = legendSetUrl;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(max = 1024)
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
+  @Sortable(whenPersisted = false)
+  public String getDisplayDescription() {
+    return getTranslation("DESCRIPTION", getDescription());
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(max = 255)
+  public String getDescriptionUrl() {
+    return descriptionUrl;
+  }
+
+  public void setDescriptionUrl(String descriptionUrl) {
+    this.descriptionUrl = descriptionUrl;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(max = 2097152)
+  public String getImage() {
+    return image;
+  }
+
+  public void setImage(String image) {
+    this.image = image;
   }
 }

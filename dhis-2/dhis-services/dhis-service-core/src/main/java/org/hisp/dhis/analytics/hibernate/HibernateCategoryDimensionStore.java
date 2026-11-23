@@ -79,8 +79,7 @@ public class HibernateCategoryDimensionStore extends HibernateGenericStore<Categ
         set categoryid = :targetCategoryId
         where cd.categoryid in :sourceCategoryIds
         """;
-    return getSession()
-        .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))

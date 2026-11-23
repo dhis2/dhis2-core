@@ -101,9 +101,13 @@ public class EventAttributeQueryBuilder extends SqlQueryBuilderAdaptor {
         .map(Field::asVirtual)
         .forEach(builder::selectField);
 
-    // Headers WITHOUT matching dimension -> scalar subquery fields (non-virtual)
+    // Headers WITHOUT matching dimension -> scalar subquery fields (non-virtual).
+    // A dimension the aggregate query groups by already has its column, chosen from the event the
+    // whole stage scope collapses to. Projecting this builder's own subquery beside it would add a
+    // column that is absent from the GROUP BY, and a differently chosen event at that.
     acceptedHeaders.stream()
         .filter(header -> !dimensionKeys.contains(header.getKey()))
+        .filter(header -> !AggregateQueryBuilder.isGroupedInAggregate(ctx, header))
         .map(this::toSelectField)
         .forEach(builder::selectField);
 
@@ -111,6 +115,7 @@ public class EventAttributeQueryBuilder extends SqlQueryBuilderAdaptor {
     acceptedSortingParams.stream()
         .map(AnalyticsSortingParams::getOrderBy)
         .filter(dimId -> !dimensionKeys.contains(dimId.getKey()))
+        .filter(dimId -> !AggregateQueryBuilder.isGroupedInAggregate(ctx, dimId))
         .filter(
             dimId ->
                 acceptedHeaders.stream()
@@ -121,27 +126,33 @@ public class EventAttributeQueryBuilder extends SqlQueryBuilderAdaptor {
     // Build conditions for dimensions with restrictions
     acceptedDimensions.stream()
         .filter(SqlQueryBuilders::hasRestrictions)
+        .filter(dimension -> !AggregateQueryBuilder.isGroupedInAggregate(ctx, dimension))
         .map(dimId -> GroupableCondition.of(dimId.getGroupId(), buildCondition(dimId, ctx)))
         .forEach(builder::groupableCondition);
 
-    acceptedSortingParams.forEach(
-        sortingParam -> {
-          DimensionIdentifier<DimensionParam> dimId = sortingParam.getOrderBy();
-          String fieldName = dimId.getDimension().getStaticDimension().getColumnName();
-          StaticDimension staticDimension = dimId.getDimension().getStaticDimension();
+    acceptedSortingParams.stream()
+        .filter(
+            sortingParam ->
+                !AggregateQueryBuilder.isGroupedInAggregate(ctx, sortingParam.getOrderBy()))
+        .forEach(
+            sortingParam -> {
+              DimensionIdentifier<DimensionParam> dimId = sortingParam.getOrderBy();
+              String fieldName = dimId.getDimension().getStaticDimension().getColumnName();
+              StaticDimension staticDimension = dimId.getDimension().getStaticDimension();
 
-          Renderable orderSubQuery =
-              (staticDimension == SCHEDULED_DATE || staticDimension == EVENT_STATUS)
-                  ? SqlQueryHelper.buildOrderSubQueryIncludeSchedule(
-                      sortingParam.getOrderBy(), () -> fieldName)
-                  : SqlQueryHelper.buildOrderSubQuery(sortingParam.getOrderBy(), () -> fieldName);
+              Renderable orderSubQuery =
+                  (staticDimension == SCHEDULED_DATE || staticDimension == EVENT_STATUS)
+                      ? SqlQueryHelper.buildOrderSubQueryIncludeSchedule(
+                          sortingParam.getOrderBy(), () -> fieldName)
+                      : SqlQueryHelper.buildOrderSubQuery(
+                          sortingParam.getOrderBy(), () -> fieldName);
 
-          builder.orderClause(
-              IndexedOrder.of(
-                  sortingParam.getIndex(),
-                  org.hisp.dhis.analytics.common.query.Order.of(
-                      orderSubQuery, sortingParam.getSortDirection())));
-        });
+              builder.orderClause(
+                  IndexedOrder.of(
+                      sortingParam.getIndex(),
+                      org.hisp.dhis.analytics.common.query.Order.of(
+                          orderSubQuery, sortingParam.getSortDirection())));
+            });
 
     return builder.build();
   }
