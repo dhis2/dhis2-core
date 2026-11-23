@@ -88,6 +88,7 @@
     <cargo-maven2-plugin.version>1.8.5</cargo-maven2-plugin.version>
 
     <!-- *Dependencies* -->
+    <reactor.bom.version>2025.0.7</reactor.bom.version>
 
     <!-- DHIS2 Rule Engine -->
     <dhis2-rule-engine.version>3.9.0</dhis2-rule-engine.version>
@@ -1338,6 +1339,13 @@
         <groupId>io.netty</groupId>
         <artifactId>netty-bom</artifactId>
         <version>${netty-all.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.projectreactor</groupId>
+        <artifactId>reactor-bom</artifactId>
+        <version>${reactor.bom.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
