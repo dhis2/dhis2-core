@@ -32,12 +32,14 @@ section_order: 6
 summary_sql: >-
   SELECT COUNT(*) as value,
   100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM jobconfiguration
-  WHERE enabled = true AND schedulingtype = 'FIXED_DELAY' AND jobtype <> 'HOUSEKEEPING'), 0) as percent
+  WHERE enabled = true AND schedulingtype = 'FIXED_DELAY' AND jobtype <> 'HOUSEKEEPING'
+  AND (queueposition IS NULL OR queueposition = 0)), 0) as percent
   FROM jobconfiguration
   WHERE enabled = true
   AND schedulingtype = 'FIXED_DELAY'
   AND delay IS NOT NULL
   AND jobtype <> 'HOUSEKEEPING'
+  AND (queueposition IS NULL OR queueposition = 0)
   AND jobstatus <> 'RUNNING'
   AND COALESCE(lastexecuted, created) + delay * interval '1 second' < now() - interval '30 minutes';
 details_sql: >
@@ -63,6 +65,7 @@ details_sql: >
   AND j.schedulingtype = 'FIXED_DELAY'
   AND j.delay IS NOT NULL
   AND j.jobtype <> 'HOUSEKEEPING'
+  AND (j.queueposition IS NULL OR j.queueposition = 0)
   AND j.jobstatus <> 'RUNNING'
   AND COALESCE(j.lastexecuted, j.created) + j.delay * interval '1 second' < now() - interval '30 minutes'
   ORDER BY j.name;
@@ -79,9 +82,12 @@ introduction: >
 recommendation: >
   If the job is stored as DISABLED, use "Run now" in the Scheduler app
   (or POST /api/jobConfigurations/{uid}/execute); after that run it continues on its normal schedule.
-  If it is waiting behind a running job, check whether that job is really still running: if its last alive
-  time is old, for example from before the last server restart, it is not, and it can be reset with
-  POST /api/jobConfigurations/{uid}/revert using the UID of the running job shown. The waiting job then starts
-  on the next scheduler loop.
+  If it is waiting behind a running job, check whether that job is really still running. A job records that
+  it is alive only when it reports progress, so during one long step, such as writing a large analytics
+  table, its last alive time can be old while it still works. Reset it with
+  POST /api/jobConfigurations/{uid}/revert, using the UID of the running job shown, only if it was last
+  alive before the last server restart, or if it is also listed by the check for jobs stuck in running
+  in this section. Resetting a job that still works lets a second run of the same type start next to it.
+  The waiting job then starts on the next scheduler loop.
   Otherwise check the Housekeeping check in this section and the server log for errors from the scheduler loop,
   then use "Run now" on the job, and restart the server if it is still not started.

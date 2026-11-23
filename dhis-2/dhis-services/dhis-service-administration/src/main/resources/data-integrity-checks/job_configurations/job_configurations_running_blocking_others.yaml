@@ -80,8 +80,12 @@ introduction: >
   running at all, but stays marked as running until the stale-job timeout passes (4 hours for analytics
   jobs by default), and all jobs of that type wait until then without any error being shown.
 recommendation: >
-  Compare the last alive time of each job listed with the time of the last server restart. If the job was
-  last alive before the restart, or a long time ago, it is no longer running: reset it with
-  POST /api/jobConfigurations/{uid}/revert, and the waiting jobs start on the next scheduler loop.
+  Compare the last alive time of each job listed with the time of the last server restart. A job records
+  that it is alive only when it reports progress, so during one long step, such as writing a large
+  analytics table, its last alive time can be old while it still works. If the job was last alive before
+  the restart, or it is also listed by the check for jobs stuck in running in this section, it is no
+  longer running: reset it with POST /api/jobConfigurations/{uid}/revert, and the waiting jobs start on
+  the next scheduler loop. Do not reset a job that may still be working: a second run of the same type
+  then starts next to it, and for analytics the new run drops the tables the first run still writes to.
   If it is still alive, let it finish, and do not start the same job again in the meantime: each waiting
   run is carried out in turn once the running job has finished.

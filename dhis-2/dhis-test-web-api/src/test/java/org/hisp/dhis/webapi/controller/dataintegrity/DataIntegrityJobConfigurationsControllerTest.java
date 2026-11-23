@@ -253,7 +253,8 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   void testOneOffJobNeverStarted() {
     String neverStarted =
         job("Old import").type(DATAVALUE_IMPORT).status(NOT_STARTED).created("2 days").insert();
-    job("New import").type(DATAVALUE_IMPORT).enabled(true).created("1 hour").insert();
+    // never started, but too recent to report yet
+    job("New import").type(DATAVALUE_IMPORT).status(NOT_STARTED).created("1 hour").insert();
     // still waiting to start, e.g. behind another import that is marked as running
     job("Waiting import").type(DATAVALUE_IMPORT).enabled(true).created("2 days").insert();
     job("Done import")
@@ -275,7 +276,8 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
 
   @Test
   void testOneOffJobsStartedOrRecent() {
-    job("New import").type(DATAVALUE_IMPORT).enabled(true).created("1 hour").insert();
+    // never started, but too recent to report yet
+    job("New import").type(DATAVALUE_IMPORT).status(NOT_STARTED).created("1 hour").insert();
     job("Done import")
         .type(DATAVALUE_IMPORT)
         .created("2 days")
@@ -364,6 +366,8 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     continuousAnalytics("Recent").lastExecuted("2 minutes").insert();
     continuousAnalytics("Running").status(RUNNING).lastExecuted("2 hours").insert();
     continuousAnalytics("Disabled").enabled(false).status(DISABLED).lastExecuted("2 days").insert();
+    // queue members only start when the queue before them has run
+    continuousAnalytics("Queue member").queue("Nightly", 1).lastExecuted("2 days").insert();
     // covered by job_configurations_housekeeping_not_running
     housekeeping().lastExecuted("2 hours").lastFinished("2 hours").insert();
 
