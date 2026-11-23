@@ -109,3 +109,5 @@ checks:
   - job_configurations/job_configurations_stuck_running.yaml
   - job_configurations/job_configurations_never_started.yaml
   - job_configurations/job_configurations_recurring_marked_once.yaml
+  - job_configurations/job_configurations_delay_overdue.yaml
+  - job_configurations/job_configurations_running_blocking_others.yaml

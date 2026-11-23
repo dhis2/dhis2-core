@@ -34,6 +34,7 @@ import static org.hisp.dhis.scheduling.JobStatus.NOT_STARTED;
 import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
+import static org.hisp.dhis.scheduling.JobType.CONTINUOUS_ANALYTICS_TABLE;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.HOUSEKEEPING;
 import static org.hisp.dhis.scheduling.SchedulingType.CRON;
@@ -67,6 +68,9 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
   private static final String STUCK_RUNNING = "job_configurations_stuck_running";
   private static final String NEVER_STARTED = "job_configurations_never_started";
   private static final String RECURRING_MARKED_ONCE = "job_configurations_recurring_marked_once";
+  private static final String DELAY_OVERDUE = "job_configurations_delay_overdue";
+  private static final String RUNNING_BLOCKING_OTHERS =
+      "job_configurations_running_blocking_others";
 
   private static final String DAILY = "0 0 2 ? * *";
 
@@ -306,9 +310,138 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, RECURRING_MARKED_ONCE, true);
   }
 
+  // -------------------------------------------------------------------------
+  // job_configurations_delay_overdue
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testDelayJobOverdue() {
+    String overdue = continuousAnalytics("Continuous").lastExecuted("2 hours").insert();
+    continuousAnalytics("Healthy").lastExecuted("2 minutes").insert();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE,
+        DELAY_OVERDUE,
+        50,
+        overdue,
+        "Continuous",
+        "not started by the scheduler",
+        true);
+  }
+
+  @Test
+  void testDelayJobOverdueStoredAsDisabled() {
+    String overdue =
+        continuousAnalytics("Continuous").status(DISABLED).lastExecuted("2 hours").insert();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE, DELAY_OVERDUE, 100, overdue, "Continuous", "stored as DISABLED", true);
+  }
+
+  @Test
+  void testDelayJobOverdueBehindRunningJob() {
+    String overdue = continuousAnalytics("Continuous").lastExecuted("2 hours").insert();
+    String blocker =
+        job("Dead run")
+            .type(CONTINUOUS_ANALYTICS_TABLE)
+            .status(RUNNING)
+            .lastExecuted("3 hours")
+            .lastAlive("3 hours")
+            .insert();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE,
+        DELAY_OVERDUE,
+        100,
+        overdue,
+        "Continuous",
+        "waiting behind running job Dead run (" + blocker + ")",
+        true);
+  }
+
+  @Test
+  void testDelayJobsNotOverdue() {
+    continuousAnalytics("Recent").lastExecuted("2 minutes").insert();
+    continuousAnalytics("Running").status(RUNNING).lastExecuted("2 hours").insert();
+    continuousAnalytics("Disabled").enabled(false).status(DISABLED).lastExecuted("2 days").insert();
+    // covered by job_configurations_housekeeping_not_running
+    housekeeping().lastExecuted("2 hours").lastFinished("2 hours").insert();
+
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, DELAY_OVERDUE, true);
+  }
+
+  // -------------------------------------------------------------------------
+  // job_configurations_running_blocking_others
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testRunningJobBlockingOneOffJobs() {
+    // DHIS2-22569: the server restarted during an analytics run, users kept starting new runs
+    String blocker =
+        job("Dead analytics").status(RUNNING).lastExecuted("2 hours").lastAlive("2 hours").insert();
+    job("Queued 1").enabled(true).created("1 hour").insert();
+    job("Queued 2").enabled(true).created("30 minutes").insert();
+    // "Run now" on a recurring analytics job
+    job("Nightly").cron(DAILY).scheduling(ONCE_ASAP).enabled(true).lastExecuted("1 day").insert();
+    // just started, not waiting long yet
+    job("Queued 3").enabled(true).created("1 minute").insert();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE,
+        RUNNING_BLOCKING_OTHERS,
+        null,
+        blocker,
+        "Dead analytics",
+        "jobs waiting: 3",
+        false);
+  }
+
+  @Test
+  void testRunningJobBlockingDelayJob() {
+    String blocker =
+        job("Long continuous run")
+            .type(CONTINUOUS_ANALYTICS_TABLE)
+            .status(RUNNING)
+            .lastExecuted("1 hour")
+            .lastAlive("1 minute")
+            .insert();
+    continuousAnalytics("Continuous").lastExecuted("1 hour").insert();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE,
+        RUNNING_BLOCKING_OTHERS,
+        null,
+        blocker,
+        "Long continuous run",
+        "jobs waiting: 1",
+        false);
+  }
+
+  @Test
+  void testRunningJobsNotBlockingOthers() {
+    // nothing waiting
+    job("Analytics").status(RUNNING).lastExecuted("2 hours").lastAlive("1 minute").insert();
+    // waiting jobs of another type, recently created, disabled or in a queue
+    job("Import").type(DATAVALUE_IMPORT).enabled(true).created("1 hour").insert();
+    job("New").enabled(true).created("1 minute").insert();
+    job("Disabled").cron(DAILY).enabled(false).status(DISABLED).insert();
+    job("Queued").scheduling(ONCE_ASAP).queue("Nightly", 1).enabled(true).insert();
+    // a run that only just started holds nothing up for long yet
+    job("Fresh import").type(DATAVALUE_IMPORT).status(RUNNING).lastExecuted("1 minute").insert();
+
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, RUNNING_BLOCKING_OTHERS, false);
+  }
+
   @ParameterizedTest
   @ValueSource(
-      strings = {ENABLED_NOT_SCHEDULED, STUCK_RUNNING, NEVER_STARTED, RECURRING_MARKED_ONCE})
+      strings = {
+        ENABLED_NOT_SCHEDULED,
+        STUCK_RUNNING,
+        NEVER_STARTED,
+        RECURRING_MARKED_ONCE,
+        DELAY_OVERDUE,
+        RUNNING_BLOCKING_OTHERS
+      })
   void testNoJobs(String check) {
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, check, false);
   }
@@ -319,6 +452,11 @@ class DataIntegrityJobConfigurationsControllerTest extends AbstractDataIntegrity
 
   private JobRow job(String name) {
     return new JobRow(name);
+  }
+
+  /** An enabled Continuous Analytics job that runs 5 minutes after its last start. */
+  private JobRow continuousAnalytics(String name) {
+    return job(name).type(CONTINUOUS_ANALYTICS_TABLE).delay(300).enabled(true);
   }
 
   /** The default Housekeeping job, as defined by {@link JobType#HOUSEKEEPING}: enabled. */

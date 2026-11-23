@@ -1,0 +1,87 @@
+# Copyright (c) 2004-2026, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: job_configurations_running_blocking_others
+description: Running jobs that other jobs of the same type have been waiting behind for more than 10 minutes
+section: Job scheduler
+section_order: 7
+summary_sql: >-
+  SELECT COUNT(*) as value
+  FROM jobconfiguration r
+  WHERE r.jobstatus = 'RUNNING'
+  AND COALESCE(r.lastexecuted, r.created) < now() - interval '10 minutes'
+  AND EXISTS (
+  SELECT 1 FROM jobconfiguration w
+  WHERE w.jobtype = r.jobtype
+  AND w.jobconfigurationid <> r.jobconfigurationid
+  AND w.enabled = true
+  AND w.jobstatus = 'SCHEDULED'
+  AND w.queueposition IS NULL
+  AND ((w.schedulingtype = 'ONCE_ASAP' AND w.cronexpression IS NULL AND w.delay IS NULL
+  AND w.created < now() - interval '10 minutes')
+  OR (w.schedulingtype = 'ONCE_ASAP' AND (w.cronexpression IS NOT NULL OR w.delay IS NOT NULL))
+  OR (w.schedulingtype = 'FIXED_DELAY' AND w.delay IS NOT NULL
+  AND COALESCE(w.lastexecuted, w.created) + w.delay * interval '1 second' < now() - interval '10 minutes')));
+details_sql: >
+  SELECT r.uid,
+  r.name,
+  concat(r.jobtype, ', started ', COALESCE(to_char(r.lastexecuted, 'YYYY-MM-DD HH24:MI'), 'unknown'),
+  ', last alive ', COALESCE(to_char(r.lastalive, 'YYYY-MM-DD HH24:MI'), 'never'),
+  ', jobs waiting: ', w.waiting) as comment
+  FROM jobconfiguration r
+  JOIN LATERAL (
+  SELECT COUNT(*) AS waiting FROM jobconfiguration w
+  WHERE w.jobtype = r.jobtype
+  AND w.jobconfigurationid <> r.jobconfigurationid
+  AND w.enabled = true
+  AND w.jobstatus = 'SCHEDULED'
+  AND w.queueposition IS NULL
+  AND ((w.schedulingtype = 'ONCE_ASAP' AND w.cronexpression IS NULL AND w.delay IS NULL
+  AND w.created < now() - interval '10 minutes')
+  OR (w.schedulingtype = 'ONCE_ASAP' AND (w.cronexpression IS NOT NULL OR w.delay IS NOT NULL))
+  OR (w.schedulingtype = 'FIXED_DELAY' AND w.delay IS NOT NULL
+  AND COALESCE(w.lastexecuted, w.created) + w.delay * interval '1 second' < now() - interval '10 minutes'))
+  ) w ON w.waiting > 0
+  WHERE r.jobstatus = 'RUNNING'
+  AND COALESCE(r.lastexecuted, r.created) < now() - interval '10 minutes'
+  ORDER BY r.lastexecuted;
+details_id_type: jobConfigurations
+severity: WARNING
+introduction: >
+  Only one job of each type runs at a time. While a job is marked as running, every other job of the same
+  type that is due, for example an analytics run started from the Data Administration app or with
+  "Run now", waits until it has finished. These running jobs have been holding up other jobs of their type
+  for more than 10 minutes. If the running job is still working, this is expected, but each extra run that is
+  started only joins the line. If the server was restarted while the job was running, the job is no longer
+  running at all, but stays marked as running until the stale-job timeout passes (4 hours for analytics
+  jobs by default), and all jobs of that type wait until then without any error being shown.
+recommendation: >
+  Compare the last alive time of each job listed with the time of the last server restart. If the job was
+  last alive before the restart, or a long time ago, it is no longer running: reset it with
+  POST /api/jobConfigurations/{uid}/revert, and the waiting jobs start on the next scheduler loop.
+  If it is still alive, let it finish, and do not start the same job again in the meantime: each waiting
+  run is carried out in turn once the running job has finished.
