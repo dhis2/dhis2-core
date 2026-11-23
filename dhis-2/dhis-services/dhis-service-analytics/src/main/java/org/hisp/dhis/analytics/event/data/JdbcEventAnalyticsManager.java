@@ -547,7 +547,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                 + orgUnitCol
                 + OPEN_IN
                 + sqlBuilder.singleQuotedCommaDelimited(
-                    getUids(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)))
+                    getUids(params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID)))
                 + ") ";
       } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
         String orgUnitCol = orgUnitField.getOrgUnitWhereCol(getAnalyticsType());
@@ -564,7 +564,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       {
         String sqlSnippet =
             getOrgUnitDescendantsClause(
-                orgUnitField, params.getDimensionOrFilterItems(ORGUNIT_DIM_ID));
+                orgUnitField, params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID));
 
         if (isNotEmpty(sqlSnippet)) {
           sql += hlp.whereAnd() + " " + sqlSnippet;
@@ -878,7 +878,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     // Get org unit UIDs from ORGUNIT_DIM_ID
     Set<String> regularOuUids =
-        params.getDimensionOrFilterItems(ORGUNIT_DIM_ID).stream()
+        params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID).stream()
             .map(DimensionalItemObject::getUid)
             .collect(Collectors.toSet());
 

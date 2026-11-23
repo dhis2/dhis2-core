@@ -277,6 +277,17 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyOrgUnitFilterPerLevelKeepsEveryLevel() {
+    subject.getEnrollments(
+        createRequestParamsWithOrgUnitFilterPerLevel(null), new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(sql.getValue(), containsString("uidlevel1\" in ('ouabcdefghA')"));
+    assertThat(sql.getValue(), containsString("uidlevel2\" in ('ouabcdefghB')"));
+  }
+
+  @Test
   void verifyNoRegistrationOuArtefactsWhenUnused() {
     subject.getEnrollments(createRequestParams(), new ListGrid(), 10000);
 

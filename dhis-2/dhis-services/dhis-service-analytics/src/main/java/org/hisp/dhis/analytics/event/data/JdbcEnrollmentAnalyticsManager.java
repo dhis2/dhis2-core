@@ -424,7 +424,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           hlp.whereAnd()
               + " ou in ("
               + getQuotedCommaDelimitedString(
-                  getUids(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)))
+                  getUids(params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID)))
               + ") ";
     } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
       sql +=
@@ -565,7 +565,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * @return the SQL statement.
    */
   String getDescendantsCondition(EventQueryParams params, SqlHelper hlp) {
-    List<DimensionalItemObject> orgUnitItems = params.getDimensionOrFilterItems(ORGUNIT_DIM_ID);
+    List<DimensionalItemObject> orgUnitItems = params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID);
     Map<Integer, Set<String>> levelsOus = new HashMap<>();
     String condition = "";
     String orClause = "";

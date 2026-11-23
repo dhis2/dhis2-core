@@ -895,6 +895,25 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyGetAggregatedEventQueryWithOrgUnitFilterPerLevelKeepsEveryLevel() {
+    mockEmptyRowSet();
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    subject.getAggregatedEventData(
+        createRequestParamsWithOrgUnitFilterPerLevel(programStage), createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "and (ax.\"uidlevel1\" in ('ouabcdefghA')  or ax.\"uidlevel2\" in ('ouabcdefghB') ) and ax.\"ps\" = '"
+                + programStage.getUid()
+                + "'"));
+  }
+
+  @Test
   void verifyExperimentalAggregatedEventQueryIncludesStageDateFilters() {
     mockEmptyRowSet();
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
