@@ -796,7 +796,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     return EMPTY;
   }
 
-  /** Generates a sub query which provides a filter by organisation descendant level. */
+  /**
+   * Generates a sub query which provides a filter by organisation descendant level. Conditions for
+   * several levels are wrapped in parentheses, so the other {@code and} conditions of the where
+   * clause apply to every level.
+   */
   private String getOrgUnitDescendantsClause(
       OrgUnitField orgUnitField, List<DimensionalItemObject> dimensionOrFilterItems) {
     Map<String, List<OrganisationUnit>> orgUnitsMap =
@@ -809,7 +813,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                             .withSqlBuilder(sqlBuilder)
                             .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())));
 
-    return getOuInCondition(orgUnitsMap);
+    String ouInCondition = getOuInCondition(orgUnitsMap);
+
+    return orgUnitsMap.size() > 1 ? "(" + ouInCondition + ") " : ouInCondition;
   }
 
   /**
