@@ -33,7 +33,9 @@ import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -314,6 +316,21 @@ public class HibernateOrganisationUnitStore
     Integer maxLength = getSingleResult(query);
 
     return maxLength != null ? maxLength : 0;
+  }
+
+  @Override
+  public Set<String> getParentUidsOfUnitsWithGeometry(Collection<Integer> childLevels) {
+    if (childLevels.isEmpty()) {
+      return Set.of();
+    }
+
+    String hql =
+        """
+        select distinct p.uid from OrganisationUnit ou join ou.parent p \
+        where ou.hierarchyLevel in :levels and ou.geometry is not null""";
+
+    return new HashSet<>(
+        getSession().createQuery(hql, String.class).setParameterList("levels", childLevels).list());
   }
 
   @Override

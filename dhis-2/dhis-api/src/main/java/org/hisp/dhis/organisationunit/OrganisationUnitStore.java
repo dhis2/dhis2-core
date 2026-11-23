@@ -32,6 +32,7 @@ package org.hisp.dhis.organisationunit;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
@@ -155,6 +156,16 @@ public interface OrganisationUnitStore
    * @return number of levels, 0 if no organisation units are present.
    */
   int getMaxLevel();
+
+  /**
+   * Returns the UIDs of the parents of organisation units at the given hierarchy levels that have a
+   * geometry. In other words, the UIDs of all organisation units at level {@code n - 1} which have
+   * at least one child with a geometry, for each level {@code n} in {@code childLevels}.
+   *
+   * @param childLevels the hierarchy levels of the children to inspect.
+   * @return a set of parent UIDs, empty if {@code childLevels} is empty.
+   */
+  Set<String> getParentUidsOfUnitsWithGeometry(Collection<Integer> childLevels);
 
   /**
    * Sets the geometry field for org units to null.

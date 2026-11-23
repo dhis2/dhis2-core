@@ -29,20 +29,115 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.config.QueryCountDataSourceProxy.clearCapturedSql;
+import static org.hisp.dhis.test.config.QueryCountDataSourceProxy.countCapturedSqlMatching;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManager;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.test.config.QueryCountDataSourceProxy;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author viet@dhis2.org
  */
 @Transactional
+@ContextConfiguration(classes = {QueryCountDataSourceProxy.class})
 class GeoFeatureControllerTest extends PostgresControllerIntegrationTestBase {
+  @Autowired private DbmsManager dbmsManager;
+
+  @Autowired private EntityManager entityManager;
+
+  /**
+   * Hierarchy (G = has geometry):
+   *
+   * <pre>
+   * A (G)
+   * ├── B  (G) ── C  (G)
+   * ├── B2 (G)              no children
+   * └── B3     ── C3 (G)    B3 itself has no geometry
+   * </pre>
+   */
+  @Language("json")
+  private static final String HIERARCHY =
+      """
+      {"organisationUnits":[
+        {"id":"ouAAAAAAAAA","name":"A","shortName":"A","openingDate":"2020-01-01",
+          "geometry":{"type":"Point","coordinates":[1.0,1.0]}},
+        {"id":"ouBBBBBBBBB","name":"B","shortName":"B","openingDate":"2020-01-01",
+          "parent":{"id":"ouAAAAAAAAA"},"geometry":{"type":"Point","coordinates":[2.0,2.0]}},
+        {"id":"ouBBBBBBBB2","name":"B2","shortName":"B2","openingDate":"2020-01-01",
+          "parent":{"id":"ouAAAAAAAAA"},"geometry":{"type":"Point","coordinates":[2.5,2.5]}},
+        {"id":"ouBBBBBBBB3","name":"B3","shortName":"B3","openingDate":"2020-01-01",
+          "parent":{"id":"ouAAAAAAAAA"}},
+        {"id":"ouCCCCCCCCC","name":"C","shortName":"C","openingDate":"2020-01-01",
+          "parent":{"id":"ouBBBBBBBBB"},"geometry":{"type":"Point","coordinates":[3.0,3.0]}},
+        {"id":"ouCCCCCCCC3","name":"C3","shortName":"C3","openingDate":"2020-01-01",
+          "parent":{"id":"ouBBBBBBBB3"},"geometry":{"type":"Point","coordinates":[3.5,3.5]}}
+      ]}""";
+
+  @Test
+  void testHasCoordinatesDownAndUpPerLevel() {
+    POST("/metadata", HIERARCHY).content(HttpStatus.OK);
+
+    Map<String, JsonObject> level1 = getFeaturesById("ou:LEVEL-1");
+    assertEquals(1, level1.size());
+    assertTrue(level1.get("ouAAAAAAAAA").getBoolean("hcd").booleanValue());
+    assertFalse(level1.get("ouAAAAAAAAA").getBoolean("hcu").booleanValue());
+
+    // B3 has no geometry so is not a feature
+    Map<String, JsonObject> level2 = getFeaturesById("ou:LEVEL-2");
+    assertEquals(2, level2.size());
+    assertTrue(level2.get("ouBBBBBBBBB").getBoolean("hcd").booleanValue());
+    assertFalse(level2.get("ouBBBBBBBB2").getBoolean("hcd").booleanValue());
+    assertFalse(level2.get("ouBBBBBBBBB").getBoolean("hcu").booleanValue());
+
+    // deepest level: no children; grandparent A has a child with geometry (B)
+    Map<String, JsonObject> level3 = getFeaturesById("ou:LEVEL-3");
+    assertEquals(2, level3.size());
+    for (String uid : new String[] {"ouCCCCCCCCC", "ouCCCCCCCC3"}) {
+      assertFalse(level3.get(uid).getBoolean("hcd").booleanValue());
+      assertTrue(level3.get(uid).getBoolean("hcu").booleanValue());
+      assertEquals(3, level3.get(uid).getNumber("le").intValue());
+    }
+    assertEquals("ouBBBBBBBBB", level3.get("ouCCCCCCCCC").getString("pi").string());
+    assertEquals("B3", level3.get("ouCCCCCCCC3").getString("pn").string());
+  }
+
+  /** Resolving hcd/hcu must not lazily load each org unit's children, one query per unit. */
+  @Test
+  void testNoPerUnitChildrenQueries() {
+    POST("/metadata", HIERARCHY).content(HttpStatus.OK);
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
+    entityManager.getEntityManagerFactory().getCache().evictAll();
+
+    for (String level : new String[] {"ou:LEVEL-1", "ou:LEVEL-2", "ou:LEVEL-3"}) {
+      clearCapturedSql();
+      assertFalse(getFeaturesById(level).isEmpty());
+      assertEquals(0, countCapturedSqlMatching("children0_.parentid=?"), level);
+    }
+  }
+
+  private Map<String, JsonObject> getFeaturesById(String ou) {
+    JsonArray features = GET("/geoFeatures?ou=" + ou).content(HttpStatus.OK);
+    return features.asList(JsonObject.class).stream()
+        .collect(Collectors.toMap(f -> f.getString("id").string(), Function.identity()));
+  }
+
   @Test
   void testGetWithCoordinateField() {
     @Language("json")

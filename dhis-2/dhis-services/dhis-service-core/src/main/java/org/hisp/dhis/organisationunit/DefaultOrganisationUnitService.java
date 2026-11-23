@@ -348,6 +348,12 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   @Transactional(readOnly = true)
+  public Set<String> getParentUidsOfUnitsWithGeometry(Collection<Integer> childLevels) {
+    return organisationUnitStore.getParentUidsOfUnitsWithGeometry(childLevels);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<OrganisationUnit> getOrganisationUnitsWithoutGroups() {
     return organisationUnitStore.getOrganisationUnitsWithoutGroups();
   }

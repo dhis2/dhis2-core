@@ -36,6 +36,7 @@ import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_GROUP_DIM_ID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Builder;
@@ -82,6 +84,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -110,6 +113,11 @@ public class GeoFeatureService {
   private final UserService userService;
 
   private final AttributeService attributeService;
+
+  private final OrganisationUnitService organisationUnitService;
+
+  /** Max number of ids per query when prefetching parent organisation units. */
+  private static final int PARENT_PREFETCH_BATCH_SIZE = 10_000;
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -207,18 +215,23 @@ public class GeoFeatureService {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
 
+    List<OrganisationUnit> orgUnits =
+        useOrgUnitGroup ? List.of() : DimensionalObjectUtils.asTypedList(dimensionalItemObjects);
+    Set<String> parentsWithGeometryChildren = getParentUidsWithGeometryChildren(orgUnits);
+    prefetchParents(orgUnits);
+
     for (DimensionalItemObject unit : dimensionalItemObjects) {
       GeoFeature feature = new GeoFeature();
 
-      CoordinateObject coordinateObject = (CoordinateObject) unit;
-
       feature.setId(unit.getUid());
       feature.setCode(unit.getCode());
-      feature.setHcd(coordinateObject.hasDescendantsWithCoordinates());
 
-      if (!useOrgUnitGroup) {
+      if (useOrgUnitGroup) {
+        feature.setHcd(((CoordinateObject) unit).hasDescendantsWithCoordinates());
+      } else {
         OrganisationUnit castUnit = (OrganisationUnit) unit;
-        feature.setHcu(castUnit.hasCoordinatesUp());
+        feature.setHcd(parentsWithGeometryChildren.contains(castUnit.getUid()));
+        feature.setHcu(hasCoordinatesUp(castUnit, parentsWithGeometryChildren));
         feature.setLe(castUnit.getLevel());
         feature.setPg(castUnit.getParentGraph(roots));
         feature.setPi(castUnit.getParent() != null ? castUnit.getParent().getUid() : null);
@@ -244,6 +257,74 @@ public class GeoFeatureService {
     features.sort(Comparator.comparing(GeoFeature::getTy));
 
     return features;
+  }
+
+  /**
+   * Resolves, in at most one query, which organisation units have a child with a geometry. Covers
+   * both flags of every feature: {@code hcd} (the unit itself) and {@code hcu} (the unit's
+   * grandparent). Calling {@link OrganisationUnit#hasDescendantsWithCoordinates()} per unit instead
+   * lazily loads every unit's children, one query each.
+   *
+   * <p>Only the child levels needed are inspected: {@code n + 1} for units at level {@code n} and
+   * {@code n - 1} for their grandparents. Child levels deeper than the hierarchy are skipped, so a
+   * request for the deepest level does not look for children at all.
+   *
+   * @param orgUnits the organisation units of the features.
+   * @return the UIDs of the units (among those units and their grandparents) that have a child with
+   *     a geometry.
+   */
+  private Set<String> getParentUidsWithGeometryChildren(List<OrganisationUnit> orgUnits) {
+    if (orgUnits.isEmpty()) {
+      return Set.of();
+    }
+
+    Set<Integer> unitLevels =
+        orgUnits.stream().map(OrganisationUnit::getHierarchyLevel).collect(Collectors.toSet());
+    int maxLevel = organisationUnitService.getNumberOfOrganisationalLevels();
+
+    Set<Integer> childLevels = new HashSet<>();
+
+    for (int level : unitLevels) {
+      if (level + 1 <= maxLevel) {
+        childLevels.add(level + 1); // children of the unit, for hcd
+      }
+
+      if (level >= 3) {
+        childLevels.add(level - 1); // children of the unit's grandparent, for hcu
+      }
+    }
+
+    return organisationUnitService.getParentUidsOfUnitsWithGeometry(childLevels);
+  }
+
+  /**
+   * Same as {@link OrganisationUnit#hasCoordinatesUp()}, but answered from the precomputed set of
+   * units with geometry children, with the grandparent taken from the unit's path.
+   */
+  private static boolean hasCoordinatesUp(OrganisationUnit unit, Set<String> parentsWithChildren) {
+    // Path is "/root/.../grandparent/parent/unit"
+    String[] ancestors = unit.getPath().substring(1).split("/");
+
+    return ancestors.length >= 3 && parentsWithChildren.contains(ancestors[ancestors.length - 3]);
+  }
+
+  /**
+   * Loads the parents of the given units in bulk, so that reading each feature's parent ({@code
+   * pi}, {@code pn}) is served from the cache rather than one query per distinct parent. Reading
+   * the id of a lazy parent proxy does not initialize it.
+   */
+  private void prefetchParents(List<OrganisationUnit> orgUnits) {
+    List<Long> parentIds =
+        orgUnits.stream()
+            .map(OrganisationUnit::getParent)
+            .filter(Objects::nonNull)
+            .map(OrganisationUnit::getId)
+            .distinct()
+            .toList();
+
+    for (List<Long> batch : Lists.partition(parentIds, PARENT_PREFETCH_BATCH_SIZE)) {
+      organisationUnitService.getOrganisationUnits(batch);
+    }
   }
 
   /**

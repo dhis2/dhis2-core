@@ -48,6 +48,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -70,6 +71,7 @@ class GeoFeatureServiceMockTest {
 
   @Mock private UserService userService;
   @Mock private AttributeService attributeService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
   private static final String POINT =
       "{"
