@@ -283,6 +283,34 @@ warn_if_cpu_clock_not_fixed() {
   fi
 }
 
+################################################################################
+# RESOURCES
+################################################################################
+# What each part used and waited for during a Gatling run, see scripts/resources.sh. The counters
+# are read right before and right after mvn gatling:test, so nothing runs during the measurement.
+
+report_resources() {
+  # <run directory> <warmup number>: prints the run's resources, and on a measured run warns about
+  # each wait
+  local dir="$1"
+  local warmup_num="$2"
+  [ -f "$dir/resources.env" ] || return 0
+  echo ""
+  scripts/resources.sh table "$dir"
+  [ "$warmup_num" -eq 0 ] || return 0
+  local warning
+  scripts/resources.sh warnings "$dir" | while IFS= read -r warning; do
+    case $warning in
+      *" waited for "*) warning+=": timings may include waiting" ;;
+    esac
+    if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+      echo "::warning::${REPORT_SUFFIX:+$REPORT_SUFFIX: }$warning"
+    else
+      echo "Warning: $warning"
+    fi
+  done
+}
+
 pull_mutable_image() {
   # Pull images with mutable tags to ensure we get the latest version. See
   # https://github.com/dhis2/dhis2-core/blob/master/docker/DOCKERHUB.md for tag types. Mutable tags
@@ -857,6 +885,7 @@ generate_metadata() {
     fi
     echo "HOST_CPU_GOVERNOR=$(cpu_governor)"
     echo "HOST_CPU_NO_TURBO=$(cpu_no_turbo)"
+    echo "HOST_KERNEL=$(uname -r)"
   } > "$simulation_run_file"
 
   echo "done"
@@ -884,6 +913,7 @@ print_output_summary() {
   [ -f "$dir/profile.html" ]   && files+=("profile.html|Profiler flamegraph")
   [ -f "$dir/dhis.log" ]       && files+=("dhis.log|DHIS2 application log")
   [ -f "$dir/pgbadger.html" ]  && files+=("pgbadger.html|SQL analysis")
+  [ -f "$dir/resources.env" ]  && files+=("resources.env|Resources used")
 
   if [ ${#files[@]} -gt 0 ]; then
     for entry in "${files[@]}"; do
@@ -922,6 +952,11 @@ run_simulation() {
   enable_sql_logs "$warmup_num"
   start_profiler
 
+  # Read the counters right around mvn, after the profiler starts and before it stops, so they
+  # measure the Gatling run only
+  local resources_before resources_after
+  resources_before=$(scripts/resources.sh snapshot) || echo "Warning: Failed to read resources"
+
   echo "Running $SIMULATION_CLASS..."
   # Allow Maven to fail (e.g., assertion failures) but continue to post-process results
   set +e
@@ -934,6 +969,7 @@ run_simulation() {
   local mvn_exit_code=$?
   set -e
 
+  resources_after=$(scripts/resources.sh snapshot) || echo "Warning: Failed to read resources"
   stop_profiler
 
   # Find the gatling report directory
@@ -977,6 +1013,9 @@ run_simulation() {
     post_process_profiler_data "$gatling_run_dir" || echo "Warning: Failed to post-process profiler data"
     post_process_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to post-process SQL logs"
     generate_metadata "$gatling_run_dir" || echo "Warning: Failed to generate metadata"
+    scripts/resources.sh diff <(echo "$resources_before") <(echo "$resources_after") \
+      > "$gatling_run_dir/resources.env" || echo "Warning: Failed to write resources"
+    report_resources "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to report resources"
 
     # Track non-warmup run directory for output summary (shown after post-processing)
     if [ "$warmup_num" -eq 0 ]; then

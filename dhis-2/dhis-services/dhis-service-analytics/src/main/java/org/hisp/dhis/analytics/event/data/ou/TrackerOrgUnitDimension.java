@@ -29,8 +29,11 @@
  */
 package org.hisp.dhis.analytics.event.data.ou;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.Getter;
@@ -53,7 +56,8 @@ public enum TrackerOrgUnitDimension {
       ColumnHeader.ENROLLMENT_OU_NAME,
       EventQueryParams::getEnrollmentOuDimensionItems,
       EventQueryParams::getEnrollmentOuFilterItems,
-      EventQueryParams::hasEnrollmentOuDimension),
+      EventQueryParams::hasEnrollmentOuDimension,
+      EventQueryParams.Builder::withEnrollmentOuDimension),
   REGISTRATION_OU(
       "REGISTRATION_OU",
       EventAnalyticsColumnName.REGISTRATION_OU_COLUMN_NAME,
@@ -62,7 +66,8 @@ public enum TrackerOrgUnitDimension {
       ColumnHeader.REGISTRATION_OU_NAME,
       EventQueryParams::getRegistrationOuDimensionItems,
       EventQueryParams::getRegistrationOuFilterItems,
-      EventQueryParams::hasRegistrationOuDimension);
+      EventQueryParams::hasRegistrationOuDimension,
+      EventQueryParams.Builder::withRegistrationOuDimension);
 
   @Getter
   /* The dimension keyword as written in the request. */
@@ -94,6 +99,10 @@ public enum TrackerOrgUnitDimension {
 
   private final Predicate<EventQueryParams> dimensionRequested;
 
+  private final BiFunction<
+          EventQueryParams.Builder, List<OrganisationUnit>, EventQueryParams.Builder>
+      dimensionItemsSetter;
+
   TrackerOrgUnitDimension(
       String dimensionName,
       String analyticsColumn,
@@ -102,7 +111,9 @@ public enum TrackerOrgUnitDimension {
       ColumnHeader nameHeader,
       Function<EventQueryParams, List<OrganisationUnit>> dimensionItems,
       Function<EventQueryParams, List<OrganisationUnit>> filterItems,
-      Predicate<EventQueryParams> dimensionRequested) {
+      Predicate<EventQueryParams> dimensionRequested,
+      BiFunction<EventQueryParams.Builder, List<OrganisationUnit>, EventQueryParams.Builder>
+          dimensionItemsSetter) {
     this.dimensionName = dimensionName;
     this.analyticsColumn = analyticsColumn;
     this.structAlias = structAlias;
@@ -111,6 +122,17 @@ public enum TrackerOrgUnitDimension {
     this.dimensionItems = dimensionItems;
     this.filterItems = filterItems;
     this.dimensionRequested = dimensionRequested;
+    this.dimensionItemsSetter = dimensionItemsSetter;
+  }
+
+  /**
+   * Returns the dimension whose output column holding the org unit UID has the given name, such as
+   * {@code enrollmentou}.
+   */
+  public static Optional<TrackerOrgUnitDimension> fromUidHeader(String headerName) {
+    return Arrays.stream(values())
+        .filter(dimension -> dimension.uidHeader.getItem().equals(headerName))
+        .findFirst();
   }
 
   /** The output columns of the query endpoint, holding the org unit UID and name. */
@@ -121,6 +143,12 @@ public enum TrackerOrgUnitDimension {
   /** The org units requested as a dimension, carrying their hierarchy level. */
   public List<OrganisationUnit> dimensionItems(EventQueryParams params) {
     return dimensionItems.apply(params);
+  }
+
+  /** Sets the org units requested as a dimension on the given builder. */
+  public EventQueryParams.Builder withDimensionItems(
+      EventQueryParams.Builder builder, List<OrganisationUnit> items) {
+    return dimensionItemsSetter.apply(builder, items);
   }
 
   /** The org units requested as a filter, carrying their hierarchy level. */

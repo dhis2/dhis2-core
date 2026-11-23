@@ -645,7 +645,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     Optional<ProgramStage> programStage =
         params.hasProgramStage()
             ? Optional.of(params.getProgramStage())
-            : params.getStageOfStageSpecificItemsWithoutFilter();
+            : params.getStageOfUnfilteredStageItems();
 
     if (programStage.isPresent()) {
       sql += hlp.whereAnd() + " " + quoteAlias("ps") + " = '" + programStage.get().getUid() + "' ";
