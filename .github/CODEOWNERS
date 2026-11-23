@@ -12,6 +12,6 @@ jenkinsfiles/** @dhis2/team-devops
 
 docker-compose.yml @dhis2/team-devops
 
-jib.yaml @dhis2/team-devops
+docker/image/** @dhis2/team-devops
 
 dhis-2/dhis-tracker/** @dhis2/team-tracker-backend

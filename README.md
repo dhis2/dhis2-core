@@ -117,7 +117,7 @@ This repository contains the source code for the server-side component of DHIS2,
 
 ### Docker image
 
-The DHIS2 Docker image is built using [Jib](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin). Start by building DHIS2 by executing the script below.
+The DHIS2 Docker image is built from the DHIS2 WAR using [Jib](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin), see [docker/image/pom.xml](./docker/image/pom.xml). Start by building DHIS2 and the image by executing the script below.
 
 ```sh
 ./dhis-2/build-dev.sh
@@ -138,12 +138,19 @@ DHIS2 should now be available at `http://localhost:8080`.
 To build using a custom tag.
 
 ```sh
-mvn clean package -DskipTests -Dmaven.test.skip=true --file dhis-2/pom.xml \
-  --projects dhis-web-server --also-make --activate-profiles jibDockerBuild \
+IMAGE=dhis2/core-dev:mytag ./dhis-2/build-dev.sh
+```
+
+To build the image from a WAR you have already built, without building DHIS2 again.
+
+```sh
+mvn --file docker/image/pom.xml antrun:run@prepare jib:dockerBuild \
   -Djib.to.image=dhis2/core-dev:mytag
 ```
 
-For more configuration options related to Jib or Docker go to the [Jib documentation](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin).
+On a Mac with Apple silicon add `-Djib.from.platforms=linux/arm64`, so the image runs without emulation. The script above does this for you.
+
+For more configuration options related to Jib or Docker go to [docker/image/pom.xml](./docker/image/pom.xml) and the [Jib documentation](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin).
 
 ##### Context path
 

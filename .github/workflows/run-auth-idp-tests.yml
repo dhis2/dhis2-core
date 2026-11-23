@@ -61,9 +61,10 @@ jobs:
         if: env.REUSE_PR_IMAGE != 'true'
         run: |
           mvn clean verify --threads 2C --batch-mode --no-transfer-progress \
-            -DskipTests -Dpackaging.type=jar -Dmdep.analyze.skip --update-snapshots --file dhis-2/pom.xml \
-            --projects dhis-web-server --also-make --activate-profiles embedded,jibDockerBuild \
-            -Djib.to.image=$CORE_IMAGE_NAME
+            -DskipTests -Dmdep.analyze.skip --update-snapshots --file dhis-2/pom.xml \
+            --projects dhis-web-server --also-make --activate-profiles embedded
+          mvn --batch-mode --no-transfer-progress --file docker/image/pom.xml \
+            antrun:run@prepare jib:dockerBuild -Djib.to.image=$CORE_IMAGE_NAME
 
       - name: Run auth IdP tests
         run: |

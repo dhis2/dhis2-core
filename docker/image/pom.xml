@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Builds the DHIS2 Docker image from an existing dhis.war with the Jib Maven plugin.
+
+  This project has no sources and no dependencies and is not a module of the dhis-2 build. It only
+  puts a WAR that was built elsewhere into an image: the WAR of the dhis-2 build
+  (dhis-2/dhis-web-server/target/dhis.war) or a released WAR downloaded from releases.dhis2.org.
+  A new build and a rebuild of a released version therefore produce the image the same way.
+
+  The goals are invoked directly, the Maven lifecycle is not used:
+
+    embedded Tomcat, the WAR is started with "java -jar" (default profile)
+      mvn -f docker/image/pom.xml antrun:run@prepare jib:dockerBuild
+
+    Tomcat base image, the WAR is unpacked into webapps/ROOT
+      mvn -f docker/image/pom.xml -P tomcat antrun:run@prepare jib:dockerBuild
+
+  jib:dockerBuild loads the image into the local Docker daemon, jib:build pushes it to a registry.
+
+  Properties:
+    -Dwar.dir=<directory>                   directory that contains dhis.war
+    -Djib.to.image=<image>                  image to build, defaults to dhis2/core-dev:local
+    -Djib.from.platforms=<os/arch,...>      for example linux/amd64,linux/arm64 with jib:build
+    -Djib.container.labels=<key=value,...>  image labels
+    -Dimage.from.java=<image>               base image of the embedded profile
+    -Dimage.from.tomcat=<image>             base image of the tomcat profile
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.hisp.dhis</groupId>
+  <artifactId>dhis-image</artifactId>
+  <version>1</version>
+  <packaging>${image.packaging}</packaging>
+  <name>DHIS Docker Image</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- Jib looks for the WAR of a war project at <build directory>/<finalName>.war, so the file must be named dhis.war. -->
+    <war.dir>${project.basedir}/../../dhis-2/dhis-web-server/target</war.dir>
+    <war.name>dhis.war</war.name>
+    <war.file>${war.dir}/${war.name}</war.file>
+
+    <!-- The base images of all DHIS2 images built from this branch are defined here and nowhere else. -->
+    <image.from.java>gcr.io/distroless/java17-debian13@sha256:2e4bb3225d6b8a263fab9153e6dfcdc20dc596ae31e5ec631c485ea7952285ff</image.from.java>
+    <image.from.tomcat>tomcat:10.1.48-jre17</image.from.tomcat>
+    <jib.to.image>dhis2/core-dev:local</jib.to.image>
+    <!-- This UID "65534" needs to match the UID used the DHIS2 Helm Chart, in order for the IM to have write access to the mounted volumes-->
+    <image.user>65534</image.user>
+    <image.packaging>jar</image.packaging>
+
+    <jib.version>3.5.2</jib.version>
+    <jib-ownership-extension-maven.version>0.1.0</jib-ownership-extension-maven.version>
+    <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
+  </properties>
+
+  <build>
+    <finalName>dhis</finalName>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>${maven-antrun-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>prepare</id>
+              <goals>
+                <goal>run</goal>
+              </goals>
+              <configuration>
+                <target>
+                  <available file="${war.file}" property="war.present"/>
+                  <fail message="WAR not found: ${war.file}" unless="war.present"/>
+                  <!-- Jib writes the image digest and id here and does not create the directory. -->
+                  <mkdir dir="${project.basedir}/target"/>
+                  <!-- Jib refuses to run for a jar project without a classes directory. -->
+                  <mkdir dir="${project.basedir}/target/classes"/>
+                </target>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>com.google.cloud.tools</groupId>
+          <artifactId>jib-maven-plugin</artifactId>
+          <version>${jib.version}</version>
+          <configuration>
+            <container>
+              <user>${image.user}</user>
+              <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+            </container>
+            <outputPaths>
+              <digest>${project.basedir}/target/jib-image.digest</digest>
+              <imageId>${project.basedir}/target/jib-image.id</imageId>
+              <imageJson>${project.basedir}/target/jib-image.json</imageJson>
+              <tar>${project.basedir}/target/jib-image.tar</tar>
+            </outputPaths>
+            <pluginExtensions>
+              <pluginExtension>
+                <implementation>com.google.cloud.tools.jib.maven.extension.ownership.JibOwnershipExtension</implementation>
+                <configuration implementation="com.google.cloud.tools.jib.maven.extension.ownership.Configuration">
+                  <!-- Jib will create /opt/dhis2 owned by root by default.
+                DHIS2_HOME needs to be writeable by the process running Tomcat -->
+                  <rules>
+                    <rule>
+                      <glob>/opt/dhis2</glob>
+                      <ownership>${image.user}:${image.user}</ownership>
+                    </rule>
+                    <rule>
+                      <glob>/opt/dhis2/**</glob>
+                      <ownership>${image.user}:${image.user}</ownership>
+                    </rule>
+                  </rules>
+                </configuration>
+              </pluginExtension>
+            </pluginExtensions>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>com.google.cloud.tools</groupId>
+              <artifactId>jib-ownership-extension-maven</artifactId>
+              <version>${jib-ownership-extension-maven.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <!-- Embedded Tomcat: the WAR is one file in the image and is started the same way as a WAR install. -->
+      <id>embedded</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.google.cloud.tools</groupId>
+            <artifactId>jib-maven-plugin</artifactId>
+            <configuration>
+              <from>
+                <image>${image.from.java}</image>
+              </from>
+              <container>
+                <entrypoint>java,-jar,/app/${war.name}</entrypoint>
+              </container>
+              <extraDirectories>
+                <paths>
+                  <path>
+                    <from>${war.dir}</from>
+                    <into>/app</into>
+                    <includes>${war.name}</includes>
+                  </path>
+                  <path>
+                    <from>${project.basedir}/src/main/jib</from>
+                    <into>/</into>
+                  </path>
+                </paths>
+              </extraDirectories>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <!-- Tomcat base image: the layout of the images published for 2.43 and earlier. -->
+      <id>tomcat</id>
+      <properties>
+        <image.packaging>war</image.packaging>
+      </properties>
+      <build>
+        <!-- Jib unpacks the WAR it finds in the build directory, so point that at the WAR instead of copying it. -->
+        <directory>${war.dir}</directory>
+        <plugins>
+          <plugin>
+            <groupId>com.google.cloud.tools</groupId>
+            <artifactId>jib-maven-plugin</artifactId>
+            <configuration>
+              <from>
+                <image>${image.from.tomcat}</image>
+              </from>
+              <container>
+                <appRoot>/usr/local/tomcat/webapps/ROOT</appRoot>
+                <entrypoint>INHERIT</entrypoint>
+                <environment>
+                  <!-- default DHIS2 web application context to / but allow for customization -->
+                  <CATALINA_OPTS>-Dcontext.path=''</CATALINA_OPTS>
+                </environment>
+              </container>
+              <extraDirectories>
+                <paths>
+                  <path>
+                    <from>${project.basedir}/src/main/jib</from>
+                    <into>/</into>
+                  </path>
+                  <path>
+                    <from>${project.basedir}/src/main/jib-tomcat</from>
+                    <into>/</into>
+                  </path>
+                </paths>
+              </extraDirectories>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>
