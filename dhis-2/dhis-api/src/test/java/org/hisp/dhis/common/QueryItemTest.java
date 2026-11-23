@@ -279,7 +279,7 @@ class QueryItemTest {
     QueryItem item =
         new QueryItem(
             deA, prA, lsA, ValueType.TEXT, AggregationType.SUM, osA, new RelationshipType());
-    item.setGroupUUID(UUID.randomUUID());
+    item.setGroupUUID(UUID.fromString("4f3c2a1b-9d8e-4c7b-a6f5-0e1d2c3b4a59"));
     item.setOption(opA);
     item.setProgramStage(stage);
     item.setRepeatableStageParams(rspA);

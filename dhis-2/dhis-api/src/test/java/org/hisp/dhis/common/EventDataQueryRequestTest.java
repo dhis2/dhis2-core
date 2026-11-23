@@ -456,7 +456,7 @@ public class EventDataQueryRequestTest {
   }
 
   @ParameterizedTest
-  @MethodSource("dateRangeDimensions")
+  @MethodSource({"dateRangeDimensions", "stageDateDimensionsWithRangeAndOtherItems"})
   void eventsQueryAcceptsDateRangeDimension(String dimension) {
     EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
     criteria.setDimension(new HashSet<>(Set.of(dimension)));
@@ -480,7 +480,7 @@ public class EventDataQueryRequestTest {
   }
 
   @ParameterizedTest
-  @MethodSource("dateRangeDimensions")
+  @MethodSource({"dateRangeDimensions", "stageDateDimensionsWithRangeAndOtherItems"})
   void eventsAggregateAcceptsDateRangeFilter(String filter) {
     EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
     criteria.setDimension(new HashSet<>(Set.of("ou:ImspTQPwCqd")));
@@ -544,7 +544,10 @@ public class EventDataQueryRequestTest {
         "ENROLLMENT_DATE:THIS_YEAR",
         "ENROLLMENT_DATE:LAST_5_YEARS",
         "A03MvHHogjR.EVENT_DATE:2021-03-01_2021-05-31",
-        "A03MvHHogjR.SCHEDULED_DATE:2021-03-01_2021-05-31"
+        "A03MvHHogjR.SCHEDULED_DATE:2021-03-01_2021-05-31",
+        "A03MvHHogjR.EVENT_DATE:2021;2022Q1",
+        "A03MvHHogjR.EVENT_DATE:LAST_12_MONTHS;THIS_YEAR",
+        "A03MvHHogjR.SCHEDULED_DATE:2021;2022Q1"
       })
   void eventsAggregateAcceptsDimensionsThatAreNotDateRanges(String dimension) {
     EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
@@ -594,47 +597,5 @@ public class EventDataQueryRequestTest {
             () -> EventDataQueryRequest.builder().fromCriteria(criteria));
 
     assertEquals(ErrorCode.E7271, ex.getErrorCode());
-  }
-
-  @ParameterizedTest
-  @MethodSource("stageDateDimensionsWithRangeAndOtherItems")
-  void eventsQueryAcceptsStageDateDimensionWithRangeAndOtherItems(String dimension) {
-    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
-    criteria.setDimension(new HashSet<>(Set.of(dimension)));
-    criteria.withEndpointAction(QUERY);
-
-    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
-
-    assertEquals(Set.of(Set.of(dimension)), request.getDimension());
-  }
-
-  @ParameterizedTest
-  @MethodSource("stageDateDimensionsWithRangeAndOtherItems")
-  void eventsAggregateAcceptsStageDateFilterWithRangeAndOtherItems(String filter) {
-    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
-    criteria.setDimension(new HashSet<>(Set.of("ou:ImspTQPwCqd")));
-    criteria.setFilter(new HashSet<>(Set.of(filter)));
-    criteria.withEndpointAction(AGGREGATE);
-
-    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
-
-    assertEquals(Set.of(Set.of(filter)), request.getFilter());
-  }
-
-  @ParameterizedTest
-  @ValueSource(
-      strings = {
-        "A03MvHHogjR.EVENT_DATE:2021;2022Q1",
-        "A03MvHHogjR.EVENT_DATE:LAST_12_MONTHS;THIS_YEAR",
-        "A03MvHHogjR.SCHEDULED_DATE:2021;2022Q1"
-      })
-  void eventsAggregateAcceptsStageDateDimensionWithPeriods(String dimension) {
-    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
-    criteria.setDimension(new HashSet<>(Set.of(dimension)));
-    criteria.withEndpointAction(AGGREGATE);
-
-    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
-
-    assertEquals(Set.of(Set.of(dimension)), request.getDimension());
   }
 }
