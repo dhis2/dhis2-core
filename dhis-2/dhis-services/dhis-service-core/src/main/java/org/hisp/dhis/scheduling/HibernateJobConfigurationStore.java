@@ -53,6 +53,7 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.hibernate.jsonb.type.JsonJobParametersType;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -499,6 +500,7 @@ public class HibernateJobConfigurationStore
       update jobconfiguration
       set
         lastupdated = now(),
+        lastupdatedby = (select u.userinfoid from userinfo u where u.uid = :user),
         enabled = true,
         jobstatus = case
           when jobstatus = 'DISABLED' then 'SCHEDULED'
@@ -509,6 +511,7 @@ public class HibernateJobConfigurationStore
             q ->
                 nativeSynchronizedQuery(q, sql)
                     .setParameter("id", jobId.getValue())
+                    .setParameter("user", CurrentUserUtil.getCurrentUserDetails().getUid())
                     .executeUpdate())
         > 0;
   }
@@ -520,6 +523,7 @@ public class HibernateJobConfigurationStore
       update jobconfiguration
       set
         lastupdated = now(),
+        lastupdatedby = (select u.userinfoid from userinfo u where u.uid = :user),
         enabled = false,
         jobstatus = 'DISABLED'
       where uid = :id
@@ -528,6 +532,7 @@ public class HibernateJobConfigurationStore
             q ->
                 nativeSynchronizedQuery(q, sql)
                     .setParameter("id", jobId.getValue())
+                    .setParameter("user", CurrentUserUtil.getCurrentUserDetails().getUid())
                     .executeUpdate())
         > 0;
   }
