@@ -201,6 +201,8 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     checkUserCanChangeJobState(entry);
     if (!entry.isReadyToRun())
       throw new ConflictException("Job requires schedule setup before it can be enabled.");
+    if (entry.schedulingType() == SchedulingType.ONCE_ASAP)
+      throw new ConflictException("Job of run-once type cannot be re-enabled.");
     if (!jobConfigurationStore.tryEnable(job))
       throw new ConflictException("Job is currently RUNNING and cannot be enabled.");
   }

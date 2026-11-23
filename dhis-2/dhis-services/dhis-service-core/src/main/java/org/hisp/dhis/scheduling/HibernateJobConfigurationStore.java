@@ -504,7 +504,7 @@ public class HibernateJobConfigurationStore
           when jobstatus = 'DISABLED' then 'SCHEDULED'
           else jobstatus end
       where uid = :id
-      and jobstatus != 'RUNNING'""";
+      and jobstatus != 'RUNNING' and schedulingtype != 'ONCE_ASAP'""";
     return runWriteInStatelessSession(
             q ->
                 nativeSynchronizedQuery(q, sql)
@@ -521,9 +521,7 @@ public class HibernateJobConfigurationStore
       set
         lastupdated = now(),
         enabled = false,
-        jobstatus = case
-          when jobstatus = 'SCHEDULED' then 'DISABLED'
-          else jobstatus end
+        jobstatus = 'DISABLED'
       where uid = :id
       and jobstatus != 'RUNNING'""";
     return runWriteInStatelessSession(
