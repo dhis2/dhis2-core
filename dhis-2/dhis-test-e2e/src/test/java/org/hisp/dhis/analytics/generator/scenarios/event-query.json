@@ -566,6 +566,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "stageOuAtDifferentLevelsMatchesEveryLevel",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=pe:2022,A03MvHHogjR.ou:O6uvpzGd5pu;taKiTcaf05H&headers=psi,ps,ouname,eventdate&totalPages=true&pageSize=20&page=1&asc=eventdate,lastupdated",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

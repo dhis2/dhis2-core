@@ -92,7 +92,7 @@ public class DefaultStageOrgUnitSqlService implements StageOrgUnitSqlService {
       return "";
     }
 
-    StringJoiner conditions = new StringJoiner(" and ");
+    StringJoiner levelConditions = new StringJoiner(" or ");
 
     for (Map.Entry<Integer, List<OrganisationUnit>> entry : orgUnitsByLevel.entrySet()) {
       int level = entry.getKey();
@@ -111,11 +111,20 @@ public class DefaultStageOrgUnitSqlService implements StageOrgUnitSqlService {
               .map(uid -> "'" + uid + "'")
               .collect(joining(","));
 
-      conditions.add(column + " in (" + quotedUids + ")");
+      levelConditions.add(column + " in (" + quotedUids + ")");
     }
 
-    conditions.add(sqlBuilder.quoteAx("ps") + " = '" + item.getProgramStage().getUid() + "'");
+    // An event matches when it is below any requested org unit, so the levels are ORed and
+    // wrapped in parentheses before the program stage restriction is added
+    String orgUnitCondition =
+        orgUnitsByLevel.size() > 1 ? "(" + levelConditions + ")" : levelConditions.toString();
 
-    return "(" + conditions + ")";
+    return "("
+        + orgUnitCondition
+        + " and "
+        + sqlBuilder.quoteAx("ps")
+        + " = '"
+        + item.getProgramStage().getUid()
+        + "')";
   }
 }
