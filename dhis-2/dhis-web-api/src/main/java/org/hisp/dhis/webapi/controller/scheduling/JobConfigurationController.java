@@ -183,13 +183,15 @@ public class JobConfigurationController
 
   @PostMapping("{uid}/enable")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void enable(@PathVariable("uid") UID uid) throws NotFoundException, ConflictException {
+  public void enable(@PathVariable("uid") UID uid)
+      throws NotFoundException, ConflictException, ForbiddenException {
     jobConfigurationService.enable(uid);
   }
 
   @PostMapping("{uid}/disable")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void disable(@PathVariable("uid") UID uid) throws NotFoundException, ConflictException {
+  public void disable(@PathVariable("uid") UID uid)
+      throws NotFoundException, ConflictException, ForbiddenException {
     jobConfigurationService.disable(uid);
   }
 

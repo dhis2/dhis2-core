@@ -69,6 +69,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -192,10 +193,12 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional
-  public void enable(@Nonnull UID job) throws ConflictException, NotFoundException {
+  public void enable(@Nonnull UID job)
+      throws ConflictException, NotFoundException, ForbiddenException {
     JobEntry entry = jobConfigurationStore.getJobById(job);
     if (entry == null) throw new NotFoundException(JobConfiguration.class, job);
     checkModifiable(entry);
+    checkUserCanChangeJobState(entry);
     if (!entry.isReadyToRun())
       throw new ConflictException("Job requires schedule setup before it can be enabled.");
     if (!jobConfigurationStore.tryEnable(job))
@@ -204,10 +207,12 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional
-  public void disable(@Nonnull UID job) throws ConflictException, NotFoundException {
+  public void disable(@Nonnull UID job)
+      throws ConflictException, NotFoundException, ForbiddenException {
     JobEntry entry = jobConfigurationStore.getJobById(job);
     if (entry == null) throw new NotFoundException(JobConfiguration.class, job);
     checkModifiable(entry);
+    checkUserCanChangeJobState(entry);
     if (!jobConfigurationStore.tryDisable(job))
       throw new ConflictException("Job is currently RUNNING and cannot be disabled.");
   }
@@ -216,6 +221,15 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     if (!job.type().isUserDefined())
       throw new ConflictException(
           String.format("Job %s is a system job that cannot be modified.", job.id()));
+  }
+
+  private void checkUserCanChangeJobState(JobEntry job) throws ForbiddenException {
+    if (!CurrentUserUtil.hasCurrentUser())
+      throw new ForbiddenException(JobConfiguration.class, job.id());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    if (currentUser.isSuper()) return;
+    if (!currentUser.hasAnyAuthority(List.of("F_SCHEDULING_ADMIN")))
+      throw new ForbiddenException(JobConfiguration.class, job.id());
   }
 
   @Override

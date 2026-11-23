@@ -219,4 +219,38 @@ class JobConfigurationControllerIntegrationTest extends PostgresControllerIntegr
 
     assertEquals("M5zQapPyTZI", executedBy2);
   }
+
+  @Test
+  void testEnableRequiresAuthority() {
+    String json =
+        """
+        {
+        "name": "test-enable",
+        "jobType": "DATA_INTEGRITY",
+        "cronExpression": "0 0 13 ? * MON-FRI"
+        }
+        """;
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
+    switchToNewUser("guest");
+    assertStatus(HttpStatus.FORBIDDEN, POST("/jobConfigurations/" + jobId + "/enable"));
+    switchToNewUser("scheduling-admin", "F_SCHEDULING_ADMIN");
+    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/enable"));
+  }
+
+  @Test
+  void testDisableRequiresAuthority() {
+    String json =
+        """
+        {
+        "name": "test-disable",
+        "jobType": "DATA_INTEGRITY",
+        "cronExpression": "0 0 14 ? * MON-FRI"
+        }
+        """;
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
+    switchToNewUser("guest");
+    assertStatus(HttpStatus.FORBIDDEN, POST("/jobConfigurations/" + jobId + "/disable"));
+    switchToNewUser("scheduling-admin", "F_SCHEDULING_ADMIN");
+    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/disable"));
+  }
 }
