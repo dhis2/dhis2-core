@@ -31,7 +31,6 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.EntityManager;
@@ -265,8 +264,8 @@ public class DefaultCollectionService implements CollectionService {
 
   /**
    * Replacing validates the whole change up front, so that a rejected addition cannot leave the
-   * deletions that precede it in place. Only the net change is validated: items that stay in the
-   * collection are removed and added back, which changes nothing.
+   * deletions that precede it in place. Only the difference is validated and applied: items that
+   * stay in the collection are left untouched.
    */
   @Override
   @Transactional(
@@ -285,20 +284,29 @@ public class DefaultCollectionService implements CollectionService {
         validateUpdate(
             object, propertyName, "Only identifiable object collections can be replaced.");
 
-    Collection<String> deletions = getItemCodes(getCollection(object, property));
-    Collection<String> additions = getItemCodes(objects);
+    if (!property.isOwner()) {
+      // Hibernate does not evict a cached inverse collection when only the owning side changes,
+      // so a stale copy would make a re-sent item look unchanged and skip it. The copy may already
+      // be loaded into this session, so evicting the cache entry is not enough: refresh re-reads
+      // the object's row and leaves its collections to be loaded again from the database
+      entityManager.refresh(object);
+    }
 
-    Set<String> current = new HashSet<>(deletions);
-    Set<String> requested = new HashSet<>(additions);
-    validateUserChanges(
-        object,
-        property,
-        additions.stream().filter(uid -> !current.contains(uid)).toList(),
-        deletions.stream().filter(uid -> !requested.contains(uid)).toList());
+    // Only remove and add the difference: items already in the collection are left untouched, as
+    // for non-owned collections each touched item loads and updates its full owning collection
+    Collection<String> currentUids = getItemCodes(getCollection(object, property));
+    Collection<String> requestedUids = getItemCodes(objects);
+    Set<String> current = Set.copyOf(currentUids);
+    Set<String> requested = Set.copyOf(requestedUids);
 
-    TypeReport delReport = delItems(object, property, deletions);
-    TypeReport addReport = addItems(object, property, additions);
-    return delReport.mergeAllowEmpty(addReport);
+    List<String> removed = currentUids.stream().filter(uid -> !requested.contains(uid)).toList();
+    List<String> added = requestedUids.stream().filter(uid -> !current.contains(uid)).toList();
+
+    validateUserChanges(object, property, added, removed);
+
+    TypeReport deletions = delItems(object, property, removed);
+    TypeReport additions = addItems(object, property, added);
+    return deletions.mergeAllowEmpty(additions);
   }
 
   /**
