@@ -33,6 +33,8 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,15 +42,20 @@ import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.junit.jupiter.api.BeforeAll;
@@ -92,6 +99,8 @@ class CategoryOptionOwnerDataReadTest extends PostgresIntegrationTestBase {
   @Autowired private SingleEventService singleEventService;
   @Autowired private EnrollmentService enrollmentService;
   @Autowired private IdentifiableObjectManager manager;
+  @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
+  @Autowired private SingleEventChangeLogService singleEventChangeLogService;
 
   @BeforeAll
   void setUp() throws IOException {
@@ -154,6 +163,44 @@ class CategoryOptionOwnerDataReadTest extends PostgresIntegrationTestBase {
     setAoc("singleevent", "eventid", SINGLE_EVENT, OWNED_AOC);
 
     assertIsEmpty(findSingleEvents());
+  }
+
+  @Test
+  void shouldReturnTrackerEventChangeLogWhenUserCanReadDataOfAllCategoryOptions() {
+    setAoc("trackerevent", "eventid", TRACKER_EVENT, READABLE_AOC);
+    assertDoesNotThrow(() -> trackerEventChangeLog(TRACKER_EVENT));
+  }
+
+  @Test
+  void shouldNotReturnTrackerEventChangeLogWhenUserOnlyOwnsACategoryOption() {
+    setAoc("trackerevent", "eventid", TRACKER_EVENT, OWNED_AOC);
+    assertThrows(NotFoundException.class, () -> trackerEventChangeLog(TRACKER_EVENT));
+  }
+
+  @Test
+  void shouldReturnSingleEventChangeLogWhenUserCanReadDataOfAllCategoryOptions() {
+    setAoc("singleevent", "eventid", SINGLE_EVENT, READABLE_AOC);
+    assertDoesNotThrow(() -> singleEventChangeLog(SINGLE_EVENT));
+  }
+
+  @Test
+  void shouldNotReturnSingleEventChangeLogWhenUserOnlyOwnsACategoryOption() {
+    setAoc("singleevent", "eventid", SINGLE_EVENT, OWNED_AOC);
+    assertThrows(NotFoundException.class, () -> singleEventChangeLog(SINGLE_EVENT));
+  }
+
+  private void trackerEventChangeLog(String event) throws Exception {
+    trackerEventChangeLogService.getEventChangeLog(
+        UID.of(event),
+        EventChangeLogOperationParams.builder().build(),
+        PageParams.of(1, 10, false));
+  }
+
+  private void singleEventChangeLog(String event) throws Exception {
+    singleEventChangeLogService.getEventChangeLog(
+        UID.of(event),
+        EventChangeLogOperationParams.builder().build(),
+        PageParams.of(1, 10, false));
   }
 
   /** Moves the row to the given attribute option combo, rolled back after the test. */
