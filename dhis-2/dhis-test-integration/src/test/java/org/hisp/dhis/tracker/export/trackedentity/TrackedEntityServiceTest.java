@@ -242,7 +242,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             "authorizedUser",
             emptySet(),
             emptySet(),
-            "F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP");
+            "F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP");
 
     userWithSearchInAllAuthority =
         createAndAddUser(
@@ -250,7 +250,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             "userSearchInAll",
             Set.of(orgUnitA),
             Set.of(orgUnitA),
-            "F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP");
+            "F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP");
     userWithSearchInAllAuthority.setTeiSearchOrganisationUnits(
         Set.of(orgUnitA, orgUnitB, orgUnitC));
 

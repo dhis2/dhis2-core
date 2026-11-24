@@ -199,7 +199,7 @@
       "id": "wSdzlWUHmEu",
       "dataSets": [],
       "authorities": [
-        "F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP",
+        "F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP",
         "ALL",
         "F_TRACKED_ENTITY_INSTANCE_DELETE",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",

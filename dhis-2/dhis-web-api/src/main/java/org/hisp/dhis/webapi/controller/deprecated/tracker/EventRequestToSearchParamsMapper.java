@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.deprecated.tracker;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.security.Authorities.F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP;
+import static org.hisp.dhis.security.Authorities.F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP;
 import static org.hisp.dhis.webapi.controller.deprecated.tracker.EventUtils.getOrgUnitMode;
 
 import java.util.Collections;
@@ -488,7 +488,7 @@ class EventRequestToSearchParamsMapper {
   private static void validateUserCanSearchOrgUnitModeALL(User user) {
     if (user != null
         && !(user.isAuthorized(
-            F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP.name()))) {
+            F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP.name()))) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");
     }

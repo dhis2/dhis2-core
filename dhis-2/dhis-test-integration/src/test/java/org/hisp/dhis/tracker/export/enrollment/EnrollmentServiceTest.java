@@ -149,7 +149,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
             "test user",
             emptySet(),
             emptySet(),
-            "F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP");
+            "F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP");
 
     trackedEntityTypeA = createTrackedEntityType('A');
     trackedEntityTypeA.getSharing().setOwner(user);
