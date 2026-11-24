@@ -775,6 +775,18 @@ public class TrackerTest extends Simulation {
             + this.trackerProgram
             + "&programStage=A03MvHHogjR&fields=*";
 
+    // The Birth working list again, now with totals. totalPages=true adds the count query, which
+    // repeats every access condition of the event query.
+    String searchBirthEventsWithTotals = searchBirthEvents + "&totalPages=true";
+
+    // The Birth working list across all accessible org units instead of one, so the access
+    // conditions run over the whole program rather than a single facility.
+    String searchBirthEventsInAccessibleOrgUnits =
+        "/api/tracker/events?order=createdAt:desc&page=1"
+            + "&pageSize=15&orgUnitMode=ACCESSIBLE&program="
+            + this.trackerProgram
+            + "&programStage=A03MvHHogjR&fields=*";
+
     String getTEsFromEvents =
         "/api/tracker/trackedEntities?pageSize=15&program="
             + this.trackerProgram
@@ -825,6 +837,20 @@ public class TrackerTest extends Simulation {
             searchBirthEvents,
             new EnumMap<>(Map.of(Profile.SMOKE, 54, Profile.LOAD, 201)),
             "Search Birth events",
+            "Get Child Programme TEs");
+    // No p95 thresholds yet: these are measured but not asserted until calibrated on a baseline
+    // run.
+    Request searchBirthEventsByStageWithTotals =
+        new Request(
+            searchBirthEventsWithTotals,
+            new EnumMap<>(Profile.class),
+            "Search Birth events with totals",
+            "Get Child Programme TEs");
+    Request searchBirthEventsByStageInAccessibleOrgUnits =
+        new Request(
+            searchBirthEventsInAccessibleOrgUnits,
+            new EnumMap<>(Profile.class),
+            "Search Birth events in accessible org units",
             "Get Child Programme TEs");
     Request getTrackedEntitiesForEvents =
         new Request(
@@ -951,6 +977,19 @@ public class TrackerTest extends Simulation {
                                         .action()
                                         .check(jsonPath("$.trackedEntities[*]").count().gte(1))))
                             .pause(1, 3) // user reads event list
+                            // User asks for the total number of Birth events
+                            .exec(
+                                searchBirthEventsByStageWithTotals
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().gte(1))
+                                    .check(jsonPath("$.pager.total").exists()))
+                            .pause(1, 3) // user reads the total
+                            // User widens the Birth working list to all accessible org units
+                            .exec(
+                                searchBirthEventsByStageInAccessibleOrgUnits
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().gte(1)))
+                            .pause(1, 3) // user reads event list
                             // User opens TE working list
                             .exec(
                                 getFirstPageOfTEs
@@ -1033,6 +1072,8 @@ public class TrackerTest extends Simulation {
             searchTeByNameWithEqOperator,
             searchTEsAsAndroidClient,
             searchBirthEventsByStage,
+            searchBirthEventsByStageWithTotals,
+            searchBirthEventsByStageInAccessibleOrgUnits,
             getTrackedEntitiesForEvents,
             getFirstPageOfTEs,
             getTEsWithEnrollmentStatus,
