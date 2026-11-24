@@ -1,2 +1,2 @@
 delete from userroleauthorities
-where authority = 'F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP';
+where authority = 'F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP';
