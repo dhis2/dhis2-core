@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -130,6 +130,32 @@ class GeoFeatureControllerTest extends PostgresControllerIntegrationTestBase {
       assertFalse(getFeaturesById(level).isEmpty());
       assertEquals(0, countCapturedSqlMatching("children0_.parentid=?"), level);
     }
+  }
+
+  @Test
+  void testGroupSetDimensions() {
+    POST("/metadata", HIERARCHY).content(HttpStatus.OK);
+    @Language("json")
+    String groups =
+        """
+        {"organisationUnitGroups":[
+          {"id":"ougGGGGGGGG","name":"G","shortName":"G",
+            "organisationUnits":[{"id":"ouBBBBBBBBB"}]}
+        ],
+        "organisationUnitGroupSets":[
+          {"id":"ougsSSSSSSS","name":"S","shortName":"S",
+            "organisationUnitGroups":[{"id":"ougGGGGGGGG"}]}
+        ]}""";
+    POST("/metadata", groups).content(HttpStatus.OK);
+
+    Map<String, JsonObject> withGroupSets = getFeaturesById("ou:LEVEL-2&includeGroupSets=true");
+    assertEquals(
+        "ougGGGGGGGG",
+        withGroupSets.get("ouBBBBBBBBB").getObject("dimensions").getString("ougsSSSSSSS").string());
+    assertTrue(withGroupSets.get("ouBBBBBBBB2").getObject("dimensions").isEmpty());
+
+    Map<String, JsonObject> withoutGroupSets = getFeaturesById("ou:LEVEL-2");
+    assertTrue(withoutGroupSets.get("ouBBBBBBBBB").getObject("dimensions").isEmpty());
   }
 
   private Map<String, JsonObject> getFeaturesById(String ou) {

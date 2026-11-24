@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -236,16 +236,7 @@ public class GeoFeatureService {
         feature.setPg(castUnit.getParentGraph(roots));
         feature.setPi(castUnit.getParent() != null ? castUnit.getParent().getUid() : null);
         feature.setPn(castUnit.getParent() != null ? castUnit.getParent().getDisplayName() : null);
-
-        if (includeGroupSets) {
-          for (OrganisationUnitGroupSet groupSet : groupSets) {
-            OrganisationUnitGroup group = castUnit.getGroupInGroupSet(groupSet);
-
-            if (group != null) {
-              feature.getDimensions().put(groupSet.getUid(), group.getUid());
-            }
-          }
-        }
+        addGroupSetDimensions(feature, castUnit, groupSets);
       }
 
       updateFeatureCoordinates(feature, unit, geoJsonAttribute);
@@ -257,6 +248,21 @@ public class GeoFeatureService {
     features.sort(Comparator.comparing(GeoFeature::getTy));
 
     return features;
+  }
+
+  /**
+   * Adds, for each group set the unit has a group in, the group set UID mapped to that group's UID
+   * to the feature's dimensions.
+   */
+  private static void addGroupSetDimensions(
+      GeoFeature feature, OrganisationUnit unit, List<OrganisationUnitGroupSet> groupSets) {
+    for (OrganisationUnitGroupSet groupSet : groupSets) {
+      OrganisationUnitGroup group = unit.getGroupInGroupSet(groupSet);
+
+      if (group != null) {
+        feature.getDimensions().put(groupSet.getUid(), group.getUid());
+      }
+    }
   }
 
   /**
@@ -299,13 +305,14 @@ public class GeoFeatureService {
 
   /**
    * Same as {@link OrganisationUnit#hasCoordinatesUp()}, but answered from the precomputed set of
-   * units with geometry children, with the grandparent taken from the unit's path.
+   * units with geometry children, with the grandparent taken from the unit's path rather than
+   * loading it.
    */
   private static boolean hasCoordinatesUp(OrganisationUnit unit, Set<String> parentsWithChildren) {
-    // Path is "/root/.../grandparent/parent/unit"
-    String[] ancestors = unit.getPath().substring(1).split("/");
+    List<String> ancestors = unit.getAncestorUids(null);
 
-    return ancestors.length >= 3 && parentsWithChildren.contains(ancestors[ancestors.length - 3]);
+    return ancestors.size() >= 2
+        && parentsWithChildren.contains(ancestors.get(ancestors.size() - 2));
   }
 
   /**
