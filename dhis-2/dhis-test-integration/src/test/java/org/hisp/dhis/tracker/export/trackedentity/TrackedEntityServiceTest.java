@@ -235,7 +235,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             "authorizedUser",
             emptySet(),
             emptySet(),
-            "F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP");
+            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
 
     userWithSearchInAllAuthority =
         createAndAddUser(
@@ -243,7 +243,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             "userSearchInAll",
             Set.of(orgUnitA),
             Set.of(orgUnitA),
-            "F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP");
+            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
     userWithSearchInAllAuthority.setTeiSearchOrganisationUnits(
         Set.of(orgUnitA, orgUnitB, orgUnitC));
 
