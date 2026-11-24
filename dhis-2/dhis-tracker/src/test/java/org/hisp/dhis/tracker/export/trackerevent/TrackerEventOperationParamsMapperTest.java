@@ -42,7 +42,7 @@ import static org.hisp.dhis.common.QueryOperator.ILIKE;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
 import static org.hisp.dhis.common.QueryOperator.NNULL;
 import static org.hisp.dhis.common.QueryOperator.NULL;
-import static org.hisp.dhis.security.Authorities.F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP;
+import static org.hisp.dhis.security.Authorities.F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
@@ -175,7 +175,7 @@ class TrackerEventOperationParamsMapperTest {
 
     userMap.put(
         "admin",
-        createUserWithAuthority(F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP));
+        createUserWithAuthority(F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP));
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
 
     tea1 = new TrackedEntityAttribute();
@@ -495,7 +495,7 @@ class TrackerEventOperationParamsMapperTest {
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
     UserRole userRole = new UserRole();
     userRole.setAuthorities(
-        Set.of(F_TRACKER_SEARCH_ALL_ORG_UNITS_IGNORING_SCOPE_AND_OWNERSHIP.name()));
+        Set.of(F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP.name()));
     user.setUserRoles(Set.of(userRole));
 
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
