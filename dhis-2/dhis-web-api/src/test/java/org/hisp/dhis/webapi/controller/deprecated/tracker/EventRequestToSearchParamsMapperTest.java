@@ -36,7 +36,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.security.Authorities.F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -161,9 +161,7 @@ class EventRequestToSearchParamsMapperTest {
             createOrgUnit("captureScopeChild", "captureScopeChildUid"),
             createOrgUnit("searchScopeChild", "searchScopeChildUid")));
 
-    userMap.put(
-        "admin",
-        createUserWithAuthority(F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP));
+    userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
   }
 
@@ -431,8 +429,7 @@ class EventRequestToSearchParamsMapperTest {
     user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
     UserRole userRole = new UserRole();
-    userRole.setAuthorities(
-        Set.of(F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP.name()));
+    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
 
     //    when(getCurrentUser()).thenReturn(user);
@@ -456,8 +453,7 @@ class EventRequestToSearchParamsMapperTest {
 
     User user = new User();
     UserRole userRole = new UserRole();
-    userRole.setAuthorities(
-        Set.of(F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP.name()));
+    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
 
     //    when(getCurrentUser()).thenReturn(user);
@@ -475,8 +471,7 @@ class EventRequestToSearchParamsMapperTest {
 
     User user = new User();
     UserRole userRole = new UserRole();
-    userRole.setAuthorities(
-        Set.of(F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP.name()));
+    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
     user.setUsername("anyUser");
     when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);

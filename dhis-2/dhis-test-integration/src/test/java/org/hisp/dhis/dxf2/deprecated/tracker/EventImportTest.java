@@ -381,7 +381,7 @@ class EventImportTest extends TransactionalIntegrationTest {
         createAndAddUser(
             "userUpdate",
             organisationUnitA,
-            Authorities.F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP.name());
+            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
 
     programStageA.getSharing().addUserAccess(new UserAccess(user, AccessStringHelper.DATA_READ));
     manager.update(programStageA);
