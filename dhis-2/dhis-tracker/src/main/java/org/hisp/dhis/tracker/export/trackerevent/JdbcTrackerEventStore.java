@@ -1057,11 +1057,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       StringBuilder sql, UserDetails user, SqlHelper hlp) {
     if (isNotSuperUser(user)) {
       sql.append(hlp.whereAnd())
-          .append(" en.attributeoptioncomboid not in (")
-          .append(
-              "select cocco.categoryoptioncomboid from categoryoptioncombos_categoryoptions cocco ")
+          .append(" not exists (")
+          .append("select 1 from categoryoptioncombos_categoryoptions cocco ")
           .append("inner join categoryoption co on co.categoryoptionid = cocco.categoryoptionid ")
-          .append("where not coalesce((")
+          .append("where cocco.categoryoptioncomboid = en.attributeoptioncomboid ")
+          .append("and not coalesce((")
           .append(
               JpaQueryUtils.generateSQlQueryForSharingCheck(
                   "co.sharing", user, AclService.LIKE_READ_DATA))
