@@ -463,12 +463,6 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
         });
   }
 
-  private JsonJobConfiguration updateExpectSuccess(String jobId, Map<String, Object> extra) {
-    JsonNode config = newJsonJobConfiguration(MINIMAL_CRON_CONFIG, extra);
-    assertStatus(HttpStatus.OK, PUT("/jobConfigurations/" + jobId, config.toString()));
-    return getJsonJobConfiguration(jobId);
-  }
-
   private JsonJobConfiguration updateExpectSuccess(Consumer<JsonObjectBuilder> addMembers) {
     JsonJobConfiguration config = createExpectSuccess(Map.of());
     JsonNode withUpdate = config.node().addMembers(addMembers);
