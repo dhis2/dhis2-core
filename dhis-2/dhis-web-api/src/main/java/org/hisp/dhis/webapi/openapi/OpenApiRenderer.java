@@ -47,6 +47,7 @@ import java.util.function.Consumer;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.jsontree.Appender;
+import org.hisp.dhis.jsontree.IoAppender;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonNodeType;
@@ -624,7 +625,7 @@ public class OpenApiRenderer {
   public static byte[] renderHTML(
       OpenApiObject json, OpenApiRenderingParams params, ApiStatistics stats) {
     ByteArrayOutputStream out = new ByteArrayOutputStream(16 * 1024);
-    try (Appender appender = Appender.ofUTF8(out)) {
+    try (IoAppender appender = Appender.ofUTF8(out)) {
       OpenApiRenderer renderer = new OpenApiRenderer(json, params, stats, appender);
       renderer.renderDocument();
     }

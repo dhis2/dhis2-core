@@ -79,9 +79,11 @@ public class StartupConfig {
   @Bean("org.hisp.dhis.startup.ConfigurationPopulator")
   public ConfigurationPopulator configurationPopulator(
       ConfigurationService configurationService,
-      DhisConfigurationProvider dhisConfigurationProvider) {
+      DhisConfigurationProvider dhisConfigurationProvider,
+      PeriodTypeStore periodTypeStore) {
     ConfigurationPopulator populator =
-        new ConfigurationPopulator(configurationService, dhisConfigurationProvider);
+        new ConfigurationPopulator(
+            configurationService, dhisConfigurationProvider, periodTypeStore);
     populator.setName("ConfigurationPopulator");
     populator.setRunlevel(12);
     populator.setSkipInTests(true);

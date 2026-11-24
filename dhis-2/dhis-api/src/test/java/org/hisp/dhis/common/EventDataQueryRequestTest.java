@@ -51,6 +51,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class EventDataQueryRequestTest {
 
@@ -406,5 +407,152 @@ public class EventDataQueryRequestTest {
             () -> EventDataQueryRequest.builder().fromCriteria(criteria));
 
     assertEquals(ErrorCode.E7139, ex.getErrorCode());
+  }
+
+  public static Stream<String> dateRangeDimensions() {
+    return Stream.of(
+        "pe:2026-11-01_2026-12-31",
+        "pe:20261101_20261231",
+        "pe:202611;2026-11-01_2026-12-31",
+        "pe:2026-11-01_2026-12-31:ENROLLMENT_DATE",
+        "ENROLLMENT_DATE:2026-11-01_2026-12-31",
+        "ENROLLMENT_DATE:2026-11-01_2026-11-01",
+        "INCIDENT_DATE:2026-11-01_2026-12-31",
+        "EVENT_DATE:2026-11-01_2026-12-31",
+        "SCHEDULED_DATE:2026-11-01_2026-12-31",
+        "LAST_UPDATED:2026-11-01_2026-12-31",
+        "CREATED:2026-11-01_2026-12-31",
+        "COMPLETED:2026-11-01_2026-12-31");
+  }
+
+  @ParameterizedTest
+  @MethodSource("dateRangeDimensions")
+  void eventsAggregateRejectsDateRangeDimension(String dimension) {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setDimension(new HashSet<>(Set.of("ou:ImspTQPwCqd", dimension)));
+    criteria.withEndpointAction(AGGREGATE);
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> EventDataQueryRequest.builder().fromCriteria(criteria));
+
+    assertEquals(ErrorCode.E7270, ex.getErrorCode());
+  }
+
+  @ParameterizedTest
+  @MethodSource("dateRangeDimensions")
+  void enrollmentsAggregateRejectsDateRangeDimension(String dimension) {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setDimension(new HashSet<>(Set.of("ou:ImspTQPwCqd", dimension)));
+    criteria.withEndpointAction(AGGREGATE).withEndpointItem(ENROLLMENT);
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> EventDataQueryRequest.builder().fromCriteria(criteria));
+
+    assertEquals(ErrorCode.E7270, ex.getErrorCode());
+  }
+
+  @ParameterizedTest
+  @MethodSource("dateRangeDimensions")
+  void eventsQueryAcceptsDateRangeDimension(String dimension) {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setDimension(new HashSet<>(Set.of(dimension)));
+    criteria.withEndpointAction(QUERY);
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(Set.of(dimension)), request.getDimension());
+  }
+
+  @ParameterizedTest
+  @MethodSource("dateRangeDimensions")
+  void enrollmentsQueryAcceptsDateRangeDimension(String dimension) {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setDimension(new HashSet<>(Set.of(dimension)));
+    criteria.withEndpointAction(QUERY).withEndpointItem(ENROLLMENT);
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(Set.of(dimension)), request.getDimension());
+  }
+
+  @ParameterizedTest
+  @MethodSource("dateRangeDimensions")
+  void eventsAggregateAcceptsDateRangeFilter(String filter) {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setDimension(new HashSet<>(Set.of("ou:ImspTQPwCqd")));
+    criteria.setFilter(new HashSet<>(Set.of(filter)));
+    criteria.withEndpointAction(AGGREGATE);
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(Set.of(filter)), request.getFilter());
+  }
+
+  @ParameterizedTest
+  @MethodSource("dateRangeDimensions")
+  void enrollmentsAggregateAcceptsDateRangeFilter(String filter) {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setDimension(new HashSet<>(Set.of("ou:ImspTQPwCqd")));
+    criteria.setFilter(new HashSet<>(Set.of(filter)));
+    criteria.withEndpointAction(AGGREGATE).withEndpointItem(ENROLLMENT);
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(Set.of(filter)), request.getFilter());
+  }
+
+  @Test
+  void eventsAggregateAcceptsDateRangeRequestParam() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setIncidentDate("2021-03-01_2023-04-30");
+    criteria.setDimension(new HashSet<>(Set.of("ou:ImspTQPwCqd")));
+    criteria.withEndpointAction(AGGREGATE);
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(
+        Set.of(Set.of("ou:ImspTQPwCqd"), Set.of("pe:2021-03-01_2023-04-30:INCIDENT_DATE")),
+        request.getDimension());
+  }
+
+  @Test
+  void enrollmentsAggregateAcceptsDateRangeRequestParam() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setEnrollmentDate("2021-03-01_2023-04-30");
+    criteria.setDimension(new HashSet<>(Set.of("ou:ImspTQPwCqd")));
+    criteria.withEndpointAction(AGGREGATE).withEndpointItem(ENROLLMENT);
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(
+        Set.of(Set.of("ou:ImspTQPwCqd"), Set.of("pe:2021-03-01_2023-04-30:ENROLLMENT_DATE")),
+        request.getDimension());
+  }
+
+  /**
+   * Relative periods contain the range separator, and stage-scoped dates are query items rather
+   * than time dimensions, so neither is a date range dimension.
+   */
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "pe:LAST_12_MONTHS",
+        "ENROLLMENT_DATE:THIS_YEAR",
+        "ENROLLMENT_DATE:LAST_5_YEARS",
+        "A03MvHHogjR.EVENT_DATE:2021-03-01_2021-05-31",
+        "A03MvHHogjR.SCHEDULED_DATE:2021-03-01_2021-05-31"
+      })
+  void eventsAggregateAcceptsDimensionsThatAreNotDateRanges(String dimension) {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setDimension(new HashSet<>(Set.of(dimension)));
+    criteria.withEndpointAction(AGGREGATE);
+
+    EventDataQueryRequest request = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Set.of(Set.of(dimension)), request.getDimension());
   }
 }

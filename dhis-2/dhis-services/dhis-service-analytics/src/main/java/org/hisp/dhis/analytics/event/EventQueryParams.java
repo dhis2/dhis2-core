@@ -924,14 +924,14 @@ public class EventQueryParams extends DataQueryParams {
   }
 
   /**
-   * Returns the program stage of stage-specific dimension identifiers requested without items (e.g.
-   * {@code stageUid.EVENT_STATUS}). Such items carry no filter, so no per-item stage condition is
-   * rendered for them and the stage must be restricted at query level. Stage-specific items in a
-   * single query always share one stage.
+   * Returns the program stage of stage-prefixed items requested without items (e.g. {@code
+   * stageUid.EVENT_STATUS} or {@code stageUid.dataElementUid}). Such items carry no filter, so no
+   * per-item stage condition is rendered for them and the stage must be restricted at query level.
+   * Stage-prefixed items in a single event query always share one stage.
    */
-  public Optional<ProgramStage> getStageOfStageSpecificItemsWithoutFilter() {
+  public Optional<ProgramStage> getStageOfUnfilteredStageItems() {
     return getItemsAndItemFilters().stream()
-        .filter(item -> item.hasProgramStage() && isStageSpecificDimension(item))
+        .filter(QueryItem::hasProgramStage)
         .filter(item -> !item.hasFilter())
         .map(QueryItem::getProgramStage)
         .findFirst();

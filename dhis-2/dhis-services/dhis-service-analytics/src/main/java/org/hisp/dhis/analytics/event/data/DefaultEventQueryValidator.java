@@ -134,14 +134,6 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     if (!params.getDuplicateQueryItems().isEmpty()) {
       return new ErrorMessage(ErrorCode.E7202, params.getDuplicateQueryItems());
     }
-    if (params.hasValueDimension()
-        && params.getItems().stream()
-            .anyMatch(
-                item ->
-                    !item.hasLegendSet()
-                        && params.getValue().getDimensionalObject().equals(item.getItem()))) {
-      return new ErrorMessage(ErrorCode.E7203);
-    }
     if (params.hasAggregationType() && !(params.hasValueDimension() || params.isAggregateData())) {
       return new ErrorMessage(ErrorCode.E7204);
     }

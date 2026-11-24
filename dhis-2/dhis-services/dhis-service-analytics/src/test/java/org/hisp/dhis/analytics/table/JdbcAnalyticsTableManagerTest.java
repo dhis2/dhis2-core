@@ -225,6 +225,26 @@ class JdbcAnalyticsTableManagerTest {
   }
 
   @Test
+  @DisplayName("Yearly column is always present, even when no output period types are configured")
+  void testGetRegularAnalyticsTableAlwaysHasYearlyColumn() {
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build();
+
+    when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
+    when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(List.of(2018, 2019));
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes()).thenReturn(Set.of());
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertEquals(1, tables.size());
+    assertTrue(tables.get(0).getColumns().stream().anyMatch(c -> "yearly".equals(c.getName())));
+  }
+
+  @Test
   void testGetRegularAnalyticsTableIdColumnRemainsTextOnPostgres() {
     // Doris needs a bounded type for the id key column (see JdbcAnalyticsTableManagerDorisTest),
     // but that must not change Postgres behavior, since

@@ -44,6 +44,8 @@ import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -65,6 +67,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -121,6 +124,8 @@ public class DefaultPredictionService implements PredictionService {
   private final ApplicationContext applicationContext;
 
   private final UserService userService;
+
+  private final EntityManager entityManager;
 
   // -------------------------------------------------------------------------
   // Prediction business logic
@@ -234,6 +239,23 @@ public class DefaultPredictionService implements PredictionService {
   @Transactional
   public void predictSimple(
       Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary) {
+    // A prediction loads all org units of its levels into the session and never modifies an
+    // entity: predictions are written with SQL. With the default flush mode every HQL query on
+    // the way (for example analytics looking up the current user, once or twice per batch of org
+    // units) dirty-checks all of those entities first. Flush any earlier changes once, then let
+    // the session flush only at commit, as DefaultObjectBundleService.preheatWithoutAutoFlush does.
+    entityManager.flush();
+    FlushModeType flushMode = entityManager.getFlushMode();
+    entityManager.setFlushMode(FlushModeType.COMMIT);
+    try {
+      predictSimpleInSession(predictor, startDate, endDate, predictionSummary);
+    } finally {
+      entityManager.setFlushMode(flushMode);
+    }
+  }
+
+  private void predictSimpleInSession(
+      Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary) {
     Expression generator = predictor.getGenerator();
     Expression skipTest = predictor.getSampleSkipTest();
     DataElement outputDataElement = predictor.getOutput();
@@ -286,6 +308,13 @@ public class DefaultPredictionService implements PredictionService {
           organisationUnitService.getOrganisationUnitsAtOrgUnitLevels(
               Lists.newArrayList(orgUnitLevel), currentUserOrgUnits);
 
+      ExpressionParams levelExParams =
+          baseExParams.toBuilder()
+              .orgUnitGroupMemberCounts(
+                  expressionService.getOrgUnitGroupMemberCounts(
+                      UID.of(exInfo.getOrgUnitGroupCountIds()), orgUnits, currentUserOrgUnits))
+              .build();
+
       consolidator.init(
           orgUnitLevel.getLevel(),
           orgUnits,
@@ -312,7 +341,7 @@ public class DefaultPredictionService implements PredictionService {
           samplePeriods.removeAll(
               getSkippedPeriods(
                   allSamplePeriods,
-                  baseExParams,
+                  levelExParams,
                   c.getPeriodValueMap(),
                   skipTest,
                   data.getOrgUnit()));
@@ -329,7 +358,7 @@ public class DefaultPredictionService implements PredictionService {
 
           Object value =
               expressionService.getExpressionValue(
-                  baseExParams.toBuilder()
+                  levelExParams.toBuilder()
                       .expression(predictor.getGenerator().getExpression())
                       .parseType(PREDICTOR_EXPRESSION)
                       .dataType(expressionDataType)

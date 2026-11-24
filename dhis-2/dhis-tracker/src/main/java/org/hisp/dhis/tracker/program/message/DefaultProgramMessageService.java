@@ -218,9 +218,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   }
 
   private void saveProgramMessages(List<ProgramMessage> messageBatch, BatchResponseStatus status) {
-    messageBatch.parallelStream()
-        .map(pm -> setParameters(pm, status))
-        .forEach(this::saveProgramMessage);
+    messageBatch.stream().map(pm -> setParameters(pm, status)).forEach(this::saveProgramMessage);
   }
 
   private ProgramMessage setParameters(ProgramMessage message, BatchResponseStatus status) {

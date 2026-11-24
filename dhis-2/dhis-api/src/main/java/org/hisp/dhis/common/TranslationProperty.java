@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Transient;
 import java.io.Serializable;
@@ -58,6 +59,9 @@ import org.hisp.dhis.translation.Translation;
 @AllArgsConstructor
 public class TranslationProperty implements Serializable {
 
+  /** The name of the member mapped to the {@code translations} jsonb column. */
+  public static final String JSONB_MEMBER = "translations";
+
   @Type(type = "jblTranslations")
   private Set<Translation> translations = new HashSet<>();
 
@@ -72,6 +76,11 @@ public class TranslationProperty implements Serializable {
   // Getters and setters
   // -------------------------------------------------------------------------
 
+  /**
+   * Also the JSON value of this embeddable, so serializing it directly (e.g. when gist projects the
+   * {@code translations} property) writes the translations array, same as the entity's getter.
+   */
+  @JsonValue
   public Set<Translation> getTranslations() {
     if (translations == null) {
       translations = new HashSet<>();

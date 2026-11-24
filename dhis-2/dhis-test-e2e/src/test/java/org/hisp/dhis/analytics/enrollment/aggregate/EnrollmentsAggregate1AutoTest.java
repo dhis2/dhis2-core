@@ -420,16 +420,17 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void freeRangePeriodDimension() throws JSONException {
+  public void freeRangePeriodFilter() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
     boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
+            .add("filter=pe:2022-01-01_2022-01-10")
             .add("displayProperty=NAME")
             .add("totalPages=false")
-            .add("dimension=ou:ImspTQPwCqd,pe:2022-01-01_2022-01-10");
+            .add("dimension=ou:ImspTQPwCqd");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
@@ -441,9 +442,9 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        10,
-        3,
-        3); // Pass runtime flag, row count, and expected header counts
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -453,7 +454,7 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"20220101\":{\"name\":\"2022-01-01\"}},\"dimensions\":{\"pe\":[\"20220101\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -475,26 +476,11 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
         "java.lang.String",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
 
     // rowContext not found or empty in the response, skipping assertions.
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
     // Validate row exists with values from original row index 0
-    validateRowExists(
-        response, actualHeaders, Map.of("value", "28", "ou", "ImspTQPwCqd", "pe", "20220107"));
-
-    // Validate row exists with values from original row index 3
-    validateRowExists(
-        response, actualHeaders, Map.of("value", "29", "ou", "ImspTQPwCqd", "pe", "20220104"));
-
-    // Validate row exists with values from original row index 6
-    validateRowExists(
-        response, actualHeaders, Map.of("value", "33", "ou", "ImspTQPwCqd", "pe", "20220105"));
-
-    // Validate row exists with values from original row index 9
-    validateRowExists(
-        response, actualHeaders, Map.of("value", "32", "ou", "ImspTQPwCqd", "pe", "20220101"));
+    validateRowExists(response, actualHeaders, Map.of("value", "311", "ou", "ImspTQPwCqd"));
   }
 }

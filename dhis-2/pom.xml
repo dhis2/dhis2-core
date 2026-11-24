@@ -94,6 +94,7 @@
     <cargo-maven2-plugin.version>1.8.5</cargo-maven2-plugin.version>
 
     <!-- *Dependencies* -->
+    <reactor.bom.version>2025.0.7</reactor.bom.version>
 
     <!-- DHIS2 Rule Engine -->
     <dhis2-rule-engine.version>3.9.0</dhis2-rule-engine.version>
@@ -101,7 +102,7 @@
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>1.12.0</dhis-json-tree.version>
+    <dhis-json-tree.version>1.14.0</dhis-json-tree.version>
 
     <!-- Security -->
     <spring-security.version>7.1.1</spring-security.version>
@@ -1445,6 +1446,14 @@
         <artifactId>netty-all</artifactId>
         <version>${netty-all.version}</version>
       </dependency>
+      <dependency>
+        <groupId>io.projectreactor</groupId>
+        <artifactId>reactor-bom</artifactId>
+        <version>${reactor.bom.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
       <!-- Align every io.netty:* artifact (incl. modules Artemis pulls transitively,
            e.g. netty-codec-haproxy / netty-transport-classes-*) to the same version as
            netty-all. Without this, the netty-all uber jar mixes with older individual

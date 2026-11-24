@@ -43,6 +43,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.csv.CsvBuilder;
 import org.hisp.dhis.jsontree.Appender;
+import org.hisp.dhis.jsontree.IoAppender;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
@@ -61,7 +62,7 @@ public final class GistOutput {
       new JsonBuilder.PrettyPrint(0, 0, false, true, true);
 
   public static void toCsv(@Nonnull GistObject.Output obj, @Nonnull OutputStream out) {
-    try (Appender csv = Appender.ofUTF8(out)) {
+    try (IoAppender csv = Appender.ofUTF8(out)) {
       // we cast so the values are columns not rows
       Stream<Object> singleRow = Stream.of((Object) obj.values());
       new CsvBuilder(csv).toRows(obj.paths(), singleRow);
@@ -69,7 +70,7 @@ public final class GistOutput {
   }
 
   public static void toCsv(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
-    try (Appender csv = Appender.ofUTF8(out)) {
+    try (IoAppender csv = Appender.ofUTF8(out)) {
       new CsvBuilder(csv).skipHeaders(list.headless()).toRows(list.paths(), list.values());
     }
   }
@@ -81,7 +82,7 @@ public final class GistOutput {
       JsonNode array =
           JsonBuilder.createArray(FORMAT, arr -> addArrayElements(arr, properties, values));
       JsonValue value = JsonMixed.of(array).getObject(0).get(properties.get(0).path().toString());
-      try (Appender json = Appender.ofUTF8(out)) {
+      try (IoAppender json = Appender.ofUTF8(out)) {
         json.appendEncoded(value.toJson());
       }
     } else {

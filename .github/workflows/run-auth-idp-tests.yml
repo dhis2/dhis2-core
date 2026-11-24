@@ -90,7 +90,7 @@ jobs:
   send-slack-message:
     runs-on: ubuntu-latest
     if: |
-      always() &&
+      !cancelled() &&
       contains(needs.*.result, 'failure') &&
       github.event_name == 'schedule'
     needs: [auth-idp-test]

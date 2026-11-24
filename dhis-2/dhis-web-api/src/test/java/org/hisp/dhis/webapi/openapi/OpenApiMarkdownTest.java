@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.ByteArrayOutputStream;
 import java.util.Set;
 import org.hisp.dhis.jsontree.Appender;
+import org.hisp.dhis.jsontree.IoAppender;
 import org.hisp.dhis.jsontree.TextBuilder;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
@@ -418,7 +419,7 @@ class OpenApiMarkdownTest {
   @Test
   void testAppenderOutput_Utf8Stream() {
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-    try (Appender out = Appender.ofUTF8(bytes)) {
+    try (IoAppender out = Appender.ofUTF8(bytes)) {
       OpenApiMarkdown.markdownToHTML("Hello € and 😀", Set.of(), out);
     }
     assertEquals("<p>Hello € and 😀</p>", bytes.toString(UTF_8));
