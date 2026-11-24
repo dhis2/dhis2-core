@@ -319,7 +319,7 @@ public class HibernateOrganisationUnitStore
   }
 
   @Override
-  public Set<String> getParentUidsOfUnitsWithGeometry(Collection<Integer> childLevels) {
+  public Set<UID> getParentUidsOfUnitsWithGeometry(Collection<Integer> childLevels) {
     if (childLevels.isEmpty()) {
       return Set.of();
     }
@@ -329,8 +329,15 @@ public class HibernateOrganisationUnitStore
         select distinct p.uid from OrganisationUnit ou join ou.parent p \
         where ou.hierarchyLevel in :levels and ou.geometry is not null""";
 
-    return new HashSet<>(
-        getSession().createQuery(hql, String.class).setParameterList("levels", childLevels).list());
+    Set<UID> uids = new HashSet<>();
+    for (String uid :
+        getSession()
+            .createQuery(hql, String.class)
+            .setParameterList("levels", childLevels)
+            .list()) {
+      uids.add(UID.of(uid));
+    }
+    return uids;
   }
 
   @Override

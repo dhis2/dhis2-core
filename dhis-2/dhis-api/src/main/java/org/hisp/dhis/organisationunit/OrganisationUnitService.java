@@ -364,7 +364,7 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @param childLevels the hierarchy levels of the children to inspect.
    * @return a set of parent UIDs, empty if {@code childLevels} is empty.
    */
-  Set<String> getParentUidsOfUnitsWithGeometry(Collection<Integer> childLevels);
+  Set<UID> getParentUidsOfUnitsWithGeometry(Collection<Integer> childLevels);
 
   /**
    * Returns the count of OrganisationUnits which are part of the sub-hierarchy of the given parent

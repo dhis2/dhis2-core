@@ -76,6 +76,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.coordinate.CoordinateObject;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -213,11 +214,14 @@ public class GeoFeatureService {
             : new ArrayList<>();
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
+    Set<String> rootUids =
+        currentUser.getDataViewOrganisationUnitsWithFallback().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet());
 
     List<OrganisationUnit> orgUnits =
         useOrgUnitGroup ? List.of() : DimensionalObjectUtils.asTypedList(dimensionalItemObjects);
-    Set<String> parentsWithGeometryChildren = getParentUidsWithGeometryChildren(orgUnits);
+    Set<UID> parentsWithGeometryChildren = getParentUidsWithGeometryChildren(orgUnits);
     prefetchParents(orgUnits);
 
     for (DimensionalItemObject unit : dimensionalItemObjects) {
@@ -230,10 +234,11 @@ public class GeoFeatureService {
         feature.setHcd(((CoordinateObject) unit).hasDescendantsWithCoordinates());
       } else {
         OrganisationUnit castUnit = (OrganisationUnit) unit;
-        feature.setHcd(parentsWithGeometryChildren.contains(castUnit.getUid()));
-        feature.setHcu(hasCoordinatesUp(castUnit, parentsWithGeometryChildren));
+        feature.setHcd(parentsWithGeometryChildren.contains(castUnit.getUID()));
+        List<String> ancestors = castUnit.getAncestorUids(null);
+        feature.setHcu(hasCoordinatesUp(ancestors, parentsWithGeometryChildren));
         feature.setLe(castUnit.getLevel());
-        feature.setPg(castUnit.getParentGraph(roots));
+        feature.setPg(getParentGraph(ancestors, rootUids));
         feature.setPi(castUnit.getParent() != null ? castUnit.getParent().getUid() : null);
         feature.setPn(castUnit.getParent() != null ? castUnit.getParent().getDisplayName() : null);
         addGroupSetDimensions(feature, castUnit, groupSets);
@@ -279,7 +284,7 @@ public class GeoFeatureService {
    * @return the UIDs of the units (among those units and their grandparents) that have a child with
    *     a geometry.
    */
-  private Set<String> getParentUidsWithGeometryChildren(List<OrganisationUnit> orgUnits) {
+  private Set<UID> getParentUidsWithGeometryChildren(List<OrganisationUnit> orgUnits) {
     if (orgUnits.isEmpty()) {
       return Set.of();
     }
@@ -307,12 +312,34 @@ public class GeoFeatureService {
    * Same as {@link OrganisationUnit#hasCoordinatesUp()}, but answered from the precomputed set of
    * units with geometry children, with the grandparent taken from the unit's path rather than
    * loading it.
+   *
+   * @param ancestors the unit's ancestor UIDs, root first, from {@link
+   *     OrganisationUnit#getAncestorUids}.
    */
-  private static boolean hasCoordinatesUp(OrganisationUnit unit, Set<String> parentsWithChildren) {
-    List<String> ancestors = unit.getAncestorUids(null);
-
+  private static boolean hasCoordinatesUp(List<String> ancestors, Set<UID> parentsWithChildren) {
     return ancestors.size() >= 2
-        && parentsWithChildren.contains(ancestors.get(ancestors.size() - 2));
+        && parentsWithChildren.contains(UID.of(ancestors.get(ancestors.size() - 2)));
+  }
+
+  /**
+   * Same as {@link OrganisationUnit#getParentGraph}, but from the unit's precomputed ancestor UIDs
+   * and with the root UIDs resolved once per request instead of once per unit.
+   *
+   * @param ancestors the unit's ancestor UIDs, root first, from {@link
+   *     OrganisationUnit#getAncestorUids}.
+   * @param rootUids the UIDs of the user's root organisation units.
+   * @return the ancestor UIDs joined by "/", starting at the closest root above the unit, or at the
+   *     hierarchy root if no root is an ancestor.
+   */
+  private static String getParentGraph(List<String> ancestors, Set<String> rootUids) {
+    int start = 0;
+    for (int i = ancestors.size() - 1; i >= 0; i--) {
+      if (rootUids.contains(ancestors.get(i))) {
+        start = i;
+        break;
+      }
+    }
+    return String.join("/", ancestors.subList(start, ancestors.size()));
   }
 
   /**
@@ -605,11 +632,20 @@ public class GeoFeatureService {
    */
   private boolean hasGeometryCoordinates(Object object) {
     CoordinateObject coordinateObject = (CoordinateObject) object;
-    return coordinateObject != null
-        && coordinateObject.getFeatureType() != null
-        && coordinateObject.hasCoordinates()
-        && (coordinateObject.getFeatureType() != FeatureType.POINT
-            || ValidationUtils.coordinateIsValid(coordinateObject.getCoordinates()));
+    if (coordinateObject == null
+        || coordinateObject.getFeatureType() == null
+        || !coordinateObject.hasCoordinates()) {
+      return false;
+    }
+    if (coordinateObject.getFeatureType() != FeatureType.POINT) {
+      return true;
+    }
+    // Validate the point directly instead of writing it as GeoJSON and parsing it back
+    if (coordinateObject instanceof OrganisationUnit unit
+        && unit.getGeometry() instanceof org.locationtech.jts.geom.Point point) {
+      return !point.isEmpty() && ValidationUtils.coordinateIsValid(point.getX(), point.getY());
+    }
+    return ValidationUtils.coordinateIsValid(coordinateObject.getCoordinates());
   }
 
   /**

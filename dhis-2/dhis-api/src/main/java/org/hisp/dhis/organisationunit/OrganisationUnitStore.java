@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -165,7 +165,7 @@ public interface OrganisationUnitStore
    * @param childLevels the hierarchy levels of the children to inspect.
    * @return a set of parent UIDs, empty if {@code childLevels} is empty.
    */
-  Set<String> getParentUidsOfUnitsWithGeometry(Collection<Integer> childLevels);
+  Set<UID> getParentUidsOfUnitsWithGeometry(Collection<Integer> childLevels);
 
   /**
    * Sets the geometry field for org units to null.

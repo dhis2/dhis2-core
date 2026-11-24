@@ -36,15 +36,19 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.config.QueryCountDataSourceProxy;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.user.User;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,6 +119,24 @@ class GeoFeatureControllerTest extends PostgresControllerIntegrationTestBase {
     }
     assertEquals("ouBBBBBBBBB", level3.get("ouCCCCCCCCC").getString("pi").string());
     assertEquals("B3", level3.get("ouCCCCCCCC3").getString("pn").string());
+    assertEquals("ouAAAAAAAAA/ouBBBBBBBBB", level3.get("ouCCCCCCCCC").getString("pg").string());
+    assertEquals("ouAAAAAAAAA", level2.get("ouBBBBBBBBB").getString("pg").string());
+  }
+
+  /** The parent graph starts at the closest data view root above the unit. */
+  @Test
+  void testParentGraphStartsAtDataViewRoot() {
+    POST("/metadata", HIERARCHY).content(HttpStatus.OK);
+    User user = makeUser("g");
+    user.setOrganisationUnits(
+        Set.copyOf(manager.getByUid(OrganisationUnit.class, List.of("ouAAAAAAAAA"))));
+    user.setDataViewOrganisationUnits(
+        Set.copyOf(manager.getByUid(OrganisationUnit.class, List.of("ouBBBBBBBBB"))));
+    userService.addUser(user);
+    switchToNewUser(user);
+
+    Map<String, JsonObject> level3 = getFeaturesById("ou:LEVEL-3");
+    assertEquals("ouBBBBBBBBB", level3.get("ouCCCCCCCCC").getString("pg").string());
   }
 
   /** Resolving hcd/hcu must not lazily load each org unit's children, one query per unit. */
