@@ -50,61 +50,74 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 public class TestCleanUp {
   private final Logger logger = LogManager.getLogger(TestCleanUp.class.getName());
 
-  private int deleteCount = 0;
+  /** Number of passes over the non-tracker entities, to retry deletes blocked by references. */
+  private static final int MAX_DELETE_PASSES = 3;
 
   /**
-   * Resources whose deletion is a soft delete and can leave rows behind that block deletion of
-   * referencing objects. Deleting any of these requires a follow-up {@code /maintenance} sweep to
-   * physically purge the soft-deleted rows. Everything else (plain metadata) is a hard delete and
-   * needs no sweep.
+   * Non-tracker resources whose deletion is a soft delete. Soft-deleted rows block deletion of the
+   * objects they reference until a {@code /maintenance} sweep physically purges them. Tracker data
+   * is soft deleted too, see {@link TrackerCleanUp}. Everything else (plain metadata) is a hard
+   * delete and needs no sweep.
    */
-  private static final Set<String> SOFT_DELETABLE_RESOURCES =
-      Set.of(
-          "trackedEntities",
-          "events",
-          "enrollments",
-          "relationships",
-          "dataValues",
-          "dataValueSets");
+  private static final Set<String> SOFT_DELETABLE_RESOURCES = Set.of("dataValues", "dataValueSets");
 
   /**
-   * Deletes entities created during test run. Entities deleted one by one starting from last
-   * created one.
+   * Deletes all entities created during the test run.
+   *
+   * <ol>
+   *   <li>Tracker data is deleted in bulk using a tracker import, see {@link TrackerCleanUp}.
+   *   <li>Soft-deleted data is purged, so it does not block the deletion of metadata.
+   *   <li>Remaining entities are deleted one by one, starting from the last created one. Deletes
+   *       that fail, for example because the entity is still referenced, are retried in another
+   *       pass.
+   * </ol>
+   *
+   * @throws IllegalStateException if tracker data could not be deleted. All other entities are
+   *     still attempted to be deleted.
    */
   public void deleteCreatedEntities() {
-    Map<String, String> createdEntities = TestRunStorage.getCreatedEntities();
-    List<String> reverseOrderedKeys = new ArrayList<>(createdEntities.keySet());
-    Collections.reverse(reverseOrderedKeys);
+    IllegalStateException trackerCleanUpFailure = null;
+    boolean purgeSoftDeletedData;
+    try {
+      purgeSoftDeletedData = new TrackerCleanUp().deleteCreatedTrackerData();
+    } catch (IllegalStateException e) {
+      trackerCleanUpFailure = e;
+      purgeSoftDeletedData = true;
+    }
 
-    boolean deletedSoftDeletableData = false;
+    for (int pass = 0; pass < MAX_DELETE_PASSES; pass++) {
+      // purge at most once per pass and only if soft-deletable data was deleted, as it is a
+      // DB-wide sweep
+      if (purgeSoftDeletedData) {
+        new MaintenanceActions().removeSoftDeletedData();
+      }
 
-    for (String key : reverseOrderedKeys) {
-      String resource = createdEntities.get(key);
-      boolean deleted = deleteEntity(resource, key);
-      if (deleted) {
-        TestRunStorage.removeEntity(resource, key);
-        createdEntities.remove(key);
-        deletedSoftDeletableData |= requiresSoftDeleteMaintenance(resource);
+      Map<String, String> createdEntities = TestRunStorage.getCreatedEntities();
+      if (createdEntities.isEmpty()) {
+        break;
+      }
+
+      List<String> reverseOrderedKeys = new ArrayList<>(createdEntities.keySet());
+      Collections.reverse(reverseOrderedKeys);
+
+      purgeSoftDeletedData = false;
+      for (String key : reverseOrderedKeys) {
+        String resource = createdEntities.get(key);
+        if (deleteEntity(resource, key)) {
+          TestRunStorage.removeEntity(resource, key);
+          purgeSoftDeletedData |= isSoftDeletable(resource);
+        }
       }
     }
 
-    // Purge soft-deleted rows once per pass, and only if this pass actually deleted
-    // tracker/data-value data. This previously ran after every single entity deletion, adding a
-    // full DB-wide maintenance sweep per entity - even for pure-metadata cleanups that never
-    // produce soft-deleted rows.
-    if (deletedSoftDeletableData) {
-      new MaintenanceActions().removeSoftDeletedData();
-    }
-
-    while (deleteCount < 2 && !createdEntities.isEmpty()) {
-      deleteCount++;
-      deleteCreatedEntities();
-    }
-
     TestRunStorage.removeAllEntities();
+
+    if (trackerCleanUpFailure != null) {
+      throw trackerCleanUpFailure;
+    }
   }
 
-  private static boolean requiresSoftDeleteMaintenance(String resource) {
+  private static boolean isSoftDeletable(String resource) {
     if (resource == null) {
       return false;
     }
@@ -118,9 +131,21 @@ public class TestCleanUp {
    * @param resources I.E /organisationUnits to delete created OU's.
    */
   public void deleteCreatedEntities(String... resources) {
+    Map<String, String> trackerEntities = new LinkedHashMap<>();
+    for (String resource : resources) {
+      if (TrackerCleanUp.isTrackerResource(resource)) {
+        TestRunStorage.getCreatedEntities(resource)
+            .forEach(id -> trackerEntities.put(id, resource));
+      }
+    }
+    new TrackerCleanUp().deleteTrackerData(trackerEntities);
+
     new LoginActions().loginAsSuperUser();
 
     for (String resource : resources) {
+      if (TrackerCleanUp.isTrackerResource(resource)) {
+        continue;
+      }
       List<String> entityIds = TestRunStorage.getCreatedEntities(resource);
 
       Iterator<String> iterator = entityIds.iterator();
@@ -142,6 +167,11 @@ public class TestCleanUp {
   }
 
   public boolean deleteEntity(String resource, String id) {
+    if (TrackerCleanUp.isTrackerResource(resource)) {
+      // tracker objects cannot be deleted via DELETE /api/{resource}/{uid}
+      return new TrackerCleanUp().deleteTrackerData(Map.of(id, resource));
+    }
+
     ApiResponse response = new RestApiActions(resource).delete(id + "?force=true");
 
     if (response.statusCode() == 200 || response.statusCode() == 404) {
