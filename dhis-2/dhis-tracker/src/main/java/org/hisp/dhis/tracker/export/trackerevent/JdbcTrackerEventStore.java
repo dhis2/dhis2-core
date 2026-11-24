@@ -516,7 +516,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     addLeftJoinOnAssignedUser(sql);
     addJoinOnCategoryOptionCombo(sql, user);
     addAttributeJoins(sql, "left", params.getLeftJoinAttributes());
-    addWhereConditions(sql, sqlParams, params);
+    addWhereConditions(sql, sqlParams, params, user);
     return sql.toString();
   }
 
@@ -560,7 +560,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     addAttributeJoins(sql, "inner", params.getInnerJoinAttributes());
     addAttributeJoins(sql, "left", params.getNullFilteredAttributes());
     addJoinOnCategoryOptionCombo(sql, user);
-    addCountWhereConditions(sql, sqlParams, params, needsProgramAndTrackedEntityJoin);
+    addCountWhereConditions(sql, sqlParams, params, needsProgramAndTrackedEntityJoin, user);
 
     return sql.toString();
   }
@@ -569,7 +569,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       StringBuilder sql,
       MapSqlParameterSource sqlParams,
       TrackerEventQueryParams params,
-      boolean hasTrackedEntityJoin) {
+      boolean hasTrackedEntityJoin,
+      UserDetails user) {
     SqlHelper hlp = new SqlHelper(true);
     addDataElementConditions(sql, sqlParams, params, hlp);
     addAttributeFilterConditions(sql, sqlParams, params, hlp);
@@ -583,6 +584,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     addEnrollmentConditions(sql, sqlParams, params, hlp);
     addLastUpdatedConditions(sql, sqlParams, params, hlp);
     addCategoryOptionComboConditions(sql, sqlParams, params, hlp);
+    addEnrollmentAttributeOptionComboCondition(sql, user, hlp);
     addCountOrgUnitConditions(sql, sqlParams, params, hlp, hasTrackedEntityJoin);
     addOccurredDateConditions(sql, sqlParams, params, hlp);
     addEventStatusConditions(sql, sqlParams, params, hlp);
@@ -868,7 +870,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private void addWhereConditions(
-      StringBuilder sql, MapSqlParameterSource sqlParams, TrackerEventQueryParams params) {
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      TrackerEventQueryParams params,
+      UserDetails user) {
     SqlHelper hlp = new SqlHelper(true);
     addDataElementConditions(sql, sqlParams, params, hlp);
     addAttributeFilterConditions(sql, sqlParams, params, hlp);
@@ -878,6 +883,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     addEnrollmentConditions(sql, sqlParams, params, hlp);
     addLastUpdatedConditions(sql, sqlParams, params, hlp);
     addCategoryOptionComboConditions(sql, sqlParams, params, hlp);
+    addEnrollmentAttributeOptionComboCondition(sql, user, hlp);
     addOrgUnitConditions(sql, sqlParams, params, hlp);
     addOccurredDateConditions(sql, sqlParams, params, hlp);
     addEventStatusConditions(sql, sqlParams, params, hlp);
@@ -1040,6 +1046,26 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         sqlParams.addValue("lastUpdatedEnd", params.getUpdatedAtEndDate(), Types.TIMESTAMP);
         sql.append(hlp.whereAnd()).append(" ev.lastupdated <= ").append(":lastUpdatedEnd ");
       }
+    }
+  }
+
+  /**
+   * Restricts events to those whose enrollment has an attribute option combo readable by the
+   * current user, meaning the user has data read access to every one of its category options.
+   */
+  private void addEnrollmentAttributeOptionComboCondition(
+      StringBuilder sql, UserDetails user, SqlHelper hlp) {
+    if (isNotSuperUser(user)) {
+      sql.append(hlp.whereAnd())
+          .append(" en.attributeoptioncomboid not in (")
+          .append(
+              "select cocco.categoryoptioncomboid from categoryoptioncombos_categoryoptions cocco ")
+          .append("inner join categoryoption co on co.categoryoptionid = cocco.categoryoptionid ")
+          .append("where not coalesce((")
+          .append(
+              JpaQueryUtils.generateSQlQueryForSharingCheck(
+                  "co.sharing", user, AclService.LIKE_READ_DATA))
+          .append("), false)) ");
     }
   }
 

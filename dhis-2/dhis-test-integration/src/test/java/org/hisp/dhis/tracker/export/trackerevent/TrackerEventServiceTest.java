@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ_ONLY;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
@@ -52,7 +53,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -65,9 +69,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams.TrackerEventOperationParamsBuilder;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.RelationshipItem;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -721,6 +728,30 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
         dataElements(events.get(0)));
   }
 
+  @Test
+  void shouldReturnEventsWhenEnrollmentAttributeOptionComboAccessible()
+      throws ForbiddenException, BadRequestException {
+    addAttributeOptionComboToEnrollment("TvctPPhpD8z", READ_ONLY);
+    TrackerEventOperationParams params = operationParamsBuilder.programStage(programStage).build();
+
+    Page<TrackerEvent> page = trackerEventService.findEvents(params, PageParams.of(1, 10, true));
+
+    assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), uids(page.getItems()));
+    assertEquals(2L, page.getTotal());
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenEnrollmentAttributeOptionComboNotAccessible()
+      throws ForbiddenException, BadRequestException {
+    addAttributeOptionComboToEnrollment("TvctPPhpD8z", DEFAULT);
+    TrackerEventOperationParams params = operationParamsBuilder.programStage(programStage).build();
+
+    Page<TrackerEvent> page = trackerEventService.findEvents(params, PageParams.of(1, 10, true));
+
+    assertContainsOnly(List.of("pTzf9KYMk72"), uids(page.getItems()));
+    assertEquals(1L, page.getTotal());
+  }
+
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
     assertNotNull(
@@ -729,6 +760,39 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
             String.format(
                 "'%s' with uid '%s' should have been created", type.getSimpleName(), uid));
     return t;
+  }
+
+  /**
+   * Gives the enrollment a new attribute option combo whose only category option has the given
+   * public sharing, then switches to a non-superuser with capture access to {@code orgUnit}, since
+   * superusers skip the attribute option combo check.
+   */
+  private void addAttributeOptionComboToEnrollment(String enrollmentUid, String sharingAccess) {
+    injectSecurityContextUser(getAdminUser());
+
+    CategoryOption categoryOption = createCategoryOption('Z');
+    categoryOption.getSharing().setPublicAccess(sharingAccess);
+    manager.save(categoryOption, false);
+
+    Category category = createCategory('Z');
+    category.setCategoryOptions(List.of(categoryOption));
+    manager.save(category, false);
+
+    CategoryCombo categoryCombo = createCategoryCombo('Z');
+    categoryCombo.setCategories(List.of(category));
+    manager.save(categoryCombo, false);
+
+    CategoryOptionCombo attributeOptionCombo = createCategoryOptionCombo('Z');
+    attributeOptionCombo.setCategoryCombo(categoryCombo);
+    attributeOptionCombo.setCategoryOptions(Set.of(categoryOption));
+    manager.save(attributeOptionCombo, false);
+
+    Enrollment enrollment = get(Enrollment.class, enrollmentUid);
+    enrollment.setAttributeOptionCombo(attributeOptionCombo);
+    manager.update(enrollment);
+    manager.flush();
+
+    injectSecurityContextUser(createAndAddUser("enrollmentAocUser", orgUnit));
   }
 
   private List<String> getEvents(TrackerEventOperationParams params)
