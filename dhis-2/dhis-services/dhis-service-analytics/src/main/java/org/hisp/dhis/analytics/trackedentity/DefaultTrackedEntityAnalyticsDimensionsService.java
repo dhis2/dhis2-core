@@ -40,6 +40,7 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
@@ -73,7 +74,8 @@ class DefaultTrackedEntityAnalyticsDimensionsService
         programs = programService.getPrograms(programUids).stream();
       }
 
-      // Dimensions by programs defined on the given tracked entity type
+      // Dimensions by programs defined on the given tracked entity type. Categories are left out,
+      // as the tracked entity analytics tables have no category columns.
       return programs
           .filter(program -> isDefinedOnTrackedEntityType(program, trackedEntityTypeId))
           .map(
@@ -81,6 +83,7 @@ class DefaultTrackedEntityAnalyticsDimensionsService
                   enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId(
                       program.getUid()))
           .flatMap(List::stream)
+          .filter(dimension -> !(dimension.getItem() instanceof Category))
           .collect(toList());
     }
 

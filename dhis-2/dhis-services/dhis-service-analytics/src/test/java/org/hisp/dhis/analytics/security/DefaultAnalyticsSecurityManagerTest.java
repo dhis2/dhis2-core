@@ -32,20 +32,27 @@ package org.hisp.dhis.analytics.security;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.test.TestBase;
@@ -182,5 +189,74 @@ class DefaultAnalyticsSecurityManagerTest extends TestBase {
 
     assertEquals(1, constrainedOus.size());
     assertEquals(ouB.getUid(), constrainedOus.get(0).getUid());
+  }
+
+  @Test
+  void shouldApplyEnrollmentCategoryConstraintsInEnrollmentQuery() {
+    Category eventCategory = createCategory('A', createCategoryOption('A'));
+    CategoryOption enrollmentOption = createCategoryOption('E');
+    Category enrollmentCategory = createCategory('E', enrollmentOption);
+    Program program = programWithCategoryCombos(eventCategory, enrollmentCategory);
+
+    when(currentUser.isSuper()).thenReturn(false);
+    when(currentUser.getDimensionConstraints()).thenReturn(Set.of(eventCategory));
+    when(dimensionService.getCanReadDimensionItems(enrollmentCategory.getUid()))
+        .thenReturn(List.of(enrollmentOption));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withEndpointItem(EndpointItem.ENROLLMENT)
+            .withProgram(program)
+            .withOrganisationUnits(List.of(ouB))
+            .build();
+
+    EventQueryParams constrained = securityManager.withUserConstraints(params);
+
+    // The enrollment category is constrained, and marked as a constraint so that enrollments with
+    // the default attribute option combo pass it
+    assertEquals(
+        List.of(enrollmentOption),
+        constrained.getDimensionOrFilterItems(enrollmentCategory.getUid()));
+    assertTrue(constrained.isCategoryConstraintDimension(enrollmentCategory.getUid()));
+
+    // The user constraint on the event category is left out, as the enrollment table has no column
+    // for it
+    assertFalse(constrained.hasDimensionOrFilter(eventCategory.getUid()));
+  }
+
+  @Test
+  void shouldApplyEventCategoryConstraintsInEventQuery() {
+    CategoryOption eventOption = createCategoryOption('A');
+    Category eventCategory = createCategory('A', eventOption);
+    Category enrollmentCategory = createCategory('E', createCategoryOption('E'));
+    Program program = programWithCategoryCombos(eventCategory, enrollmentCategory);
+
+    when(currentUser.isSuper()).thenReturn(false);
+    when(dimensionService.getCanReadDimensionItems(eventCategory.getUid()))
+        .thenReturn(List.of(eventOption));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withProgram(program)
+            .withOrganisationUnits(List.of(ouB))
+            .build();
+
+    EventQueryParams constrained = securityManager.withUserConstraints(params);
+
+    assertEquals(
+        List.of(eventOption), constrained.getDimensionOrFilterItems(eventCategory.getUid()));
+    assertFalse(constrained.isCategoryConstraintDimension(eventCategory.getUid()));
+    assertFalse(constrained.hasDimensionOrFilter(enrollmentCategory.getUid()));
+  }
+
+  private Program programWithCategoryCombos(Category eventCategory, Category enrollmentCategory) {
+    eventCategory.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    enrollmentCategory.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+
+    Program program = createProgram('A');
+    program.setCategoryCombo(createCategoryCombo('A', eventCategory));
+    program.setEnrollmentCategoryCombo(createCategoryCombo('E', enrollmentCategory));
+    return program;
   }
 }

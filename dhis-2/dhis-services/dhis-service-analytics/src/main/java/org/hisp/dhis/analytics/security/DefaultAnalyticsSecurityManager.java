@@ -30,7 +30,9 @@
 package org.hisp.dhis.analytics.security;
 
 import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getConstrainedCategories;
+import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getConstrainedEnrollmentCategories;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.analytics.util.EnrollmentCategoryUtils.getEnrollmentCategoryUids;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.security.Authorities.F_VIEW_EVENT_ANALYTICS;
 import static org.hisp.dhis.security.Authorities.F_VIEW_UNAPPROVED_DATA;
@@ -56,6 +58,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -386,16 +389,37 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
         Stream.concat(params.getDimensions().stream(), params.getFilters().stream())
             .collect(Collectors.toList());
 
+    // Enrollment queries read the enrollment analytics table, whose category columns come from
+    // the enrollment category combo of the program.
+    boolean enrollmentQuery = isEnrollmentQuery(params);
+
     // Categories the user is constrained to.
-    List<Category> categories =
-        currentUser.isSuper()
-            ? List.of()
-            : getConstrainedCategories(params.getProgram(), dimensionalObjects);
+    List<Category> categories;
+
+    if (currentUser.isSuper()) {
+      categories = List.of();
+    } else if (enrollmentQuery) {
+      categories = getConstrainedEnrollmentCategories(params.getProgram(), dimensionalObjects);
+    } else {
+      categories = getConstrainedCategories(params.getProgram(), dimensionalObjects);
+    }
+
+    // User category constraints apply to enrollments only when the enrollment analytics table has
+    // a column for the category.
+    Set<String> enrollmentCategoryUids =
+        enrollmentQuery ? getEnrollmentCategoryUids(params.getProgram()) : Set.of();
+
+    Stream<DimensionalObject> userConstraints =
+        currentUser.getDimensionConstraints().stream()
+            .filter(
+                dim ->
+                    !enrollmentQuery
+                        || dim.getDimensionType() != DimensionType.CATEGORY
+                        || enrollmentCategoryUids.contains(dim.getDimension()));
 
     // Union of user and category constraints.
     Set<DimensionalObject> dimensionConstraints =
-        Stream.concat(currentUser.getDimensionConstraints().stream(), categories.stream())
-            .collect(Collectors.toSet());
+        Stream.concat(userConstraints, categories.stream()).collect(Collectors.toSet());
 
     if (dimensionConstraints.isEmpty()) // if no constraints
     {
@@ -438,11 +462,28 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
       builder.addFilter(constraint);
 
+      // Enrollments with the default attribute option combo have no value in the category
+      // columns, and must still pass a category constraint.
+      if (enrollmentQuery
+          && dimension.getDimensionType() == DimensionType.CATEGORY
+          && builder instanceof EventQueryParams.Builder eventBuilder) {
+        eventBuilder.addCategoryConstraintDimension(dimension.getDimension());
+      }
+
       log.debug(
           "User: '{}' constrained by dimension: '{}'",
           currentUser.getUsername(),
           constraint.getDimension());
     }
+  }
+
+  /**
+   * Whether the given params are for an enrollment query, which reads the enrollment analytics
+   * table.
+   */
+  private static boolean isEnrollmentQuery(DataQueryParams params) {
+    return params instanceof EventQueryParams eventParams
+        && eventParams.getEndpointItem() == EndpointItem.ENROLLMENT;
   }
 
   /**

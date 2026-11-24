@@ -35,7 +35,9 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.analytics.util.EnrollmentCategoryUtils.getEnrollmentCategoryUids;
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.getProgramIndicators;
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.withoutProgramStageItems;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
@@ -105,6 +107,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
@@ -438,7 +441,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     // ---------------------------------------------------------------------
-    // Categories and category option group sets (enrollments don't have attribute categories)
+    // Categories, category option group sets and program status. The
+    // enrollment table holds a column for each data dimension category of
+    // the enrollment category combo of the program, and has no program
+    // stage column.
     // ---------------------------------------------------------------------
 
     List<DimensionalObject> dynamicDimensions =
@@ -448,6 +454,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                 DimensionType.CATEGORY_OPTION_GROUP_SET,
                 DimensionType.PROGRAM_STATUS));
 
+    Set<String> enrollmentCategoryUids = getEnrollmentCategoryUids(params.getProgram());
+
     for (DimensionalObject dim : dynamicDimensions) {
       // PROGRAM_STATUS without items means group-by only — the column comes from the generic
       // dimension SELECT loop; there is no IN-list to filter on.
@@ -456,28 +464,40 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         continue;
       }
 
+      if (dim.getProgramStage() != null) {
+        throwIllegalQueryEx(ErrorCode.E7271, dim.getDimensionName());
+      }
+
       String dimName = dim.getDimensionName();
+      boolean piDisagDimension = params.isPiDisagDimension(dimName);
+      boolean enrollmentCategory =
+          type == DimensionType.CATEGORY
+              && !piDisagDimension
+              && enrollmentCategoryUids.contains(dimName);
+
+      // Skip attribute category filters without a column in the enrollment table, such as user
+      // category constraints on categories outside the enrollment category combo
+      if (type == DimensionType.CATEGORY
+          && !piDisagDimension
+          && !enrollmentCategory
+          && isAttributeCategory(dim)) {
+        continue;
+      }
+
       String col =
-          params.isPiDisagDimension(dimName)
+          piDisagDimension
               ? piDisagQueryGenerator.getColumnForWhereClause(params, dimName)
               : quoteAlias(dimName);
 
-      String condition =
-          "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";
+      String items = getQuotedCommaDelimitedString(getUids(dim.getItems()));
 
-      // For stage-specific categories/COGS, add program stage filter
-      if (dim.getProgramStage() != null) {
-        condition =
-            "and ("
-                + col
-                + " in ("
-                + getQuotedCommaDelimitedString(getUids(dim.getItems()))
-                + ") and ps = '"
-                + dim.getProgramStage().getUid()
-                + "') ";
+      // Enrollments with the default attribute option combo have null in the category columns,
+      // and pass category constraints of the user
+      if (enrollmentCategory && params.isCategoryConstraintDimension(dimName)) {
+        sql += "and (" + col + " in (" + items + ") or " + col + " is null) ";
+      } else {
+        sql += "and " + col + " in (" + items + ") ";
       }
-
-      sql += condition;
     }
 
     // ---------------------------------------------------------------------
@@ -673,18 +693,16 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   /**
-   * Is a category dimension an attribute category (rather than a disaggregation category)?
-   * Attribute categories are not included in enrollment tables, so category user dimension
-   * restrictions (which use attribute categories) do not apply.
+   * Is a category dimension an attribute category (rather than a disaggregation category)? The
+   * enrollment table only holds columns for the attribute categories of the enrollment category
+   * combo of the program, so filters on other attribute categories, such as category user dimension
+   * restrictions, do not apply.
    */
   static boolean isAttributeCategory(DimensionalObject categoryDim) {
     return !categoryDim.getItems().isEmpty()
-        && ((CategoryOption) categoryDim.getItems().get(0))
-                .getCategories()
-                .iterator()
-                .next()
-                .getDataDimensionType()
-            == ATTRIBUTE;
+        && categoryDim.getItems().get(0) instanceof CategoryOption option
+        && !option.getCategories().isEmpty()
+        && option.getCategories().iterator().next().getDataDimensionType() == ATTRIBUTE;
   }
 
   @Override

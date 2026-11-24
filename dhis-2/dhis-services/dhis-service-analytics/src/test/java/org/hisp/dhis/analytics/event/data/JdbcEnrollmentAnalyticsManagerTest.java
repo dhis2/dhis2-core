@@ -29,6 +29,10 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.test.TestBase.createCategory;
+import static org.hisp.dhis.test.TestBase.createCategoryCombo;
+import static org.hisp.dhis.test.TestBase.createCategoryOption;
+import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,6 +42,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.stream.Stream;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
@@ -45,20 +50,30 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -163,74 +178,28 @@ class JdbcEnrollmentAnalyticsManagerTest {
     assertEquals(" and  (level1 in ('OU1') or level2 in ('OU2')) ", condition);
   }
 
-  @Test
-  void testGetWhereClauseIncludesCategoryDimension() {
+  @ParameterizedTest
+  @MethodSource("dynamicDimensions")
+  void testGetWhereClauseIncludesDynamicDimension(DimensionalObject dimension, String expected) {
     // Arrange
     when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
     when(sqlBuilder.quoteAx(anyString()))
         .thenAnswer(invocation -> "ax." + invocation.getArgument(0, String.class));
 
-    DimensionalObject categoryDimension =
-        new BaseDimensionalObject(
-            "catUid001",
-            DimensionType.CATEGORY,
-            List.of(new BaseDimensionalItemObject("catOptUid1")));
-
-    EventQueryParams params =
-        new EventQueryParams.Builder().addDimension(categoryDimension).build();
+    EventQueryParams params = enrollmentQuery().addDimension(dimension).build();
 
     // Act
     String whereClause = jdbcEnrollmentAnalyticsManager.getWhereClause(params);
 
     // Assert
-    assertEquals("and ax.catUid001 in ('catOptUid1') ", whereClause);
+    assertEquals(expected, whereClause);
   }
 
-  @Test
-  void testGetWhereClauseIncludesCategoryOptionGroupSetDimension() {
-    // Arrange
-    when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
-    when(sqlBuilder.quoteAx(anyString()))
-        .thenAnswer(invocation -> "ax." + invocation.getArgument(0, String.class));
-
-    DimensionalObject cogsDimension =
-        new BaseDimensionalObject(
-            "cogsUid001",
-            DimensionType.CATEGORY_OPTION_GROUP_SET,
-            List.of(new BaseDimensionalItemObject("cogsOptUid1")));
-
-    EventQueryParams params = new EventQueryParams.Builder().addDimension(cogsDimension).build();
-
-    // Act
-    String whereClause = jdbcEnrollmentAnalyticsManager.getWhereClause(params);
-
-    // Assert
-    assertEquals("and ax.cogsUid001 in ('cogsOptUid1') ", whereClause);
-  }
-
-  @Test
-  void testGetWhereClauseIncludesProgramStatusDimensionWithItems() {
-    // Arrange
-    when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
-    when(sqlBuilder.quoteAx(anyString()))
-        .thenAnswer(invocation -> "ax." + invocation.getArgument(0, String.class));
-
-    DimensionalObject programStatusDimension =
-        new BaseDimensionalObject(
-            "programstatus",
-            DimensionType.PROGRAM_STATUS,
-            "enrollmentstatus",
-            "Program status",
-            List.of(new BaseDimensionalItemObject("ACTIVE")));
-
-    EventQueryParams params =
-        new EventQueryParams.Builder().addDimension(programStatusDimension).build();
-
-    // Act
-    String whereClause = jdbcEnrollmentAnalyticsManager.getWhereClause(params);
-
-    // Assert
-    assertEquals("and ax.enrollmentstatus in ('ACTIVE') ", whereClause);
+  static Stream<Arguments> dynamicDimensions() {
+    return Stream.of(
+        Arguments.of(
+            categoryDimension(ENROLLMENT_CATEGORY), "and ax.enrCatUid01 in ('enrOptUid1') "),
+        Arguments.of(programStatusDimension("ACTIVE"), "and ax.enrollmentstatus in ('ACTIVE') "));
   }
 
   @Test
@@ -239,55 +208,79 @@ class JdbcEnrollmentAnalyticsManagerTest {
     // contribute an IN-list filter to the where clause.
     when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
 
-    DimensionalObject programStatusDimension =
-        new BaseDimensionalObject(
-            "programstatus",
-            DimensionType.PROGRAM_STATUS,
-            "enrollmentstatus",
-            "Program status",
-            List.of());
-
-    EventQueryParams params =
-        new EventQueryParams.Builder().addDimension(programStatusDimension).build();
+    EventQueryParams params = enrollmentQuery().addDimension(programStatusDimension()).build();
 
     // Act
     String whereClause = jdbcEnrollmentAnalyticsManager.getWhereClause(params);
 
     // Assert
     assertEquals("", whereClause);
-    assertFalse(whereClause.contains("enrollmentstatus"));
   }
 
   @Test
-  void testGetWhereClauseAddsProgramStageConditionForStageScopedDimension() {
-    // Arrange: when a category/COGS dimension is scoped to a specific program stage, the IN-list
-    // condition must be combined with a "ps = '<stageUid>'" condition.
+  void testGetWhereClauseLetsDefaultAttributeOptionComboPassCategoryConstraint() {
+    // Arrange: a user category constraint must not hide enrollments with the default attribute
+    // option combo, which have null in the category columns.
     when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
     when(sqlBuilder.quoteAx(anyString()))
         .thenAnswer(invocation -> "ax." + invocation.getArgument(0, String.class));
 
-    ProgramStage stage = createProgramStage('A', 0);
-
-    BaseDimensionalObject stageCategoryDimension =
-        new BaseDimensionalObject(
-            "catUid002",
-            DimensionType.CATEGORY,
-            List.of(new BaseDimensionalItemObject("catOptUid2")));
-    stageCategoryDimension.setProgramStage(stage);
-
     EventQueryParams params =
-        new EventQueryParams.Builder().addDimension(stageCategoryDimension).build();
+        enrollmentQuery()
+            .addFilter(categoryDimension(ENROLLMENT_CATEGORY))
+            .addCategoryConstraintDimension(ENROLLMENT_CATEGORY.getUid())
+            .build();
 
     // Act
     String whereClause = jdbcEnrollmentAnalyticsManager.getWhereClause(params);
 
     // Assert
-    assertEquals(
-        "and (ax.catUid002 in ('catOptUid2') and ps = '" + stage.getUid() + "') ", whereClause);
+    assertEquals("and (ax.enrCatUid01 in ('enrOptUid1') or ax.enrCatUid01 is null) ", whereClause);
   }
 
   @Test
-  void testGetWhereClauseOnlyProcessesCategoryCogsAndProgramStatusAsDynamicDimensions() {
+  void testGetWhereClauseSkipsAttributeCategoryWithoutEnrollmentColumn() {
+    // Arrange: the category belongs to the event category combo of the program, so the enrollment
+    // table has no column for it, as for a user category constraint on such a category.
+    when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
+
+    EventQueryParams params =
+        enrollmentQuery()
+            .addFilter(categoryDimension(EVENT_CATEGORY))
+            .addCategoryConstraintDimension(EVENT_CATEGORY.getUid())
+            .build();
+
+    // Act
+    String whereClause = jdbcEnrollmentAnalyticsManager.getWhereClause(params);
+
+    // Assert
+    assertEquals("", whereClause);
+  }
+
+  @Test
+  void testGetWhereClauseRejectsStageScopedCategory() {
+    // Arrange: the enrollment table has no program stage column, so a category scoped to a
+    // program stage cannot be applied.
+    when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
+
+    ProgramStage stage = createProgramStage('A', 0);
+    BaseDimensionalObject stageCategoryDimension = categoryDimension(ENROLLMENT_CATEGORY);
+    stageCategoryDimension.setProgramStage(stage);
+
+    EventQueryParams params = enrollmentQuery().addDimension(stageCategoryDimension).build();
+
+    // Act
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> jdbcEnrollmentAnalyticsManager.getWhereClause(params));
+
+    // Assert
+    assertEquals(ErrorCode.E7271, ex.getErrorCode());
+  }
+
+  @Test
+  void testGetWhereClauseOnlyProcessesCategoryAndProgramStatusAsDynamicDimensions() {
     // Arrange: dimensions of types other than CATEGORY, CATEGORY_OPTION_GROUP_SET and
     // PROGRAM_STATUS must not be picked up by this part of the where clause, even when combined
     // with dimensions of the types that are.
@@ -295,23 +288,6 @@ class JdbcEnrollmentAnalyticsManagerTest {
     when(sqlBuilder.quoteAx(anyString()))
         .thenAnswer(invocation -> "ax." + invocation.getArgument(0, String.class));
 
-    DimensionalObject categoryDimension =
-        new BaseDimensionalObject(
-            "catUid001",
-            DimensionType.CATEGORY,
-            List.of(new BaseDimensionalItemObject("catOptUid1")));
-    DimensionalObject cogsDimension =
-        new BaseDimensionalObject(
-            "cogsUid001",
-            DimensionType.CATEGORY_OPTION_GROUP_SET,
-            List.of(new BaseDimensionalItemObject("cogsOptUid1")));
-    DimensionalObject programStatusDimension =
-        new BaseDimensionalObject(
-            "programstatus",
-            DimensionType.PROGRAM_STATUS,
-            "enrollmentstatus",
-            "Program status",
-            List.of(new BaseDimensionalItemObject("ACTIVE")));
     // Not part of the CATEGORY / CATEGORY_OPTION_GROUP_SET / PROGRAM_STATUS set, and not handled
     // anywhere else in getWhereClause, so it must be silently ignored.
     DimensionalObject unrelatedDimension =
@@ -321,10 +297,9 @@ class JdbcEnrollmentAnalyticsManagerTest {
             List.of(new BaseDimensionalItemObject("degsOptUid1")));
 
     EventQueryParams params =
-        new EventQueryParams.Builder()
-            .addDimension(categoryDimension)
-            .addDimension(cogsDimension)
-            .addDimension(programStatusDimension)
+        enrollmentQuery()
+            .addDimension(categoryDimension(ENROLLMENT_CATEGORY))
+            .addDimension(programStatusDimension("ACTIVE"))
             .addDimension(unrelatedDimension)
             .build();
 
@@ -333,10 +308,50 @@ class JdbcEnrollmentAnalyticsManagerTest {
 
     // Assert
     assertEquals(
-        "and ax.catUid001 in ('catOptUid1') "
-            + "and ax.cogsUid001 in ('cogsOptUid1') "
-            + "and ax.enrollmentstatus in ('ACTIVE') ",
-        whereClause);
+        "and ax.enrCatUid01 in ('enrOptUid1') and ax.enrollmentstatus in ('ACTIVE') ", whereClause);
     assertFalse(whereClause.contains("degsUid001"));
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /** Attribute category of the enrollment category combo of the program. */
+  private static final Category ENROLLMENT_CATEGORY =
+      attributeCategory("enrCatUid01", createCategoryOption("Enrollment option", "enrOptUid1"));
+
+  /** Attribute category of the (event) category combo of the program. */
+  private static final Category EVENT_CATEGORY =
+      attributeCategory("evtCatUid01", createCategoryOption("Event option", "evtOptUid1"));
+
+  private static Category attributeCategory(String uid, CategoryOption option) {
+    Category category = createCategory("Category " + uid, uid, option);
+    category.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    option.getCategories().add(category);
+    return category;
+  }
+
+  private static EventQueryParams.Builder enrollmentQuery() {
+    Program program = createProgram('A');
+    program.setCategoryCombo(createCategoryCombo('A', EVENT_CATEGORY));
+    program.setEnrollmentCategoryCombo(createCategoryCombo('B', ENROLLMENT_CATEGORY));
+
+    return new EventQueryParams.Builder()
+        .withEndpointItem(EndpointItem.ENROLLMENT)
+        .withProgram(program);
+  }
+
+  private static BaseDimensionalObject categoryDimension(Category category) {
+    return new BaseDimensionalObject(
+        category.getUid(), DimensionType.CATEGORY, List.copyOf(category.getCategoryOptions()));
+  }
+
+  private static DimensionalObject programStatusDimension(String... statuses) {
+    return new BaseDimensionalObject(
+        "programstatus",
+        DimensionType.PROGRAM_STATUS,
+        "enrollmentstatus",
+        "Program status",
+        Stream.of(statuses).<DimensionalItemObject>map(BaseDimensionalItemObject::new).toList());
   }
 }

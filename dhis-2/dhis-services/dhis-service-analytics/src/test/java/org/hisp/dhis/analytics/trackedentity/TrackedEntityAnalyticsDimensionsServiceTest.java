@@ -32,16 +32,26 @@ package org.hisp.dhis.analytics.trackedentity;
 import static java.util.Collections.emptySet;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.trackedEntityType;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.queryDisallowedValueTypesPredicate;
+import static org.hisp.dhis.test.TestBase.createCategory;
+import static org.hisp.dhis.test.TestBase.createCategoryOption;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
+import java.util.List;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,11 +66,39 @@ class TrackedEntityAnalyticsDimensionsServiceTest {
 
   @Mock private ProgramService programService;
 
+  @Mock private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
+
   @InjectMocks private DefaultTrackedEntityAnalyticsDimensionsService service;
 
   @BeforeEach
   void setup() {
     when(trackedEntityTypeService.getTrackedEntityType(any())).thenReturn(trackedEntityType());
+  }
+
+  @Test
+  void testQueryDoesNotContainCategories() {
+    TrackedEntityType trackedEntityType = trackedEntityType();
+    trackedEntityType.setUid("aTeTypeUid");
+    when(trackedEntityTypeService.getTrackedEntityType(any())).thenReturn(trackedEntityType);
+
+    Program program = createProgram('A');
+    program.setTrackedEntityType(trackedEntityType);
+    when(programService.getAllPrograms()).thenReturn(List.of(program));
+
+    Category category = createCategory('A', createCategoryOption('A'));
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
+    when(enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId(program.getUid()))
+        .thenReturn(
+            List.of(
+                PrefixedDimension.builder().program(program).item(category).build(),
+                PrefixedDimension.builder().program(program).item(attribute).build()));
+
+    List<IdentifiableObject> analyticsDimensions =
+        service.getQueryDimensionsByTrackedEntityTypeId("aTeTypeUid", emptySet()).stream()
+            .map(PrefixedDimension::getItem)
+            .toList();
+
+    assertEquals(List.of(attribute), analyticsDimensions);
   }
 
   @Test
