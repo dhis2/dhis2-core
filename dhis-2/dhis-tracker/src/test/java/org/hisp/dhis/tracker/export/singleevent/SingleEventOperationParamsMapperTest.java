@@ -37,7 +37,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.security.Authorities.F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
@@ -145,9 +145,7 @@ class SingleEventOperationParamsMapperTest {
 
     eventBuilder = SingleEventOperationParams.builderForProgram(UID.of("iS7eutanDry"));
 
-    userMap.put(
-        "admin",
-        createUserWithAuthority(F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP));
+    userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
   }
 
@@ -379,8 +377,7 @@ class SingleEventOperationParamsMapperTest {
     user.setOrganisationUnits(Set.of(createOrganisationUnit('C')));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
     UserRole userRole = new UserRole();
-    userRole.setAuthorities(
-        Set.of(F_TRACKER_READ_ALL_ORG_UNITS_OVERRIDING_SCOPE_AND_OWNERSHIP.name()));
+    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
 
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
