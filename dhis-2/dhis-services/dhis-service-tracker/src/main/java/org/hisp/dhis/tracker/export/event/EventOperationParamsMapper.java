@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Collections.emptyList;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAttributeIsAllowed;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 
@@ -55,6 +56,8 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
@@ -86,6 +89,8 @@ class EventOperationParamsMapper {
 
   private final TrackerProgramService trackerProgramService;
 
+  private final TrackedEntityTypeService trackedEntityTypeService;
+
   @Transactional(readOnly = true)
   public EventQueryParams map(
       @Nonnull EventOperationParams operationParams, @Nonnull UserDetails user)
@@ -114,8 +119,8 @@ class EventOperationParamsMapper {
     EventQueryParams queryParams = new EventQueryParams();
 
     mapDataElementFilters(queryParams, operationParams.getDataElementFilters());
-    mapAttributeFilters(queryParams, operationParams.getAttributeFilters());
-    mapOrderParam(queryParams, operationParams.getOrder());
+    mapAttributeFilters(queryParams, operationParams.getAttributeFilters(), program, user);
+    mapOrderParam(queryParams, operationParams.getOrder(), program, user);
 
     List<Program> accessiblePrograms = getPrograms(program);
 
@@ -253,7 +258,10 @@ class EventOperationParamsMapper {
   }
 
   private void mapAttributeFilters(
-      EventQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
+      EventQueryParams params,
+      Map<UID, List<QueryFilter>> attributeFilters,
+      Program program,
+      UserDetails user)
       throws BadRequestException {
     for (Map.Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
       TrackedEntityAttribute tea =
@@ -266,6 +274,8 @@ class EventOperationParamsMapper {
                 attributeFilter.getKey()));
       }
 
+      validateEventAttributeIsAllowed(tea, "filter", program, user);
+
       if (attributeFilter.getValue().isEmpty()) {
         params.filterBy(tea);
       }
@@ -276,7 +286,26 @@ class EventOperationParamsMapper {
     }
   }
 
-  private void mapOrderParam(EventQueryParams params, List<Order> orders)
+  /**
+   * Events can only be filtered or ordered by attributes of the requested program or its tracked
+   * entity type or, if no program is requested, of a tracked entity type the user can read. This
+   * stops the user from inferring attribute values of programs they cannot read.
+   */
+  private void validateEventAttributeIsAllowed(
+      TrackedEntityAttribute tea, String usage, Program program, UserDetails user)
+      throws BadRequestException {
+    List<TrackedEntityType> readableTrackedEntityTypes =
+        program == null
+            ? trackedEntityTypeService.getAllTrackedEntityType().stream()
+                .filter(tet -> aclService.canDataRead(user, tet))
+                .toList()
+            : List.of();
+
+    validateAttributeIsAllowed(tea, usage, program, null, readableTrackedEntityTypes);
+  }
+
+  private void mapOrderParam(
+      EventQueryParams params, List<Order> orders, Program program, UserDetails user)
       throws BadRequestException {
     if (orders == null || orders.isEmpty()) {
       return;
@@ -301,6 +330,7 @@ class EventOperationParamsMapper {
                   + "' as its neither a data element nor a tracked entity attribute. Events can be"
                   + " ordered by event fields, data elements and tracked entity attributes.");
         }
+        validateEventAttributeIsAllowed(tea, "order by", program, user);
 
         params.orderBy(tea, order.getDirection());
       } else {

@@ -85,6 +85,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -262,6 +263,23 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertHasMember(dataValue, "createdAt");
     assertHasMember(dataValue, "updatedAt");
     assertHasMember(dataValue, "storedBy");
+  }
+
+  @Test
+  void shouldFailWhenFilteringByAttributeOfAnotherProgram() {
+    TrackedEntityAttribute otherProgramAttribute = otherProgramAttribute();
+    switchContextToUser(user);
+
+    assertStartsWith(
+        "Tracked entity attribute '"
+            + otherProgramAttribute.getUid()
+            + "' cannot be used to filter",
+        GET(
+                "/tracker/events?program={program}&filterAttributes={attribute}:eq:foo",
+                program.getUid(),
+                otherProgramAttribute.getUid())
+            .error(BAD_REQUEST)
+            .getMessage());
   }
 
   @Test
@@ -1093,5 +1111,17 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertHasMember(json, "attributeOptionCombo");
     assertHasMember(json, "attributeCategoryOptions");
     assertHasNoMember(json, "relationships");
+  }
+
+  private TrackedEntityAttribute otherProgramAttribute() {
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('O');
+    manager.save(attribute, false);
+    Program otherProgram = createProgram('O');
+    otherProgram.setTrackedEntityType(trackedEntityType);
+    otherProgram
+        .getProgramAttributes()
+        .add(createProgramTrackedEntityAttribute(otherProgram, attribute));
+    manager.save(otherProgram, false);
+    return attribute;
   }
 }

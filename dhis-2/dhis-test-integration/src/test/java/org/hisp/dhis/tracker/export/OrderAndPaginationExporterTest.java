@@ -495,7 +495,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
             .program(UID.of("BFcipDERJnf"))
-            .orderBy(UID.of("toDelete000"), SortDirection.ASC)
+            .orderBy(UID.of("fRGt4l6yIRb"), SortDirection.ASC)
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -582,15 +582,15 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .trackedEntityType(trackedEntityType)
             .trackedEntities(
                 UID.of(
-                    "dUE514NMOlo", "QS6w44flWAf")) // TE QS6w44flWAf without attribute notUpdated0
-            .orderBy(UID.of("notUpdated0"), SortDirection.DESC)
+                    "dUE514NMOlo", "QS6w44flWAf")) // TE QS6w44flWAf without attribute dIVt4l5vIOa
+            .orderBy(UID.of("dIVt4l5vIOa"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
 
     // https://www.postgresql.org/docs/current/queries-order.html
     // By default, null values sort as if larger than any non-null value
-    // => TE QS6w44flWAf without attribute notUpdated0 will come first when DESC
+    // => TE QS6w44flWAf without attribute dIVt4l5vIOa will come first when DESC
     assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
   }
 
@@ -603,7 +603,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
-            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .program(UID.of("BFcipDERJnf"))
+            .orderBy(UID.of("fRGt4l6yIRb"), SortDirection.DESC)
             .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
@@ -621,7 +622,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
-            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .program(UID.of("BFcipDERJnf"))
+            .orderBy(UID.of("fRGt4l6yIRb"), SortDirection.DESC)
             .orderBy(UID.of("integerAttr"), SortDirection.DESC)
             .build();
 
@@ -1007,8 +1009,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
                 UID.of(
                     "pTzf9KYMk72",
                     "D9PbzJY8bJM")) // EV pTzf9KYMk72 => TE QS6w44flWAf without attribute
-            // notUpdated0
-            .orderBy(UID.of("notUpdated0"), SortDirection.ASC)
+            // dIVt4l5vIOa
+            .orderBy(UID.of("dIVt4l5vIOa"), SortDirection.ASC)
             .build();
 
     List<String> events = getEvents(params);
@@ -1021,7 +1023,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnit(orgUnit)
-            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .program(UID.of("BFcipDERJnf"))
+            .orderBy(UID.of("fRGt4l6yIRb"), SortDirection.DESC)
             .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
 
@@ -1035,7 +1038,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnit(orgUnit)
-            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .program(UID.of("BFcipDERJnf"))
+            .orderBy(UID.of("fRGt4l6yIRb"), SortDirection.DESC)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
@@ -1053,7 +1057,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams operationParams =
         eventParamsBuilder
             .orgUnit(orgUnit)
-            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .program(UID.of("BFcipDERJnf"))
+            .orderBy(UID.of("fRGt4l6yIRb"), SortDirection.DESC)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
@@ -1313,7 +1318,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
                 UID.of(
                     "pTzf9KYMk72", // EV pTzf9KYMk72 without data element DATAEL00002
                     "D9PbzJY8bJM"))
-            // notUpdated0
+            // dIVt4l5vIOa
             .orderBy(UID.of("DATAEL00002"), SortDirection.DESC)
             .build();
 
