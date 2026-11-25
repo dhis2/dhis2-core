@@ -175,4 +175,12 @@ public interface JobSchedulerLoopService {
    * @return number of jobs that were cancelled as a result (which had not been cancelled before)
    */
   int applyCancellation();
+
+  /**
+   * Applies revert transition to all jobs currently stored as {@link JobStatus#RUNNING} in the DB.
+   * When this is called no jobs do run on this node so the affected rows must be stale and
+   * outdated. The signal to do this is coming from the {@link JobScheduler} so it happens at the
+   * right time relative to running the scheduling loop.
+   */
+  void rescheduleStaleRunning();
 }

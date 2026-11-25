@@ -43,6 +43,11 @@ public interface LeaderManager {
   void electLeader(int ttlSeconds);
 
   /**
+   * @return true, if running in a cluster environment with multiple nodes, false otherwise.
+   */
+  boolean isClustered();
+
+  /**
    * Check if the current instance is the leader.
    *
    * @return true if this instance is the leader, false otherwise.

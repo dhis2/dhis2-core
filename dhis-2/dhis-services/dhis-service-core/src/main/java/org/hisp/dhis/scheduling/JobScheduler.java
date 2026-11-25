@@ -32,6 +32,7 @@ package org.hisp.dhis.scheduling;
 import static java.lang.System.currentTimeMillis;
 import static java.util.stream.Collectors.groupingBy;
 
+import jakarta.annotation.PreDestroy;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -44,6 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -97,15 +99,43 @@ public class JobScheduler implements Runnable, JobRunner {
   private final JobService jobService;
   private final JobSchedulerLoopService service;
   private final SystemSettingsService settingsProvider;
-  private final ExecutorService workers = Executors.newCachedThreadPool();
+  private final ExecutorService workers =
+      Executors.newCachedThreadPool(
+          r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(true);
+            return t;
+          });
   private final Map<JobType, Queue<UID>> continuousJobsByType = new ConcurrentHashMap<>();
 
+  private volatile boolean shuttingDown = false;
+  private ScheduledExecutorService scheduler;
+
   public void start() {
+    service.rescheduleStaleRunning();
     long loopTimeMs = LOOP_SECONDS * 1000L;
     long alignment = loopTimeMs - (currentTimeMillis() % loopTimeMs);
-    Executors.newSingleThreadScheduledExecutor()
-        .scheduleAtFixedRate(this, alignment, loopTimeMs, TimeUnit.MILLISECONDS);
+    scheduler = Executors.newSingleThreadScheduledExecutor();
+    scheduler.scheduleAtFixedRate(this, alignment, loopTimeMs, TimeUnit.MILLISECONDS);
     scheduling.set(true);
+  }
+
+  @PreDestroy
+  public void stop() {
+    shuttingDown = true;
+    scheduling.set(false);
+    if (scheduler != null) scheduler.shutdownNow();
+    workers.shutdownNow(); // interrupts every worker
+
+    try {
+      if (!workers.awaitTermination(30, TimeUnit.SECONDS)) {
+        log.warn(
+            "Job workers did not stop within 30s; jobs still RUNNING "
+                + "will be cleaned up by rescheduleStaleRunning on next boot");
+      }
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+    }
   }
 
   @Override
@@ -120,9 +150,11 @@ public class JobScheduler implements Runnable, JobRunner {
    */
   @Override
   public void run() {
+    if (shuttingDown) return;
     try {
       Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS).plusSeconds(1);
       if (service.tryBecomeLeader(TTL_SECONDS)) {
+        if (shuttingDown) return; // DB call above may have taken a while
         service.assureAsLeader(TTL_SECONDS);
         Map<JobType, List<JobEntry>> readyByType =
             service.getDueJobConfigurations(LOOP_SECONDS).stream()
@@ -180,7 +212,7 @@ public class JobScheduler implements Runnable, JobRunner {
     try {
       Queue<UID> jobIds = continuousJobsByType.get(type);
       UID jobId = jobIds.poll();
-      while (jobId != null) {
+      while (jobId != null && !shuttingDown && !Thread.currentThread().isInterrupted()) {
         JobEntry config = service.getJobConfiguration(jobId);
         // job still exists and is still ready...
         if (config != null && (config.status() == JobStatus.SCHEDULED)) {
@@ -198,6 +230,7 @@ public class JobScheduler implements Runnable, JobRunner {
   }
 
   private void runIfDue(Instant now, JobEntry config) {
+    if (shuttingDown) return;
     Instant dueTime = dueTime(now, config);
     if (dueTime != null) {
       workers.submit(() -> runDueJob(config, dueTime));
@@ -219,7 +252,7 @@ public class JobScheduler implements Runnable, JobRunner {
   /** This is executed on a worker thread. The start time is the desired time to run. */
   private void runDueJob(JobEntry config, Instant start) {
     UID jobId = config.id();
-    if (!service.tryRun(jobId)) {
+    if (shuttingDown || !service.tryRun(jobId)) {
       log.error(
           "Could not start job {} although it should run {}",
           jobId,
@@ -250,7 +283,7 @@ public class JobScheduler implements Runnable, JobRunner {
       if (progress != null) progress.failedProcess(ex);
       service.finishRunFail(jobId, ex);
     } finally {
-      if (service.finishRunSuccess(jobId) && config.isUsedInQueue()) {
+      if (service.finishRunSuccess(jobId) && !shuttingDown && config.isUsedInQueue()) {
         JobEntry next = service.getNextInQueue(config.queueName(), config.queuePosition());
         if (next != null)
           runDueJob(next, start); // this is a tail recursion but job queues are not very long

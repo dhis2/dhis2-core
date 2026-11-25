@@ -37,6 +37,7 @@ import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.stream.Stream;
@@ -394,7 +395,7 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  public boolean tryStart(@Nonnull UID jobId) {
+  public boolean tryStart(@Nonnull UID jobId, UUID nodeId) {
     // only flip from SCHEDULED to RUNNING if no other job of same type is RUNNING
     String sql =
         """
@@ -402,6 +403,7 @@ public class HibernateJobConfigurationStore
         set
           lastupdated = now(),
           jobstatus = 'RUNNING',
+          nodeid = :node,
           lastexecuted = now(),
           lastalive = now(),
           progress = null,
@@ -420,6 +422,7 @@ public class HibernateJobConfigurationStore
             q ->
                 nativeSynchronizedQuery(q, sql)
                     .setParameter("id", jobId.getValue())
+                    .setParameter("node", nodeId)
                     .executeUpdate())
         > 0;
   }
@@ -476,6 +479,7 @@ public class HibernateJobConfigurationStore
             when enabled = false
               or (queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null) then 'DISABLED'
             else 'SCHEDULED' end,
+          nodeid = null,
           schedulingtype = case
             when cronexpression is not null then 'CRON'
             when delay is not null then 'FIXED_DELAY'
@@ -602,6 +606,7 @@ public class HibernateJobConfigurationStore
             when enabled = false
               or (queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null) then 'DISABLED'
             else 'SCHEDULED' end,
+          nodeid = null,
           enabled = cronexpression is not null or delay is not null or queueposition is not null,
           cancel = false,
           lastexecutedstatus = 'FAILED',
@@ -626,6 +631,39 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
+  public int rescheduleStaleRunning(@CheckForNull UUID nodeId, boolean clustered) {
+    String sql =
+        """
+        update jobconfiguration
+        set
+          lastupdated = now(),
+          jobstatus = case
+            when enabled = false
+              or (queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null) then 'DISABLED'
+            else 'SCHEDULED' end,
+          nodeid = null,
+          enabled = cronexpression is not null or delay is not null or queueposition is not null,
+          cancel = false,
+          lastexecutedstatus = 'FAILED',
+          lastfinished = now(),
+          lastalive = null,
+          schedulingtype = case
+            when cronexpression is not null then 'CRON'
+            when delay is not null then 'FIXED_DELAY'
+            when queueposition is not null then 'CRON'
+            else schedulingtype end
+        where jobstatus = 'RUNNING'
+        and not :clustered or (:node is not null and nodeid = :node)
+      """;
+    return runWriteInStatelessSession(
+        q ->
+            nativeSynchronizedQuery(q, sql)
+                .setParameter("node", nodeId)
+                .setParameter("clustered", clustered)
+                .executeUpdate());
+  }
+
+  @Override
   public boolean tryRevertNow(@Nonnull UID jobId) {
     String sql =
         """
@@ -636,6 +674,7 @@ public class HibernateJobConfigurationStore
             when enabled = false
               or (queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null) then 'DISABLED'
             else 'SCHEDULED' end,
+          nodeid = null,
           enabled = cronexpression is not null or delay is not null or queueposition is not null,
           cancel = false,
           lastexecutedstatus = 'FAILED',
