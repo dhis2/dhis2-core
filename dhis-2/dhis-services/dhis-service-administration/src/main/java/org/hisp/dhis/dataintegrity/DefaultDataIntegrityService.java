@@ -197,11 +197,11 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   @Nonnull
   @Override
   public Set<String> getCompletedSummaryChecks(@CheckForNull Duration maxAge) {
-    Predicate<DataIntegritySummary> finishedWithin = finishedWithin(maxAge);
+    Predicate<DataIntegritySummary> recent = finishedWithinLast(maxAge);
     // copy the keys first, because reading can remove an unreadable entry
     List<String> names = stream(summaryCache.keys().spliterator(), false).toList();
     return names.stream()
-        .filter(name -> readCached(summaryCache, name).filter(finishedWithin).isPresent())
+        .filter(name -> readCached(summaryCache, name).filter(recent).isPresent())
         .collect(toUnmodifiableSet());
   }
 
@@ -678,14 +678,14 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   @Override
   public Map<String, DataIntegritySummary> getSummaries(
       @Nonnull Set<String> checks, long timeout, @CheckForNull Duration maxAge) {
-    return getCached(checks, timeout, summaryCache, finishedWithin(maxAge));
+    return getCached(checks, timeout, summaryCache, finishedWithinLast(maxAge));
   }
 
   /**
    * @param maxAge maximum age of a result, or {@code null} for any age
-   * @return a filter that accepts summaries that finished within {@code maxAge} from now
+   * @return a filter that accepts summaries that finished within the last {@code maxAge}
    */
-  private static Predicate<DataIntegritySummary> finishedWithin(@CheckForNull Duration maxAge) {
+  private static Predicate<DataIntegritySummary> finishedWithinLast(@CheckForNull Duration maxAge) {
     if (maxAge == null) {
       return summary -> true;
     }
