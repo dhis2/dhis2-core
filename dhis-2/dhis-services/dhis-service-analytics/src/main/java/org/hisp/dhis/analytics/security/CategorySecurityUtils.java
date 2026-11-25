@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.analytics.security;
 
-import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.util.EnrollmentCategoryUtils.getEnrollmentCategories;
@@ -87,7 +86,7 @@ public class CategorySecurityUtils {
          * constraints.
          */
         .filter(category -> !matchDimensionsForCategory(category, dimensionalObjects))
-        .collect(toList());
+        .toList();
   }
 
   /**
@@ -104,7 +103,7 @@ public class CategorySecurityUtils {
       Program program, List<DimensionalObject> dimensionalObjects) {
     return getEnrollmentCategories(program).stream()
         .filter(category -> !matchDimensionsForCategory(category, dimensionalObjects))
-        .collect(toList());
+        .toList();
   }
 
   /**
