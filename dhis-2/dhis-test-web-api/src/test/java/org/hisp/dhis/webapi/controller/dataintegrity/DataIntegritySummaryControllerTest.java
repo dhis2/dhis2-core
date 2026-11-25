@@ -203,4 +203,11 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
     assertStatus(
         HttpStatus.BAD_REQUEST, GET("/dataIntegrity/categories-no-options/summary?maxAge=-1"));
   }
+
+  @Test
+  void testGetCompletedSummaryChecks_RequiresMaintenanceAuthority() {
+    switchToNewUser("no-maintenance", "F_DATAELEMENT_PUBLIC_ADD");
+    assertStatus(HttpStatus.FORBIDDEN, GET("/dataIntegrity/summary/completed"));
+    assertStatus(HttpStatus.FORBIDDEN, GET("/dataIntegrity/summary"));
+  }
 }

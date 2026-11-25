@@ -145,6 +145,7 @@ public class DataIntegrityController {
     return dataIntegrityService.getRunningSummaryChecks();
   }
 
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @GetMapping("/summary/completed")
   @ResponseBody
   public Set<String> getCompletedSummaryChecks(

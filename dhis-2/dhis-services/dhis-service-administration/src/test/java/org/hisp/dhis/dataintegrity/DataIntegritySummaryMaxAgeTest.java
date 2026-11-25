@@ -30,11 +30,14 @@
 package org.hisp.dhis.dataintegrity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.external.location.DefaultLocationManager;
@@ -44,6 +47,9 @@ import org.hisp.dhis.test.cache.TestCache;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -72,7 +78,19 @@ class DataIntegritySummaryMaxAgeTest {
 
   @InjectMocks private DefaultDataIntegrityService service;
 
-  private final Cache<DataIntegritySummary> summaryCache = new TestCache<>();
+  private static final String UNREADABLE = "category_options_default_incorrect_sharing";
+
+  /** Behaves like a Redis cache with an entry that cannot be deserialized. */
+  private final Cache<DataIntegritySummary> summaryCache =
+      new TestCache<>() {
+        @Override
+        public Optional<DataIntegritySummary> get(String key) {
+          if (UNREADABLE.equals(key) && super.get(key).isPresent()) {
+            throw new IllegalStateException("cannot deserialize " + key);
+          }
+          return super.get(key);
+        }
+      };
 
   @BeforeEach
   void setUp() {
@@ -87,22 +105,18 @@ class DataIntegritySummaryMaxAgeTest {
     summaryCache.put(OLD, summaryFinishedHoursAgo(2));
   }
 
-  @Test
-  void testGetSummaries_DefaultMaxAgeHidesOldResults() {
-    assertEquals(
-        Set.of(FRESH), service.getSummaries(Set.of(FRESH, OLD), 0, Duration.ofHours(1)).keySet());
+  @ParameterizedTest
+  @MethodSource("maxAgeAndExpectedChecks")
+  void testGetSummaries_FilteredByMaxAge(Integer maxAgeHours, Set<String> expected) {
+    Duration maxAge = maxAgeHours == null ? null : Duration.ofHours(maxAgeHours);
+    assertEquals(expected, service.getSummaries(Set.of(FRESH, OLD), 0, maxAge).keySet());
   }
 
-  @Test
-  void testGetSummaries_LargerMaxAgeGivesOldResults() {
-    assertEquals(
-        Set.of(FRESH, OLD),
-        service.getSummaries(Set.of(FRESH, OLD), 0, Duration.ofHours(3)).keySet());
-  }
-
-  @Test
-  void testGetSummaries_NoMaxAgeGivesAllResults() {
-    assertEquals(Set.of(FRESH, OLD), service.getSummaries(Set.of(FRESH, OLD), 0, null).keySet());
+  static Stream<Arguments> maxAgeAndExpectedChecks() {
+    return Stream.of(
+        Arguments.of(1, Set.of(FRESH)),
+        Arguments.of(3, Set.of(FRESH, OLD)),
+        Arguments.of(null, Set.of(FRESH, OLD)));
   }
 
   @Test
@@ -110,6 +124,19 @@ class DataIntegritySummaryMaxAgeTest {
     assertEquals(Set.of(FRESH), service.getCompletedSummaryChecks(Duration.ofHours(1)));
     assertEquals(Set.of(FRESH, OLD), service.getCompletedSummaryChecks(Duration.ofHours(3)));
     assertEquals(Set.of(FRESH, OLD), service.getCompletedSummaryChecks(null));
+  }
+
+  @Test
+  void testUnreadableResultCountsAsMissingAndIsRemoved() {
+    summaryCache.put(UNREADABLE, summaryFinishedHoursAgo(0));
+
+    assertEquals(Set.of(FRESH), service.getCompletedSummaryChecks(Duration.ofHours(1)));
+    assertFalse(summaryCache.getIfPresent(UNREADABLE).isPresent());
+
+    summaryCache.put(UNREADABLE, summaryFinishedHoursAgo(0));
+    assertEquals(
+        Set.of(FRESH, OLD), service.getSummaries(Set.of(FRESH, OLD, UNREADABLE), 0, null).keySet());
+    assertFalse(summaryCache.getIfPresent(UNREADABLE).isPresent());
   }
 
   private static DataIntegritySummary summaryFinishedHoursAgo(int hours) {

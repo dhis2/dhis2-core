@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -197,8 +198,10 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   @Override
   public Set<String> getCompletedSummaryChecks(@CheckForNull Duration maxAge) {
     Predicate<DataIntegritySummary> finishedWithin = finishedWithin(maxAge);
-    return stream(summaryCache.keys().spliterator(), false)
-        .filter(name -> summaryCache.get(name).filter(finishedWithin).isPresent())
+    // copy the keys first, because reading can remove an unreadable entry
+    List<String> names = stream(summaryCache.keys().spliterator(), false).toList();
+    return names.stream()
+        .filter(name -> readCached(summaryCache, name).filter(finishedWithin).isPresent())
         .collect(toUnmodifiableSet());
   }
 
@@ -753,12 +756,28 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       }
       for (String name : names) {
         if (!resByName.containsKey(name)) {
-          cache.get(name).filter(accept).ifPresent(res -> resByName.put(name, res));
+          readCached(cache, name).filter(accept).ifPresent(res -> resByName.put(name, res));
         }
       }
       retry = resByName.size() < names.size() && (timeout < 0 || currentTimeMillis() < giveUpTime);
     } while (retry);
     return resByName;
+  }
+
+  /**
+   * Reads one cached result. A result that cannot be read counts as missing and is removed from the
+   * cache. For example, a Redis entry from an older DHIS2 version can have a different class
+   * layout. Summary results do not expire, so without the removal such an entry would stay until
+   * the check runs again.
+   */
+  private static <T> Optional<T> readCached(Cache<T> cache, String name) {
+    try {
+      return cache.get(name);
+    } catch (RuntimeException ex) {
+      log.warn("Removing unreadable cached data integrity result of check {}", name, ex);
+      cache.invalidate(name);
+      return Optional.empty();
+    }
   }
 
   @FunctionalInterface
