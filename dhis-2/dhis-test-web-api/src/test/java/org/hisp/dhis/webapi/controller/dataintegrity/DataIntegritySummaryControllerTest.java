@@ -170,4 +170,37 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
             "dhis_data_integrity_check_duration_milliseconds{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
         "Data integrity check duration is missing");
   }
+
+  @Test
+  void testGetSummaries_MaxAge() {
+    postSummary("categories-no-options");
+    // a result that just finished is given with the default, a larger and no (0) maximum age
+    for (String maxAge : new String[] {"", "&maxAge=4", "&maxAge=0"}) {
+      JsonMap<JsonDataIntegritySummary> checksByName =
+          GET("/dataIntegrity/summary?checks=categories-no-options&timeout=1000" + maxAge)
+              .content()
+              .asMap(JsonDataIntegritySummary.class);
+      assertTrue(checksByName.get("categories_no_options").exists(), maxAge);
+    }
+    assertTrue(
+        GET("/dataIntegrity/summary/completed?maxAge=0")
+            .content()
+            .stringValues()
+            .contains("categories_no_options"));
+    assertTrue(
+        GET("/dataIntegrity/categories-no-options/summary?maxAge=4")
+            .content()
+            .as(JsonDataIntegritySummary.class)
+            .exists());
+  }
+
+  @Test
+  void testGetSummaries_NegativeMaxAge() {
+    assertEquals(
+        "maxAge must be 0 (no limit) or more, but was: -1",
+        GET("/dataIntegrity/summary?maxAge=-1").error(HttpStatus.BAD_REQUEST).getMessage());
+    assertStatus(HttpStatus.BAD_REQUEST, GET("/dataIntegrity/summary/completed?maxAge=-1"));
+    assertStatus(
+        HttpStatus.BAD_REQUEST, GET("/dataIntegrity/categories-no-options/summary?maxAge=-1"));
+  }
 }

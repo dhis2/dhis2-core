@@ -415,12 +415,14 @@ public class DefaultCacheProvider implements CacheProvider {
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1K))));
   }
 
+  /**
+   * Summary results do not expire. A result stays until the check runs again, so that monitoring
+   * (/api/dataIntegrity/metrics) always has the latest result. The API filters results by age when
+   * a user reads them. The number of entries is limited by the number of checks.
+   */
   @Override
   public <V> Cache<V> createDataIntegritySummaryCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.dataIntegritySummaryCache.name())
-            .expireAfterWrite(1, HOURS));
+    return registerCache(this.<V>newBuilder().forRegion(Region.dataIntegritySummaryCache.name()));
   }
 
   @Override
