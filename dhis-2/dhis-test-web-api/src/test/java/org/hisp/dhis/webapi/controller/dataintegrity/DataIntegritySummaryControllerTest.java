@@ -36,11 +36,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpClientAdapter;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonError;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.controller.DataIntegrityController;
 import org.junit.jupiter.api.Test;
@@ -196,9 +198,9 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
 
   @Test
   void testGetSummaries_NegativeMaxAge() {
-    assertEquals(
-        "maxAge must be 0 (no limit) or more, but was: -1",
-        GET("/dataIntegrity/summary?maxAge=-1").error(HttpStatus.BAD_REQUEST).getMessage());
+    JsonError error = GET("/dataIntegrity/summary?maxAge=-1").error(HttpStatus.BAD_REQUEST);
+    assertEquals(ErrorCode.E2005, error.getErrorCode());
+    assertEquals("Duration is not valid: `maxAge=-1`", error.getMessage());
     assertStatus(HttpStatus.BAD_REQUEST, GET("/dataIntegrity/summary/completed?maxAge=-1"));
     assertStatus(
         HttpStatus.BAD_REQUEST, GET("/dataIntegrity/categories-no-options/summary?maxAge=-1"));

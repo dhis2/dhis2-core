@@ -52,6 +52,7 @@ import org.hisp.dhis.dataintegrity.DataIntegritySummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -312,7 +313,7 @@ public class DataIntegrityController {
   @CheckForNull
   private static Duration toMaxAge(int hours) throws BadRequestException {
     if (hours < 0) {
-      throw new BadRequestException("maxAge must be 0 (no limit) or more, but was: " + hours);
+      throw new BadRequestException(ErrorCode.E2005, "maxAge=" + hours);
     }
     return hours == 0 ? null : Duration.ofHours(hours);
   }
