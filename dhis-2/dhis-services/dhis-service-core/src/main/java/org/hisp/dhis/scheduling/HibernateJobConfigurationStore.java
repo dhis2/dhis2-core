@@ -504,9 +504,14 @@ public class HibernateJobConfigurationStore
         enabled = true,
         jobstatus = case
           when jobstatus = 'DISABLED' then 'SCHEDULED'
-          else jobstatus end
+          else jobstatus end,
+        schedulingtype = case
+            when cronexpression is not null then 'CRON'
+            when delay is not null then 'FIXED_DELAY'
+            else schedulingtype end
       where uid = :id
-      and jobstatus != 'RUNNING' and schedulingtype != 'ONCE_ASAP'""";
+      and jobstatus != 'RUNNING'
+      and (schedulingtype != 'ONCE_ASAP' or queueposition is not null or cronexpression is not null or delay is not null)""";
     return runWriteInStatelessSession(
             q ->
                 nativeSynchronizedQuery(q, sql)

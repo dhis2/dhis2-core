@@ -124,7 +124,7 @@ class SchedulingTest extends ApiTest {
 
   @Test
   void testEnableIsReadOnly_Update() {
-    String job =
+    String json =
         """
         {
              "id": "job12345678",
@@ -133,32 +133,34 @@ class SchedulingTest extends ApiTest {
              "cronExpression": "0 0 21 ? * *"
          }
         """;
-    assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", job));
+    assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     String jobId = "job12345678";
-    JsonObject config = GET("/jobConfigurations/" + jobId);
-    assertTrue(config.get("enabled").booleanValue(), "newly created config should be enabled");
+    JsonObject job = GET("/jobConfigurations/" + jobId);
+    assertTrue(job.get("enabled").booleanValue(), "newly created config should be enabled");
     assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/disable"));
-    config = GET("/jobConfigurations/" + jobId);
-    assertFalse(config.get("enabled").booleanValue());
+    job = GET("/jobConfigurations/" + jobId);
+    assertFalse(job.get("enabled").booleanValue());
     assertStatus(
         HttpStatus.OK,
         PATCH(
             "/jobConfigurations/" + jobId,
             "[{'op': 'replace', 'path': '/name', 'value':  'new_name'}]"));
-    config = GET("/jobConfigurations/" + jobId);
-    assertEquals("new_name", config.get("name").string());
-    assertFalse(config.get("enabled").booleanValue(), "updating should not affect enabled");
+    job = GET("/jobConfigurations/" + jobId);
+    assertEquals("new_name", job.get("name").string());
+    assertFalse(job.get("enabled").booleanValue(), "updating should not affect enabled");
     assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/enable"));
-    config = GET("/jobConfigurations/" + jobId);
-    assertTrue(config.get("enabled").booleanValue());
+    job = GET("/jobConfigurations/" + jobId);
+    assertTrue(job.get("enabled").booleanValue());
+    assertEquals("DISABLED", job.get("jobStatus").string());
     assertStatus(
         HttpStatus.OK,
         PATCH(
             "/jobConfigurations/" + jobId,
             "[{'op': 'replace', 'path': '/name', 'value':  'new_name2'}]"));
-    config = GET("/jobConfigurations/" + jobId);
-    assertEquals("new_name2", config.get("name").string());
-    assertTrue(config.get("enabled").booleanValue(), "updating should not affect enabled");
+    job = GET("/jobConfigurations/" + jobId);
+    assertEquals("new_name2", job.get("name").string());
+    assertTrue(job.get("enabled").booleanValue(), "updating should not affect enabled");
+    assertEquals("SCHEDULED", job.get("jobStatus").string());
   }
 
   @Test
@@ -195,13 +197,12 @@ class SchedulingTest extends ApiTest {
         queue.getArray("sequence").asList(JsonString.class).toList(JsonString::string),
         "queue sequence was changed");
     org.hisp.dhis.jsontree.JsonArray list = GET("/scheduler");
-    assertFalse(
-        list.stream()
-            .filter(job -> job.get("name").string().equals("testQueue"))
-            .findFirst()
-            .orElseThrow()
-            .getBoolean("enabled")
-            .booleanValue());
+    JsonMixed jobEntry = list.stream()
+        .filter(job -> "testQueue".equals(job.get("name").string()))
+        .findFirst()
+        .orElseThrow();
+    assertFalse(jobEntry.get("enabled").booleanValue());
+    assertEquals("DISABLED", jobEntry.get("status").string());
 
     assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobIdA + "/enable"));
     queue = GET("/scheduler/queues/testQueue");
@@ -210,7 +211,12 @@ class SchedulingTest extends ApiTest {
         queue.getArray("sequence").asList(JsonString.class).toList(JsonString::string),
         "queue sequence was changed");
     list = GET("/scheduler");
-    assertTrue(list.getObject(0).getBoolean("enabled").booleanValue());
+    jobEntry = list.stream()
+        .filter(job -> "testQueue".equals(job.get("name").string()))
+        .findFirst()
+        .orElseThrow();
+    assertTrue(jobEntry.get("enabled").booleanValue());
+    assertEquals("SCHEDULED", jobEntry.get("status").string());
   }
 
   private JsonMixed GET(String url) {

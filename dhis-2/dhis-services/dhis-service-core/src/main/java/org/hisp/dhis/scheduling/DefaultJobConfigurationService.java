@@ -80,6 +80,7 @@ import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.scheduling.JobType.Defaults;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -230,7 +231,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
       throw new ForbiddenException(JobConfiguration.class, job.id());
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     if (currentUser.isSuper()) return;
-    if (!currentUser.hasAnyAuthority(List.of("F_SCHEDULING_ADMIN")))
+    if (!currentUser.hasAnyAuthorities(List.of(Authorities.F_SCHEDULING_ADMIN)))
       throw new ForbiddenException(JobConfiguration.class, job.id());
   }
 

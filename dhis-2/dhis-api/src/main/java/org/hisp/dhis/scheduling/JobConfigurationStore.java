@@ -245,7 +245,12 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
   /**
    * Switches {@link JobConfiguration#getJobStatus()} to {@link JobStatus#DISABLED} for any job that
    * currently is still {@link JobStatus#SCHEDULED} while it has been set to {@link
-   * JobConfiguration#isEnabled()} {@code false}.
+   * JobConfiguration#isEnabled()} {@code false}. Jobs that are {@code enabled=true} but already
+   * {@link JobStatus#DISABLED} disabled are not affected as the task of this update is to make a
+   * disable requested by the user though setting {@code enabled=false} effective by updating its
+   * status to {@link JobStatus#DISABLED} if the job's current state allows it. It is not goal of
+   * this update to enable jobs that are in status disabled if the user level is {@code
+   * enabled=true}.
    *
    * @return number of job configurations that were affected
    */
