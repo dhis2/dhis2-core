@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
+import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN_VALUE;
 
 import java.util.Collection;
@@ -61,6 +62,7 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -162,9 +164,10 @@ public class DataIntegrityController {
    * @return A string containing the metrics in Prometheus format.
    */
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
-  @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
-  @ResponseBody
-  public String getSummariesMetrics() {
+  @GetMapping(
+      value = "/metrics",
+      produces = {TEXT_PLAIN_VALUE, APPLICATION_JSON_VALUE})
+  public ResponseEntity<String> getSummariesMetrics() {
     // Get everything which is in the cache
     Map<String, DataIntegritySummary> summaries = dataIntegrityService.getSummaries(Set.of(), 0);
     PrometheusTextBuilder metrics = new PrometheusTextBuilder();
@@ -218,7 +221,7 @@ public class DataIntegrityController {
         "Data integrity check durations",
         "gauge");
 
-    return metrics.getMetrics();
+    return metrics.toResponse();
   }
 
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)

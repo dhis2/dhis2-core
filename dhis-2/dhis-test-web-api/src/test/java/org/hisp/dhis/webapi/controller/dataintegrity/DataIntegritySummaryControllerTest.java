@@ -44,6 +44,8 @@ import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.controller.DataIntegrityController;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Tests the {@link DataIntegrityController} API with focus API returning {@link
@@ -169,5 +171,28 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
         content.contains(
             "dhis_data_integrity_check_duration_milliseconds{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
         "Data integrity check duration is missing");
+  }
+
+  /**
+   * The metrics are plain text for any Accept header. Clients such as curl send {@code *}{@code /*}
+   * or no Accept header, which DHIS2 otherwise negotiates as JSON (DHIS2-22599).
+   */
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "",
+        "*/*",
+        "text/plain",
+        "application/json",
+        "application/openmetrics-text;version=1.0.0,text/plain;version=0.0.4;q=0.5,*/*;q=0.1"
+      })
+  void testGetSummaryMetricsWithAnyAccept(String accept) {
+    String path = "/api/dataIntegrity/metrics";
+    HttpResponse response =
+        accept.isEmpty() ? GET(path) : GET(path, HttpClientAdapter.Accept(accept));
+    String message = path + " with Accept: " + accept;
+    assertEquals(HttpStatus.OK, response.status(), message);
+    assertEquals(
+        "text/plain;version=0.0.4;charset=utf-8", response.header("Content-Type"), message);
   }
 }
