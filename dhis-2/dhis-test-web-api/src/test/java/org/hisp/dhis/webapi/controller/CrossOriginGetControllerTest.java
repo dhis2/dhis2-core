@@ -35,7 +35,9 @@ import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mockStatic;
 
 import com.google.gson.JsonParser;
 import java.util.Arrays;
@@ -51,6 +53,8 @@ import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.security.twofa.TwoFactorType;
+import org.hisp.dhis.system.DefaultSystemService;
+import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemUpdateNotificationService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.TestUtils;
@@ -64,6 +68,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
@@ -283,7 +288,11 @@ class CrossOriginGetControllerTest extends H2ControllerIntegrationTestBase {
     assertMissingAuthority("F_PERFORM_MAINTENANCE", GET("/systemUpdates"));
   }
 
-  /** Serves a local release feed: the test must not depend on releases.dhis2.org. */
+  /**
+   * Serves a local release feed: the test must not depend on releases.dhis2.org. Supplies the build
+   * version too: {@code build.properties} is only generated at package time, so a {@code mvn test}
+   * run has none.
+   */
   @Test
   void testSystemUpdatesWithAuthority() {
     switchToNewUser("maintainer", "F_PERFORM_MAINTENANCE");
@@ -291,10 +300,18 @@ class CrossOriginGetControllerTest extends H2ControllerIntegrationTestBase {
         .when(systemUpdateNotificationService)
         .fetchReleaseFeed();
 
-    JsonObject versions =
-        GET("/systemUpdates?forceVersion=2.38.0")
-            .content(HttpStatus.OK)
-            .getObject("response.versionMetadata");
+    JsonObject versions;
+    try (MockedStatic<DefaultSystemService> systemService =
+        mockStatic(DefaultSystemService.class, CALLS_REAL_METHODS)) {
+      systemService
+          .when(DefaultSystemService::loadBuildProperties)
+          .thenReturn(SystemInfo.builder().version("2.38.0").build());
+
+      versions =
+          GET("/systemUpdates?forceVersion=2.38.0")
+              .content(HttpStatus.OK)
+              .getObject("response.versionMetadata");
+    }
 
     assertEquals(List.of("2.38.1"), versions.names());
     assertFalse(messageService.getMatchingExtId("2.38.1").isEmpty());
