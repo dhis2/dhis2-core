@@ -42,6 +42,7 @@ import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.FeedbackException;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -561,7 +562,22 @@ public class RecordingJobProgress implements JobProgress {
     }
   }
 
+  /**
+   * A {@link FeedbackException} (409, 400, 403, 404) is a rejection of invalid user input, for
+   * example untimely data entry. It is an expected outcome and not a server error.
+   *
+   * @param cause the exception that failed the node, may be null
+   * @return true, if the failure is an expected rejection
+   */
+  static boolean isExpectedFailure(@CheckForNull Exception cause) {
+    return cause instanceof FeedbackException;
+  }
+
   private void logError(Node failed, Exception cause, String message) {
+    if (isExpectedFailure(cause)) {
+      logWarn(failed, "failed", message);
+      return;
+    }
     if (log.isErrorEnabled()) {
       String msg = formatLogMessage(failed, "failed", message);
       if (cause != null) {
