@@ -17,6 +17,7 @@ ARCHITECTURES=${ARCHITECTURES:-'amd64'}
 # docker/image/pom.xml expects the WAR to have this name.
 war_name='dhis.war'
 old_version_schema_prefix='2'
+rolling_tags=()
 stable_versions_json="$(curl -fsSL "https://releases.dhis2.org/v1/versions/stable.json")"
 
 function help() {
@@ -148,7 +149,8 @@ function use_new_war() {
   war_dir="$(cd "$(dirname "$WAR_PATH")" && pwd)"
 }
 
-# Builds the image for all architectures and pushes it as one multi-architecture image (manifest list).
+# Builds the image for all architectures and pushes it as one multi-architecture image (manifest list), under the main
+# tag and the rolling tags.
 function build_main_image() {
   echo "Building image for version $image_tag with image profile $IMAGE_PROFILE ..."
 
@@ -184,6 +186,14 @@ function build_main_image() {
     mvn_args+=("-Dimage.from.tomcat=$BASE_IMAGE")
   fi
 
+  # Jib pushes the same image under the rolling tags, so all tags have the digest of the main image.
+  if [[ ${#rolling_tags[@]} -gt 0 ]]; then
+    local tags
+    tags="$(IFS=,; echo "${rolling_tags[*]}")"
+    echo "Also tagging as $tags ..."
+    mvn_args+=("-Djib.to.tags=$tags")
+  fi
+
   mvn "${mvn_args[@]}"
 }
 
@@ -193,8 +203,8 @@ function copy_main_image() {
   docker buildx imagetools create --tag "$IMAGE_REPOSITORY:$main_image_tag" "$source_image"
 }
 
-# Adds the rolling tags to the main image. The manifests are copied as they are in the registry, so all tags have the
-# digests of the main image. This works for multi-architecture images (manifest lists) and single-architecture images.
+# Adds the rolling tags to a promoted image. The manifests are copied as they are in the registry, so all tags have the
+# digests of the main image. Built images get their rolling tags from Jib in build_main_image instead.
 function create_additional_manifests() {
   local -a tag_args=()
   for tag in "${rolling_tags[@]}"; do
@@ -235,15 +245,14 @@ if [[ ${dev_image:-} -eq 1 ]]; then
   # We're not creating an immutable tag with a timestamp for dev images.
   main_image_tag="$image_tag"
 
-  use_new_war
-
-  build_main_image
-
   if [[ "$image_tag" =~ -rc$ ]]; then
     echo 'Version is Release Candidate, creating extra old version format tag.'
     rolling_tags=("$old_version_schema_prefix.$main_image_tag")
-    create_additional_manifests
   fi
+
+  use_new_war
+
+  build_main_image
 
   echo 'Done with building dev image. Exiting.'
   echo
@@ -258,6 +267,7 @@ list_tags
 
 if [[ -n ${source_image:-} ]]; then
   copy_main_image
+  create_additional_manifests
 else
   if [[ ${rebuild_image:-} -eq 1 ]]; then
     use_existing_war
@@ -267,8 +277,6 @@ else
 
   build_main_image
 fi
-
-create_additional_manifests
 
 echo "Done with building $image_tag."
 echo
