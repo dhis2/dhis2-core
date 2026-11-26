@@ -32,6 +32,7 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonList;
@@ -226,6 +227,18 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest {
     final ApiToken token = createNewEmptyToken();
     switchContextToUser(userB);
     assertStatus(HttpStatus.NOT_FOUND, DELETE("/apiTokens" + "/" + token.getUid()));
+  }
+
+  @Test
+  void testDeleteTokenOwnerAsUserManagerWithoutSuperuser() {
+    String tokenUid = createNewEmptyToken().getUid();
+    switchToNewUser("userManager", "F_USER_ADD", "F_USER_DELETE", "F_USER_VIEW");
+
+    assertStatus(HttpStatus.OK, DELETE("/users/" + userA.getUid()));
+
+    switchToSuperuser();
+    assertNull(userService.getUser(userA.getUid()));
+    assertNull(fetchAsEntity(tokenUid));
   }
 
   @Test

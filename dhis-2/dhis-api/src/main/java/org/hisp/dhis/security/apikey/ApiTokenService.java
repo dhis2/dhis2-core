@@ -42,6 +42,12 @@ public interface ApiTokenService {
 
   void delete(@Nonnull ApiToken apiToken);
 
+  /**
+   * Deletes all tokens of the given user without a sharing check. Only for the cascade that runs
+   * when the user itself is deleted.
+   */
+  void deleteAllOwning(@Nonnull User owner);
+
   @Nonnull
   List<ApiToken> getAll();
 
