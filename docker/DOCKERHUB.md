@@ -93,17 +93,36 @@ There are two kinds of images.
 ## JVM options
 
 Set JVM options using the environment variable `JAVA_TOOL_OPTIONS`. This works with both kinds of
-images.
+images. The images of DHIS2 2.44 and later ignore `CATALINA_OPTS` and `JAVA_OPTS`, which only the
+Tomcat start script reads, and log a warning when they are set.
 
 ## Context path
 
 To deploy DHIS2 under a different context then root (`/`) configure the context path by setting the
 environment variable
 
-* DHIS2 2.44 and later: `SERVER_SERVLET_CONTEXT_PATH: "/dhis2"`
+* DHIS2 2.44 and later: `SERVER_SERVLET_CONTEXT_PATH: "/dhis2"`, or the system property
+  `context.path` as in `JAVA_TOOL_OPTIONS: "-Dcontext.path=/dhis2"`
 * DHIS2 2.43 and earlier: `CATALINA_OPTS: "-Dcontext.path='/dhis2'"`
 
 DHIS2 should be available at `http://localhost:8080/dhis2`.
+
+## Cookies
+
+The `SameSite` attribute of the session cookie comes from `session.cookie.samesite` in `dhis.conf`
+(default `Lax`).
+
+In the images of DHIS2 2.44 and later, the system properties the `server.xml` of the DHIS2 Helm chart
+reads also work, for example `JAVA_TOOL_OPTIONS: "-Dcontext.cookiePath=/ -Dcontext.sameSiteCookies=strict"`:
+
+* `context.cookiePath`: path of the session cookie, the context path by default
+* `context.sameSiteCookies`: `SameSite` attribute of cookies that do not set one
+
+## Access log
+
+The images of DHIS2 2.44 and later write an HTTP access log to standard output when the environment
+variable `SERVER_TOMCAT_ACCESSLOG_ENABLED` is `true`. It is off by default. The images of DHIS2 2.43
+and earlier write it to `/usr/local/tomcat/logs` inside the container.
 
 ## Health checks
 

@@ -160,7 +160,9 @@ To deploy DHIS2 under a different context then root (`/`) configure the context 
 
 DHIS2 should be available at `http://localhost:8080/dhis2`.
 
-Images of DHIS2 2.43 and earlier are based on the Tomcat image and use `CATALINA_OPTS: "-Dcontext.path='/dhis2'"` instead.
+The system property `context.path` also works, for example `JAVA_TOOL_OPTIONS: "-Dcontext.path=/dhis2"`.
+
+Images of DHIS2 2.43 and earlier are based on the Tomcat image and use `CATALINA_OPTS: "-Dcontext.path='/dhis2'"` instead. Images of 2.44 and later ignore `CATALINA_OPTS` and `JAVA_OPTS`, use `JAVA_TOOL_OPTIONS` for JVM options. See [docker/DOCKERHUB.md](./docker/DOCKERHUB.md) for the other settings.
 
 ##### Overriding default values
 
