@@ -45,6 +45,7 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.common.ColumnHeader.REGISTRATION_OU;
 import static org.hisp.dhis.analytics.event.LabelMapper.getDateFieldLabel;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
+import static org.hisp.dhis.analytics.event.data.PeriodDimensionSplitter.toDateFieldKey;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptionsAsFilter;
 import static org.hisp.dhis.analytics.event.data.queryitem.EventStatusFilterHandler.STAGE_EVENT_STATUS_LABELS;
@@ -833,14 +834,6 @@ public class MetadataItemsHandler {
     periodsByKey.put(PERIOD_DIM_ID, params.isComingFromQuery() ? List.of() : allPeriods);
     dimensionItems.putAll(periodsByKey);
     dimensionItems.putIfAbsent(PERIOD_DIM_ID, List.of());
-  }
-
-  /**
-   * Converts a dateField name (e.g. "ENROLLMENT_DATE") to its metadata dimension key (e.g.
-   * "enrollmentdate").
-   */
-  static String toDateFieldKey(String dateField) {
-    return dateField.toLowerCase().replace("_", "");
   }
 
   /**

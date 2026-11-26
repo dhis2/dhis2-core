@@ -31,13 +31,11 @@ package org.hisp.dhis.analytics.tracker;
 
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toSet;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.LabelMapper.getDateFieldLabel;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
-import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.TEXT;
@@ -46,7 +44,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.ColumnHeader;
@@ -61,7 +58,6 @@ import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -159,41 +155,15 @@ public class HeaderHelper {
   }
 
   private static String getDimensionHeaderName(DimensionalObject dimension) {
-    return getStaticDateField(dimension)
-        .map(HeaderHelper::toDateFieldKey)
+    return PeriodDimensionSplitter.getStaticDateField(dimension)
+        .map(PeriodDimensionSplitter::toDateFieldKey)
         .orElse(dimension.getDimension());
   }
 
   private static String getDimensionHeaderColumn(DimensionalObject dimension, Program program) {
-    return getStaticDateField(dimension)
+    return PeriodDimensionSplitter.getStaticDateField(dimension)
         .map(dateField -> getDateFieldLabel(dateField, program))
         .orElse(dimension.getDimensionDisplayName());
-  }
-
-  private static Optional<String> getStaticDateField(DimensionalObject dimension) {
-    if (!PERIOD_DIM_ID.equals(dimension.getDimension())) {
-      return Optional.empty();
-    }
-
-    Set<String> dateFields =
-        dimension.getItems().stream()
-            .filter(PeriodDimension.class::isInstance)
-            .map(PeriodDimension.class::cast)
-            .map(PeriodDimension::getDateField)
-            .collect(toSet());
-
-    if (dateFields.size() == 1) {
-      String dateField = dateFields.iterator().next();
-      if (dateField != null) {
-        return Optional.of(dateField);
-      }
-    }
-
-    return Optional.empty();
-  }
-
-  private static String toDateFieldKey(String dateField) {
-    return dateField.toLowerCase().replace("_", "");
   }
 
   private static GridHeader buildGridHeader(QueryItem item, HeaderBuildContext context) {

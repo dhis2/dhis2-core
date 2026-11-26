@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Optional;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -173,6 +174,48 @@ class PeriodDimensionSplitterTest extends TestBase {
   void toDateFieldKeyNormalizesCorrectly() {
     assertEquals("scheduleddate", PeriodDimensionSplitter.toDateFieldKey("SCHEDULED_DATE"));
     assertEquals("lastupdated", PeriodDimensionSplitter.toDateFieldKey("LAST_UPDATED"));
+  }
+
+  @Test
+  void staticDateFieldIsTheSharedDateFieldOfAllPeriods() {
+    List<PeriodDimension> items = createPeriodDimensions("202301", "202302");
+    items.forEach(pd -> pd.setDateField("INCIDENT_DATE"));
+
+    BaseDimensionalObject dimension =
+        new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, items);
+
+    assertEquals(
+        Optional.of("INCIDENT_DATE"), PeriodDimensionSplitter.getStaticDateField(dimension));
+  }
+
+  @Test
+  void staticDateFieldIsEmptyForMixedDateFields() {
+    List<PeriodDimension> items = createPeriodDimensions("202301", "202302");
+    items.get(0).setDateField("INCIDENT_DATE");
+    items.get(1).setDateField("ENROLLMENT_DATE");
+
+    BaseDimensionalObject dimension =
+        new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, items);
+
+    assertEquals(Optional.empty(), PeriodDimensionSplitter.getStaticDateField(dimension));
+  }
+
+  @Test
+  void staticDateFieldIsEmptyForDefaultDateField() {
+    List<PeriodDimension> items = createPeriodDimensions("202301");
+
+    BaseDimensionalObject dimension =
+        new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, items);
+
+    assertEquals(Optional.empty(), PeriodDimensionSplitter.getStaticDateField(dimension));
+  }
+
+  @Test
+  void staticDateFieldIsEmptyForNonPeriodDimension() {
+    BaseDimensionalObject orgUnit =
+        new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of());
+
+    assertEquals(Optional.empty(), PeriodDimensionSplitter.getStaticDateField(orgUnit));
   }
 
   @Test
