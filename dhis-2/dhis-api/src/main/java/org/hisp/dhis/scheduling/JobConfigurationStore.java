@@ -31,6 +31,7 @@ package org.hisp.dhis.scheduling;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
@@ -188,9 +189,10 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * to "now".
    *
    * @param jobId of the job to switch to {@link JobStatus#RUNNING} state
+   * @param nodeId the ID of the node running the job
    * @return true, if update was successful, otherwise false
    */
-  boolean tryStart(@Nonnull UID jobId);
+  boolean tryStart(@Nonnull UID jobId, @CheckForNull UUID nodeId);
 
   /**
    * If the job is already in {@link JobStatus#RUNNING} it is marked as cancelled. The effect takes
@@ -262,4 +264,16 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @return number of job configurations that were affected
    */
   int rescheduleStaleJobs(int timeoutMinutes, Set<JobType> types);
+
+  /**
+   * In a non-clustered setup any job regardless of the node's ID is rescheduled as there is only
+   * one node. In a clustered setup if the node ID is given only jobs put into {@link
+   * JobStatus#RUNNING} are affected by the change. If it is null any running job is affected.
+   *
+   * @param nodeId a unique ID for the node calling (so that only rows belonging to this node are
+   *     affected)
+   * @param clustered true, if the node is part of a cluster, false otherwise
+   * @return the number of jobs that were rescheduled
+   */
+  int rescheduleStaleRunning(@CheckForNull UUID nodeId, boolean clustered);
 }

@@ -81,6 +81,11 @@ public class RedisLeaderManager implements LeaderManager {
     return nodeUuid.equals(getLeaderNodeUuidFromRedis());
   }
 
+  @Override
+  public boolean isClustered() {
+    return true;
+  }
+
   private String getLeaderNodeUuidFromRedis() {
     return redisTemplate.boundValueOps(KEY).get();
   }

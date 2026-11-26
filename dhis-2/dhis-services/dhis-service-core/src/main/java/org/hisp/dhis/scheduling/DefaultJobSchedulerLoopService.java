@@ -38,8 +38,12 @@ import static org.hisp.dhis.log.MdcKeys.MDC_SESSION_ID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
+import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -50,6 +54,7 @@ import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.eventhook.EventHookPublisher;
+import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
@@ -61,6 +66,7 @@ import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.UserDetails;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Is responsible for the actual execution of the steps that together perform the scheduling.
@@ -75,6 +81,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
 
   private final SystemSettingsProvider settingsProvider;
   private final LeaderManager leaderManager;
+  private final LocationManager locationManager;
   private final JobConfigurationStore jobConfigurationStore;
   private final JobConfigurationService jobConfigurationService;
   private final EventHookPublisher events;
@@ -88,6 +95,51 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
    * Map#putIfAbsent(Object, Object)} to "atomically" start or abort execution.
    */
   private final Map<UID, RecordingJobProgress> recordingsById = new ConcurrentHashMap<>();
+
+  private UUID schedulerNodeId;
+
+  /**
+   * We need a unique ID for the node that is stable. The {@link LeaderManager} IDs do not help as
+   * they are either not stable by design or optional. So we use local file storage to remember an
+   * ID that is unique to this node and stay with it as long as it runs in the same installation
+   * location. This is a "best effort" solution - if it fails nodes cannot identify themselves after
+   * a restart which means they cannot be certain that jobs in {@link JobStatus#RUNNING} are falsely
+   * considered running by them in a cluster setup.
+   */
+  @PostConstruct
+  private void initSchedulerNodeId() {
+    String fileName = "scheduler.node.uuid";
+    // try to restore ID from file
+    try {
+      File file = locationManager.getFileForReading(fileName);
+      if (file.exists()) {
+        schedulerNodeId = UUID.fromString(Files.readString(file.toPath()));
+      }
+    } catch (Exception ex) {
+      log.error("Cannot read scheduler node ID file", ex);
+    }
+    if (schedulerNodeId == null) schedulerNodeId = UUID.randomUUID();
+    // update the file with the potentially changed ID
+    try {
+      File file = locationManager.getFileForWriting(fileName);
+      Files.writeString(file.toPath(), schedulerNodeId.toString());
+    } catch (Exception ex) {
+      log.error("Cannot write scheduler node ID file", ex);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void rescheduleStaleRunning() {
+    try {
+      int updated =
+          jobConfigurationStore.rescheduleStaleRunning(
+              schedulerNodeId, leaderManager.isClustered());
+      if (updated > 0) log.info("Rescheduled %d stale RUNNING job(s)".formatted(updated));
+    } catch (Exception ex) {
+      log.error("Failed to reschedule stale RUNNING jobs: ", ex);
+    }
+  }
 
   @Override
   @IndirectTransactional
@@ -154,7 +206,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   @Override
   @IndirectTransactional
   public boolean tryRun(@Nonnull UID jobId) {
-    if (!jobConfigurationStore.tryStart(jobId)) return false;
+    if (!jobConfigurationStore.tryStart(jobId, schedulerNodeId)) return false;
     JobEntry job = jobConfigurationStore.getJobById(jobId);
     if (job == null) return false;
     doSafely("start", "MDC.put", () -> MDC.put(MDC_SESSION_ID, getSessionId(job)));

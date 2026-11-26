@@ -68,6 +68,11 @@ public class NoOpLeaderManager implements LeaderManager {
   }
 
   @Override
+  public boolean isClustered() {
+    return false;
+  }
+
+  @Override
   public String getCurrentNodeUuid() {
     return this.nodeUuid;
   }
