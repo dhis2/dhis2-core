@@ -172,6 +172,10 @@ public enum ValidationCode {
   E1326(
       "Event `{0}` is completed and its ProgramStage blocks the entry form after completion. Reopen the Event before updating."),
 
+  /* External authorization */
+  E1400("External authorization rejected event: `{0}`."),
+  E1401("External authorization service unavailable: `{0}`."),
+
   /* Relationship */
   E4000("Relationship: `{0}` cannot link to itself."),
   E4001(
