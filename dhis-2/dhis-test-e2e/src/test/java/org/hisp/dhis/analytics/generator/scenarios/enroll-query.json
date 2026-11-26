@@ -398,6 +398,20 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "enrollmentWithCategoryComboNoData",
+      "query": "/api/analytics/enrollments/query/ur1Edk5Oe2n.json?dimension=LFsZ8v5v7rq:yrwgRxRhBoU,ou:USER_ORGUNIT;ImspTQPwCqd&headers=ouname,lastupdated,LFsZ8v5v7rq&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2026-11-26",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentWithCategoryComboWithData",
+      "query": "/api/analytics/enrollments/query/ur1Edk5Oe2n.json?dimension=LFsZ8v5v7rq:B3nxOazOO2G,ou:USER_ORGUNIT;ImspTQPwCqd&headers=ouname,lastupdated,LFsZ8v5v7rq&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2026-11-26",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
