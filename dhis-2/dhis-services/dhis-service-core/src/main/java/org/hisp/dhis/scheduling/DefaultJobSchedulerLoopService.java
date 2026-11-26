@@ -135,7 +135,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
       int updated =
           jobConfigurationStore.rescheduleStaleRunning(
               schedulerNodeId, leaderManager.isClustered());
-      if (updated > 0) log.info("Rescheduled %d stale RUNNING jobs".formatted(updated));
+      if (updated > 0) log.info("Rescheduled %d stale RUNNING job(s)".formatted(updated));
     } catch (Exception ex) {
       log.error("Failed to reschedule stale RUNNING jobs: ", ex);
     }
