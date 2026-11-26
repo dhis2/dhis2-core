@@ -64,6 +64,14 @@ public class ValidationReport {
     return validationReport;
   }
 
+  public static ValidationReport merge(
+      ValidationReport validationReport, ValidationResult anotherValidationResult) {
+    ValidationReport anotherValidationReport = fromResult(anotherValidationResult);
+    validationReport.addErrors(anotherValidationReport.getErrors());
+    validationReport.addWarnings(anotherValidationReport.getWarnings());
+    return validationReport;
+  }
+
   public static ValidationReport fromResult(ValidationResult validationResult) {
     ValidationReport validationReport = new ValidationReport();
     validationReport.addErrors(convertToError(List.copyOf(validationResult.getErrors())));

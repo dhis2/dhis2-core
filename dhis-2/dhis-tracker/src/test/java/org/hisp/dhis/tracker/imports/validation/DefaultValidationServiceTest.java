@@ -96,7 +96,7 @@ class DefaultValidationServiceTest extends TrackerTestBase {
             .trackedEntities(trackedEntities(trackedEntity()))
             .user(new SystemUser())
             .build();
-    service = new DefaultValidationService(validator, ruleEngineValidator);
+    service = new DefaultValidationService(validator, ruleEngineValidator, ruleEngineValidator);
 
     service.validate(bundle);
 
@@ -111,7 +111,7 @@ class DefaultValidationServiceTest extends TrackerTestBase {
             .validationMode(ValidationMode.FULL)
             .trackedEntities(trackedEntities(trackedEntity))
             .build();
-    service = new DefaultValidationService(validator, ruleEngineValidator);
+    service = new DefaultValidationService(validator, ruleEngineValidator, ruleEngineValidator);
 
     service.validate(bundle);
 
@@ -127,7 +127,7 @@ class DefaultValidationServiceTest extends TrackerTestBase {
             .build();
 
     doThrow(new FailFastException(emptyList())).when(validator).validate(any(), any(), any());
-    service = new DefaultValidationService(validator, ruleEngineValidator);
+    service = new DefaultValidationService(validator, ruleEngineValidator, ruleEngineValidator);
 
     service.validate(bundle);
 
@@ -142,7 +142,7 @@ class DefaultValidationServiceTest extends TrackerTestBase {
 
     Validator<TrackerBundle> v1 =
         (r, b, e) -> r.addWarning(validTrackedEntity, ValidationCode.E1120);
-    service = new DefaultValidationService(v1, ruleEngineValidator);
+    service = new DefaultValidationService(v1, ruleEngineValidator, ruleEngineValidator);
 
     ValidationResult result = service.validate(bundle);
 

@@ -51,4 +51,13 @@ public interface ValidationService {
    */
   @Nonnull
   ValidationResult validateRuleEngine(@Nonnull TrackerBundle bundle);
+
+  /**
+   * PROOF OF CONCEPT. Validate tracker bundle against external authorization services configured
+   * per program.
+   *
+   * @param bundle Bundle to validate
+   */
+  @Nonnull
+  ValidationResult validateExternalAuthorization(@Nonnull TrackerBundle bundle);
 }

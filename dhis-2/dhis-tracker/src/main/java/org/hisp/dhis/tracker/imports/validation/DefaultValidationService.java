@@ -57,6 +57,9 @@ public class DefaultValidationService implements ValidationService {
   @Qualifier("org.hisp.dhis.tracker.imports.validation.validator.RuleEngineValidator")
   private final Validator<TrackerBundle> ruleEngineValidator;
 
+  @Qualifier("org.hisp.dhis.tracker.imports.validation.validator.ExternalAuthorizationValidator")
+  private final Validator<TrackerBundle> externalAuthorizationValidator;
+
   @Nonnull
   @Override
   public ValidationResult validate(@Nonnull TrackerBundle bundle) {
@@ -67,6 +70,12 @@ public class DefaultValidationService implements ValidationService {
   @Override
   public ValidationResult validateRuleEngine(@Nonnull TrackerBundle bundle) {
     return validate(bundle, ruleEngineValidator);
+  }
+
+  @Nonnull
+  @Override
+  public ValidationResult validateExternalAuthorization(@Nonnull TrackerBundle bundle) {
+    return validate(bundle, externalAuthorizationValidator);
   }
 
   private ValidationResult validate(TrackerBundle bundle, Validator<TrackerBundle> validator) {

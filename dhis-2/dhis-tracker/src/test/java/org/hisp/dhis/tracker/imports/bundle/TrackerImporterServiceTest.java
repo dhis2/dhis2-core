@@ -100,6 +100,43 @@ class TrackerImporterServiceTest {
     when(validationService.validate(any(TrackerBundle.class))).thenReturn(validationResult);
     when(validationService.validateRuleEngine(any(TrackerBundle.class)))
         .thenReturn(validationResult);
+    org.mockito.Mockito.lenient()
+        .when(validationService.validateExternalAuthorization(any(TrackerBundle.class)))
+        .thenReturn(validationResult);
+  }
+
+  @Test
+  void externalAuthorizationErrorsBlockCommitInAtomicModeAll() {
+    ValidationResult rejected = org.mockito.Mockito.mock(ValidationResult.class);
+    UID eventUid = UID.generate();
+    when(rejected.getErrors())
+        .thenReturn(
+            java.util.Set.of(
+                new org.hisp.dhis.tracker.imports.validation.Error(
+                    "External authorization rejected event: `nope`.",
+                    org.hisp.dhis.tracker.imports.validation.ValidationCode.E1400,
+                    org.hisp.dhis.tracker.TrackerType.EVENT,
+                    eventUid,
+                    List.of("nope"))));
+    when(validationService.validateExternalAuthorization(any(TrackerBundle.class)))
+        .thenReturn(rejected);
+    TrackerObjects objects =
+        TrackerObjects.builder().enrollments(trackerObjects.getEnrollments()).build();
+    when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
+        .thenReturn(bundleWithPreheat(params, objects));
+    org.mockito.Mockito.lenient()
+        .when(trackerBundleService.commit(any(TrackerBundle.class)))
+        .thenReturn(
+            new TrackerBundleService.CommitResult(PersistenceReport.emptyReport(), List.of()));
+
+    org.hisp.dhis.tracker.imports.report.ImportReport report =
+        subject.importTracker(params, trackerObjects, JobProgress.noop());
+
+    org.junit.jupiter.api.Assertions.assertEquals(
+        org.hisp.dhis.tracker.imports.report.Status.ERROR, report.getStatus());
+    org.junit.jupiter.api.Assertions.assertEquals(
+        "E1400", report.getValidationReport().getErrors().get(0).getErrorCode());
+    verify(trackerBundleService, times(0)).commit(any(TrackerBundle.class));
   }
 
   @Test

@@ -117,6 +117,18 @@ public class DefaultTrackerImportService implements TrackerImportService {
       validationReport = ValidationReport.merge(validationResult, result);
     }
 
+    // PROOF OF CONCEPT: external authorization sees the final events, after program rules
+    jobProgress.startingStage("Running External Authorization");
+    ValidationResult externalResult =
+        jobProgress.nonNullStagePostCondition(
+            jobProgress.runStage(
+                () -> validationService.validateExternalAuthorization(trackerBundle)));
+    trackerBundle.setTrackedEntities(externalResult.getTrackedEntities());
+    trackerBundle.setEnrollments(externalResult.getEnrollments());
+    trackerBundle.setEvents(externalResult.getEvents());
+    trackerBundle.setRelationships(externalResult.getRelationships());
+    validationReport = ValidationReport.merge(validationReport, externalResult);
+
     jobProgress.startingStage("Calculating Payload Size");
     final ValidationReport reportForSize = validationReport;
     Map<TrackerType, Integer> bundleSize =
