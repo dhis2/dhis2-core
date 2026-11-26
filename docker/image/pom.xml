@@ -43,7 +43,7 @@
 
     <!-- The base images of all DHIS2 images built from this branch are defined here and nowhere else. -->
     <image.from.java>gcr.io/distroless/java17-debian13@sha256:2e4bb3225d6b8a263fab9153e6dfcdc20dc596ae31e5ec631c485ea7952285ff</image.from.java>
-    <image.from.tomcat>tomcat:10.1.48-jre17</image.from.tomcat>
+    <image.from.tomcat>tomcat:10.1.62-jre17</image.from.tomcat>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
     <!-- This UID "65534" needs to match the UID used the DHIS2 Helm Chart, in order for the IM to have write access to the mounted volumes-->
     <image.user>65534</image.user>
