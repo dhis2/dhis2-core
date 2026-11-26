@@ -88,7 +88,7 @@
     <cargo-maven2-plugin.version>1.8.5</cargo-maven2-plugin.version>
 
     <!-- *Dependencies* -->
-    <reactor.bom.version>2025.0.7</reactor.bom.version>
+    <reactor.bom.version>2026.0.0</reactor.bom.version>
 
     <!-- DHIS2 Rule Engine -->
     <dhis2-rule-engine.version>3.9.0</dhis2-rule-engine.version>
