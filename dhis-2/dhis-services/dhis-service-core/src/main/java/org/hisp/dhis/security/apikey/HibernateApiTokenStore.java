@@ -34,6 +34,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
@@ -64,6 +65,17 @@ public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<Api
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.get("createdBy"), currentUser))
             .addOrder(root -> builder.asc(root.get("created"))));
+  }
+
+  @Override
+  public void deleteAllOwning(@Nonnull User owner) {
+    for (ApiToken token : getAllOwning(owner)) {
+      // Same as HibernateGenericStore.delete, minus the sharing check in
+      // HibernateIdentifiableObjectStore.delete. The event runs ApiTokenDeletionHandler, which
+      // evicts the token from the authentication cache.
+      publisher.publishEvent(new ObjectDeletionRequestedEvent(token));
+      getSession().delete(token);
+    }
   }
 
   @Override
