@@ -45,6 +45,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
@@ -175,10 +176,16 @@ class PersistablesFilter {
       collectPersistables(TrackedEntity.class, TRACKED_ENTITY_PARENTS, bundle.getTrackedEntities());
       collectPersistables(Enrollment.class, ENROLLMENT_PARENTS, bundle.getEnrollments());
       collectPersistables(TrackerEvent.class, TRACKER_EVENT_PARENTS, bundle.getTrackerEvents());
+      // scheduled events are already part of the bundle's events once a previous filter run
+      // (e.g. the rule engine pass) has put them there; collect each event once
+      Set<UID> inBundle =
+          bundle.getTrackerEvents().stream().map(TrackerDto::getUID).collect(Collectors.toSet());
       collectPersistables(
           TrackerEvent.class,
           TRACKER_EVENT_PARENTS,
-          bundle.getProgramRuleScheduledEvents().values().stream().toList());
+          bundle.getProgramRuleScheduledEvents().values().stream()
+              .filter(e -> !inBundle.contains(e.getUID()))
+              .toList());
       collectPersistables(Relationship.class, RELATIONSHIP_PARENTS, bundle.getRelationships());
     }
   }

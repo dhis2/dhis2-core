@@ -91,8 +91,9 @@ class ExternalAuthorizationValidatorTest {
     attribute = new Attribute();
     attribute.setUid("AttrExtAuth1");
     attribute.setCode(ExternalAuthorizationValidator.ATTRIBUTE_CODE);
-    when(manager.getByCode(Attribute.class, ExternalAuthorizationValidator.ATTRIBUTE_CODE))
-        .thenReturn(attribute);
+    org.mockito.Mockito.lenient()
+        .when(manager.getAllNoAcl(Attribute.class))
+        .thenReturn(List.of(otherAttribute(), attribute));
 
     user = new User();
     user.setUid("UserUid0001");
@@ -115,8 +116,7 @@ class ExternalAuthorizationValidatorTest {
 
   @Test
   void noAttributeConfiguredMakesNoCall() throws IOException {
-    when(manager.getByCode(Attribute.class, ExternalAuthorizationValidator.ATTRIBUTE_CODE))
-        .thenReturn(null);
+    when(manager.getAllNoAcl(Attribute.class)).thenReturn(List.of(otherAttribute()));
     FakeJudge judge = judge(200, "");
     ProgramStage stage = stage("StageAAAAA1", program("ProgramAAA1", judge.url()));
     addEvent(event(stage), TrackerImportStrategy.CREATE);
@@ -285,6 +285,84 @@ class ExternalAuthorizationValidatorTest {
     assertEquals(1, judgeA.requests.get(0).get("events").size());
     assertEquals(
         evB.getUID().getValue(), judgeB.requests.get(0).at("/events/0/event/event").asText());
+  }
+
+  @Test
+  void attributeLookupIgnoresSharingOfTheImportingUser() throws IOException {
+    // the importing user cannot read the attribute: a sharing-aware lookup returns null
+    org.mockito.Mockito.lenient()
+        .when(manager.getByCode(Attribute.class, ExternalAuthorizationValidator.ATTRIBUTE_CODE))
+        .thenReturn(null);
+    FakeJudge judge = judge(200, "");
+    ProgramStage stage = stage("StageAAAAA1", program("ProgramAAA1", judge.url()));
+    addEvent(event(stage), TrackerImportStrategy.CREATE);
+
+    validator.validate(reporter, bundle, bundle);
+
+    assertEquals(1, judge.requests.size());
+  }
+
+  @Test
+  void deleteNamingAnotherProgramIsJudgedByTheStoredEventsProgram() throws IOException {
+    FakeJudge judge = judge(200, "");
+    ProgramStage guarded = stage("StageAAAAA1", program("ProgramAAA1", judge.url()));
+    ProgramStage unguarded = stage("StageBBBBB1", program("ProgramBBB1", ""));
+    UID uid = UID.generate();
+    org.hisp.dhis.tracker.model.TrackerEvent stored =
+        new org.hisp.dhis.tracker.model.TrackerEvent();
+    stored.setUid(uid.getValue());
+    stored.setProgramStage(guarded);
+    preheat.putTrackerEvent(stored);
+    addEvent(
+        TrackerEvent.builder()
+            .event(uid)
+            .program(MetadataIdentifier.ofUid(unguarded.getProgram().getUid()))
+            .programStage(MetadataIdentifier.ofUid(unguarded.getUid()))
+            .build(),
+        TrackerImportStrategy.DELETE);
+
+    validator.validate(reporter, bundle, bundle);
+
+    assertEquals(1, judge.requests.size());
+    assertEquals("ProgramAAA1", judge.requests.get(0).at("/events/0/existing/program").asText());
+  }
+
+  @Test
+  void conflictThatRejectsNoEventOfTheBatchFailsClosed() throws IOException {
+    FakeJudge judge = judge(409, "");
+    ProgramStage stage = stage("StageAAAAA1", program("ProgramAAA1", judge.url()));
+    Event ev = event(stage);
+    addEvent(ev, TrackerImportStrategy.CREATE);
+    // judge used "event" instead of "uid" as key: nothing in the batch matches
+    judge.body =
+        """
+        {"rejected":[{"event":"%s","reason":"no"}]}
+        """
+            .formatted(ev.getUID().getValue());
+
+    validator.validate(reporter, bundle, bundle);
+
+    assertEquals(1, reporter.getErrors().size());
+    assertEquals(E1401.name(), reporter.getErrors().get(0).getCode());
+  }
+
+  @Test
+  void conflictWithEmptyRejectedListFailsClosed() throws IOException {
+    FakeJudge judge = judge(409, "{\"rejected\":[]}");
+    ProgramStage stage = stage("StageAAAAA1", program("ProgramAAA1", judge.url()));
+    addEvent(event(stage), TrackerImportStrategy.CREATE);
+
+    validator.validate(reporter, bundle, bundle);
+
+    assertEquals(1, reporter.getErrors().size());
+    assertEquals(E1401.name(), reporter.getErrors().get(0).getCode());
+  }
+
+  private static Attribute otherAttribute() {
+    Attribute other = new Attribute();
+    other.setUid("AttrOther01");
+    other.setCode("SOMETHING_ELSE");
+    return other;
   }
 
   private Program program(String uid, String url) {

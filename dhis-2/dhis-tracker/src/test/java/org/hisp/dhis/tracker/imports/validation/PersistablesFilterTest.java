@@ -37,6 +37,7 @@ import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.imports.validation.PersistablesFilter.filter;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E5000;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -92,6 +93,25 @@ class PersistablesFilterTest {
                 persistable, TrackerEvent.class, "Qck4PQ7TMun", "Ox1qBWsnVwE", "jNyGqnwryNi"),
         () -> assertContainsOnly(persistable, Relationship.class, "Te3IC6TpnBB"),
         () -> assertIsEmpty(persistable.getErrors()));
+  }
+
+  @Test
+  void testScheduledEventAlreadyInBundleIsCollectedOnce() {
+    // A second filter run (e.g. after the rule engine pass) sees a program rule scheduled event
+    // both in the bundle's events and in the scheduled events map.
+    Setup setup =
+        new Setup.Builder()
+            .trackedEntity("xK7H53f4Hc2")
+            .enrollment("t1zaUjKgT3p")
+            .event("Qck4PQ7TMun")
+            .build();
+    TrackerEvent scheduled = setup.bundle.getTrackerEvents().get(0);
+    setup.bundle.getProgramRuleScheduledEvents().put(scheduled.getUID(), scheduled);
+
+    PersistablesFilter.Result persistable =
+        filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
+
+    assertEquals(List.of(UID.of("Qck4PQ7TMun")), persistableUids(persistable, TrackerEvent.class));
   }
 
   @Test

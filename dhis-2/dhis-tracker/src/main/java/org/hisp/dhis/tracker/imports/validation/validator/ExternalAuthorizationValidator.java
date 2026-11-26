@@ -106,7 +106,12 @@ public class ExternalAuthorizationValidator implements Validator<TrackerBundle> 
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-    Attribute attribute = manager.getByCode(Attribute.class, ATTRIBUTE_CODE);
+    // no ACL: an attribute the importing user cannot read must not switch the check off
+    Attribute attribute =
+        manager.getAllNoAcl(Attribute.class).stream()
+            .filter(a -> ATTRIBUTE_CODE.equals(a.getCode()))
+            .findFirst()
+            .orElse(null);
     if (attribute == null) {
       return;
     }
@@ -170,11 +175,17 @@ public class ExternalAuthorizationValidator implements Validator<TrackerBundle> 
       rejectAll(reporter, events, "409 response without rejected list from " + url);
       return;
     }
+    int matched = 0;
     for (JsonNode r : rejected) {
       Event event = byUid.get(r.path("uid").asText());
       if (event != null) {
         reporter.addError(event, E1400, r.path("reason").asText("no reason given"));
+        matched++;
       }
+    }
+    if (matched == 0) {
+      // a refusal we cannot attribute to any event of this batch must not let the batch through
+      rejectAll(reporter, events, "409 response from " + url + " rejects no event of this batch");
     }
   }
 
@@ -221,7 +232,19 @@ public class ExternalAuthorizationValidator implements Validator<TrackerBundle> 
     return values == null ? List.of() : values.stream().sorted().toList();
   }
 
+  /**
+   * The program that governs the event: the stored event's program when the event exists (so a
+   * payload cannot escape the check by naming another program), else the payload's program.
+   */
   private static Program resolveProgram(TrackerPreheat preheat, Event event) {
+    TrackerEvent trackerEvent = preheat.getTrackerEvent(event.getUID());
+    if (trackerEvent != null && trackerEvent.getProgramStage() != null) {
+      return trackerEvent.getProgramStage().getProgram();
+    }
+    SingleEvent singleEvent = preheat.getSingleEvent(event.getUID());
+    if (singleEvent != null && singleEvent.getProgramStage() != null) {
+      return singleEvent.getProgramStage().getProgram();
+    }
     if (event.getProgram() != null && event.getProgram().isNotBlank()) {
       Program program = preheat.getProgram(event.getProgram());
       if (program != null) {
@@ -230,17 +253,9 @@ public class ExternalAuthorizationValidator implements Validator<TrackerBundle> 
     }
     if (event.getProgramStage() != null && event.getProgramStage().isNotBlank()) {
       ProgramStage stage = preheat.getProgramStage(event.getProgramStage());
-      if (stage != null && stage.getProgram() != null) {
+      if (stage != null) {
         return stage.getProgram();
       }
-    }
-    TrackerEvent trackerEvent = preheat.getTrackerEvent(event.getUID());
-    if (trackerEvent != null && trackerEvent.getProgramStage() != null) {
-      return trackerEvent.getProgramStage().getProgram();
-    }
-    SingleEvent singleEvent = preheat.getSingleEvent(event.getUID());
-    if (singleEvent != null && singleEvent.getProgramStage() != null) {
-      return singleEvent.getProgramStage().getProgram();
     }
     return null;
   }
