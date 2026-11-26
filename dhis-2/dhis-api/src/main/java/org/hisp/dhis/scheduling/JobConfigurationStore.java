@@ -182,13 +182,14 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
 
   /**
    * @param jobId the job to enable
-   * @return true, if the status was changed, false if the job does not exist or was running
+   * @return true, if the status was changed, false if the job does not exist or cannot be enabled
+   *     as it is a complete run-once job
    */
   boolean tryEnable(@Nonnull UID jobId);
 
   /**
    * @param jobId the job to disable
-   * @return true, if the status was changed, false if the job does not exist or was running
+   * @return true, if the status was changed, false if the job does not exist
    */
   boolean tryDisable(@Nonnull UID jobId);
 

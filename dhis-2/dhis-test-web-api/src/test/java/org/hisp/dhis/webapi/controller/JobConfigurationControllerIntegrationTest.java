@@ -29,12 +29,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonJobConfiguration;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -252,5 +257,38 @@ class JobConfigurationControllerIntegrationTest extends PostgresControllerIntegr
     assertStatus(HttpStatus.FORBIDDEN, POST("/jobConfigurations/" + jobId + "/disable"));
     switchToNewUser("scheduling-admin", "F_SCHEDULING_ADMIN");
     assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/disable"));
+  }
+
+  @Test
+  void testEnableRequiresSchedule_Update() {
+    String job1Json =
+        """
+        {
+        "name": "test-disable",
+        "jobType": "DATA_INTEGRITY",
+        "cronExpression": "0 0 15 ? * MON-FRI"
+        }
+        """;
+    String job1Id = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", job1Json));
+    JsonJobConfiguration job1 =
+        GET("/jobConfigurations/" + job1Id).content().as(JsonJobConfiguration.class);
+    assertTrue(job1.isEnabled(), "newly created config should be enabled");
+    assertNotNull(job1.getCronExpression());
+
+    // create another job
+    String job2Json =
+        "{'name':'b','jobType':'DATA_INTEGRITY','cronExpression':'0 0 19 ? * MON-FRI'}";
+    String job2Id = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", job2Json));
+    // make both part of a queue
+    String queueJson =
+        format("{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s']}", job1Id, job2Id);
+    assertStatus(HttpStatus.CREATED, POST("/scheduler/queues/testQueue", queueJson));
+    // delete the queue
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/scheduler/queues/testQueue"));
+
+    job1 = GET("/jobConfigurations/" + job1Id).content().as(JsonJobConfiguration.class);
+    assertNull(job1.getCronExpression());
+
+    assertStatus(HttpStatus.CONFLICT, POST("/jobConfigurations/" + job1Id + "/enable"));
   }
 }

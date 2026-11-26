@@ -506,7 +506,7 @@ public class HibernateJobConfigurationStore
           when jobstatus = 'DISABLED' then 'SCHEDULED'
           else jobstatus end,
         schedulingtype = case
-            when jobstatus == 'RUNNING' then schedulingtype
+            when jobstatus = 'RUNNING' then schedulingtype
             when cronexpression is not null then 'CRON'
             when delay is not null then 'FIXED_DELAY'
             else schedulingtype end
@@ -651,7 +651,7 @@ public class HibernateJobConfigurationStore
             when enabled = false
               or (queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null) then 'DISABLED'
             else 'SCHEDULED' end,
-          enabled = cronexpression is not null or delay is not null or queueposition is not null,
+          enabled = enabled and (cronexpression is not null or delay is not null or queueposition is not null),
           cancel = false,
           lastexecutedstatus = 'FAILED',
           lastfinished = now(),
@@ -685,7 +685,7 @@ public class HibernateJobConfigurationStore
             when enabled = false
               or (queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null) then 'DISABLED'
             else 'SCHEDULED' end,
-          enabled = cronexpression is not null or delay is not null or queueposition is not null,
+          enabled = enabled and (cronexpression is not null or delay is not null or queueposition is not null),
           cancel = false,
           lastexecutedstatus = 'FAILED',
           lastfinished = now(),
