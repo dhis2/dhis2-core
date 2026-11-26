@@ -58,6 +58,6 @@ public class ApiTokenDeletionHandler extends DeletionHandler {
   }
 
   private void deleteUser(User user) {
-    apiTokenService.getAllOwning(user).forEach(apiTokenService::delete);
+    apiTokenService.deleteAllOwning(user);
   }
 }
