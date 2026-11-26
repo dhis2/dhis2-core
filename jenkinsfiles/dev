@@ -2,14 +2,12 @@
 
 @Library('pipeline-library') _
 
+// TEST ONLY, DO NOT MERGE: runs the pipeline on a test branch without WAR upload, IM instance update,
+// Slack notifications, schedule triggers and Teamscale upload.
+
 pipeline {
     agent {
         label 'ec2-jdk17'
-    }
-
-    triggers {
-        cron('H H(9-16)/2 * * 1-5')
-        pollSCM('H/30 * * * *')
     }
 
     options {
@@ -38,19 +36,6 @@ pipeline {
                         // The embedded profile makes the WAR executable, the Docker image starts it with "java -jar".
                         sh 'mvn --threads 4 --batch-mode --no-transfer-progress clean install --file dhis-2/pom.xml --update-snapshots --activate-profiles embedded'
                     }
-                }
-            }
-
-            post {
-                always {
-                    teamscale includePattern: '**/target/site/jacoco/**.xml',
-                        credentialsId: 'teamscale-credentials',
-                        partition: "jenkins-dev-${env.GIT_BRANCH}",
-                        reportFormatId: 'JACOCO',
-                        teamscaleProject: 'dhis-2-core',
-                        uploadMessage: "JaCoCo reports from ${GIT_COMMIT}",
-                        url: 'https://dhis2.teamscale.io',
-                        revision: "${GIT_COMMIT}"
                 }
             }
         }
@@ -105,15 +90,6 @@ pipeline {
             }
         }
 
-        stage('Sync WAR') {
-            steps {
-                echo 'Syncing WAR ...'
-                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
-                sh 'chmod +x copy-war-s3.sh'
-                sh './copy-war-s3.sh dev ${GIT_BRANCH}'
-            }
-        }
-
         stage('Publish image') {
             environment {
                 IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
@@ -136,65 +112,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Update IM Play instance') {
-            environment {
-                HTTP = "http --check-status"
-                IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
-                IM_HOST = "https://api.im.dhis2.org"
-                INSTANCE_URL = "https://play.im.dhis2.org/dev"
-                IMAGE_REPOSITORY = "core-dev"
-                IMAGE_PULL_POLICY = "Always"
-                FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
-                FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
-                INSTANCE_TTL = "315360000"
-                STARTUP_PROBE_FAILURE_THRESHOLD = "50"
-                LIVENESS_PROBE_TIMEOUT_SECONDS = "5"
-                READINESS_PROBE_TIMEOUT_SECONDS = "5"
-                MIN_READY_SECONDS = "240"
-                CORE_RESOURCES_REQUESTS_MEMORY = "2500Mi"
-                PUBLIC = "true"
-                ALLOW_SUSPEND = "false"
-            }
-
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
-                        dir('im-manager') {
-                            gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
-
-                            echo 'Creating DHIS2 instance on IM...'
-                            def branch = ""
-                            if (env.GIT_BRANCH == 'master') {
-                                env.IMAGE_TAG = "latest"
-                                env.DATABASE_ID = "test-dbs-sierra-leone-dev-sql-gz"
-                            } else {
-                                env.IMAGE_TAG = env.GIT_BRANCH
-                                branch = "-${env.GIT_BRANCH.replace(".", "-")}"
-
-                                dir('scripts/databases') {
-                                    env.DATABASE_ID = sh(
-                                            returnStdout: true,
-                                            script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${env.GIT_BRANCH}.sql.gz\") | .slug'"
-                                    ).trim()
-                                }
-                            }
-
-                            sh '[ -n "$DATABASE_ID" ]'
-                            echo "Database: ${env.DATABASE_ID}"
-
-                            dir('scripts/instances') {
-                                description = "DHIS 2 development branch ${env.GIT_BRANCH}"
-                                sh "./findByName.sh play dev${branch} | jq --exit-status 'has(\"id\")' && ./restart.sh \$(./findByName.sh play dev${branch} | jq '.instances[] | select(.stackName==\"dhis2-v2\") | .id') dhis2 || ./deploy-dhis2.sh play dev${branch} ${description}"
-                                timeout(15) {
-                                    waitFor.statusOk("${env.INSTANCE_URL}${branch}")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     post {
@@ -203,34 +120,6 @@ pipeline {
 
             script {
                 gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
-            }
-        }
-
-        failure {
-            script {
-                if (buildLog.getLines().contains('There are test failures')) {
-                    currentBuild.description = 'Test failures'
-                    def prevHadSameFailure = currentBuild.previousBuild?.description?.contains('Test failures')
-                    if (!prevHadSameFailure) {
-                        slack.sendMessage(
-                            '#ff0000',
-                            slack.buildUrl() + "\nLatest test run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
-                            'core-test-failures'
-                        )
-                    }
-                } else {
-                    slack.sendMessage(
-                        '#ff0000',
-                        slack.buildUrl() + "\nBuild on ${GIT_BRANCH} failed. :x:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
-                        'core-ci-failures'
-                    )
-                }
-            }
-        }
-
-        aborted {
-            script {
-                slack.sendTimedoutMessage()
             }
         }
     }
