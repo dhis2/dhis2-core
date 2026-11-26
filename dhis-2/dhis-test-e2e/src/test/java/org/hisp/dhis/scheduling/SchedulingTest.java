@@ -151,7 +151,7 @@ class SchedulingTest extends ApiTest {
     assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/enable"));
     job = GET("/jobConfigurations/" + jobId);
     assertTrue(job.get("enabled").booleanValue());
-    assertEquals("DISABLED", job.get("jobStatus").string());
+    assertEquals("SCHEDULED", job.get("jobStatus").string());
     assertStatus(
         HttpStatus.OK,
         PATCH(
@@ -197,10 +197,11 @@ class SchedulingTest extends ApiTest {
         queue.getArray("sequence").asList(JsonString.class).toList(JsonString::string),
         "queue sequence was changed");
     org.hisp.dhis.jsontree.JsonArray list = GET("/scheduler");
-    JsonMixed jobEntry = list.stream()
-        .filter(job -> "testQueue".equals(job.get("name").string()))
-        .findFirst()
-        .orElseThrow();
+    JsonMixed jobEntry =
+        list.stream()
+            .filter(job -> "testQueue".equals(job.get("name").string()))
+            .findFirst()
+            .orElseThrow();
     assertFalse(jobEntry.get("enabled").booleanValue());
     assertEquals("DISABLED", jobEntry.get("status").string());
 
@@ -211,10 +212,11 @@ class SchedulingTest extends ApiTest {
         queue.getArray("sequence").asList(JsonString.class).toList(JsonString::string),
         "queue sequence was changed");
     list = GET("/scheduler");
-    jobEntry = list.stream()
-        .filter(job -> "testQueue".equals(job.get("name").string()))
-        .findFirst()
-        .orElseThrow();
+    jobEntry =
+        list.stream()
+            .filter(job -> "testQueue".equals(job.get("name").string()))
+            .findFirst()
+            .orElseThrow();
     assertTrue(jobEntry.get("enabled").booleanValue());
     assertEquals("SCHEDULED", jobEntry.get("status").string());
   }
