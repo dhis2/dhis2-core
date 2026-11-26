@@ -12,7 +12,7 @@ IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-'dhis2/core'}
 WAR_PATH=${WAR_PATH:-'dhis-2/dhis-web-server/target/dhis.war'}
 DOWNLOADED_WAR_DIR=${DOWNLOADED_WAR_DIR:-'dhis2-war'}
 
-ARCHITECTURES=${ARCHITECTURES:-'amd64'}
+ARCHITECTURES=${ARCHITECTURES:-'amd64 arm64'}
 
 # docker/image/pom.xml expects the WAR to have this name.
 war_name='dhis.war'
@@ -29,8 +29,8 @@ function help() {
    echo '-h          Print this help message.'
    echo
    echo 'Environment variables:'
-   echo 'ARCHITECTURES   Space-separated list of architectures to build. Defaults to "amd64".'
-   echo '                Example: ARCHITECTURES="amd64 arm64" build-docker-image.sh -t 40.1.1 -d'
+   echo 'ARCHITECTURES   Space-separated list of architectures to build. Defaults to "amd64 arm64".'
+   echo '                Example: ARCHITECTURES="amd64" build-docker-image.sh -t 40.1.1 -d'
    echo 'IMAGE_PROFILE   Image profile of docker/image/pom.xml: "embedded" or "tomcat". Defaults to "embedded".'
    echo '                Use "tomcat" for DHIS2 2.43 and earlier.'
    echo 'BASE_IMAGE      Tomcat base image of the "tomcat" profile. Defaults to the one in docker/image/pom.xml.'

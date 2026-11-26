@@ -109,7 +109,6 @@ pipeline {
         stage('Publish images') {
             environment {
                 IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
-                ARCHITECTURES = 'amd64 arm64'
             }
 
             steps {
