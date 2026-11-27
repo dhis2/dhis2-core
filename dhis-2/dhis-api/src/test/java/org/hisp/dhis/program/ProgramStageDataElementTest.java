@@ -64,12 +64,10 @@ class ProgramStageDataElementTest {
     assertEquals(original.getDataElement(), copy.getDataElement());
     assertEquals(original.getDisplayInReports(), copy.getDisplayInReports());
     assertEquals(original.isCompulsory(), copy.isCompulsory());
-    assertEquals(original.getName(), copy.getName());
     assertEquals(original.getRenderType(), copy.getRenderType());
     assertEquals(original.getSortOrder(), copy.getSortOrder());
     assertEquals(original.getSkipAnalytics(), copy.getSkipAnalytics());
     assertEquals(original.getSkipSynchronization(), copy.getSkipSynchronization());
-    assertEquals(original.getPublicAccess(), copy.getPublicAccess());
   }
 
   @Test
@@ -91,8 +89,6 @@ class ProgramStageDataElementTest {
     assertEquals(original.getAllowFutureDate(), copy.getAllowFutureDate());
     assertEquals(original.getDataElement(), copy.getDataElement());
     assertEquals(original.getDisplayInReports(), copy.getDisplayInReports());
-    assertEquals(original.getName(), copy.getName());
-    assertEquals(original.getPublicAccess(), copy.getPublicAccess());
     assertEquals(original.getRenderType(), copy.getRenderType());
     assertEquals(original.getSortOrder(), copy.getSortOrder());
     assertEquals(original.getSkipAnalytics(), copy.getSkipAnalytics());
@@ -109,7 +105,24 @@ class ProgramStageDataElementTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(ProgramStageDataElement.class);
-    assertEquals(26, allClassFieldsIncludingInherited.length);
+    assertEquals(21, allClassFieldsIncludingInherited.length);
+  }
+
+  @Test
+  void testEqualsComparesProgramStageAndDataElementOnly() {
+    ProgramStage stage = new ProgramStage("stage", new Program("program"));
+    DataElement dataElementA = new DataElement("A");
+    DataElement dataElementB = new DataElement("B");
+    ProgramStageDataElement psde = new ProgramStageDataElement(stage, dataElementA, true, 1);
+    ProgramStageDataElement sameStageAndDataElement =
+        new ProgramStageDataElement(stage, dataElementA, false, 2);
+    sameStageAndDataElement.setUid("psdeOtherA1");
+    ProgramStageDataElement otherDataElement =
+        new ProgramStageDataElement(stage, dataElementB, true, 1);
+
+    assertEquals(psde, sameStageAndDataElement);
+    assertEquals(psde.hashCode(), sameStageAndDataElement.hashCode());
+    assertNotEquals(psde, otherDataElement);
   }
 
   public static ProgramStageDataElement getNewProgramStageDataElement(
@@ -122,7 +135,6 @@ class ProgramStageDataElementTest {
     psde.setDataElement(new DataElement(dataElementName));
     psde.setDisplayInReports(true);
     psde.setProgramStage(original);
-    psde.setPublicAccess("rw------");
     psde.setRenderOptionsAsRadio(true);
     psde.setRenderType(new DeviceRenderTypeMap<>());
     psde.setSkipAnalytics(true);
@@ -134,7 +146,6 @@ class ProgramStageDataElementTest {
     ProgramStageDataElement psde = new ProgramStageDataElement();
     psde.setDataElement(null);
     psde.setProgramStage(null);
-    psde.setPublicAccess(null);
     psde.setRenderType(null);
     psde.setSortOrder(null);
     return psde;
