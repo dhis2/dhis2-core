@@ -33,6 +33,7 @@ import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_NO_DATA_SHA
 import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_OPTION_DEFAULT;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1098;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
@@ -836,5 +837,90 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
     assertHasErrors(
         2, trackerAccessManager.canUpdate(fromUser(user), trackerEvent, orgUnitA, newAoc));
+  }
+
+  @Test
+  void shouldFailToCreateTrackerEventWhenUserCannotReadEnrollmentAoc() {
+    oldCatOption.getSharing().setPublicAccess(CATEGORY_NO_DATA_SHARING_DEFAULT);
+    manager.update(oldCatOption);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertHasErrorMessage(
+        trackerAccessManager.canCreate(fromUser(user), trackerEventInEnrollmentForAoc()), E1098);
+  }
+
+  @Test
+  void shouldFailToUpdateTrackerEventWhenUserCannotReadEnrollmentAoc() {
+    oldCatOption.getSharing().setPublicAccess(CATEGORY_NO_DATA_SHARING_DEFAULT);
+    manager.update(oldCatOption);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertHasErrorMessage(
+        trackerAccessManager.canUpdate(
+            fromUser(user), trackerEventInEnrollmentForAoc(), orgUnitA, newAoc),
+        E1098);
+  }
+
+  @Test
+  void shouldFailToDeleteTrackerEventWhenUserCannotReadEnrollmentAoc() {
+    oldCatOption.getSharing().setPublicAccess(CATEGORY_NO_DATA_SHARING_DEFAULT);
+    manager.update(oldCatOption);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertHasErrorMessage(
+        trackerAccessManager.canDelete(fromUser(user), trackerEventInEnrollmentForAoc()), E1098);
+  }
+
+  @Test
+  void shouldCreateUpdateAndDeleteTrackerEventWhenUserCanOnlyReadEnrollmentAoc() {
+    oldCatOption.getSharing().setPublicAccess(AccessStringHelper.READ_ONLY);
+    manager.update(oldCatOption);
+    UserDetails user =
+        fromUser(createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA)));
+    TrackerEvent event = trackerEventInEnrollmentForAoc();
+
+    assertNoErrorMessages(trackerAccessManager.canCreate(user, event));
+    assertNoErrorMessages(trackerAccessManager.canUpdate(user, event, orgUnitA, newAoc));
+    assertNoErrorMessages(trackerAccessManager.canDelete(user, event));
+  }
+
+  @Test
+  void shouldFailToReadEnrollmentWhenUserCannotReadEnrollmentAoc() {
+    oldCatOption.getSharing().setPublicAccess(CATEGORY_NO_DATA_SHARING_DEFAULT);
+    manager.update(oldCatOption);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertHasErrorMessage(trackerAccessManager.canRead(fromUser(user), enrollmentForAoc), E1098);
+  }
+
+  @Test
+  void shouldFailToReadTrackerEventWhenUserCannotReadEnrollmentAoc() {
+    oldCatOption.getSharing().setPublicAccess(CATEGORY_NO_DATA_SHARING_DEFAULT);
+    manager.update(oldCatOption);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertHasErrorMessage(
+        trackerAccessManager.canRead(fromUser(user), trackerEventInEnrollmentForAoc()), E1098);
+  }
+
+  @Test
+  void shouldReadEnrollmentAndTrackerEventWhenUserCanOnlyReadEnrollmentAoc() {
+    oldCatOption.getSharing().setPublicAccess(AccessStringHelper.READ_ONLY);
+    manager.update(oldCatOption);
+    UserDetails user =
+        fromUser(createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA)));
+
+    assertNoErrorMessages(trackerAccessManager.canRead(user, enrollmentForAoc));
+    assertNoErrorMessages(trackerAccessManager.canRead(user, trackerEventInEnrollmentForAoc()));
+  }
+
+  private TrackerEvent trackerEventInEnrollmentForAoc() {
+    TrackerEvent event = new TrackerEvent();
+    event.setEnrollment(enrollmentForAoc);
+    event.setProgramStage(trackerEvent.getProgramStage());
+    event.setOrganisationUnit(orgUnitA);
+    event.setAttributeOptionCombo(newAoc);
+    event.setOccurredDate(new Date());
+    return event;
   }
 }

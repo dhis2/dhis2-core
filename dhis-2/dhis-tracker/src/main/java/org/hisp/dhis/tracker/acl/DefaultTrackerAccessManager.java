@@ -174,6 +174,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     checkDataReadAccessToProgram(errors, user, program);
     checkDataReadAccessToProgramTrackedEntityType(errors, user, program);
     checkOwnershipAccess(errors, user, enrollment.getTrackedEntity(), program);
+    checkDataReadAccessToCategoryOptionCombo(errors, user, enrollment.getAttributeOptionCombo());
 
     return errors;
   }
@@ -255,6 +256,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     checkDataReadAccessToProgramTrackedEntityType(errors, user, program);
     checkOwnershipAccess(errors, user, event.getEnrollment().getTrackedEntity(), program);
     checkDataReadAccessToCategoryOptionCombo(errors, user, event.getAttributeOptionCombo());
+    checkDataReadAccessToCategoryOptionCombo(
+        errors, user, event.getEnrollment().getAttributeOptionCombo());
 
     return errors;
   }
@@ -323,6 +326,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     checkDataReadAccessToProgramTrackedEntityType(errors, user, program);
     if (event.getEnrollment() != null) {
       checkOwnershipAccess(errors, user, event.getEnrollment().getTrackedEntity(), program);
+      checkDataReadAccessToCategoryOptionCombo(
+          errors, user, event.getEnrollment().getAttributeOptionCombo());
     }
     checkDataWriteAccessToCategoryOptionCombo(errors, user, event.getAttributeOptionCombo());
 
