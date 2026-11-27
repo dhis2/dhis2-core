@@ -1,0 +1,78 @@
+# Copyright (c) 2004-2026, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: job_configurations_never_started
+description: One-off jobs that were created more than a day ago but never started
+section: Job scheduler
+section_order: 4
+summary_sql: >-
+  SELECT COUNT(*) as value
+  FROM jobconfiguration
+  WHERE schedulingtype = 'ONCE_ASAP'
+  AND cronexpression IS NULL
+  AND delay IS NULL
+  AND queuename IS NULL
+  AND lastexecuted IS NULL
+  AND lastfinished IS NULL
+  AND jobstatus <> 'RUNNING'
+  AND NOT (enabled = true AND jobstatus = 'SCHEDULED')
+  AND created < now() - interval '1 day';
+details_sql: >
+  SELECT uid,
+  name,
+  concat(jobtype, ', ', jobstatus, ', created ', to_char(created, 'YYYY-MM-DD HH24:MI')) as comment
+  FROM jobconfiguration
+  WHERE schedulingtype = 'ONCE_ASAP'
+  AND cronexpression IS NULL
+  AND delay IS NULL
+  AND queuename IS NULL
+  AND lastexecuted IS NULL
+  AND lastfinished IS NULL
+  AND jobstatus <> 'RUNNING'
+  AND NOT (enabled = true AND jobstatus = 'SCHEDULED')
+  AND created < now() - interval '1 day'
+  ORDER BY created;
+details_id_type: jobConfigurations
+severity: WARNING
+introduction: >
+  One-off jobs, such as asynchronous imports, normally start within seconds of being created and are
+  deleted automatically by the Housekeeping job once they have finished. These jobs were created more
+  than a day ago but never started, so their work was never done. The Housekeeping job only removes
+  jobs that have finished, so these jobs, and any uploaded data attached to them, stay in the system
+  indefinitely.
+  Jobs that are still waiting to start are not listed here. A one-off job waits while another job of
+  the same type is marked as running, and starts once that job is reset; such blocking jobs are listed
+  by the check for running jobs that other jobs are waiting behind.
+recommendation: >
+  For asynchronous imports, the data in the job was not imported. Check with the users concerned whether
+  the data has been sent again since. The import payload is kept as a file resource with the same UID as
+  the job until the job is deleted.
+  Import jobs are system jobs and cannot be deleted through the Scheduler app or the API. Once they are
+  no longer needed, delete them in the database, after taking a backup, with
+  DELETE FROM jobconfiguration WHERE uid IN (...) using the UIDs listed.
+  The attached file resources are released by the next Housekeeping run that deletes a finished job,
+  and are then removed by the file resource clean-up job.

@@ -1,0 +1,93 @@
+# Copyright (c) 2004-2026, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: job_configurations_delay_overdue
+description: Enabled fixed-delay jobs that are long overdue and not running
+section: Job scheduler
+section_order: 6
+summary_sql: >-
+  SELECT COUNT(*) as value,
+  100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM jobconfiguration
+  WHERE enabled = true AND schedulingtype = 'FIXED_DELAY' AND jobtype <> 'HOUSEKEEPING'
+  AND (queueposition IS NULL OR queueposition = 0)), 0) as percent
+  FROM jobconfiguration
+  WHERE enabled = true
+  AND schedulingtype = 'FIXED_DELAY'
+  AND delay IS NOT NULL
+  AND jobtype <> 'HOUSEKEEPING'
+  AND (queueposition IS NULL OR queueposition = 0)
+  AND jobstatus <> 'RUNNING'
+  AND COALESCE(lastexecuted, created) + delay * interval '1 second' < now() - interval '30 minutes';
+details_sql: >
+  SELECT j.uid,
+  j.name,
+  concat(j.jobtype, ', due since ',
+  to_char(COALESCE(j.lastexecuted, j.created) + j.delay * interval '1 second', 'YYYY-MM-DD HH24:MI'), ', ',
+  CASE
+  WHEN j.jobstatus = 'DISABLED' THEN 'stored as DISABLED so it is never started'
+  WHEN b.uid IS NOT NULL THEN concat('waiting behind running job ', b.name, ' (', b.uid, '), last alive ',
+  COALESCE(to_char(b.lastalive, 'YYYY-MM-DD HH24:MI'), 'never'))
+  ELSE 'not started by the scheduler'
+  END) as comment
+  FROM jobconfiguration j
+  LEFT JOIN LATERAL (
+  SELECT r.uid, r.name, r.lastalive FROM jobconfiguration r
+  WHERE r.jobtype = j.jobtype
+  AND r.jobconfigurationid <> j.jobconfigurationid
+  AND r.jobstatus = 'RUNNING'
+  ORDER BY r.lastexecuted
+  LIMIT 1) b ON true
+  WHERE j.enabled = true
+  AND j.schedulingtype = 'FIXED_DELAY'
+  AND j.delay IS NOT NULL
+  AND j.jobtype <> 'HOUSEKEEPING'
+  AND (j.queueposition IS NULL OR j.queueposition = 0)
+  AND j.jobstatus <> 'RUNNING'
+  AND COALESCE(j.lastexecuted, j.created) + j.delay * interval '1 second' < now() - interval '30 minutes'
+  ORDER BY j.name;
+details_id_type: jobConfigurations
+severity: SEVERE
+introduction: >
+  A job with a fixed delay, such as Continuous Analytics, should start again a set number of seconds after
+  its last run started. These jobs are enabled and not running, but their next run was due more than
+  30 minutes ago. The Scheduler app and the API show them as scheduled, with a next run time in the past
+  (a negative number of seconds to the next run), so the problem is easy to miss; for Continuous Analytics
+  it means analytics silently stops being updated. The details say why each job is not started: it is stored
+  as DISABLED although it is enabled, it is waiting behind another job of the same type that is marked as
+  running, or neither, which means the job scheduler itself is not starting jobs.
+recommendation: >
+  If the job is stored as DISABLED, use "Run now" in the Scheduler app
+  (or POST /api/jobConfigurations/{uid}/execute); after that run it continues on its normal schedule.
+  If it is waiting behind a running job, check whether that job is really still running. A job records that
+  it is alive only when it reports progress, so during one long step, such as writing a large analytics
+  table, its last alive time can be old while it still works. Reset it with
+  POST /api/jobConfigurations/{uid}/revert, using the UID of the running job shown, only if it was last
+  alive before the last server restart, or if it is also listed by the check for jobs stuck in running
+  in this section. Resetting a job that still works lets a second run of the same type start next to it.
+  The waiting job then starts on the next scheduler loop.
+  Otherwise check the Housekeeping check in this section and the server log for errors from the scheduler loop,
+  then use "Run now" on the job, and restart the server if it is still not started.
