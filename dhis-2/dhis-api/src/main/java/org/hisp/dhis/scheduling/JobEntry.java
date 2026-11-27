@@ -106,6 +106,13 @@ public record JobEntry(
     return dueTime != null && dueTime.isBefore(then);
   }
 
+  public boolean isReadyToRun() {
+    return schedulingType == SchedulingType.ONCE_ASAP
+        || schedulingType == SchedulingType.CRON && cronExpression != null
+        || schedulingType == SchedulingType.FIXED_DELAY && delay != null
+        || queueName != null && queuePosition != null && queuePosition > 0;
+  }
+
   public JobKey toKey() {
     return new JobKey(id, type);
   }

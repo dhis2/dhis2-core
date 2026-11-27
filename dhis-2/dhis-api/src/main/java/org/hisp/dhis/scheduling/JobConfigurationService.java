@@ -33,8 +33,11 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.util.MimeType;
@@ -63,6 +66,24 @@ public interface JobConfigurationService {
   void createDefaultJob(JobType type);
 
   void createDefaultJob(JobType type, UserDetails actingUser);
+
+  /**
+   * @param job ID of the job to enable
+   * @throws ConflictException when the job is a system job or when it is in a state that does not
+   *     permit the state transition
+   * @throws NotFoundException when no job with the given ID exists
+   * @throws ForbiddenException when the current user cannot change the job state
+   */
+  void enable(@Nonnull UID job) throws ConflictException, NotFoundException, ForbiddenException;
+
+  /**
+   * @param job ID of the job to disable
+   * @throws ConflictException when the job is a system job or when it is in a state that does not
+   *     permit the state transition
+   * @throws NotFoundException when no job with the given ID exists
+   * @throws ForbiddenException when the current user cannot change the job state
+   */
+  void disable(@Nonnull UID job) throws ConflictException, NotFoundException, ForbiddenException;
 
   /**
    * Updates all {@link JobConfiguration}s that are not {@link JobConfiguration#isEnabled()} to

@@ -243,11 +243,11 @@ class JobConfigurationTest {
   }
 
   @Test
-  void jobStatusIsScheduledWhenJobStatusIsDisabledButEnabled() {
+  void jobStatusIsDisabledWhenJobStatusIsDisabledButEnabled() {
     JobConfiguration config = new JobConfiguration(JobType.DATA_INTEGRITY);
     config.setJobStatus(JobStatus.DISABLED);
 
-    assertEquals(JobStatus.SCHEDULED, config.getJobStatus());
+    assertEquals(JobStatus.DISABLED, config.getJobStatus());
   }
 
   @Test

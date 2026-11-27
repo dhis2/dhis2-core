@@ -69,6 +69,8 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -78,6 +80,7 @@ import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.scheduling.JobType.Defaults;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -187,6 +190,47 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
         settingsProvider.getCurrentSettings().getJobsRescheduleAnalyticsAfterMinutes();
     reset += jobConfigurationStore.rescheduleStaleJobs(ttlAnalytics, analyticsJobs);
     return reset;
+  }
+
+  @Override
+  @Transactional
+  public void enable(@Nonnull UID job)
+      throws ConflictException, NotFoundException, ForbiddenException {
+    JobEntry entry = jobConfigurationStore.getJobById(job);
+    if (entry == null) throw new NotFoundException(JobConfiguration.class, job);
+    checkModifiable(entry);
+    checkUserCanChangeJobState(entry);
+    if (!entry.isReadyToRun())
+      throw new ConflictException("Job requires schedule setup before it can be enabled.");
+    if (!jobConfigurationStore.tryEnable(job))
+      throw new ConflictException("Job no longer exists or was a run-once job that has completed.");
+  }
+
+  @Override
+  @Transactional
+  public void disable(@Nonnull UID job)
+      throws ConflictException, NotFoundException, ForbiddenException {
+    JobEntry entry = jobConfigurationStore.getJobById(job);
+    if (entry == null) throw new NotFoundException(JobConfiguration.class, job);
+    checkModifiable(entry);
+    checkUserCanChangeJobState(entry);
+    if (!jobConfigurationStore.tryDisable(job))
+      throw new ConflictException("Job no longer exists.");
+  }
+
+  private void checkModifiable(JobEntry job) throws ConflictException {
+    if (!job.type().isUserDefined())
+      throw new ConflictException(
+          String.format("Job %s is a system job that cannot be modified.", job.id()));
+  }
+
+  private void checkUserCanChangeJobState(JobEntry job) throws ForbiddenException {
+    if (!CurrentUserUtil.hasCurrentUser())
+      throw new ForbiddenException(JobConfiguration.class, job.id());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    if (currentUser.isSuper()) return;
+    if (!currentUser.hasAnyAuthorities(List.of(Authorities.F_SCHEDULING_ADMIN)))
+      throw new ForbiddenException(JobConfiguration.class, job.id());
   }
 
   @Override

@@ -181,6 +181,19 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
   boolean tryRevertNow(@Nonnull UID jobId);
 
   /**
+   * @param jobId the job to enable
+   * @return true, if the status was changed, false if the job does not exist or cannot be enabled
+   *     as it is a complete run-once job
+   */
+  boolean tryEnable(@Nonnull UID jobId);
+
+  /**
+   * @param jobId the job to disable
+   * @return true, if the status was changed, false if the job does not exist
+   */
+  boolean tryDisable(@Nonnull UID jobId);
+
+  /**
    * A successful update means the DB state flipped from {@link JobStatus#SCHEDULED} to {@link
    * JobStatus#RUNNING}.
    *
@@ -233,7 +246,12 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
   /**
    * Switches {@link JobConfiguration#getJobStatus()} to {@link JobStatus#DISABLED} for any job that
    * currently is still {@link JobStatus#SCHEDULED} while it has been set to {@link
-   * JobConfiguration#isEnabled()} {@code false}.
+   * JobConfiguration#isEnabled()} {@code false}. Jobs that are {@code enabled=true} but already
+   * {@link JobStatus#DISABLED} disabled are not affected as the task of this update is to make a
+   * disable requested by the user though setting {@code enabled=false} effective by updating its
+   * status to {@link JobStatus#DISABLED} if the job's current state allows it. It is not goal of
+   * this update to enable jobs that are in status disabled if the user level is {@code
+   * enabled=true}.
    *
    * @return number of job configurations that were affected
    */
