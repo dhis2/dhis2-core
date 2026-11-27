@@ -149,8 +149,8 @@ class LogoutTest extends AuthenticationApiTestBase {
   }
 
   /**
-   * Spring Security's default logout matcher also accepted PUT and DELETE while CSRF was disabled.
-   * Only POST, and GET for one more release, log out now; clients must migrate to POST.
+   * Spring Security's default logout matcher also accepts PUT and DELETE because CSRF protection is
+   * disabled. Only POST, and GET for one more release, log out now; clients must migrate to POST.
    */
   @ParameterizedTest
   @ValueSource(strings = {"PUT", "DELETE"})
