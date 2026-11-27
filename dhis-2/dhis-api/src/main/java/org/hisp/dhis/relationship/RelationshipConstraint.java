@@ -33,6 +33,20 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.program.Program;
@@ -43,18 +57,34 @@ import org.hisp.dhis.trackerdataview.TrackerDataView;
 /**
  * @author Stian Sandvold
  */
+@Entity
+@Table(name = "relationshipconstraint")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "relationshipConstraint", namespace = DxfNamespaces.DXF_2_0)
 public class RelationshipConstraint implements EmbeddedObject {
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "relationshipconstraintid")
   private int id;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "entity")
   private RelationshipEntity relationshipEntity;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "trackedentitytypeid")
   private TrackedEntityType trackedEntityType;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "programid")
   private Program program;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "programstageid")
   private ProgramStage programStage;
 
+  @Type(type = "jbTrackerDataView")
+  @Column(name = "dataview")
   private TrackerDataView trackerDataView;
 
   public RelationshipConstraint() {}
