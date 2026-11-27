@@ -234,6 +234,14 @@ public interface SqlBuilder {
    */
   boolean supportsPercentileCont();
 
+  /**
+   * @return true if the DBMS caches the metadata, such as the columns, of operational database
+   *     tables referenced through {@link #qualifyTable(String)}. If so, the cache must be refreshed
+   *     with {@link #refreshTable(String)} before reading a table which may have been recreated
+   *     with different columns since the DBMS last read it, such as a resource table.
+   */
+  boolean requiresTableMetadataRefresh();
+
   // Utilities
 
   /**
@@ -474,6 +482,13 @@ public interface SqlBuilder {
   String analyzeTable(String name);
 
   /**
+   * @param name the table name.
+   * @return a statement which refreshes the cached metadata of the operational database table
+   *     referenced by {@link #qualifyTable(String)}, see {@link #requiresTableMetadataRefresh()}.
+   */
+  String refreshTable(String name);
+
+  /**
    * @param table the {@link Table}.
    * @return a vacuum table statement.
    */
@@ -562,6 +577,17 @@ public interface SqlBuilder {
    *     determine the table's key model.
    */
   String showCreateTable(String name);
+
+  /**
+   * Only meaningful for engines where {@link #requiresUniqueKeyAnalyticsTables()} is true, where a
+   * continuous update merges staged rows into a main table which may predate dimensions added since
+   * it was created.
+   *
+   * @param name the table name.
+   * @return a statement which returns one row per column of the table, with the column name in the
+   *     first column.
+   */
+  String tableColumns(String name);
 
   /**
    * @param table the {@link Table}.
