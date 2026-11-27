@@ -56,10 +56,12 @@ import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
+import org.hisp.dhis.webapi.filter.GetLogoutGuardFilter;
 import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
 import org.hisp.dhis.webapi.security.AntPathRequestMatcher;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
+import org.hisp.dhis.webapi.security.SessionCookieClearingLogoutHandler;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +70,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
@@ -81,12 +84,15 @@ import org.springframework.security.config.annotation.web.configurers.SessionMan
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.session.SessionManagementFilter;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -105,6 +111,8 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 @Order(1999)
 public class DhisWebApiWebSecurityConfig {
+  private static final String LOGOUT_URL = "/dhis-web-commons-security/logout.action";
+
   private static String apiContextPath = "/api";
 
   public static void setApiContextPath(String apiContextPath) {
@@ -372,12 +380,22 @@ public class DhisWebApiWebSecurityConfig {
         exceptionHandling -> exceptionHandling.authenticationEntryPoint(entryPoint()));
 
     /// LOGOUT //////////////////
+    // POST is the supported logout method. GET is deprecated and stays accepted for one more
+    // release, guarded against cross-origin navigations and resource loads by
+    // GetLogoutGuardFilter.
+    // PUT and DELETE no longer log out. Spring Security's default matcher accepts GET, POST, PUT
+    // and DELETE because CSRF protection is disabled; clients that log out with PUT or DELETE
+    // must switch to POST.
+    RequestMatcher postLogout = logoutMatcher(HttpMethod.POST);
+    RequestMatcher getLogout = logoutMatcher(HttpMethod.GET);
     http.logout(
         logout ->
             logout
-                .logoutUrl("/dhis-web-commons-security/logout.action")
+                .logoutRequestMatcher(new OrRequestMatcher(postLogout, getLogout))
                 .logoutSuccessHandler(dhisOidcLogoutSuccessHandler)
-                .deleteCookies("JSESSIONID", "SESSION_EXPIRE"));
+                .addLogoutHandler(new SessionCookieClearingLogoutHandler()));
+    http.addFilterBefore(
+        new GetLogoutGuardFilter(getLogout, dhisOidcLogoutSuccessHandler), LogoutFilter.class);
 
     /// SESSION ////////////////
     http.sessionManagement(
@@ -389,7 +407,11 @@ public class DhisWebApiWebSecurityConfig {
                 .maximumSessions(
                     Integer.parseInt(
                         dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
-                .expiredUrl("/dhis-web-commons-security/logout.action"));
+                .expiredUrl(LOGOUT_URL));
+  }
+
+  private static RequestMatcher logoutMatcher(HttpMethod method) {
+    return PathPatternRequestMatcher.withDefaults().matcher(method, LOGOUT_URL);
   }
 
   @Bean

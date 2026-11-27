@@ -50,6 +50,7 @@ import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.webapi.security.RejectCrossOriginGet;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -134,6 +135,7 @@ public class TwoFactorController {
       produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   @Deprecated(forRemoval = true, since = "2.42")
+  @RejectCrossOriginGet
   public void generateQRCode(@CurrentUser User currentUser, HttpServletResponse response)
       throws IOException, ConflictException {
     twoFactorAuthService.enrollTOTP2FA(currentUser.getUsername());
