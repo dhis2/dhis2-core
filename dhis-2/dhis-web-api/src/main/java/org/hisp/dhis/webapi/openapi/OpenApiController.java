@@ -126,6 +126,10 @@ public class OpenApiController {
     if (notModified(request, response, generation)) return;
 
     generation.setIncludeXProperties(true);
+
+    // auto-set context path
+    rendering.setContextPath(request.getContextPath());
+
     writeHtml(response, renderCached(scoping, generation, rendering));
   }
 
@@ -143,6 +147,10 @@ public class OpenApiController {
     if (notModified(request, response, generation)) return;
 
     generation.setIncludeXProperties(true);
+
+    // auto-set context path
+    rendering.setContextPath(request.getContextPath());
+
     OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path:/api/" + path));
     writeHtml(response, renderCached(scope, generation, rendering));
   }
