@@ -55,6 +55,8 @@ import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.acl.AccessControlStore;
+import org.hisp.dhis.security.acl.DataReadableAocs;
 import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
@@ -72,6 +74,7 @@ public class HibernateDataExportStore implements DataExportStore {
 
   private final EntityManager entityManager;
   private final JdbcTemplate jdbcTemplate;
+  private final AccessControlStore accessControlStore;
 
   @Override
   @CheckForNull
@@ -130,34 +133,32 @@ public class HibernateDataExportStore implements DataExportStore {
   @Nonnull
   @Override
   public Stream<DataExportValue> exportValues(@Nonnull DataExportParams params) {
-    SQL.QueryAPI api = NativeSQL.of(getSession());
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     // the AOCs the user can read data for are resolved upfront so the planner sees a known, small
     // list instead of guessing the size of a sharing-filtered set of all category option combos;
     // superusers are not restricted (they must be able to find invalid data), for everyone else
     // this also applies to explicit AOCs, as a second line behind the service's E2011 check
-    long[] aocAllowed =
-        currentUser.isSuper()
-            ? null
-            : getAllowedAocIds(api, currentUser, params.getAttributeOptionCombos());
-    if (aocAllowed != null && aocAllowed.length == 0) return Stream.empty();
+    DataReadableAocs dataReadableAocs =
+        accessControlStore.getDataReadableAttributeOptionCombos(
+            currentUser, params.getAttributeOptionCombos());
+    if (dataReadableAocs.isNone()) return Stream.empty();
     // the export itself goes through plain JDBC: no per-column Hibernate type handling per row,
     // and the JdbcTemplate's fetch size lets the driver stream rows instead of buffering them all
     SQL.QueryAPI exportApi = NativeSQL.of(new NamedParameterJdbcTemplate(jdbcTemplate));
-    return createExportQuery(params, exportApi, currentUser, aocAllowed).stream()
+    return createExportQuery(params, exportApi, currentUser, dataReadableAocs).stream()
         .map(DataExportValue::of);
   }
 
   /**
-   * @param aocAllowed internal ids of the AOCs the values are limited to, null for no limit; must
-   *     not be empty (an empty list would erase the filter)
+   * @param dataReadableAocs the AOCs the values are limited to; must not be none (an empty list
+   *     would erase the filter)
    */
   static QueryBuilder createExportQuery(
       DataExportParams params,
       SQL.QueryAPI api,
       UserDetails currentUser,
-      @CheckForNull long[] aocAllowed) {
-    if (aocAllowed != null && aocAllowed.length == 0)
+      @Nonnull DataReadableAocs dataReadableAocs) {
+    if (dataReadableAocs.isNone())
       throw new IllegalArgumentException("AOC limit must not be empty");
     boolean isSuper = currentUser.isSuper();
     String sql =
@@ -272,7 +273,7 @@ public class HibernateDataExportStore implements DataExportStore {
         .setParameter("aoc", params.getAttributeOptionCombos())
         .setParameter("lastUpdated", lastUpdated)
         .setParameter("deleted", params.isIncludeDeleted() ? null : false)
-        .setParameter("aocAllowed", aocAllowed)
+        .setParameter("aocAllowed", dataReadableAocs.ids())
         .eraseNullParameterLines()
         // keep params below even when null
         .eraseJoinLine("de_ids", !params.hasDataElementFilters())
@@ -375,45 +376,6 @@ public class HibernateDataExportStore implements DataExportStore {
         .useEqualsOverInForParameters("ds")
         .stream(String.class)
         .toList();
-  }
-
-  /**
-   * @return internal ids of the option combos of attribute category combos for which the user can
-   *     read data of every category option, plus the default combo (no sharing guards on default),
-   *     limited to the explicitly requested AOCs if there are any
-   */
-  private static long[] getAllowedAocIds(
-      SQL.QueryAPI api, UserDetails user, @CheckForNull List<UID> attributeOptionCombos) {
-    // a single bigint column comes back as a plain number per row, not as an Object[] row
-    return createAllowedAocQuery(api, user, attributeOptionCombos).stream(Number.class)
-        .mapToLong(Number::longValue)
-        .toArray();
-  }
-
-  static QueryBuilder createAllowedAocQuery(
-      SQL.QueryAPI api, UserDetails user, @CheckForNull List<UID> attributeOptionCombos) {
-    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_READ_DATA);
-    String sql =
-        """
-      SELECT DISTINCT ccoc.categoryoptioncomboid
-      FROM categorycombos_optioncombos ccoc
-      JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
-      JOIN categoryoptioncombo aoc ON aoc.categoryoptioncomboid = ccoc.categoryoptioncomboid
-      WHERE (cc.name = 'default'
-          OR cc.datadimensiontype = 'ATTRIBUTE'
-          AND NOT EXISTS (
-            SELECT 1
-            FROM categoryoptioncombos_categoryoptions coc_co
-            JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
-            WHERE coc_co.categoryoptioncomboid = ccoc.categoryoptioncomboid
-              AND NOT (:access)))
-        AND aoc.uid = ANY(:aoc)""";
-    return SQL.of(sql, api)
-        .setParameter("aoc", attributeOptionCombos)
-        .setDynamicClause("access", accessSql)
-        .eraseNullParameterLines()
-        .eraseNullParameterJoinLine("aoc", "aoc")
-        .useEqualsOverInForParameters("aoc");
   }
 
   @Nonnull
