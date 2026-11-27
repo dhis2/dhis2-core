@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeQuery;
@@ -110,8 +111,9 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize("hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_MERGE')")
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody WebMessage mergeOrgUnits(@RequestBody OrgUnitMergeQuery query) {
-    orgUnitMergeService.merge(orgUnitMergeService.getFromQuery(query));
+  public @ResponseBody WebMessage mergeOrgUnits(@RequestBody OrgUnitMergeQuery query)
+      throws ConflictException {
+    orgUnitMergeService.merge(query);
 
     return ok("Organisation units merged");
   }
