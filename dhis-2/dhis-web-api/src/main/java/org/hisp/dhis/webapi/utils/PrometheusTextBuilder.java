@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ public class PrometheusTextBuilder {
   public static final String GAUGE = "gauge";
 
   public void addHelp(String metricName, String help) {
-    metrics.append(String.format("# HELP %s %s%n", metricName, help));
+    appendLine("# HELP %s %s".formatted(metricName, escapeHelp(help)));
   }
 
   /**
@@ -62,7 +62,7 @@ public class PrometheusTextBuilder {
    * @param type the type of the metric (e.g., counter, gauge)
    */
   public void addType(String metricName, String type) {
-    metrics.append(String.format("# TYPE %s %s%n", metricName, type));
+    appendLine("# TYPE %s %s".formatted(metricName, type));
   }
 
   /**
@@ -95,8 +95,13 @@ public class PrometheusTextBuilder {
     addHelp(metricName, help);
     addType(metricName, type);
     map.forEach(
-        (key, value) ->
-            metrics.append("%s{%s=\"%s\"} %s%n".formatted(metricName, keyName, key, value)));
+        (key, value) -> {
+          if (value != null) {
+            appendLine(
+                "%s{%s=\"%s\"} %s"
+                    .formatted(metricName, keyName, escapeLabelValue(String.valueOf(key)), value));
+          }
+        });
   }
 
   /**
@@ -118,11 +123,39 @@ public class PrometheusTextBuilder {
     map.forEach(
         (key, value) -> {
           String thisLabel = labelMap.get(key);
-          if (thisLabel == null) {
+          if (thisLabel == null || value == null) {
             return;
           }
-          metrics.append("%s{%s} %s%n".formatted(metricName, thisLabel, value));
+          appendLine("%s{%s} %s".formatted(metricName, thisLabel, value));
         });
+  }
+
+  /**
+   * Escapes a label value for the Prometheus text format. A null value becomes an empty string,
+   * which Prometheus treats as a missing label.
+   *
+   * @param value the label value
+   * @return the escaped label value
+   */
+  public static String escapeLabelValue(String value) {
+    if (value == null) {
+      return "";
+    }
+    return value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
+  }
+
+  private static String escapeHelp(String help) {
+    return help.replace("\\", "\\\\").replace("\n", "\\n");
+  }
+
+  /**
+   * Appends a line to the metrics. The Prometheus text format requires {@code \n} as the line
+   * separator on every platform, so this does not use the platform line separator.
+   *
+   * @param line the line to append, without a line separator
+   */
+  public void appendLine(String line) {
+    metrics.append(line).append('\n');
   }
 
   /**

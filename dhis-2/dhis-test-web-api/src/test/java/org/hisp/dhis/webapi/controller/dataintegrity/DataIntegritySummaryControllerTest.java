@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -169,5 +169,17 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
         content.contains(
             "dhis_data_integrity_check_duration_milliseconds{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
         "Data integrity check duration is missing");
+  }
+
+  @Test
+  void testGetSummaryMetricsWithoutObjectType() {
+    postSummary("server_base_url_not_configured");
+    String content =
+        GET("/api/dataIntegrity/metrics", HttpClientAdapter.Accept("text/plain"))
+            .content("text/plain");
+    assertTrue(
+        content.contains(
+            "dhis_data_integrity_issues_count_total{check=\"server_base_url_not_configured\",severity=\"SEVERE\",object_type=\"\"}"),
+        "Missing object type should be an empty label value:\n" + content);
   }
 }

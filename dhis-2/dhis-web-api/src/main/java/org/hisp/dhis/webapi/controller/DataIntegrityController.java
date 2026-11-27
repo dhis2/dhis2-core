@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
+import static org.hisp.dhis.webapi.utils.PrometheusTextBuilder.escapeLabelValue;
 import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN_VALUE;
 
 import java.util.Collection;
@@ -186,7 +187,10 @@ public class DataIntegrityController {
             StringBuilder metricLabel = new StringBuilder();
             metricLabel.append(
                 "check=\"%s\",severity=\"%s\",object_type=\"%s\""
-                    .formatted(key, severity, objectType));
+                    .formatted(
+                        escapeLabelValue(key),
+                        escapeLabelValue(severity),
+                        escapeLabelValue(objectType)));
             countMetrics.put(key, summary.getCount());
             metricLabels.put(key, metricLabel.toString());
             // Percentage might not be present
