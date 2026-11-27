@@ -413,7 +413,6 @@ class CopyServiceTest extends TestBase {
     p.setStyle(new ObjectStyle());
     p.setTrackedEntityType(createTrackedEntityType('A'));
     p.setUseFirstStageDuringRegistration(false);
-    p.setUserRoles(Set.of(createUserRole("tester", "d")));
     p.setCategoryMappings(Set.of(cm1, cm2));
     return p;
   }

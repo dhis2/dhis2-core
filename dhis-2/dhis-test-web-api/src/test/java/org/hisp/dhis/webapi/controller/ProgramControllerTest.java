@@ -47,6 +47,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonObjectReport;
@@ -443,6 +444,49 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(program.getBoolean("onlyEnrollOnce").booleanValue());
     assertEquals(10, program.getNumber("expiryDays").intValue());
     assertEquals("Updated Enrollment Date", program.getEnrollmentDateLabel().string());
+  }
+
+  @Test
+  void shouldNotExposeProgramUserRoles() {
+    JsonList<JsonObject> properties =
+        GET("/schemas/program").content(HttpStatus.OK).getList("properties", JsonObject.class);
+
+    assertFalse(properties.isEmpty());
+    assertTrue(
+        properties.stream()
+            .noneMatch(
+                p ->
+                    "userRoles".equals(p.getString("collectionName").string())
+                        || "userRole".equals(p.getString("name").string())));
+  }
+
+  @Test
+  void shouldImportProgramAndIgnoreUserRoles() {
+    String roleId = assertStatus(HttpStatus.CREATED, POST("/userRoles", "{'name':'Program role'}"));
+    // language=JSON
+    String json =
+        """
+        {
+          "programs": [
+            {
+              "id": "PrZMWi7rBgb",
+              "name": "program with user roles",
+              "shortName": "program with user roles",
+              "programType": "WITHOUT_REGISTRATION",
+              "userRoles": [{"id": "%s"}, {"id": "UrNotExists"}]
+            }
+          ]
+        }
+        """
+            .formatted(roleId);
+
+    JsonWebMessage message =
+        POST("/metadata", json).content(HttpStatus.OK).as(JsonWebMessage.class);
+
+    assertEquals("OK", message.getStatus());
+    JsonMixed program = GET("/programs/PrZMWi7rBgb").content(HttpStatus.OK).as(JsonMixed.class);
+    assertEquals("program with user roles", program.getString("name").string());
+    assertFalse(program.has("userRoles"));
   }
 
   @Test
