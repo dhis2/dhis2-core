@@ -119,6 +119,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Autowired private AuthorityInterceptor authorityInterceptor;
 
+  @Autowired private UserContextInterceptor userContextInterceptor;
+
   @Autowired private SystemSettingsInterceptor settingsInterceptor;
 
   @Autowired private StaticCacheInterceptor staticCacheInterceptor;
@@ -254,7 +256,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new HandlerMethodInterceptor());
-    registry.addInterceptor(new UserContextInterceptor());
+    registry.addInterceptor(userContextInterceptor);
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
     registry.addInterceptor(new TrailingSlashInterceptor()).excludePathPatterns("/api/**");

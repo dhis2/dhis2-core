@@ -97,6 +97,8 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Autowired private AuthorityInterceptor authorityInterceptor;
 
+  @Autowired private UserContextInterceptor userContextInterceptor;
+
   @Autowired private SystemSettingsInterceptor settingsInterceptor;
 
   @Autowired private TrackerExportDeadlineInterceptor trackerExportDeadlineInterceptor;
@@ -143,7 +145,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     addInterceptors(registry);
     registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
-    registry.addInterceptor(new UserContextInterceptor());
+    registry.addInterceptor(userContextInterceptor);
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
     registry
@@ -184,7 +186,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
 
-    registry.addInterceptor(new UserContextInterceptor());
+    registry.addInterceptor(userContextInterceptor);
     registry.addInterceptor(authorityInterceptor);
     registry
         .addInterceptor(trackerExportDeadlineInterceptor)
