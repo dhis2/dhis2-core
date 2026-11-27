@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -285,6 +285,15 @@ public class ValidationUtils {
       return false;
     }
 
+    return coordinateIsValid(longitude, latitude);
+  }
+
+  /**
+   * Validates whether a longitude and latitude pair is within the valid range.
+   *
+   * @return true if the coordinate is valid, false otherwise.
+   */
+  public static boolean coordinateIsValid(double longitude, double latitude) {
     return longitude >= LONG_MIN
         && longitude <= LONG_MAX
         && latitude >= LAT_MIN

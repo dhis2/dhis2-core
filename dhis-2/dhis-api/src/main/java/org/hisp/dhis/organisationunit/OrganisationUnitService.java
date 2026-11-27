@@ -357,6 +357,16 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
   int getNumberOfOrganisationalLevels();
 
   /**
+   * Returns the UIDs of all organisation units which have at least one child with a geometry,
+   * considering only children at the given hierarchy levels. Answers "has descendants with
+   * coordinates" for many units in one query instead of loading each unit's children.
+   *
+   * @param childLevels the hierarchy levels of the children to inspect.
+   * @return a set of parent UIDs, empty if {@code childLevels} is empty.
+   */
+  Set<UID> getParentUidsOfUnitsWithGeometry(Collection<Integer> childLevels);
+
+  /**
    * Returns the count of OrganisationUnits which are part of the sub-hierarchy of the given parent
    * OrganisationUnit and members of the given object based on the collection of the given
    * collection name.

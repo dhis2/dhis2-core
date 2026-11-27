@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,6 +98,20 @@ import org.junit.jupiter.api.Test;
  * @author Lars Helge Overland
  */
 class ValidationUtilsTest {
+  @Test
+  void testCoordinateIsValidLongitudeLatitude() {
+    assertTrue(coordinateIsValid(37.99034, -28.94221));
+    assertTrue(coordinateIsValid(-180, -90));
+    assertTrue(coordinateIsValid(180, 90));
+    assertFalse(coordinateIsValid(-180.1, 0));
+    assertFalse(coordinateIsValid(180.1, 0));
+    assertFalse(coordinateIsValid(0, -90.1));
+    assertFalse(coordinateIsValid(0, 90.1));
+    assertFalse(coordinateIsValid(Double.NaN, 0));
+    assertFalse(coordinateIsValid("[192.56789,-45.34332]"));
+    assertFalse(coordinateIsValid("[140.34,92.23323]"));
+  }
+
   @Test
   void testCoordinateIsValid() {
     assertTrue(coordinateIsValid("[+37.99034,-28.94221]"));
