@@ -84,6 +84,7 @@ import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.queryitem.DateFilterHandler;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageOrgUnitSqlService;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
@@ -886,6 +887,33 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(sql.getValue(), containsString("ax.\"occurreddate\" >= '2021-03-01'"));
     assertThat(sql.getValue(), containsString("ax.\"occurreddate\" <= '2021-05-31'"));
     assertThat(sql.getValue(), containsString("ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void aggregateStageScheduledDateUsesOnlyRequestedQuarters() {
+    mockEmptyRowSet();
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+    QueryItem date =
+        stageScopedItem(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, ValueType.DATE);
+    new DateFilterHandler().applyPeriods(date, List.of("2022Q3", "2022Q1"));
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(AGGREGATE)
+            .addItem(date)
+            .build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    String where = sql.getValue();
+    assertThat(
+        where,
+        containsString(
+            "(ax.\"scheduleddate\" >= '2022-01-01' and ax.\"scheduleddate\" < '2022-04-01'"
+                + " or ax.\"scheduleddate\" >= '2022-07-01' and ax.\"scheduleddate\" < '2022-10-01')"));
+    assertThat(where, containsString("ax.\"ps\" = '" + programStage.getUid() + "'"));
   }
 
   @Test

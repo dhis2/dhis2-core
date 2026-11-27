@@ -32,19 +32,23 @@ package org.hisp.dhis.common;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.apache.commons.lang3.StringUtils.substringBefore;
 import static org.hisp.dhis.common.CustomDateHelper.getCustomDateFilters;
 import static org.hisp.dhis.common.CustomDateHelper.getDimensionsWithRefactoredPeDimension;
 import static org.hisp.dhis.common.CustomDateHelper.isPeDimension;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.EVENT_DATE;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_FREE_RANGE_SEPARATOR;
+import static org.hisp.dhis.common.DimensionConstants.SCHEDULED_DATE;
 import static org.hisp.dhis.common.DimensionConstants.STATIC_DATE_DIMENSIONS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.feedback.ErrorCode.E7139;
 import static org.hisp.dhis.feedback.ErrorCode.E7270;
+import static org.hisp.dhis.feedback.ErrorCode.E7271;
 import static org.hisp.dhis.util.DateUtils.safeParseDate;
 import static org.hisp.dhis.util.OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria;
 
@@ -385,16 +389,28 @@ public class EventDataQueryRequest {
      * given in the request, before date request params such as {@code incidentDate} are merged into
      * the period dimension, so a range given through those params is still accepted.
      *
+     * <p>A stage date dimension, such as {@code stageUid.EVENT_DATE}, accepts a date range only as
+     * its single item. Its periods are grouped one period type at a time, and a date range has no
+     * period type to be grouped by.
+     *
      * @param dimensions the dimensions as given in the request.
-     * @throws IllegalQueryException if a time dimension holds a date range.
+     * @throws IllegalQueryException if a time dimension holds a date range, or a stage date
+     *     dimension holds a date range together with other items.
      */
     private static void rejectDateRangeDimensions(Set<String> dimensions) {
       for (Set<String> group : getGrouped(dimensions)) {
         for (String dimension : group) {
-          if (isTimeDimension(getDimensionFromParam(dimension))
-              && getDimensionItemsFromParam(dimension).stream()
-                  .anyMatch(ExtendedEventDataQueryRequestBuilder::isDateRange)) {
+          String dimensionId = getDimensionFromParam(dimension);
+          List<String> items = getDimensionItemsFromParam(dimension);
+          boolean hasDateRange =
+              items.stream().anyMatch(ExtendedEventDataQueryRequestBuilder::isDateRange);
+
+          if (hasDateRange && isTimeDimension(dimensionId)) {
             throw new IllegalQueryException(new ErrorMessage(E7270, dimension));
+          }
+
+          if (hasDateRange && items.size() > 1 && isStageDateDimension(dimensionId)) {
+            throw new IllegalQueryException(new ErrorMessage(E7271, dimension));
           }
         }
       }
@@ -402,6 +418,16 @@ public class EventDataQueryRequest {
 
     private static boolean isTimeDimension(String dimensionId) {
       return PERIOD_DIM_ID.equals(dimensionId) || STATIC_DATE_DIMENSIONS.contains(dimensionId);
+    }
+
+    /**
+     * Checks whether the given dimension identifier is a stage date, such as {@code
+     * stageUid.EVENT_DATE} or {@code stageUid.SCHEDULED_DATE}.
+     */
+    private static boolean isStageDateDimension(String dimensionId) {
+      String suffix = substringAfterLast(dimensionId, ".");
+      return dimensionId.contains(".")
+          && (EVENT_DATE.equalsIgnoreCase(suffix) || SCHEDULED_DATE.equalsIgnoreCase(suffix));
     }
 
     /**

@@ -524,6 +524,31 @@ public class QueryItem implements GroupableItem {
     return hasRepeatableStageParams() ? repeatableStageParams.getIndex() : 0;
   }
 
+  /**
+   * Returns a copy of this item. The filters and dimension values are copied into lists of their
+   * own, so they can change without changing this item.
+   *
+   * @return a copy of this {@link QueryItem}.
+   */
+  public QueryItem copy() {
+    QueryItem copy = new QueryItem(item);
+    copy.groupUUID = groupUUID;
+    copy.legendSet = legendSet;
+    copy.filters = new ArrayList<>(filters);
+    copy.valueType = valueType;
+    copy.aggregationType = aggregationType;
+    copy.optionSet = optionSet;
+    copy.option = option;
+    copy.program = program;
+    copy.programStage = programStage;
+    copy.repeatableStageParams = repeatableStageParams;
+    copy.unique = unique;
+    copy.relationshipType = relationshipType;
+    copy.customHeader = customHeader;
+    copy.dimensionValues = new ArrayList<>(dimensionValues);
+    return copy;
+  }
+
   public QueryItem withCustomHeader(AnalyticsCustomHeader customHeader) {
     this.customHeader = customHeader;
     return this;
