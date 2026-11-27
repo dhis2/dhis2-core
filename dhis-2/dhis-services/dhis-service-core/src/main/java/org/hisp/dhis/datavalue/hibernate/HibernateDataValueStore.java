@@ -373,18 +373,18 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     }
 
     if (params.hasOrganisationUnits()) {
-      if (params.isIncludeDescendantsForOrganisationUnits()) {
-        where.append(sqlHelper.whereAnd()).append("(");
+      if (params.hasOrganisationUnitSubtrees()) {
+        // patharray holds the UIDs of the org unit and all its ancestors (GIN indexed)
+        String rootUids =
+            params.getOrganisationUnits().stream()
+                .map(ou -> "'" + ou.getUid() + "'")
+                .collect(joining(","));
 
-        for (OrganisationUnit parent : params.getOrganisationUnits()) {
-          where
-              .append(sqlHelper.or())
-              .append("ou.path like '")
-              .append(parent.getStoredPath())
-              .append("%'");
-        }
-
-        where.append(" )");
+        where
+            .append(sqlHelper.whereAnd())
+            .append("ou.patharray && array[")
+            .append(rootUids)
+            .append("]::varchar[]");
       } else {
         String orgUnitIdList =
             getCommaDelimitedString(getIdentifiers(params.getOrganisationUnits()));
