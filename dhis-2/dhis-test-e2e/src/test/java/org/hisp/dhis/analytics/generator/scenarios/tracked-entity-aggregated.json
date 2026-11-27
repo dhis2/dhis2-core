@@ -468,6 +468,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "aggregateDateDimensionCountsEveryRequestedPeriod",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=IpHINAT79UW.ENROLLMENT_DATE:2024;2023;2022&filter=ou:ImspTQPwCqd&paging=false&displayProperty=NAME&includeMetadataDetails=true",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

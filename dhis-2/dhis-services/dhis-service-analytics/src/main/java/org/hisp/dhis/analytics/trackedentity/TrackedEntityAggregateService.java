@@ -366,19 +366,13 @@ public class TrackedEntityAggregateService {
   private void addGroupedPeriodMetadata(
       Grid grid,
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
-    GridMetadata metadata = getGridMetadata(grid);
-    if (metadata == null || metadata.isEmpty()) {
-      return;
-    }
-
     boolean includeMetadataDetails = contextParams.getCommonRaw().isIncludeMetadataDetails();
 
     for (DimensionIdentifier<DimensionParam> dimension :
         AggregateQueryBuilder.getGroupedDimensions(contextParams)) {
       List<PeriodDimension> periods = groupedPeriods(dimension);
       if (!periods.isEmpty()) {
-        addPeriodItems(metadata.items(), periods, includeMetadataDetails);
-        addPeriodDimension(metadata.dimensions(), dimension, periods);
+        metadataParamsHandler.addPeriods(grid, dimension, periods, includeMetadataDetails);
       }
     }
   }
@@ -392,32 +386,6 @@ public class TrackedEntityAggregateService {
     return dimension.getDimension().isPeriodDimension()
         ? PeriodBucketColumn.periods(dimension)
         : List.of();
-  }
-
-  private void addPeriodItems(
-      Map<String, Object> items, List<PeriodDimension> periods, boolean includeMetadataDetails) {
-    if (items == null) {
-      return;
-    }
-
-    for (PeriodDimension period : periods) {
-      items.put(
-          period.getIsoDate(),
-          new MetadataItem(period.getIsoDate(), includeMetadataDetails ? period : null));
-    }
-  }
-
-  private void addPeriodDimension(
-      Map<String, Object> dimensions,
-      DimensionIdentifier<DimensionParam> dimension,
-      List<PeriodDimension> periods) {
-    if (dimensions == null) {
-      return;
-    }
-
-    dimensions.put(
-        AggregateQueryBuilder.groupedDimensionName(dimension),
-        periods.stream().map(PeriodDimension::getIsoDate).toList());
   }
 
   /**

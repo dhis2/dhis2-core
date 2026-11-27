@@ -38,6 +38,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARC
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getEventLevelName;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.supportsCustomLabel;
 import static org.hisp.dhis.analytics.orgunit.OrgUnitHelper.getActiveOrganisationUnits;
@@ -63,11 +64,13 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
+import org.hisp.dhis.analytics.trackedentity.query.PeriodStaticDimensionCondition;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -150,6 +153,80 @@ public class MetadataParamsHandler {
       }
 
       grid.setMetaData(metadataInfo.getMap());
+    }
+  }
+
+  /**
+   * Lists the periods each date dimension requests in the grid metadata. A date dimension is parsed
+   * as a static dimension, so {@link #handle} never sees its items. Its {@code metaData.dimensions}
+   * entry is keyed by its header name and is empty for a date compared to a value, which requests
+   * no period. Date filters are not listed.
+   *
+   * @param grid the current {@link Grid}, already carrying the metadata built by {@link #handle}.
+   * @param contextParams the {@link ContextParams}.
+   */
+  public void addRequestedPeriods(
+      Grid grid,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    boolean includeMetadataDetails = contextParams.getCommonRaw().isIncludeMetadataDetails();
+
+    for (DimensionIdentifier<DimensionParam> dimensionIdentifier :
+        contextParams.getCommonParsed().getDimensionIdentifiers()) {
+      DimensionParam dimension = dimensionIdentifier.getDimension();
+
+      if (dimension.isDimension()
+          && dimension.isStaticDimension()
+          && dimension.isPeriodDimension()) {
+        addPeriods(
+            grid,
+            dimensionIdentifier,
+            PeriodStaticDimensionCondition.periods(dimensionIdentifier),
+            includeMetadataDetails);
+      }
+    }
+  }
+
+  /**
+   * Adds the given periods of a date dimension to the grid metadata: each period becomes a {@code
+   * metaData.items} entry named by its ISO period, since a relative period carries a translation
+   * key as its name rather than a label, and the dimension's {@code metaData.dimensions} entry,
+   * keyed by its header name, lists them in the given order. Nothing is added when the grid carries
+   * no metadata.
+   *
+   * @param grid the current {@link Grid}.
+   * @param dimension the date dimension identifier.
+   * @param periods the periods of the dimension.
+   * @param includeMetadataDetails whether to include the period details in its item.
+   */
+  public void addPeriods(
+      Grid grid,
+      DimensionIdentifier<DimensionParam> dimension,
+      List<PeriodDimension> periods,
+      boolean includeMetadataDetails) {
+    Map<String, Object> metaData = grid.getMetaData();
+
+    if (metaData == null) {
+      return;
+    }
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> items = (Map<String, Object>) metaData.get(ITEMS.getKey());
+
+    if (items != null) {
+      for (PeriodDimension period : periods) {
+        items.put(
+            period.getIsoDate(),
+            new MetadataItem(period.getIsoDate(), includeMetadataDetails ? period : null));
+      }
+    }
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> dimensions = (Map<String, Object>) metaData.get(DIMENSIONS.getKey());
+
+    if (dimensions != null) {
+      dimensions.put(
+          getEventLevelName(dimension).orElseGet(dimension::getKey),
+          periods.stream().map(PeriodDimension::getIsoDate).toList());
     }
   }
 

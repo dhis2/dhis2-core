@@ -260,6 +260,54 @@ class PeriodStaticDimensionConditionTest {
     assertTrue(param2 instanceof Date, "Second parameter should be a Date: " + param2);
   }
 
+  @Test
+  void testEnrollmentDateWithMultipleIsoPeriodsMatchesAnyOfThem() {
+    // dimension=programUid.ENROLLMENT_DATE:2025;2023
+    List<String> values = List.of("2025", "2023");
+
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        getProgramDimensionIdentifier(
+            "programUid", StringUtils.EMPTY, DimensionParam.StaticDimension.ENROLLMENTDATE, values);
+
+    SqlParameterManager sqlParameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
+
+    PeriodStaticDimensionCondition condition =
+        PeriodStaticDimensionCondition.of(dimensionIdentifier, queryContext);
+
+    String rendered = condition.render();
+
+    assertTrue(rendered.contains(" or "), "Periods should be ORed. Actual: " + rendered);
+    assertDateParameter(queryContext, "1", "2025-01-01");
+    assertDateParameter(queryContext, "2", "2026-01-01");
+    assertDateParameter(queryContext, "3", "2023-01-01");
+    assertDateParameter(queryContext, "4", "2024-01-01");
+  }
+
+  @Test
+  void testEnrollmentDateWithPeriodAndDateRangeMatchesAnyOfThem() {
+    // dimension=programUid.ENROLLMENT_DATE:2025;2023-03-01_2023-03-31
+    List<String> values = List.of("2025", "2023-03-01_2023-03-31");
+
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        getProgramDimensionIdentifier(
+            "programUid", StringUtils.EMPTY, DimensionParam.StaticDimension.ENROLLMENTDATE, values);
+
+    SqlParameterManager sqlParameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
+
+    PeriodStaticDimensionCondition condition =
+        PeriodStaticDimensionCondition.of(dimensionIdentifier, queryContext);
+
+    String rendered = condition.render();
+
+    assertTrue(rendered.contains(" or "), "Values should be ORed. Actual: " + rendered);
+    assertDateParameter(queryContext, "1", "2025-01-01");
+    assertDateParameter(queryContext, "2", "2026-01-01");
+    assertDateParameter(queryContext, "3", "2023-03-01");
+    assertDateParameter(queryContext, "4", "2023-04-01");
+  }
+
   private void assertDateParameter(
       QueryContext queryContext, String paramKey, String expectedDate) {
     Object param = queryContext.getParametersPlaceHolder().get(paramKey);

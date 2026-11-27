@@ -329,7 +329,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        1,
+        2,
         2,
         2); // Pass runtime flag, row count, and expected header counts
 
@@ -341,9 +341,15 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"202107\":{\"name\":\"202107\"},\"202108\":{\"name\":\"202108\"},\"A03MvHHogjR.eventdate\":{\"name\":\"Event Date, Child Programme, Birth\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[\"202107\",\"202108\"],\"pe\":[]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"A03MvHHogjR.eventdate\":{\"name\":\"Event Date, Child Programme, Birth\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"},\"202107\":{\"name\":\"202107\"},\"202108\":{\"name\":\"202108\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[\"202107\",\"202108\"],\"pe\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
     validateHeaderPropertiesByName(
@@ -364,6 +370,10 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
     // Validate row exists with values from original row index 0
     validateRowExists(
         response, actualHeaders, Map.of("A03MvHHogjR.eventdate", "202107", "value", "950"));
+
+    // Validate row exists with values from original row index 1
+    validateRowExists(
+        response, actualHeaders, Map.of("A03MvHHogjR.eventdate", "202108", "value", "969"));
   }
 
   @Test
@@ -1730,7 +1740,7 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        1,
+        2,
         2,
         2); // Pass runtime flag, row count, and expected header counts
 
@@ -1742,9 +1752,15 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"202107\":{\"name\":\"202107\"},\"202108\":{\"name\":\"202108\"},\"A03MvHHogjR.eventdate\":{\"name\":\"Event Date, Child Programme, Birth\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[\"202107\",\"202108\"],\"pe\":[]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"A03MvHHogjR.eventdate\":{\"name\":\"Event Date, Child Programme, Birth\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"},\"202107\":{\"name\":\"202107\"},\"202108\":{\"name\":\"202108\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[\"202107\",\"202108\"],\"pe\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
     validateHeaderPropertiesByName(
@@ -1763,6 +1779,10 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
     // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("A03MvHHogjR.eventdate", "202108", "value", "969"));
+
+    // Validate row exists with values from original row index 1
     validateRowExists(
         response, actualHeaders, Map.of("A03MvHHogjR.eventdate", "202107", "value", "950"));
   }
@@ -3258,5 +3278,76 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
 
     // Validate row exists with values from original row index 6
     validateRowExists(response, actualHeaders, Map.of("r21967Stg01.eventdate", "", "value", "1"));
+  }
+
+  @Test
+  public void aggregateDateDimensionCountsEveryRequestedPeriod() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
+            .add("includeMetadataDetails=true")
+            .add("displayProperty=NAME")
+            .add("paging=false")
+            .add("dimension=IpHINAT79UW.ENROLLMENT_DATE:2024;2023;2022");
+
+    // When
+    ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        2,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"bbKtnxRZKEP\":{\"uid\":\"bbKtnxRZKEP\",\"name\":\"Postpartum care visit\",\"description\":\"Provision of care for the mother for some weeks after delivery\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"jdRD35YwbRH\":{\"uid\":\"jdRD35YwbRH\",\"name\":\"Sputum smear microscopy test\",\"description\":\"Sputum smear microscopy test\"},\"edqlbukwRfQ\":{\"uid\":\"edqlbukwRfQ\",\"name\":\"Second antenatal care visit\",\"description\":\"Antenatal care visit\"},\"IpHINAT79UW.enrollmentdate\":{\"name\":\"Date of enrollment\",\"dimensionType\":\"PERIOD\"},\"2023\":{\"uid\":\"2023\",\"code\":\"2023\",\"name\":\"2023\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2023-01-01T00:00:00.000\",\"endDate\":\"2023-12-31T00:00:00.000\"},\"2022\":{\"uid\":\"2022\",\"code\":\"2022\",\"name\":\"2022\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2022-01-01T00:00:00.000\",\"endDate\":\"2022-12-31T00:00:00.000\"},\"fDd25txQckK\":{\"uid\":\"fDd25txQckK\",\"name\":\"Provider Follow-up and Support Tool\"},\"ZkbAXlQUYJG\":{\"uid\":\"ZkbAXlQUYJG\",\"name\":\"TB visit\",\"description\":\"Routine TB visit\"},\"oRySG82BKE6\":{\"uid\":\"oRySG82BKE6\",\"name\":\"PNC Visit\",\"description\":\"Post Natal Care Visit\"},\"grIfo3oOf4Y\":{\"uid\":\"grIfo3oOf4Y\",\"name\":\"ANC Visit (2-4+)\",\"description\":\"ANC visits 2 to 4+\"},\"PFDfvmGpsR3\":{\"uid\":\"PFDfvmGpsR3\",\"name\":\"Care at birth\",\"description\":\"Intrapartum care \\/ Childbirth \\/ Labour and delivery\"},\"eaDHS084uMp\":{\"uid\":\"eaDHS084uMp\",\"name\":\"ANC 1st visit\",\"description\":\"ANC 1st visit\"},\"lST1OZ5BDJ2\":{\"uid\":\"lST1OZ5BDJ2\",\"name\":\"Provider Follow-up and Support Tool\",\"description\":\"Provider Follow-up and Support Tool\"},\"EPEcjy3FWmI\":{\"uid\":\"EPEcjy3FWmI\",\"name\":\"Lab monitoring\",\"description\":\"Laboratory monitoring\"},\"ur1Edk5Oe2n\":{\"uid\":\"ur1Edk5Oe2n\",\"name\":\"TB program\"},\"uy2gU8kT1jF\":{\"uid\":\"uy2gU8kT1jF\",\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"PUZaKR0Jh2k\":{\"uid\":\"PUZaKR0Jh2k\",\"name\":\"Previous deliveries\",\"description\":\"Table for recording earlier deliveries\"},\"2024\":{\"uid\":\"2024\",\"code\":\"2024\",\"name\":\"2024\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2024-01-01T00:00:00.000\",\"endDate\":\"2024-12-31T00:00:00.000\"},\"WZbXY0S00lP\":{\"uid\":\"WZbXY0S00lP\",\"name\":\"First antenatal care visit\",\"description\":\"First antenatal care visit\"},\"WSGAb5XwJ3Y\":{\"uid\":\"WSGAb5XwJ3Y\",\"name\":\"WHO RMNCH Tracker\"},\"Xgk8Wvl0jHr\":{\"uid\":\"Xgk8Wvl0jHr\",\"name\":\"Delivery\",\"description\":\"Delivery phase\"}},\"dimensions\":{\"pe\":[],\"IpHINAT79UW.enrollmentdate\":[\"2024\",\"2023\",\"2022\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "IpHINAT79UW.enrollmentdate",
+        "Date of enrollment, Child Programme",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("IpHINAT79UW.enrollmentdate", "2022", "value", "11024"));
+
+    // Validate row exists with values from original row index 1
+    validateRowExists(
+        response, actualHeaders, Map.of("IpHINAT79UW.enrollmentdate", "2023", "value", "8005"));
   }
 }
