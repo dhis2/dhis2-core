@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.setting.ThreadUserSettings;
@@ -110,6 +111,21 @@ class IndicatorTypeTest {
 
     assertEquals("Pourcentage", type.getDisplayName());
     assertEquals("Pourcentage", type.getDisplayPropertyValue(IdScheme.NAME));
+  }
+
+  /**
+   * Java serialization (the analytics grid clone, Redis-backed caches) must leave a working
+   * translation cache behind.
+   */
+  @Test
+  void testDisplayNameIsTranslatedAfterJavaSerializationRoundTrip() {
+    IndicatorType type = indicatorType("IndTypeUid1", null, "Percent");
+    type.setTranslations(Set.of(new Translation(new Locale("fr"), "NAME", "Pourcentage")));
+    ThreadUserSettings.put(Map.of("keyDbLocale", "fr"));
+
+    IndicatorType copy = SerializationUtils.clone(type);
+
+    assertEquals("Pourcentage", copy.getDisplayName());
   }
 
   @Test

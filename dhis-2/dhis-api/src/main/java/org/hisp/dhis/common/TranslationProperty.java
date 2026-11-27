@@ -67,10 +67,11 @@ public class TranslationProperty implements Serializable {
 
   /**
    * Cache for object translations, where the cache key is a combination of locale and translation
-   * property, and value is the translated value.
+   * property, and value is the translated value. The field is not Java {@code transient}: Java
+   * deserialization does not run initializers of transient fields, so a deserialized copy (like the
+   * grid clone of the analytics cache) would have a null cache.
    */
-  @Transient
-  protected final transient Map<String, String> translationCache = new ConcurrentHashMap<>();
+  @Transient private final Map<String, String> translationCache = new ConcurrentHashMap<>();
 
   // -------------------------------------------------------------------------
   // Getters and setters
