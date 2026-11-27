@@ -33,6 +33,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 import static org.hisp.dhis.user.CurrentUserUtil.hasCurrentUser;
 
 import java.util.Map;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -71,6 +72,32 @@ public class ThreadUserSettings {
    */
   public static void clear() {
     REQUEST_CURRENT_USER_SETTINGS.remove();
+  }
+
+  /**
+   * Returns the settings the current thread holds, so that they can be put back with {@link
+   * #setHeld(UserSettings)} after a job ran on the thread. Unlike {@link
+   * UserSettings#getCurrentSettings()} this does not load anything when no settings are held.
+   *
+   * @return the settings held for the current thread, or null when none are held
+   */
+  @CheckForNull
+  public static UserSettings getHeld() {
+    return REQUEST_CURRENT_USER_SETTINGS.get();
+  }
+
+  /**
+   * Puts back the settings that {@link #getHeld()} returned before a job ran on the current thread.
+   * This does not load anything.
+   *
+   * @param settings the settings to hold, null to hold none
+   */
+  public static void setHeld(@CheckForNull UserSettings settings) {
+    if (settings == null) {
+      clear();
+    } else {
+      REQUEST_CURRENT_USER_SETTINGS.set(settings);
+    }
   }
 
   /**
