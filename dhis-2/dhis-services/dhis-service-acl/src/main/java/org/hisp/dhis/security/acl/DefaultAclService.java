@@ -171,14 +171,11 @@ public class DefaultAclService implements AclService {
     if (canAccess(userDetails, schema.getAuthorityByType(AuthorityType.DATA_READ))) {
 
       if (object instanceof CategoryOptionCombo) {
-        return checkOptionComboSharingPermission(userDetails, object, Permission.DATA_READ)
-            || checkOptionComboSharingPermission(userDetails, object, Permission.DATA_WRITE);
-      } else {
-
-        return schema.isDataShareable()
-            && (checkSharingPermission(userDetails, object, Permission.DATA_READ)
-                || checkSharingPermission(userDetails, object, Permission.DATA_WRITE));
+        return checkOptionComboSharingPermission(userDetails, object, Permission.DATA_READ);
       }
+
+      return schema.isDataShareable()
+          && checkSharingPermission(userDetails, object, Permission.DATA_READ);
     }
 
     return false;

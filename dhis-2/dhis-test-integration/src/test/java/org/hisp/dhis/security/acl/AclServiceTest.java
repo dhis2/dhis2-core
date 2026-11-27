@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -1140,6 +1141,52 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     manager.save(userA);
 
     assertFalse(aclService.canRead(userA, categoryOption));
+  }
+
+  // Only data read sharing grants data read (DHIS2-22480)
+
+  @Test
+  void dataWriteSharingWithoutDataReadGrantsNoDataRead() {
+    User userA = makeUser("A");
+    manager.save(userA);
+    Program program = createProgram('A');
+    program.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    program.getSharing().setOwner("ownerOther1");
+    program.getSharing().addUserAccess(new UserAccess(userA, "r--w----"));
+
+    assertTrue(aclService.canDataWrite(userA, program));
+    assertFalse(aclService.canDataRead(userA, program));
+  }
+
+  @Test
+  void optionComboWhoseOptionsAllGrantOnlyDataWriteGrantsNoDataRead() {
+    User userA = makeUser("A");
+    manager.save(userA);
+    CategoryOption optionA = restrictedCategoryOption();
+    optionA.getSharing().addUserAccess(new UserAccess(userA, "r--w----"));
+    CategoryOption optionB = createCategoryOption('B');
+    optionB.getSharing().setPublicAccess("r--w----");
+    CategoryOptionCombo combo = new CategoryOptionCombo();
+    combo.setName("A B");
+    combo.setCategoryOptions(Set.of(optionA, optionB));
+
+    assertTrue(aclService.canDataWrite(userA, combo));
+    assertFalse(aclService.canDataRead(userA, combo));
+  }
+
+  @Test
+  void optionComboWhoseOptionsAllGrantDataReadGrantsDataRead() {
+    User userA = makeUser("A");
+    manager.save(userA);
+    CategoryOption optionA = restrictedCategoryOption();
+    optionA.getSharing().addUserAccess(new UserAccess(userA, "r-r-----"));
+    CategoryOption optionB = createCategoryOption('B');
+    optionB.getSharing().setPublicAccess("r-r-----");
+    CategoryOptionCombo combo = new CategoryOptionCombo();
+    combo.setName("A B");
+    combo.setCategoryOptions(Set.of(optionA, optionB));
+
+    assertTrue(aclService.canDataRead(userA, combo));
   }
 
   // Sharing JSON with a user or user group entry that is JSON null cannot be stored through the
