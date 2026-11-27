@@ -29,27 +29,66 @@
  */
 package org.hisp.dhis.sqlview;
 
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
+import lombok.Setter;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Sortable;
+import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 
 /**
  * @author Dang Duy Hieu
  */
+@Entity
+@Table(name = "sqlview")
 @JacksonXmlRootElement(localName = "sqlView", namespace = DxfNamespaces.DXF_2_0)
-public class SqlView extends BaseIdentifiableObject implements Cacheable, MetadataObject {
+public class SqlView extends BaseMetadataObject implements IdentifiableObject, Cacheable {
   public static final String PREFIX_VIEWNAME = "_view";
 
   public static final Set<String> PROTECTED_TABLES =
@@ -93,13 +132,46 @@ public class SqlView extends BaseIdentifiableObject implements Cacheable, Metada
   // Properties
   // -------------------------------------------------------------------------
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "sqlviewid")
+  @Setter
+  private long id;
+
+  @Column(name = "code", unique = true, length = 50)
+  @Setter
+  @AuditAttribute
+  private String code;
+
+  @Column(name = "name", nullable = false, unique = true, length = 230)
+  @Setter
+  private String name;
+
+  @Type(type = "text")
+  @Column(name = "description", columnDefinition = "text")
   private String description;
 
+  @Type(type = "text")
+  @Column(name = "sqlquery", nullable = false, columnDefinition = "text")
   private String sqlQuery;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "type", nullable = false, length = 40)
   private SqlViewType type = SqlViewType.VIEW;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "cachestrategy", nullable = false, length = 40)
   private CacheStrategy cacheStrategy = CacheStrategy.RESPECT_SYSTEM_SETTING;
+
+  @Type(type = "jsbObjectSharing")
+  @Column(name = "sharing")
+  @Setter
+  private Sharing sharing = new Sharing();
+
+  @Type(type = "jsbAttributeValues")
+  @Column(name = "attributevalues")
+  @AuditAttribute
+  private AttributeValues attributeValues = AttributeValues.empty();
 
   /**
    * Optional UID of the {@link org.hisp.dhis.scheduling.Job} that is responsible for updating a
@@ -107,7 +179,13 @@ public class SqlView extends BaseIdentifiableObject implements Cacheable, Metada
    *
    * <p>This field is only used in the API.
    */
-  private transient String updateJobId;
+  @Transient private transient String updateJobId;
+
+  /**
+   * Not persisted, there is no translations column. Kept in memory so that the translations check
+   * still rejects translations on this non-translatable type (E1107) instead of dropping them.
+   */
+  @Transient private transient Set<Translation> translations = new HashSet<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -284,5 +362,185 @@ public class SqlView extends BaseIdentifiableObject implements Cacheable, Metada
 
   public void setUpdateJobId(String updateJobId) {
     this.updateJobId = updateJobId;
+  }
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  @JsonProperty(value = "id")
+  @JacksonXmlProperty(localName = "id", isAttribute = true)
+  @Description("The Unique Identifier for this Object.")
+  @Property(value = PropertyType.IDENTIFIER, required = Value.FALSE)
+  @PropertyRange(min = 11, max = 11)
+  public String getUid() {
+    return uid;
+  }
+
+  @Override
+  @Sortable(value = false)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(isAttribute = true)
+  @Property(PropertyType.URL)
+  public String getHref() {
+    return href;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The unique code for this Object.")
+  @Property(PropertyType.IDENTIFIER)
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The name of this Object. Required and unique.")
+  @PropertyRange(min = 1)
+  public String getName() {
+    return name;
+  }
+
+  /** The schema is not translatable, so the display name is always the name. */
+  @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
+  public String getDisplayName() {
+    return name;
+  }
+
+  @Override
+  @OpenApi.Property(BaseIdentifiableObject.AttributeValue[].class)
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
+  public AttributeValues getAttributeValues() {
+    if (attributeValues == null) {
+      attributeValues = AttributeValues.empty();
+    }
+
+    return attributeValues;
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
+  }
+
+  @Override
+  public void addAttributeValue(String attributeId, String value) {
+    this.attributeValues = getAttributeValues().added(attributeId, value);
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    this.attributeValues = getAttributeValues().removed(attributeId);
+  }
+
+  @Override
+  @Gist(included = Include.FALSE)
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Translation> getTranslations() {
+    if (translations == null) {
+      translations = new HashSet<>();
+    }
+
+    return translations;
+  }
+
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    this.translations = translations;
+  }
+
+  @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Sharing getSharing() {
+    if (sharing == null) {
+      sharing = new Sharing();
+    }
+
+    return sharing;
+  }
+
+  @Override
+  public void setUser(User user) {
+    setCreatedBy(createdBy == null ? user : createdBy);
+    setOwner(user != null ? user.getUid() : null);
+  }
+
+  @Override
+  public void setOwner(String userId) {
+    getSharing().setOwner(userId);
+  }
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    } else if (idScheme.is(IdentifiableProperty.CODE)) {
+      return code;
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return name;
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
+      return getAttributeValues().get(idScheme.getAttribute());
+    }
+    return null;
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode, equals and toString
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    int result = getUid() != null ? getUid().hashCode() : 0;
+    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
+    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+    return result;
+  }
+
+  /** Class check uses get-methods and the real class to handle proxied objects. */
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof SqlView other
+            && getRealClass(this) == getRealClass(obj)
+            && Objects.equals(getUid(), other.getUid())
+            && Objects.equals(getCode(), other.getCode())
+            && Objects.equals(getName(), other.getName());
+  }
+
+  @Override
+  public String toString() {
+    return ("{\"class\":\"%s\", \"id\":\"%s\", \"uid\":\"%s\", \"code\":\"%s\", \"name\":\"%s\","
+            + " \"created\":\"%s\", \"lastUpdated\":\"%s\" }")
+        .formatted(
+            getClass(), getId(), getUid(), getCode(), getName(), getCreated(), getLastUpdated());
   }
 }
