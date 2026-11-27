@@ -1,0 +1,376 @@
+/*
+ * Copyright (c) 2004-2026, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.configuration;
+
+import com.google.common.net.InetAddresses;
+import com.google.common.net.InternetDomainName;
+import java.net.IDN;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
+/**
+ * A validated and normalised entry of the CORS allowlist.
+ *
+ * <p>The allowlist decides which foreign origins are trusted, so an entry must describe an origin:
+ * {@code scheme://host[:port]} with scheme {@code http} or {@code https} and no user info, path,
+ * query or fragment. A single trailing {@code /} is tolerated and removed. Scheme and host are
+ * lower-cased, internationalised host names are converted to their ASCII form and default ports
+ * ({@code 80} for http, {@code 443} for https) are dropped, so the normalised entry has the same
+ * form as a browser {@code Origin} header.
+ *
+ * <p>The only wildcard allowed is {@code *} as the complete leftmost host label, for example {@code
+ * https://*.example.org}, which trusts every subdomain of {@code example.org}. The part after the
+ * wildcard must have at least two labels, must not be a public suffix ({@code *.org}, {@code
+ * *.co.uk} and {@code *.github.io} are rejected) and must not be the parent of a wildcard rule of
+ * the public suffix list, which makes its subdomains public suffixes ({@code *.sch.uk} and {@code
+ * *.kawasaki.jp} are rejected; {@code *.city.kawasaki.jp} is accepted, because the list excludes
+ * {@code city.kawasaki.jp} from the rule {@code *.kawasaki.jp}). The wildcard stands for one or
+ * more host labels: {@code https://*.example.org} matches {@code https://app.example.org} and
+ * {@code https://a.b.example.org}, but not {@code https://example.org} or a value that puts
+ * anything other than a host name in place of the wildcard. All other entries match by exact
+ * comparison.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public final class CorsAllowlistEntry {
+
+  private static final String SCHEME_SEPARATOR = "://";
+
+  private static final String WILDCARD_LABEL = "*";
+
+  private static final List<String> SCHEMES = List.of("http", "https");
+
+  /** The longest host name the DNS allows, in its ASCII form and without a trailing dot. */
+  private static final int MAX_HOST_LENGTH = 253;
+
+  /**
+   * The longest origin a valid entry can match: {@code https://}, a host of {@link
+   * #MAX_HOST_LENGTH} characters and a five digit port. IPv6 literals are shorter. Longer request
+   * origins are rejected before matching, so the wildcard pattern never runs on unbounded input.
+   */
+  private static final int MAX_ORIGIN_LENGTH =
+      "https".length() + SCHEME_SEPARATOR.length() + MAX_HOST_LENGTH + ":65535".length();
+
+  /**
+   * A label no rule of the public suffix list can name, because the list contains only host names
+   * and a host name cannot contain {@code _}. Prefixed to a domain, it tells whether the domain is
+   * the parent of a wildcard rule of the list, without matching an exception rule.
+   */
+  private static final String PUBLIC_SUFFIX_PROBE_LABEL = "x_x";
+
+  private static final Pattern HOST_LABEL =
+      Pattern.compile("[a-z0-9_](?:[a-z0-9_-]{0,61}[a-z0-9_])?");
+
+  /** One or more host labels separated by dots: what the wildcard of an entry stands for. */
+  private static final String SUBDOMAIN_LABELS =
+      "(?:" + HOST_LABEL.pattern() + ")(?:\\.(?:" + HOST_LABEL.pattern() + "))*";
+
+  private static final Pattern PORT = Pattern.compile("\\d{1,5}");
+
+  private static final Pattern DIGITS = Pattern.compile("\\d+");
+
+  private static final Pattern IPV6_LITERAL = Pattern.compile("\\[[0-9a-fA-F:.]+]");
+
+  private final String origin;
+
+  @CheckForNull private final Pattern wildcardPattern;
+
+  private CorsAllowlistEntry(String origin, boolean wildcard) {
+    this.origin = origin;
+    this.wildcardPattern = wildcard ? subdomainPattern(origin) : null;
+  }
+
+  /**
+   * @param origin a normalised wildcard origin such as {@code https://*.example.org:8443}
+   * @return a pattern in which the wildcard matches one or more host labels and the rest of the
+   *     origin matches literally
+   */
+  private static Pattern subdomainPattern(String origin) {
+    int wildcard = origin.indexOf(WILDCARD_LABEL);
+    return Pattern.compile(
+        Pattern.quote(origin.substring(0, wildcard))
+            + SUBDOMAIN_LABELS
+            + Pattern.quote(origin.substring(wildcard + WILDCARD_LABEL.length())));
+  }
+
+  /**
+   * Parses and validates an allowlist entry.
+   *
+   * @param entry the entry as entered by an administrator or as stored.
+   * @return the validated, normalised entry.
+   * @throws IllegalArgumentException if the entry is not a valid allowlist entry; the message
+   *     explains why and does not repeat the entry.
+   */
+  @Nonnull
+  public static CorsAllowlistEntry parse(@CheckForNull String entry) {
+    String value = stripEntry(entry);
+
+    int schemeEnd = value.indexOf(SCHEME_SEPARATOR);
+    if (schemeEnd < 0) {
+      throw invalid("an origin must start with http:// or https://");
+    }
+    String scheme = parseScheme(value.substring(0, schemeEnd));
+    HostAndPort authority = parseAuthority(value.substring(schemeEnd + SCHEME_SEPARATOR.length()));
+    String host = authority.host();
+    String port = authority.port();
+
+    boolean wildcard = host.startsWith(WILDCARD_LABEL + ".");
+
+    StringBuilder origin = new StringBuilder(scheme).append(SCHEME_SEPARATOR).append(host);
+    if (port != null && !isDefaultPort(scheme, port)) {
+      origin.append(':').append(port);
+    }
+    return new CorsAllowlistEntry(origin.toString(), wildcard);
+  }
+
+  /**
+   * @return the normalised origin, for example {@code https://*.example.org:8443}.
+   */
+  @Nonnull
+  public String getOrigin() {
+    return origin;
+  }
+
+  /**
+   * @return true if this entry trusts every subdomain of a domain.
+   */
+  public boolean isSubdomainWildcard() {
+    return wildcardPattern != null;
+  }
+
+  /**
+   * @param requestOrigin the value of an {@code Origin} request header.
+   * @return true if the given origin is trusted by this entry.
+   */
+  public boolean matches(@CheckForNull String requestOrigin) {
+    if (requestOrigin == null || requestOrigin.length() > MAX_ORIGIN_LENGTH) {
+      return false;
+    }
+    return wildcardPattern == null
+        ? origin.equals(requestOrigin)
+        : wildcardPattern.matcher(requestOrigin).matches();
+  }
+
+  @Override
+  public String toString() {
+    return origin;
+  }
+
+  /** Host and optional port of an entry, before validation of the host. */
+  private record HostAndPort(String host, @CheckForNull String port) {}
+
+  /**
+   * @return the stripped entry without a single trailing {@code /}
+   */
+  private static String stripEntry(@CheckForNull String entry) {
+    String value = entry == null ? "" : entry.strip();
+    if (value.isEmpty()) {
+      throw invalid("the entry is empty");
+    }
+    if (value.equalsIgnoreCase("null")) {
+      throw invalid("the opaque origin `null` cannot be trusted");
+    }
+    return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
+  }
+
+  private static String parseScheme(String value) {
+    String scheme = value.toLowerCase(Locale.ROOT);
+    if (!SCHEMES.contains(scheme)) {
+      throw invalid("the scheme must be http or https");
+    }
+    return scheme;
+  }
+
+  private static HostAndPort parseAuthority(String authority) {
+    if (authority.isEmpty()) {
+      throw invalid("the host is missing");
+    }
+    if (authority.contains("/") || authority.contains("?") || authority.contains("#")) {
+      throw invalid("an origin must not contain a path, query or fragment");
+    }
+    if (authority.contains("@")) {
+      throw invalid("an origin must not contain user info");
+    }
+    return authority.startsWith("[")
+        ? parseIpv6Authority(authority)
+        : parseHostAuthority(authority);
+  }
+
+  private static HostAndPort parseIpv6Authority(String authority) {
+    int ipv6End = authority.indexOf(']');
+    String host = ipv6End < 0 ? authority : authority.substring(0, ipv6End + 1);
+    String port = portAfter(authority.substring(host.length()));
+    // A zone identifier names a network interface of this host, so whether it parses depends on
+    // the machine. Browsers do not send one in an Origin header.
+    if (host.indexOf('%') >= 0) {
+      throw invalid("an IPv6 address must not contain a zone identifier");
+    }
+    // Only ASCII hex digits, colons and dots, so the parser cannot map other digits such as
+    // fullwidth ones to ASCII.
+    if (!IPV6_LITERAL.matcher(host).matches() || !host.contains(":")) {
+      throw invalid("the IPv6 address is malformed");
+    }
+    try {
+      InetAddress address = InetAddresses.forUriString(host);
+      if (address instanceof Inet4Address) {
+        // Preserve IPv4-mapped IPv6 literals as IPv6, as browsers do.
+        byte[] bytes = address.getAddress();
+        host =
+            "[::ffff:"
+                + Integer.toHexString((bytes[0] & 255) << 8 | (bytes[1] & 255))
+                + ":"
+                + Integer.toHexString((bytes[2] & 255) << 8 | (bytes[3] & 255))
+                + "]";
+      } else {
+        host = InetAddresses.toUriString(address);
+      }
+    } catch (IllegalArgumentException ex) {
+      throw invalid("the IPv6 address is malformed");
+    }
+    return new HostAndPort(host, port);
+  }
+
+  private static HostAndPort parseHostAuthority(String authority) {
+    int portStart = authority.lastIndexOf(':');
+    String port = portStart < 0 ? null : portAfter(authority.substring(portStart));
+    String host = toAsciiHost(portStart < 0 ? authority : authority.substring(0, portStart));
+    if (host.length() > MAX_HOST_LENGTH) {
+      throw invalid("the host is longer than " + MAX_HOST_LENGTH + " characters");
+    }
+    boolean wildcard = host.startsWith(WILDCARD_LABEL + ".");
+    validateHost(wildcard ? host.substring(2) : host, wildcard);
+    return new HostAndPort(host, port);
+  }
+
+  @CheckForNull
+  private static String portAfter(String rest) {
+    if (rest.isEmpty()) {
+      return null;
+    }
+    if (!rest.startsWith(":")) {
+      throw invalid("the host is malformed");
+    }
+    String port = rest.substring(1);
+    if (!PORT.matcher(port).matches()) {
+      throw invalid("the port must be a number");
+    }
+    int number = Integer.parseInt(port);
+    if (number < 1 || number > 65535) {
+      throw invalid("the port must be between 1 and 65535");
+    }
+    return String.valueOf(number);
+  }
+
+  private static String toAsciiHost(String host) {
+    if (host.isEmpty()) {
+      throw invalid("the host is missing");
+    }
+    String lower = host.toLowerCase(Locale.ROOT);
+    String ascii;
+    try {
+      ascii = IDN.toASCII(lower, IDN.ALLOW_UNASSIGNED).toLowerCase(Locale.ROOT);
+    } catch (IllegalArgumentException ex) {
+      throw invalid("the host is not a valid domain name");
+    }
+    // Decode only explicit Punycode labels in the input. Other Unicode characters must
+    // survive the round trip, rather than being mapped to a different trusted host.
+    // IDN.toUnicode never throws; it returns invalid input unchanged.
+    String[] labels = lower.split("\\.", -1);
+    for (int i = 0; i < labels.length; i++) {
+      if (labels[i].startsWith("xn--")) {
+        labels[i] = IDN.toUnicode(labels[i], IDN.ALLOW_UNASSIGNED);
+      }
+    }
+    if (!IDN.toUnicode(ascii, IDN.ALLOW_UNASSIGNED).equals(String.join(".", labels))) {
+      throw invalid("the host requires a lossy IDN mapping");
+    }
+    return ascii;
+  }
+
+  private static void validateHost(String host, boolean wildcard) {
+    if (host.contains(WILDCARD_LABEL)) {
+      throw invalid(
+          "a wildcard is only allowed as the leftmost part of the host, as in https://*.example.org");
+    }
+    String[] labels = host.split("\\.", -1);
+    for (String label : labels) {
+      if (!HOST_LABEL.matcher(label).matches()) {
+        throw invalid("the host is not a valid domain name");
+      }
+    }
+    if (wildcard) {
+      validateWildcardDomain(host, labels);
+    }
+  }
+
+  private static void validateWildcardDomain(String domain, String[] labels) {
+    if (labels.length < 2 || DIGITS.matcher(labels[labels.length - 1]).matches()) {
+      throw invalid("a wildcard entry must name a registered domain, as in https://*.example.org");
+    }
+    boolean publicSuffix;
+    try {
+      publicSuffix =
+          InternetDomainName.from(domain).isPublicSuffix() || isParentOfWildcardRule(domain);
+    } catch (IllegalArgumentException ex) {
+      throw invalid("the host is not a valid domain name");
+    }
+    if (publicSuffix) {
+      throw invalid("a wildcard entry must not cover a public suffix such as *.co.uk or *.sch.uk");
+    }
+  }
+
+  /**
+   * @return true if a wildcard rule of the public suffix list, such as {@code *.sch.uk}, makes the
+   *     subdomains of the given domain public suffixes
+   */
+  private static boolean isParentOfWildcardRule(String domain) {
+    String probe = PUBLIC_SUFFIX_PROBE_LABEL + "." + domain;
+    // The rules of the list are far shorter than the longest host name, so a domain too long for
+    // the probe is not the parent of a wildcard rule.
+    return probe.length() <= MAX_HOST_LENGTH && InternetDomainName.from(probe).isPublicSuffix();
+  }
+
+  private static boolean isDefaultPort(String scheme, String port) {
+    return switch (scheme) {
+      case "http" -> port.equals("80");
+      case "https" -> port.equals("443");
+      default -> false;
+    };
+  }
+
+  private static IllegalArgumentException invalid(String reason) {
+    return new IllegalArgumentException(reason);
+  }
+}
