@@ -36,11 +36,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpClientAdapter;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonError;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.controller.DataIntegrityController;
 import org.junit.jupiter.api.Test;
@@ -169,5 +171,45 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
         content.contains(
             "dhis_data_integrity_check_duration_milliseconds{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
         "Data integrity check duration is missing");
+  }
+
+  @Test
+  void testGetSummaries_MaxAge() {
+    postSummary("categories-no-options");
+    // a result that just finished is given with the default, a larger and no (0) maximum age
+    for (String maxAge : new String[] {"", "&maxAge=4", "&maxAge=0"}) {
+      JsonMap<JsonDataIntegritySummary> checksByName =
+          GET("/dataIntegrity/summary?checks=categories-no-options&timeout=1000" + maxAge)
+              .content()
+              .asMap(JsonDataIntegritySummary.class);
+      assertTrue(checksByName.get("categories_no_options").exists(), maxAge);
+    }
+    assertTrue(
+        GET("/dataIntegrity/summary/completed?maxAge=0")
+            .content()
+            .stringValues()
+            .contains("categories_no_options"));
+    assertTrue(
+        GET("/dataIntegrity/categories-no-options/summary?maxAge=4")
+            .content()
+            .as(JsonDataIntegritySummary.class)
+            .exists());
+  }
+
+  @Test
+  void testGetSummaries_NegativeMaxAge() {
+    JsonError error = GET("/dataIntegrity/summary?maxAge=-1").error(HttpStatus.BAD_REQUEST);
+    assertEquals(ErrorCode.E2005, error.getErrorCode());
+    assertEquals("Duration is not valid: `maxAge=-1`", error.getMessage());
+    assertStatus(HttpStatus.BAD_REQUEST, GET("/dataIntegrity/summary/completed?maxAge=-1"));
+    assertStatus(
+        HttpStatus.BAD_REQUEST, GET("/dataIntegrity/categories-no-options/summary?maxAge=-1"));
+  }
+
+  @Test
+  void testGetCompletedSummaryChecks_RequiresMaintenanceAuthority() {
+    switchToNewUser("no-maintenance", "F_DATAELEMENT_PUBLIC_ADD");
+    assertStatus(HttpStatus.FORBIDDEN, GET("/dataIntegrity/summary/completed"));
+    assertStatus(HttpStatus.FORBIDDEN, GET("/dataIntegrity/summary"));
   }
 }

@@ -35,6 +35,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN_VALUE;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,7 +50,9 @@ import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.DataIntegritySummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -80,6 +83,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/dataIntegrity")
 @AllArgsConstructor
 public class DataIntegrityController {
+
+  /** Summary results older than this many hours are not given, unless a user asks for them. */
+  private static final String DEFAULT_MAX_AGE_HOURS = "1";
 
   private final DataIntegrityService dataIntegrityService;
 
@@ -140,10 +146,13 @@ public class DataIntegrityController {
     return dataIntegrityService.getRunningSummaryChecks();
   }
 
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @GetMapping("/summary/completed")
   @ResponseBody
-  public Set<String> getCompletedSummaryChecks() {
-    return dataIntegrityService.getCompletedSummaryChecks();
+  public Set<String> getCompletedSummaryChecks(
+      @RequestParam(required = false, defaultValue = DEFAULT_MAX_AGE_HOURS) int maxAge)
+      throws BadRequestException {
+    return dataIntegrityService.getCompletedSummaryChecks(toMaxAge(maxAge));
   }
 
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
@@ -151,13 +160,16 @@ public class DataIntegrityController {
   @ResponseBody
   public Map<String, DataIntegritySummary> getSummaries(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
-      @RequestParam(required = false, defaultValue = "0") long timeout) {
-    return dataIntegrityService.getSummaries(getCheckNames(checks), timeout);
+      @RequestParam(required = false, defaultValue = "0") long timeout,
+      @RequestParam(required = false, defaultValue = DEFAULT_MAX_AGE_HOURS) int maxAge)
+      throws BadRequestException {
+    return dataIntegrityService.getSummaries(getCheckNames(checks), timeout, toMaxAge(maxAge));
   }
 
   /**
    * Handles the GET request to retrieve data integrity check metrics in Prometheus format. All
-   * checks present in the cache are returned.
+   * checks present in the cache are returned, regardless of the age of the result, so that a
+   * monitoring system does not mark the series as stale between check runs.
    *
    * @return A string containing the metrics in Prometheus format.
    */
@@ -166,7 +178,8 @@ public class DataIntegrityController {
   @ResponseBody
   public String getSummariesMetrics() {
     // Get everything which is in the cache
-    Map<String, DataIntegritySummary> summaries = dataIntegrityService.getSummaries(Set.of(), 0);
+    Map<String, DataIntegritySummary> summaries =
+        dataIntegrityService.getSummaries(Set.of(), 0, null);
     PrometheusTextBuilder metrics = new PrometheusTextBuilder();
 
     Map<String, Integer> countMetrics = new HashMap<>();
@@ -273,9 +286,11 @@ public class DataIntegrityController {
   @ResponseBody
   public DataIntegritySummary getSummary(
       @PathVariable String check,
-      @RequestParam(required = false, defaultValue = "0") long timeout) {
+      @RequestParam(required = false, defaultValue = "0") long timeout,
+      @RequestParam(required = false, defaultValue = DEFAULT_MAX_AGE_HOURS) int maxAge)
+      throws BadRequestException {
     Collection<DataIntegritySummary> summaries =
-        dataIntegrityService.getSummaries(Set.of(check), timeout).values();
+        dataIntegrityService.getSummaries(Set.of(check), timeout, toMaxAge(maxAge)).values();
     return summaries.isEmpty() ? null : summaries.iterator().next();
   }
 
@@ -288,6 +303,19 @@ public class DataIntegrityController {
     Collection<DataIntegrityDetails> details =
         dataIntegrityService.getDetails(Set.of(check), timeout).values();
     return details.isEmpty() ? null : details.iterator().next();
+  }
+
+  /**
+   * @param hours maximum age of a summary result in hours, or 0 for no limit
+   * @return the maximum age as a duration, or {@code null} for no limit
+   * @throws BadRequestException when {@code hours} is negative
+   */
+  @CheckForNull
+  private static Duration toMaxAge(int hours) throws BadRequestException {
+    if (hours < 0) {
+      throw new BadRequestException(ErrorCode.E2005, "maxAge=" + hours);
+    }
+    return hours == 0 ? null : Duration.ofHours(hours);
   }
 
   @SafeVarargs

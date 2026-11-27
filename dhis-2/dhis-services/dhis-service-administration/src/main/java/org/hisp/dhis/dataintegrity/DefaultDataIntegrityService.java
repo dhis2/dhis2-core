@@ -47,6 +47,7 @@ import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import jakarta.annotation.PostConstruct;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -57,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -67,6 +69,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -193,8 +196,13 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
 
   @Nonnull
   @Override
-  public Set<String> getCompletedSummaryChecks() {
-    return stream(summaryCache.keys().spliterator(), false).collect(toUnmodifiableSet());
+  public Set<String> getCompletedSummaryChecks(@CheckForNull Duration maxAge) {
+    Predicate<DataIntegritySummary> recent = finishedWithinLast(maxAge);
+    // copy the keys first, because reading can remove an unreadable entry
+    List<String> names = stream(summaryCache.keys().spliterator(), false).toList();
+    return names.stream()
+        .filter(name -> readCached(summaryCache, name).filter(recent).isPresent())
+        .collect(toUnmodifiableSet());
   }
 
   @Nonnull
@@ -668,8 +676,23 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
 
   @Nonnull
   @Override
-  public Map<String, DataIntegritySummary> getSummaries(@Nonnull Set<String> checks, long timeout) {
-    return getCached(checks, timeout, summaryCache);
+  public Map<String, DataIntegritySummary> getSummaries(
+      @Nonnull Set<String> checks, long timeout, @CheckForNull Duration maxAge) {
+    return getCached(checks, timeout, summaryCache, finishedWithinLast(maxAge));
+  }
+
+  /**
+   * @param maxAge maximum age of a result, or {@code null} for any age
+   * @return a filter that accepts summaries that finished within the last {@code maxAge}
+   */
+  private static Predicate<DataIntegritySummary> finishedWithinLast(@CheckForNull Duration maxAge) {
+    if (maxAge == null) {
+      return summary -> true;
+    }
+    long oldestFinishedTime = currentTimeMillis() - maxAge.toMillis();
+    return summary ->
+        summary.getFinishedTime() != null
+            && summary.getFinishedTime().getTime() >= oldestFinishedTime;
   }
 
   // OBS! We intentionally do not open the transaction here to have each check
@@ -691,7 +714,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   @Nonnull
   @Override
   public Map<String, DataIntegrityDetails> getDetails(@Nonnull Set<String> checks, long timeout) {
-    return getCached(checks, timeout, detailsCache);
+    return getCached(checks, timeout, detailsCache, details -> true);
   }
 
   // OBS! We intentionally do not open the transaction here to have each check
@@ -716,7 +739,8 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     return message;
   }
 
-  private <T> Map<String, T> getCached(Set<String> checks, long timeout, Cache<T> cache) {
+  private <T> Map<String, T> getCached(
+      Set<String> checks, long timeout, Cache<T> cache, Predicate<T> accept) {
     Set<String> names = expandChecks(checks, false);
     long giveUpTime = currentTimeMillis() + timeout;
     Map<String, T> resByName = new LinkedHashMap<>();
@@ -732,12 +756,28 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       }
       for (String name : names) {
         if (!resByName.containsKey(name)) {
-          cache.get(name).ifPresent(res -> resByName.put(name, res));
+          readCached(cache, name).filter(accept).ifPresent(res -> resByName.put(name, res));
         }
       }
       retry = resByName.size() < names.size() && (timeout < 0 || currentTimeMillis() < giveUpTime);
     } while (retry);
     return resByName;
+  }
+
+  /**
+   * Reads one cached result. A result that cannot be read counts as missing and is removed from the
+   * cache. For example, a Redis entry from an older DHIS2 version can have a different class
+   * layout. Summary results do not expire, so without the removal such an entry would stay until
+   * the check runs again.
+   */
+  private static <T> Optional<T> readCached(Cache<T> cache, String name) {
+    try {
+      return cache.get(name);
+    } catch (RuntimeException ex) {
+      log.warn("Removing unreadable cached data integrity result of check {}", name, ex);
+      cache.invalidate(name);
+      return Optional.empty();
+    }
   }
 
   @FunctionalInterface

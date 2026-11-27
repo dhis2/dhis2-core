@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.scheduling.JobProgress;
 
@@ -47,8 +49,16 @@ public interface DataIntegrityService {
   @Nonnull
   Collection<DataIntegrityCheck> getDataIntegrityChecks(Set<String> checks);
 
+  /**
+   * @param checks names of the checks, or empty for all checks
+   * @param timeout milliseconds to wait for missing results
+   * @param maxAge only give results that finished within this duration, or {@code null} for results
+   *     of any age
+   * @return the cached summary results by check name
+   */
   @Nonnull
-  Map<String, DataIntegritySummary> getSummaries(@Nonnull Set<String> checks, long timeout);
+  Map<String, DataIntegritySummary> getSummaries(
+      @Nonnull Set<String> checks, long timeout, @CheckForNull Duration maxAge);
 
   @Nonnull
   Map<String, DataIntegrityDetails> getDetails(@Nonnull Set<String> checks, long timeout);
@@ -63,8 +73,13 @@ public interface DataIntegrityService {
   @Nonnull
   Set<String> getRunningDetailsChecks();
 
+  /**
+   * @param maxAge only give checks with a result that finished within this duration, or {@code
+   *     null} for results of any age
+   * @return names of the checks that have a cached summary result
+   */
   @Nonnull
-  Set<String> getCompletedSummaryChecks();
+  Set<String> getCompletedSummaryChecks(@CheckForNull Duration maxAge);
 
   @Nonnull
   Set<String> getCompletedDetailsChecks();
