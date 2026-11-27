@@ -665,6 +665,8 @@ public enum ErrorCode {
   E7269("Category option group set `{0}` is not supported in enrollment analytics"),
   E7270(
       "Date range `{0}` is not supported as a dimension in aggregate queries, use it as a filter instead"),
+  E7271(
+      "Program stage specific category `{0}` is not supported in enrollment analytics, use the category without a program stage prefix"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

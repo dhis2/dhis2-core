@@ -180,12 +180,19 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
   void verifyAttributeOptionCombosWhenPopulatingEnrollmentAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
 
-    Category category = createCategory('A', createCategoryOption('A'));
-    CategoryCombo categoryCombo = createCategoryCombo('A');
-    categoryCombo.setCategories(List.of(category));
+    // The attribute option combo of an enrollment belongs to the enrollment category combo, so
+    // the enrollment table holds columns for its categories, not for the (event) category combo
+    Category eventCategory = createCategory('A', createCategoryOption('A'));
+    CategoryCombo eventCategoryCombo = createCategoryCombo('A');
+    eventCategoryCombo.setCategories(List.of(eventCategory));
+
+    Category category = createCategory('B', createCategoryOption('B'));
+    CategoryCombo enrollmentCategoryCombo = createCategoryCombo('B');
+    enrollmentCategoryCombo.setCategories(List.of(category));
 
     Program p1 = createProgram('A');
-    p1.setCategoryCombo(categoryCombo);
+    p1.setCategoryCombo(eventCategoryCombo);
+    p1.setEnrollmentCategoryCombo(enrollmentCategoryCombo);
 
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
@@ -205,6 +212,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
     String aocQuery = format("acs.%s", quote(category.getUid()));
 
     assertTrue(sql.getValue().contains(aocQuery));
+    assertFalse(sql.getValue().contains(format("acs.%s", quote(eventCategory.getUid()))));
     assertTrue(sql.getValue().contains("acs.categoryoptioncombouid"));
     assertThat(
         sql.getValue(),

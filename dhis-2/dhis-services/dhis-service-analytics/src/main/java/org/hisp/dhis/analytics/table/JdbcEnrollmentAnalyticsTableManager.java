@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
+import static org.hisp.dhis.analytics.util.EnrollmentCategoryUtils.getEnrollmentCategories;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
@@ -48,7 +49,6 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -203,28 +203,25 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   }
 
   /**
-   * Returns columns for attribute categories of the given program.
+   * Returns columns for the attribute categories of the enrollment category combo of the given
+   * program, as the attribute option combo of an enrollment belongs to that category combo.
+   * Enrollments with the default attribute option combo have null in these columns.
    *
    * @param program the {@link Program}.
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getAttributeCategoryColumns(Program program) {
-    if (program.hasNonDefaultCategoryCombo()) {
-      List<Category> categories = program.getCategoryCombo().getDataDimensionCategories();
-      return categories.stream()
-          .map(
-              category ->
-                  AnalyticsTableColumn.builder()
-                      .name(category.getUid())
-                      .dimensionType(AnalyticsDimensionType.DYNAMIC)
-                      .dataType(CHARACTER_11)
-                      .selectExpression("acs." + quote(category.getUid()))
-                      .created(category.getCreated())
-                      .build())
-          .toList();
-    }
-
-    return List.of();
+    return getEnrollmentCategories(program).stream()
+        .map(
+            category ->
+                AnalyticsTableColumn.builder()
+                    .name(category.getUid())
+                    .dimensionType(AnalyticsDimensionType.DYNAMIC)
+                    .dataType(CHARACTER_11)
+                    .selectExpression("acs." + quote(category.getUid()))
+                    .created(category.getCreated())
+                    .build())
+        .toList();
   }
 
   /**

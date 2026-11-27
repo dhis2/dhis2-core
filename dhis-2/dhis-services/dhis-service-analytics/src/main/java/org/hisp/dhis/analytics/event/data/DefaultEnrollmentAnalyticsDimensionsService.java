@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationTy
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.QUERY;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.collectDimensions;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.filterByValueType;
+import static org.hisp.dhis.analytics.util.EnrollmentCategoryUtils.getEnrollmentCategories;
 import static org.hisp.dhis.common.PrefixedDimensions.ofItemsWithProgram;
 import static org.hisp.dhis.common.PrefixedDimensions.ofProgramStageDataElements;
 
@@ -78,6 +79,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                                 .filter(pi -> aclService.canRead(currentUserDetails, pi))
                                 .collect(Collectors.toSet())),
                         getProgramStageDataElements(QUERY, program),
+                        ofItemsWithProgram(program, getEnrollmentCategories(program)),
                         filterByValueType(
                             QUERY,
                             ofItemsWithProgram(

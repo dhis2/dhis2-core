@@ -105,6 +105,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
@@ -241,6 +242,14 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   private CategoryOptionCombo cocBD;
 
+  /** Category options of the enrollment category combo of program C. */
+  private CategoryOption coE;
+
+  private CategoryOption coF;
+
+  /** Attribute category of the enrollment category combo of program C. */
+  private Category caE;
+
   private DataElement deA;
 
   private DataElement deB;
@@ -258,6 +267,12 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   private Program programA;
 
   private Program programB;
+
+  /**
+   * Program with different category combos for events (ccA) and enrollments (ccE), and with
+   * enrollments for each enrollment category option and for the default attribute option combo.
+   */
+  private Program programC;
 
   private ProgramStage psA;
 
@@ -375,6 +390,38 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     // Default Category Option Combo
     CategoryOptionCombo cocDefault = categoryService.getDefaultCategoryOptionCombo();
 
+    // Enrollment Category Combo E, with category options readable by everyone
+    coE = createCategoryOption('E');
+    coF = createCategoryOption('F');
+    coE.setUid("cataOptionE");
+    coF.setUid("cataOptionF");
+    coE.getSharing().setPublicAccess("rwrw----");
+    coF.getSharing().setPublicAccess("rwrw----");
+    manager.save(coE);
+    manager.save(coF);
+
+    caE = createCategory('E', coE, coF);
+    caE.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    caE.setUid("categoryIdE");
+    caE.getSharing().setPublicAccess("rwrw----");
+    manager.save(caE);
+
+    CategoryCombo ccE = createCategoryCombo("CCe", "categComboE", caE);
+    ccE.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    manager.save(ccE);
+
+    CategoryOptionCombo cocE = createCategoryOptionCombo("COCe", "catOptComEE", ccE, coE);
+    CategoryOptionCombo cocF = createCategoryOptionCombo("COCf", "catOptComFF", ccE, coF);
+    categoryService.addCategoryOptionCombo(cocE);
+    categoryService.addCategoryOptionCombo(cocF);
+    ccE.getOptionCombos().add(cocE);
+    ccE.getOptionCombos().add(cocF);
+    manager.save(ccE);
+    coE.getCategoryOptionCombos().add(cocE);
+    coF.getCategoryOptionCombos().add(cocF);
+    manager.save(coE);
+    manager.save(coF);
+
     Date jan1 = new GregorianCalendar(2017, JANUARY, 1).getTime();
     Date jan15 = new GregorianCalendar(2017, JANUARY, 15).getTime();
     Date jan20 = new GregorianCalendar(2017, JANUARY, 20).getTime();
@@ -477,8 +524,16 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     programB.getOrganisationUnits().addAll(level3Ous);
     programB.setUid("programB123");
     programB.setCategoryCombo(ccA);
+    programB.setEnrollmentCategoryCombo(ccA);
     programB.setCategoryMappings(Set.of(cmA, cmB));
     manager.save(programB);
+
+    programC = createProgram('C');
+    programC.getOrganisationUnits().addAll(level3Ous);
+    programC.setUid("programC123");
+    programC.setCategoryCombo(ccA);
+    programC.setEnrollmentCategoryCombo(ccE);
+    manager.save(programC);
 
     // Tracked Entity Attributes
     atU = createTrackedEntityAttribute('U', ORGANISATION_UNIT);
@@ -514,9 +569,17 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     Enrollment enrollmentB = createEnrollment(programB, teiA, ouE);
     enrollmentB.setEnrollmentDate(jan1);
     enrollmentB.setOccurredDate(jan1);
+    enrollmentB.setAttributeOptionCombo(cocBD);
     manager.save(enrollmentB);
     teiA.getEnrollments().add(enrollmentB);
     manager.update(teiA);
+
+    // Program C enrollments: one per enrollment category option, and one with the default
+    // attribute option combo, as for enrollments created before the program got a non-default
+    // enrollment category combo
+    saveEnrollment(programC, trackedEntityType, "trackEntInE", cocE, ouD, ouE, jan1);
+    saveEnrollment(programC, trackedEntityType, "trackEntInF", cocF, ouD, ouE, jan1);
+    saveEnrollment(programC, trackedEntityType, "trackEntInD", cocDefault, ouD, ouE, jan1);
 
     // Change programA / teiA ownership through time:
     // Jan 1 (enrollment) - Jan 15: ouE
@@ -640,6 +703,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     userService.addUser(userA);
     enableDataSharing(userA, programA, AccessStringHelper.DATA_READ_WRITE);
     enableDataSharing(userA, programB, AccessStringHelper.DATA_READ_WRITE);
+    enableDataSharing(userA, programC, AccessStringHelper.DATA_READ_WRITE);
     manager.update(userA);
 
     // Wait for one second. This is needed because last updated time for
@@ -662,6 +726,28 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @BeforeEach
   void beforeEach() {
     injectAdminIntoSecurityContext();
+  }
+
+  /** Saves a tracked entity with an enrollment in the given program. */
+  private void saveEnrollment(
+      Program program,
+      TrackedEntityType trackedEntityType,
+      String trackedEntityUid,
+      CategoryOptionCombo attributeOptionCombo,
+      OrganisationUnit registrationOu,
+      OrganisationUnit enrollmentOu,
+      Date date) {
+    TrackedEntity te = createTrackedEntity(registrationOu, trackedEntityType);
+    te.setUid(trackedEntityUid);
+    manager.save(te);
+
+    Enrollment enrollment = createEnrollment(program, te, enrollmentOu);
+    enrollment.setEnrollmentDate(date);
+    enrollment.setOccurredDate(date);
+    enrollment.setAttributeOptionCombo(attributeOptionCombo);
+    manager.save(enrollment);
+    te.getEnrollments().add(enrollment);
+    manager.update(te);
   }
 
   /** Adds a program ownership history entry. */
@@ -779,6 +865,97 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         List.of(
             List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "trackEntInA", "OrganisationUnitF")),
         grid);
+  }
+
+  @Test
+  void testEnrollmentCategoryConstraintKeepsDefaultAttributeOptionCombo() {
+    // userA is constrained by caE, the category of the enrollment category combo of program C, and
+    // by caA and caB, the categories of its event category combo
+    injectSecurityContextUser(userA);
+    EventQueryParams params = getEnrollmentQueryBuilderC().build();
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
+
+    assertGridContains(
+        // Headers
+        List.of("tei"),
+        // Grid
+        List.of(List.of("trackEntInD"), List.of("trackEntInE"), List.of("trackEntInF")),
+        grid);
+  }
+
+  @Test
+  void testEnrollmentCategoryConstraintWithUnreadableCategoryOption() {
+    // userA cannot read coF, so its enrollments are left out, while the enrollment with the
+    // default attribute option combo is kept
+    coF.getSharing().setPublicAccess("--------");
+    categoryService.updateCategoryOption(coF);
+
+    try {
+      injectSecurityContextUser(userA);
+      EventQueryParams params = getEnrollmentQueryBuilderC().build();
+      Grid grid = enrollmentQueryTarget.getEnrollments(params);
+
+      assertGridContains(
+          // Headers
+          List.of("tei"),
+          // Grid
+          List.of(List.of("trackEntInD"), List.of("trackEntInE")),
+          grid);
+    } finally {
+      injectAdminIntoSecurityContext();
+      coF.getSharing().setPublicAccess("rwrw----");
+      categoryService.updateCategoryOption(coF);
+    }
+  }
+
+  @Test
+  void testEnrollmentFilterByCategoryOption() {
+    EventQueryParams params =
+        getEnrollmentQueryBuilderC()
+            .addFilter(
+                new BaseDimensionalObject(caE.getUid(), DimensionType.CATEGORY, List.of(coE)))
+            .build();
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
+
+    assertGridContains(
+        // Headers
+        List.of("tei"),
+        // Grid
+        List.of(List.of("trackEntInE")),
+        grid);
+  }
+
+  @Test
+  void testEnrollmentDimensionByCategory() {
+    EventQueryParams params =
+        getEnrollmentQueryBuilderC()
+            .addDimension(
+                new BaseDimensionalObject(caE.getUid(), DimensionType.CATEGORY, List.of(coE, coF)))
+            .build();
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
+
+    // The enrollment with the default attribute option combo has no option of caE
+    assertGridContains(
+        // Headers
+        List.of("tei"),
+        // Grid
+        List.of(List.of("trackEntInE"), List.of("trackEntInF")),
+        grid);
+  }
+
+  @Test
+  void testEnrollmentDimensionByEventCategoryIsRejected() {
+    // caA belongs to the event category combo of program C, not to its enrollment category combo
+    EventQueryParams params =
+        getEnrollmentQueryBuilderC()
+            .addDimension(
+                new BaseDimensionalObject(caA.getUid(), DimensionType.CATEGORY, List.of(coA)))
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class, () -> enrollmentQueryTarget.getEnrollments(params));
+    assertEquals(ErrorCode.E7268, ex.getErrorCode());
   }
 
   // -------------------------------------------------------------------------
@@ -1653,6 +1830,22 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         .withEndpointItem(RequestTypeAware.EndpointItem.ENROLLMENT)
         .withProgram(programA)
         .addItem(new QueryItem(atU, null, atU.getValueType(), atU.getAggregationType(), null))
+        .addDimension(orgUnitDimension)
+        .addDimension(periodDimension);
+  }
+
+  /** Params builder C for getting enrollments of program C. */
+  private EventQueryParams.Builder getEnrollmentQueryBuilderC() {
+    DimensionalObject periodDimension =
+        new BaseDimensionalObject(
+            PERIOD_DIM_ID, DimensionType.PERIOD, getList(peJan, peFeb, peMar));
+
+    DimensionalObject orgUnitDimension =
+        new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA));
+
+    return getBaseEventQueryParamsBuilder()
+        .withEndpointItem(RequestTypeAware.EndpointItem.ENROLLMENT)
+        .withProgram(programC)
         .addDimension(orgUnitDimension)
         .addDimension(periodDimension);
   }

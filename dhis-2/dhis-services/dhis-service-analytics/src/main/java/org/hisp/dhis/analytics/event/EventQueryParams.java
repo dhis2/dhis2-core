@@ -342,6 +342,14 @@ public class EventQueryParams extends DataQueryParams {
    */
   private boolean registrationOuDimensionRequested = false;
 
+  /**
+   * Uids of the category dimensions added as filters by user security constraints, as opposed to
+   * category filters requested by the client. In enrollment queries, these filters also match
+   * enrollments with the default attribute option combo, which have no value in the category
+   * columns.
+   */
+  private Set<String> categoryConstraintDimensions = new HashSet<>();
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -427,6 +435,7 @@ public class EventQueryParams extends DataQueryParams {
     params.registrationOuDimensionItems = new ArrayList<>(this.registrationOuDimensionItems);
     params.registrationOuFilterItems = new ArrayList<>(this.registrationOuFilterItems);
     params.registrationOuDimensionRequested = this.registrationOuDimensionRequested;
+    params.categoryConstraintDimensions = new HashSet<>(this.categoryConstraintDimensions);
     return params;
   }
 
@@ -684,6 +693,10 @@ public class EventQueryParams extends DataQueryParams {
     eventStatus.forEach(status -> key.add("eventStatus", "[" + status + "]"));
     asc.forEach(e -> key.add("asc", "[" + e.getItem().getUid() + "]"));
     desc.forEach(e -> key.add("desc", "[" + e.getItem().getUid() + "]"));
+
+    categoryConstraintDimensions.stream()
+        .sorted()
+        .forEach(uid -> key.add("categoryConstraintDimension", uid));
 
     if (hasRegistrationOu()) {
       key.add("registrationOuDimensionRequested", registrationOuDimensionRequested);
@@ -1468,6 +1481,16 @@ public class EventQueryParams extends DataQueryParams {
     return isNotEmpty(enrollmentOuDimensionItems);
   }
 
+  /**
+   * Returns true if the category dimension with the given uid was added as a filter by a user
+   * security constraint, rather than requested by the client.
+   *
+   * @param dimension the dimension uid.
+   */
+  public boolean isCategoryConstraintDimension(String dimension) {
+    return categoryConstraintDimensions.contains(dimension);
+  }
+
   /** Returns true if REGISTRATION_OU was named as a dimension, with or without items. */
   public boolean hasRegistrationOuDimension() {
     return registrationOuDimensionRequested;
@@ -2176,6 +2199,16 @@ public class EventQueryParams extends DataQueryParams {
     public Builder withRegistrationOuDimension(List<OrganisationUnit> items) {
       this.params.registrationOuDimensionItems = new ArrayList<>(items);
       this.params.registrationOuDimensionRequested = true;
+      return this;
+    }
+
+    /**
+     * Marks the category dimension with the given uid as added by a user security constraint.
+     *
+     * @param dimension the dimension uid.
+     */
+    public Builder addCategoryConstraintDimension(String dimension) {
+      this.params.categoryConstraintDimensions.add(dimension);
       return this;
     }
 

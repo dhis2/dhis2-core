@@ -29,9 +29,9 @@
  */
 package org.hisp.dhis.analytics.security;
 
-import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.analytics.util.EnrollmentCategoryUtils.getEnrollmentCategories;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -86,7 +86,24 @@ public class CategorySecurityUtils {
          * constraints.
          */
         .filter(category -> !matchDimensionsForCategory(category, dimensionalObjects))
-        .collect(toList());
+        .toList();
+  }
+
+  /**
+   * Iterates through the {@link Category} of the enrollment category combo of the given {@link
+   * Program} and returns the ones that do not match any object in the list of {@link
+   * DimensionalObject}. Only the data dimension categories are considered, as these are the ones
+   * the enrollment analytics table holds a column for.
+   *
+   * @param program the {@link Program} where we get the enrollment categories from.
+   * @param dimensionalObjects the list of {@link DimensionalObject} objects.
+   * @return the list of {@link Category} matched.
+   */
+  public static List<Category> getConstrainedEnrollmentCategories(
+      Program program, List<DimensionalObject> dimensionalObjects) {
+    return getEnrollmentCategories(program).stream()
+        .filter(category -> !matchDimensionsForCategory(category, dimensionalObjects))
+        .toList();
   }
 
   /**

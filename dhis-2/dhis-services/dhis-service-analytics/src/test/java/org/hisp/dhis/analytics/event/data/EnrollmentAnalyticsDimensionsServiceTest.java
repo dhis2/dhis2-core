@@ -36,13 +36,22 @@ import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allV
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.getSkippedProgramStageDataElement;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.enrollmentAggregateDisallowedValueTypesPredicate;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.queryDisallowedValueTypesPredicate;
+import static org.hisp.dhis.test.TestBase.createCategory;
+import static org.hisp.dhis.test.TestBase.createCategoryCombo;
+import static org.hisp.dhis.test.TestBase.createCategoryOption;
+import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
@@ -130,6 +139,8 @@ class EnrollmentAnalyticsDimensionsServiceTest {
             .map(PrefixedDimension::getItem)
             .toList();
 
+    // Stage data elements of allowed value types are returned
+    assertFalse(analyticsDimensions.stream().noneMatch(ProgramStageDataElement.class::isInstance));
     assertTrue(
         analyticsDimensions.stream()
             .filter(b -> b instanceof ProgramStageDataElement)
@@ -140,6 +151,45 @@ class EnrollmentAnalyticsDimensionsServiceTest {
             .filter(b -> b instanceof TrackedEntityAttribute)
             .map(tea -> ((TrackedEntityAttribute) tea).getValueType())
             .noneMatch(queryDisallowedValueTypesPredicate()));
+  }
+
+  @Test
+  void testQueryContainsCategoriesOfEnrollmentCategoryCombo() {
+    Category eventCategory = createCategory('A', createCategoryOption('A'));
+    Category enrollmentCategory = createCategory('B', createCategoryOption('B'));
+    enrollmentCategory.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    Category nonDataDimensionCategory = createCategory('C', createCategoryOption('C'));
+    nonDataDimensionCategory.setDataDimension(false);
+
+    Program program = createProgram('A');
+    program.setCategoryCombo(createCategoryCombo('A', eventCategory));
+    program.setEnrollmentCategoryCombo(
+        createCategoryCombo('B', enrollmentCategory, nonDataDimensionCategory));
+    when(programService.getProgram("anUid")).thenReturn(program);
+
+    List<IdentifiableObject> categories =
+        enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId("anUid").stream()
+            .map(PrefixedDimension::getItem)
+            .filter(Category.class::isInstance)
+            .toList();
+
+    assertEquals(List.of(enrollmentCategory), categories);
+  }
+
+  @Test
+  void testQueryContainsNoCategoriesForDefaultEnrollmentCategoryCombo() {
+    Category eventCategory = createCategory('A', createCategoryOption('A'));
+
+    Program program = createProgram('A');
+    program.setCategoryCombo(createCategoryCombo('A', eventCategory));
+    program.setEnrollmentCategoryCombo(
+        new CategoryCombo(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME, DataDimensionType.ATTRIBUTE));
+    when(programService.getProgram("anUid")).thenReturn(program);
+
+    List<PrefixedDimension> dimensions =
+        enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId("anUid");
+
+    assertTrue(dimensions.stream().noneMatch(d -> d.getItem() instanceof Category));
   }
 
   @Test

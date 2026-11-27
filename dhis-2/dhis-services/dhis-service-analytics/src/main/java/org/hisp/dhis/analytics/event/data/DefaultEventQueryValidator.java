@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.event.data;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
 import static org.hisp.dhis.analytics.QueryKey.isNoValue;
+import static org.hisp.dhis.analytics.util.EnrollmentCategoryUtils.getEnrollmentCategoryUids;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.feedback.ErrorCode.E7229;
 import static org.hisp.dhis.feedback.ErrorCode.E7234;
@@ -278,8 +279,10 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
   /**
    * Validates category and COGS dimensions, with or without a stage prefix, against the columns of
    * the analytics table. Checks that the program stage belongs to the query's program, that a
-   * category is part of the program's category combo, and that no COGS is used in an enrollment
-   * query, as the enrollment analytics table has no COGS columns.
+   * category is part of the program's category combo (the enrollment category combo for enrollment
+   * queries), that no category in an enrollment query has a stage prefix, as the enrollment
+   * analytics table has no program stage column, and that no COGS is used in an enrollment query,
+   * as the enrollment analytics table has no COGS columns.
    *
    * @param params the {@link EventQueryParams}.
    * @return an {@link ErrorMessage} if validation fails, null otherwise.
@@ -290,7 +293,9 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     }
 
     Program program = params.getProgram();
-    Set<String> programCategories = getProgramCategoryUids(program);
+    boolean enrollmentQuery = isEnrollmentQuery(params);
+    Set<String> programCategories =
+        enrollmentQuery ? getEnrollmentCategoryUids(program) : getProgramCategoryUids(program);
 
     // Check dimensions and filters for categories/COGS
     List<DimensionalObject> dynamicDimensions =
@@ -313,8 +318,13 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
         return new ErrorMessage(ErrorCode.E7268, dim.getDimensionName(), program.getUid());
       }
 
-      if (dim.getDimensionType() == DimensionType.CATEGORY_OPTION_GROUP_SET
-          && params.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT) {
+      if (dim.getDimensionType() == DimensionType.CATEGORY
+          && dim.getProgramStage() != null
+          && enrollmentQuery) {
+        return new ErrorMessage(ErrorCode.E7271, dim.getDimensionName());
+      }
+
+      if (dim.getDimensionType() == DimensionType.CATEGORY_OPTION_GROUP_SET && enrollmentQuery) {
         return new ErrorMessage(ErrorCode.E7269, dim.getDimensionName());
       }
     }
@@ -324,18 +334,24 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
 
   /**
    * Checks if a category filter is left out of the enrollment SQL. Enrollment queries skip
-   * attribute category filters, such as user category dimension constraints, so they never
-   * reference an analytics table column.
+   * attribute category filters which have no column in the enrollment analytics table, such as user
+   * category dimension constraints on categories outside the enrollment category combo of the
+   * program. See {@link JdbcEnrollmentAnalyticsManager}.
    */
   private boolean isIgnoredEnrollmentFilter(EventQueryParams params, DimensionalObject dim) {
-    return params.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT
+    return isEnrollmentQuery(params)
         && params.getFilters().contains(dim)
         && JdbcEnrollmentAnalyticsManager.isAttributeCategory(dim);
   }
 
+  private boolean isEnrollmentQuery(EventQueryParams params) {
+    return params.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT;
+  }
+
   /**
-   * Returns the uids of the categories the analytics tables hold a column for: the data dimension
-   * categories of the program's category combo, or none for the default category combo.
+   * Returns the uids of the categories the event analytics tables hold a column for: the data
+   * dimension categories of the program's category combo, or none for the default category combo.
+   * See {@link org.hisp.dhis.analytics.util.EnrollmentCategoryUtils} for enrollment analytics.
    */
   private Set<String> getProgramCategoryUids(Program program) {
     if (!program.hasNonDefaultCategoryCombo()) {

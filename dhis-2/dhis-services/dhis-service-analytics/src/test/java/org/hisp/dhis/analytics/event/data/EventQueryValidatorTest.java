@@ -1121,16 +1121,79 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
-  void validateSuccessCategoryInProgramCategoryCombo() {
+  void validateSuccessEventCategoryInProgramCategoryCombo() {
     Category category = createCategory('A');
     prA.setCategoryCombo(createCategoryCombo('A', category));
 
-    for (EndpointItem endpoint : List.of(EndpointItem.EVENT, EndpointItem.ENROLLMENT)) {
-      EventQueryParams params =
-          categoryQuery(endpoint).addDimension(categoryDimension(category)).build();
+    EventQueryParams params =
+        categoryQuery(EndpointItem.EVENT).addDimension(categoryDimension(category)).build();
 
-      assertNull(eventQueryValidator.validateForErrorMessage(params));
-    }
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateSuccessEnrollmentCategoryInEnrollmentCategoryCombo() {
+    Category category = createCategory('A');
+    prA.setEnrollmentCategoryCombo(createCategoryCombo('A', category));
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.ENROLLMENT).addDimension(categoryDimension(category)).build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateFailsEnrollmentCategoryOnlyInEventCategoryCombo() {
+    Category eventCategory = createCategory('A');
+    Category enrollmentCategory = createCategory('B');
+    prA.setCategoryCombo(createCategoryCombo('A', eventCategory));
+    prA.setEnrollmentCategoryCombo(createCategoryCombo('B', enrollmentCategory));
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.ENROLLMENT)
+            .addDimension(categoryDimension(eventCategory))
+            .build();
+
+    assertValidationError(ErrorCode.E7268, params);
+  }
+
+  @Test
+  void validateFailsEventCategoryOnlyInEnrollmentCategoryCombo() {
+    Category category = createCategory('A');
+    prA.setEnrollmentCategoryCombo(createCategoryCombo('A', category));
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.EVENT).addDimension(categoryDimension(category)).build();
+
+    assertValidationError(ErrorCode.E7268, params);
+  }
+
+  @Test
+  void validateFailsEnrollmentStageCategoryInEnrollmentCategoryCombo() {
+    Category category = createCategory('A');
+    prA.setEnrollmentCategoryCombo(createCategoryCombo('A', category));
+    ProgramStage psA = createProgramStage('A', prA);
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.ENROLLMENT)
+            .addDimension(stageDimension(psA, category.getUid(), DimensionType.CATEGORY))
+            .build();
+
+    assertValidationError(ErrorCode.E7271, params);
+  }
+
+  @Test
+  void validateSuccessEventStageCategoryInProgramCategoryCombo() {
+    Category category = createCategory('A');
+    prA.setCategoryCombo(createCategoryCombo('A', category));
+    ProgramStage psA = createProgramStage('A', prA);
+
+    EventQueryParams params =
+        categoryQuery(EndpointItem.EVENT)
+            .addDimension(stageDimension(psA, category.getUid(), DimensionType.CATEGORY))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
   }
 
   @Test
