@@ -62,6 +62,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -88,6 +89,8 @@ class DefaultTrackerEventService implements TrackerEventService {
   private final RelationshipService relationshipService;
 
   private final AclService aclService;
+
+  private final CategoryOptionComboService categoryOptionComboService;
 
   @Override
   public FileResourceStream getFileResource(@Nonnull UID event, @Nonnull UID dataElement)
@@ -216,6 +219,8 @@ class DefaultTrackerEventService implements TrackerEventService {
     TrackerEventQueryParams queryParams =
         paramsMapper.map(operationParams, getCurrentUserDetails());
     List<TrackerEvent> events = eventStore.getEvents(queryParams);
+    categoryOptionComboService.loadAttributeOptionCombos(
+        events, TrackerEvent::getAttributeOptionCombo, TrackerEvent::setAttributeOptionCombo);
     filterReadableDataValues(events, queryParams.getIdSchemeParams());
     if (operationParams.getFields().isIncludesRelationships()) {
       for (TrackerEvent event : events) {
@@ -238,6 +243,10 @@ class DefaultTrackerEventService implements TrackerEventService {
     TrackerEventQueryParams queryParams =
         paramsMapper.map(operationParams, getCurrentUserDetails());
     Page<TrackerEvent> events = eventStore.getEvents(queryParams, pageParams);
+    categoryOptionComboService.loadAttributeOptionCombos(
+        events.getItems(),
+        TrackerEvent::getAttributeOptionCombo,
+        TrackerEvent::setAttributeOptionCombo);
     filterReadableDataValues(events.getItems(), queryParams.getIdSchemeParams());
     if (operationParams.getFields().isIncludesRelationships()) {
       for (TrackerEvent event : events.getItems()) {

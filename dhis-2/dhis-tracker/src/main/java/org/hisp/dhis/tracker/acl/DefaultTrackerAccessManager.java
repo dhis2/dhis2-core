@@ -43,6 +43,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4020;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
@@ -559,18 +560,27 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
   }
 
+  /**
+   * The user may read data of an AOC when {@link AclService#canDataRead} allows it for the combo as
+   * a whole, the same rule as the AOC lookup that tracker exports filter on: the default AOC is
+   * always readable, any other only when the user may read data of every one of its options.
+   * Checking each option on its own would differ from that rule.
+   *
+   * <p>The error names the options the user may not read data of, or, when each option on its own
+   * may be read, every option of the AOC.
+   */
   private void checkDataReadAccessToCategoryOptionCombo(
       List<ErrorMessage> errors, UserDetails user, CategoryOptionCombo categoryOptionCombo) {
-    if (categoryOptionCombo == null) {
+    if (categoryOptionCombo == null || aclService.canDataRead(user, categoryOptionCombo)) {
       return;
     }
 
-    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
-      if (!aclService.canDataRead(user, categoryOption)) {
-        errors.add(
-            new ErrorMessage(
-                E1098, user.getUid(), List.of(user.getUid(), categoryOption.getUid())));
-      }
+    Set<CategoryOption> options = categoryOptionCombo.getCategoryOptions();
+    List<CategoryOption> unreadable =
+        options.stream().filter(option -> !aclService.canDataRead(user, option)).toList();
+    for (CategoryOption categoryOption : unreadable.isEmpty() ? options : unreadable) {
+      errors.add(
+          new ErrorMessage(E1098, user.getUid(), List.of(user.getUid(), categoryOption.getUid())));
     }
   }
 
