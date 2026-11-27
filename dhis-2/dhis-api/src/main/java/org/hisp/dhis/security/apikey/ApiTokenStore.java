@@ -45,4 +45,11 @@ public interface ApiTokenStore extends IdentifiableObjectStore<ApiToken> {
 
   @Nonnull
   List<ApiToken> getAllOwning(@Nonnull User currentUser);
+
+  /**
+   * Deletes all tokens created by the given user, without a sharing check. Only for the cascade
+   * that runs when the owner itself is deleted: the caller has already been allowed to delete the
+   * user, and the tokens are private to that user, so nobody else would pass the check.
+   */
+  void deleteAllOwning(@Nonnull User owner);
 }
