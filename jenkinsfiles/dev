@@ -35,7 +35,8 @@ pipeline {
                     gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
 
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn --threads 4 --batch-mode --no-transfer-progress clean install --file dhis-2/pom.xml --update-snapshots'
+                        // The embedded profile makes the WAR executable, the Docker image starts it with "java -jar".
+                        sh 'mvn --threads 4 --batch-mode --no-transfer-progress clean install --file dhis-2/pom.xml --update-snapshots --activate-profiles embedded'
                     }
                 }
             }
@@ -56,6 +57,7 @@ pipeline {
 
         stage('Run api tests') {
             environment {
+                IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
                 DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
             }
 
@@ -64,10 +66,8 @@ pipeline {
                     steps {
                         withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                             withMaven(options: [artifactsPublisher(disabled: true)]) {
-                                sh "mvn --batch-mode --no-transfer-progress -Dpackaging.type=jar -DskipTests -Dmaven.test.skip=true \
-                                        --file dhis-2/dhis-web-server/pom.xml --activate-profiles embedded,jibBuild generate-resources jib:build \
-                                        -Djib.to.image=${DOCKER_IMAGE_NAME_FULL} \
-                                        -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
+                                // Built the same way as the image published below, so the tests run against what is published.
+                                sh './dhis-2/build-docker-image.sh -t "${DOCKER_IMAGE_TAG}" -d'
                             }
                         }
                     }
@@ -116,10 +116,7 @@ pipeline {
 
         stage('Publish image') {
             environment {
-                // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
-                BASE_IMAGE = "tomcat:10.1.48-jre17"
                 IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
-                ARCHITECTURES = 'amd64 arm64'
             }
 
             steps {

@@ -6,21 +6,24 @@ set -e
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 IMAGE=${IMAGE:="dhis2/core-dev:local"}
-BUILD_REVISION=$(git --git-dir "$DIR/../.git" rev-parse HEAD)
-BUILD_BRANCH=$(git --git-dir "$DIR/../.git" branch --show-current)
+BUILD_REVISION=$(git -C "$DIR" rev-parse HEAD)
+BUILD_BRANCH=$(git -C "$DIR" branch --show-current)
 
-# Choosing this approach over automatically activating a maven profile based on the architecture.
-# This is to not risk running both the jibBuild and jibBuildArmOnly profiles in our pipelines.
-# There might be ways like using https://maven.apache.org/enforcer/enforcer-rules/requireActiveProfile.html
-# to prevent that but they would require more work.
+# Jib builds the image for linux/amd64 unless told otherwise. Build for the architecture of this machine, so the image
+# runs without emulation, for example on a Mac with Apple silicon.
 ARCH=$(uname -m)
-JIB_PROFILE="jibDockerBuild,embedded"
+PLATFORM="linux/amd64"
 if [[ "$ARCH" == *arm64* || "$ARCH" == *aarch64* ]]; then
-  JIB_PROFILE="$JIB_PROFILE,jibBuildArmOnly"
+  PLATFORM="linux/arm64"
 fi
 
 echo "Building dhis2-core and Docker image..."
 
 export MAVEN_OPTS="-Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25"
+# The embedded profile makes the WAR executable, the image starts it with "java -jar".
 mvn ${GOALS:-clean package} --threads 2C -DskipTests -Dmaven.test.skip=true --file "${DIR}/pom.xml" --projects dhis-web-server --also-make \
-  --activate-profiles "$JIB_PROFILE" -Djib.to.image="$IMAGE" -Djib.container.labels=DHIS2_BUILD_REVISION="${BUILD_REVISION}",DHIS2_BUILD_BRANCH="${BUILD_BRANCH}"
+  --activate-profiles embedded
+
+# The image is built from the WAR, see docker/image/pom.xml.
+mvn --file "${DIR}/../docker/image/pom.xml" antrun:run@prepare jib:dockerBuild \
+  -Djib.from.platforms="$PLATFORM" -Djib.to.image="$IMAGE" -Djib.container.labels=DHIS2_BUILD_REVISION="${BUILD_REVISION}",DHIS2_BUILD_BRANCH="${BUILD_BRANCH}"

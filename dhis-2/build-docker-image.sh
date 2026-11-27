@@ -2,22 +2,22 @@
 
 set -euo pipefail
 
+# The image is built by the Jib Maven plugin from an existing WAR, see docker/image/pom.xml.
+IMAGE_POM=${IMAGE_POM:-'docker/image/pom.xml'}
+# Image profile of docker/image/pom.xml: "tomcat" (Tomcat base image) or "embedded" (embedded Tomcat).
+IMAGE_PROFILE=${IMAGE_PROFILE:-'embedded'}
+# Tomcat base image of the "tomcat" profile. The default is defined in docker/image/pom.xml.
 BASE_IMAGE=${BASE_IMAGE:-}
 IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-'dhis2/core'}
-IMAGE_APP_ROOT=${IMAGE_APP_ROOT:-'/usr/local/tomcat/webapps/ROOT'}
-IMAGE_USER=${IMAGE_USER:-'65534'}
 WAR_PATH=${WAR_PATH:-'dhis-2/dhis-web-server/target/dhis.war'}
-UNARCHIVED_WAR_DIR=${UNARCHIVED_WAR_DIR:-'dhis2-war'}
-JIB_BUILD_FILE=${JIB_BUILD_FILE:-'jib.yaml'}
+DOWNLOADED_WAR_DIR=${DOWNLOADED_WAR_DIR:-'dhis2-war'}
 
-CURL_VERSION=${CURL_VERSION:-'8.20.0'}
-CURL_SHA256_AMD64='3cf20eb1bca2726d74a39fcda2b758a08a23a3dce73ad6f3f468d7e4d49d215b'
-CURL_SHA256_ARM64='061b624119f128038bdfa96f975980d6c35ed502130c4825d59b3143efeafa0e'
+ARCHITECTURES=${ARCHITECTURES:-'amd64 arm64'}
 
-ARCHITECTURES=${ARCHITECTURES:-'amd64'}
-
-downloaded_war_name='downloaded-dhis2.war'
+# docker/image/pom.xml expects the WAR to have this name.
+war_name='dhis.war'
 old_version_schema_prefix='2'
+rolling_tags=()
 stable_versions_json="$(curl -fsSL "https://releases.dhis2.org/v1/versions/stable.json")"
 
 function help() {
@@ -29,8 +29,12 @@ function help() {
    echo '-h          Print this help message.'
    echo
    echo 'Environment variables:'
-   echo 'ARCHITECTURES   Space-separated list of architectures to build. Defaults to "amd64".'
-   echo '                Example: ARCHITECTURES="amd64 arm64" build-docker-image.sh -t 40.1.1 -d'
+   echo 'ARCHITECTURES   Space-separated list of architectures to build. Defaults to "amd64 arm64".'
+   echo '                Example: ARCHITECTURES="amd64" build-docker-image.sh -t 40.1.1 -d'
+   echo 'IMAGE_PROFILE   Image profile of docker/image/pom.xml: "embedded" or "tomcat". Defaults to "embedded".'
+   echo '                Use "tomcat" for DHIS2 2.43 and earlier.'
+   echo 'BASE_IMAGE      Tomcat base image of the "tomcat" profile. Defaults to the one in docker/image/pom.xml.'
+   echo 'WAR_PATH        WAR to build the image from, must be named dhis.war. Not used with -r.'
    echo
    echo 'Example: build-docker-image.sh -t 40.1.1 -r'
    echo 'Example: build-docker-image.sh -t 40.1.1 -p registry.example.org/dhis2/core@sha256:<digest>'
@@ -101,29 +105,6 @@ function list_tags() {
   echo "${rolling_tags[@]}"
 }
 
-function fetch_curl_binary() {
-  local arch="$1"
-  local dest_dir="$2"
-
-  local curl_arch sha256
-  case "$arch" in
-    amd64) curl_arch='x86_64';  sha256="$CURL_SHA256_AMD64" ;;
-    arm64) curl_arch='aarch64'; sha256="$CURL_SHA256_ARM64" ;;
-    *) echo "Unsupported architecture: $arch"; exit 1 ;;
-  esac
-
-  local tarball="curl-linux-${curl_arch}-glibc-${CURL_VERSION}.tar.xz"
-  local url="https://github.com/stunnel/static-curl/releases/download/${CURL_VERSION}/${tarball}"
-
-  mkdir -p "$dest_dir"
-  echo "Downloading static curl ${CURL_VERSION} for ${arch} ..."
-  curl -fsSL -o "${dest_dir}/${tarball}" "$url"
-  echo "${sha256}  ${dest_dir}/${tarball}" | sha256sum -c -
-  tar -C "$dest_dir" -xJf "${dest_dir}/${tarball}" curl
-  chmod +x "${dest_dir}/curl"
-  rm "${dest_dir}/${tarball}"
-}
-
 function use_existing_war() {
   echo 'Image will be rebuilt with existing WAR'
 
@@ -132,15 +113,16 @@ function use_existing_war() {
     jq -r --arg image_tag "$image_tag" '.versions[] | select(.supported == true) .patchVersions[] | select(.displayName == $image_tag) .url'
   )"
   echo "Downloading from $war_url ..."
-  rm -rf "$downloaded_war_name"
-  curl -o "$downloaded_war_name" "$war_url"
+  rm -rf "./$DOWNLOADED_WAR_DIR"
+  mkdir -p "./$DOWNLOADED_WAR_DIR"
+  curl -o "$DOWNLOADED_WAR_DIR/$war_name" "$war_url"
 
   known_war_sha256="$(
     echo "$stable_versions_json" |
     jq -r --arg image_tag "$image_tag" '.versions[] | select(.supported == true) .patchVersions[] | select(.displayName == $image_tag) .sha256'
   )"
 
-  sha256sum_output="$(sha256sum "$downloaded_war_name")"
+  sha256sum_output="$(sha256sum "$DOWNLOADED_WAR_DIR/$war_name")"
   downloaded_war_sha256="${sha256sum_output%% *}" # strip file name from sha256sum output with variable expansion
 
   if [[ "$downloaded_war_sha256" != "$known_war_sha256" ]]; then
@@ -148,57 +130,71 @@ function use_existing_war() {
     exit 1
   fi
 
-  echo "Unarchiving WAR to $UNARCHIVED_WAR_DIR ..."
-  rm -rf "./$UNARCHIVED_WAR_DIR"
-  unzip -q -o "$downloaded_war_name" -d "./$UNARCHIVED_WAR_DIR"
+  war_dir="$(cd "$DOWNLOADED_WAR_DIR" && pwd)"
 }
 
 function use_new_war() {
   echo "Image will be built with new WAR from $WAR_PATH"
-  rm -rf "./$UNARCHIVED_WAR_DIR"
-  unzip -q -o "$WAR_PATH" -d "./$UNARCHIVED_WAR_DIR"
-}
 
-function build_main_image() {
-  if [[ -z "$BASE_IMAGE" ]]; then
-    echo 'Error: BASE_IMAGE is required to build an image'
+  if [[ ! -f "$WAR_PATH" ]]; then
+    echo "Error: WAR not found at $WAR_PATH"
     exit 1
   fi
 
-  echo "Building image for version $image_tag, based on $BASE_IMAGE ..."
+  if [[ "$(basename "$WAR_PATH")" != "$war_name" ]]; then
+    echo "Error: the WAR must be named $war_name, got $WAR_PATH"
+    exit 1
+  fi
 
-  local timestamp
-  timestamp="$(date +'%s000')" # Unix time with zeroed milliseconds; will be shown as "2023-11-02T14:40:32Z"
+  war_dir="$(cd "$(dirname "$WAR_PATH")" && pwd)"
+}
+
+# Builds the image for all architectures and pushes it as one multi-architecture image (manifest list), under the main
+# tag and the rolling tags.
+function build_main_image() {
+  echo "Building image for version $image_tag with image profile $IMAGE_PROFILE ..."
+
+  if [[ "$IMAGE_PROFILE" == 'embedded' ]]; then
+    local manifest
+    manifest="$(unzip -p "$war_dir/$war_name" META-INF/MANIFEST.MF)"
+    if [[ "$manifest" != *'Main-Class:'* ]]; then
+      echo "Error: $war_dir/$war_name cannot be started with \"java -jar\"."
+      echo 'Build DHIS2 with the Maven profile "embedded", or set IMAGE_PROFILE=tomcat for DHIS2 2.43 and earlier.'
+      exit 1
+    fi
+  fi
 
   local -a arch_list
   read -ra arch_list <<< "$ARCHITECTURES"
 
-  for arch in "${arch_list[@]}"; do
-    local curl_dir="curl-bin-${arch}"
-    fetch_curl_binary "$arch" "$curl_dir"
+  local platforms
+  platforms="$(printf 'linux/%s,' "${arch_list[@]}")"
+  platforms="${platforms%,}"
 
-    jib build \
-      --build-file "$JIB_BUILD_FILE" \
-      --target "$IMAGE_REPOSITORY:${main_image_tag}-${arch}" \
-      --parameter unarchivedWarDir="$UNARCHIVED_WAR_DIR" \
-      --parameter imageAppRoot="$IMAGE_APP_ROOT" \
-      --parameter baseImage="$BASE_IMAGE" \
-      --parameter imageUser="$IMAGE_USER" \
-      --parameter architecture="$arch" \
-      --parameter curlBinaryDir="$curl_dir" \
-      --parameter gitCommit="$GIT_COMMIT" \
-      --parameter gitBranch="$GIT_BRANCH" \
-      --parameter dhis2Version="$DHIS2_VERSION" \
-      --parameter timestamp="$timestamp"
-  done
+  local -a mvn_args=(
+    --batch-mode --no-transfer-progress
+    --file "$IMAGE_POM"
+    --activate-profiles "$IMAGE_PROFILE"
+    antrun:run@prepare jib:build
+    "-Dwar.dir=$war_dir"
+    "-Djib.to.image=$IMAGE_REPOSITORY:$main_image_tag"
+    "-Djib.from.platforms=$platforms"
+    "-Djib.container.labels=DHIS2_VERSION=$DHIS2_VERSION,DHIS2_BUILD_REVISION=$GIT_COMMIT,DHIS2_BUILD_BRANCH=$GIT_BRANCH"
+  )
 
-  local -a arch_images=()
-  for arch in "${arch_list[@]}"; do
-    arch_images+=("$IMAGE_REPOSITORY:${main_image_tag}-${arch}")
-  done
+  if [[ -n "$BASE_IMAGE" ]]; then
+    mvn_args+=("-Dimage.from.tomcat=$BASE_IMAGE")
+  fi
 
-  docker manifest create "$IMAGE_REPOSITORY:$main_image_tag" "${arch_images[@]}"
-  docker manifest push "$IMAGE_REPOSITORY:$main_image_tag"
+  # Jib pushes the same image under the rolling tags, so all tags have the digest of the main image.
+  if [[ ${#rolling_tags[@]} -gt 0 ]]; then
+    local tags
+    tags="$(IFS=,; echo "${rolling_tags[*]}")"
+    echo "Also tagging as $tags ..."
+    mvn_args+=("-Djib.to.tags=$tags")
+  fi
+
+  mvn "${mvn_args[@]}"
 }
 
 # Copies the manifest list and the image manifests it references as they are, so the promoted image has the digests of the source.
@@ -207,26 +203,16 @@ function copy_main_image() {
   docker buildx imagetools create --tag "$IMAGE_REPOSITORY:$main_image_tag" "$source_image"
 }
 
-# To create additional rolling tags for a multi-architecture image (manifest list) we have to create a new manifest list,
-# based on the supported image architectures' sha256 digests.
+# Adds the rolling tags to a promoted image. The manifests are copied as they are in the registry, so all tags have the
+# digests of the main image. Built images get their rolling tags from Jib in build_main_image instead.
 function create_additional_manifests() {
-  echo "Pulling $IMAGE_REPOSITORY:$main_image_tag for tagging ..."
-  docker image pull "$IMAGE_REPOSITORY:$main_image_tag"
-
+  local -a tag_args=()
   for tag in "${rolling_tags[@]}"; do
-    # shellcheck disable=SC2207
-    manifest_digests=($(docker manifest inspect "$IMAGE_REPOSITORY:$main_image_tag" | jq -r '.manifests[] .digest'))
-
-    # shellcheck disable=SC2145
-    echo "Creating new manifest with digests ${manifest_digests[@]} ..."
-
-    # No double quotes for the $manifest_digests, as we want them treated as separate elements and prefixed with the repository.
-    # shellcheck disable=SC2068
-    docker manifest create "$IMAGE_REPOSITORY:$tag" ${manifest_digests[@]/#/ $IMAGE_REPOSITORY@}
-
-    echo "Pushing new manifest $IMAGE_REPOSITORY:$tag ..."
-    docker manifest push "$IMAGE_REPOSITORY:$tag"
+    tag_args+=(--tag "$IMAGE_REPOSITORY:$tag")
   done
+
+  echo "Tagging $IMAGE_REPOSITORY:$main_image_tag as ${rolling_tags[*]} ..."
+  docker buildx imagetools create "${tag_args[@]}" "$IMAGE_REPOSITORY:$main_image_tag"
 }
 
 while getopts 'ht:drp:' option; do
@@ -259,15 +245,14 @@ if [[ ${dev_image:-} -eq 1 ]]; then
   # We're not creating an immutable tag with a timestamp for dev images.
   main_image_tag="$image_tag"
 
-  use_new_war
-
-  build_main_image
-
   if [[ "$image_tag" =~ -rc$ ]]; then
     echo 'Version is Release Candidate, creating extra old version format tag.'
     rolling_tags=("$old_version_schema_prefix.$main_image_tag")
-    create_additional_manifests
   fi
+
+  use_new_war
+
+  build_main_image
 
   echo 'Done with building dev image. Exiting.'
   echo
@@ -282,6 +267,7 @@ list_tags
 
 if [[ -n ${source_image:-} ]]; then
   copy_main_image
+  create_additional_manifests
 else
   if [[ ${rebuild_image:-} -eq 1 ]]; then
     use_existing_war
@@ -291,8 +277,6 @@ else
 
   build_main_image
 fi
-
-create_additional_manifests
 
 echo "Done with building $image_tag."
 echo

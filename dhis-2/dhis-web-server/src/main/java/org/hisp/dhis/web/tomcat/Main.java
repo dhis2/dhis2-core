@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.catalina.Container;
@@ -66,6 +67,7 @@ import org.apache.catalina.webresources.AbstractResourceSet;
 import org.apache.catalina.webresources.EmptyResource;
 import org.apache.catalina.webresources.StandardRoot;
 import org.apache.logging.log4j.LogManager;
+import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
 import org.apache.tomcat.util.scan.StandardJarScanFilter;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.util.ObjectUtils;
@@ -94,6 +96,12 @@ public class Main {
 
   private static final Integer DEFAULT_HTTP_PORT = 8080;
 
+  /** The connection timeout of the server.xml of the standalone Tomcat images. */
+  static final int CONNECTION_TIMEOUT_MILLIS = 20000;
+
+  /** Environment variables that only catalina.sh of a standalone Tomcat reads. */
+  private static final List<String> TOMCAT_SCRIPT_VARIABLES = List.of("CATALINA_OPTS", "JAVA_OPTS");
+
   private static int getPort() {
     return Integer.parseInt(
         ObjectUtils.firstNonNull(
@@ -103,10 +111,71 @@ public class Main {
   }
 
   private static String getContextPath() {
-    return ObjectUtils.firstNonNull(
+    return contextPath(
         System.getProperty("server.servlet.context.path"),
         System.getenv("SERVER_SERVLET_CONTEXT_PATH"),
-        "");
+        System.getProperty("context.path"));
+  }
+
+  /**
+   * Resolves the context path. {@code context.path} is the system property the server.xml of the
+   * standalone Tomcat images reads, so settings made for those images keep working.
+   */
+  static String contextPath(String property, String environment, String tomcatProperty) {
+    String path = ObjectUtils.firstNonNull(property, environment, tomcatProperty, "");
+    // Tomcat names the root context "", not "/".
+    return "/".equals(path) ? "" : path;
+  }
+
+  /** Connector settings of the server.xml of the standalone Tomcat images. */
+  static void configureConnector(Connector connector) {
+    connector.setProperty("relaxedQueryChars", "\\ { } | [ ]");
+    connector.setProperty("connectionTimeout", Integer.toString(CONNECTION_TIMEOUT_MILLIS));
+  }
+
+  /**
+   * Applies the cookie settings the server.xml of the standalone Tomcat images reads from the
+   * {@code context.cookiePath} and {@code context.sameSiteCookies} system properties. Without a
+   * cookie path the session cookie uses the context path. {@code context.sameSiteCookies} is the
+   * SameSite attribute of cookies that do not set one; the session cookie sets it from {@code
+   * session.cookie.samesite} in dhis.conf.
+   */
+  static void configureSessionCookie(Context context, String cookiePath, String sameSiteCookies) {
+    if (StringUtils.hasText(cookiePath)) {
+      context.setSessionCookiePath(cookiePath);
+    }
+    if (StringUtils.hasText(sameSiteCookies)) {
+      Rfc6265CookieProcessor cookieProcessor = new Rfc6265CookieProcessor();
+      try {
+        cookieProcessor.setSameSiteCookies(sameSiteCookies);
+      } catch (IllegalStateException ex) {
+        throw new IllegalArgumentException(
+            "Unsupported context.sameSiteCookies '"
+                + sameSiteCookies
+                + "'. Supported values: unset, none, lax, strict",
+            ex);
+      }
+      context.setCookieProcessor(cookieProcessor);
+    }
+  }
+
+  static boolean useAccessLog(String property, String environment) {
+    return Boolean.parseBoolean(ObjectUtils.firstNonNull(property, environment, "false"));
+  }
+
+  /** Writes the access log to standard output when enabled. It is off by default. */
+  static void configureAccessLog(Host host, boolean enabled) {
+    if (enabled) {
+      host.getPipeline().addValve(new StdoutAccessLogValve());
+      log.info("Access log is written to standard output (server.tomcat.accesslog.enabled=true)");
+    }
+  }
+
+  /** Returns the set environment variables that only catalina.sh of a standalone Tomcat reads. */
+  static List<String> ignoredTomcatScriptVariables(Map<String, String> environment) {
+    return TOMCAT_SCRIPT_VARIABLES.stream()
+        .filter(name -> StringUtils.hasText(environment.get(name)))
+        .toList();
   }
 
   static boolean useForwardHeaders(String property, String environment) {
@@ -159,6 +228,15 @@ public class Main {
   }
 
   public static void main(String[] args) throws Exception {
+    List<String> ignoredVariables = ignoredTomcatScriptVariables(System.getenv());
+    if (!ignoredVariables.isEmpty()) {
+      String names = String.join(", ", ignoredVariables);
+      log.warn(
+          "Ignoring {}: embedded Tomcat does not read them. Set JVM options with JAVA_TOOL_OPTIONS"
+              + " and the context path with SERVER_SERVLET_CONTEXT_PATH.",
+          names);
+    }
+
     String baseDir = createTempDir();
     int port = getPort();
     Tomcat tomcat =
@@ -176,12 +254,17 @@ public class Main {
     connector.setThrowOnFailure(true);
     tomcat.getService().addConnector(connector);
     connector.setPort(port);
-    connector.setProperty("relaxedQueryChars", "\\ { } | [ ]");
+    configureConnector(connector);
     tomcat.setConnector(connector);
     registerConnectorExecutor(tomcat, connector);
 
     Host host = tomcat.getHost();
     host.setAutoDeploy(false);
+    configureAccessLog(
+        host,
+        useAccessLog(
+            System.getProperty("server.tomcat.accesslog.enabled"),
+            System.getenv("SERVER_TOMCAT_ACCESSLOG_ENABLED")));
 
     TomcatEmbeddedContext context = new TomcatEmbeddedContext();
     TomcatStarter starter = new TomcatStarter();
@@ -190,6 +273,10 @@ public class Main {
     context.setName("/");
     context.setDisplayName("/");
     context.setPath(getContextPath());
+    configureSessionCookie(
+        context,
+        System.getProperty("context.cookiePath"),
+        System.getProperty("context.sameSiteCookies"));
     context.setMimeMappings(MimeMappings.lazyCopy(MimeMappings.DEFAULT));
 
     context.setResources(new LoaderHidingResourceRoot(context));

@@ -81,14 +81,63 @@ Docker containers.
 
 # How to configure this image
 
+There are two kinds of images.
+
+* DHIS2 2.44 and later, including `dhis2/core-dev:latest`: DHIS2 runs on an embedded Tomcat. The
+  image is based on a [distroless](https://github.com/GoogleContainerTools/distroless) Java image,
+  the DHIS2 WAR is at `/app/dhis.war` and is started with `java -jar`. The image has no shell and no
+  tools like `curl`, `wget` or `tar`.
+* DHIS2 2.43 and earlier: the image is based on the [Tomcat](https://hub.docker.com/_/tomcat) image
+  and DHIS2 is unpacked into `/usr/local/tomcat/webapps/ROOT`.
+
+## JVM options
+
+Set JVM options using the environment variable `JAVA_TOOL_OPTIONS`. This works with both kinds of
+images. The images of DHIS2 2.44 and later ignore `CATALINA_OPTS` and `JAVA_OPTS`, which only the
+Tomcat start script reads, and log a warning when they are set.
+
 ## Context path
 
 To deploy DHIS2 under a different context then root (`/`) configure the context path by setting the
 environment variable
 
-`CATALINA_OPTS: "-Dcontext.path='/dhis2'"`
+* DHIS2 2.44 and later: `SERVER_SERVLET_CONTEXT_PATH: "/dhis2"`, or the system property
+  `context.path` as in `JAVA_TOOL_OPTIONS: "-Dcontext.path=/dhis2"`
+* DHIS2 2.43 and earlier: `CATALINA_OPTS: "-Dcontext.path='/dhis2'"`
 
 DHIS2 should be available at `http://localhost:8080/dhis2`.
+
+## Cookies
+
+The `SameSite` attribute of the session cookie comes from `session.cookie.samesite` in `dhis.conf`
+(default `Lax`).
+
+In the images of DHIS2 2.44 and later, the system properties the `server.xml` of the DHIS2 Helm chart
+reads also work, for example `JAVA_TOOL_OPTIONS: "-Dcontext.cookiePath=/ -Dcontext.sameSiteCookies=strict"`:
+
+* `context.cookiePath`: path of the session cookie, the context path by default
+* `context.sameSiteCookies`: `SameSite` attribute of cookies that do not set one
+
+## Access log
+
+The images of DHIS2 2.44 and later write an HTTP access log to standard output when the environment
+variable `SERVER_TOMCAT_ACCESSLOG_ENABLED` is `true`. It is off by default. The images of DHIS2 2.43
+and earlier write it to `/usr/local/tomcat/logs` inside the container.
+
+## Health checks
+
+Use `http://localhost:8080/api/ping` to check if DHIS2 is up, for example in a Kubernetes HTTP probe.
+The images of DHIS2 2.44 and later have no tool to run a health check from inside the container. In
+Docker Compose you can use a second container that shares the network of the DHIS2 container
+
+```yaml
+  web-healthcheck:
+    image: curlimages/curl
+    network_mode: service:web
+    command: ["sleep", "infinity"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/api/ping"]
+```
 
 ## DHIS2_HOME
 

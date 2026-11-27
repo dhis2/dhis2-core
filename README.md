@@ -117,7 +117,7 @@ This repository contains the source code for the server-side component of DHIS2,
 
 ### Docker image
 
-The DHIS2 Docker image is built using [Jib](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin). Start by building DHIS2 by executing the script below.
+The DHIS2 Docker image is built from the DHIS2 WAR using [Jib](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin), see [docker/image/pom.xml](./docker/image/pom.xml). Start by building DHIS2 and the image by executing the script below.
 
 ```sh
 ./dhis-2/build-dev.sh
@@ -138,20 +138,31 @@ DHIS2 should now be available at `http://localhost:8080`.
 To build using a custom tag.
 
 ```sh
-mvn clean package -DskipTests -Dmaven.test.skip=true --file dhis-2/pom.xml \
-  --projects dhis-web-server --also-make --activate-profiles jibDockerBuild \
+IMAGE=dhis2/core-dev:mytag ./dhis-2/build-dev.sh
+```
+
+To build the image from a WAR you have already built, without building DHIS2 again.
+
+```sh
+mvn --file docker/image/pom.xml antrun:run@prepare jib:dockerBuild \
   -Djib.to.image=dhis2/core-dev:mytag
 ```
 
-For more configuration options related to Jib or Docker go to the [Jib documentation](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin).
+On a Mac with Apple silicon add `-Djib.from.platforms=linux/arm64`, so the image runs without emulation. The script above does this for you.
+
+For more configuration options related to Jib or Docker go to [docker/image/pom.xml](./docker/image/pom.xml) and the [Jib documentation](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin).
 
 ##### Context path
 
 To deploy DHIS2 under a different context then root (`/`) configure the context path by setting the environment variable.
 
-`CATALINA_OPTS: "-Dcontext.path='/dhis2'"`
+`SERVER_SERVLET_CONTEXT_PATH: "/dhis2"`
 
 DHIS2 should be available at `http://localhost:8080/dhis2`.
+
+The system property `context.path` also works, for example `JAVA_TOOL_OPTIONS: "-Dcontext.path=/dhis2"`.
+
+Images of DHIS2 2.43 and earlier are based on the Tomcat image and use `CATALINA_OPTS: "-Dcontext.path='/dhis2'"` instead. Images of 2.44 and later ignore `CATALINA_OPTS` and `JAVA_OPTS`, use `JAVA_TOOL_OPTIONS` for JVM options. See [docker/DOCKERHUB.md](./docker/DOCKERHUB.md) for the other settings.
 
 ##### Overriding default values
 

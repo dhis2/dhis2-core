@@ -28,9 +28,10 @@ trap 'exit 143' TERM
 # Build this checkout, never a possibly stale core-pr tag. Opt out only with an explicitly built image.
 if [[ "${ESIGNET_SKIP_BUILD:-false}" != true ]]; then
   mvn package --threads "${MAVEN_THREADS:-2}" --batch-mode --no-transfer-progress \
-    -DskipTests -Dpackaging.type=jar -Dmdep.analyze.skip --file ../pom.xml \
-    --projects dhis-web-server --also-make --activate-profiles embedded,jibDockerBuild \
-    -Djib.to.image="$DHIS2_IMAGE" 2>&1 | tee "$output/build.log"
+    -DskipTests -Dmdep.analyze.skip --file ../pom.xml \
+    --projects dhis-web-server --also-make --activate-profiles embedded 2>&1 | tee "$output/build.log"
+  mvn --batch-mode --no-transfer-progress --file ../../docker/image/pom.xml \
+    antrun:run@prepare jib:dockerBuild -Djib.to.image="$DHIS2_IMAGE" 2>&1 | tee -a "$output/build.log"
 fi
 upstream=https://raw.githubusercontent.com/mosip/esignet/db528423dac7898ad546cb7b2f5f867a949676a7/docker-compose
 curl --fail --location --retry 3 "$upstream/init.sql" -o "$output/runtime/init.sql"

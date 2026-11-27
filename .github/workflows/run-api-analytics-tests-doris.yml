@@ -66,8 +66,9 @@ jobs:
           # only build image for running api tests in this workflow
           mvn clean package --threads 2C --batch-mode --no-transfer-progress \
             -DskipTests -Dmaven.test.skip=true --update-snapshots --file dhis-2/pom.xml \
-            --projects dhis-web-server --also-make --activate-profiles jibDockerBuild \
-            -Djib.to.image=$CORE_IMAGE_NAME
+            --projects dhis-web-server --also-make --activate-profiles embedded
+          mvn --batch-mode --no-transfer-progress --file docker/image/pom.xml \
+            antrun:run@prepare jib:dockerBuild -Djib.to.image=$CORE_IMAGE_NAME
 
       - name: Get Sierra Leone DB from cache
         uses: actions/cache@v6
