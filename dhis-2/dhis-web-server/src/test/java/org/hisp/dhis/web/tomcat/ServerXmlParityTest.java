@@ -49,6 +49,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
 import org.apache.catalina.connector.Connector;
@@ -154,12 +156,19 @@ class ServerXmlParityTest {
   @Test
   void writesAccessLogInCommonFormat(@TempDir Path baseDir) throws Exception {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
+    // Tomcat writes the access log after it has sent the response, so wait for the line.
+    CountDownLatch logged = new CountDownLatch(1);
+    PrintStream out =
+        new PrintStream(output, true, StandardCharsets.UTF_8) {
+          @Override
+          public void println(Object line) {
+            super.println(line);
+            logged.countDown();
+          }
+        };
     Tomcat tomcat = Main.createTomcat(baseDir.toString(), 0, false, null);
     tomcat.getConnector();
-    tomcat
-        .getHost()
-        .getPipeline()
-        .addValve(new StdoutAccessLogValve(new PrintStream(output, true, StandardCharsets.UTF_8)));
+    tomcat.getHost().getPipeline().addValve(new StdoutAccessLogValve(out));
     Context context = tomcat.addContext("", baseDir.toString());
     Tomcat.addServlet(context, "ok", new OkServlet());
     context.addServletMappingDecoded("/", "ok");
@@ -172,12 +181,8 @@ class ServerXmlParityTest {
               .build();
       HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
-      // Tomcat writes the access log after it has sent the response.
-      String log = "";
-      for (int i = 0; i < 50 && log.isEmpty(); i++) {
-        Thread.sleep(20);
-        log = output.toString(StandardCharsets.UTF_8);
-      }
+      assertTrue(logged.await(5, TimeUnit.SECONDS), "no access log line written");
+      String log = output.toString(StandardCharsets.UTF_8);
       assertTrue(log.startsWith("127.0.0.1 - - ["), log);
       assertTrue(log.contains("] \"GET /hello?x=1 HTTP/1.1\" 200 2"), log);
     } finally {

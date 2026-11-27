@@ -40,6 +40,9 @@ import org.apache.catalina.valves.AbstractAccessLogValve;
 class StdoutAccessLogValve extends AbstractAccessLogValve {
   private final PrintStream out;
 
+  // Standard output is the destination: a logger would also write the access log to the DHIS2 log
+  // files.
+  @SuppressWarnings("java:S106")
   StdoutAccessLogValve() {
     this(System.out);
   }

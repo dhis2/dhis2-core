@@ -230,10 +230,11 @@ public class Main {
   public static void main(String[] args) throws Exception {
     List<String> ignoredVariables = ignoredTomcatScriptVariables(System.getenv());
     if (!ignoredVariables.isEmpty()) {
+      String names = String.join(", ", ignoredVariables);
       log.warn(
           "Ignoring {}: embedded Tomcat does not read them. Set JVM options with JAVA_TOOL_OPTIONS"
               + " and the context path with SERVER_SERVLET_CONTEXT_PATH.",
-          String.join(", ", ignoredVariables));
+          names);
     }
 
     String baseDir = createTempDir();
