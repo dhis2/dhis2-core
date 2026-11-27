@@ -69,7 +69,8 @@ public class MeDto {
       List<String> dataSets,
       List<ApiToken> patTokens,
       Set<UserGroup> filteredUserGroups,
-      Set<UserRole> filteredUserRoles) {
+      Set<UserRole> filteredUserRoles,
+      Set<String> authorities) {
     this.id = user.getUid();
     this.username = user.getUsername();
     this.surname = user.getSurname();
@@ -105,7 +106,7 @@ public class MeDto {
     this.twitter = user.getTwitter();
 
     this.userRoles = filteredUserRoles;
-    this.authorities = new ArrayList<>(user.getAllAuthorities());
+    this.authorities = new ArrayList<>(authorities);
 
     this.settings = settings;
     this.programs = programs;

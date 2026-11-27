@@ -139,7 +139,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void updateRolesShouldInvalidateUserSessions() {
+  void updateRolesShouldKeepUserSessions() {
     UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
     sessionRegistry.registerNewSession("session1", sessionPrincipal);
     assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
@@ -154,7 +154,8 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
             "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
         .content(HttpStatus.OK);
 
-    assertTrue(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
+    // the sessions refresh their principal instead, see UserRoleSessionRefreshControllerTest
+    assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
   }
 
   @Test

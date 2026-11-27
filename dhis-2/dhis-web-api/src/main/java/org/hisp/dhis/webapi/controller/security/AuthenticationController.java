@@ -46,6 +46,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
+import org.hisp.dhis.webapi.security.session.HttpBasicSessions;
+import org.hisp.dhis.webapi.security.session.InteractiveSessionRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.annotation.Order;
@@ -104,6 +106,7 @@ public class AuthenticationController {
   @Autowired private SystemSettingsProvider settingsProvider;
   @Autowired private RequestCache requestCache;
   @Autowired private SessionRegistry sessionRegistry;
+  @Autowired private HttpBasicSessions httpBasicSessions;
   @Autowired private UserService userService;
 
   @Autowired protected ApplicationEventPublisher eventPublisher;
@@ -125,8 +128,10 @@ public class AuthenticationController {
     int maxSessions =
         Integer.parseInt(dhisConfig.getProperty((ConfigurationKey.MAX_SESSIONS_PER_USER)));
 
+    // HTTP Basic sessions do not count toward the maximum
     ConcurrentSessionControlAuthenticationStrategy concurrentStrategy =
-        new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry);
+        new ConcurrentSessionControlAuthenticationStrategy(
+            new InteractiveSessionRegistry(sessionRegistry, httpBasicSessions));
     concurrentStrategy.setMaximumSessions(maxSessions);
 
     sessionStrategy =

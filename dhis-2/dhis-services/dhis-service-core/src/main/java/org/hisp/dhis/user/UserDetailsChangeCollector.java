@@ -1,0 +1,161 @@
+/*
+ * Copyright (c) 2004-2022, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.user;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+/**
+ * Collects the users whose {@link UserDetails} change within a transaction and publishes one {@link
+ * UserDetailsChangedEvent} for all of them when the transaction has committed. Nothing is published
+ * when the transaction rolls back.
+ *
+ * <p>Changes are reported at the persistence layer, so that every write path is covered:
+ *
+ * <ul>
+ *   <li>Hibernate listeners in {@code org.hisp.dhis.user.hibernate} report changes of user group
+ *       members, user roles, organisation units, managed groups and properties of a user, and the
+ *       deletion of a user
+ *   <li>writers that bypass Hibernate report their own changes, such as {@link
+ *       UserGroupStore#addMember}, {@link UserGroupStore#removeMember} and {@link
+ *       UserStore#disableUsersInactiveSince}
+ * </ul>
+ *
+ * <p>Collecting per transaction keeps an import that changes many users down to one event, instead
+ * of one per change.
+ *
+ * <p>Hibernate may flush while the transaction commits, after the {@code beforeCommit} callbacks
+ * have run, so the event is published from {@code afterCompletion}. Transaction synchronization is
+ * no longer active at that point, so the {@code AFTER_COMMIT} listener of the event runs right
+ * away.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Component
+@RequiredArgsConstructor
+public class UserDetailsChangeCollector {
+
+  private final ApplicationEventPublisher eventPublisher;
+
+  /**
+   * Records that the {@link UserDetails} of the given users changed in the current transaction.
+   *
+   * @param userIds the primary keys of the users
+   */
+  public void usersChanged(@Nonnull Collection<Long> userIds) {
+    if (!userIds.isEmpty()) {
+      addChanges(changes -> changes.userIds.addAll(userIds));
+    }
+  }
+
+  /**
+   * Records that the {@link UserDetails} of all members of the given user groups changed in the
+   * current transaction. The members are resolved after commit.
+   *
+   * @param userGroupIds the primary keys of the user groups
+   */
+  public void membersOfUserGroupsChanged(@Nonnull Collection<Long> userGroupIds) {
+    if (!userGroupIds.isEmpty()) {
+      addChanges(changes -> changes.memberOfUserGroupIds.addAll(userGroupIds));
+    }
+  }
+
+  /**
+   * Records that the {@link UserDetails} of the users with the given usernames changed in the
+   * current transaction. Use this when the users cannot be resolved by primary key after commit,
+   * such as a deleted user.
+   *
+   * @param usernames the usernames of the users
+   */
+  public void usernamesChanged(@Nonnull Collection<String> usernames) {
+    if (!usernames.isEmpty()) {
+      addChanges(changes -> changes.usernames.addAll(usernames));
+    }
+  }
+
+  private void addChanges(Consumer<TransactionChanges> change) {
+    if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+      TransactionChanges changes = new TransactionChanges(eventPublisher);
+      change.accept(changes);
+      changes.publish();
+      return;
+    }
+    change.accept(getOrRegisterTransactionChanges());
+  }
+
+  private TransactionChanges getOrRegisterTransactionChanges() {
+    for (TransactionSynchronization synchronization :
+        TransactionSynchronizationManager.getSynchronizations()) {
+      if (synchronization instanceof TransactionChanges changes) {
+        return changes;
+      }
+    }
+    TransactionChanges changes = new TransactionChanges(eventPublisher);
+    TransactionSynchronizationManager.registerSynchronization(changes);
+    return changes;
+  }
+
+  /** The user changes of one transaction. */
+  private static final class TransactionChanges implements TransactionSynchronization {
+
+    private final ApplicationEventPublisher eventPublisher;
+
+    private final Set<Long> userIds = new HashSet<>();
+
+    private final Set<Long> memberOfUserGroupIds = new HashSet<>();
+
+    private final Set<String> usernames = new HashSet<>();
+
+    private TransactionChanges(ApplicationEventPublisher eventPublisher) {
+      this.eventPublisher = eventPublisher;
+    }
+
+    @Override
+    public void afterCompletion(int status) {
+      if (status == STATUS_COMMITTED) {
+        publish();
+      }
+    }
+
+    private void publish() {
+      eventPublisher.publishEvent(
+          new UserDetailsChangedEvent(
+              Set.copyOf(userIds), Set.copyOf(memberOfUserGroupIds), Set.copyOf(usernames)));
+    }
+  }
+}

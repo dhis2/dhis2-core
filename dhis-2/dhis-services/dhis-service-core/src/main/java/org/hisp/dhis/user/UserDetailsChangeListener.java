@@ -39,60 +39,63 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * Invalidates the sessions of all users that are members of a user role whose authorities have
- * changed, so that the new authorities take effect on the next authentication.
+ * Marks the users whose session principal has gone stale as changed in the {@link
+ * UserDetailsChangeTracker}, so that their sessions refresh the principal on their next request:
+ *
+ * <ul>
+ *   <li>all members of a user role whose authorities or restrictions have changed
+ *   <li>all users whose {@link UserDetails} changed in a transaction, see {@link
+ *       UserDetailsChangeCollector}
+ * </ul>
  *
  * <p>The work runs after the updating transaction has committed, on a dedicated single-threaded
- * executor, in batches with a pause in between. This keeps an authority change on a role with many
- * members cheap on the request thread and spreads the invalidation work out over time. If the
- * server shuts down before all batches have run, the remaining sessions simply keep the old
- * authorities until they expire or the user re-authenticates.
+ * executor, in batches. This keeps a change that affects many users cheap on the request thread. If
+ * the server shuts down before all batches have run, the remaining sessions keep the old principal
+ * until the refresh interval ({@code system.session.user_details_refresh_interval}) rebuilds it,
+ * the session ends, or the user logs in again.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class UserRoleSessionInvalidationListener {
+public class UserDetailsChangeListener {
 
-  /** Number of users whose sessions are invalidated per batch. */
+  /** Number of users whose usernames are resolved and marked per batch. */
   static final int BATCH_SIZE = 100;
-
-  /** Pause between batches, to spread the work out over time. */
-  static final long BATCH_DELAY_MS = 500;
 
   private final UserService userService;
 
-  @Async("userSessionInvalidationTaskExecutor")
+  private final UserDetailsChangeTracker userDetailsChangeTracker;
+
+  @Async("userDetailsChangeTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
-  public void onUserRoleAuthoritiesChanged(UserRoleAuthoritiesChangedEvent event) {
+  public void onUserRoleSecurityChanged(UserRoleSecurityChangedEvent event) {
     List<String> usernames = userService.getUsernamesByUserRole(event.userRoleUid());
     log.info(
-        "Invalidating sessions of {} users after authority change of user role '{}'",
+        "Marking {} users as changed after authority or restriction change of user role '{}'",
         usernames.size(),
         event.userRoleUid());
-
-    List<List<String>> batches = Lists.partition(usernames, BATCH_SIZE);
-    for (int i = 0; i < batches.size(); i++) {
-      if (i > 0 && !pauseBetweenBatches()) {
-        log.warn(
-            "Session invalidation for user role '{}' interrupted, {} of {} batches done",
-            event.userRoleUid(),
-            i,
-            batches.size());
-        return;
-      }
-      batches.get(i).forEach(userService::invalidateUserSessions);
-    }
+    Lists.partition(usernames, BATCH_SIZE).forEach(userDetailsChangeTracker::markChanged);
   }
 
-  private static boolean pauseBetweenBatches() {
-    try {
-      Thread.sleep(BATCH_DELAY_MS);
-      return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
+  @Async("userDetailsChangeTaskExecutor")
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+  public void onUserDetailsChanged(UserDetailsChangedEvent event) {
+    log.info(
+        "Marking users as changed: {} by id, members of {} user groups, {} by username",
+        event.userIds().size(),
+        event.memberOfUserGroupIds().size(),
+        event.usernames().size());
+    for (List<Long> batch : Lists.partition(List.copyOf(event.userIds()), BATCH_SIZE)) {
+      userDetailsChangeTracker.markChanged(userService.getUsernamesByIds(batch));
     }
+    for (List<Long> batch :
+        Lists.partition(List.copyOf(event.memberOfUserGroupIds()), BATCH_SIZE)) {
+      Lists.partition(userService.getUsernamesByUserGroupIds(batch), BATCH_SIZE)
+          .forEach(userDetailsChangeTracker::markChanged);
+    }
+    Lists.partition(List.copyOf(event.usernames()), BATCH_SIZE)
+        .forEach(userDetailsChangeTracker::markChanged);
   }
 }
