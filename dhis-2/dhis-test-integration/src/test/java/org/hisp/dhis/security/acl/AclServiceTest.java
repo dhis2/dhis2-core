@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +41,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
@@ -1138,5 +1140,105 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     manager.save(userA);
 
     assertFalse(aclService.canRead(userA, categoryOption));
+  }
+
+  // Sharing JSON with a user or user group entry that is JSON null cannot be stored through the
+  // API (it fails on the way in), but can be in the database, e.g. after an SQL update.
+
+  @Test
+  void userEntryWithoutValueGrantsNothing() {
+    User userA = makeUser("A");
+    manager.save(userA);
+    CategoryOption option = restrictedCategoryOption();
+    setSharing(
+        option, "{'owner': 'ownerOther1', 'public': '--------', 'users': {'%s': null}}", userA);
+
+    CategoryOption loaded = reload(option);
+
+    assertFalse(aclService.canDataRead(userA, loaded));
+    assertFalse(aclService.canRead(userA, loaded));
+  }
+
+  @Test
+  void userEntryWithoutValueDoesNotTakeAwayWhatAGroupEntryGrants() {
+    User userA = makeUser("A");
+    manager.save(userA);
+    UserGroup group = groupOf(userA);
+    CategoryOption option = restrictedCategoryOption();
+    setSharing(
+        option,
+        "{'owner': 'ownerOther1', 'public': '--------', 'users': {'%s': null},"
+            + " 'userGroups': {'%s': {'id': '%2$s', 'access': 'rwr-----'}}}",
+        userA,
+        group);
+
+    assertTrue(aclService.canDataRead(UserDetails.fromUser(userA), reload(option)));
+  }
+
+  @Test
+  void userGroupEntryWithoutValueGrantsNothing() {
+    User userA = makeUser("A");
+    manager.save(userA);
+    UserGroup group = groupOf(userA);
+    CategoryOption option = restrictedCategoryOption();
+    setSharing(
+        option,
+        "{'owner': 'ownerOther1', 'public': '--------', 'userGroups': {'%s': null}}",
+        group);
+
+    CategoryOption loaded = reload(option);
+
+    assertFalse(aclService.canDataRead(UserDetails.fromUser(userA), loaded));
+    assertFalse(aclService.canRead(UserDetails.fromUser(userA), loaded));
+  }
+
+  @Test
+  void userGroupEntryWithoutValueDoesNotTakeAwayWhatAUserEntryGrants() {
+    User userA = makeUser("A");
+    manager.save(userA);
+    UserGroup group = groupOf(userA);
+    CategoryOption option = restrictedCategoryOption();
+    setSharing(
+        option,
+        "{'owner': 'ownerOther1', 'public': '--------', 'userGroups': {'%s': null},"
+            + " 'users': {'%s': {'id': '%2$s', 'access': 'rwr-----'}}}",
+        group,
+        userA);
+
+    assertTrue(aclService.canDataRead(UserDetails.fromUser(userA), reload(option)));
+  }
+
+  /** A saved category option no one but its owner, another user, may access. */
+  private CategoryOption restrictedCategoryOption() {
+    CategoryOption option = createCategoryOption('A');
+    option.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    option.getSharing().setOwner("ownerOther1");
+    manager.save(option, false);
+    return option;
+  }
+
+  /** Stores the sharing JSON as is, with the UIDs of the given objects filled in. */
+  private void setSharing(CategoryOption option, String sharing, IdentifiableObject... objects) {
+    entityManager.flush();
+    String json =
+        sharing
+            .formatted(Arrays.stream(objects).map(IdentifiableObject::getUid).toArray())
+            .replace('\'', '"');
+    jdbcTemplate.update(
+        "update categoryoption set sharing = cast(? as jsonb) where uid = ?",
+        json,
+        option.getUid());
+    entityManager.clear();
+  }
+
+  private CategoryOption reload(CategoryOption option) {
+    return manager.get(CategoryOption.class, option.getUid());
+  }
+
+  private UserGroup groupOf(User member) {
+    UserGroup group = createUserGroup('G', Set.of(member));
+    manager.save(group);
+    member.getGroups().add(group);
+    return group;
   }
 }
