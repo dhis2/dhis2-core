@@ -113,4 +113,10 @@ public class ApiTokenServiceImpl implements ApiTokenService {
   public void delete(@Nonnull ApiToken apiToken) {
     apiTokenStore.delete(apiToken);
   }
+
+  @Override
+  @Transactional
+  public void deleteAllOwning(@Nonnull User owner) {
+    apiTokenStore.deleteAllOwning(owner);
+  }
 }
