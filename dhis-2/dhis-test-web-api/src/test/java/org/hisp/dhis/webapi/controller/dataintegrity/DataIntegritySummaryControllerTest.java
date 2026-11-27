@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -169,5 +169,30 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
         content.contains(
             "dhis_data_integrity_check_duration_milliseconds{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
         "Data integrity check duration is missing");
+  }
+
+  @Test
+  void testGetSummaryMetricsFinishedTimestamp() {
+    long before = System.currentTimeMillis() / 1000;
+    postSummary("categories-no-options");
+    long after = System.currentTimeMillis() / 1000;
+    String content =
+        GET("/api/dataIntegrity/metrics", HttpClientAdapter.Accept("text/plain"))
+            .content("text/plain");
+    assertTrue(
+        content.contains("# TYPE dhis_data_integrity_check_finished_timestamp_seconds gauge"),
+        "Finished timestamp type is missing");
+    String prefix =
+        "dhis_data_integrity_check_finished_timestamp_seconds{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"} ";
+    String line =
+        content
+            .lines()
+            .filter(l -> l.startsWith(prefix))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Finished timestamp is missing:\n" + content));
+    long timestamp = Long.parseLong(line.substring(prefix.length()));
+    assertTrue(
+        timestamp >= before && timestamp <= after,
+        "Timestamp %d not between %d and %d".formatted(timestamp, before, after));
   }
 }
