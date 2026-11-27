@@ -30,15 +30,13 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE_QUERY_TIMEOUT;
-import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
-import static org.hisp.dhis.security.acl.AclService.LIKE_WRITE_DATA;
+import static org.hisp.dhis.security.acl.HibernateAccessControlStore.createDataReadCheck;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -54,6 +52,8 @@ import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.security.acl.AccessControlStore;
+import org.hisp.dhis.security.acl.DataReadableAocs;
 import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
@@ -82,6 +82,8 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
 
   private int maxOrgUnitIds = MAX_ORG_UNIT_IDS;
 
+  private final AccessControlStore accessControlStore;
+
   /** Whether the database is PostgreSQL 14 or later, null until asked. */
   private volatile Boolean postgres14;
 
@@ -89,8 +91,10 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      DhisConfigurationProvider config) {
+      DhisConfigurationProvider config,
+      AccessControlStore accessControlStore) {
     super(entityManager, jdbcTemplate, publisher, DataValueChangelog.class, false);
+    this.accessControlStore = accessControlStore;
     this.queryTimeout = config.getIntProperty(CHANGELOG_AGGREGATE_QUERY_TIMEOUT);
   }
 
@@ -147,11 +151,11 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   public List<DataValueChangelog> getEntries(DataValueChangelogQueryParams params) {
     SQL.QueryAPI api = NativeSQL.of(getSession());
     UserDetails user = getCurrentUserDetails();
-    long[] aocAllowed = getAllowedAocIds(api, user, params.cc());
-    if (aocAllowed != null && aocAllowed.length == 0) return List.of();
-    if (aocAllowed != null) limitStatements();
+    DataReadableAocs dataReadableAocs = getReadableAocs(user, params.cc());
+    if (dataReadableAocs.isNone()) return List.of();
+    if (!dataReadableAocs.isUnrestricted()) limitStatements();
     return createEntriesQuery(
-            params, createAccess(api, user, params), aocAllowed, isPostgres14(), api)
+            params, createAccess(api, user, params), dataReadableAocs, isPostgres14(), api)
         .stream(DataValueChangelog.class)
         .toList();
   }
@@ -160,11 +164,11 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   public int countEntries(DataValueChangelogQueryParams params) {
     SQL.QueryAPI api = NativeSQL.of(getSession());
     UserDetails user = getCurrentUserDetails();
-    long[] aocAllowed = getAllowedAocIds(api, user, params.cc());
-    if (aocAllowed != null && aocAllowed.length == 0) return 0;
-    if (aocAllowed != null) limitStatements();
+    DataReadableAocs dataReadableAocs = getReadableAocs(user, params.cc());
+    if (dataReadableAocs.isNone()) return 0;
+    if (!dataReadableAocs.isUnrestricted()) limitStatements();
     return createEntriesQuery(
-            params, createAccess(api, user, params), aocAllowed, isPostgres14(), api)
+            params, createAccess(api, user, params), dataReadableAocs, isPostgres14(), api)
         .count();
   }
 
@@ -277,52 +281,6 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .formatted(userId, userId);
   }
 
-  /**
-   * The attribute option combos the user may read data of: the default one, and those of attribute
-   * category combos with only category options the user may read data of.
-   *
-   * <p>Resolved up front, so the planner sees a known list instead of guessing the size of a
-   * sharing-filtered set of option combos. Same lookup as {@link
-   * org.hisp.dhis.security.acl.AccessControlStore#getDataReadableAttributeOptionCombos}, with this
-   * store's data read check; the changelog moves onto that lookup in a follow-up (DHIS2-22479).
-   *
-   * @param aoc the only attribute option combo to check, null to check all
-   * @return internal ids of the option combos, null when the user reads all (superuser)
-   */
-  @CheckForNull
-  static long[] getAllowedAocIds(
-      SQL.QueryAPI api, @Nonnull UserDetails user, @CheckForNull UID aoc) {
-    if (user.isSuper()) return null;
-    // a single bigint column comes back as a plain number per row, not as an Object[] row
-    return createAllowedAocQuery(api, user, aoc).stream(Number.class)
-        .mapToLong(Number::longValue)
-        .toArray();
-  }
-
-  static QueryBuilder createAllowedAocQuery(
-      SQL.QueryAPI api, @Nonnull UserDetails user, @CheckForNull UID aoc) {
-    String sql =
-        """
-        SELECT DISTINCT ccoc.categoryoptioncomboid
-        FROM categorycombos_optioncombos ccoc
-        JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
-        JOIN categoryoptioncombo aoc ON aoc.categoryoptioncomboid = ccoc.categoryoptioncomboid
-        WHERE (cc.name = 'default'
-            OR cc.datadimensiontype = 'ATTRIBUTE'
-            AND NOT EXISTS (
-              SELECT 1
-              FROM categoryoptioncombos_categoryoptions coc_co
-              JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
-              WHERE coc_co.categoryoptioncomboid = ccoc.categoryoptioncomboid
-                AND NOT (:access)))
-          AND aoc.uid = :aoc""";
-    return SQL.of(sql, api)
-        .setParameter("aoc", aoc)
-        .setDynamicClause("access", createDataReadCheck("co.sharing", user))
-        .eraseNullParameterLines()
-        .eraseNullParameterJoinLine("aoc", "aoc");
-  }
-
   @Override
   public List<String> getDataSetsNoDataReadAccess(@Nonnull Collection<UID> dataSets) {
     UserDetails user = getCurrentUserDetails();
@@ -343,8 +301,8 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
 
   /**
    * The data read access of a user who is not a superuser to change log rows {@code dva}, apart
-   * from the attribute option combo, which the queries check against the list of {@link
-   * #getAllowedAocIds allowed ones}.
+   * from the attribute option combo, which the queries check against the {@link DataReadableAocs}
+   * of the user.
    *
    * <p>The user reads a row when its data element belongs to a data set the user may read data of,
    * its organisation unit is in the user's data capture or data view hierarchy, the user may read
@@ -465,63 +423,18 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   }
 
   /**
-   * A condition that is true exactly when the user may read data of the object with the given
-   * sharing column, as {@link org.hisp.dhis.security.acl.AclService#canDataRead} decides for a user
-   * who is not a superuser: the public access, the user's own entry, or the entry of one of the
-   * user's groups grants data read or data write. An entry without access string, or no public
-   * access string, grants access, as {@link
-   * org.hisp.dhis.security.acl.AccessStringHelper#isEnabled} does. Ownership does not grant data
-   * access. The condition is never null, also for sharing without, or with JSON {@code null}, user
-   * or user group entries.
-   *
-   * <p>This follows {@code AclService.canDataRead} on purpose and deliberately differs from {@code
-   * JpaQueryUtils.generateSQlQueryForSharingCheck}: ownership does not grant data read, and data
-   * write implies data read. A shared helper for both checks is a planned follow-up.
-   */
-  private static String createDataReadCheck(String sharing, UserDetails user) {
-    String uid = user.getUid();
-    String publicAccess = "(%s->>'public')".formatted(sharing);
-    String check =
-        "%s OR jsonb_typeof(%s->'users'->'%s') = 'object' AND (%s)"
-            .formatted(
-                grantsDataRead(publicAccess),
-                sharing,
-                uid,
-                grantsDataRead("(%s->'users'->'%s'->>'access')".formatted(sharing, uid)));
-    Set<String> groups = user.getUserGroupIds();
-    if (groups != null && !groups.isEmpty()) {
-      // CASE, not AND, guarantees jsonb_each only sees an object (migrated sharing has JSON null)
-      check +=
-          (" OR EXISTS (SELECT 1 FROM jsonb_each(CASE WHEN jsonb_typeof(%1$s->'userGroups') ="
-                  + " 'object' THEN %1$s->'userGroups' ELSE '{}' END) g"
-                  + " WHERE g.key = ANY(cast('{%2$s}' as text[])) AND (%3$s))")
-              .formatted(
-                  sharing,
-                  String.join(",", groups.stream().sorted().toList()),
-                  grantsDataRead("(g.value->>'access')"));
-    }
-    return "(%s) IS TRUE".formatted(check);
-  }
-
-  /** An access string grants data read when it is missing, or allows data read or data write. */
-  private static String grantsDataRead(String access) {
-    return "(%1$s IS NULL OR %1$s LIKE '%2$s' OR %1$s LIKE '%3$s')"
-        .formatted(access, LIKE_READ_DATA, LIKE_WRITE_DATA);
-  }
-
-  /**
-   * @param aocAllowed internal ids of the attribute option combos the rows are limited to, null for
-   *     no limit; must not be empty (an empty list would erase the condition)
-   * @param postgres14 true to test the bound lists as PostgreSQL 14 and later can, false to test
-   *     them with hashed subplans as needed before 14
+   * @param dataReadableAocs the attribute option combos the rows are limited to; must not be none
+   *     (an empty list would erase the condition)
+   * @param postgres14 true to test the bound org unit list as PostgreSQL 14 and later can, false to
+   *     test it with a hashed subplan as needed before 14
    */
   static QueryBuilder createEntriesQuery(
       DataValueChangelogQueryParams params,
       @CheckForNull Access access,
-      @CheckForNull long[] aocAllowed,
+      @Nonnull DataReadableAocs dataReadableAocs,
       boolean postgres14,
       SQL.QueryAPI api) {
-    if (aocAllowed != null && aocAllowed.length == 0)
+    if (dataReadableAocs.isNone())
       throw new IllegalArgumentException("AOC limit must not be empty");
     // = ANY(:orgUnits) gives the planner the estimate of the list. Before PostgreSQL 14 it searches
     // the array for every row: a hashed subplan does the test (a count of a user with 500 org
@@ -552,7 +465,6 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         AND dva.organisationunitid = ANY(:orgUnits)
         AND (dva.organisationunitid IN (SELECT unnest(CAST(:orgUnitsHashed AS bigint[])))) IS TRUE
         AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dva.attributeoptioncomboid)
-        AND (dva.attributeoptioncomboid IN (SELECT unnest(CAST(:aocAllowedHashed AS bigint[])))) IS TRUE
       ORDER BY dva.created DESC""";
 
     PagedParams paged = params.paged();
@@ -565,8 +477,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .setParameter("ou", params.ou())
         .setParameter("coc", params.co())
         .setParameter("aoc", params.cc())
-        .setParameter("aocAllowed", postgres14 ? aocAllowed : null)
-        .setParameter("aocAllowedHashed", postgres14 ? null : aocAllowed)
+        .setParameter("aocAllowed", dataReadableAocs.ids())
         .setParameter("orgUnits", orgUnits)
         .setParameter("orgUnitsHashed", postgres14 ? null : orgUnits)
         .setDynamicClause("accessWith", access == null ? null : access.with())
@@ -594,7 +505,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     if (user.isSuper()) return true;
     DataValueKey key = toKey(params);
     SQL.QueryAPI api = NativeSQL.of(getSession());
-    if (!isAocReadable(api, user, key)) return false;
+    if (!isAocReadable(user, key)) return false;
     Access access = createAccess(user, true, null, true);
     limitStatements();
     @Language("sql")
@@ -629,10 +540,20 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
    * @return true when the user may read data of the attribute option combo of the key, which all
    *     users may for the default one (null)
    */
-  private static boolean isAocReadable(SQL.QueryAPI api, UserDetails user, DataValueKey key) {
+  private boolean isAocReadable(UserDetails user, DataValueKey key) {
     if (key.attributeOptionCombo() == null) return true;
-    long[] allowed = getAllowedAocIds(api, user, key.attributeOptionCombo());
-    return allowed == null || allowed.length > 0;
+    DataReadableAocs readable = getReadableAocs(user, key.attributeOptionCombo());
+    return !readable.isNone();
+  }
+
+  /**
+   * @param aoc the only attribute option combo to check, null to check all
+   * @return the attribute option combos the user may read data of
+   */
+  @Nonnull
+  private DataReadableAocs getReadableAocs(UserDetails user, @CheckForNull UID aoc) {
+    return accessControlStore.getDataReadableAttributeOptionCombos(
+        user, aoc == null ? null : List.of(aoc));
   }
 
   private DataValueKey toKey(DataValueQueryParams params) {
@@ -649,7 +570,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   public List<DataValueChangelogEntry> getEntries(@Nonnull DataValueKey key) {
     UserDetails user = getCurrentUserDetails();
     SQL.QueryAPI api = NativeSQL.of(getSession());
-    if (!isAocReadable(api, user, key)) return List.of();
+    if (!isAocReadable(user, key)) return List.of();
     Access access = createAccess(user, true, null, true);
     if (access != null) limitStatements();
     @Language("sql")
