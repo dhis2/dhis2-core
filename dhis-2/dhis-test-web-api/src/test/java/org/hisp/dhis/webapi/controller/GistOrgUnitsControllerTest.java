@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -67,6 +69,51 @@ class GistOrgUnitsControllerTest extends AbstractGistControllerPostgresTest {
   }
 
   @Test
+  void testFilter_CaseInsensitiveOperatorsAreCaseSensitiveOnIdentifiers() {
+    addOrganisationUnitWithId("CaseTestOu1", "caseA", "CASE_CODE", ou1);
+    addOrganisationUnitWithId("casetestou1", "caseB", "case_code", ou1);
+    addOrganisationUnitWithId("CaseTestCh1", "caseA1", "CASE_CODE_1", "CaseTestOu1");
+    addOrganisationUnitWithId("CaseTestCh2", "caseB1", "case_code_1", "casetestou1");
+    String pathA = "/" + ou1 + "/CaseTestOu1";
+
+    assertEquals(
+        List.of("caseA", "caseA1"),
+        toOrganisationUnitNames(
+            GET(
+                    "/api/organisationUnits/gist?orgUnitsOffline=true&filter=path:startsWith:{path}",
+                    pathA)
+                .content()));
+    assertEquals(
+        List.of("caseA", "caseA1"),
+        toOrganisationUnitNames(
+            GET(
+                    "/api/organisationUnits/gist?fields=id,displayName&filter=path:$ilike:{path}&order=name",
+                    pathA)
+                .content()));
+    assertEquals(
+        List.of("caseA"),
+        toOrganisationUnitNames(
+            GET("/api/organisationUnits/gist?fields=id,displayName&filter=id:ieq:CaseTestOu1")
+                .content()));
+    assertEquals(
+        List.of("caseA", "caseA1"),
+        toOrganisationUnitNames(
+            GET("/api/organisationUnits/gist?fields=id,displayName&filter=code:startsWith:CASE_CODE&order=name")
+                .content()));
+    assertEquals(
+        List.of("caseB"),
+        toOrganisationUnitNames(
+            GET("/api/organisationUnits/gist?fields=id,displayName&filter=code:ieq:case_code")
+                .content()));
+    // names stay case-insensitive
+    assertEquals(
+        List.of("caseA", "caseA1", "caseB", "caseB1"),
+        toOrganisationUnitNames(
+            GET("/api/organisationUnits/gist?fields=id,displayName&filter=name:startsWith:CASE&order=name")
+                .content()));
+  }
+
+  @Test
   void testOrgUnitsTree() {
     assertEquals(
         List.of("nameL1", "nameL2", "nameL3a", "nameL4a"),
@@ -82,5 +129,17 @@ class GistOrgUnitsControllerTest extends AbstractGistControllerPostgresTest {
                     "/api/organisationUnits/gist?fields=displayName&orgUnitsTree=true&filter=id:eq:{id}",
                     ou3b)
                 .content()));
+  }
+
+  private void addOrganisationUnitWithId(String id, String name, String code, String parentId) {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            """
+            {'id':'%s', 'name':'%s', 'shortName':'%s', 'code':'%s', 'openingDate':'2021',
+             'parent':{'id':'%s'}}
+            """
+                .formatted(id, name, name, code, parentId)));
   }
 }
