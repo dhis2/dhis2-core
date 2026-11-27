@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 package org.hisp.dhis.db.sql;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -482,6 +483,18 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
         and t.name = %s \
         and engine not in ('View', 'Materialized View');""",
         singleQuote(name));
+  }
+
+  @Override
+  public String tablesExist(Collection<String> names) {
+    return String.format(
+        """
+        select t.name as table_name \
+        from system.tables t \
+        where t.database = 'default' \
+        and t.name in (%s) \
+        and engine not in ('View', 'Materialized View');""",
+        singleQuotedCommaDelimited(names));
   }
 
   @Override

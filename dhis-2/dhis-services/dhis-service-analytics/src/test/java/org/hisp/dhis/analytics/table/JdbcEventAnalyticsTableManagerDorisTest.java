@@ -52,6 +52,7 @@ import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -355,9 +356,11 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT))
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
-    when(jdbcTemplate.queryForList(
-            sqlBuilder.tableExists(AnalyticsTable.getTableName(AnalyticsTableType.EVENT, created))))
-        .thenReturn(List.of());
+    String existingTable = AnalyticsTable.getTableName(AnalyticsTableType.EVENT, existing);
+    String createdTable = AnalyticsTable.getTableName(AnalyticsTableType.EVENT, created);
+    String tablesExistSql = sqlBuilder.tablesExist(List.of(existingTable, createdTable));
+    when(jdbcTemplate.queryForList(tablesExistSql, String.class))
+        .thenReturn(List.of(existingTable));
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(existing, created));
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
@@ -369,6 +372,11 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     assertEquals(lastLatestPartitionUpdate, tables.get(0).getLatestTablePartition().getStartDate());
     assertEquals(new Date(0L), tables.get(1).getLatestTablePartition().getStartDate());
     assertEquals(startTime, tables.get(1).getLatestTablePartition().getEndDate());
+
+    // Existence of the programs' main tables is checked with one query, not one per program
+    verify(jdbcTemplate).queryForList(tablesExistSql, String.class);
+    verify(jdbcTemplate, never()).queryForList(sqlBuilder.tableExists(existingTable));
+    verify(jdbcTemplate, never()).queryForList(sqlBuilder.tableExists(createdTable));
   }
 
   @Test
@@ -395,6 +403,8 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT))
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
+    when(jdbcTemplate.queryForList(Mockito.anyString(), Mockito.eq(String.class)))
+        .thenReturn(List.of(AnalyticsTable.getTableName(AnalyticsTableType.EVENT, program)));
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())
@@ -472,6 +482,8 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT))
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
+    when(jdbcTemplate.queryForList(Mockito.anyString(), Mockito.eq(String.class)))
+        .thenReturn(List.of(AnalyticsTable.getTableName(AnalyticsTableType.EVENT, program)));
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
     when(configurationService.getConfiguration()).thenReturn(configuration);
     when(configuration.getDataOutputPeriodTypes())

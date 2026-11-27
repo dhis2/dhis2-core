@@ -377,6 +377,18 @@ class DorisSqlBuilderTest {
   }
 
   @Test
+  void testTablesExist() {
+    String expected =
+        """
+        select t.table_name \
+        from information_schema.tables t \
+        where t.table_schema = database() \
+        and t.table_name in ('immunization', 'vaccination');""";
+
+    assertEquals(expected, sqlBuilder.tablesExist(List.of("immunization", "vaccination")));
+  }
+
+  @Test
   void testShowCreateTable() {
     assertEquals("show create table `immunization`;", sqlBuilder.showCreateTable("immunization"));
   }
