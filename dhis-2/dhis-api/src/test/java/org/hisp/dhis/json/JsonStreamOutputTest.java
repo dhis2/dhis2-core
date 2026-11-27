@@ -37,9 +37,15 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayOutputStream;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.jsontree.JsonBuilder;
+import org.hisp.dhis.object.ObjectOutput;
+import org.hisp.dhis.translation.Translation;
 import org.junit.jupiter.api.Test;
 
 class JsonStreamOutputTest {
@@ -97,6 +103,21 @@ class JsonStreamOutputTest {
     assertEquals(
         """
         [{"a":{"x":{"z":1,"t":4},"y":2},"c":3,"d":5},{"a":{"x":{"z":6,"t":9},"y":7},"c":8,"d":10}]""",
+        str.toString());
+  }
+
+  @Test
+  void testGetAdder_TranslationPropertyIsWrittenAsArray() {
+    ByteArrayOutputStream str = new ByteArrayOutputStream();
+    TranslationProperty translations =
+        new TranslationProperty(
+            new HashSet<>(Set.of(new Translation(Locale.of("fr"), "NAME", "Nom FR"))));
+    JsonBuilder.JsonObjectBuilder.AddMember<Object> adder =
+        JsonStreamOutput.getAdder(new ObjectOutput.Type(Set.class, Translation.class));
+    JsonBuilder.streamObject(str, obj -> adder.add(obj, "translations", translations));
+    assertEquals(
+        """
+        {"translations":[{"locale":"fr","property":"NAME","value":"Nom FR"}]}""",
         str.toString());
   }
 

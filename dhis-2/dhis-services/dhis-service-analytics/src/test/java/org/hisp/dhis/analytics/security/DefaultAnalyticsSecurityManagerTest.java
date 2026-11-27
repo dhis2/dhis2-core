@@ -40,7 +40,9 @@ import static org.mockito.Mockito.lenient;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -57,6 +59,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -160,6 +164,24 @@ class DefaultAnalyticsSecurityManagerTest extends TestBase {
 
     IllegalQueryException exception =
         assertThrows(IllegalQueryException.class, () -> securityManager.decideAccess(params));
+
+    assertEquals(ErrorCode.E7120, exception.getErrorCode());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void shouldRejectOuFiltersWhenAnyIsOutsideDataViewScope(boolean outsideFilterFirst) {
+    List<OrganisationUnit> filterOrder = outsideFilterFirst ? List.of(ouA, ouB) : List.of(ouB, ouA);
+    EventQueryParams.Builder params = new EventQueryParams.Builder();
+    for (OrganisationUnit orgUnit : filterOrder) {
+      params.addFilter(
+          new BaseDimensionalObject(
+              ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(orgUnit)));
+    }
+
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class, () -> securityManager.decideAccess(params.build()));
 
     assertEquals(ErrorCode.E7120, exception.getErrorCode());
   }

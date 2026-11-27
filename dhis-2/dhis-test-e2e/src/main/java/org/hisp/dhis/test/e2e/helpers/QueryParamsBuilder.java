@@ -70,7 +70,13 @@ public class QueryParamsBuilder {
     return this;
   }
 
-  private MutablePair getByKey(String key) {
+  /** Returns the value of the first query param with the given key, or null if absent. */
+  public String get(String key) {
+    MutablePair<String, String> pair = getByKey(key);
+    return pair == null ? null : pair.getRight();
+  }
+
+  private MutablePair<String, String> getByKey(String key) {
     return queryParams.stream().filter(p -> p.getLeft().equals(key)).findFirst().orElse(null);
   }
 

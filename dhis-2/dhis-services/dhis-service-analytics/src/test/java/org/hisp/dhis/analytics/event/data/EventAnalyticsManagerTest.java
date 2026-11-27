@@ -76,6 +76,7 @@ import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.queryitem.DateFilterHandler;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageOrgUnitSqlService;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
@@ -577,6 +578,32 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyGetEventsSqlWithOrgUnitsAtDifferentLevelsKeepsLevelConditionsTogether() {
+    mockEmptyRowSet();
+
+    OrganisationUnit district = createOrganisationUnit('A');
+    district.setPath("/" + district.getUid());
+    OrganisationUnit facility = createOrganisationUnit('B', district);
+    facility.setPath(district.getPath() + "/" + facility.getUid());
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(programStage))
+            .withOrganisationUnits(List.of(district, facility))
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String expected =
+        " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" in ('ouabcdefghA') or ax.\"uidlevel2\" in ('ouabcdefghB') ) and ax.\"ps\" = '"
+            + programStage.getUid()
+            + "' limit 101";
+
+    assertThat(sql.getValue(), containsString(expected));
+  }
+
+  @Test
   void verifyGetEventsWithProgramStageAndNumericDataElement() {
     mockEmptyRowSet();
 
@@ -868,6 +895,25 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyGetAggregatedEventQueryWithOrgUnitFilterPerLevelKeepsEveryLevel() {
+    mockEmptyRowSet();
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    subject.getAggregatedEventData(
+        createRequestParamsWithOrgUnitFilterPerLevel(programStage), createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "and (ax.\"uidlevel1\" in ('ouabcdefghA')  or ax.\"uidlevel2\" in ('ouabcdefghB') ) and ax.\"ps\" = '"
+                + programStage.getUid()
+                + "'"));
+  }
+
+  @Test
   void verifyExperimentalAggregatedEventQueryIncludesStageDateFilters() {
     mockEmptyRowSet();
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
@@ -901,6 +947,33 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(sql.getValue(), containsString("ax.\"occurreddate\" >= '2021-03-01'"));
     assertThat(sql.getValue(), containsString("ax.\"occurreddate\" <= '2021-05-31'"));
     assertThat(sql.getValue(), containsString("ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void aggregateStageScheduledDateUsesOnlyRequestedQuarters() {
+    mockEmptyRowSet();
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+    QueryItem date =
+        stageScopedItem(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, ValueType.DATE);
+    new DateFilterHandler().applyPeriods(date, List.of("2022Q3", "2022Q1"));
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(AGGREGATE)
+            .addItem(date)
+            .build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    String where = sql.getValue();
+    assertThat(
+        where,
+        containsString(
+            "(ax.\"scheduleddate\" >= '2022-01-01' and ax.\"scheduleddate\" < '2022-04-01'"
+                + " or ax.\"scheduleddate\" >= '2022-07-01' and ax.\"scheduleddate\" < '2022-10-01')"));
+    assertThat(where, containsString("ax.\"ps\" = '" + programStage.getUid() + "'"));
   }
 
   @Test
@@ -966,6 +1039,89 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             .build();
 
     subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void verifyAggregatedEventQueryRestrictsStageForStageDataElementWithoutItems() {
+    mockEmptyRowSet();
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(AGGREGATE)
+            .withOutputType(EventOutputType.EVENT)
+            .withAggregateData(true)
+            .addItem(stageScopedDataElementItem())
+            .build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void verifyEventQueryRestrictsStageForStageDataElementWithoutItems() {
+    mockEmptyRowSet();
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(QUERY)
+            .withOutputType(EventOutputType.EVENT)
+            .addItem(stageScopedDataElementItem())
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void verifyEventCountRestrictsStageForStageDataElementWithoutItems() {
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(QUERY)
+            .withOutputType(EventOutputType.EVENT)
+            .addItem(stageScopedDataElementItem())
+            .build();
+
+    subject.getEventCount(params);
+
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void verifyAggregatedEventQueryRestrictsStageOnceForFilteredStageDataElement() {
+    mockEmptyRowSet();
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    QueryItem stageDataElementItem = stageScopedDataElementItem();
+    stageDataElementItem.addFilter(new QueryFilter(QueryOperator.GT, "5"));
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(AGGREGATE)
+            .withOutputType(EventOutputType.EVENT)
+            .withAggregateData(true)
+            .addItem(stageDataElementItem)
+            .build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
 
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
@@ -2270,6 +2426,17 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             valueType,
             AggregationType.NONE,
             null);
+    item.setProgramStage(programStage);
+    return item;
+  }
+
+  /**
+   * Mirrors the item {@code DefaultQueryItemLocator} produces for {@code <stage>.<dataElement>}.
+   */
+  private QueryItem stageScopedDataElementItem() {
+    QueryItem item =
+        new QueryItem(
+            createDataElement('a'), programA, null, ValueType.INTEGER, AggregationType.SUM, null);
     item.setProgramStage(programStage);
     return item;
   }

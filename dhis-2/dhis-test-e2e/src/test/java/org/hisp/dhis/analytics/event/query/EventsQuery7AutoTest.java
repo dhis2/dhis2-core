@@ -821,7 +821,7 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        100,
+        1,
         4,
         4); // Pass runtime flag, row count, and expected header counts
 
@@ -884,7 +884,7 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("includeMetadataDetails=false")
             .add("headers=ouname,lastupdated")
-            .add("lastUpdated=LAST_5_FINANCIAL_YEARS")
+            .add("lastUpdated=LAST_10_FINANCIAL_YEARS")
             .add("stage=dBwrot7S420")
             .add("displayProperty=NAME")
             .add("totalPages=false")

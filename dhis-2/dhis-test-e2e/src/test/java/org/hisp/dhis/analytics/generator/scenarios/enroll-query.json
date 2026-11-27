@@ -218,6 +218,13 @@
       }
     },
     {
+      "name": "registrationOuWithOuDimension",
+      "query": "/api/analytics/enrollments/query/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu,ou:ImspTQPwCqd&headers=ou,ouname,registrationou,registrationouname&displayProperty=NAME&pageSize=10&page=1&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "registrationOuAsFilter",
       "query": "/api/analytics/enrollments/query/regOuProg01.json?dimension=pe:2022&filter=REGISTRATION_OU:jUb8gELQApl&headers=ouname&displayProperty=NAME&pageSize=10&page=1&totalPages=false",
       "version": {

@@ -101,6 +101,18 @@ public class DateFilterHandler implements QueryItemFilterHandler {
     }
   }
 
+  /**
+   * Restricts the given date item to the given ISO periods, as when they are given as its items,
+   * such as {@code EVENT_DATE:2022Q1;2022Q2}: the periods become the dimension values of the item,
+   * and the item is filtered from the earliest period start to the latest period end.
+   *
+   * @param queryItem the date {@link QueryItem}.
+   * @param isoPeriods the ISO periods.
+   */
+  public void applyPeriods(QueryItem queryItem, List<String> isoPeriods) {
+    parseAndAddDateFilters(queryItem, String.join(OPTION_SEP, isoPeriods), null);
+  }
+
   private void parseAndAddDateFilters(
       QueryItem queryItem, String filterString, Date relativePeriodDate) {
     String[] parts = filterString.split(OPTION_SEP);

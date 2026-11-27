@@ -398,6 +398,118 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "registrationOuMixedLevels",
+      "query": "/api/analytics/enrollments/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:ImspTQPwCqd;O6uvpzGd5pu&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuUserOrgUnitAndChildren",
+      "query": "/api/analytics/enrollments/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:USER_ORGUNIT;USER_ORGUNIT_CHILDREN&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuMixedLevelsWithMixedLevelOu",
+      "query": "/api/analytics/enrollments/aggregate/regOuProg01.json?dimension=pe:2022,ou:ImspTQPwCqd;O6uvpzGd5pu,REGISTRATION_OU:ImspTQPwCqd;fdc6uOvgoji&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuLevelOneAndLevelTwo",
+      "query": "/api/analytics/enrollments/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:LEVEL-1;LEVEL-2&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "legendValueAndDimensionAverageFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&dimension=A03MvHHogjR.a3kGcGDCuk6:LT:6&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=AVERAGE&relativePeriodDate=2026-11-20",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "legendValueAndDimensionCountFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&dimension=A03MvHHogjR.a3kGcGDCuk6:LT:6&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=COUNT&relativePeriodDate=2026-11-20",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "legendValueAndDimensionSumFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&dimension=A03MvHHogjR.a3kGcGDCuk6:LT:6&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=SUM&relativePeriodDate=2026-11-20",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "legendValueAndDimensionAverageDimension",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&filter=A03MvHHogjR.a3kGcGDCuk6:LT:6&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=AVERAGE&relativePeriodDate=2026-11-20",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "legendValueAndDimensionCountDimension",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&filter=A03MvHHogjR.a3kGcGDCuk6:LT:6&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=COUNT&relativePeriodDate=2026-11-20",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "legendValueAndDimensionSumDimension",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&filter=A03MvHHogjR.a3kGcGDCuk6:LT:6&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=SUM&relativePeriodDate=2026-11-20",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageEventDateWithPeriodsOfDifferentTypes",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2021;2022Q1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageEventDateWithOverlappingPeriodsOfDifferentTypes",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2022;2022Q1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageEventDateWithRelativePeriodsOfDifferentTypes",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_12_MONTHS;THIS_YEAR&relativePeriodDate=2022-06-15",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageEventDateWithNonconsecutiveQuartersAndYear",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2021;2022Q1;2022Q3",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "repeatableStageDateWithLatestEventInPeriodGap",
+      "query": "/api/analytics/enrollments/aggregate/flProg00001.json?dimension=ou:PwoQgMJNWbR&dimension=flBirth0001.EVENT_DATE:202201;202204",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "orgUnitFilterAtDifferentLevelsCountsEveryLevel",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=pe:2022&filter=ou:O6uvpzGd5pu;taKiTcaf05H",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

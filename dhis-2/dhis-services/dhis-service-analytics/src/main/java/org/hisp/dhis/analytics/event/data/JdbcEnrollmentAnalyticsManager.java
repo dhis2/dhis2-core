@@ -424,7 +424,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           hlp.whereAnd()
               + " ou in ("
               + getQuotedCommaDelimitedString(
-                  getUids(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)))
+                  getUids(params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID)))
               + ") ";
     } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
       sql +=
@@ -565,7 +565,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * @return the SQL statement.
    */
   String getDescendantsCondition(EventQueryParams params, SqlHelper hlp) {
-    List<DimensionalItemObject> orgUnitItems = params.getDimensionOrFilterItems(ORGUNIT_DIM_ID);
+    List<DimensionalItemObject> orgUnitItems = params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID);
     Map<Integer, Set<String>> levelsOus = new HashMap<>();
     String condition = "";
     String orClause = "";
@@ -1259,12 +1259,18 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
     addAnalyticsTableColumns(sb, getStandardColumns(params));
 
-    OrgUnitSqlCoordinator.querySelectColumns(
-            TrackerOrgUnitDimension.REGISTRATION_OU, params, sqlBuilder)
-        .forEach(sb::addColumn);
+    // Rows are read into the grid by position, so columns follow the header order:
+    // standard columns, dimensions, REGISTRATION_OU, query items.
+    List<String> columns = new ArrayList<>();
+    addDimensionSelectColumns(columns, params, false, false);
+    columns.addAll(
+        OrgUnitSqlCoordinator.querySelectColumns(
+            TrackerOrgUnitDimension.REGISTRATION_OU, params, sqlBuilder));
 
     // Append columns from CTE definitions
-    getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
+    columns.addAll(getSelectColumnsWithCTE(params, cteContext));
+
+    columns.forEach(sb::addColumn);
   }
 
   /**

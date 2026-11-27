@@ -108,7 +108,7 @@ class JdbcEnrollmentAnalyticsManagerTest {
     when(ou.getUid()).thenReturn("UID123");
 
     List<DimensionalItemObject> orgUnits = List.of(ou);
-    when(params.getDimensionOrFilterItems("ou")).thenReturn(orgUnits);
+    when(params.getAllDimensionOrFilterItems("ou")).thenReturn(orgUnits);
 
     OrgUnitField orgUnitField = mock(OrgUnitField.class);
     when(params.getOrgUnitField()).thenReturn(orgUnitField);
@@ -137,7 +137,7 @@ class JdbcEnrollmentAnalyticsManagerTest {
     OrganisationUnit ou2 = mock(OrganisationUnit.class);
     when(ou2.getLevel()).thenReturn(2);
     when(ou2.getUid()).thenReturn("OU2");
-    when(params.getDimensionOrFilterItems("ou")).thenReturn(List.of(ou1, ou2));
+    when(params.getAllDimensionOrFilterItems("ou")).thenReturn(List.of(ou1, ou2));
 
     OrgUnitField orgUnitField = mock(OrgUnitField.class);
     when(params.getOrgUnitField()).thenReturn(orgUnitField);

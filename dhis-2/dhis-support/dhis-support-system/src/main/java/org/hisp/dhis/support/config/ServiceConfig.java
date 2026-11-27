@@ -46,6 +46,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepo
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.netty.http.client.HttpClient;
 
 /**
  * @author Luciano Fiandesio
@@ -59,7 +60,7 @@ public class ServiceConfig {
 
   @Bean
   public ClientHttpConnector clientHttpConnector() {
-    return new ReactorClientHttpConnector();
+    return new ReactorClientHttpConnector(HttpClient.create().compress(false));
   }
 
   @Bean

@@ -34,7 +34,10 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import com.google.gson.JsonObject;
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
@@ -48,6 +51,25 @@ import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TrackerImportExportActions extends RestApiActions {
+  /** {@link org.hisp.dhis.test.e2e.TestRunStorage} resource keys of imported tracker objects. */
+  public static final String TRACKED_ENTITIES = "/trackedEntities";
+
+  public static final String ENROLLMENTS = "/enrollments";
+
+  public static final String EVENTS = "/events";
+
+  public static final String RELATIONSHIPS = "/relationships";
+
+  public static final Set<String> TRACKER_RESOURCES =
+      Set.of(TRACKED_ENTITIES, ENROLLMENTS, EVENTS, RELATIONSHIPS);
+
+  private static final Map<String, String> TRACKER_TYPE_TO_RESOURCE =
+      Map.of(
+          "TRACKED_ENTITY", TRACKED_ENTITIES,
+          "ENROLLMENT", ENROLLMENTS,
+          "EVENT", EVENTS,
+          "RELATIONSHIP", RELATIONSHIPS);
+
   private final Logger logger = LogManager.getLogger(TrackerImportExportActions.class.getName());
 
   public TrackerImportExportActions() {
@@ -77,26 +99,35 @@ public class TrackerImportExportActions extends RestApiActions {
   public TrackerApiResponse postAndGetJobReport(File file) {
     ApiResponse response = this.postFile(file);
 
-    return getJobReportByImportResponse(response);
+    return getJobReportByImportResponse(response, true);
   }
 
   public TrackerApiResponse postAndGetJobReport(File file, QueryParamsBuilder queryParamsBuilder) {
     ApiResponse response = this.postFile(file, queryParamsBuilder);
 
-    return getJobReportByImportResponse(response);
+    return getJobReportByImportResponse(response, !isDelete(queryParamsBuilder));
   }
 
   public TrackerApiResponse postAndGetJobReport(JsonObject jsonObject) {
     ApiResponse response = this.post(jsonObject);
 
-    return getJobReportByImportResponse(response);
+    return getJobReportByImportResponse(response, true);
   }
 
   public TrackerApiResponse postAndGetJobReport(
       Object jsonObject, QueryParamsBuilder queryParamsBuilder) {
     ApiResponse response = this.post(jsonObject, queryParamsBuilder);
 
-    return getJobReportByImportResponse(response);
+    return getJobReportByImportResponse(response, !isDelete(queryParamsBuilder));
+  }
+
+  /**
+   * Objects reported by a DELETE import were deleted, not created, so they must not be registered
+   * for clean-up.
+   */
+  private static boolean isDelete(QueryParamsBuilder queryParamsBuilder) {
+    return queryParamsBuilder != null
+        && "DELETE".equalsIgnoreCase(queryParamsBuilder.get("importStrategy"));
   }
 
   public ApiResponse checkJobReport(String jobId, String reportMode) {
@@ -104,12 +135,17 @@ public class TrackerImportExportActions extends RestApiActions {
   }
 
   public TrackerApiResponse getJobReport(String jobId, String reportMode) {
+    return getJobReport(jobId, reportMode, true);
+  }
+
+  private TrackerApiResponse getJobReport(
+      String jobId, String reportMode, boolean registerCreatedData) {
     ApiResponse response =
         this.get(String.format("/jobs/%s/report?reportMode=%s", jobId, reportMode));
 
-    // add created entities
-
-    saveCreatedData(response);
+    if (registerCreatedData) {
+      saveCreatedData(response);
+    }
     return new TrackerApiResponse(response);
   }
 
@@ -190,29 +226,34 @@ public class TrackerImportExportActions extends RestApiActions {
         .validateStatus(200);
   }
 
+  /**
+   * Registers the tracker objects reported by an import report in {@link
+   * org.hisp.dhis.test.e2e.TestRunStorage} so they are deleted after the test.
+   */
   private void saveCreatedData(ApiResponse response) {
-    String[] val = {
-      "TRACKED_ENTITY,/trackedEntities",
-      "EVENT,/events",
-      "ENROLLMENT,/enrollments",
-      "RELATIONSHIP,/relationships"
-    };
-
-    for (String s : val) {
-      String path =
-          String.format("bundleReport.typeReportMap.%s.objectReports.uid", s.split(",")[0]);
-
-      if (response.extractList(path) != null) {
-        response.extractList(path).stream()
-            .filter(Objects::nonNull)
-            .forEach(id -> this.addCreatedEntity(s.split(",")[1], id.toString()));
-      }
+    if (!response.getContentType().contains("json")) {
+      return;
     }
+
+    TRACKER_TYPE_TO_RESOURCE.forEach(
+        (type, resource) -> {
+          String path = String.format("bundleReport.typeReportMap.%s.objectReports.uid", type);
+          List<Object> uids = response.extractList(path);
+          if (uids != null) {
+            uids.stream()
+                .filter(Objects::nonNull)
+                .forEach(uid -> this.addCreatedEntity(resource, uid.toString()));
+          }
+        });
   }
 
-  private TrackerApiResponse getJobReportByImportResponse(ApiResponse response) {
-    // if import is sync, just return response
+  private TrackerApiResponse getJobReportByImportResponse(
+      ApiResponse response, boolean registerCreatedData) {
+    // a sync import returns the import report directly
     if (response.extractString("response.id") == null) {
+      if (registerCreatedData) {
+        saveCreatedData(response);
+      }
       return new TrackerApiResponse(response);
     }
 
@@ -226,6 +267,6 @@ public class TrackerImportExportActions extends RestApiActions {
 
     with().atMost(21, TimeUnit.SECONDS).await().until(() -> jobIsCompleted.call() == 200);
 
-    return this.getJobReport(jobId, "FULL");
+    return this.getJobReport(jobId, "FULL", registerCreatedData);
   }
 }

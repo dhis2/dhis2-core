@@ -238,6 +238,29 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(sql.getValue(), containsString("as registrationouname"));
   }
 
+  /**
+   * Query rows are mapped to headers by position, and the headers list the dimensions before
+   * REGISTRATION_OU, so the select columns must follow the same order.
+   */
+  @Test
+  void verifyRegistrationOuColumnsFollowDimensionColumns() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('R')))
+            .build();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "ax.\"quarterly\" as quarterly, ax.\"ou\" as ou, "
+                + "regous.\"organisationunituid\" as registrationou, "
+                + "regous.\"name\" as registrationouname"));
+  }
+
   /** ENROLLMENT_OU is supported on the event endpoints only, so it contributes no column here. */
   @Test
   void verifyEnrollmentOuContributesNoAggregateColumn() {
@@ -251,6 +274,17 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertTrue(columns.stream().noneMatch(c -> c.contains("enrous")), columns.toString());
     assertTrue(columns.stream().noneMatch(c -> c.contains("enrollmentou")), columns.toString());
+  }
+
+  @Test
+  void verifyOrgUnitFilterPerLevelKeepsEveryLevel() {
+    subject.getEnrollments(
+        createRequestParamsWithOrgUnitFilterPerLevel(null), new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(sql.getValue(), containsString("uidlevel1\" in ('ouabcdefghA')"));
+    assertThat(sql.getValue(), containsString("uidlevel2\" in ('ouabcdefghB')"));
   }
 
   @Test

@@ -547,7 +547,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                 + orgUnitCol
                 + OPEN_IN
                 + sqlBuilder.singleQuotedCommaDelimited(
-                    getUids(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)))
+                    getUids(params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID)))
                 + ") ";
       } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
         String orgUnitCol = orgUnitField.getOrgUnitWhereCol(getAnalyticsType());
@@ -564,7 +564,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       {
         String sqlSnippet =
             getOrgUnitDescendantsClause(
-                orgUnitField, params.getDimensionOrFilterItems(ORGUNIT_DIM_ID));
+                orgUnitField, params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID));
 
         if (isNotEmpty(sqlSnippet)) {
           sql += hlp.whereAnd() + " " + sqlSnippet;
@@ -645,7 +645,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     Optional<ProgramStage> programStage =
         params.hasProgramStage()
             ? Optional.of(params.getProgramStage())
-            : params.getStageOfStageSpecificItemsWithoutFilter();
+            : params.getStageOfUnfilteredStageItems();
 
     if (programStage.isPresent()) {
       sql += hlp.whereAnd() + " " + quoteAlias("ps") + " = '" + programStage.get().getUid() + "' ";
@@ -796,7 +796,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     return EMPTY;
   }
 
-  /** Generates a sub query which provides a filter by organisation descendant level. */
+  /**
+   * Generates a sub query which provides a filter by organisation descendant level. Conditions for
+   * several levels are wrapped in parentheses, so the other {@code and} conditions of the where
+   * clause apply to every level.
+   */
   private String getOrgUnitDescendantsClause(
       OrgUnitField orgUnitField, List<DimensionalItemObject> dimensionOrFilterItems) {
     Map<String, List<OrganisationUnit>> orgUnitsMap =
@@ -809,7 +813,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                             .withSqlBuilder(sqlBuilder)
                             .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())));
 
-    return getOuInCondition(orgUnitsMap);
+    String ouInCondition = getOuInCondition(orgUnitsMap);
+
+    return orgUnitsMap.size() > 1 ? "(" + ouInCondition + ") " : ouInCondition;
   }
 
   /**
@@ -872,7 +878,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     // Get org unit UIDs from ORGUNIT_DIM_ID
     Set<String> regularOuUids =
-        params.getDimensionOrFilterItems(ORGUNIT_DIM_ID).stream()
+        params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID).stream()
             .map(DimensionalItemObject::getUid)
             .collect(Collectors.toSet());
 

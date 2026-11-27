@@ -53,6 +53,7 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.hibernate.jsonb.type.JsonJobParametersType;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -493,6 +494,54 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
+  public boolean tryEnable(@Nonnull UID jobId) {
+    String sql =
+        """
+      update jobconfiguration
+      set
+        lastupdated = now(),
+        lastupdatedby = (select u.userinfoid from userinfo u where u.uid = :user),
+        enabled = true,
+        jobstatus = case
+          when jobstatus = 'DISABLED' then 'SCHEDULED'
+          else jobstatus end,
+        schedulingtype = case
+            when jobstatus = 'RUNNING' then schedulingtype
+            when cronexpression is not null then 'CRON'
+            when delay is not null then 'FIXED_DELAY'
+            else schedulingtype end
+      where uid = :id
+      and (schedulingtype != 'ONCE_ASAP' or queueposition is not null or cronexpression is not null or delay is not null)""";
+    return runWriteInStatelessSession(
+            q ->
+                nativeSynchronizedQuery(q, sql)
+                    .setParameter("id", jobId.getValue())
+                    .setParameter("user", CurrentUserUtil.getCurrentUserDetails().getUid())
+                    .executeUpdate())
+        > 0;
+  }
+
+  @Override
+  public boolean tryDisable(@Nonnull UID jobId) {
+    String sql =
+        """
+      update jobconfiguration
+      set
+        lastupdated = now(),
+        lastupdatedby = (select u.userinfoid from userinfo u where u.uid = :user),
+        enabled = false,
+        jobstatus = case when jobstatus != 'RUNNING' then 'DISABLED' else jobstatus end
+      where uid = :id""";
+    return runWriteInStatelessSession(
+            q ->
+                nativeSynchronizedQuery(q, sql)
+                    .setParameter("id", jobId.getValue())
+                    .setParameter("user", CurrentUserUtil.getCurrentUserDetails().getUid())
+                    .executeUpdate())
+        > 0;
+  }
+
+  @Override
   public boolean trySkip(@Nonnull String queue) {
     String sql =
         """
@@ -602,7 +651,7 @@ public class HibernateJobConfigurationStore
             when enabled = false
               or (queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null) then 'DISABLED'
             else 'SCHEDULED' end,
-          enabled = cronexpression is not null or delay is not null or queueposition is not null,
+          enabled = enabled and (cronexpression is not null or delay is not null or queueposition is not null),
           cancel = false,
           lastexecutedstatus = 'FAILED',
           lastfinished = now(),
@@ -636,7 +685,7 @@ public class HibernateJobConfigurationStore
             when enabled = false
               or (queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null) then 'DISABLED'
             else 'SCHEDULED' end,
-          enabled = cronexpression is not null or delay is not null or queueposition is not null,
+          enabled = enabled and (cronexpression is not null or delay is not null or queueposition is not null),
           cancel = false,
           lastexecutedstatus = 'FAILED',
           lastfinished = now(),

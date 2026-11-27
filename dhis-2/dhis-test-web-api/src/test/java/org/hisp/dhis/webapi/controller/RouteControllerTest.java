@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -42,6 +43,8 @@ import static org.mockserver.model.HttpRequest.request;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Part;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -52,6 +55,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPOutputStream;
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
 import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -434,6 +438,48 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
       JsonObject responseBody =
           JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
       assertEquals("not found", responseBody.get("message").as(JsonString.class).string());
+    }
+
+    @Test
+    void testRunRouteKeepsUpstreamResponseCompressed() throws IOException {
+
+      String upstreamResponseBody = "This is a compressed message";
+
+      ByteArrayOutputStream bos = new ByteArrayOutputStream(upstreamResponseBody.length());
+      GZIPOutputStream gzip = new GZIPOutputStream(bos);
+      gzip.write(upstreamResponseBody.getBytes());
+      gzip.close();
+      byte[] compressedUpstreamResponseBody = bos.toByteArray();
+      bos.close();
+
+      upstreamMockServerClient
+          .when(request().withPath("/"))
+          .respond(
+              org.mockserver.model.HttpResponse.response()
+                  .withBody(compressedUpstreamResponseBody)
+                  .withHeader("Content-Encoding", "gzip")
+                  .withStatusCode(200));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+      MvcResult mvcResult =
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run",
+                  new ArrayList<>(),
+                  "application/json",
+                  null));
+
+      assertEquals(200, mvcResult.getResponse().getStatus());
+      assertArrayEquals(
+          compressedUpstreamResponseBody, mvcResult.getResponse().getContentAsByteArray());
+      assertEquals("gzip", mvcResult.getResponse().getHeader("Content-Encoding"));
     }
   }
 

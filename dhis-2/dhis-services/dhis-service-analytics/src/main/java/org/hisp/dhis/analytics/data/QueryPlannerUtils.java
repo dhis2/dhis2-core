@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -281,5 +282,29 @@ public class QueryPlannerUtils {
     List<EventQueryParams> eventParams = new ArrayList<>();
     params.forEach(p -> eventParams.add((EventQueryParams) p));
     return eventParams;
+  }
+
+  /**
+   * Splits the given query by each of the given keys in turn, so that the queries resulting from
+   * one key are split by the next. This yields one query per combination of the splits of the keys.
+   *
+   * @param params the event query parameters.
+   * @param keys the keys to split by, in turn.
+   * @param split splits a query by a key, returning a list holding only the query when there is
+   *     nothing to split.
+   * @param <K> the type of the keys.
+   * @return a list of {@link EventQueryParams}.
+   */
+  public static <K> List<EventQueryParams> splitInTurn(
+      EventQueryParams params,
+      Collection<K> keys,
+      BiFunction<K, EventQueryParams, List<EventQueryParams>> split) {
+    List<EventQueryParams> queries = List.of(params);
+
+    for (K key : keys) {
+      queries = queries.stream().flatMap(query -> split.apply(key, query).stream()).toList();
+    }
+
+    return queries;
   }
 }
