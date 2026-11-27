@@ -138,21 +138,18 @@ public final class AggregatedEnrollmentDateHeaderResolver {
                 .map(
                     dateFilter ->
                         new AbstractMap.SimpleEntry<>(
-                            toDateFieldKey(dateFilter.name()),
+                            PeriodDimensionSplitter.toDateFieldKey(dateFilter.name()),
                             dateFilter.getTimeField().getEnrollmentColumnName())),
             Arrays.stream(TimeField.values())
                 .map(
                     timeField ->
                         new AbstractMap.SimpleEntry<>(
-                            toDateFieldKey(timeField.name()), timeField.getEnrollmentColumnName())))
+                            PeriodDimensionSplitter.toDateFieldKey(timeField.name()),
+                            timeField.getEnrollmentColumnName())))
         .filter(mapping -> mapping.getKey().equalsIgnoreCase(normalizedHeader))
         .map(AbstractMap.SimpleEntry::getValue)
         .filter(StringUtils::isNotBlank)
         .findFirst();
-  }
-
-  private String toDateFieldKey(String dateField) {
-    return dateField.toLowerCase().replace("_", "");
   }
 
   /** Describes a remapped base CTE projection for an aggregate enrollment header. */

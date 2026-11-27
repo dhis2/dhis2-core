@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 
 import java.util.ArrayList;
@@ -36,6 +37,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -119,6 +122,32 @@ public final class PeriodDimensionSplitter {
    */
   public static String toDateFieldKey(String dateField) {
     return dateField.replace("_", "").toLowerCase(Locale.ROOT);
+  }
+
+  /**
+   * Returns the date field shared by all periods of a {@code pe} dimension, e.g. "INCIDENT_DATE".
+   * Empty for non-period dimensions, mixed date fields and the default date field.
+   */
+  public static Optional<String> getStaticDateField(DimensionalObject dimension) {
+    if (!PERIOD_DIM_ID.equals(dimension.getDimension())) {
+      return Optional.empty();
+    }
+
+    Set<String> dateFields =
+        dimension.getItems().stream()
+            .filter(PeriodDimension.class::isInstance)
+            .map(PeriodDimension.class::cast)
+            .map(PeriodDimension::getDateField)
+            .collect(toSet());
+
+    if (dateFields.size() == 1) {
+      String dateField = dateFields.iterator().next();
+      if (dateField != null) {
+        return Optional.of(dateField);
+      }
+    }
+
+    return Optional.empty();
   }
 
   private static Map<String, List<DimensionalItemObject>> groupByDateField(

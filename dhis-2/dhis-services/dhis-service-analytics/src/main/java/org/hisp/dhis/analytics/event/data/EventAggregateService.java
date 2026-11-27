@@ -53,6 +53,7 @@ import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.generateEventDat
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.getAggregatedEventDataMapping;
 import static org.hisp.dhis.analytics.event.LabelMapper.getDateFieldLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getOrgUnitLabel;
+import static org.hisp.dhis.analytics.event.data.PeriodDimensionSplitter.getStaticDateField;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.UNLIMITED_PAGING;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.addPaging;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getDimensionsKeywords;
@@ -78,8 +79,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -111,7 +110,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.Timer;
@@ -374,7 +372,9 @@ public class EventAggregateService {
   }
 
   private String getDimensionHeaderName(DimensionalObject dimension) {
-    return getStaticDateField(dimension).map(this::toDateFieldKey).orElse(dimension.getDimension());
+    return getStaticDateField(dimension)
+        .map(PeriodDimensionSplitter::toDateFieldKey)
+        .orElse(dimension.getDimension());
   }
 
   private String getDimensionHeaderColumn(DimensionalObject dimension, EventQueryParams params) {
@@ -387,32 +387,6 @@ public class EventAggregateService {
     return getStaticDateField(dimension)
         .map(dateField -> getDateFieldLabel(dateField, params.getProgram()))
         .orElse(defaultColumn);
-  }
-
-  private Optional<String> getStaticDateField(DimensionalObject dimension) {
-    if (!PERIOD_DIM_ID.equals(dimension.getDimension())) {
-      return Optional.empty();
-    }
-
-    Set<String> dateFields =
-        dimension.getItems().stream()
-            .filter(PeriodDimension.class::isInstance)
-            .map(PeriodDimension.class::cast)
-            .map(PeriodDimension::getDateField)
-            .collect(java.util.stream.Collectors.toSet());
-
-    if (dateFields.size() == 1) {
-      String dateField = dateFields.iterator().next();
-      if (dateField != null) {
-        return Optional.of(dateField);
-      }
-    }
-
-    return Optional.empty();
-  }
-
-  private String toDateFieldKey(String dateField) {
-    return dateField.toLowerCase().replace("_", "");
   }
 
   private void addValueHeader(Grid grid) {
