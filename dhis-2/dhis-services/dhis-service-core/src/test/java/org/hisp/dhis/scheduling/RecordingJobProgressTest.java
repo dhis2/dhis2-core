@@ -47,6 +47,10 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -184,6 +188,39 @@ class RecordingJobProgressTest {
         CancellationException.class,
         () -> progress.startingStage("another"),
         "execution should not be possible to continue with next stage");
+  }
+
+  @Test
+  void testIsExpectedFailure_UserInputRejections() {
+    assertTrue(RecordingJobProgress.isExpectedFailure(new ConflictException("untimely")));
+    assertTrue(RecordingJobProgress.isExpectedFailure(new BadRequestException("bad input")));
+    assertTrue(RecordingJobProgress.isExpectedFailure(new ForbiddenException("no access")));
+    assertTrue(RecordingJobProgress.isExpectedFailure(new NotFoundException("missing")));
+  }
+
+  @Test
+  void testIsExpectedFailure_UnexpectedErrors() {
+    assertFalse(RecordingJobProgress.isExpectedFailure(null));
+    assertFalse(RecordingJobProgress.isExpectedFailure(new IllegalStateException("bug")));
+    assertFalse(
+        RecordingJobProgress.isExpectedFailure(
+            new RuntimeException(new ConflictException("wrapped"))));
+  }
+
+  @Test
+  void testExpectedFailure_StillFailsStageAndRethrows() {
+    progress.startingStage("validate", FAIL);
+    ConflictException ex =
+        assertThrows(
+            ConflictException.class,
+            () ->
+                progress.<Object, ConflictException>runStageAndRethrow(
+                    ConflictException.class,
+                    () -> {
+                      throw new ConflictException("untimely");
+                    }));
+    assertEquals("untimely", ex.getMessage());
+    assertTrue(progress.isCancelled(), "a rejected input still fails and aborts the process");
   }
 
   private BiFunction<Integer, Integer, String> assertSummary(int successes, int failures) {
