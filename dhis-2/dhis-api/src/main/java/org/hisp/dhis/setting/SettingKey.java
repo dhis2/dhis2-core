@@ -239,7 +239,7 @@ public enum SettingKey {
    * initial state of being scheduled by the heartbeat job. The run that was in progress is
    * considered a failed run.
    */
-  JOBS_RESCHEDULE_STALE_FOR_MINUTES("jobsRescheduleAfterMinutes", 10, Integer.class),
+  JOBS_RESCHEDULE_STALE_FOR_MINUTES("jobsRescheduleAfterMinutes", 120, Integer.class),
 
   /**
    * A job that only runs once (typical an import or manual request) is deleted after this number of
