@@ -578,6 +578,32 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyGetEventsSqlWithOrgUnitsAtDifferentLevelsKeepsLevelConditionsTogether() {
+    mockEmptyRowSet();
+
+    OrganisationUnit district = createOrganisationUnit('A');
+    district.setPath("/" + district.getUid());
+    OrganisationUnit facility = createOrganisationUnit('B', district);
+    facility.setPath(district.getPath() + "/" + facility.getUid());
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(programStage))
+            .withOrganisationUnits(List.of(district, facility))
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String expected =
+        " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" in ('ouabcdefghA') or ax.\"uidlevel2\" in ('ouabcdefghB') ) and ax.\"ps\" = '"
+            + programStage.getUid()
+            + "' limit 101";
+
+    assertThat(sql.getValue(), containsString(expected));
+  }
+
+  @Test
   void verifyGetEventsWithProgramStageAndNumericDataElement() {
     mockEmptyRowSet();
 
