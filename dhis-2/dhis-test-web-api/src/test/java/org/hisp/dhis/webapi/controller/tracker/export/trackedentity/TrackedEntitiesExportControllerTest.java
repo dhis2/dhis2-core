@@ -831,7 +831,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
-    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals("no-cache, must-revalidate, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals("file content", response.content("text/plain"));
@@ -855,7 +855,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
-    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals("no-cache, must-revalidate, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals("file content", response.content("text/plain"));
@@ -885,7 +885,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file1.getUid() + "\"", response.header("Etag"));
-    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals("no-cache, must-revalidate, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file1.getContentLength()), response.header("Content-Length"));
     assertEquals("filename=" + file1.getName(), response.header("Content-Disposition"));
     assertEquals("file content", response.content("text/plain"));
@@ -1152,7 +1152,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
-    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals("no-cache, must-revalidate, private", response.header("Cache-Control"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("file content", response.content("image/png"));

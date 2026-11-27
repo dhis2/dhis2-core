@@ -37,6 +37,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.hisp.dhis.cache.ETagObserved;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -57,6 +58,7 @@ import org.hisp.dhis.user.UserRole;
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement(localName = "configuration", namespace = DxfNamespaces.DXF_2_0)
+@ETagObserved
 public class Configuration implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 936186436040704261L;

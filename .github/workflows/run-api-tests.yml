@@ -71,6 +71,7 @@ jobs:
           fi
 
       - name: Run tests
+        id: default-e2e
         run: |
           cd dhis-2/dhis-test-e2e
           SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --remove-orphans --exit-code-from test
@@ -107,16 +108,51 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload logs
-        if: failure()
+        if: failure() && steps.default-e2e.outcome == 'failure'
         run: |
           cd dhis-2/dhis-test-e2e
           docker compose logs web > ~/logs.txt
 
       - uses: actions/upload-artifact@v7
-        if: failure()
+        if: failure() && steps.default-e2e.outcome == 'failure'
         with:
           name: "tomcat_logs"
           path: "~/logs.txt"
+
+      - name: Tear down default e2e stack
+        if: always()
+        run: |
+          cd dhis-2/dhis-test-e2e
+          docker compose -f docker-compose.yml -f docker-compose.e2e.yml down --remove-orphans || true
+
+      # Cache/ETag suite (JUnit group "cache", excluded from the default profile). The server config
+      # sets cache.api.etag.enabled=on in dhis-test-e2e/config/dhis2_home/dhis.conf. Reuses the image
+      # from "Build container image"; the default e2e suite must pass first.
+      - name: Run cache e2e tests
+        id: cache-e2e
+        run: |
+          cd dhis-2/dhis-test-e2e
+          DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.e2e.yml \
+            -f docker-compose.e2e-cache.yml \
+            up --remove-orphans --exit-code-from test
+
+      - name: Upload cache e2e logs
+        if: failure() && steps.cache-e2e.outcome == 'failure'
+        run: |
+          cd dhis-2/dhis-test-e2e
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.e2e.yml \
+            -f docker-compose.e2e-cache.yml \
+            logs web > ~/cache_e2e_logs.txt
+
+      - uses: actions/upload-artifact@v7
+        if: failure() && steps.cache-e2e.outcome == 'failure'
+        with:
+          name: "cache_e2e_tomcat_logs"
+          path: "~/cache_e2e_logs.txt"
 
   send-slack-message:
     runs-on: ubuntu-latest

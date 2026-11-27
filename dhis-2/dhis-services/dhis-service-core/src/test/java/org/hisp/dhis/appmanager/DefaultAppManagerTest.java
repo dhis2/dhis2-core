@@ -32,6 +32,8 @@ package org.hisp.dhis.appmanager;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -70,6 +72,7 @@ class DefaultAppManagerTest {
   @Mock private I18nManager i18nManager;
   @Mock private BundledAppManager bundledAppInstaller;
   @Mock private LocaleManager localeManager;
+  @Mock private org.hisp.dhis.cache.ETagService eTagService;
 
   private AppManager appManager;
 
@@ -114,12 +117,19 @@ class DefaultAppManagerTest {
     assertEquals(0, apps.size());
   }
 
+  @Test
+  void testReloadAppsRefreshesTheAppsETags() {
+    appManager.reloadApps();
+
+    verify(eTagService).incrementNamedVersion("installedApps");
+  }
+
   /** Required by all tests to work. */
   private void requiredByAllTests() {
     doReturn(cacheBuilder).when(cacheBuilderProvider).newCacheBuilder();
     doReturn(cacheBuilder).when(cacheBuilder).forRegion("appCache");
     doReturn(appCache).when(cacheBuilder).build();
-    doReturn(new Locale("en")).when(localeManager).getCurrentLocale();
+    lenient().doReturn(new Locale("en")).when(localeManager).getCurrentLocale();
 
     appManager =
         new DefaultAppManager(
@@ -130,7 +140,8 @@ class DefaultAppManagerTest {
             cacheBuilderProvider,
             i18nManager,
             localeManager,
-            bundledAppInstaller);
+            bundledAppInstaller,
+            eTagService);
   }
 
   /**

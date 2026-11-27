@@ -47,6 +47,8 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -60,6 +62,19 @@ class SystemSettingsControllerTest extends H2ControllerIntegrationTestBase {
   @AfterEach
   void resetLocale() {
     POST("/systemSettings/keyUiLocale?value=en");
+  }
+
+  /** Without the smart ETag tier (off in tests) setting reads must not be stored. */
+  @ParameterizedTest
+  @CsvSource({
+    "/systemSettings, application/json",
+    "/systemSettings/keyUiLocale, application/json",
+    "/systemSettings/keyUiLocale, text/plain",
+    "/systemSettings/applicationTitle?locale=de, text/plain"
+  })
+  void testGetIsNotStoredWithoutTheSmartETagTier(String path, String accept) {
+    assertEquals(
+        "no-cache, no-store, must-revalidate", GET(path, Accept(accept)).header("Cache-Control"));
   }
 
   @Test
