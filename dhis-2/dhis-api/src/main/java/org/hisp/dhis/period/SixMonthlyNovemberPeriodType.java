@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.period;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -37,6 +39,8 @@ import org.joda.time.DateTimeConstants;
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
+@Entity
+@DiscriminatorValue("SixMonthlyNov")
 public class SixMonthlyNovemberPeriodType extends SixMonthlyAbstractPeriodType {
   private static final long serialVersionUID = 234137239008575913L;
 
