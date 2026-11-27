@@ -1710,10 +1710,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       return stageWhereClause.get();
     }
 
+    Optional<String> periodFilter =
+        params.isAggregatedEvents()
+            ? stageQuerySqlFacade.resolveDisjointPeriodFilter(
+                queryItem, params, quoteAlias(queryItem.getItemId()))
+            : Optional.empty();
     String sql =
-        queryItem.getFilters().stream()
-            .map(filter -> toSql(queryItem, filter, params))
-            .collect(joining(AND));
+        periodFilter.orElseGet(
+            () ->
+                queryItem.getFilters().stream()
+                    .map(filter -> toSql(queryItem, filter, params))
+                    .collect(joining(AND)));
 
     // For enrollment analytics, skip adding the ps condition here because:
     // - The getColumn() method in JdbcEnrollmentAnalyticsManager generates a subselect
@@ -3169,7 +3176,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         String alias = "ev_" + item.getItemName();
         innerColumns.add(dbColumn + " as " + alias);
         outerColumns.add(alias);
-        String conditions = extractFiltersAsSql(item, dbColumn, params);
+        // Choose the latest matching event after excluding dates in unrequested periods.
+        String conditions =
+            stageQuerySqlFacade
+                .resolveDisjointPeriodFilter(item, params, dbColumn)
+                .orElseGet(() -> extractFiltersAsSql(item, dbColumn, params));
         if (!conditions.isEmpty()) {
           filterConditions.add(conditions);
         }

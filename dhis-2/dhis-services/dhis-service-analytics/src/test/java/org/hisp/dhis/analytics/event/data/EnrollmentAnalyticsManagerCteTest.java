@@ -85,6 +85,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.queryitem.DateFilterHandler;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageOrgUnitSqlService;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
@@ -521,6 +522,45 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(generatedSql, containsString("ev_occurreddate"));
     // Stage event-date periods must not leak into the base enrollment-date filter
     assertThat(baseCteSql, not(containsString("enrollmentdate >=")));
+  }
+
+  @Test
+  void aggregateStageDateExcludesGapBeforeRankingRepeatableEvents() {
+    String stageUid = repeatableProgramStage.getUid();
+    QueryItem date =
+        new QueryItem(
+                new BaseDimensionalItemObject(OCCURRED_DATE_COLUMN_NAME),
+                programA,
+                null,
+                ValueType.DATE,
+                null,
+                null)
+            .withCustomHeader(AnalyticsCustomHeader.forEventDate(repeatableProgramStage));
+    date.setProgramStage(repeatableProgramStage);
+    new DateFilterHandler().applyPeriods(date, List.of("202201", "202204"));
+    EventQueryParams params =
+        createRequestParamsBuilder().withEndpointAction(AGGREGATE).addItem(date).build();
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(
+        new GridHeader(stageUid + ".eventdate", "Event date", ValueType.DATE, false, false));
+
+    subject.getEnrollments(params, grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String rankedEvents =
+        generatedSql.substring(
+            generatedSql.indexOf("latest_events_" + stageUid + " as ("),
+            generatedSql.indexOf(") ranked"));
+    assertThat(
+        rankedEvents,
+        containsString(
+            "and ps = '"
+                + stageUid
+                + "' and "
+                + "(\"occurreddate\" >= '2022-01-01' and \"occurreddate\" < '2022-02-01'"
+                + " or \"occurreddate\" >= '2022-04-01' and \"occurreddate\" < '2022-05-01')"));
   }
 
   @Test

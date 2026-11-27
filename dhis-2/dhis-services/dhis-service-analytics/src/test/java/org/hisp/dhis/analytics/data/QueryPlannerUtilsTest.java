@@ -33,9 +33,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.stream.IntStream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
@@ -123,5 +126,40 @@ class QueryPlannerUtilsTest {
     assertEquals(
         new AnalyticsAggregationType(AggregationType.SUM, AggregationType.AVERAGE),
         AnalyticsAggregationType.fromAggregationType(AggregationType.AVERAGE_SUM_ORG_UNIT));
+  }
+
+  /**
+   * Each key splits a query into as many queries as the key, appending the position of each split
+   * query to the limit, so the limit tells which splits a query went through.
+   */
+  @Test
+  void testSplitInTurnYieldsOneQueryPerCombinationOfSplits() {
+    EventQueryParams params = new EventQueryParams.Builder().withLimit(0).build();
+
+    List<EventQueryParams> queries =
+        QueryPlannerUtils.splitInTurn(
+            params,
+            List.of(2, 3),
+            (count, query) ->
+                IntStream.rangeClosed(1, count)
+                    .mapToObj(
+                        i ->
+                            new EventQueryParams.Builder(query)
+                                .withLimit(query.getLimit() * 10 + i)
+                                .build())
+                    .toList());
+
+    assertEquals(
+        List.of(11, 12, 13, 21, 22, 23), queries.stream().map(EventQueryParams::getLimit).toList());
+  }
+
+  @Test
+  void testSplitInTurnWithoutKeysYieldsTheQuery() {
+    EventQueryParams params = new EventQueryParams.Builder().build();
+
+    List<EventQueryParams> queries =
+        QueryPlannerUtils.splitInTurn(params, List.<Integer>of(), (key, query) -> List.of());
+
+    assertEquals(List.of(params), queries);
   }
 }

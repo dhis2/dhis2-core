@@ -102,6 +102,10 @@ class DefaultEventQueryPlannerTest extends TestBase {
   private FirstOrLastStagePeriodPlanner firstOrLastStagePeriodPlanner =
       new FirstOrLastStagePeriodPlanner(new DefaultStageQueryItemClassifier());
 
+  @Spy
+  private StageDatePeriodTypePlanner stageDatePeriodTypePlanner =
+      new StageDatePeriodTypePlanner(new DefaultStageQueryItemClassifier());
+
   @InjectMocks private DefaultEventQueryPlanner eventQueryPlanner;
 
   private Program program;
@@ -498,6 +502,24 @@ class DefaultEventQueryPlannerTest extends TestBase {
     assertNull(params.getEndDate());
     assertEquals(List.of("202601", "202602"), dateItem.getDimensionValues());
     assertEquals(2, dateItem.getFilters().size());
+  }
+
+  @Test
+  void shouldPlanOneQueryPerPeriodTypeOfStageDateDimension() {
+    ProgramStage stage = createProgramStage('A', program);
+    QueryItem dateItem = createStageEventDateItem(stage, "2022", "2022Q1");
+    dateItem.addFilter(new QueryFilter(QueryOperator.GE, "2022-01-01"));
+    dateItem.addFilter(new QueryFilter(QueryOperator.LE, "2022-12-31"));
+    EventQueryParams params =
+        createStageDateAggregateParams(stage, dateItem, AggregationType.COUNT);
+    mockQueryPlannerToReturnSameEventParams();
+
+    List<EventQueryParams> queries = eventQueryPlanner.planAggregateQuery(params);
+
+    assertEquals(
+        List.of(List.of("2022"), List.of("2022Q1")),
+        queries.stream().map(q -> q.getItems().get(0).getDimensionValues()).toList());
+    assertTrue(queries.stream().allMatch(EventQueryParams::isMultipleQueries));
   }
 
   // -------------------------------------------------------------------------

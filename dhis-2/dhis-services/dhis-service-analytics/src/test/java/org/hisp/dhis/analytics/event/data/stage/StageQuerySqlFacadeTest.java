@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.ColumnAndAlias;
@@ -48,6 +49,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class StageQuerySqlFacadeTest {
   private final TestClassifier classifier = new TestClassifier();
@@ -101,12 +103,7 @@ class StageQuerySqlFacadeTest {
   void shouldUseRequestedStagePeriodForFirstOrLastAggregation(String database, String expected) {
     QueryItem item = createItem("occurreddate", true);
     classifier.isStageDate = true;
-    AnalyticsSqlBuilder builder =
-        switch (database) {
-          case "doris" -> new DorisAnalyticsSqlBuilder("analytics", "cluster");
-          case "clickhouse" -> new ClickHouseAnalyticsSqlBuilder("analytics");
-          default -> new PostgreSqlAnalyticsSqlBuilder();
-        };
+    AnalyticsSqlBuilder builder = sqlBuilder(database);
     DefaultStageQuerySqlFacade facade =
         new DefaultStageQuerySqlFacade(classifier, dateRenderer, orgUnitService, builder);
     EventQueryParams params =
@@ -157,6 +154,78 @@ class StageQuerySqlFacadeTest {
             item, new EventQueryParams.Builder().build(), AnalyticsType.EVENT);
 
     assertFalse(where.isPresent());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"postgresql", "doris", "clickhouse"})
+  void shouldMergeAdjacentAndDuplicateYearsAndExcludeGap(String database) {
+    AnalyticsSqlBuilder builder = sqlBuilder(database);
+    DefaultStageQuerySqlFacade facade =
+        new DefaultStageQuerySqlFacade(classifier, dateRenderer, orgUnitService, builder);
+    QueryItem item = createItem("occurreddate", true);
+    List.of("2022", "2024", "2021", "2022").forEach(item::addDimensionValue);
+    classifier.isStageDate = true;
+    EventQueryParams params = new EventQueryParams.Builder().addItem(item).build();
+
+    String date = builder.quoteAx("occurreddate");
+    assertEquals(
+        Optional.of(
+            "(%1$s >= '2021-01-01' and %1$s < '2023-01-01' or %1$s >= '2024-01-01' and %1$s < '2025-01-01')"
+                .formatted(date)),
+        facade.resolveDisjointPeriodFilter(item, params, date));
+  }
+
+  @Test
+  void shouldKeepExistingFilterForContiguousPeriods() {
+    QueryItem item = createItem("scheduleddate", true);
+    List.of("2022Q2", "2022Q1").forEach(item::addDimensionValue);
+    classifier.isStageDate = true;
+    EventQueryParams params = new EventQueryParams.Builder().addItem(item).build();
+
+    assertTrue(subject.resolveDisjointPeriodFilter(item, params, "scheduleddate").isEmpty());
+  }
+
+  @Test
+  void shouldKeepExistingStageDateFilterAndFirstOrLastLookback() {
+    QueryItem item = createItem("occurreddate", true);
+    List.of("2022Q1", "2022Q3").forEach(item::addDimensionValue);
+    classifier.isStageDate = true;
+    EventQueryParams asFilter = new EventQueryParams.Builder().addItemFilter(item).build();
+    EventQueryParams firstOrLast =
+        new EventQueryParams.Builder()
+            .addItem(item)
+            .withFirstOrLastStagePeriod(item, PeriodDimension.of("2022Q3"))
+            .build();
+
+    assertTrue(subject.resolveDisjointPeriodFilter(item, asFilter, "occurreddate").isEmpty());
+    assertTrue(subject.resolveDisjointPeriodFilter(item, firstOrLast, "occurreddate").isEmpty());
+  }
+
+  @Test
+  void shouldKeepExistingFilterWhenAValueIsNotAPeriod() {
+    QueryItem item = createItem("occurreddate", true);
+    List.of("2022Q1", "notAPeriod", "2022Q3").forEach(item::addDimensionValue);
+    classifier.isStageDate = true;
+    EventQueryParams params = new EventQueryParams.Builder().addItem(item).build();
+
+    assertTrue(subject.resolveDisjointPeriodFilter(item, params, "occurreddate").isEmpty());
+  }
+
+  @Test
+  void shouldKeepExistingFilterForItemsOtherThanStageDates() {
+    QueryItem item = createItem("occurreddate", true);
+    List.of("2022Q1", "2022Q3").forEach(item::addDimensionValue);
+    EventQueryParams params = new EventQueryParams.Builder().addItem(item).build();
+
+    assertTrue(subject.resolveDisjointPeriodFilter(item, params, "occurreddate").isEmpty());
+  }
+
+  private AnalyticsSqlBuilder sqlBuilder(String database) {
+    return switch (database) {
+      case "doris" -> new DorisAnalyticsSqlBuilder("analytics", "cluster");
+      case "clickhouse" -> new ClickHouseAnalyticsSqlBuilder("analytics");
+      default -> new PostgreSqlAnalyticsSqlBuilder();
+    };
   }
 
   private QueryItem createItem(String uid, boolean withStage) {
