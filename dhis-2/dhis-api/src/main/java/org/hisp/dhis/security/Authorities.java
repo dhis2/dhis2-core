@@ -115,6 +115,7 @@ public enum Authorities {
   F_JOB_LOG_READ,
   F_MOBILE_SETTINGS,
   F_PREVIOUS_IMPERSONATOR_AUTHORITY,
+  F_SCHEDULING_ADMIN,
   // bundled authority,
   M_DHIS_WEB_APP_MANAGEMENT("M_dhis-web-app-management");
 

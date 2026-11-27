@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.scheduling;
 
 import static org.hisp.dhis.security.Authorities.F_JOB_LOG_READ;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
+import static org.hisp.dhis.security.Authorities.F_SCHEDULING_ADMIN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -181,30 +182,20 @@ public class JobConfigurationController
     jobConfigurationService.deleteFinishedJobs(minutes);
   }
 
+  @RequiresAuthority(anyOf = F_SCHEDULING_ADMIN)
   @PostMapping("{uid}/enable")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void enable(@PathVariable("uid") UID uid) throws NotFoundException, ConflictException {
-    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid.getValue());
-    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
-    checkModifiable(obj, "Job %s is a system job that cannot be modified.");
-    if (!obj.isEnabled()) {
-      if (!obj.isReadyToRun())
-        throw new ConflictException("Job requires schedule setup before it can be enabled.");
-      obj.setEnabled(true);
-      jobConfigurationService.updateJobConfiguration(obj);
-    }
+  public void enable(@PathVariable("uid") UID uid)
+      throws NotFoundException, ConflictException, ForbiddenException {
+    jobConfigurationService.enable(uid);
   }
 
+  @RequiresAuthority(anyOf = F_SCHEDULING_ADMIN)
   @PostMapping("{uid}/disable")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void disable(@PathVariable("uid") UID uid) throws NotFoundException, ConflictException {
-    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid.getValue());
-    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
-    checkModifiable(obj, "Job %s is a system job that cannot be modified.");
-    if (obj.isEnabled()) {
-      obj.setEnabled(false);
-      jobConfigurationService.updateJobConfiguration(obj);
-    }
+  public void disable(@PathVariable("uid") UID uid)
+      throws NotFoundException, ConflictException, ForbiddenException {
+    jobConfigurationService.disable(uid);
   }
 
   @Override

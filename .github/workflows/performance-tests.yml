@@ -354,7 +354,7 @@ jobs:
 
     - name: Send Slack notification on failure
       if: failure() && steps.check_slack.outputs.webhook_configured == 'true'
-      uses: slackapi/slack-github-action@v4.0.0
+      uses: slackapi/slack-github-action@v4.1.0
       with:
         webhook: ${{ secrets.slack_webhook }}
         webhook-type: incoming-webhook

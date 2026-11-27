@@ -798,9 +798,6 @@ public enum ConfigurationKey {
   /** Maximum size for files uploaded as fileResources. */
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
 
-  /** CSRF feature. Enable or disable the feature. (sensitive) */
-  CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true),
-
   /**
    * Reject state-changing browser requests that carry no Origin header but whose Sec-Fetch-Site
    * header says they come from another site. (default: on)

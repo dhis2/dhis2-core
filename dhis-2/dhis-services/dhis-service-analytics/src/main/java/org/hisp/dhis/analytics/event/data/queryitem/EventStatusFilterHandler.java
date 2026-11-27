@@ -54,7 +54,7 @@ public class EventStatusFilterHandler implements QueryItemFilterHandler {
 
   /** Display labels of the event statuses accepted by stage-specific EVENT_STATUS items. */
   public static final Map<String, String> STAGE_EVENT_STATUS_LABELS =
-      Map.of("ACTIVE", "Active", "COMPLETED", "Completed", "SCHEDULE", "Schedule");
+      Map.of("ACTIVE", "Active", "COMPLETED", "Completed", "SCHEDULE", "Scheduled");
 
   private static final Set<String> VALID_STAGE_EVENT_STATUSES = STAGE_EVENT_STATUS_LABELS.keySet();
 
